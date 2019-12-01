@@ -18,8 +18,10 @@
 
 package io.github.mzmine.datamodel.data;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -67,11 +69,11 @@ public class ModularFeatureListRow implements ModularDataModel {
   }
 
   public Double getMZ() {
-    return get(MZType.class).map(DataType::getValue).orElse(0d);
+    return get(MZType.class).map(DataType::getValue).orElse(-1d);
   }
 
   public Float getRT() {
-    return get(RTType.class).map(DataType::getValue).orElse(0f);
+    return get(RTType.class).map(DataType::getValue).orElse(-1f);
   }
 
   public double getHeight() {
@@ -103,6 +105,14 @@ public class ModularFeatureListRow implements ModularDataModel {
    */
   public int getID() {
     return get(IDType.class).map(DataType::getValue).orElse(-1);
+  }
+
+  public List<RawDataFile> getRawDataFiles() {
+    return Collections.unmodifiableList(new ArrayList<>(getFeatures().keySet()));
+  }
+
+  public boolean hasFeature(ModularFeature feature) {
+    return getFeatures().values().contains(feature);
   }
 
 }

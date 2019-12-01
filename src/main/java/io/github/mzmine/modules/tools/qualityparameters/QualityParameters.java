@@ -18,15 +18,68 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
+import java.util.List;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.ModularPeakList;
+import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 
 /**
- * Calculates quality parameters for each peak in a feature list: - Full width at half maximum (FWHM) -
- * Tailing Factor - Asymmetry factor
+ * Calculates quality parameters for each peak in a feature list: - Full width at half maximum
+ * (FWHM) - Tailing Factor - Asymmetry factor
  */
 public class QualityParameters {
+  private QualityParameters() {}
+
+  public static void calculateQualityParameters(ModularPeakList flist) {
+    flist.streamFeatures().forEach(peak -> {
+      float height = peak.getHeight();
+      float rt = peak.getRT();
+
+      List<Integer> scanNumbers = peak.getScanNumbers();
+      RawDataFile dataFile = peak.getRawDataFile();
+      List<DataPoint> dps = peak.getDataPoints();
+      Range<Float> rtRange =
+          peak.get(RTRangeType.class).map(DataType::getValue).orElse(Range.singleton(rt));
+
+      height = peak.getHeight();
+      rt = peak.getRT();
+
+      // FWHM
+      double rtValues[] = peakFindRTs(height / 2.0, rt, scanNumbers, dps, dataFile, rtRange);
+      Double fwhm = rtValues[1] - rtValues[0];
+      if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
+        fwhm = null;
+      }
+      if (fwhm != null)
+        peak.set(new FwhmType(fwhm.floatValue()));
+
+      // Tailing Factor - TF
+      double rtValues2[] = peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
+      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
+      if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
+        tf = null;
+      }
+      if (tf != null)
+        peak.set(new TailingFactorType(tf.floatValue()));
+
+      // Asymmetry factor - AF
+      double rtValues3[] = peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
+      Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
+      if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
+        af = null;
+      }
+      if (af != null)
+        peak.set(new AsymmetryFactorType(af.floatValue()));
+    });
+  }
 
   public static void calculateQualityParameters(PeakList peakList) {
 
@@ -38,11 +91,19 @@ public class QualityParameters {
 
         peak = peakList.getPeak(i, peakList.getRawDataFile(x));
         if (peak != null) {
+          int[] scanNumbers = peak.getScanNumbers();
+          RawDataFile dataFile = peak.getDataFile();
+          DataPoint[] dps = new DataPoint[scanNumbers.length];
+          for (int dp = 0; dp < scanNumbers.length; dp++) {
+            dps[dp] = peak.getDataPoint(scanNumbers[dp]);
+          }
+          Range<Double> rtRange = peak.getRawDataPointsRTRange();
+
           height = peak.getHeight();
           rt = peak.getRT();
 
           // FWHM
-          double rtValues[] = PeakFindRTs(height / 2, rt, peak);
+          double rtValues[] = peakFindRTs(height / 2, rt, scanNumbers, dps, dataFile, rtRange);
           Double fwhm = rtValues[1] - rtValues[0];
           if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
             fwhm = null;
@@ -50,7 +111,7 @@ public class QualityParameters {
           peak.setFWHM(fwhm);
 
           // Tailing Factor - TF
-          double rtValues2[] = PeakFindRTs(height * 0.05, rt, peak);
+          double rtValues2[] = peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
           Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
           if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
             tf = null;
@@ -58,7 +119,7 @@ public class QualityParameters {
           peak.setTailingFactor(tf);
 
           // Asymmetry factor - AF
-          double rtValues3[] = PeakFindRTs(height * 0.1, rt, peak);
+          double rtValues3[] = peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
           Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
           if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
             af = null;
@@ -68,39 +129,59 @@ public class QualityParameters {
         }
       }
     }
-
   }
 
-  private static double[] PeakFindRTs(double intensity, double rt, Feature peak) {
+  private static double[] peakFindRTs(double intensity, float featureRT, List<Integer> scanNumbers,
+      List<DataPoint> dps, RawDataFile dataFile, Range<Float> rtRange) {
+    return peakFindRTs(intensity, featureRT,
+        scanNumbers.stream().mapToInt(i -> i.intValue()).toArray(), dps.toArray(DataPoint[]::new), //
+        dataFile, //
+        Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()));
+  }
 
-    double x1 = 0, x2 = 0, x3 = 0, x4 = 0, y1 = 0, y2 = 0, y3 = 0, y4 = 0, lastDiff1 = intensity,
-        lastDiff2 = intensity, currentDiff, currentRT;
-    int[] scanNumbers = peak.getScanNumbers();
-    RawDataFile dataFile = peak.getDataFile();
+  private static double[] peakFindRTs(double intensity, double featureRT, int[] scanNumbers,
+      DataPoint[] dps, RawDataFile dataFile, Range<Double> rtRange) {
+
+    double x1 = 0, x2 = 0, x3 = 0, x4 = 0, y1 = 0, y2 = 0, y3 = 0, y4 = 0;
+    double lastDiff1 = intensity;
+    double lastDiff2 = intensity;
+    double currentDiff;
+    double currentRT;
 
     // Find the data points closet to input intensity on both side of the
     // peak apex
+    DataPoint lastDP = dps[0];
+    double lastRT = dataFile.getScan(scanNumbers[0]).getRetentionTime();
+    DataPoint dp = dps[1];
+    double rt = dataFile.getScan(scanNumbers[1]).getRetentionTime();
     for (int i = 1; i < scanNumbers.length - 1; i++) {
+      DataPoint nextDP = dps[i + 1];
+      double nextRT = dataFile.getScan(scanNumbers[i + 1]).getRetentionTime();
 
-      if (peak.getDataPoint(scanNumbers[i]) != null) {
-        currentDiff = Math.abs(intensity - peak.getDataPoint(scanNumbers[i]).getIntensity());
+      if (dp != null) {
+        currentDiff = Math.abs(intensity - dp.getIntensity());
         currentRT = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-        if (currentDiff < lastDiff1 & currentDiff > 0 & currentRT <= rt
-            & peak.getDataPoint(scanNumbers[i + 1]) != null) {
-          x1 = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-          y1 = peak.getDataPoint(scanNumbers[i]).getIntensity();
-          x2 = dataFile.getScan(scanNumbers[i + 1]).getRetentionTime();
-          y2 = peak.getDataPoint(scanNumbers[i + 1]).getIntensity();
+        if (currentDiff < lastDiff1 && currentDiff > 0 && currentRT <= featureRT
+            && nextDP != null) {
+          x1 = rt;
+          y1 = dp.getIntensity();
+          x2 = nextRT;
+          y2 = nextDP.getIntensity();
           lastDiff1 = currentDiff;
-        } else if (currentDiff < lastDiff2 & currentDiff > 0 & currentRT >= rt
-            & peak.getDataPoint(scanNumbers[i - 1]) != null) {
-          x3 = dataFile.getScan(scanNumbers[i - 1]).getRetentionTime();
-          y3 = peak.getDataPoint(scanNumbers[i - 1]).getIntensity();
-          x4 = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-          y4 = peak.getDataPoint(scanNumbers[i]).getIntensity();
+        } else if (currentDiff < lastDiff2 && currentDiff > 0 && currentRT >= featureRT
+            && lastDP != null) {
+          x3 = lastRT;
+          y3 = lastDP.getIntensity();
+          x4 = rt;
+          y4 = dp.getIntensity();
           lastDiff2 = currentDiff;
         }
       }
+      // set to next
+      lastDP = dp;
+      lastRT = rt;
+      dp = nextDP;
+      rt = nextRT;
     }
 
     // Calculate RT value for input intensity based on linear regression
@@ -112,7 +193,7 @@ public class QualityParameters {
     } else if (x2 > 0) { // Straight drop of peak to 0 intensity
       rt1 = x2;
     } else {
-      rt1 = peak.getRawDataPointsRTRange().lowerEndpoint();
+      rt1 = rtRange.lowerEndpoint();
     }
     if (y4 > 0) {
       slope = (y4 - y3) / (x4 - x3);
@@ -121,7 +202,7 @@ public class QualityParameters {
     } else if (x3 > 0) { // Straight drop of peak to 0 intensity
       rt2 = x3;
     } else {
-      rt2 = peak.getRawDataPointsRTRange().upperEndpoint();
+      rt2 = rtRange.upperEndpoint();
     }
 
     return new double[] {rt1, rt2};

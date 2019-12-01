@@ -39,9 +39,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.ModularPeakList;
 import io.github.mzmine.datamodel.fx.FeatureTableFXWindow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -83,7 +84,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private double IntensityThresh2;
   private double minIntensityForStartChrom;
 
-  private SimplePeakList newPeakList;
+  private ModularPeakList newPeakList;
 
 
   /**
@@ -193,10 +194,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
               + "This will likely produce wrong results. "
               + "Please, set the scan filter parameter to a specific MS level");
     }
-
-
-    // Create new feature list
-    newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     // make a list of all the data points
     // sort data points by intensity
@@ -404,26 +401,28 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
 
+    // Create new feature list
+    newPeakList = new ModularPeakList(dataFile + " " + suffix, dataFile);
+
     // Add the chromatograms to the new feature list
-    List<ModularFeatureListRow> rows = new ArrayList<>();
     for (Feature finishedPeak : chromatograms) {
       ModularFeature modular = new ModularFeature(finishedPeak);
       ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakID, dataFile, modular);
-      rows.add(newRow);
+      newPeakList.addRow(newRow);
       newPeakID++;
     }
-
-    // show peaklist window
-    Platform.runLater(() -> {
-      FeatureTableFXWindow window = new FeatureTableFXWindow(rows);
-      window.show();
-    });
 
     // Add new peaklist to the project
     // project.addPeakList(newPeakList);
 
     // Add quality parameters to peaks
-    // QualityParameters.calculateQualityParameters(newPeakList);
+    QualityParameters.calculateQualityParameters(newPeakList);
+
+    // show peaklist window
+    Platform.runLater(() -> {
+      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList.getRows());
+      window.show();
+    });
 
     progress = 1.0;
 

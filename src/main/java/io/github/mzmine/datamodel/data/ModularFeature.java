@@ -136,4 +136,20 @@ public class ModularFeature implements ModularDataModel {
     return map;
   }
 
+  public float getRT() {
+    return get(RTType.class).map(DataType::getValue).orElse(-1f);
+  }
+
+  public double getMZ() {
+    return get(MZType.class).map(DataType::getValue).orElse(-1d);
+  }
+
+  public float getHeight() {
+    return get(HeightType.class).map(DataType::getValue).orElse(0f);
+  }
+
+  public float getArea() {
+    return get(AreaType.class).map(DataType::getValue).orElse(0f);
+  }
+
 }
