@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -45,6 +46,7 @@ import javafx.scene.input.KeyCombination;
  */
 public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   Random rand = new Random(System.currentTimeMillis());
 
   public FeatureTableFX() {
@@ -126,7 +128,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
     addColumns(data.get(0));
     TreeItem<ModularFeatureListRow> root = getRoot();
+    logger.info("Add rows");
     for (ModularFeatureListRow row : data) {
+      logger.info("Add row with id: " + row.getID());
       root.getChildren().add(new TreeItem<>(row));
     }
   }
@@ -137,6 +141,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * @param data a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(ModularFeatureListRow data) {
+    logger.info("Adding columns to table");
     // for all data columns available in "data"
     data.stream().forEach(dataType -> {
       addColumn(dataType);

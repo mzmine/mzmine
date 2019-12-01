@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -18,6 +19,7 @@ import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.RawsColorsType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
@@ -32,10 +34,23 @@ import javafx.stage.Stage;
 
 public class FXTableWindow extends Application {
   Random rand = new Random(System.currentTimeMillis());
+  Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
   public void start(Stage stage) {
+    logger.info("Init test");
     FeatureTableFX table = new FeatureTableFX();
+
+    createMinimalTest(table);
+    Scene scene = new Scene(table);
+
+    stage.setScene(scene);
+    stage.setMaximized(true);
+    stage.show();
+    // stage.setFullScreen(true);
+  }
+
+  public void createFullTest(FeatureTableFX table) {
 
     List<RawDataFile> raw = new ArrayList<>();
     for (int a = 0; a < 8; a++)
@@ -47,14 +62,35 @@ public class FXTableWindow extends Application {
 
     // Table tree root
     addDummyData(table.getRoot(), raw);
-    Scene scene = new Scene(table);
-
-    stage.setScene(scene);
-    stage.setMaximized(true);
-    stage.show();
-    // stage.setFullScreen(true);
   }
 
+  public void createMinimalTest(FeatureTableFX table) {
+
+    List<RawDataFile> raw = new ArrayList<>();
+    for (int a = 0; a < 1; a++)
+      raw.add(createRaw("Raw" + a));
+
+    List<ModularFeatureListRow> rows = createMinimalRows(raw);
+    table.addData(rows);
+  }
+
+
+  private List<ModularFeatureListRow> createMinimalRows(List<RawDataFile> raw) {
+    List<ModularFeatureListRow> rows = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      // ModularFeature p = new ModularFeature();
+      // p.set(new AreaType(500f - i * 100f));
+      // p.set(new RawFileType(raw.get(0)));
+      // ModularFeatureListRow r = new ModularFeatureListRow(i, raw.get(0), p);
+
+      ModularFeatureListRow r = new ModularFeatureListRow();
+      r.set(new IDType(i));
+      // r.set(new AreaType(500f - i * 100f));
+      // r.set(new DetectionType(FeatureStatus.DETECTED));
+      rows.add(r);
+    }
+    return rows;
+  }
 
   public void addDummyData(TreeItem<ModularFeatureListRow> root, List<RawDataFile> raw) {
     int i = 0;

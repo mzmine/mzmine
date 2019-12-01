@@ -18,6 +18,8 @@
 
 package io.github.mzmine.datamodel.data.types.fx;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -40,6 +42,7 @@ import javafx.util.Callback;
 public class DataTypeCellFactory<T extends DataType> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
 
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
   private Class<? extends DataType> dataTypeClass;
   private int subcolumn = -1;
@@ -59,6 +62,7 @@ public class DataTypeCellFactory<T extends DataType> implements
   @Override
   public TreeTableCell<ModularFeatureListRow, T> call(
       TreeTableColumn<ModularFeatureListRow, T> param) {
+    logger.log(Level.INFO, "Creating cell in DataTypeCellFactory");
     return new TreeTableCell<>() {
       private T lastItem = null;
       private Tooltip lastTP = null;
@@ -68,6 +72,7 @@ public class DataTypeCellFactory<T extends DataType> implements
       @Override
       protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
+        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
         if (item == null || empty) {
           setGraphic(null);
           setText(null);

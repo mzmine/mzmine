@@ -72,6 +72,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
       return null;
     }
 
+    logger.log(Level.INFO, "Created an ObservableDataType for " + dataTypeClass.descriptorString());
     return new ObservableDataType<>(map, dataTypeClass);
   }
 

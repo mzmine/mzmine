@@ -96,4 +96,13 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   }
 
+  /**
+   * Row ID or -1 if not present
+   * 
+   * @return
+   */
+  public int getID() {
+    return get(IDType.class).map(DataType::getValue).orElse(-1);
+  }
+
 }
