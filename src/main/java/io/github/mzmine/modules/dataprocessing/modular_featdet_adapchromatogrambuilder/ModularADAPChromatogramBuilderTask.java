@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.ModularPeakList;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.fx.FeatureTableFXWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -84,7 +84,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private double IntensityThresh2;
   private double minIntensityForStartChrom;
 
-  private ModularPeakList newPeakList;
+  private ModularFeatureList newPeakList;
 
 
   /**
@@ -402,7 +402,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
 
     // Create new feature list
-    newPeakList = new ModularPeakList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
 
     // Add the chromatograms to the new feature list
     for (Feature finishedPeak : chromatograms) {

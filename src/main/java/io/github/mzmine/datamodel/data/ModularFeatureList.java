@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 
-public class ModularPeakList implements PeakList {
+public class ModularFeatureList implements PeakList {
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -26,7 +26,7 @@ public class ModularPeakList implements PeakList {
 
 
 
-  public ModularPeakList(String name, RawDataFile... dataFiles) {
+  public ModularFeatureList(String name, RawDataFile... dataFiles) {
     if ((dataFiles == null) || (dataFiles.length == 0)) {
       throw (new IllegalArgumentException("Cannot create a feature list with no data files"));
     }

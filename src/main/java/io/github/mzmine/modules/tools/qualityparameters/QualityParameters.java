@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularPeakList;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
@@ -38,7 +38,7 @@ import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 public class QualityParameters {
   private QualityParameters() {}
 
-  public static void calculateQualityParameters(ModularPeakList flist) {
+  public static void calculateQualityParameters(ModularFeatureList flist) {
     flist.streamFeatures().forEach(peak -> {
       float height = peak.getHeight();
       float rt = peak.getRT();
