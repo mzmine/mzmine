@@ -1,4 +1,4 @@
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.PeakList;
 
 public class ModularPeakList implements PeakList {
 
