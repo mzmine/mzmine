@@ -20,69 +20,69 @@ package io.github.mzmine.modules.io.rawdataimport;
 
 import java.awt.Window;
 import java.io.File;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import java.util.List;
+import java.util.concurrent.FutureTask;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class RawDataImportParameters extends SimpleParameterSet {
 
-  private static final FileFilter filters[] = new FileFilter[] {
-      new FileNameExtensionFilter("All raw data files", "cdf", "nc", "mzData", "mzML", "mzXML",
-          "xml", "raw", "csv", "zip", "gz"),
-      new FileNameExtensionFilter("All XML files", "xml"),
-      new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
-      new FileNameExtensionFilter("mzData files", "mzData"),
-      new FileNameExtensionFilter("mzML files", "mzML"),
-      new FileNameExtensionFilter("Thermo RAW files", "raw"),
-      new FileNameExtensionFilter("Waters RAW folders", "raw"),
-      new FileNameExtensionFilter("mzXML files", "mzXML"),
-      new FileNameExtensionFilter("Agilent CSV files", "csv"),
-      new FileNameExtensionFilter("Compressed files", "zip", "gz")};
+    public static final FileNamesParameter fileNames = new FileNamesParameter();
 
-  public static final FileNamesParameter fileNames = new FileNamesParameter();
-
-  public RawDataImportParameters() {
-    super(new Parameter[] {fileNames});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    JFileChooser chooser = new JFileChooser();
-
-    // We need to allow directories, because Waters raw data come in
-    // directories, not files
-    chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
-    for (FileFilter filter : filters)
-      chooser.addChoosableFileFilter(filter);
-    chooser.setFileFilter(filters[0]);
-
-    File lastFiles[] = getParameter(fileNames).getValue();
-    if ((lastFiles != null) && (lastFiles.length > 0)) {
-      File currentDir = lastFiles[0].getParentFile();
-      if ((currentDir != null) && (currentDir.exists()))
-        chooser.setCurrentDirectory(currentDir);
+    public RawDataImportParameters() {
+        super(new Parameter[] { fileNames });
     }
 
-    chooser.setMultiSelectionEnabled(true);
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    int returnVal = chooser.showOpenDialog(parent);
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import raw data files");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("All raw data files", "*.cdf", "*.nc",
+                        "*.mzData", "*.mzML", "*.mzXML", "*.xml", "*.raw",
+                        "*.csv", "*.zip", "*.gz"), //
+                new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
+                new ExtensionFilter("mzML files", "*.mzML"), //
+                new ExtensionFilter("mzData files", "*.mzData"), //
+                new ExtensionFilter("mzXML files", "*.mzXML"), //
+                new ExtensionFilter("Thermo RAW files", "*.raw"), //
+                new ExtensionFilter("Waters RAW folders", "*.raw"), //
+                new ExtensionFilter("Agilent CSV files", "*.csv"), //
+                new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
+                new ExtensionFilter("All Files", "*.*"));
 
-    if (returnVal != JFileChooser.APPROVE_OPTION)
-      return ExitCode.CANCEL;
+        // We need to allow directories, because Waters raw data come in
+        // directories, not files
+        // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
-    File selectedFiles[] = chooser.getSelectedFiles();
+        File lastFiles[] = getParameter(fileNames).getValue();
+        if ((lastFiles != null) && (lastFiles.length > 0)) {
+            File currentDir = lastFiles[0].getParentFile();
+            if ((currentDir != null) && (currentDir.exists()))
+                fileChooser.setInitialDirectory(currentDir);
+        }
 
-    getParameter(fileNames).setValue(selectedFiles);
+        final FutureTask<List<File>> task = new FutureTask<>(
+                () -> fileChooser.showOpenMultipleDialog(null));
+        Platform.runLater(task);
+        try {
+            List<File> selectedFiles = task.get();
+            if (selectedFiles == null)
+                return ExitCode.CANCEL;
+            getParameter(fileNames)
+                    .setValue(selectedFiles.toArray(new File[0]));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    return ExitCode.OK;
+        return ExitCode.OK;
 
-  }
+    }
 
 }
