@@ -18,54 +18,50 @@
 
 package io.github.mzmine.datamodel.fx.test;
 
+import java.util.Map.Entry;
+import java.util.Optional;
+import org.junit.Before;
+import org.junit.Test;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.CommentType;
+import io.github.mzmine.datamodel.data.WrongTypeException;
+import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import io.github.mzmine.util.color.ColorsFX;
-import javafx.scene.paint.Color;
+import junit.framework.Assert;
 
 public class TestDatatypes {
+  ModularFeatureListRow data;
+  private FeatureStatus detection;
 
-  public static void main(String[] args) {
-    System.out.println(CommentType.class.isAssignableFrom(StringParser.class));
-    System.out.println(StringParser.class.isAssignableFrom(CommentType.class));
-    System.out.println(CommentType.class.isNestmateOf(StringParser.class));
-    System.out.println(StringParser.class.isNestmateOf(CommentType.class));
+  @Before
+  public void setUp() throws Exception {
+    detection = FeatureStatus.ESTIMATED;
+    data = new ModularFeatureListRow();
+    data.set(DetectionType.class, detection);
+    data.set(MZType.class, 200);
+  }
 
-    testColor(Color.BLACK);
-    testColor(Color.WHITE);
-    testColor(Color.RED);
-    testColor(Color.GREEN);
-    testColor(Color.BLUE);
-    testColor(Color.MAGENTA);
-
-
-    ModularFeatureListRow data = new ModularFeatureListRow();
-
-    System.out.println(data.getDetectionType().toString());
-    System.out.println(data.getFormattedString(RTType.class).orElse("No RT"));
-
-    data.set(MZType.class, (50d));
-    data.set(RTType.class, (10f));
-    data.set(DetectionType.class, (FeatureStatus.DETECTED));
-    data.set(AreaType.class, (1.2E4f));
-
-    System.out.println(data.getDetectionType().toString());
-    System.out.println(data.getFormattedString(RTType.class).orElse("NONE"));
-    System.out.println(data.getFormattedString(AreaType.class).orElse("NONE"));
-
-    System.out.println("Should throw an error");
+  @Test(expected = WrongTypeException.class)
+  public void testInsertWrongType() {
+    // should throw an error
     data.set(HeightType.class, (50d));
   }
 
-  private static void testColor(Color color) {
-    System.out.println(ColorsFX.toHexString(color) + "   " + ColorsFX.toHexOpacityString(color));
+  @Test
+  public void testDataTypes() {
+    Assert.assertNull(data.get(AreaType.class).get());
+    // detection type is present
+    Assert.assertEquals(detection.toString(), data.getDetectionType().toString());
+    Assert.assertEquals(detection.toString(), data.getFormattedString(DetectionType.class).get());
+    Entry<DataType<FeatureStatus>, Optional<FeatureStatus>> entry =
+        data.getEntry(DetectionType.class);
+    Assert.assertEquals(detection.toString(),
+        entry.getValue().map(v -> entry.getKey().getFormattedString(v)).get());
+
+    Assert.assertNotNull(data.get(MZType.class).get());
   }
 
 }
