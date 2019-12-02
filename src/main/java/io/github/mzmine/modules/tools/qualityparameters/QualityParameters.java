@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
@@ -46,8 +45,7 @@ public class QualityParameters {
       List<Integer> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       List<DataPoint> dps = peak.getDataPoints();
-      Range<Float> rtRange =
-          peak.get(RTRangeType.class).map(DataType::getValue).orElse(Range.singleton(rt));
+      Range<Float> rtRange = peak.get(RTRangeType.class).orElse(Range.singleton(rt));
 
       height = peak.getHeight();
       rt = peak.getRT();
@@ -59,7 +57,7 @@ public class QualityParameters {
         fwhm = null;
       }
       if (fwhm != null)
-        peak.set(new FwhmType(fwhm.floatValue()));
+        peak.set(FwhmType.class, (fwhm.floatValue()));
 
       // Tailing Factor - TF
       double rtValues2[] = peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
@@ -68,7 +66,7 @@ public class QualityParameters {
         tf = null;
       }
       if (tf != null)
-        peak.set(new TailingFactorType(tf.floatValue()));
+        peak.set(TailingFactorType.class, (tf.floatValue()));
 
       // Asymmetry factor - AF
       double rtValues3[] = peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
@@ -77,7 +75,7 @@ public class QualityParameters {
         af = null;
       }
       if (af != null)
-        peak.set(new AsymmetryFactorType(af.floatValue()));
+        peak.set(AsymmetryFactorType.class, (af.floatValue()));
     });
   }
 
