@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -35,15 +36,18 @@ public class ModularFeatureList implements PeakList {
   private Range<Float> rtRange;
   private double maxDataPointIntensity = 0;
 
-  public ModularFeatureList(String name, RawDataFile... dataFiles) {
-    if ((dataFiles == null) || (dataFiles.length == 0)) {
-      throw (new IllegalArgumentException("Cannot create a feature list with no data files"));
-    }
+  public ModularFeatureList(String name) {
+    this(name, new ArrayList<>());
+  }
+
+  public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
+    this(name, new ArrayList<>(List.of(dataFiles)));
+  }
+
+  public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
-    this.dataFiles = new ArrayList<>(dataFiles.length);
-    for (RawDataFile raw : dataFiles) {
-      this.dataFiles.add(raw);
-    }
+    this.dataFiles = dataFiles;
+
     peakListRows = new ArrayList<>();
     descriptionOfAppliedTasks = new ArrayList<>();
     dateCreated = DATA_FORMAT.format(new Date());
