@@ -39,10 +39,7 @@ repositories {
         url = "https://repo.maven.apache.org/maven2"
     }
     maven { // For SIRIUS ID modules
-        url = "https://bio.informatik.uni-jena.de/repository/libs-release-oss/"
-        metadataSources { // This is required becaues this file is broken: https://bio.informatik.uni-jena.de/repository/libs-release-oss/de/unijena/bioinf/java-utilities/1.0-SNAPSHOT/maven-metadata.xml
-            artifact()
-        }
+        url = "https://bio.informatik.uni-jena.de/repository/libs-oss/"
     }
     maven {
         url = "https://jitpack.io"
