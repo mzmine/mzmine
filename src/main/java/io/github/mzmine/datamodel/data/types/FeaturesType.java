@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.util.concurrent.AtomicDouble;
@@ -92,24 +91,10 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     shapes.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(shapes);
 
-    // create all sample columns
-    for (Entry<RawDataFile, ModularFeature> entry : value.entrySet()) {
-      RawDataFile subRaw = entry.getKey();
-      // create column per name
-      TreeTableColumn<ModularFeatureListRow, String> sampleCol =
-          new TreeTableColumn<>(subRaw.getName());
-      // TODO get RawDataFile -> Color and set column header
-      // sampleCol.setStyle("-fx-background-color: #"+ColorsFX.getHexString(color));
-      // add sub columns of feature
-      entry.getValue().stream().forEach(dataType -> {
-        TreeTableColumn<ModularFeatureListRow, ?> subCol = dataType.createColumn(subRaw);
-        if (subCol != null)
-          sampleCol.getColumns().add(subCol);
-      });
+    /*
+     * sample columns are created in the FeatureListFX class
+     */
 
-      // add all
-      cols.add(sampleCol);
-    }
     return cols;
   }
 

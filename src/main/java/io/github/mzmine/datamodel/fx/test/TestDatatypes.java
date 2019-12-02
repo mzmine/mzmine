@@ -21,7 +21,6 @@ package io.github.mzmine.datamodel.fx.test;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
@@ -50,19 +49,19 @@ public class TestDatatypes {
     ModularFeatureListRow data = new ModularFeatureListRow();
 
     System.out.println(data.getDetectionType().toString());
-    System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("No RT"));
+    System.out.println(data.getFormattedString(RTType.class).orElse("No RT"));
 
-    data.set(MZType.class, new MZType(50d));
-    data.set(RTType.class, new RTType(10f));
-    data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
-    data.set(AreaType.class, new AreaType(1.2E4f));
+    data.set(MZType.class, (50d));
+    data.set(RTType.class, (10f));
+    data.set(DetectionType.class, (FeatureStatus.DETECTED));
+    data.set(AreaType.class, (1.2E4f));
 
     System.out.println(data.getDetectionType().toString());
-    System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("NONE"));
-    System.out.println(data.get(AreaType.class).map(DataType::getFormattedString).orElse("NONE"));
+    System.out.println(data.getFormattedString(RTType.class).orElse("NONE"));
+    System.out.println(data.getFormattedString(AreaType.class).orElse("NONE"));
 
     System.out.println("Should throw an error");
-    data.set(HeightType.class, new MZType(50d));
+    data.set(HeightType.class, (50d));
   }
 
   private static void testColor(Color color) {

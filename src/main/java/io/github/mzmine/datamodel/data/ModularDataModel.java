@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -73,15 +74,70 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
+  default <T> Entry<DataType<T>, Optional<T>> getEntry(DataType<T> type) {
+    return new SimpleEntry<>(type, get(type));
+  }
+
+  /**
+   * Optional.ofNullable(value)
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
+  default <T> Entry<DataType<T>, Optional<T>> getEntry(Class<? extends DataType<T>> tclass) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getEntry(type);
+  }
+
+  /**
+   * Optional.ofNullable(value)
+   * 
+   * @param <T>
+   * @param type
+   * @return
+   */
   default <T> Optional<T> get(DataType<T> type) {
     return Optional.ofNullable((T) getMap().get(type));
   }
 
+  /**
+   * Optional.ofNullable(value)
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
   default <T> Optional<T> get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);
   }
 
+  /**
+   * Optional.ofNullable(type.getFormattedString(value))
+   * 
+   * @param <T>
+   * @param type
+   * @return
+   */
+  default <T> Optional<String> getFormattedString(DataType<T> type) {
+    return get(type).map(v -> type.getFormattedString(v));
+  }
+
+  /**
+   * Optional.ofNullable(type.getFormattedString(value))
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
+  default <T> Optional<String> getFormattedString(Class<? extends DataType<T>> tclass) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getFormattedString(type);
+  }
+
+
+  //
   default void set(@Nonnull DataType type, Object value) {
     if (type.checkValidValue(value))
       getMap().put(type, value);

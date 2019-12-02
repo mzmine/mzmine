@@ -19,22 +19,19 @@
 package io.github.mzmine.datamodel.fx;
 
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Logger;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import javafx.collections.ObservableMap;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -49,6 +46,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   Random rand = new Random(System.currentTimeMillis());
+  private ModularFeatureList flist;
 
   public FeatureTableFX() {
     FeatureTableFX table = this;
@@ -126,8 +124,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   public void addData(ModularFeatureList flist) {
     if (flist.isEmpty())
       return;
+    this.flist = flist;
 
     addColumns(flist);
+
+    // add rows
     TreeItem<ModularFeatureListRow> root = getRoot();
     logger.info("Add rows");
     for (ModularFeatureListRow row : flist.getRows()) {
@@ -145,7 +146,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     logger.info("Adding columns to table");
     // for all data columns available in "data"
     flist.getRowTypes().values().forEach(dataType -> {
-      addColumn(dataType, flist.getFeatureTypes());
+      addColumn(dataType);
     });
   }
 
@@ -155,14 +156,33 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * @param dataType
    * @param featureColumns
    */
-  public void addColumn(DataType dataType,
-      ObservableMap<Class<? extends DataType>, DataType> featureColumns) {
+  public void addColumn(DataType dataType) {
     // value binding
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
-        dataType.createColumn(null, featureColumns);
+    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
     // add to table
-    if (col != null)
+    if (col != null) {
       this.getColumns().add(col);
+      // is feature type?
+      if (dataType.getClass().equals(FeaturesType.class)) {
+        // add feature columns for each raw file
+        for (RawDataFile raw : flist.getRawDataFiles()) {
+          // create column per name
+          TreeTableColumn<ModularFeatureListRow, String> sampleCol =
+              new TreeTableColumn<>(raw.getName());
+          // TODO get RawDataFile -> Color and set column header
+          // sampleCol.setStyle("-fx-background-color: #"+ColorsFX.getHexString(color));
+          // add sub columns of feature
+          for (DataType ftype : flist.getFeatureTypes().values()) {
+            TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(raw);
+            if (subCol != null)
+              sampleCol.getColumns().add(subCol);
+          }
+
+          // add all
+          col.getColumns().add(sampleCol);
+        }
+      }
+    }
   }
 
 
@@ -175,39 +195,39 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   @SuppressWarnings("rawtypes")
   public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table,
       boolean addHeader) {
-    final Set<Integer> rows = new TreeSet<>();
-    for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
-      rows.add(tablePosition.getRow());
-    }
-    final StringBuilder strb = new StringBuilder();
-    boolean firstRow = true;
-    for (final Integer row : rows) {
-      if (!firstRow) {
-        strb.append('\n');
-      } else if (addHeader) {
-        for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
-          strb.append(column.getText());
-        }
-        strb.append('\n');
-      }
-      boolean firstCol = true;
-      for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
-        if (!firstCol) {
-          strb.append('\t');
-        }
-        firstCol = false;
-        final Object cellData = column.getCellData(row);
-        if (cellData == null)
-          strb.append("");
-        else if (cellData instanceof DataType<?>)
-          strb.append(((DataType<?>) cellData).getFormattedString());
-        else
-          strb.append(cellData.toString());
-      }
-      firstRow = false;
-    }
-    final ClipboardContent clipboardContent = new ClipboardContent();
-    clipboardContent.putString(strb.toString());
-    Clipboard.getSystemClipboard().setContent(clipboardContent);
+    // final Set<Integer> rows = new TreeSet<>();
+    // for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
+    // rows.add(tablePosition.getRow());
+    // }
+    // final StringBuilder strb = new StringBuilder();
+    // boolean firstRow = true;
+    // for (final Integer row : rows) {
+    // if (!firstRow) {
+    // strb.append('\n');
+    // } else if (addHeader) {
+    // for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
+    // strb.append(column.getText());
+    // }
+    // strb.append('\n');
+    // }
+    // boolean firstCol = true;
+    // for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
+    // if (!firstCol) {
+    // strb.append('\t');
+    // }
+    // firstCol = false;
+    // final Object cellData = column.getCellData(row);
+    // if (cellData == null)
+    // strb.append("");
+    // else if (cellData instanceof DataType<?>)
+    // strb.append(((DataType<?>) cellData).getFormattedString(cellData));
+    // else
+    // strb.append(cellData.toString());
+    // }
+    // firstRow = false;
+    // }
+    // final ClipboardContent clipboardContent = new ClipboardContent();
+    // clipboardContent.putString(strb.toString());
+    // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 }
