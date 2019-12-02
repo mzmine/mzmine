@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 /**
@@ -48,7 +47,8 @@ import javafx.collections.ObservableMap;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements ModularDataModel {
 
-  private final ObservableList<DataType> types = FXCollections.observableArrayList();
+  private final ObservableMap<Class<? extends DataType>, DataType> types =
+      FXCollections.observableHashMap();
 
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
@@ -61,8 +61,9 @@ public class ModularFeatureListRow implements ModularDataModel {
     set(FeaturesType.class, (fmap));
   }
 
+
   @Override
-  public ObservableList<DataType> getTypes() {
+  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
     return types;
   }
 

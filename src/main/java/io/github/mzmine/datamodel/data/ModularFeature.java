@@ -47,7 +47,6 @@ import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 /**
@@ -58,7 +57,8 @@ import javafx.collections.ObservableMap;
  */
 public class ModularFeature implements ModularDataModel {
 
-  private final ObservableList<DataType> types = FXCollections.observableArrayList();
+  private final ObservableMap<Class<? extends DataType>, DataType> types =
+      FXCollections.observableHashMap();
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
   public ModularFeature() {}
@@ -109,9 +109,8 @@ public class ModularFeature implements ModularDataModel {
      */
   }
 
-
   @Override
-  public ObservableList<DataType> getTypes() {
+  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
     return types;
   }
 

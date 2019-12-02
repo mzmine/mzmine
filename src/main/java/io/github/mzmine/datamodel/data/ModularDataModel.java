@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.DataType;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 public interface ModularDataModel {
@@ -34,7 +33,7 @@ public interface ModularDataModel {
    * 
    * @return
    */
-  public ObservableList<DataType> getTypes();
+  public ObservableMap<Class<? extends DataType>, DataType> getTypes();
 
   /**
    * The map containing all mappings to the types defined in getTypes
@@ -52,7 +51,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
-    return getTypes().stream().filter(t -> t.getClass().equals(tclass)).findFirst().get();
+    return getTypes().get(tclass);
   }
 
   /**
@@ -62,8 +61,8 @@ public interface ModularDataModel {
    */
   default void addTypeColumn(DataType<?>... types) {
     for (DataType<?> t : types) {
-      if (!getTypes().contains(t))
-        getTypes().add(t);
+      if (!getTypes().containsKey(t.getClass()))
+        getTypes().put(t.getClass(), t);
     }
   }
 
@@ -139,8 +138,11 @@ public interface ModularDataModel {
 
   //
   default void set(@Nonnull DataType type, Object value) {
-    if (type.checkValidValue(value))
+    if (type.checkValidValue(value)) {
       getMap().put(type, value);
+      // add column if not present
+      addTypeColumn(type);
+    }
     // wrong data type. Check code that supplied this data
     else
       throw new WrongTypeException(type.getClass(), value);

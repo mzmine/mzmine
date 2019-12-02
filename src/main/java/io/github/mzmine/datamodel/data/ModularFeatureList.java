@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -176,17 +177,17 @@ public class ModularFeatureList implements PeakList {
 
     // all columns
     AtomicBoolean rowtypesChanged = new AtomicBoolean(false);
-    for (DataType type : row.getTypes()) {
-      if (getRowTypes().containsKey(type.getClass())) {
-        getRowTypes().put(type.getClass(), type);
+    for (Map.Entry<Class<? extends DataType>, DataType> entry : row.getTypes().entrySet()) {
+      if (getRowTypes().containsKey(entry.getKey())) {
+        getRowTypes().put(entry.getKey(), entry.getValue());
         rowtypesChanged.set(true);
       }
     }
 
     AtomicBoolean ftypesChanged = new AtomicBoolean(false);
-    row.streamFeatures().flatMap(f -> f.getMap().keySet().stream()).forEach(ftype -> {
-      if (getFeatureTypes().containsKey(ftype.getClass())) {
-        getFeatureTypes().put(ftype.getClass(), ftype);
+    row.streamFeatures().flatMap(f -> f.getTypes().entrySet().stream()).forEach(entry -> {
+      if (getFeatureTypes().containsKey(entry.getKey())) {
+        getFeatureTypes().put(entry.getKey(), entry.getValue());
         ftypesChanged.set(true);
       }
     });
