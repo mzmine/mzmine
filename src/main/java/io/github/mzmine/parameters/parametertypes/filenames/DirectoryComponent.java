@@ -28,94 +28,104 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.concurrent.FutureTask;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import javafx.application.Platform;
+import javafx.stage.DirectoryChooser;
 
 /**
  */
 public class DirectoryComponent extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  // Text field width.
-  private static final int TEXT_FIELD_COLUMNS = 15;
+    // Text field width.
+    private static final int TEXT_FIELD_COLUMNS = 15;
 
-  // Text field font.
-  private static final Font SMALL_FONT = new Font("SansSerif", Font.PLAIN, 10);
+    // Text field font.
+    private static final Font SMALL_FONT = new Font("SansSerif", Font.PLAIN,
+            10);
 
-  // Chooser title.
-  private static final String TITLE = "Select Directory";
+    // Chooser title.
+    private static final String TITLE = "Select Directory";
 
-  // Text field.
-  private final JTextField txtDirectory;
+    // Text field.
+    private final JTextField txtDirectory;
 
-  /**
-   * Create the component.
-   */
-  public DirectoryComponent() {
+    /**
+     * Create the component.
+     */
+    public DirectoryComponent() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    // Create text field.
-    txtDirectory = new JTextField();
-    txtDirectory.setColumns(TEXT_FIELD_COLUMNS);
-    txtDirectory.setFont(SMALL_FONT);
+        // Create text field.
+        txtDirectory = new JTextField();
+        txtDirectory.setColumns(TEXT_FIELD_COLUMNS);
+        txtDirectory.setFont(SMALL_FONT);
 
-    // Chooser button.
-    final JButton btnFileBrowser = new JButton("...");
-    btnFileBrowser.addActionListener(this);
+        // Chooser button.
+        final JButton btnFileBrowser = new JButton("...");
+        btnFileBrowser.addActionListener(this);
 
-    add(txtDirectory, BorderLayout.CENTER);
-    add(btnFileBrowser, BorderLayout.EAST);
-  }
-
-  public File getValue() {
-
-    return new File(txtDirectory.getText());
-  }
-
-  public void setValue(final File value) {
-
-    txtDirectory.setText(value.getPath());
-  }
-
-  @Override
-  public void setToolTipText(final String text) {
-
-    txtDirectory.setToolTipText(text);
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    // Create chooser.
-    final JFileChooser chooser = new JFileChooser();
-    chooser.setMultiSelectionEnabled(false);
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    chooser.setAcceptAllFileFilterUsed(false);
-    chooser.setDialogTitle(TITLE);
-
-    // Set current directory.
-    final String currentPath = txtDirectory.getText();
-    if (currentPath.length() > 0) {
-
-      final File currentFile = new File(currentPath);
-      final File currentDir = currentFile.getParentFile();
-      if (currentDir != null && currentDir.exists()) {
-
-        chooser.setCurrentDirectory(currentDir);
-      }
+        add(txtDirectory, BorderLayout.CENTER);
+        add(btnFileBrowser, BorderLayout.EAST);
     }
 
-    // Open chooser.
-    if (chooser.showDialog(null, TITLE) == JFileChooser.APPROVE_OPTION) {
-      txtDirectory.setText(chooser.getSelectedFile().getPath());
+    public File getValue() {
+
+        return new File(txtDirectory.getText());
     }
-  }
+
+    public void setValue(final File value) {
+
+        txtDirectory.setText(value.getPath());
+    }
+
+    @Override
+    public void setToolTipText(final String text) {
+
+        txtDirectory.setToolTipText(text);
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent event) {
+
+        // Create chooser.
+        DirectoryChooser fileChooser = new DirectoryChooser();
+        fileChooser.setTitle(TITLE);
+
+        // Set current directory.
+        final String currentPath = txtDirectory.getText();
+        if (currentPath.length() > 0) {
+
+            final File currentFile = new File(currentPath);
+            final File currentDir = currentFile.getParentFile();
+            if (currentDir != null && currentDir.exists()) {
+                fileChooser.setInitialDirectory(currentDir);
+            }
+        }
+
+        // Open chooser.
+        final FutureTask<File> task = new FutureTask<>(
+                () -> fileChooser.showDialog(null));
+        Platform.runLater(task);
+
+        try {
+            File selectedFile = task.get();
+            if (selectedFile == null)
+                return;
+            txtDirectory.setText(selectedFile.getPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }
