@@ -40,24 +40,22 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellValueFactory<T extends DataType> implements
+public class DataTypeCellValueFactory<T> implements
     Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, T>, ObservableValue<T>>,
     Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile raw;
-  private Class<? extends DataType> dataTypeClass;
+  private DataType<T> type;
   private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier;
 
-  public DataTypeCellValueFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
-    this(raw, dataTypeClass, null);
-    this.dataTypeClass = dataTypeClass;
-    this.raw = raw;
+  public DataTypeCellValueFactory(RawDataFile raw, DataType<T> type) {
+    this(raw, type, null);
   }
 
-  public DataTypeCellValueFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass,
+  public DataTypeCellValueFactory(RawDataFile raw, DataType<T> type,
       Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier) {
-    this.dataTypeClass = dataTypeClass;
+    this.type = type;
     this.raw = raw;
     this.dataMapSupplier = dataMapSupplier == null ? this : dataMapSupplier;
   }
@@ -67,13 +65,15 @@ public class DataTypeCellValueFactory<T extends DataType> implements
     final ModularDataModel map = dataMapSupplier.apply(param);
     if (map == null) {
       logger.log(Level.WARNING,
-          "There was no DataTypeMap for the column of DataType " + dataTypeClass.descriptorString()
-              + " and raw file " + (raw == null ? "NONE" : raw.getName()));
+          "There was no DataTypeMap for the column of DataType "
+              + type.getClass().descriptorString() + " and raw file "
+              + (raw == null ? "NONE" : raw.getName()));
       return null;
     }
 
-    logger.log(Level.INFO, "Created an ObservableDataType for " + dataTypeClass.descriptorString());
-    return new ObservableDataType<>(map, dataTypeClass);
+    logger.log(Level.INFO,
+        "Created an ObservableDataType for " + type.getClass().descriptorString());
+    return new ObservableDataType<>(map, type);
   }
 
 

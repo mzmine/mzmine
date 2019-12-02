@@ -6,7 +6,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
@@ -21,7 +20,7 @@ public class AreaBarChart extends StackPane {
     int i = 1;
     int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
-      Float area = entry.getValue().get(AreaType.class).map(DataType::getValue).orElse(0f);
+      Float area = entry.getValue().get(AreaType.class).orElse(0f);
       data.getData().add(new XYChart.Data("" + i, area));
       i++;
       if (progress != null)

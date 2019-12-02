@@ -23,10 +23,6 @@ import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
 public class BestScanNumberType extends DataType<Integer> implements NullColumnType {
 
-  public BestScanNumberType(Integer value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "Best Scan #";

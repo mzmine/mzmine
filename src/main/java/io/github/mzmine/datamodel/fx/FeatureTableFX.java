@@ -81,9 +81,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       }
       if (keyCodeRandomComment.match(event)) {
         this.getSelectionModel().getSelectedItem().getValue().set(CommentType.class,
-            new CommentType("Random" + rand.nextInt(100)));
+            ("Random" + rand.nextInt(100)));
         this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
-            .forEach(f -> f.set(CommentType.class, new CommentType("Random" + rand.nextInt(100))));
+            .forEach(f -> f.set(CommentType.class, ("Random" + rand.nextInt(100))));
       }
       if (keyCodeRandomMZ.match(event)) {
         this.getSelectionModel().getSelectedItem().getValue().set(MZType.class,

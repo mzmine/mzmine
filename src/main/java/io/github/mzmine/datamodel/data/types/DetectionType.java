@@ -22,18 +22,14 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.WrongTypeException;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.shape.Circle;
 
-public class DetectionType extends DataType<FeatureStatus> implements GraphicalColumType {
-
-  public DetectionType(FeatureStatus value) {
-    super(value);
-  }
+public class DetectionType extends DataType<FeatureStatus>
+    implements GraphicalColumType<FeatureStatus> {
 
   @Override
   @Nonnull
@@ -42,19 +38,15 @@ public class DetectionType extends DataType<FeatureStatus> implements GraphicalC
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, FeatureStatus> cell,
+      TreeTableColumn<ModularFeatureListRow, FeatureStatus> coll, FeatureStatus cellData,
       RawDataFile raw) {
     if (cellData == null)
       return null;
 
-    if (!(cellData instanceof DetectionType))
-      throw new WrongTypeException(this.getClass(), cellData);
-
-    DetectionType type = (DetectionType) cellData;
     Circle circle = new Circle();
     circle.setRadius(10);
-    circle.setFill(type.getValue().getColorFX());
+    circle.setFill(cellData.getColorFX());
     return circle;
   }
 

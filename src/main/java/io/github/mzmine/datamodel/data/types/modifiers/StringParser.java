@@ -18,7 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types.modifiers;
 
+import javafx.util.StringConverter;
+
 public interface StringParser<T> {
 
   public T fromString(String s);
+
+  public StringConverter<T> getStringConverter();
+
 }

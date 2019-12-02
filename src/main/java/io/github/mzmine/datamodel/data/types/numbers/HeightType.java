@@ -26,11 +26,6 @@ public class HeightType extends NumberType<Float> {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
 
-
-  public HeightType(Float value) {
-    super(value);
-  }
-
   @Override
   public NumberFormat getFormatter() {
     try {

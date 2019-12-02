@@ -23,7 +23,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -34,25 +33,24 @@ import javafx.scene.control.TreeTableColumn;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public interface SubColumnsFactory {
+public interface SubColumnsFactory<T> {
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
    * 
    * @return
    */
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, T>> createSubColumns(
       final @Nullable RawDataFile raw);
 
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, final @Nullable RawDataFile raw);
+  public String getFormattedSubColValue(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
+      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw);
 
 
   @Nullable
-  default public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
-      RawDataFile raw) {
+  default public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
+      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw) {
     return null;
   }
 }

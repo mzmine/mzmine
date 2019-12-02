@@ -36,11 +36,7 @@ import javafx.scene.paint.Color;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class RawColorType extends DataType<Color> implements GraphicalColumType {
-
-  public RawColorType(Color color) {
-    super(color);
-  }
+public class RawColorType extends DataType<Color> implements GraphicalColumType<Color> {
 
   @Override
   @Nonnull
@@ -49,9 +45,8 @@ public class RawColorType extends DataType<Color> implements GraphicalColumType 
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
-      RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Color> cell,
+      TreeTableColumn<ModularFeatureListRow, Color> coll, Color value, RawDataFile raw) {
 
     Pane pane = new Pane();
     pane.setStyle(

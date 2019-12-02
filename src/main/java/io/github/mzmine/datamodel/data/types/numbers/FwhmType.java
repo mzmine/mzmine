@@ -20,10 +20,6 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 public class FwhmType extends RTType {
 
-  public FwhmType(Float value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "FWHM";

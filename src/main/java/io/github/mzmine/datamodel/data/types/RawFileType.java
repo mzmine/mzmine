@@ -24,20 +24,11 @@ import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
 public class RawFileType extends DataType<RawDataFile> implements NullColumnType {
 
-  public RawFileType(@Nonnull RawDataFile value) {
-    super(value);
-  }
-
   @Override
   @Nonnull
   public String getHeaderString() {
     return "Raw";
   }
 
-  @Override
-  @Nonnull
-  public String getFormattedString() {
-    return value.getName();
-  }
 
 }

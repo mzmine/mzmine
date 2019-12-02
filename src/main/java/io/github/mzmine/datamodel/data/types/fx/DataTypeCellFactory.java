@@ -39,22 +39,21 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellFactory<T extends DataType> implements
+public class DataTypeCellFactory<T> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
-  private Class<? extends DataType> dataTypeClass;
+  private DataType<T> type;
   private int subcolumn = -1;
 
 
-  public DataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
-    this(raw, dataTypeClass, -1);
+  public DataTypeCellFactory(RawDataFile raw, DataType<T> type) {
+    this(raw, type, -1);
   }
 
-  public DataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass,
-      int subcolumn) {
-    this.dataTypeClass = dataTypeClass;
+  public DataTypeCellFactory(RawDataFile raw, DataType<T> type, int subcolumn) {
+    this.type = type;
     this.raw = raw;
     this.subcolumn = subcolumn;
   }
@@ -82,22 +81,23 @@ public class DataTypeCellFactory<T extends DataType> implements
           setTooltip(lastTP);
         } else {
           // sub columns provide values
-          if (item instanceof SubColumnsFactory) {
+          if (type instanceof SubColumnsFactory) {
             // get sub column value
             SubColumnsFactory sub = (SubColumnsFactory) item;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
-            setText(n != null ? null : sub.getFormattedSubColValue(subcolumn, raw));
-            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn, raw)));
+            setText(
+                n != null ? null : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
+            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
           } else {
-            if (item instanceof GraphicalColumType) {
-              Node node = ((GraphicalColumType) item).getCellNode(this, param, item, raw);
+            if (type instanceof GraphicalColumType) {
+              Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
               setGraphic(node);
               setText(null);
-              setTooltip(new Tooltip(item.getFormattedString()));
+              setTooltip(new Tooltip(type.getFormattedString(item)));
             } else {
-              setTooltip(new Tooltip(item.getFormattedString()));
-              setText(item.getFormattedString());
+              setTooltip(new Tooltip(type.getFormattedString(item)));
+              setText(type.getFormattedString(item));
               setGraphic(null);
             }
           }

@@ -26,10 +26,6 @@ public class RTType extends NumberType<Float> {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
 
-  public RTType(Float value) {
-    super(value);
-  }
-
   @Override
   public NumberFormat getFormatter() {
     try {

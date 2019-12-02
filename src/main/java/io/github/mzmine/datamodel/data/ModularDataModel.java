@@ -18,37 +18,88 @@
 
 package io.github.mzmine.datamodel.data;
 
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 public interface ModularDataModel {
 
-  public ObservableMap<Class<? extends DataType>, DataType> getMap();
+  /**
+   * All types (columns) of this DataModel
+   * 
+   * @return
+   */
+  public ObservableList<DataType> getTypes();
 
-  default <T extends DataType<?>> Optional<T> get(Class<T> type) {
-    return Optional.ofNullable(getMap().get(type));
+  /**
+   * The map containing all mappings to the types defined in getTypes
+   * 
+   * @param
+   * @return
+   */
+  public ObservableMap<DataType, Object> getMap();
+
+  /**
+   * Get DataType column of this DataModel
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
+  default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
+    return getTypes().stream().filter(t -> t.getClass().equals(tclass)).findFirst().get();
   }
 
-  default void set(@Nonnull DataType<?> data) {
-    getMap().put(data.getClass(), data);
+  /**
+   * Adds the type column to the getTypes list. This needs to be done for each new value
+   * 
+   * @param types
+   */
+  default void addTypeColumn(DataType<?>... types) {
+    for (DataType<?> t : types) {
+      if (!getTypes().contains(t))
+        getTypes().add(t);
+    }
   }
 
-  default void set(Class<? extends DataType> class1, DataType<?> data) {
-    if (class1.isInstance(data))
-      getMap().put(class1, data);
+  /**
+   * Optional.ofNullable(value)
+   * 
+   * @param <T>
+   * @param type
+   * @return
+   */
+  default <T> Optional<T> get(DataType<T> type) {
+    return Optional.ofNullable((T) getMap().get(type));
+  }
+
+  default <T> Optional<T> get(Class<? extends DataType<T>> tclass) {
+    DataType<T> type = getTypeColumn(tclass);
+    return get(type);
+  }
+
+  default void set(@Nonnull DataType type, Object value) {
+    if (type.checkValidValue(value))
+      getMap().put(type, value);
     // wrong data type. Check code that supplied this data
     else
-      throw new WrongTypeException(class1, data);
+      throw new WrongTypeException(type.getClass(), value);
+  }
+
+  default <T> void set(Class<? extends DataType<T>> tclass, Object value) {
+    DataType type = getTypeColumn(tclass);
+    set(type, value);
   }
 
   default void remove(Class<? extends DataType<?>> key) {
     getMap().remove(key);
   }
 
-  default Stream<DataType> stream() {
-    return getMap().values().stream();
+  default Stream<Entry<DataType, Object>> stream() {
+    return getMap().entrySet().stream();
   }
 }

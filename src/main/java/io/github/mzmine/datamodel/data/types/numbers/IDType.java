@@ -22,10 +22,6 @@ import io.github.mzmine.datamodel.data.types.DataType;
 
 public class IDType extends DataType<Integer> {
 
-  public IDType(Integer value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "ID";

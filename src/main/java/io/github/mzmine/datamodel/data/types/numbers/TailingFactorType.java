@@ -20,10 +20,6 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 public class TailingFactorType extends RTType {
 
-  public TailingFactorType(Float value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "Tailing";

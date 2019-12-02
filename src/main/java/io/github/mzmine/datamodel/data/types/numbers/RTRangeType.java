@@ -21,16 +21,11 @@ package io.github.mzmine.datamodel.data.types.numbers;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 
 public class RTRangeType extends NumberRangeType<Float> {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
-
-  public RTRangeType(Range<Float> value) {
-    super(value);
-  }
 
   @Override
   public NumberFormat getFormatter() {

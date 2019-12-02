@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 /**
@@ -45,47 +46,53 @@ import javafx.collections.ObservableMap;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements ModularDataModel {
 
-  private final ObservableMap<Class<? extends DataType>, DataType> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableList<DataType> types = FXCollections.observableArrayList();
+
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
   public ModularFeatureListRow() {}
 
   public ModularFeatureListRow(int id, RawDataFile raw, ModularFeature p) {
-    set(new IDType(id));
+    set(IDType.class, (id));
     Map<RawDataFile, ModularFeature> fmap = new HashMap<>(1);
     fmap.put(raw, p);
-    set(new FeaturesType(fmap));
+    set(FeaturesType.class, (fmap));
   }
 
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getMap() {
+  public ObservableList<DataType> getTypes() {
+    return types;
+  }
+
+  @Override
+  public ObservableMap<DataType, Object> getMap() {
     return map;
   }
 
   // Helper methods
   // most common data types
   public FeatureStatus getDetectionType() {
-    return get(DetectionType.class).map(DataType::getValue).orElse(FeatureStatus.UNKNOWN);
+    return get(DetectionType.class).orElse(FeatureStatus.UNKNOWN);
   }
 
   public Double getMZ() {
-    return get(MZType.class).map(DataType::getValue).orElse(-1d);
+    return get(MZType.class).orElse(-1d);
   }
 
   public Float getRT() {
-    return get(RTType.class).map(DataType::getValue).orElse(-1f);
+    return get(RTType.class).orElse(-1f);
   }
 
   public double getHeight() {
-    return get(HeightType.class).map(DataType::getValue).orElse(0f);
+    return get(HeightType.class).orElse(0f);
   }
 
   public double getArea() {
-    return get(AreaType.class).map(DataType::getValue).orElse(0f);
+    return get(AreaType.class).orElse(0f);
   }
 
   public Map<RawDataFile, ModularFeature> getFeatures() {
-    return get(FeaturesType.class).map(DataType::getValue).orElse(Collections.emptyMap());
+    return get(FeaturesType.class).orElse(Collections.emptyMap());
   }
 
   /**
@@ -104,7 +111,7 @@ public class ModularFeatureListRow implements ModularDataModel {
    * @return
    */
   public int getID() {
-    return get(IDType.class).map(DataType::getValue).orElse(-1);
+    return get(IDType.class).orElse(-1);
   }
 
   public List<RawDataFile> getRawDataFiles() {

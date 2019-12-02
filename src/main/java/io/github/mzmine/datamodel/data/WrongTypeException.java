@@ -18,14 +18,13 @@
 
 package io.github.mzmine.datamodel.data;
 
-import io.github.mzmine.datamodel.data.types.DataType;
-
 public class WrongTypeException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
-  public WrongTypeException(Class key, DataType data) {
+  public WrongTypeException(Class key, Object data) {
     super(
         "Wrong type for feature data. This is a programming error in this module. Please report with full log. Key: "
-            + key.descriptorString() + "; value: " + data.getClass().descriptorString());
+            + key.descriptorString() + "; value: " + data + " as "
+            + (data == null ? "null" : data.getClass().descriptorString()));
   }
 }

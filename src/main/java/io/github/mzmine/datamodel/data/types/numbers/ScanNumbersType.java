@@ -18,26 +18,11 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
 public class ScanNumbersType extends DataType<List<Integer>> implements NullColumnType {
-
-  public ScanNumbersType(int... value) {
-    this(Arrays.stream(value).boxed().collect(Collectors.toList()));
-  }
-
-  public ScanNumbersType(Integer... value) {
-    this(List.of(value));
-  }
-
-  public ScanNumbersType(List<Integer> value) {
-    super(Collections.unmodifiableList(value));
-  }
 
   @Override
   public String getHeaderString() {

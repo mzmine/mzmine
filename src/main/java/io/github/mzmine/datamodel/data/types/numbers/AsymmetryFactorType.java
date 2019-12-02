@@ -20,10 +20,6 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 public class AsymmetryFactorType extends RTType {
 
-  public AsymmetryFactorType(Float value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "Asymmetry";

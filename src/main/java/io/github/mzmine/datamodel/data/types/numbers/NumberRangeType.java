@@ -30,39 +30,37 @@ import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
 public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<Range<T>>
-    implements SubColumnsFactory {
-
-  public NumberRangeType(Range<T> value) {
-    super(value);
-  }
+    implements SubColumnsFactory<Range<T>> {
 
   public abstract NumberFormat getFormatter();
 
   @Override
   @Nonnull
-  public String getFormattedString() {
+  public String getFormattedString(Range<T> value) {
     return value == null ? ""
         : getFormatter().format(value.lowerEndpoint()) + "-"
             + getFormatter().format(value.upperEndpoint());
   }
 
+
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, Range<T>>> createSubColumns(
       final @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
+    List<TreeTableColumn<ModularFeatureListRow, Range<T>>> cols = new ArrayList<>();
 
     // create column per name
-    TreeTableColumn<ModularFeatureListRow, NumberRangeType<?>> min = new TreeTableColumn<>("min");
-    min.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
-    min.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), 0));
+    TreeTableColumn<ModularFeatureListRow, Range<T>> min = new TreeTableColumn<>("min");
+    min.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
+    min.setCellFactory(new DataTypeCellFactory<>(raw, this, 0));
 
-    TreeTableColumn<ModularFeatureListRow, NumberRangeType<?>> max = new TreeTableColumn<>("max");
-    max.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
-    max.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), 1));
+    TreeTableColumn<ModularFeatureListRow, Range<T>> max = new TreeTableColumn<>("max");
+    max.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
+    max.setCellFactory(new DataTypeCellFactory<>(raw, this, 1));
 
     // add all
     cols.add(min);
@@ -73,7 +71,9 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, final @Nullable RawDataFile raw) {
+  public String getFormattedSubColValue(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, Range<T>> cell,
+      TreeTableColumn<ModularFeatureListRow, Range<T>> coll, Range<T> value, RawDataFile raw) {
     if (value == null)
       return "";
     switch (subcolumn) {

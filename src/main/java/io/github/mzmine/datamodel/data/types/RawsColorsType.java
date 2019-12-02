@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.data.types;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,11 +43,8 @@ import javafx.scene.paint.Color;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements SubColumnsFactory {
-
-  public RawsColorsType(Map<RawDataFile, Color> map) {
-    super(Collections.unmodifiableMap(map));
-  }
+public class RawsColorsType extends DataType<Map<RawDataFile, Color>>
+    implements SubColumnsFactory<Map<RawDataFile, Color>> {
 
   @Override
   @Nonnull
@@ -58,19 +54,19 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns(
-      final @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
+  public List<TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, Color>>> createSubColumns(
+      @Nullable RawDataFile raw) {
+    List<TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, Color>>> cols = new ArrayList<>();
 
     // create all sample columns
     int subcol = 0;
     for (Entry<RawDataFile, Color> entry : value.entrySet()) {
       RawDataFile subRaw = entry.getKey();
       // create column per name
-      TreeTableColumn<ModularFeatureListRow, RawsColorsType> sampleCol =
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, Color>> sampleCol =
           new TreeTableColumn<>(subRaw.getName());
-      sampleCol.setCellValueFactory(new RawsMapCellValueFactory<>(subRaw, this.getClass()));
-      sampleCol.setCellFactory(new DataTypeCellFactory<>(subRaw, this.getClass(), subcol));
+      sampleCol.setCellValueFactory(new RawsMapCellValueFactory<>(subRaw, this));
+      sampleCol.setCellFactory(new DataTypeCellFactory<>(subRaw, this, subcol));
 
       // add all
       cols.add(sampleCol);
@@ -78,6 +74,7 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements
     }
     return cols;
   }
+
 
   public RawDataFile getRawFile(int i) {
     int c = 0;
@@ -109,10 +106,9 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements
   @Override
   @Nullable
   public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
-      RawDataFile raw) {
-
+      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, Color>> cell,
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, Color>> coll,
+      Map<RawDataFile, Color> cellData, RawDataFile raw) {
     Color color = getValue(subcolumn);
     if (color == null)
       color = Color.BLACK;

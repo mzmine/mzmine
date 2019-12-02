@@ -23,13 +23,9 @@ import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
 public class BestFragmentScanNumberType extends DataType<Integer> implements NullColumnType {
 
-  public BestFragmentScanNumberType(Integer value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
-    return "Best Scan #";
+    return "Best Fragment Scan #";
   }
 
 }

@@ -18,20 +18,11 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import javafx.scene.control.TreeTableColumn;
 
 public class IdentityType extends DataType<List<PeakIdentity>> {
-
-  public IdentityType(List<PeakIdentity> value) {
-    super(Collections.unmodifiableList(value));
-  }
 
   @Override
   public String getHeaderString() {
@@ -40,7 +31,7 @@ public class IdentityType extends DataType<List<PeakIdentity>> {
 
   @Override
   @Nonnull
-  public String getFormattedString() {
+  public String getFormattedString(List<PeakIdentity> value) {
     return value == null || value.isEmpty() ? "" : value.get(0).toString();
   }
 }

@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.data.types.modifiers;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -31,7 +30,7 @@ import javafx.scene.control.TreeTableColumn;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public interface GraphicalColumType {
+public interface GraphicalColumType<T> {
   /**
    * 
    * @param cell
@@ -40,7 +39,6 @@ public interface GraphicalColumType {
    * @param raw only provided for sample specific DataTypes
    * @return
    */
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
-      RawDataFile raw);
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, T> cell,
+      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw);
 }

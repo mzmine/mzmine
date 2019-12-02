@@ -29,7 +29,6 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 /**
  * Default cell factory for a DataType
@@ -38,22 +37,21 @@ import javafx.util.StringConverter;
  *
  * @param <T>
  */
-public class EditableDataTypeCellFactory<T extends DataType> implements
+public class EditableDataTypeCellFactory<T> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
-  private Class<? extends DataType> dataTypeClass;
+  private DataType<T> type;
   private int subcolumn = -1;
 
 
-  public EditableDataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
-    this(raw, dataTypeClass, -1);
+  public EditableDataTypeCellFactory(RawDataFile raw, DataType<T> type) {
+    this(raw, type, -1);
   }
 
-  public EditableDataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass,
-      int subcolumn) {
-    this.dataTypeClass = dataTypeClass;
+  public EditableDataTypeCellFactory(RawDataFile raw, DataType<T> type, int subcolumn) {
+    this.type = type;
     this.raw = raw;
     this.subcolumn = subcolumn;
   }
@@ -64,28 +62,13 @@ public class EditableDataTypeCellFactory<T extends DataType> implements
 
     TextFieldTreeTableCell<ModularFeatureListRow, T> cell = new TextFieldTreeTableCell<>();
 
-    if (StringParser.class.isAssignableFrom(dataTypeClass)) {
-      StringConverter<T> converter = new StringConverter<T>() {
-        @Override
-        public String toString(T t) {
-          return t == null ? "" : t.getFormattedString();
-        }
-
-        @Override
-        public T fromString(String string) {
-          if (cell.getItem() instanceof StringParser) {
-            return ((StringParser<T>) cell.getItem()).fromString(string);
-          }
-          return null;
-        }
-      };
-
-      cell.setConverter(converter);
+    if (type instanceof StringParser) {
+      cell.setConverter(((StringParser) type).getStringConverter());
       cell.setAlignment(Pos.CENTER);
       return cell;
     } else {
-      logger.log(Level.SEVERE,
-          "Class in editable CellFactory is no StringParser: " + dataTypeClass.descriptorString());
+      logger.log(Level.SEVERE, "Class in editable CellFactory is no StringParser: "
+          + type.getClass().descriptorString());
       return null;
     }
   }

@@ -31,10 +31,10 @@ import javafx.scene.control.TreeTableColumn.CellDataFeatures;
  *
  * @param <T>
  */
-public class RawsMapCellValueFactory<T extends DataType> extends DataTypeCellValueFactory<T> {
+public class RawsMapCellValueFactory<T> extends DataTypeCellValueFactory<T> {
 
-  public RawsMapCellValueFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
-    super(raw, dataTypeClass);
+  public RawsMapCellValueFactory(RawDataFile raw, DataType<T> type) {
+    super(raw, type);
   }
 
   /**

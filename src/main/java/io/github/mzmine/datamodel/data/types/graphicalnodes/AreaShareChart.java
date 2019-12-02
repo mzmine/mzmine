@@ -9,7 +9,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.RawsColorsType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import javafx.collections.FXCollections;
@@ -22,16 +21,16 @@ import javafx.scene.shape.Rectangle;
 public class AreaShareChart extends StackPane {
 
   public AreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    Float sum = row.getFeatures().entrySet().stream().map(Entry::getValue)
-        .map(e -> e.get(AreaType.class).map(DataType::getValue).orElse(0f)).reduce(0f, Float::sum);
-    Map<RawDataFile, Color> rawColors = row.get(RawsColorsType.class).map(DataType::getValue)
-        .orElse(FXCollections.emptyObservableMap());
+    Float sum =
+        row.getFeatures().values().stream().map(ModularFeature::getArea).reduce(0f, Float::sum);
+    Map<RawDataFile, Color> rawColors =
+        row.get(RawsColorsType.class).orElse(FXCollections.emptyObservableMap());
 
     List<Rectangle> all = new ArrayList<>();
     int i = 0;
     int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
-      Float area = entry.getValue().get(AreaType.class).map(DataType::getValue).orElse(null);
+      Float area = entry.getValue().get(AreaType.class).orElse(null);
       if (area != null) {
         Color color = rawColors.get(entry.getKey());
         if (color == null)

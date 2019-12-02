@@ -23,12 +23,8 @@ import io.github.mzmine.datamodel.data.types.DataType;
 
 public abstract class NumberType<T extends Number> extends DataType<T> {
 
-  public NumberType(T value) {
-    super(value);
-  }
-
   @Override
-  public String getFormattedString() {
+  public String getFormattedString(T value) {
     return value == null ? "" : getFormatter().format(value);
   }
 

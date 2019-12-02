@@ -22,10 +22,6 @@ import io.github.mzmine.datamodel.data.types.DataType;
 
 public class ChargeType extends DataType<Integer> {
 
-  public ChargeType(Integer value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "Charge";

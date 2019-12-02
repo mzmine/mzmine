@@ -23,10 +23,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 
 public class IsotopePatternType extends DataType<IsotopePattern> {
 
-  public IsotopePatternType(IsotopePattern value) {
-    super(value);
-  }
-
   @Override
   @Nonnull
   public String getHeaderString() {
@@ -35,7 +31,7 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
 
   @Override
   @Nonnull
-  public String getFormattedString() {
+  public String getFormattedString(IsotopePattern value) {
     return value != null ? "" + value.getNumberOfDataPoints() : "";
   }
 

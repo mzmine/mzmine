@@ -18,8 +18,9 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,16 +42,12 @@ import javafx.scene.control.TreeTableColumn;
  *
  * @param <T>
  */
-public abstract class DataType<T> implements Comparable<DataType<T>> {
+public abstract class DataType<T> {
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected ModularDataModel model;
-  protected final T value;
 
-  public DataType(T value) {
-    this.value = value;
-  }
-
+  public DataType() {}
 
   /**
    * The current data model (should only be added to one data model). Data model registers itself.
@@ -71,23 +68,12 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
   }
 
   /**
-   * The actual value. Might be null in some cases. However, DataTypes should try to return "empty"
-   * objects or lists instead.
-   * 
-   * @return
-   */
-  @Nullable
-  public T getValue() {
-    return value;
-  }
-
-  /**
    * A formatted string representation of the value
    * 
    * @return the formatted representation of the value (or an empty String)
    */
   @Nonnull
-  public String getFormattedString() {
+  public String getFormattedString(T value) {
     if (value != null)
       return value.toString();
     else
@@ -113,13 +99,11 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
    * @return the TreeTableColumn or null if this DataType.value is not represented in a column
    */
   @Nullable
-  public TreeTableColumn<ModularFeatureListRow, ? extends DataType> createColumn(
-      final @Nullable RawDataFile raw) {
+  public TreeTableColumn<ModularFeatureListRow, T> createColumn(final @Nullable RawDataFile raw) {
     if (this instanceof NullColumnType)
       return null;
     // create column
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
-        new TreeTableColumn<>(getHeaderString());
+    TreeTableColumn<ModularFeatureListRow, T> col = new TreeTableColumn<>(getHeaderString());
 
     if (this instanceof SubColumnsFactory) {
       col.setSortable(false);
@@ -131,51 +115,48 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
     } else {
       col.setSortable(true);
       // define observable
-      col.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
+      col.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
       // value representation
       if (this instanceof EditableColumnType) {
-        col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this.getClass()));
+        col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this));
         col.setEditable(true);
         col.setOnEditCommit(event -> {
-          DataType data = event.getNewValue();
+          Object data = event.getNewValue();
           if (data != null) {
             if (raw == null)
-              event.getRowValue().getValue().set(this.getClass(), data);
+              event.getRowValue().getValue().set(this, data);
             else
-              event.getRowValue().getValue().getFeatures().get(raw).set(this.getClass(), data);
+              event.getRowValue().getValue().getFeatures().get(raw).set(this, data);
           }
         });
       } else
-        col.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));
+        col.setCellFactory(new DataTypeCellFactory<>(raw, this));
     }
     return col;
   }
 
-
-  @Override
-  public int compareTo(DataType<T> o) {
-    if (o == null || this.value == null || o.value == null)
-      return 0;
-    if (this.value instanceof Comparable)
-      return ((Comparable) this.getValue()).compareTo(o.getValue());
-    else
-      return getFormattedString().compareTo(o.getFormattedString());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getHeaderString(), value);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
+  public boolean checkValidValue(Object value) {
+    if (value == null)
       return true;
-    if (!(obj instanceof DataType))
-      return false;
-    DataType other = (DataType) obj;
-    return Objects.equals(getHeaderString(), other.getHeaderString())
-        && Objects.equals(value, other.value);
+    else {
+      try {
+        // get class of template T (value class)
+        Class valueClass = (Class) ((ParameterizedType) getClass().getGenericSuperclass())
+            .getActualTypeArguments()[0];
+        return value.getClass().equals(valueClass);
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot reflect template class (value class)", e);
+        // the check system is broken so better return true
+        return true;
+      }
+    }
+  }
+
+  public T cast(Object value) {
+    if (checkValidValue(value)) {
+      return (T) value;
+    }
+    return null;
   }
 
 }

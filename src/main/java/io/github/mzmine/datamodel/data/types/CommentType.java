@@ -20,13 +20,13 @@ package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
 
 public class CommentType extends DataType<String>
-    implements EditableColumnType, StringParser<CommentType> {
+    implements EditableColumnType, StringParser<String> {
 
-  public CommentType(String value) {
-    super(value);
-  }
+  private StringConverter<String> converter = new DefaultStringConverter();
 
   @Override
   public String getHeaderString() {
@@ -34,8 +34,13 @@ public class CommentType extends DataType<String>
   }
 
   @Override
-  public CommentType fromString(String s) {
-    return new CommentType(s);
+  public String fromString(String s) {
+    return s;
+  }
+
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
   }
 
 }

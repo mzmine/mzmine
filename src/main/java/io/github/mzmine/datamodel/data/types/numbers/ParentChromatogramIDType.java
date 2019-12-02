@@ -22,10 +22,6 @@ import io.github.mzmine.datamodel.data.types.DataType;
 
 public class ParentChromatogramIDType extends DataType<Integer> {
 
-  public ParentChromatogramIDType(Integer value) {
-    super(value);
-  }
-
   @Override
   public String getHeaderString() {
     return "Parent ID";

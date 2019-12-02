@@ -24,8 +24,6 @@ public class ModularFeatureList implements PeakList {
   private Range<Float> rtRange;
   private double maxDataPointIntensity = 0;
 
-
-
   public ModularFeatureList(String name, RawDataFile... dataFiles) {
     if ((dataFiles == null) || (dataFiles.length == 0)) {
       throw (new IllegalArgumentException("Cannot create a feature list with no data files"));
@@ -39,7 +37,6 @@ public class ModularFeatureList implements PeakList {
     descriptionOfAppliedTasks = new ArrayList<>();
     dateCreated = DATA_FORMAT.format(new Date());
   }
-
 
   @Override
   public String getName() {

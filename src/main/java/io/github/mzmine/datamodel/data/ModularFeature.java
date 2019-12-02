@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 /**
@@ -55,61 +56,68 @@ import javafx.collections.ObservableMap;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-@SuppressWarnings("rawtypes")
 public class ModularFeature implements ModularDataModel {
 
-  private final ObservableMap<Class<? extends DataType>, DataType> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableList<DataType> types = FXCollections.observableArrayList();
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
-  public ModularFeature() {
-
-  }
+  public ModularFeature() {}
 
   public ModularFeature(Feature p) {
     this();
     int[] scans = p.getScanNumbers();
-    set(new ScanNumbersType(scans));
-    set(new RawFileType(p.getDataFile()));
-    set(new DetectionType(p.getFeatureStatus()));
-    set(new MZType(p.getMZ()));
-    set(new RTType((float) p.getRT()));
-    set(new HeightType((float) p.getHeight()));
-    set(new AreaType((float) p.getArea()));
-    set(new BestScanNumberType(p.getRepresentativeScanNumber()));
-    set(new FragmentScanNumbersType(p.getAllMS2FragmentScanNumbers()));
-    set(new BestFragmentScanNumberType(p.getMostIntenseFragmentScanNumber()));
-    set(new IsotopePatternType(p.getIsotopePattern()));
-    set(new ChargeType(p.getCharge()));
-    set(new ParentChromatogramIDType(p.getParentChromatogramRowID()));
+    set(ScanNumbersType.class, (scans));
+    set(RawFileType.class, (p.getDataFile()));
+    set(DetectionType.class, (p.getFeatureStatus()));
+    set(MZType.class, (p.getMZ()));
+    set(RTType.class, ((float) p.getRT()));
+    set(HeightType.class, ((float) p.getHeight()));
+    set(AreaType.class, ((float) p.getArea()));
+    set(BestScanNumberType.class, (p.getRepresentativeScanNumber()));
+    set(FragmentScanNumbersType.class, (p.getAllMS2FragmentScanNumbers()));
+    set(BestFragmentScanNumberType.class, (p.getMostIntenseFragmentScanNumber()));
+    set(IsotopePatternType.class, (p.getIsotopePattern()));
+    set(ChargeType.class, (p.getCharge()));
+    set(ParentChromatogramIDType.class, (p.getParentChromatogramRowID()));
     // symmetry
     if (p.getFWHM() != null)
-      set(new FwhmType(p.getFWHM().floatValue()));
+      set(FwhmType.class, (p.getFWHM().floatValue()));
     if (p.getAsymmetryFactor() != null)
-      set(new AsymmetryFactorType(p.getAsymmetryFactor().floatValue()));
+      set(AsymmetryFactorType.class, (p.getAsymmetryFactor().floatValue()));
     if (p.getTailingFactor() != null)
-      set(new TailingFactorType(p.getTailingFactor().floatValue()));
+      set(TailingFactorType.class, (p.getTailingFactor().floatValue()));
 
     // datapoints of feature
     List<DataPoint> dps = new ArrayList<>();
     for (int i = 0; i < scans.length; i++) {
       dps.add(p.getDataPoint(scans[i]));
     }
-    set(new DataPointsType(dps));
+    set(DataPointsType.class, dps);
 
     // ranges
     Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint().floatValue(),
         p.getRawDataPointsRTRange().upperEndpoint().floatValue());
-    System.out.println(rtRange.toString() + " rtrange " + p.getRawDataPointsRTRange().toString());
     Range<Float> intensityRange =
         Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
             p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    set(new RTRangeType(rtRange));
-    set(new IntensityRangeType(intensityRange));
-    set(new MZRangeType(p.getRawDataPointsMZRange()));
+    set(RTRangeType.class, rtRange);
+    set(IntensityRangeType.class, intensityRange);
+    set(MZRangeType.class, p.getRawDataPointsMZRange());
     /*
      * getDataPoint
      * 
      */
+  }
+
+
+  @Override
+  public ObservableList<DataType> getTypes() {
+    return types;
+  }
+
+  @Override
+  public ObservableMap<DataType, Object> getMap() {
+    return map;
   }
 
   public DataPoint getDataPoint(int scan) {
@@ -120,36 +128,31 @@ public class ModularFeature implements ModularDataModel {
   }
 
   public List<Integer> getScanNumbers() {
-    return get(ScanNumbersType.class).map(DataType::getValue).orElse(List.of());
+    return get(ScanNumbersType.class).orElse(List.of());
   }
 
   public List<DataPoint> getDataPoints() {
-    return get(DataPointsType.class).map(DataType::getValue).orElse(List.of());
+    return get(DataPointsType.class).orElse(List.of());
   }
 
   public RawDataFile getRawDataFile() {
-    return get(RawFileType.class).map(DataType::getValue).orElse(null);
-  }
-
-  @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getMap() {
-    return map;
+    return get(RawFileType.class).orElse(null);
   }
 
   public float getRT() {
-    return get(RTType.class).map(DataType::getValue).orElse(-1f);
+    return get(RTType.class).orElse(-1f);
   }
 
   public double getMZ() {
-    return get(MZType.class).map(DataType::getValue).orElse(-1d);
+    return get(MZType.class).orElse(-1d);
   }
 
   public float getHeight() {
-    return get(HeightType.class).map(DataType::getValue).orElse(0f);
+    return get(HeightType.class).orElse(0f);
   }
 
   public float getArea() {
-    return get(AreaType.class).map(DataType::getValue).orElse(0f);
+    return get(AreaType.class).orElse(0f);
   }
 
 }
