@@ -241,4 +241,8 @@ public interface PeakList {
    */
   public ModularFeatureListRow findRowByID(int id);
 
+  default boolean isEmpty() {
+    return getRows().isEmpty();
+  }
+
 }

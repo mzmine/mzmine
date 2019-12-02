@@ -18,15 +18,16 @@
 
 package io.github.mzmine.datamodel.fx;
 
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -87,9 +88,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       }
       if (keyCodeRandomMZ.match(event)) {
         this.getSelectionModel().getSelectedItem().getValue().set(MZType.class,
-            new MZType(rand.nextDouble() * 200d));
+            (rand.nextDouble() * 200d));
         this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
-            .forEach(f -> f.set(MZType.class, new MZType(rand.nextDouble() * 200d)));
+            .forEach(f -> f.set(MZType.class, (rand.nextDouble() * 200d)));
       }
 
       if (event.getCode().isLetterKey() || event.getCode().isDigitKey()) {
@@ -122,14 +123,14 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * 
    * @param data
    */
-  public void addData(List<ModularFeatureListRow> data) {
-    if (data.isEmpty())
+  public void addData(ModularFeatureList flist) {
+    if (flist.isEmpty())
       return;
 
-    addColumns(data.get(0));
+    addColumns(flist);
     TreeItem<ModularFeatureListRow> root = getRoot();
     logger.info("Add rows");
-    for (ModularFeatureListRow row : data) {
+    for (ModularFeatureListRow row : flist.getRows()) {
       logger.info("Add row with id: " + row.getID());
       root.getChildren().add(new TreeItem<>(row));
     }
@@ -138,13 +139,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   /**
    * Add all columns of {@link ModularFeatureListRow} data
    * 
-   * @param data a summary RowData instance with all present {@link DataType}
+   * @param flist a summary RowData instance with all present {@link DataType}
    */
-  public void addColumns(ModularFeatureListRow data) {
+  public void addColumns(ModularFeatureList flist) {
     logger.info("Adding columns to table");
     // for all data columns available in "data"
-    data.stream().forEach(dataType -> {
-      addColumn(dataType);
+    flist.getRowTypes().values().forEach(dataType -> {
+      addColumn(dataType, flist.getFeatureTypes());
     });
   }
 
@@ -152,10 +153,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * Add a new column to the table
    * 
    * @param dataType
+   * @param featureColumns
    */
-  public void addColumn(DataType dataType) {
+  public void addColumn(DataType dataType,
+      ObservableMap<Class<? extends DataType>, DataType> featureColumns) {
     // value binding
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
+    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
+        dataType.createColumn(null, featureColumns);
     // add to table
     if (col != null)
       this.getColumns().add(col);

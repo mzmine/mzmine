@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -67,6 +69,10 @@ public class ModularFeatureListRow implements ModularDataModel {
   @Override
   public ObservableMap<DataType, Object> getMap() {
     return map;
+  }
+
+  public Stream<ModularFeature> streamFeatures() {
+    return this.getFeatures().values().stream().filter(Objects::nonNull);
   }
 
   // Helper methods
