@@ -159,4 +159,14 @@ public abstract class DataType<T> {
     return null;
   }
 
+  // TODO dirty hack to make this a "singleton"
+  @Override
+  public boolean equals(Object obj) {
+    return obj != null && obj.getClass().equals(this.getClass());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
