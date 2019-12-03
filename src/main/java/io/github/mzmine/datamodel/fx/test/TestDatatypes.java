@@ -18,41 +18,78 @@
 
 package io.github.mzmine.datamodel.fx.test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.TypeColumnUndefinedException;
 import io.github.mzmine.datamodel.data.WrongTypeException;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
+import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import junit.framework.Assert;
 
 public class TestDatatypes {
+  ModularFeatureList flist;
   ModularFeatureListRow data;
+  ModularFeatureListRow empty;
   private FeatureStatus detection;
+  private ModularFeatureList flistWithRaw;
 
   @Before
   public void setUp() throws Exception {
+    flist = new ModularFeatureList("flist");
+    flist.addRowType(new DetectionType());
+    flist.addRowType(new MZType());
+
     detection = FeatureStatus.ESTIMATED;
-    data = new ModularFeatureListRow();
+    // create row
+    data = new ModularFeatureListRow(flist);
     data.set(DetectionType.class, detection);
-    data.set(MZType.class, 200);
+    data.set(MZType.class, 200d);
+
+    flist.addRow(data);
+
+    // second
+    List<RawDataFile> raw = new ArrayList<>();
+    raw.add(new RawDataFileImpl("Raw"));
+    flistWithRaw = new ModularFeatureList("flist name", raw);
+  }
+
+  @Test(expected = TypeColumnUndefinedException.class)
+  public void testMissingTypeColumn() {
+    data.set(AreaType.class, 20f);
   }
 
   @Test(expected = WrongTypeException.class)
-  public void testInsertWrongType() {
-    // should throw an error
-    data.set(HeightType.class, (50d));
+  public void testInsertWrongTypeByInstance() {
+    DataType type = new MZType();
+    data.set(type, "String");
+  }
+
+  @Test(expected = WrongTypeException.class)
+  public void testInsertWrongTypeByClass() {
+    Class c = MZType.class;
+    data.set(c, "String");
   }
 
   @Test
   public void testDataTypes() {
-    Assert.assertNull(data.get(AreaType.class).get());
+    // is not defined as column - should be null
+    Assert.assertNull(data.get(AreaType.class).orElse(null));
+
     // detection type is present
     Assert.assertEquals(detection.toString(), data.getDetectionType().toString());
     Assert.assertEquals(detection.toString(), data.getFormattedString(DetectionType.class).get());
@@ -61,7 +98,36 @@ public class TestDatatypes {
     Assert.assertEquals(detection.toString(),
         entry.getValue().map(v -> entry.getKey().getFormattedString(v)).get());
 
+    // should contain a value
     Assert.assertNotNull(data.get(MZType.class).get());
+    Assert.assertNotNull(data.get(new MZType()).get());
+  }
+
+
+  @Test
+  public void createMinimalTest() throws IOException {
+    // create and add
+    flistWithRaw.addRowType(new IDType());
+    flistWithRaw.addFeatureType(new DetectionType());
+
+    for (int i = 0; i < 2; i++) {
+      RawDataFile raw = flistWithRaw.getRawDataFile(0);
+      ModularFeature p = new ModularFeature(flistWithRaw);
+      p.set(RawFileType.class, raw);
+      p.set(DetectionType.class, FeatureStatus.DETECTED);
+
+      ModularFeatureListRow r = new ModularFeatureListRow(flistWithRaw);
+      r.set(IDType.class, (i));
+      r.addPeak(raw, p);
+      flistWithRaw.addRow(r);
+    }
+  }
+
+  @Test
+  public void testInsertSubType() {
+    // adding RawDataFileImpl into a DataType<RawDataFile>
+    ModularFeature p = new ModularFeature(flistWithRaw);
+    p.set(RawFileType.class, flistWithRaw.getRawDataFile(0));
   }
 
 }

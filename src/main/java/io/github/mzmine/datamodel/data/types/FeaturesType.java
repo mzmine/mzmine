@@ -139,13 +139,11 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     if (row == null)
       return null;
 
-    // find existing chart in rows FeaturesType
-    FeaturesType type = (FeaturesType) cell.getItem();
-    if (type != null) {
-      Node node = type.getExistingChart(subcolumn);
-      if (node != null)
-        return node;
-    }
+    // get existing buffered node from row (for column name)
+    // TODO listen to changes in features data
+    Node node = row.getBufferedColChart(coll.getText());
+    if (node != null)
+      return node;
 
     final StackPane pane = new StackPane();
 
@@ -164,25 +162,24 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
         switch (subcolumn) {
           case 0:
             n = new AreaBarChart(row, progress);
-            buffertCharts.put(subcolumn, n);
             break;
           case 1:
             n = new AreaShareChart(row, progress);
-            buffertCharts.put(subcolumn, n);
             break;
           case 2:
             n = new FeatureShapeChart(row, progress);
-            buffertCharts.put(subcolumn, n);
             break;
           default:
             n = null;
             break;
         }
-        if (n != null)
+        // save chart for later
+        row.addBufferedColChart(coll.getText(), n);
+        if (n != null) {
           Platform.runLater(() -> {
             pane.getChildren().add(n);
           });
-
+        }
         setStatus(TaskStatus.FINISHED);
         progress.set(1d);
       }
@@ -198,12 +195,9 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
         return progress.get();
       }
     };
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+    if (MZmineCore.getTaskController() != null)
+      MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;
-  }
-
-  public Node getExistingChart(int subcolumn) {
-    return buffertCharts.get(subcolumn);
   }
 }

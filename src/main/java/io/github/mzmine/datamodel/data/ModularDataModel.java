@@ -22,7 +22,6 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.collections.ObservableMap;
 
@@ -51,19 +50,8 @@ public interface ModularDataModel {
    * @return
    */
   default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
-    return getTypes().get(tclass);
-  }
-
-  /**
-   * Adds the type column to the getTypes list. This needs to be done for each new value
-   * 
-   * @param types
-   */
-  default void addTypeColumn(DataType<?>... types) {
-    for (DataType<?> t : types) {
-      if (!getTypes().containsKey(t.getClass()))
-        getTypes().put(t.getClass(), t);
-    }
+    DataType<T> type = getTypes().get(tclass);
+    return type;
   }
 
   /**
@@ -135,26 +123,79 @@ public interface ModularDataModel {
     return getFormattedString(type);
   }
 
+  default <T> void set(DataType<T> type, T value) {
+    if (!getTypes().containsKey(type.getClass()))
+      throw new TypeColumnUndefinedException(this, type.getClass());
 
-  //
-  default void set(@Nonnull DataType type, Object value) {
+    DataType realType = getTypes().get(type.getClass());
     if (type.checkValidValue(value)) {
-      getMap().put(type, value);
-      // add column if not present
-      addTypeColumn(type);
+      getMap().put(realType, value);
     }
     // wrong data type. Check code that supplied this data
     else
       throw new WrongTypeException(type.getClass(), value);
   }
 
-  default <T> void set(Class<? extends DataType<T>> tclass, Object value) {
+  default <T> void set(Class<? extends DataType<T>> tclass, T value) {
+    if (!getTypes().containsKey(tclass))
+      throw new TypeColumnUndefinedException(this, tclass);
+
     DataType type = getTypeColumn(tclass);
-    set(type, value);
+    if (type.checkValidValue(value)) {
+      getMap().put(type, value);
+    }
+    // wrong data type. Check code that supplied this data
+    else
+      throw new WrongTypeException(type.getClass(), value);
   }
 
-  default void remove(Class<? extends DataType<?>> key) {
-    getMap().remove(key);
+
+  /**
+   * Only sets the value if column is defined in FeatureList. The {@link #set(DataType, Object)}
+   * method is preferred as it will throw an Exception on setting an undefined DataType.
+   * 
+   * @param <T>
+   * @param type
+   * @param value
+   */
+  default <T> void setIfAvailable(DataType<T> type, T value) {
+    if (!getTypes().containsKey(type.getClass()))
+      return;
+
+    DataType realType = getTypes().get(type.getClass());
+    if (type.checkValidValue(value)) {
+      getMap().put(realType, value);
+    }
+    // wrong data type. Check code that supplied this data
+    else
+      throw new WrongTypeException(type.getClass(), value);
+  }
+
+  /**
+   * Only sets the value if column is defined in FeatureList. The {@link #set(Class, Object)} method
+   * is preferred as it will throw an Exception on setting an undefined DataType.
+   * 
+   * @param <T>
+   * @param type
+   * @param value
+   */
+  default <T> void setIfAvailable(Class<? extends DataType<T>> tclass, T value) {
+    if (!getTypes().containsKey(tclass))
+      return;
+
+    DataType type = getTypeColumn(tclass);
+    if (type.checkValidValue(value)) {
+      getMap().put(type, value);
+    }
+    // wrong data type. Check code that supplied this data
+    else
+      throw new WrongTypeException(type.getClass(), value);
+  }
+
+  default void remove(Class<? extends DataType<?>> tclass) {
+    DataType type = getTypeColumn(tclass);
+    if (type != null)
+      getMap().remove(type);
   }
 
   default Stream<Entry<DataType, Object>> stream() {

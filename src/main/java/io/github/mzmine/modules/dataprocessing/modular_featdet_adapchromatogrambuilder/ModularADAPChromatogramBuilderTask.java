@@ -38,8 +38,8 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.fx.FeatureTableFXWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -49,6 +49,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.PeakSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -403,11 +404,14 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     // Create new feature list
     newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    // ensure that the default columns are available
+    DataTypeUtils.addDefaultChromatographicTypeColumns(newPeakList);
 
     // Add the chromatograms to the new feature list
     for (Feature finishedPeak : chromatograms) {
-      ModularFeature modular = new ModularFeature(finishedPeak);
-      ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakID, dataFile, modular);
+      ModularFeature modular = new ModularFeature(newPeakList, finishedPeak);
+      ModularFeatureListRow newRow =
+          new ModularFeatureListRow(newPeakList, newPeakID, dataFile, modular);
       newPeakList.addRow(newRow);
       newPeakID++;
     }
@@ -420,7 +424,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     // show peaklist window
     Platform.runLater(() -> {
-      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList.getRows());
+      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList);
       window.show();
     });
 

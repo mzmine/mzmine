@@ -38,6 +38,9 @@ public class QualityParameters {
   private QualityParameters() {}
 
   public static void calculateQualityParameters(ModularFeatureList flist) {
+    // add quality columns to flist - feature columns
+    flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
+
     flist.streamFeatures().forEach(peak -> {
       float height = peak.getHeight();
       float rt = peak.getRT();

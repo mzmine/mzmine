@@ -83,7 +83,7 @@ public class DataTypeCellFactory<T> implements
           // sub columns provide values
           if (type instanceof SubColumnsFactory) {
             // get sub column value
-            SubColumnsFactory sub = (SubColumnsFactory) item;
+            SubColumnsFactory sub = (SubColumnsFactory) type;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
             setText(

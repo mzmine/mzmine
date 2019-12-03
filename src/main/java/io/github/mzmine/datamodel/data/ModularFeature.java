@@ -21,31 +21,27 @@ package io.github.mzmine.datamodel.data;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.IsotopePatternType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.data.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.data.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.data.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.data.types.numbers.FragmentScanNumbersType;
-import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.ParentChromatogramIDType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
-import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import io.github.mzmine.util.DataTypeUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -57,16 +53,28 @@ import javafx.collections.ObservableMap;
  */
 public class ModularFeature implements ModularDataModel {
 
-  private final ObservableMap<Class<? extends DataType>, DataType> types =
-      FXCollections.observableHashMap();
+  private final @Nonnull ModularFeatureList flist;
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
-  public ModularFeature() {}
+  public ModularFeature(@Nonnull ModularFeatureList flist) {
+    this.flist = flist;
+  }
 
-  public ModularFeature(Feature p) {
-    this();
+  /**
+   * Creates a ModularFeature on the basis of chromatogram results with the
+   * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
+   * 
+   * @param flist
+   * @param p
+   */
+  public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
+    this(flist);
+    // ensure that the default columns are available
+    DataTypeUtils.addDefaultChromatographicTypeColumns(flist);
+
+    // add values to feature
     int[] scans = p.getScanNumbers();
-    set(ScanNumbersType.class, (scans));
+    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
     set(RawFileType.class, (p.getDataFile()));
     set(DetectionType.class, (p.getFeatureStatus()));
     set(MZType.class, (p.getMZ()));
@@ -74,18 +82,6 @@ public class ModularFeature implements ModularDataModel {
     set(HeightType.class, ((float) p.getHeight()));
     set(AreaType.class, ((float) p.getArea()));
     set(BestScanNumberType.class, (p.getRepresentativeScanNumber()));
-    set(FragmentScanNumbersType.class, (p.getAllMS2FragmentScanNumbers()));
-    set(BestFragmentScanNumberType.class, (p.getMostIntenseFragmentScanNumber()));
-    set(IsotopePatternType.class, (p.getIsotopePattern()));
-    set(ChargeType.class, (p.getCharge()));
-    set(ParentChromatogramIDType.class, (p.getParentChromatogramRowID()));
-    // symmetry
-    if (p.getFWHM() != null)
-      set(FwhmType.class, (p.getFWHM().floatValue()));
-    if (p.getAsymmetryFactor() != null)
-      set(AsymmetryFactorType.class, (p.getAsymmetryFactor().floatValue()));
-    if (p.getTailingFactor() != null)
-      set(TailingFactorType.class, (p.getTailingFactor().floatValue()));
 
     // datapoints of feature
     List<DataPoint> dps = new ArrayList<>();
@@ -103,15 +99,15 @@ public class ModularFeature implements ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
     set(MZRangeType.class, p.getRawDataPointsMZRange());
-    /*
-     * getDataPoint
-     * 
-     */
+  }
+
+  public ModularFeatureList getFeatureList() {
+    return flist;
   }
 
   @Override
   public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
-    return types;
+    return flist.getFeatureTypes();
   }
 
   @Override

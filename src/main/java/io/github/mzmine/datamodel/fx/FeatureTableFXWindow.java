@@ -1,17 +1,15 @@
 package io.github.mzmine.datamodel.fx;
 
-import java.util.List;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class FeatureTableFXWindow extends Stage {
   private FeatureTableFX table;
 
-  public FeatureTableFXWindow(List<ModularFeatureListRow> rows) {
+  public FeatureTableFXWindow(ModularFeatureList flist) {
     this();
-    show();
-    table.addData(rows);
+    table.addData(flist);
   }
 
   public FeatureTableFXWindow() {
@@ -24,4 +22,9 @@ public class FeatureTableFXWindow extends Stage {
   public FeatureTableFX getTable() {
     return table;
   }
+
+  public ModularFeatureList getFeatureList() {
+    return table.getFeatureList();
+  }
+
 }

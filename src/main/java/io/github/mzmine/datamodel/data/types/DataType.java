@@ -18,9 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -121,7 +119,7 @@ public abstract class DataType<T> {
         col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this));
         col.setEditable(true);
         col.setOnEditCommit(event -> {
-          Object data = event.getNewValue();
+          T data = event.getNewValue();
           if (data != null) {
             if (raw == null)
               event.getRowValue().getValue().set(this, data);
@@ -140,23 +138,16 @@ public abstract class DataType<T> {
       return true;
     else {
       try {
-        // get class of template T (value class)
-        Class valueClass = (Class) ((ParameterizedType) getClass().getGenericSuperclass())
-            .getActualTypeArguments()[0];
-        return value.getClass().equals(valueClass);
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Cannot reflect template class (value class)", e);
-        // the check system is broken so better return true
+        cast(value);
         return true;
+      } catch (Exception e) {
+        return false;
       }
     }
   }
 
   public T cast(Object value) {
-    if (checkValidValue(value)) {
-      return (T) value;
-    }
-    return null;
+    return (T) value;
   }
 
   // TODO dirty hack to make this a "singleton"

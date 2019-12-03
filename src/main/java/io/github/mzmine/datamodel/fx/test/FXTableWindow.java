@@ -1,35 +1,21 @@
 package io.github.mzmine.datamodel.fx.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.FeaturesType;
-import io.github.mzmine.datamodel.data.types.RawColorType;
-import io.github.mzmine.datamodel.data.types.RawsColorsType;
-import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import io.github.mzmine.datamodel.fx.FeatureTableFX;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.datamodel.fx.FeatureTableFXWindow;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.TreeItem;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class FXTableWindow extends Application {
@@ -39,153 +25,41 @@ public class FXTableWindow extends Application {
   @Override
   public void start(Stage stage) {
     logger.info("Init test");
-    FeatureTableFX table = new FeatureTableFX();
 
-    createMinimalTest(table);
-    Scene scene = new Scene(table);
-
-    stage.setScene(scene);
-    stage.setMaximized(true);
-    stage.show();
-    // stage.setFullScreen(true);
-  }
-
-  public void createFullTest(FeatureTableFX table) {
-
-    List<RawDataFile> raw = new ArrayList<>();
-    for (int a = 0; a < 8; a++)
-      raw.add(createRaw("Raw" + a));
-
-    // example row to create all columns
-    ModularFeatureListRow data = createRow(0, raw);
-    table.addColumns(data);
-
-    // Table tree root
-    addDummyData(table.getRoot(), raw);
-  }
-
-  public void createMinimalTest(FeatureTableFX table) {
-
-    List<RawDataFile> raw = new ArrayList<>();
-    for (int a = 0; a < 1; a++)
-      raw.add(createRaw("Raw" + a));
-
-    List<ModularFeatureListRow> rows = createMinimalRows(raw);
-    table.addData(rows);
-  }
-
-
-  private List<ModularFeatureListRow> createMinimalRows(List<RawDataFile> raw) {
-    List<ModularFeatureListRow> rows = new ArrayList<>();
-    for (int i = 0; i < 2; i++) {
-      // ModularFeature p = new ModularFeature();
-      // p.set(new AreaType(500f - i * 100f));
-      // p.set(new RawFileType(raw.get(0)));
-      // ModularFeatureListRow r = new ModularFeatureListRow(i, raw.get(0), p);
-
-      ModularFeatureListRow r = new ModularFeatureListRow();
-      r.set(new IDType(i));
-      // r.set(new AreaType(500f - i * 100f));
-      // r.set(new DetectionType(FeatureStatus.DETECTED));
-      rows.add(r);
-    }
-    return rows;
-  }
-
-  public void addDummyData(TreeItem<ModularFeatureListRow> root, List<RawDataFile> raw) {
-    int i = 0;
-    for (i = 0; i < 10; i++)
-      root.getChildren().add(new TreeItem<>(createRow(i, raw)));
-    for (; i < 15; i++)
-      root.getChildren().add(new TreeItem<>(createIncompleteRow(i, raw)));
-    // add one to the second item
-    root.getChildren().get(1).getChildren().add(new TreeItem<>(createRow(i, raw)));
-    for (; i < 20; i++)
-      root.getChildren().get(5).getChildren().add(new TreeItem<>(createIncompleteRow(i, raw)));
-  }
-
-  public ModularFeatureListRow createRow(int i, List<RawDataFile> raw) {
-    ModularFeatureListRow data = new ModularFeatureListRow();
-    data.set(new CommentType(""));
-    data.set(new MZType(50d * i));
-    data.set(RTType.class, new RTType(1f * i));
-    data.set(HeightType.class, new HeightType(2E4f * i));
-    data.set(AreaType.class, new AreaType(1E4f * i));
-    data.set(MZRangeType.class, new MZRangeType(Range.closed(100d, 200d)));
-
-    Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
-    data.set(RawsColorsType.class, new RawsColorsType(colorMap));
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw, colorMap)));
-    return data;
-  }
-
-  public ModularFeatureListRow createIncompleteRow(int i, List<RawDataFile> raw) {
-    ModularFeatureListRow data = new ModularFeatureListRow();
-    data.set(CommentType.class, new CommentType(""));
-    data.set(MZType.class, new MZType(50d * i));
-    data.set(RTType.class, new RTType(1f * i));
-    data.set(HeightType.class, new HeightType(2E4f * i));
-    data.set(MZRangeType.class, new MZRangeType(Range.closed(100d, 200d)));
-
-    Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
-    data.set(RawsColorsType.class, new RawsColorsType(colorMap));
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw, colorMap)));
-    return data;
-  }
-
-  private Map<RawDataFile, Color> createColorsMap(ModularFeatureListRow data,
-      List<RawDataFile> raw) {
-    Map<RawDataFile, Color> map = new HashMap<>(raw.size());
-    Color[] colors = ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, false);
-    for (int a = 0; a < raw.size(); a++) {
-      map.put(raw.get(a), colors[a % colors.length]);
-    }
-    return map;
-  }
-
-  private Map<RawDataFile, ModularFeature> createFeatures(int i, List<RawDataFile> raw,
-      Map<RawDataFile, Color> colorMap) {
-    Map<RawDataFile, ModularFeature> map = new ConcurrentHashMap<>(raw.size());
-    for (int a = 0; a < raw.size(); a++) {
-      Color color = colorMap.get(raw.get(a));
-      if (a < raw.size() / 2)
-        map.put(raw.get(a), createFeature(i, a, color));
-      else
-        map.put(raw.get(a), createIncompleteFeature(i, a, color));
-    }
-    return map;
-  }
-
-  private RawDataFile createRaw(String name) {
+    ModularFeatureList flist;
     try {
-      return new TestRawDataFile(name);
-    } catch (Exception ex) {
-      System.out.println("ERROR in feature creation");
-      return null;
+      flist = createMinimalTest();
+      new FeatureTableFXWindow(flist).show();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
-
-  public ModularFeature createFeature(int i, int j, Color color) {
-    ModularFeature data = new ModularFeature();
-    data.set(CommentType.class, new CommentType(""));
-    data.set(MZType.class, new MZType(300d * i + j));
-    data.set(RTType.class, new RTType(100f * i + j));
-    data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
-    data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
-    data.set(RawColorType.class, new RawColorType(color));
-    return data;
+  public ModularFeatureList createMinimalTest() throws IOException {
+    List<RawDataFile> raw = new ArrayList<>();
+    raw.add(new RawDataFileImpl("Raw"));
+    ModularFeatureList flist = new ModularFeatureList("flist name", raw);
+    // create and add
+    createMinimalRows(flist);
+    return flist;
   }
 
-  public ModularFeature createIncompleteFeature(int i, int j, Color color) {
-    ModularFeature data = new ModularFeature();
-    data.set(CommentType.class, new CommentType(""));
-    data.set(RTType.class, new RTType(100f * i + j));
-    data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
-    data.set(DetectionType.class,
-        new DetectionType(rand.nextBoolean() ? FeatureStatus.UNKNOWN : FeatureStatus.ESTIMATED));
-    data.set(RawColorType.class, new RawColorType(color));
-    return data;
+
+  private void createMinimalRows(ModularFeatureList flist) {
+    flist.addRowType(new IDType());
+    flist.addFeatureType(new DetectionType());
+
+    for (int i = 0; i < 2; i++) {
+      RawDataFile raw = flist.getRawDataFile(0);
+      ModularFeature p = new ModularFeature(flist);
+      p.set(RawFileType.class, raw);
+      p.set(DetectionType.class, FeatureStatus.DETECTED);
+
+      ModularFeatureListRow r = new ModularFeatureListRow(flist);
+      r.set(IDType.class, (i));
+      r.addPeak(raw, p);
+      flist.addRow(r);
+    }
   }
 
   public static void startThisApp(String[] args) {

@@ -18,13 +18,14 @@
 
 package io.github.mzmine.datamodel.data;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import org.apache.commons.collections4.MapUtils;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -37,6 +38,7 @@ import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
 
 /**
  * Map of all feature related data.
@@ -47,24 +49,57 @@ import javafx.collections.ObservableMap;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements ModularDataModel {
 
-  private final ObservableMap<Class<? extends DataType>, DataType> types =
-      FXCollections.observableHashMap();
-
+  private final @Nonnull ModularFeatureList flist;
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
 
-  public ModularFeatureListRow() {}
+  /**
+   * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
+   * this map see {@link #addPeak(RawDataFile, ModularFeature)}
+   */
+  private final Map<RawDataFile, ModularFeature> features;
 
-  public ModularFeatureListRow(int id, RawDataFile raw, ModularFeature p) {
-    set(IDType.class, (id));
-    Map<RawDataFile, ModularFeature> fmap = new HashMap<>(1);
-    fmap.put(raw, p);
-    set(FeaturesType.class, (fmap));
+  // buffert col charts and nodes
+  private Map<String, Node> buffertColCharts = new HashMap<>();
+
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
+    this.flist = flist;
+    List<RawDataFile> raws = flist.getRawDataFiles();
+    if (!raws.isEmpty()) {
+      // init FeaturesType map (is final)
+      HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
+      for (RawDataFile r : raws)
+        fmap.put(r, null);
+      // wrap in fixed size not thread safe! TODO discuss
+      // only allows change of existing elements
+      features = MapUtils.fixedSizeMap(fmap);
+      // create FeaturesType
+      set(FeaturesType.class, features);
+    } else
+      features = Collections.emptyMap();
   }
 
+  /**
+   * Constructor for row with only one raw data file.
+   * 
+   * @param flist
+   * @param id
+   * @param raw
+   * @param p
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
+      ModularFeature p) {
+    this(flist);
+    set(IDType.class, (id));
+    addPeak(raw, p);
+  }
+
+  public ModularFeatureList getFeatureList() {
+    return flist;
+  }
 
   @Override
   public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
-    return types;
+    return flist.getRowTypes();
   }
 
   @Override
@@ -104,12 +139,11 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   /**
    * 
-   * @param dataFile
-   * @param p
+   * @param raw
+   * @param f
    */
-  public void addPeak(RawDataFile dataFile, ModularFeature p) {
-    // TODO get old map and add new
-
+  public void addPeak(RawDataFile raw, ModularFeature f) {
+    features.put(raw, f);
   }
 
   /**
@@ -122,11 +156,19 @@ public class ModularFeatureListRow implements ModularDataModel {
   }
 
   public List<RawDataFile> getRawDataFiles() {
-    return Collections.unmodifiableList(new ArrayList<>(getFeatures().keySet()));
+    return flist.getRawDataFiles();
   }
 
   public boolean hasFeature(ModularFeature feature) {
     return getFeatures().values().contains(feature);
+  }
+
+  public Node getBufferedColChart(String colname) {
+    return buffertColCharts.get(colname);
+  }
+
+  public void addBufferedColChart(String colname, Node node) {
+    buffertColCharts.put(colname, node);
   }
 
 }

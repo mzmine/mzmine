@@ -230,4 +230,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // clipboardContent.putString(strb.toString());
     // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
+
+  public ModularFeatureList getFeatureList() {
+    return flist;
+  }
+
 }

@@ -3,32 +3,35 @@ package io.github.mzmine.datamodel.data;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.RawFileType;
+import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 public class ModularFeatureList implements PeakList {
 
   // columns: summary of all
-  private final ObservableMap<Class<? extends DataType>, DataType> types =
+  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes =
       FXCollections.observableHashMap();
   private final ObservableMap<Class<? extends DataType>, DataType> featureTypes =
       FXCollections.observableHashMap();
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-  private final ArrayList<ModularFeatureListRow> peakListRows;
+  // unmodifiable list
   private final List<RawDataFile> dataFiles;
+  private final ArrayList<ModularFeatureListRow> peakListRows;
   private String name;
   private List<PeakListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
@@ -37,16 +40,23 @@ public class ModularFeatureList implements PeakList {
   private double maxDataPointIntensity = 0;
 
   public ModularFeatureList(String name) {
-    this(name, new ArrayList<>());
+    this(name, List.of());
   }
 
   public ModularFeatureList(String name, @Nonnull RawDataFile... dataFiles) {
-    this(name, new ArrayList<>(List.of(dataFiles)));
+    this(name, List.of(dataFiles));
   }
 
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
-    this.dataFiles = dataFiles;
+    this.dataFiles = Collections.unmodifiableList(dataFiles);
+
+    addRowType(new IDType());
+    // has raw files - add column to row and feature
+    if (!dataFiles.isEmpty()) {
+      addRowType(new FeaturesType());
+      addFeatureType(new RawFileType());
+    }
 
     peakListRows = new ArrayList<>();
     descriptionOfAppliedTasks = new ArrayList<>();
@@ -72,13 +82,45 @@ public class ModularFeatureList implements PeakList {
     return featureTypes;
   }
 
+  public void addFeatureType(@Nonnull List<DataType<?>> types) {
+    for (DataType<?> type : types) {
+      if (!getFeatureTypes().containsKey(type.getClass())) {
+        getFeatureTypes().put(type.getClass(), type);
+      }
+    }
+  }
+
+  public void addFeatureType(@Nonnull DataType<?>... types) {
+    for (DataType<?> type : types) {
+      if (!getFeatureTypes().containsKey(type.getClass())) {
+        getFeatureTypes().put(type.getClass(), type);
+      }
+    }
+  }
+
+  public void addRowType(@Nonnull List<DataType<?>> types) {
+    for (DataType<?> type : types) {
+      if (!getRowTypes().containsKey(type.getClass())) {
+        getRowTypes().put(type.getClass(), type);
+      }
+    }
+  }
+
+  public void addRowType(@Nonnull DataType<?>... types) {
+    for (DataType<?> type : types) {
+      if (!getRowTypes().containsKey(type.getClass())) {
+        getRowTypes().put(type.getClass(), type);
+      }
+    }
+  }
+
   /**
    * Row type columns
    * 
    * @return
    */
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
-    return types;
+    return rowTypes;
   }
 
   /**
@@ -179,24 +221,6 @@ public class ModularFeatureList implements PeakList {
             "Data file " + testFile + " is not in this feature list"));
     }
 
-    // all columns
-    AtomicBoolean rowtypesChanged = new AtomicBoolean(false);
-    for (Map.Entry<Class<? extends DataType>, DataType> entry : row.getTypes().entrySet()) {
-      if (getRowTypes().containsKey(entry.getKey())) {
-        getRowTypes().put(entry.getKey(), entry.getValue());
-        rowtypesChanged.set(true);
-      }
-    }
-
-    AtomicBoolean ftypesChanged = new AtomicBoolean(false);
-    row.streamFeatures().flatMap(f -> f.getTypes().entrySet().stream()).forEach(entry -> {
-      if (getFeatureTypes().containsKey(entry.getKey())) {
-        getFeatureTypes().put(entry.getKey(), entry.getValue());
-        ftypesChanged.set(true);
-      }
-    });
-    updateColumnTypes(rowtypesChanged.get(), ftypesChanged.get());
-
     peakListRows.add(row);
     if (row.getHeight() > maxDataPointIntensity) {
       maxDataPointIntensity = row.getHeight();
@@ -253,18 +277,6 @@ public class ModularFeatureList implements PeakList {
   public void removeRow(ModularFeatureListRow row) {
     peakListRows.remove(row);
     updateMaxIntensity();
-  }
-
-  private void updateColumnTypes(boolean rows, boolean features) {
-    // add all columns to all rows
-    stream().forEach(row -> {
-      row.addTypeColumn(getRowTypes().values().toArray(DataType[]::new));
-    });
-
-    // to all features
-    streamFeatures().forEach(f -> {
-      f.addTypeColumn(getFeatureTypes().values().toArray(DataType[]::new));
-    });
   }
 
   /**
