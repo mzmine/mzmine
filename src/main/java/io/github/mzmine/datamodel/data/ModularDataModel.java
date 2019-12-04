@@ -149,49 +149,6 @@ public interface ModularDataModel {
       throw new WrongTypeException(type.getClass(), value);
   }
 
-
-  /**
-   * Only sets the value if column is defined in FeatureList. The {@link #set(DataType, Object)}
-   * method is preferred as it will throw an Exception on setting an undefined DataType.
-   * 
-   * @param <T>
-   * @param type
-   * @param value
-   */
-  default <T> void setIfAvailable(DataType<T> type, T value) {
-    if (!getTypes().containsKey(type.getClass()))
-      return;
-
-    DataType realType = getTypes().get(type.getClass());
-    if (type.checkValidValue(value)) {
-      getMap().put(realType, value);
-    }
-    // wrong data type. Check code that supplied this data
-    else
-      throw new WrongTypeException(type.getClass(), value);
-  }
-
-  /**
-   * Only sets the value if column is defined in FeatureList. The {@link #set(Class, Object)} method
-   * is preferred as it will throw an Exception on setting an undefined DataType.
-   * 
-   * @param <T>
-   * @param type
-   * @param value
-   */
-  default <T> void setIfAvailable(Class<? extends DataType<T>> tclass, T value) {
-    if (!getTypes().containsKey(tclass))
-      return;
-
-    DataType type = getTypeColumn(tclass);
-    if (type.checkValidValue(value)) {
-      getMap().put(type, value);
-    }
-    // wrong data type. Check code that supplied this data
-    else
-      throw new WrongTypeException(type.getClass(), value);
-  }
-
   default void remove(Class<? extends DataType<?>> tclass) {
     DataType type = getTypeColumn(tclass);
     if (type != null)
