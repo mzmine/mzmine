@@ -4,8 +4,8 @@
 <?import javafx.scene.layout.* ?>
 <?import javafx.scene.web.WebView ?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="io.github.mzmine.desktop.impl.helpwindow.HelpWindowController">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+	fx:controller="io.github.mzmine.gui.impl.helpwindow.HelpWindowController">
 	<center>
 		<WebView fx:id="helpWebView" />
 	</center>

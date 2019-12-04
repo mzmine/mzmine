@@ -20,69 +20,72 @@ package io.github.mzmine.modules.io.projectsave;
 
 import java.awt.Window;
 import java.io.File;
+import java.util.concurrent.FutureTask;
 
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
 
-  private static final FileFilter filters[] =
-      new FileFilter[] {new FileNameExtensionFilter("MZmine projects", "mzmine")};
+    public static final FileNameParameter projectFile = new FileNameParameter(
+            "Project file", "File name of project to be saved");
 
-  public static final FileNameParameter projectFile =
-      new FileNameParameter("Project file", "File name of project to be saved");
-
-  public ProjectSaveAsParameters() {
-    super(new Parameter[] {projectFile});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    JFileChooser chooser = new JFileChooser();
-
-    for (FileFilter filter : filters)
-      chooser.addChoosableFileFilter(filter);
-    chooser.setFileFilter(filters[0]);
-
-    File currentFile = getParameter(projectFile).getValue();
-    if (currentFile != null) {
-      File currentDir = currentFile.getParentFile();
-      if ((currentDir != null) && (currentDir.exists()))
-        chooser.setCurrentDirectory(currentDir);
+    public ProjectSaveAsParameters() {
+        super(new Parameter[] { projectFile });
     }
 
-    chooser.setMultiSelectionEnabled(false);
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    int returnVal = chooser.showSaveDialog(parent);
-    if (returnVal != JFileChooser.APPROVE_OPTION)
-      return ExitCode.CANCEL;
+        final File currentProjectFile = MZmineCore.getProjectManager()
+                .getCurrentProject().getProjectFile();
 
-    File selectedFile = chooser.getSelectedFile();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open MZmine project");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("MZmine projects", "*.mzmine"),
+                new ExtensionFilter("All Files", "*.*"));
 
-    if (!selectedFile.getName().endsWith(".mzmine")) {
-      selectedFile = new File(selectedFile.getPath() + ".mzmine");
+        if (currentProjectFile != null) {
+            File currentDir = currentProjectFile.getParentFile();
+            if ((currentDir != null) && (currentDir.exists()))
+                fileChooser.setInitialDirectory(currentDir);
+        }
+
+        final FutureTask<File> task = new FutureTask<>(
+                () -> fileChooser.showSaveDialog(null));
+        Platform.runLater(task);
+
+        try {
+            File selectedFile = task.get();
+            if (selectedFile == null)
+                return ExitCode.CANCEL;
+            if (!selectedFile.getName().endsWith(".mzmine")) {
+                selectedFile = new File(selectedFile.getPath() + ".mzmine");
+            }
+            if (selectedFile.exists()) {
+                int selectedValue = JOptionPane.showConfirmDialog(
+                        MZmineCore.getDesktop().getMainWindow(),
+                        selectedFile.getName() + " already exists, overwrite ?",
+                        "Question...", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                if (selectedValue != JOptionPane.YES_OPTION)
+                    return ExitCode.CANCEL;
+            }
+            getParameter(projectFile).setValue(selectedFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ExitCode.OK;
+
     }
-
-    if (selectedFile.exists()) {
-      int selectedValue = JOptionPane.showConfirmDialog(MZmineCore.getDesktop().getMainWindow(),
-          selectedFile.getName() + " already exists, overwrite ?", "Question...",
-          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-      if (selectedValue != JOptionPane.YES_OPTION)
-        return ExitCode.CANCEL;
-    }
-
-    getParameter(projectFile).setValue(selectedFile);
-
-    return ExitCode.OK;
-
-  }
 }

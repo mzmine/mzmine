@@ -20,8 +20,8 @@ package io.github.mzmine.modules.io.projectload;
 
 import java.awt.Window;
 import java.io.File;
+import java.util.concurrent.FutureTask;
 
-import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -29,47 +29,53 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectLoaderParameters extends SimpleParameterSet {
 
-  private static final FileFilter filters[] =
-      new FileFilter[] {new FileNameExtensionFilter("MZmine projects", "mzmine")};
+    private static final FileFilter filters[] = new FileFilter[] {
+            new FileNameExtensionFilter("MZmine projects", "mzmine") };
 
-  public static final FileNameParameter projectFile =
-      new FileNameParameter("Project file", "File name of project to be loaded");
+    public static final FileNameParameter projectFile = new FileNameParameter(
+            "Project file", "File name of project to be loaded");
 
-  public ProjectLoaderParameters() {
-    super(new Parameter[] {projectFile});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    JFileChooser chooser = new JFileChooser();
-
-    for (FileFilter filter : filters)
-      chooser.addChoosableFileFilter(filter);
-    chooser.setFileFilter(filters[0]);
-
-    File currentFile = getParameter(projectFile).getValue();
-    if (currentFile != null) {
-      File currentDir = currentFile.getParentFile();
-      if ((currentDir != null) && (currentDir.exists()))
-        chooser.setCurrentDirectory(currentDir);
+    public ProjectLoaderParameters() {
+        super(new Parameter[] { projectFile });
     }
 
-    chooser.setMultiSelectionEnabled(false);
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    int returnVal = chooser.showOpenDialog(parent);
-    if (returnVal != JFileChooser.APPROVE_OPTION)
-      return ExitCode.CANCEL;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open MZmine project");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("MZmine projects", "*.mzmine"),
+                new ExtensionFilter("All Files", "*.*"));
 
-    File selectedFile = chooser.getSelectedFile();
+        File currentFile = getParameter(projectFile).getValue();
+        if (currentFile != null) {
+            File currentDir = currentFile.getParentFile();
+            if ((currentDir != null) && (currentDir.exists()))
+                fileChooser.setInitialDirectory(currentDir);
+        }
 
-    getParameter(projectFile).setValue(selectedFile);
+        final FutureTask<File> task = new FutureTask<>(
+                () -> fileChooser.showOpenDialog(null));
+        Platform.runLater(task);
 
-    return ExitCode.OK;
+        try {
+            File selectedFile = task.get();
+            if (selectedFile == null)
+                return ExitCode.CANCEL;
+            getParameter(projectFile).setValue(selectedFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-  }
+        return ExitCode.OK;
+
+    }
 
 }

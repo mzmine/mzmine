@@ -20,14 +20,16 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 
 import java.io.File;
 import java.util.Collection;
-
-import javax.swing.filechooser.FileFilter;
+import java.util.List;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.google.common.collect.ImmutableList;
+
 import io.github.mzmine.parameters.UserParameter;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * Simple Parameter implementation
@@ -37,12 +39,12 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
 
   private String name, description;
   private File value[];
-  private FileFilter[] filters;
+  private List<ExtensionFilter> filters;
 
-  public FileNamesParameter(String name, String description, FileFilter[] filters) {
+  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
     this.name = name;
     this.description = description;
-    this.filters = filters;
+    this.filters = ImmutableList.copyOf(filters);
   }
 
   /**
