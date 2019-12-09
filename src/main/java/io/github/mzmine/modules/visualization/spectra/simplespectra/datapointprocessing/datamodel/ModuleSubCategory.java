@@ -19,22 +19,23 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
 /**
- * The module sub category is used to classify module categories that can be executed on data points
- * by data point processing tasks.
+ * The module sub category is used to classify module categories that can be
+ * executed on data points by data point processing tasks.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public enum ModuleSubCategory {
-  MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION("Identification")/*, DUMMY("Dummy")*/;
+    MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION(
+            "Identification")/* , DUMMY("Dummy") */;
 
-  private final String name;
+    private final String name;
 
-  ModuleSubCategory(String name) {
-    this.name = name;
-  }
+    ModuleSubCategory(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 }

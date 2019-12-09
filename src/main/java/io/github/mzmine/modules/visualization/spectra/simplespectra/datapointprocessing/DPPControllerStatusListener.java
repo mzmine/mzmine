@@ -28,5 +28,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
  */
 @FunctionalInterface
 public interface DPPControllerStatusListener {
-  public void statusChanged(DataPointProcessingController controller, ControllerStatus newStatus, ControllerStatus oldStatus);
+    public void statusChanged(DataPointProcessingController controller,
+            ControllerStatus newStatus, ControllerStatus oldStatus);
 }

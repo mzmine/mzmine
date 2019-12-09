@@ -44,216 +44,221 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class EICPlot extends EChartPanel {
-  private enum PeakType {
-    SIMPLE, MODEL
-  };
-
-  private static final Color[] COLORS = new Color[] {Color.BLUE, Color.CYAN, Color.GREEN,
-      Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED};
-
-  private final XYSeriesCollection xyDataset;
-  private final List<Double> colorDataset;
-  private final List<String> toolTips;
-  private final List<Float> widths;
-
-  public EICPlot() {
-    this(new ArrayList<List<NavigableMap<Double, Double>>>(), new ArrayList<Double>(),
-        new ArrayList<List<String>>(), null);
-  }
-
-  public EICPlot(List<List<NavigableMap<Double, Double>>> clusters, List<Double> colors,
-      List<List<String>> info, List<NavigableMap<Double, Double>> modelPeaks) {
-    super(null, true);
-
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-    NumberAxis xAxis = new NumberAxis("Retention Time");
-    xAxis.setAutoRangeIncludesZero(false);
-    xAxis.setUpperMargin(0);
-    xAxis.setLowerMargin(0);
-
-    NumberAxis yAxis = new NumberAxis("Intensity");
-    yAxis.setAutoRangeIncludesZero(false);
-    yAxis.setUpperMargin(0);
-    yAxis.setLowerMargin(0);
-
-    xyDataset = new XYSeriesCollection();
-    colorDataset = new ArrayList<>();
-    toolTips = new ArrayList<>();
-    widths = new ArrayList<>();
-
-    int seriesID = 0;
-
-    for (int i = 0; i < clusters.size(); ++i) {
-      List<NavigableMap<Double, Double>> cluster = clusters.get(i);
-      double color = colors.get(i);
-
-      for (int j = 0; j < cluster.size(); ++j) {
-        XYSeries series = new XYSeries(seriesID++);
-
-        for (Entry<Double, Double> e : cluster.get(j).entrySet())
-          series.add(e.getKey(), e.getValue());
-
-        xyDataset.addSeries(series);
-        colorDataset.add(color);
-        toolTips.add(info.get(i).get(j));
-      }
-    }
-
-    XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
-      @Override
-      public Paint getItemPaint(int row, int col) {
-        String type = xyDataset.getSeries(row).getDescription();
-
-        Paint color;
-
-        if (type.equals(PeakType.MODEL.name()))
-          color = COLORS[row % COLORS.length];
-        else
-          color = new Color(0, 0, 0, 50);
-
-        return color;
-      }
-
-      @Override
-      public Stroke getSeriesStroke(int series) {
-        XYSeries s = xyDataset.getSeries(series);
-        String type = s.getDescription();
-
-        float width;
-        if (type.equals((PeakType.MODEL.name())))
-          width = 2.0f;
-        else
-          width = 1.0f;
-
-        return new BasicStroke(width);
-      }
+    private enum PeakType {
+        SIMPLE, MODEL
     };
 
-    renderer.setDefaultShapesVisible(false);
-    renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
-      @Override
-      public String generateToolTip(XYDataset dataset, int series, int item) {
-        try {
-          return toolTips.get(series);
-        } catch (NullPointerException | IndexOutOfBoundsException e) {
-          return "";
+    private static final Color[] COLORS = new Color[] { Color.BLUE, Color.CYAN,
+            Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED };
+
+    private final XYSeriesCollection xyDataset;
+    private final List<Double> colorDataset;
+    private final List<String> toolTips;
+    private final List<Float> widths;
+
+    public EICPlot() {
+        this(new ArrayList<List<NavigableMap<Double, Double>>>(),
+                new ArrayList<Double>(), new ArrayList<List<String>>(), null);
+    }
+
+    public EICPlot(List<List<NavigableMap<Double, Double>>> clusters,
+            List<Double> colors, List<List<String>> info,
+            List<NavigableMap<Double, Double>> modelPeaks) {
+        super(null, true);
+
+        setBackground(Color.white);
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+
+        NumberAxis xAxis = new NumberAxis("Retention Time");
+        xAxis.setAutoRangeIncludesZero(false);
+        xAxis.setUpperMargin(0);
+        xAxis.setLowerMargin(0);
+
+        NumberAxis yAxis = new NumberAxis("Intensity");
+        yAxis.setAutoRangeIncludesZero(false);
+        yAxis.setUpperMargin(0);
+        yAxis.setLowerMargin(0);
+
+        xyDataset = new XYSeriesCollection();
+        colorDataset = new ArrayList<>();
+        toolTips = new ArrayList<>();
+        widths = new ArrayList<>();
+
+        int seriesID = 0;
+
+        for (int i = 0; i < clusters.size(); ++i) {
+            List<NavigableMap<Double, Double>> cluster = clusters.get(i);
+            double color = colors.get(i);
+
+            for (int j = 0; j < cluster.size(); ++j) {
+                XYSeries series = new XYSeries(seriesID++);
+
+                for (Entry<Double, Double> e : cluster.get(j).entrySet())
+                    series.add(e.getKey(), e.getValue());
+
+                xyDataset.addSeries(series);
+                colorDataset.add(color);
+                toolTips.add(info.get(i).get(j));
+            }
         }
-      }
-    });
 
-    XYPlot plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
-    plot.setBackgroundPaint(Color.white);
-    plot.setDomainGridlinesVisible(true);
-    plot.setRangeGridlinesVisible(true);
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
+            @Override
+            public Paint getItemPaint(int row, int col) {
+                String type = xyDataset.getSeries(row).getDescription();
 
-    JFreeChart chart = new JFreeChart("", new Font("SansSerif", Font.BOLD, 12), plot, false);
-    chart.setBackgroundPaint(Color.white);
+                Paint color;
 
-    super.setChart(chart);
+                if (type.equals(PeakType.MODEL.name()))
+                    color = COLORS[row % COLORS.length];
+                else
+                    color = new Color(0, 0, 0, 50);
 
-    // reset zoom history
-    ZoomHistory history = getZoomHistory();
-    if (history != null)
-      history.clear();
-  }
+                return color;
+            }
 
+            @Override
+            public Stroke getSeriesStroke(int series) {
+                XYSeries s = xyDataset.getSeries(series);
+                String type = s.getDescription();
 
+                float width;
+                if (type.equals((PeakType.MODEL.name())))
+                    width = 2.0f;
+                else
+                    width = 1.0f;
 
-  // public void updateData(@Nonnull List <List <NavigableMap <Double, Double>>> clusters,
-  // @Nonnull List <Double> colors,
-  // @Nonnull List <List <String>> info,
-  // @Nonnull List <List<Boolean>> models)
-  // {
-  // final float DEFAULT_LINE_WIDTH = 1.0f;
-  // final float THICK_LINE_WIDTH = 2.0f;
-  //
-  //
-  //// for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
-  //// xyDataset.removeSeries(i);
-  // xyDataset.removeAllSeries();
-  // colorDataset.clear();
-  // toolTips.clear();
-  // widths.clear();
-  //
-  // int seriesID = 0;
-  //
-  // for (int i = 0; i < clusters.size(); ++i)
-  // {
-  // List <NavigableMap <Double, Double>> cluster = clusters.get(i);
-  // double color = colors.get(i);
-  //
-  // for (int j = 0; j < cluster.size(); ++j)
-  // {
-  // XYSeries series = new XYSeries(seriesID++);
-  //
-  // for (Entry <Double, Double> e : cluster.get(j).entrySet())
-  // series.add(e.getKey(), e.getValue());
-  //
-  // float width = DEFAULT_LINE_WIDTH;
-  // if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
-  //
-  // xyDataset.addSeries(series);
-  // colorDataset.add(color);
-  // toolTips.add(info.get(i).get(j));
-  // widths.add(width);
-  // }
-  // }
-  // }
+                return new BasicStroke(width);
+            }
+        };
 
-  void updateData(@Nonnull List<BetterPeak> peaks, @Nonnull List<BetterComponent> modelPeaks) {
-    xyDataset.removeAllSeries();
-    xyDataset.setNotify(false);
-    toolTips.clear();
+        renderer.setDefaultShapesVisible(false);
+        renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
+            @Override
+            public String generateToolTip(XYDataset dataset, int series,
+                    int item) {
+                try {
+                    return toolTips.get(series);
+                } catch (NullPointerException | IndexOutOfBoundsException e) {
+                    return "";
+                }
+            }
+        });
 
-    // Find retention-time range
-    double startRetTime = Double.MAX_VALUE;
-    double endRetTime = -Double.MAX_VALUE;
-    for (BetterPeak peak : modelPeaks) {
-      if (peak.getFirstRetTime() < startRetTime)
-        startRetTime = peak.getFirstRetTime();
-      if (peak.getLastRetTime() > endRetTime)
-        endRetTime = peak.getLastRetTime();
+        XYPlot plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
+        plot.setBackgroundPaint(Color.white);
+        plot.setDomainGridlinesVisible(true);
+        plot.setRangeGridlinesVisible(true);
+
+        JFreeChart chart = new JFreeChart("",
+                new Font("SansSerif", Font.BOLD, 12), plot, false);
+        chart.setBackgroundPaint(Color.white);
+
+        super.setChart(chart);
+
+        // reset zoom history
+        ZoomHistory history = getZoomHistory();
+        if (history != null)
+            history.clear();
     }
 
-    if (endRetTime < startRetTime)
-      return;
+    // public void updateData(@Nonnull List <List <NavigableMap <Double,
+    // Double>>> clusters,
+    // @Nonnull List <Double> colors,
+    // @Nonnull List <List <String>> info,
+    // @Nonnull List <List<Boolean>> models)
+    // {
+    // final float DEFAULT_LINE_WIDTH = 1.0f;
+    // final float THICK_LINE_WIDTH = 2.0f;
+    //
+    //
+    //// for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
+    //// xyDataset.removeSeries(i);
+    // xyDataset.removeAllSeries();
+    // colorDataset.clear();
+    // toolTips.clear();
+    // widths.clear();
+    //
+    // int seriesID = 0;
+    //
+    // for (int i = 0; i < clusters.size(); ++i)
+    // {
+    // List <NavigableMap <Double, Double>> cluster = clusters.get(i);
+    // double color = colors.get(i);
+    //
+    // for (int j = 0; j < cluster.size(); ++j)
+    // {
+    // XYSeries series = new XYSeries(seriesID++);
+    //
+    // for (Entry <Double, Double> e : cluster.get(j).entrySet())
+    // series.add(e.getKey(), e.getValue());
+    //
+    // float width = DEFAULT_LINE_WIDTH;
+    // if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
+    //
+    // xyDataset.addSeries(series);
+    // colorDataset.add(color);
+    // toolTips.add(info.get(i).get(j));
+    // widths.add(width);
+    // }
+    // }
+    // }
 
-    int seriesID = 0;
-    for (BetterPeak peak : peaks) {
-      XYSeries series = new XYSeries(seriesID++);
-      series.setDescription(PeakType.SIMPLE.name());
+    void updateData(@Nonnull List<BetterPeak> peaks,
+            @Nonnull List<BetterComponent> modelPeaks) {
+        xyDataset.removeAllSeries();
+        xyDataset.setNotify(false);
+        toolTips.clear();
 
-      for (int i = 0; i < peak.chromatogram.length; ++i) {
-        double retTime = peak.chromatogram.getRetTime(i);
-        if (startRetTime <= retTime && retTime <= endRetTime)
-          series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
-      }
+        // Find retention-time range
+        double startRetTime = Double.MAX_VALUE;
+        double endRetTime = -Double.MAX_VALUE;
+        for (BetterPeak peak : modelPeaks) {
+            if (peak.getFirstRetTime() < startRetTime)
+                startRetTime = peak.getFirstRetTime();
+            if (peak.getLastRetTime() > endRetTime)
+                endRetTime = peak.getLastRetTime();
+        }
 
-      xyDataset.addSeries(series);
-      toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f", peak.getMZ(), peak.getIntensity()));
+        if (endRetTime < startRetTime)
+            return;
+
+        int seriesID = 0;
+        for (BetterPeak peak : peaks) {
+            XYSeries series = new XYSeries(seriesID++);
+            series.setDescription(PeakType.SIMPLE.name());
+
+            for (int i = 0; i < peak.chromatogram.length; ++i) {
+                double retTime = peak.chromatogram.getRetTime(i);
+                if (startRetTime <= retTime && retTime <= endRetTime)
+                    series.add(peak.chromatogram.getRetTime(i),
+                            peak.chromatogram.getIntensity(i));
+            }
+
+            xyDataset.addSeries(series);
+            toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f",
+                    peak.getMZ(), peak.getIntensity()));
+        }
+
+        for (BetterPeak peak : modelPeaks) {
+            XYSeries series = new XYSeries((seriesID++));
+            series.setDescription(PeakType.MODEL.name());
+
+            for (int i = 0; i < peak.chromatogram.length; ++i)
+                series.add(peak.chromatogram.getRetTime(i),
+                        peak.chromatogram.getIntensity(i));
+
+            xyDataset.addSeries(series);
+            toolTips.add(String.format("Model peak\nM/z: %.2f\nIntensity: %.0f",
+                    peak.getMZ(), peak.getIntensity()));
+        }
+
+        xyDataset.setNotify(true);
     }
 
-    for (BetterPeak peak : modelPeaks) {
-      XYSeries series = new XYSeries((seriesID++));
-      series.setDescription(PeakType.MODEL.name());
-
-      for (int i = 0; i < peak.chromatogram.length; ++i)
-        series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
-
-      xyDataset.addSeries(series);
-      toolTips.add(String.format("Model peak\nM/z: %.2f\nIntensity: %.0f", peak.getMZ(),
-          peak.getIntensity()));
+    void removeData() {
+        xyDataset.removeAllSeries();
+        toolTips.clear();
     }
-
-    xyDataset.setNotify(true);
-  }
-
-  void removeData() {
-    xyDataset.removeAllSeries();
-    toolTips.clear();
-  }
 }

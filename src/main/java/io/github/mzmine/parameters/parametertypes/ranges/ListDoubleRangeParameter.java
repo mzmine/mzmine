@@ -29,90 +29,91 @@ import org.w3c.dom.Element;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
+public class ListDoubleRangeParameter implements
+        UserParameter<List<Range<Double>>, ListDoubleRangeComponent> {
+    private final String name, description;
+    private final boolean valueRequired;
 
-public class ListDoubleRangeParameter
-    implements UserParameter<List<Range<Double>>, ListDoubleRangeComponent> {
-  private final String name, description;
-  private final boolean valueRequired;
+    private List<Range<Double>> value;
 
-  private List<Range<Double>> value;
-
-  public ListDoubleRangeParameter(String name, String description, boolean valueRequired,
-      List<Range<Double>> defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.valueRequired = valueRequired;
-    this.value = defaultValue;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  public boolean isValueRequired() {
-    return valueRequired;
-  }
-
-  @Override
-  public ListDoubleRangeComponent createEditingComponent() {
-    return new ListDoubleRangeComponent();
-  }
-
-  @Override
-  public List<Range<Double>> getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(List<Range<Double>> value) {
-    this.value = value;
-  }
-
-  @Override
-  public ListDoubleRangeParameter cloneParameter() {
-    ListDoubleRangeParameter copy =
-        new ListDoubleRangeParameter(name, description, valueRequired, value);
-    copy.setValue(value);
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(ListDoubleRangeComponent component) {
-    value = component.getValue();
-  }
-
-  @Override
-  public void setValueToComponent(ListDoubleRangeComponent component,
-      List<Range<Double>> newValue) {
-    component.setValue(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value = dulab.adap.common.algorithms.String.toRanges(xmlElement.getTextContent());
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-
-    xmlElement.setTextContent(dulab.adap.common.algorithms.String.fromRanges(value));
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (valueRequired && value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    public ListDoubleRangeParameter(String name, String description,
+            boolean valueRequired, List<Range<Double>> defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.valueRequired = valueRequired;
+        this.value = defaultValue;
     }
 
-    return true;
-  }
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isValueRequired() {
+        return valueRequired;
+    }
+
+    @Override
+    public ListDoubleRangeComponent createEditingComponent() {
+        return new ListDoubleRangeComponent();
+    }
+
+    @Override
+    public List<Range<Double>> getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(List<Range<Double>> value) {
+        this.value = value;
+    }
+
+    @Override
+    public ListDoubleRangeParameter cloneParameter() {
+        ListDoubleRangeParameter copy = new ListDoubleRangeParameter(name,
+                description, valueRequired, value);
+        copy.setValue(value);
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(ListDoubleRangeComponent component) {
+        value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(ListDoubleRangeComponent component,
+            List<Range<Double>> newValue) {
+        component.setValue(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        value = dulab.adap.common.algorithms.String
+                .toRanges(xmlElement.getTextContent());
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+
+        xmlElement.setTextContent(
+                dulab.adap.common.algorithms.String.fromRanges(value));
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (valueRequired && value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+
+        return true;
+    }
 }

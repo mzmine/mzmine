@@ -23,10 +23,10 @@ import java.util.List;
 
 public interface LastFilesComponent {
 
-  /**
-   * Set the last used files to this component
-   * 
-   * @param value
-   */
-  public void setLastFiles(List<File> lastFiles);
+    /**
+     * Set the last used files to this component
+     * 
+     * @param value
+     */
+    public void setLastFiles(List<File> lastFiles);
 }

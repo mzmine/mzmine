@@ -20,6 +20,6 @@ package io.github.mzmine.util;
 
 public enum SortingDirection {
 
-  Ascending, Descending
+    Ascending, Descending
 
 }

@@ -33,42 +33,44 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");
+    public static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Charge");
 
-  public static final ComboParameter<IonizationType> ionization =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+    public static final ComboParameter<IonizationType> ionization = new ComboParameter<IonizationType>(
+            "Ionization type", "Ionization type", IonizationType.values());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final IntegerParameter maxBestFormulasPerPeak =
-      new IntegerParameter("Max best formulas per peak",
-          "Enter the number of the maximum number of added formulas per peak");
+    public static final IntegerParameter maxBestFormulasPerPeak = new IntegerParameter(
+            "Max best formulas per peak",
+            "Enter the number of the maximum number of added formulas per peak");
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+    public static final ElementsParameter elements = new ElementsParameter(
+            "Elements", "Elements and ranges");
 
-  public static final OptionalModuleParameter elementalRatios =
-      new OptionalModuleParameter("Element count heuristics",
-          "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-          new ElementalHeuristicParameters());
+    public static final OptionalModuleParameter elementalRatios = new OptionalModuleParameter(
+            "Element count heuristics",
+            "Restrict formulas by heuristic restrictions of elemental counts and ratios",
+            new ElementalHeuristicParameters());
 
-  public static final OptionalModuleParameter rdbeRestrictions =
-      new OptionalModuleParameter("RDBE restrictions",
-          "Search only for formulas which correspond to the given RDBE restrictions",
-          new RDBERestrictionParameters());
+    public static final OptionalModuleParameter rdbeRestrictions = new OptionalModuleParameter(
+            "RDBE restrictions",
+            "Search only for formulas which correspond to the given RDBE restrictions",
+            new RDBERestrictionParameters());
 
-  public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
-      "Isotope pattern filter", "Search only for formulas with a isotope pattern similar",
-      new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
+            "Isotope pattern filter",
+            "Search only for formulas with a isotope pattern similar",
+            new IsotopePatternScoreParameters());
 
-  public static final OptionalModuleParameter msmsFilter =
-      new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
+    public static final OptionalModuleParameter msmsFilter = new OptionalModuleParameter(
+            "MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
-  public FormulaPredictionPeakListParameters() {
-    super(new Parameter[] {charge, ionization, PEAK_LISTS, mzTolerance, maxBestFormulasPerPeak,
-        elements, elementalRatios, rdbeRestrictions, isotopeFilter, msmsFilter});
-  }
+    public FormulaPredictionPeakListParameters() {
+        super(new Parameter[] { charge, ionization, PEAK_LISTS, mzTolerance,
+                maxBestFormulasPerPeak, elements, elementalRatios,
+                rdbeRestrictions, isotopeFilter, msmsFilter });
+    }
 }

@@ -19,5 +19,5 @@
 package io.github.mzmine.modules.io.exportscans;
 
 public enum ScanFormats {
-  mgf, txt, mzML, msp;
+    mgf, txt, mzML, msp;
 }

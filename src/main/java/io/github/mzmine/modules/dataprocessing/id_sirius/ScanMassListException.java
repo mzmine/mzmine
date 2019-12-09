@@ -19,15 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 public class ScanMassListException extends RuntimeException {
-  public ScanMassListException(String msg) {
-    super(msg);
-  }
+    public ScanMassListException(String msg) {
+        super(msg);
+    }
 
-  public ScanMassListException(Throwable t) {
-    super(t);
-  }
+    public ScanMassListException(Throwable t) {
+        super(t);
+    }
 
-  public ScanMassListException(String msg, Throwable t) {
-    super(msg, t);
-  }
+    public ScanMassListException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }

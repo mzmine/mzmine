@@ -20,20 +20,22 @@ package io.github.mzmine.modules.visualization.twod;
 
 public enum PeakThresholdMode {
 
-  ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS("Peaks above user-defined intensity"), TOP_PEAKS(
-      "User-defined top peaks"), TOP_PEAKS_AREA("User-defined top peaks in the displayed area");
+    ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
+            "Peaks above user-defined intensity"), TOP_PEAKS(
+                    "User-defined top peaks"), TOP_PEAKS_AREA(
+                            "User-defined top peaks in the displayed area");
 
-  private final String name;
+    private final String name;
 
-  PeakThresholdMode(String name) {
-    this.name = name;
-  }
+    PeakThresholdMode(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return this.name;
-  }
+    public String getName() {
+        return this.name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 }

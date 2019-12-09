@@ -26,14 +26,16 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class SimpleKMeansClustererParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<VisualizationType> visualization =
-      new ComboParameter<VisualizationType>("Visualization type",
-          "Select the kind of visualization for the clustering result", VisualizationType.values());
+    public static final ComboParameter<VisualizationType> visualization = new ComboParameter<VisualizationType>(
+            "Visualization type",
+            "Select the kind of visualization for the clustering result",
+            VisualizationType.values());
 
-  public static final IntegerParameter numberOfGroups = new IntegerParameter(
-      "Number of clusters to generate", "Specify the number of clusters to generate.", 3);
+    public static final IntegerParameter numberOfGroups = new IntegerParameter(
+            "Number of clusters to generate",
+            "Specify the number of clusters to generate.", 3);
 
-  public SimpleKMeansClustererParameters() {
-    super(new Parameter[] {visualization, numberOfGroups});
-  }
+    public SimpleKMeansClustererParameters() {
+        super(new Parameter[] { visualization, numberOfGroups });
+    }
 }

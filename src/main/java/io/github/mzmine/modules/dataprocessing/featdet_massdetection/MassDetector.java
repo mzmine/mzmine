@@ -28,11 +28,11 @@ import io.github.mzmine.parameters.ParameterSet;
  */
 public interface MassDetector extends MZmineModule {
 
-  /**
-   * Returns mass and intensity values detected in given scan
-   */
-  public DataPoint[] getMassValues(DataPoint[] dp, ParameterSet parameters);
-  
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters);
+    /**
+     * Returns mass and intensity values detected in given scan
+     */
+    public DataPoint[] getMassValues(DataPoint[] dp, ParameterSet parameters);
+
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters);
 
 }

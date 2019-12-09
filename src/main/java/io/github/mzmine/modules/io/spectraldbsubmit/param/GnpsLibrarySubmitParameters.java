@@ -42,10 +42,12 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class GnpsLibrarySubmitParameters extends SimpleParameterSet {
 
-  public static StringParameter user = new StringParameter("Username", "GNPS username", null, true, true);
-  public static PasswordParameter pass = new PasswordParameter("Password", "GNPS password");
+    public static StringParameter user = new StringParameter("Username",
+            "GNPS username", null, true, true);
+    public static PasswordParameter pass = new PasswordParameter("Password",
+            "GNPS password");
 
-  public GnpsLibrarySubmitParameters() {
-    super(new Parameter[] {user, pass});
-  }
+    public GnpsLibrarySubmitParameters() {
+        super(new Parameter[] { user, pass });
+    }
 }

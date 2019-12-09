@@ -25,13 +25,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class GNPSResultsImportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LIST = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter PEAK_LIST = new PeakListsParameter(1,
+            1);
 
-  public static final FileNameParameter FILE = new FileNameParameter("GNPS graphml file",
-      "GNPS results in the graphml file (download cytoscape data)", "graphml");
+    public static final FileNameParameter FILE = new FileNameParameter(
+            "GNPS graphml file",
+            "GNPS results in the graphml file (download cytoscape data)",
+            "graphml");
 
-  public GNPSResultsImportParameters() {
-    super(new Parameter[] {PEAK_LIST, FILE});
-  }
+    public GNPSResultsImportParameters() {
+        super(new Parameter[] { PEAK_LIST, FILE });
+    }
 
 }

@@ -26,16 +26,15 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class SpectraIdentificationResultsModule implements MZmineModule {
 
-  public static final String MODULE_NAME = "Local spectral database search results";
+    public static final String MODULE_NAME = "Local spectral database search results";
 
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return SpectraIdentificationResultsParameters.class;
-  }
+    @Override
+    public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+        return SpectraIdentificationResultsParameters.class;
+    }
 }

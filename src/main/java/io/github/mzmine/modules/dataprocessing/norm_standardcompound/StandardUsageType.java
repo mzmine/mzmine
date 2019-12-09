@@ -20,16 +20,17 @@ package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
 public enum StandardUsageType {
 
-  Nearest("Nearest standard"), Weighted("Weighted contribution of all standards");
+    Nearest("Nearest standard"), Weighted(
+            "Weighted contribution of all standards");
 
-  private final String name;
+    private final String name;
 
-  StandardUsageType(String name) {
-    this.name = name;
-  }
+    StandardUsageType(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 
 }

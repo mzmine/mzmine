@@ -23,21 +23,22 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import io.github.mzmine.modules.MZmineModule;
 
 public interface SNEstimatorChoice extends MZmineModule {
-  /**
-   * Gets if resolver requires R, if applicable
-   */
-  public boolean getRequiresR();
+    /**
+     * Gets if resolver requires R, if applicable
+     */
+    public boolean getRequiresR();
 
-  /**
-   * Gets R required packages for the resolver's method, if applicable
-   */
-  public String[] getRequiredRPackages();
+    /**
+     * Gets R required packages for the resolver's method, if applicable
+     */
+    public String[] getRequiredRPackages();
 
-  /**
-   * Gets R required packages versions for the resolver's method, if applicable
-   */
-  public String[] getRequiredRPackagesVersions();
+    /**
+     * Gets R required packages versions for the resolver's method, if
+     * applicable
+     */
+    public String[] getRequiredRPackagesVersions();
 
-  public String getSNCode();
+    public String getSNCode();
 
 }

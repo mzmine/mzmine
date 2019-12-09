@@ -24,26 +24,26 @@ import io.github.mzmine.datamodel.DataPoint;
 
 /**
  * 
- * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
- * interpreted formulas
+ * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data
+ * points to interpreted formulas
  * 
  */
 public class MSMSScore {
 
-  private double score;
-  private Map<DataPoint, String> annotation;
+    private double score;
+    private Map<DataPoint, String> annotation;
 
-  public MSMSScore(double score, Map<DataPoint, String> annotation) {
-    this.score = score;
-    this.annotation = annotation;
-  }
+    public MSMSScore(double score, Map<DataPoint, String> annotation) {
+        this.score = score;
+        this.annotation = annotation;
+    }
 
-  public double getScore() {
-    return score;
-  }
+    public double getScore() {
+        return score;
+    }
 
-  public Map<DataPoint, String> getAnnotation() {
-    return annotation;
-  }
+    public Map<DataPoint, String> getAnnotation() {
+        return annotation;
+    }
 
 }

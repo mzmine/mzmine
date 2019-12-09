@@ -22,9 +22,9 @@ import io.github.mzmine.datamodel.Scan;
 
 public interface RawDataFilter {
 
-  /**
-   * Returns a modified scan after being processed by the filter
-   */
-  public Scan filterScan(Scan scan);
+    /**
+     * Returns a modified scan after being processed by the filter
+     */
+    public Scan filterScan(Scan scan);
 
 }

@@ -23,16 +23,16 @@ package io.github.mzmine.modules.visualization.featurelisttable;
  */
 public enum PeakShapeNormalization {
 
-  PEAKMAX("Peak maximum"), ROWMAX("Row maximum"), GLOBALMAX("Global maximum");
+    PEAKMAX("Peak maximum"), ROWMAX("Row maximum"), GLOBALMAX("Global maximum");
 
-  private final String displayName;
+    private final String displayName;
 
-  PeakShapeNormalization(final String displayName) {
-    this.displayName = displayName;
-  }
+    PeakShapeNormalization(final String displayName) {
+        this.displayName = displayName;
+    }
 
-  public String toString() {
-    return displayName;
-  }
+    public String toString() {
+        return displayName;
+    }
 
 }

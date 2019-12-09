@@ -29,22 +29,22 @@ import io.github.mzmine.util.SortingDirection;
  */
 public class RawDataFileSorter implements Comparator<RawDataFile> {
 
-  private SortingDirection direction;
+    private SortingDirection direction;
 
-  public RawDataFileSorter(SortingDirection direction) {
-    this.direction = direction;
-  }
+    public RawDataFileSorter(SortingDirection direction) {
+        this.direction = direction;
+    }
 
-  public int compare(RawDataFile rdf1, RawDataFile rdf2) {
+    public int compare(RawDataFile rdf1, RawDataFile rdf2) {
 
-    String rdf1Value = rdf1.getName();
-    String rdf2Value = rdf2.getName();
+        String rdf1Value = rdf1.getName();
+        String rdf2Value = rdf2.getName();
 
-    if (direction == SortingDirection.Ascending)
-      return rdf1Value.compareTo(rdf2Value);
-    else
-      return rdf2Value.compareTo(rdf1Value);
+        if (direction == SortingDirection.Ascending)
+            return rdf1Value.compareTo(rdf2Value);
+        else
+            return rdf2Value.compareTo(rdf1Value);
 
-  }
+    }
 
 }

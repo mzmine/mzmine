@@ -57,8 +57,9 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
                 return;
             value = new StringCrypter(nuVal);
         } catch (IOException e) {
-            Logger.getLogger(this.getClass().getName()).warning("Could not load Encryption key! " +
-                    "Encrypted parameters in the config file might not be decryptable.");
+            Logger.getLogger(this.getClass().getName())
+                    .warning("Could not load Encryption key! "
+                            + "Encrypted parameters in the config file might not be decryptable.");
         }
     }
 

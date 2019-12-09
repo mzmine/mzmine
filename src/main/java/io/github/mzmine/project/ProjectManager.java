@@ -25,8 +25,8 @@ import io.github.mzmine.datamodel.MZmineProject;
  */
 public interface ProjectManager {
 
-  public MZmineProject getCurrentProject();
+    public MZmineProject getCurrentProject();
 
-  public void setCurrentProject(MZmineProject newProject);
+    public void setCurrentProject(MZmineProject newProject);
 
 }

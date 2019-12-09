@@ -24,11 +24,12 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class IsotopePatternExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter outputFile =
-      new FileNameParameter("Output file", "Please set the path and name of the output text file");
+    public static final FileNameParameter outputFile = new FileNameParameter(
+            "Output file",
+            "Please set the path and name of the output text file");
 
-  public IsotopePatternExportParameters() {
-    super(new Parameter[] {outputFile});
-  }
+    public IsotopePatternExportParameters() {
+        super(new Parameter[] { outputFile });
+    }
 
 }

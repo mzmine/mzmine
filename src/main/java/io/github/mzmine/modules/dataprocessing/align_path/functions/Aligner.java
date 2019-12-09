@@ -21,22 +21,22 @@ import io.github.mzmine.datamodel.PeakList;
 
 public interface Aligner {
 
-  /**
-   * Aligns all the sample files creating a new data set.
-   *
-   * @return New data set as a result of the alignment
-   */
-  public PeakList align();
+    /**
+     * Aligns all the sample files creating a new data set.
+     *
+     * @return New data set as a result of the alignment
+     */
+    public PeakList align();
 
-  /**
-   * 
-   * @return Name of the final data set
-   */
-  public String getName();
+    /**
+     * 
+     * @return Name of the final data set
+     */
+    public String getName();
 
-  /**
-   * 
-   * @return Progress of the algorithm
-   */
-  public double getProgress();
+    /**
+     * 
+     * @return Progress of the algorithm
+     */
+    public double getProgress();
 }

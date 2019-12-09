@@ -23,27 +23,27 @@ import javax.swing.JComboBox;
 
 public class JFontStyleBox extends JComboBox<Object> {
 
-  private enum Style {
-    PLAIN, BOLD, ITALIC, BOLDITALIC
-  }
-
-  public JFontStyleBox() {
-    super(Style.values());
-    setSelectedIndex(0);
-  }
-
-  public int getSelectedStyle() {
-    switch ((Style) getSelectedItem()) {
-      case PLAIN:
-        return Font.PLAIN;
-      case BOLD:
-        return Font.BOLD;
-      case ITALIC:
-        return Font.ITALIC;
-      case BOLDITALIC:
-        return Font.BOLD + Font.ITALIC;
+    private enum Style {
+        PLAIN, BOLD, ITALIC, BOLDITALIC
     }
-    return Font.PLAIN;
-  }
+
+    public JFontStyleBox() {
+        super(Style.values());
+        setSelectedIndex(0);
+    }
+
+    public int getSelectedStyle() {
+        switch ((Style) getSelectedItem()) {
+        case PLAIN:
+            return Font.PLAIN;
+        case BOLD:
+            return Font.BOLD;
+        case ITALIC:
+            return Font.ITALIC;
+        case BOLDITALIC:
+            return Font.BOLD + Font.ITALIC;
+        }
+        return Font.PLAIN;
+    }
 
 }

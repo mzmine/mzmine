@@ -21,23 +21,24 @@ package io.github.mzmine.modules.impl;
 import io.github.mzmine.modules.MZmineModule;
 
 /**
- * A simple wrapper providing the toString() method for adding modules to combo boxes etc.
+ * A simple wrapper providing the toString() method for adding modules to combo
+ * boxes etc.
  */
 public class MZmineModuleWrapper {
 
-  private MZmineModule module;
+    private MZmineModule module;
 
-  public MZmineModuleWrapper(MZmineModule module) {
-    this.module = module;
-  }
+    public MZmineModuleWrapper(MZmineModule module) {
+        this.module = module;
+    }
 
-  public MZmineModule getModule() {
-    return module;
-  }
+    public MZmineModule getModule() {
+        return module;
+    }
 
-  @Override
-  public String toString() {
-    return module.getName();
-  }
+    @Override
+    public String toString() {
+        return module.getName();
+    }
 
 }

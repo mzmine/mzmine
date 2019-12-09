@@ -34,77 +34,78 @@ import javax.swing.event.DocumentListener;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class ListDoubleRangeComponent extends GridBagPanel {
-  private JTextField inputField;
-  private JLabel textField;
+    private JTextField inputField;
+    private JLabel textField;
 
-  public ListDoubleRangeComponent() {
-    inputField = new JTextField();
-    inputField.setColumns(16);
-    inputField.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void changedUpdate(DocumentEvent e) {
-        update();
-      }
+    public ListDoubleRangeComponent() {
+        inputField = new JTextField();
+        inputField.setColumns(16);
+        inputField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                update();
+            }
 
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        update();
-      }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                update();
+            }
 
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        update();
-      }
-    });
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                update();
+            }
+        });
 
-    textField = new JLabel();
-    // textField.setColumns(8);
+        textField = new JLabel();
+        // textField.setColumns(8);
 
-    add(inputField, 0, 0);
-    add(textField, 0, 1);
-  }
-
-  public List<Range<Double>> getValue() {
-    try {
-      return dulab.adap.common.algorithms.String.toRanges(textField.getText());
-    } catch (Exception e) {
-      return null;
+        add(inputField, 0, 0);
+        add(textField, 0, 1);
     }
-  }
 
-  public void setValue(List<Range<Double>> ranges) {
-    String text = dulab.adap.common.algorithms.String.fromRanges(ranges);
-
-    textField.setForeground(Color.black);
-    textField.setText(text);
-    inputField.setText(text);
-  }
-
-  @Override
-  public void setToolTipText(String toolTip) {
-    textField.setToolTipText(toolTip);
-    inputField.setToolTipText(toolTip);
-  }
-
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    textField.setEnabled(enabled);
-    inputField.setEnabled(enabled);
-  }
-
-  private void update() {
-    try {
-      List<Range<Double>> ranges =
-          dulab.adap.common.algorithms.String.toRanges(inputField.getText());
-
-      textField.setForeground(Color.black);
-      textField.setText(dulab.adap.common.algorithms.String.fromRanges(ranges));
-    } catch (IllegalArgumentException e) {
-      textField.setForeground(Color.red);
-      textField.setText(e.getMessage());
+    public List<Range<Double>> getValue() {
+        try {
+            return dulab.adap.common.algorithms.String
+                    .toRanges(textField.getText());
+        } catch (Exception e) {
+            return null;
+        }
     }
-  }
+
+    public void setValue(List<Range<Double>> ranges) {
+        String text = dulab.adap.common.algorithms.String.fromRanges(ranges);
+
+        textField.setForeground(Color.black);
+        textField.setText(text);
+        inputField.setText(text);
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        textField.setToolTipText(toolTip);
+        inputField.setToolTipText(toolTip);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        textField.setEnabled(enabled);
+        inputField.setEnabled(enabled);
+    }
+
+    private void update() {
+        try {
+            List<Range<Double>> ranges = dulab.adap.common.algorithms.String
+                    .toRanges(inputField.getText());
+
+            textField.setForeground(Color.black);
+            textField.setText(
+                    dulab.adap.common.algorithms.String.fromRanges(ranges));
+        } catch (IllegalArgumentException e) {
+            textField.setForeground(Color.red);
+            textField.setText(e.getMessage());
+        }
+    }
 }

@@ -20,18 +20,18 @@ package io.github.mzmine.util;
 
 public enum SearchDefinitionType {
 
-  NAME("Name"), //
-  MASS("m/z"), //
-  RT("Retention time");
+    NAME("Name"), //
+    MASS("m/z"), //
+    RT("Retention time");
 
-  private String text;
+    private String text;
 
-  SearchDefinitionType(String text) {
-    this.text = text;
-  }
+    SearchDefinitionType(String text) {
+        this.text = text;
+    }
 
-  public String toString() {
-    return text;
-  }
+    public String toString() {
+        return text;
+    }
 
 }

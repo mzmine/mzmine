@@ -20,17 +20,18 @@ package io.github.mzmine.modules.io.projectload.version_2_5;
 
 enum UserParameterElementName_2_5 {
 
-  PARAMETERS("parameters"), COUNT("count"), PARAMETER("parameter"), NAME("name"), TYPE(
-      "type"), OPTION("option"), VALUE("value"), DATA_FILE("data_file");
+    PARAMETERS("parameters"), COUNT("count"), PARAMETER("parameter"), NAME(
+            "name"), TYPE("type"), OPTION(
+                    "option"), VALUE("value"), DATA_FILE("data_file");
 
-  private String elementName;
+    private String elementName;
 
-  private UserParameterElementName_2_5(String itemName) {
-    this.elementName = itemName;
-  }
+    private UserParameterElementName_2_5(String itemName) {
+        this.elementName = itemName;
+    }
 
-  public String getElementName() {
-    return elementName;
-  }
+    public String getElementName() {
+        return elementName;
+    }
 
 }

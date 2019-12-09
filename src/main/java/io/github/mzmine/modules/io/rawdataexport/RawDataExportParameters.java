@@ -26,19 +26,18 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 
 public class RawDataExportParameters extends SimpleParameterSet {
 
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
+    public static final DirectoryParameter fileName = new DirectoryParameter(
+            "Folder", "Select a folder");
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final ComboParameter<RawDataFileType> type = new ComboParameter<>(
+            "File type", "", new RawDataFileType[] { RawDataFileType.MZML,
+                    RawDataFileType.NETCDF },
+            RawDataFileType.MZML);
 
-  public static final DirectoryParameter fileName =
-      new DirectoryParameter("Folder", "Select a folder");
-
-  public static final ComboParameter<RawDataFileType> type = new ComboParameter<>("File type", "",
-      new RawDataFileType[] {RawDataFileType.MZML, RawDataFileType.NETCDF}, RawDataFileType.MZML);
-
-
-  public RawDataExportParameters() {
-    super(new Parameter[] {dataFiles, fileName, type});
-  }
+    public RawDataExportParameters() {
+        super(new Parameter[] { dataFiles, fileName, type });
+    }
 
 }

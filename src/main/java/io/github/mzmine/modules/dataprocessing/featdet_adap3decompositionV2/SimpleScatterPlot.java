@@ -15,7 +15,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_adap3decompositionV2;
 
-
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -45,7 +44,6 @@ import org.jfree.data.xy.XYSeriesCollection;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class SimpleScatterPlot extends EChartPanel {
     private final XYPlot plot;
     private final XYSeriesCollection xyDataset;
@@ -70,12 +68,13 @@ public class SimpleScatterPlot extends EChartPanel {
 
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false) {
             @Override
-            protected void drawPrimaryLine(XYItemRendererState state, Graphics2D g2, XYPlot plot,
-                                           XYDataset dataset, int pass, int series, int item, ValueAxis domainAxis,
-                                           ValueAxis rangeAxis, Rectangle2D dataArea) {
+            protected void drawPrimaryLine(XYItemRendererState state,
+                    Graphics2D g2, XYPlot plot, XYDataset dataset, int pass,
+                    int series, int item, ValueAxis domainAxis,
+                    ValueAxis rangeAxis, Rectangle2D dataArea) {
                 if (item % 2 != 0)
-                    super.drawPrimaryLine(state, g2, plot, dataset, pass, series, item, domainAxis, rangeAxis,
-                            dataArea);
+                    super.drawPrimaryLine(state, g2, plot, dataset, pass,
+                            series, item, domainAxis, rangeAxis, dataArea);
             }
         };
 
@@ -84,7 +83,8 @@ public class SimpleScatterPlot extends EChartPanel {
         plot.setDomainGridlinesVisible(true);
         plot.setRangeGridlinesVisible(true);
 
-        JFreeChart chart = new JFreeChart("", new Font("SansSerif", Font.BOLD, 12), plot, false);
+        JFreeChart chart = new JFreeChart("",
+                new Font("SansSerif", Font.BOLD, 12), plot, false);
         chart.setBackgroundPaint(Color.white);
 
         super.setChart(chart);
@@ -112,6 +112,7 @@ public class SimpleScatterPlot extends EChartPanel {
     }
 
     public void setDomain(Range<Double> range) {
-        plot.getDomainAxis().setRange(range.lowerEndpoint(), range.upperEndpoint());
+        plot.getDomainAxis().setRange(range.lowerEndpoint(),
+                range.upperEndpoint());
     }
 }

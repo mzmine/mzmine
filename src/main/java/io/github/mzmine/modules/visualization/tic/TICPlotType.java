@@ -20,16 +20,16 @@ package io.github.mzmine.modules.visualization.tic;
 
 public enum TICPlotType {
 
-  BASEPEAK("Base peak intensity"), TIC("Total ion current (TIC/XIC)");
+    BASEPEAK("Base peak intensity"), TIC("Total ion current (TIC/XIC)");
 
-  private String type;
+    private String type;
 
-  TICPlotType(String type) {
-    this.type = type;
-  }
+    TICPlotType(String type) {
+        this.type = type;
+    }
 
-  public String toString() {
-    return type;
-  }
+    public String toString() {
+        return type;
+    }
 
 }

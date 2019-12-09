@@ -21,21 +21,21 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 import io.github.mzmine.datamodel.PeakListRow;
 
 public class MatchResult {
-  
-  private final PeakListRow bestRow;
-  private final double score;
-  
-  public MatchResult(PeakListRow bestRow, double score) {
-    this.bestRow = bestRow;
-    this.score = score;
-  }
 
-  public PeakListRow getBestRow() {
-    return bestRow;
-  }
+    private final PeakListRow bestRow;
+    private final double score;
 
-  public double getScore() {
-    return score;
-  }
-  
+    public MatchResult(PeakListRow bestRow, double score) {
+        this.bestRow = bestRow;
+        this.score = score;
+    }
+
+    public PeakListRow getBestRow() {
+        return bestRow;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
 }

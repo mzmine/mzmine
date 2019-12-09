@@ -27,65 +27,65 @@ import io.github.mzmine.datamodel.PeakInformation;
  */
 public class SimplePeakInformation implements PeakInformation {
 
-  private final Map<String, String> properties;
+    private final Map<String, String> properties;
 
-  // ------------------------------------------------------------------------
-  // ----- Constructors -----------------------------------------------------
-  // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ----- Constructors -----------------------------------------------------
+    // ------------------------------------------------------------------------
 
-  public SimplePeakInformation() {
-    properties = new HashMap<>();
-  }
+    public SimplePeakInformation() {
+        properties = new HashMap<>();
+    }
 
-  public SimplePeakInformation(String propertyName, String propertyValue) {
-    this();
-    properties.put(propertyName, propertyValue);
-  }
+    public SimplePeakInformation(String propertyName, String propertyValue) {
+        this();
+        properties.put(propertyName, propertyValue);
+    }
 
-  public SimplePeakInformation(Map<String, String> properties) {
-    this.properties = properties;
-  }
+    public SimplePeakInformation(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
-  // ------------------------------------------------------------------------
-  // ----- Methods ----------------------------------------------------------
-  // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ----- Methods ----------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-  public void addProperty(String name, String value) {
-    properties.put(name, value);
-  }
+    public void addProperty(String name, String value) {
+        properties.put(name, value);
+    }
 
-  public void addProperty(Map<String, String> properties) {
-    this.properties.putAll(properties);
-  }
+    public void addProperty(Map<String, String> properties) {
+        this.properties.putAll(properties);
+    }
 
-  // ------------------------------------------------------------------------
-  // ----- Properties -------------------------------------------------------
-  // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ----- Properties -------------------------------------------------------
+    // ------------------------------------------------------------------------
 
-  @Override
-  @Nonnull
-  public String getPropertyValue(String propertyName) {
-    return properties.get(propertyName);
-  }
+    @Override
+    @Nonnull
+    public String getPropertyValue(String propertyName) {
+        return properties.get(propertyName);
+    }
 
-  @Override
-  @Nonnull
-  public String getPropertyValue(String propertyName, String defaultValue) {
-    String value = properties.get(propertyName);
-    if (value == null)
-      value = defaultValue;
-    return value;
-  }
+    @Override
+    @Nonnull
+    public String getPropertyValue(String propertyName, String defaultValue) {
+        String value = properties.get(propertyName);
+        if (value == null)
+            value = defaultValue;
+        return value;
+    }
 
-  @Override
-  @Nonnull
-  public Map<String, String> getAllProperties() {
-    return properties;
-  }
+    @Override
+    @Nonnull
+    public Map<String, String> getAllProperties() {
+        return properties;
+    }
 
-  @Override
-  @Nonnull
-  public synchronized SimplePeakInformation clone() {
-    return new SimplePeakInformation(new HashMap<>(properties));
-  }
+    @Override
+    @Nonnull
+    public synchronized SimplePeakInformation clone() {
+        return new SimplePeakInformation(new HashMap<>(properties));
+    }
 }

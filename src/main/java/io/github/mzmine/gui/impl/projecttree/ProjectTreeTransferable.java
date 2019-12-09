@@ -30,18 +30,20 @@ import javax.swing.tree.TreePath;
  */
 class ProjectTreeTransferable implements Transferable {
 
-  public static final DataFlavor transerFlavor = new DataFlavor(TreePath[].class, "TreePath[]");
+    public static final DataFlavor transerFlavor = new DataFlavor(
+            TreePath[].class, "TreePath[]");
 
-  public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-    return null;
-  }
+    public Object getTransferData(DataFlavor flavor)
+            throws UnsupportedFlavorException, IOException {
+        return null;
+    }
 
-  public DataFlavor[] getTransferDataFlavors() {
-    return new DataFlavor[] {transerFlavor};
-  }
+    public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[] { transerFlavor };
+    }
 
-  public boolean isDataFlavorSupported(DataFlavor flavor) {
-    return (flavor.equals(transerFlavor));
-  }
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return (flavor.equals(transerFlavor));
+    }
 
 }

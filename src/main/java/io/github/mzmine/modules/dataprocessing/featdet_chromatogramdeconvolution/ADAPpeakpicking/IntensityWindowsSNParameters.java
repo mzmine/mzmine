@@ -20,8 +20,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
-
-
 import java.awt.Window;
 
 import io.github.mzmine.parameters.Parameter;
@@ -30,16 +28,17 @@ import io.github.mzmine.util.ExitCode;
 
 public class IntensityWindowsSNParameters extends SimpleParameterSet {
 
-  public IntensityWindowsSNParameters() {
-    super(new Parameter[] {});
-  }
+    public IntensityWindowsSNParameters() {
+        super(new Parameter[] {});
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    final SNSetUpDialog dialog = new SNSetUpDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+        final SNSetUpDialog dialog = new SNSetUpDialog(parent,
+                valueCheckRequired, this);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
 }

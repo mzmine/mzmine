@@ -33,46 +33,46 @@ import java.text.NumberFormat;
  */
 public class ADAP3AlignerParameters extends SimpleParameterSet {
 
-    private static final String[] EIC_SCORE_TYPES = new String[]{
+    private static final String[] EIC_SCORE_TYPES = new String[] {
             AlignmentParameters.RT_DIFFERENCE,
-            AlignmentParameters.CROSS_CORRELATION};
+            AlignmentParameters.CROSS_CORRELATION };
 
-    public static final PeakListsParameter PEAK_LISTS =
-            new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-    public static final StringParameter NEW_PEAK_LIST_NAME =
-            new StringParameter("Aligned Feature List Name", "Feature list name", "Aligned feature list");
+    public static final StringParameter NEW_PEAK_LIST_NAME = new StringParameter(
+            "Aligned Feature List Name", "Feature list name",
+            "Aligned feature list");
 
-    public static final DoubleParameter SAMPLE_COUNT_RATIO =
-            new DoubleParameter("Min confidence (between 0 and 1)",
-                    "A fraction of the total number of samples. An aligned feature must be detected at " +
-                            "least in several samples. This parameter determines the minimum number of samples where a " +
-                            "feature must be detected.",
-                    NumberFormat.getInstance(), 0.7, 0.0, 1.0);
+    public static final DoubleParameter SAMPLE_COUNT_RATIO = new DoubleParameter(
+            "Min confidence (between 0 and 1)",
+            "A fraction of the total number of samples. An aligned feature must be detected at "
+                    + "least in several samples. This parameter determines the minimum number of samples where a "
+                    + "feature must be detected.",
+            NumberFormat.getInstance(), 0.7, 0.0, 1.0);
 
     public static final RTToleranceParameter RET_TIME_RANGE = new RTToleranceParameter();
 
     public static final MZToleranceParameter MZ_RANGE = new MZToleranceParameter();
 
-    public static final DoubleParameter SCORE_TOLERANCE =
-            new DoubleParameter("Score threshold (between 0 and 1)",
-                    "The minimum value of the similarity function required for features to be aligned together.",
-                    NumberFormat.getInstance(), 0.75, 0.0, 1.0);
+    public static final DoubleParameter SCORE_TOLERANCE = new DoubleParameter(
+            "Score threshold (between 0 and 1)",
+            "The minimum value of the similarity function required for features to be aligned together.",
+            NumberFormat.getInstance(), 0.75, 0.0, 1.0);
 
-    public static final DoubleParameter SCORE_WEIGHT =
-            new DoubleParameter("Score weight (between 0 and 1)",
-                    "The weight w that is used in the similarity function. See the help file for details.",
-                    NumberFormat.getInstance(), 0.1, 0.0, 1.0);
+    public static final DoubleParameter SCORE_WEIGHT = new DoubleParameter(
+            "Score weight (between 0 and 1)",
+            "The weight w that is used in the similarity function. See the help file for details.",
+            NumberFormat.getInstance(), 0.1, 0.0, 1.0);
 
-    public static final ComboParameter<String> EIC_SCORE =
-            new ComboParameter<>("Retention time similarity",
-                    "Method used for calculating the retention time similarity. The retention time difference " +
-                            "(fast) is preferred method.",
-                    EIC_SCORE_TYPES,
-                    AlignmentParameters.RT_DIFFERENCE);
+    public static final ComboParameter<String> EIC_SCORE = new ComboParameter<>(
+            "Retention time similarity",
+            "Method used for calculating the retention time similarity. The retention time difference "
+                    + "(fast) is preferred method.",
+            EIC_SCORE_TYPES, AlignmentParameters.RT_DIFFERENCE);
 
     public ADAP3AlignerParameters() {
-        super(new Parameter[]{PEAK_LISTS, SAMPLE_COUNT_RATIO, RET_TIME_RANGE, MZ_RANGE,
-                SCORE_TOLERANCE, SCORE_WEIGHT, EIC_SCORE, NEW_PEAK_LIST_NAME});
+        super(new Parameter[] { PEAK_LISTS, SAMPLE_COUNT_RATIO, RET_TIME_RANGE,
+                MZ_RANGE, SCORE_TOLERANCE, SCORE_WEIGHT, EIC_SCORE,
+                NEW_PEAK_LIST_NAME });
     }
 }

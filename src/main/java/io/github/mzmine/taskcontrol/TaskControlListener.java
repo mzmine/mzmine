@@ -20,6 +20,6 @@ package io.github.mzmine.taskcontrol;
 
 public interface TaskControlListener {
 
-  public void numberOfWaitingTasksChanged(int waitingTasks, int percentDone);
+    public void numberOfWaitingTasksChanged(int waitingTasks, int percentDone);
 
 }

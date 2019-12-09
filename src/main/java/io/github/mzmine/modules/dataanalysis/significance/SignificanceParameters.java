@@ -32,31 +32,34 @@ import io.github.mzmine.util.ExitCode;
 
 public class SignificanceParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1,
+            1);
 
-    public static final ComboParameter<UserParameter<?, ?>> selectionData =
-        new ComboParameter<UserParameter<?, ?>>("Sample parameter",
+    public static final ComboParameter<UserParameter<?, ?>> selectionData = new ComboParameter<UserParameter<?, ?>>(
+            "Sample parameter",
             "One sample parameter has to be selected to be used in the test calculation. They can be defined in \"Project -> Set sample parameters\"",
             new UserParameter[0]);
 
     public SignificanceParameters() {
-        super(new Parameter[] {peakLists, selectionData});
+        super(new Parameter[] { peakLists, selectionData });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
         // Update the parameter choices
-        MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+        MZmineProject project = MZmineCore.getProjectManager()
+                .getCurrentProject();
         UserParameter[] newChoices = project.getParameters();
-        getParameter(SignificanceParameters.selectionData).setChoices(newChoices);
+        getParameter(SignificanceParameters.selectionData)
+                .setChoices(newChoices);
 
         // Add a message
         String message = "<html>To view the results of ANOVA test, export the feature list to CSV file "
-            + "and look for column ANOVA_P_VALUE. Click Help for details.</html>";
+                + "and look for column ANOVA_P_VALUE. Click Help for details.</html>";
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-            parent, valueCheckRequired, this, message);
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+                valueCheckRequired, this, message);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

@@ -42,7 +42,7 @@ public class IconUtil {
         final ImageIcon icon = new ImageIcon(iconResourcePath);
         return icon;
     }
-    
+
     public static @Nonnull Icon loadIconFromResources(
             final @Nonnull String resourcePath, final int width) {
         final ImageIcon icon = loadIconFromResources(resourcePath);
@@ -50,7 +50,8 @@ public class IconUtil {
         return scaledIcon;
     }
 
-    public static @Nonnull ImageIcon scaled(final ImageIcon icon, final int width) {
+    public static @Nonnull ImageIcon scaled(final ImageIcon icon,
+            final int width) {
         int height = Math.round(
                 icon.getIconHeight() / (float) icon.getIconWidth() * width);
         Image image = icon.getImage();

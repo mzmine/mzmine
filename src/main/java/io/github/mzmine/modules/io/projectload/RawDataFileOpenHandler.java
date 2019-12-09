@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 
 public interface RawDataFileOpenHandler {
 
-  RawDataFile readRawDataFile(InputStream is, File scansFile)
-      throws IOException, ParserConfigurationException, SAXException;
+    RawDataFile readRawDataFile(InputStream is, File scansFile)
+            throws IOException, ParserConfigurationException, SAXException;
 
-  void cancel();
+    void cancel();
 
 }

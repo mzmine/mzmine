@@ -23,26 +23,26 @@ package io.github.mzmine.util;
  */
 public class ExceptionUtils {
 
-  /**
-   * Converts given exception to String, including file name and line number
-   * 
-   */
-  public static String exceptionToString(Throwable exception) {
+    /**
+     * Converts given exception to String, including file name and line number
+     * 
+     */
+    public static String exceptionToString(Throwable exception) {
 
-    StringBuffer str = new StringBuffer();
-    str.append(exception.toString());
+        StringBuffer str = new StringBuffer();
+        str.append(exception.toString());
 
-    if (exception.getStackTrace().length > 0) {
-      StackTraceElement location = exception.getStackTrace()[0];
-      str.append(" (");
-      str.append(location.getFileName());
-      str.append(":");
-      str.append(location.getLineNumber());
-      str.append(")");
+        if (exception.getStackTrace().length > 0) {
+            StackTraceElement location = exception.getStackTrace()[0];
+            str.append(" (");
+            str.append(location.getFileName());
+            str.append(":");
+            str.append(location.getLineNumber());
+            str.append(")");
+        }
+
+        return str.toString();
+
     }
-
-    return str.toString();
-
-  }
 
 }

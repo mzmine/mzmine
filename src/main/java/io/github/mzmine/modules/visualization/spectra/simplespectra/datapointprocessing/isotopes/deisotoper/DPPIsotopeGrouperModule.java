@@ -30,29 +30,32 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 
 public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
 
-  @Override
-  public String getName() {
-    return "13C-Isotope grouper";
-  }
+    @Override
+    public String getName() {
+        return "13C-Isotope grouper";
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return DPPIsotopeGrouperParameters.class;
-  }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+        return DPPIsotopeGrouperParameters.class;
+    }
 
-  @Override
-  public ModuleSubCategory getModuleSubCategory() {
-    return ModuleSubCategory.ISOTOPES;
-  }
+    @Override
+    public ModuleSubCategory getModuleSubCategory() {
+        return ModuleSubCategory.ISOTOPES;
+    }
 
-  @Override
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
-    return new DPPIsotopeGrouperTask(dataPoints, plot, parameterSet, controller, listener);
-  }
-  
-  @Override
-  public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSANY;
-  }
+    @Override
+    public DataPointProcessingTask createTask(DataPoint[] dataPoints,
+            ParameterSet parameterSet, SpectraPlot plot,
+            DataPointProcessingController controller,
+            TaskStatusListener listener) {
+        return new DPPIsotopeGrouperTask(dataPoints, plot, parameterSet,
+                controller, listener);
+    }
+
+    @Override
+    public MSLevel getApplicableMSLevel() {
+        return MSLevel.MSANY;
+    }
 }

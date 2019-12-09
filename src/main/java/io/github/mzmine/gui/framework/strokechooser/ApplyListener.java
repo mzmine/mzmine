@@ -20,5 +20,5 @@ package io.github.mzmine.gui.framework.strokechooser;
 
 public interface ApplyListener {
 
-  public void apply(Object o);
+    public void apply(Object o);
 }

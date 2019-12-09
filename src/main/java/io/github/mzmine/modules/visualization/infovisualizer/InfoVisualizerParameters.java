@@ -24,16 +24,16 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class InfoVisualizerParameters extends SimpleParameterSet {
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  /**
-   * Create the parameter set.
-   */
-  public InfoVisualizerParameters() {
-    super(new Parameter[] {windowSettings});
-  }
+    /**
+     * Create the parameter set.
+     */
+    public InfoVisualizerParameters() {
+        super(new Parameter[] { windowSettings });
+    }
 
 }

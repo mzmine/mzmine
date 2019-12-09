@@ -26,5 +26,6 @@ package io.github.mzmine.taskcontrol;
  */
 @FunctionalInterface
 public interface TaskStatusListener {
-  public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus);
+    public void taskStatusChanged(Task task, TaskStatus newStatus,
+            TaskStatus oldStatus);
 }

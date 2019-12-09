@@ -32,7 +32,7 @@ import io.github.mzmine.util.ExitCode;
  * @author aleksandrsmirnov
  */
 public class ADAP3AlignerModule implements MZmineProcessingModule {
-    
+
     private static final String MODULE_NAME = "ADAP Aligner (GC)";
     private static final String MODULE_DESCRIPTION = "This module calculates "
             + "pairwise convolution integral for each pair of unaligned peaks "
@@ -40,28 +40,29 @@ public class ADAP3AlignerModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
-    
-    @Override @Nonnull
+
+    @Override
+    @Nonnull
     public MZmineModuleCategory getModuleCategory() {
         return MZmineModuleCategory.ALIGNMENT;
     }
-    
+
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return ADAP3AlignerParameters.class;
+        return ADAP3AlignerParameters.class;
     }
-    
-    @Override @Nonnull
+
+    @Override
+    @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) 
-    {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
         Task newTask = new ADAP3AlignerTask(project, parameters);
         tasks.add(newTask);
         return ExitCode.OK;

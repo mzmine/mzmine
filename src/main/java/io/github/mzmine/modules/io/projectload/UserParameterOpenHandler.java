@@ -27,11 +27,11 @@ import org.xml.sax.SAXException;
 
 public interface UserParameterOpenHandler {
 
-  public void readUserParameters(InputStream inputStream)
-      throws IOException, ParserConfigurationException, SAXException;
+    public void readUserParameters(InputStream inputStream)
+            throws IOException, ParserConfigurationException, SAXException;
 
-  public double getProgress();
+    public double getProgress();
 
-  public void cancel();
+    public void cancel();
 
 }

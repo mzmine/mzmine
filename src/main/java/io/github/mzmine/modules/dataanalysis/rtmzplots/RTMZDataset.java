@@ -24,6 +24,6 @@ import io.github.mzmine.datamodel.PeakListRow;
 
 public interface RTMZDataset extends XYZDataset {
 
-  public abstract PeakListRow getPeakListRow(int item);
+    public abstract PeakListRow getPeakListRow(int item);
 
 }

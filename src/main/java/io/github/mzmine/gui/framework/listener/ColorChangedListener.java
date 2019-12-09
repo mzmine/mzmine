@@ -22,6 +22,6 @@ import java.awt.Color;
 
 public interface ColorChangedListener {
 
-  public abstract void colorChanged(Color color);
+    public abstract void colorChanged(Color color);
 
 }

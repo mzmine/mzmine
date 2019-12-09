@@ -35,104 +35,124 @@ import io.github.mzmine.util.swing.IconUtil;
  */
 public class SpectraToolBar extends JToolBar {
 
-  private static final long serialVersionUID = 1L;
-  static final Icon centroidIcon = IconUtil.loadIconFromResources("icons/centroidicon.png");
-  static final Icon continuousIcon = IconUtil.loadIconFromResources("icons/continuousicon.png");
-  static final Icon dataPointsIcon = IconUtil.loadIconFromResources("icons/datapointsicon.png");
-  static final Icon annotationsIcon = IconUtil.loadIconFromResources("icons/annotationsicon.png");
-  static final Icon pickedPeakIcon = IconUtil.loadIconFromResources("icons/pickedpeakicon.png");
-  static final Icon isotopePeakIcon = IconUtil.loadIconFromResources("icons/isotopepeakicon.png");
-  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
-  static final Icon exportIcon = IconUtil.loadIconFromResources("icons/exporticon.png");
-  static final Icon dbOnlineIcon = IconUtil.loadIconFromResources("icons/DBOnlineIcon.png");
-  static final Icon dbCustomIcon = IconUtil.loadIconFromResources("icons/DBCustomIcon.png");
-  static final Icon dbLipidsIcon = IconUtil.loadIconFromResources("icons/DBLipidsIcon.png");
-  static final Icon dbSpectraIcon = IconUtil.loadIconFromResources("icons/DBSpectraIcon.png");
-  static final Icon sumFormulaIcon = IconUtil.loadIconFromResources("icons/search.png");
+    private static final long serialVersionUID = 1L;
+    static final Icon centroidIcon = IconUtil
+            .loadIconFromResources("icons/centroidicon.png");
+    static final Icon continuousIcon = IconUtil
+            .loadIconFromResources("icons/continuousicon.png");
+    static final Icon dataPointsIcon = IconUtil
+            .loadIconFromResources("icons/datapointsicon.png");
+    static final Icon annotationsIcon = IconUtil
+            .loadIconFromResources("icons/annotationsicon.png");
+    static final Icon pickedPeakIcon = IconUtil
+            .loadIconFromResources("icons/pickedpeakicon.png");
+    static final Icon isotopePeakIcon = IconUtil
+            .loadIconFromResources("icons/isotopepeakicon.png");
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
+    static final Icon exportIcon = IconUtil
+            .loadIconFromResources("icons/exporticon.png");
+    static final Icon dbOnlineIcon = IconUtil
+            .loadIconFromResources("icons/DBOnlineIcon.png");
+    static final Icon dbCustomIcon = IconUtil
+            .loadIconFromResources("icons/DBCustomIcon.png");
+    static final Icon dbLipidsIcon = IconUtil
+            .loadIconFromResources("icons/DBLipidsIcon.png");
+    static final Icon dbSpectraIcon = IconUtil
+            .loadIconFromResources("icons/DBSpectraIcon.png");
+    static final Icon sumFormulaIcon = IconUtil
+            .loadIconFromResources("icons/search.png");
 
-  private JButton centroidContinuousButton, dataPointsButton;
+    private JButton centroidContinuousButton, dataPointsButton;
 
-  public SpectraToolBar(ActionListener masterFrame) {
+    public SpectraToolBar(ActionListener masterFrame) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+        setFloatable(false);
+        setFocusable(false);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBackground(Color.white);
 
-    centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame,
-        "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
+        centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
+                masterFrame, "TOGGLE_PLOT_MODE",
+                "Toggle centroid/continuous mode");
 
-    addSeparator();
+        addSeparator();
 
-    dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-        "SHOW_DATA_POINTS", "Toggle displaying of data points  in continuous mode");
+        dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon,
+                masterFrame, "SHOW_DATA_POINTS",
+                "Toggle displaying of data points  in continuous mode");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "SHOW_ANNOTATIONS",
-        "Toggle displaying of peak values");
+        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame, "SHOW_PICKED_PEAKS",
-        "Toggle displaying of picked peaks");
+        GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
+                "SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, isotopePeakIcon, masterFrame, "SHOW_ISOTOPE_PEAKS",
-        "Toggle displaying of predicted isotope peaks");
+        GUIUtils.addButton(this, null, isotopePeakIcon, masterFrame,
+                "SHOW_ISOTOPE_PEAKS",
+                "Toggle displaying of predicted isotope peaks");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
+        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+                "Setup ranges for axes");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
-        "Export spectra to spectra file");
+        GUIUtils.addButton(this, null, exportIcon, masterFrame,
+                "EXPORT_SPECTRA", "Export spectra to spectra file");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, exportIcon, masterFrame, "CREATE_LIBRARY_ENTRY",
-        "Create spectral library entry");
+        GUIUtils.addButton(this, null, exportIcon, masterFrame,
+                "CREATE_LIBRARY_ENTRY", "Create spectral library entry");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame, "ONLINEDATABASESEARCH",
-        "Select online database for annotation");
+        GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame,
+                "ONLINEDATABASESEARCH",
+                "Select online database for annotation");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, dbCustomIcon, masterFrame, "CUSTOMDATABASESEARCH",
-        "Select custom database for annotation");
+        GUIUtils.addButton(this, null, dbCustomIcon, masterFrame,
+                "CUSTOMDATABASESEARCH",
+                "Select custom database for annotation");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
-        "Select target lipid classes for annotation");
+        GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
+                "Select target lipid classes for annotation");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame, "SPECTRALDATABASESEARCH",
-        "Compare spectrum with spectral database");
+        GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame,
+                "SPECTRALDATABASESEARCH",
+                "Compare spectrum with spectral database");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
-        "Predict sum formulas for annotation");
+        GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame,
+                "SUMFORMULA", "Predict sum formulas for annotation");
 
-  }
-
-  public void setCentroidButton(MassSpectrumType spectrumType) {
-    if (spectrumType == MassSpectrumType.CENTROIDED) {
-      centroidContinuousButton.setIcon(continuousIcon);
-      dataPointsButton.setEnabled(false);
-    } else {
-      centroidContinuousButton.setIcon(centroidIcon);
-      dataPointsButton.setEnabled(true);
     }
-  }
+
+    public void setCentroidButton(MassSpectrumType spectrumType) {
+        if (spectrumType == MassSpectrumType.CENTROIDED) {
+            centroidContinuousButton.setIcon(continuousIcon);
+            dataPointsButton.setEnabled(false);
+        } else {
+            centroidContinuousButton.setIcon(centroidIcon);
+            dataPointsButton.setEnabled(true);
+        }
+    }
 
 }

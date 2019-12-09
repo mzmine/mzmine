@@ -25,12 +25,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class MzRangeMassCalculatorParameters extends SimpleParameterSet {
 
-  static final DoubleParameter mz = new DoubleParameter("m/z", "m/z value");
+    static final DoubleParameter mz = new DoubleParameter("m/z", "m/z value");
 
-  static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public MzRangeMassCalculatorParameters() {
-    super(new Parameter[] {mz, mzTolerance});
-  }
+    public MzRangeMassCalculatorParameters() {
+        super(new Parameter[] { mz, mzTolerance });
+    }
 
 }

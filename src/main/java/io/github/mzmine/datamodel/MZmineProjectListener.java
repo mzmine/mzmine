@@ -23,8 +23,8 @@ package io.github.mzmine.datamodel;
  */
 public interface MZmineProjectListener {
 
-  void dataFileAdded(RawDataFile newFile);
+    void dataFileAdded(RawDataFile newFile);
 
-  void peakListAdded(PeakList newPeakList);
+    void peakListAdded(PeakList newPeakList);
 
 }

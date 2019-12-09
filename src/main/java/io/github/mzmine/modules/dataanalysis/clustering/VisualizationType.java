@@ -20,16 +20,16 @@ package io.github.mzmine.modules.dataanalysis.clustering;
 
 public enum VisualizationType {
 
-  PCA("PCA"), SAMMONS("Sammon's projection");
+    PCA("PCA"), SAMMONS("Sammon's projection");
 
-  private final String name;
+    private final String name;
 
-  VisualizationType(String name) {
-    this.name = name;
-  }
+    VisualizationType(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 
 }

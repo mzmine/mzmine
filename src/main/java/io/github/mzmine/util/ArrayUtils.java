@@ -20,13 +20,13 @@ package io.github.mzmine.util;
 
 public class ArrayUtils {
 
-  public static <T> int indexOf(T needle, T[] haystack) {
-    for (int i = 0; i < haystack.length; i++) {
-      if ((haystack[i] != null && haystack[i].equals(needle))
-          || (needle == null && haystack[i] == null))
-        return i;
+    public static <T> int indexOf(T needle, T[] haystack) {
+        for (int i = 0; i < haystack.length; i++) {
+            if ((haystack[i] != null && haystack[i].equals(needle))
+                    || (needle == null && haystack[i] == null))
+                return i;
+        }
+        return -1;
     }
-    return -1;
-  }
 
 }

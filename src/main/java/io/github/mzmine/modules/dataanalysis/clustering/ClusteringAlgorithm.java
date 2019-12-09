@@ -24,6 +24,7 @@ import weka.core.Instances;
 
 public interface ClusteringAlgorithm extends MZmineModule {
 
-  public ClusteringResult performClustering(Instances dataset, ParameterSet parameters);
+    public ClusteringResult performClustering(Instances dataset,
+            ParameterSet parameters);
 
 }

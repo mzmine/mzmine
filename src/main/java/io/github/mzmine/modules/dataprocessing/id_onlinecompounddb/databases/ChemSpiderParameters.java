@@ -34,16 +34,17 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ChemSpiderParameters extends SimpleParameterSet {
 
-  /**
-   * Search API security token.
-   */
-  public static final StringParameter SECURITY_TOKEN = new StringParameter("ChemSpider API key",
-      "Security key from your ChemSpider API account - register at https://developer.rsc.org");
+    /**
+     * Search API security token.
+     */
+    public static final StringParameter SECURITY_TOKEN = new StringParameter(
+            "ChemSpider API key",
+            "Security key from your ChemSpider API account - register at https://developer.rsc.org");
 
-  /**
-   * Create the parameter set.
-   */
-  public ChemSpiderParameters() {
-    super(new Parameter[] {SECURITY_TOKEN});
-  }
+    /**
+     * Create the parameter set.
+     */
+    public ChemSpiderParameters() {
+        super(new Parameter[] { SECURITY_TOKEN });
+    }
 }
