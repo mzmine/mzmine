@@ -21,17 +21,17 @@ package io.github.mzmine.modules.visualization.featurelisttable;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 class PeakListTableToolBar extends JToolBar {
 
   private static final long serialVersionUID = 1L;
-  private static final Icon propertiesIcon = new ImageIcon("icons/propertiesicon.png");
-  private static final Icon widthIcon = new ImageIcon("icons/widthicon.png");
-  private static final Icon printIcon = new ImageIcon("icons/printicon.png");
+  private static final Icon propertiesIcon = IconUtil.loadIconFromResources("icons/propertiesicon.png");
+  private static final Icon widthIcon = IconUtil.loadIconFromResources("icons/widthicon.png");
+  private static final Icon printIcon = IconUtil.loadIconFromResources("icons/printicon.png");
 
   PeakListTableToolBar(PeakListTableWindow masterFrame) {
 

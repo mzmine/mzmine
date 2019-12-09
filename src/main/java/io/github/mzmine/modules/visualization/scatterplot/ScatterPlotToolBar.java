@@ -21,11 +21,11 @@ package io.github.mzmine.modules.visualization.scatterplot;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 public class ScatterPlotToolBar extends JToolBar {
 
@@ -33,7 +33,7 @@ public class ScatterPlotToolBar extends JToolBar {
    * 
    */
   private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
 
   public ScatterPlotToolBar(ScatterPlotChart chart) {
 

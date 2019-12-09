@@ -22,11 +22,11 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * MS/MS visualizer's toolbar class
@@ -34,11 +34,11 @@ import io.github.mzmine.util.GUIUtils;
 class MsMsToolBar extends JToolBar {
 
   private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-  static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-  static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
-  static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
-  static final Icon findIcon = new ImageIcon("icons/search.png");
+  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
+  static final Icon dataPointsIcon = IconUtil.loadIconFromResources("icons/datapointsicon.png");
+  static final Icon tooltipsIcon = IconUtil.loadIconFromResources("icons/tooltips2dploticon.png");
+  static final Icon notooltipsIcon = IconUtil.loadIconFromResources("icons/notooltips2dploticon.png");
+  static final Icon findIcon = IconUtil.loadIconFromResources("icons/search.png");
 
   private JButton toggleContinuousModeButton, toggleTooltipButton;
 

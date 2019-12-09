@@ -23,11 +23,11 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * TIC visualizer's toolbar.
@@ -43,12 +43,12 @@ public class TICToolBar extends JToolBar {
   private static final Insets MARGIN = new Insets(5, 5, 5, 5);
 
   // Icons.
-  private static final Icon SHOW_SPECTRUM_ICON = new ImageIcon("icons/spectrumicon.png");
-  private static final Icon DATA_POINTS_ICON = new ImageIcon("icons/datapointsicon.png");
-  private static final Icon ANNOTATIONS_ICON = new ImageIcon("icons/annotationsicon.png");
-  private static final Icon AXES_ICON = new ImageIcon("icons/axesicon.png");
-  private static final Icon LEGEND_ICON = new ImageIcon("icons/legendkey.png");
-  private static final Icon BACKGROUND_ICON = new ImageIcon("icons/bgicon.png");
+  private static final Icon SHOW_SPECTRUM_ICON = IconUtil.loadIconFromResources("icons/spectrumicon.png");
+  private static final Icon DATA_POINTS_ICON = IconUtil.loadIconFromResources("icons/datapointsicon.png");
+  private static final Icon ANNOTATIONS_ICON = IconUtil.loadIconFromResources("icons/annotationsicon.png");
+  private static final Icon AXES_ICON = IconUtil.loadIconFromResources("icons/axesicon.png");
+  private static final Icon LEGEND_ICON = IconUtil.loadIconFromResources("icons/legendkey.png");
+  private static final Icon BACKGROUND_ICON = IconUtil.loadIconFromResources("icons/bgicon.png");
 
   public TICToolBar(final ActionListener listener) {
 

@@ -22,10 +22,10 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Neutral loss visualizer's toolbar class
@@ -36,7 +36,7 @@ class NeutralLossToolBar extends JToolBar {
    * 
    */
   private static final long serialVersionUID = 1L;
-  static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+  static final Icon dataPointsIcon = IconUtil.loadIconFromResources("icons/datapointsicon.png");
 
   NeutralLossToolBar(NeutralLossVisualizerWindow masterFrame) {
 

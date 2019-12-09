@@ -23,7 +23,6 @@ import java.awt.Component;
 import java.awt.Font;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -36,20 +35,21 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.RawDataFileUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Icon projectIcon = new ImageIcon("icons/projecticon.png");
-  private static final Icon dataFileIcon = new ImageIcon("icons/xicicon.png");
-  private static final Icon spectrumIcon = new ImageIcon("icons/spectrumicon.png");
-  private static final Icon peakListsIcon = new ImageIcon("icons/peaklistsicon.png");
-  private static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
-  private static final Icon peakListIcon = new ImageIcon("icons/peaklisticon_single.png");
-  private static final Icon alignedPeaklistIcon = new ImageIcon("icons/peaklisticon_aligned.png");
-  private static final Icon fileIcon = new ImageIcon("icons/fileicon.png");
-  private static final Icon fileWithMassListIcon = new ImageIcon("icons/filewithmasslisticon.png");
+  private static final Icon projectIcon = IconUtil.loadIconFromResources("icons/projecticon.png");
+  private static final Icon dataFileIcon = IconUtil.loadIconFromResources("icons/xicicon.png");
+  private static final Icon spectrumIcon = IconUtil.loadIconFromResources("icons/spectrumicon.png");
+  private static final Icon peakListsIcon = IconUtil.loadIconFromResources("icons/peaklistsicon.png");
+  private static final Icon peakIcon = IconUtil.loadIconFromResources("icons/peakicon.png");
+  private static final Icon peakListIcon = IconUtil.loadIconFromResources("icons/peaklisticon_single.png");
+  private static final Icon alignedPeaklistIcon = IconUtil.loadIconFromResources("icons/peaklisticon_aligned.png");
+  private static final Icon fileIcon = IconUtil.loadIconFromResources("icons/fileicon.png");
+  private static final Icon fileWithMassListIcon = IconUtil.loadIconFromResources("icons/filewithmasslisticon.png");
 
   static final Font bigFont = new Font("SansSerif", Font.PLAIN, 12);
   static final Font smallerFont = new Font("SansSerif", Font.PLAIN, 11);

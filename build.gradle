@@ -250,17 +250,13 @@ runtime {
 }
 
 /*
- * Copy the resources like icons and logging properties
+ * Copy the resources and logging properties
  */
 tasks.runtime.doLast {
 
     // Remove the "release" file produced by jlink
     delete file(relativePath(imageDir) + "/release")
 
-    copy {
-        from("src/main/icons")
-        into(relativePath(imageDir) + "/icons")
-    }
     copy {
         from("src/main/log")
         into(relativePath(imageDir) + "/log")

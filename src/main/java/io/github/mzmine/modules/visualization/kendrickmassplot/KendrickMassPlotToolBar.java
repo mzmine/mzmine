@@ -23,14 +23,15 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Kendrick mass plot toolbar class
@@ -40,14 +41,14 @@ import io.github.mzmine.util.GUIUtils;
 public class KendrickMassPlotToolBar extends JToolBar {
 
   private static final long serialVersionUID = 1L;
-  static final Icon blockSizeIcon = new ImageIcon("icons/blocksizeicon.png");
-  static final Icon backColorIcon = new ImageIcon("icons/bgicon.png");
-  static final Icon gridIcon = new ImageIcon("icons/gridicon.png");
-  static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
-  static final Icon arrowUpIcon = new ImageIcon("icons/arrowupicon.png");
-  static final Icon arrowDownIcon = new ImageIcon("icons/arrowdownicon.png");
-  static final Icon kmdIcon = new ImageIcon("icons/KMDIcon.png");
-  static final Icon rkmIcon = new ImageIcon("icons/RKMIcon.png");
+  static final Icon blockSizeIcon = IconUtil.loadIconFromResources("icons/blocksizeicon.png");
+  static final Icon backColorIcon = IconUtil.loadIconFromResources("icons/bgicon.png");
+  static final Icon gridIcon = IconUtil.loadIconFromResources("icons/gridicon.png");
+  static final Icon annotationsIcon = IconUtil.loadIconFromResources("icons/annotationsicon.png");
+  static final Icon arrowUpIcon = IconUtil.loadIconFromResources("icons/arrowupicon.png");
+  static final Icon arrowDownIcon = IconUtil.loadIconFromResources("icons/arrowdownicon.png");
+  static final Icon kmdIcon = IconUtil.loadIconFromResources("icons/KMDIcon.png");
+  static final Icon rkmIcon = IconUtil.loadIconFromResources("icons/RKMIcon.png");
 
   public JLabel yAxisDivisorLabel;
   public JLabel xAxisDivisorLabel;
