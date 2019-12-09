@@ -187,8 +187,8 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
    */
   private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    String name = FilenameUtils.removeExtension(full.getName());
-    full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
+    final String name = FilenameUtils.removeExtension(full.getName());
+    full = new File(full.getParentFile(), name + "_quant.csv");
 
     ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID,
         ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT};
