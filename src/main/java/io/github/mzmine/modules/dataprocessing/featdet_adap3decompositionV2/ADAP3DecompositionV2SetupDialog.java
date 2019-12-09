@@ -15,18 +15,39 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_adap3decompositionV2;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+
 import com.google.common.collect.Sets;
+
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.swing.*;
-
 import dulab.adap.workflow.decomposition.ComponentSelector;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import io.github.mzmine.datamodel.PeakList;
@@ -128,7 +149,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
             cboPeakLists.addItem(p);
         cboPeakLists.addActionListener(this);
 
-        java.net.URL refreshImageURL = this.getClass().getResource("images/refresh.16.png");
+        URL refreshImageURL = this.getClass().getResource("images/refresh.16.png");
         btnRefresh = refreshImageURL != null ?
                 new JButton(new ImageIcon(refreshImageURL)) :
                 new JButton("Refresh");

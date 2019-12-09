@@ -22,10 +22,10 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 public class RTMZToolbar extends JToolBar {
 
@@ -33,8 +33,8 @@ public class RTMZToolbar extends JToolBar {
    * 
    */
   private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-  static final Icon colorbarIcon = new ImageIcon("icons/colorbaricon.png");
+  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
+  static final Icon colorbarIcon = IconUtil.loadIconFromResources("icons/colorbaricon.png");
 
   public RTMZToolbar(RTMZAnalyzerWindow masterFrame) {
     super(JToolBar.VERTICAL);

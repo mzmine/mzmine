@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
@@ -36,6 +35,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Intensity plot toolbar class
@@ -46,9 +46,9 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
    * 
    */
   private static final long serialVersionUID = 1L;
-  static final Icon pointsIcon = new ImageIcon("icons/pointsicon.png");
-  static final Icon linesIcon = new ImageIcon("icons/linesicon.png");
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+  static final Icon pointsIcon = IconUtil.loadIconFromResources("icons/pointsicon.png");
+  static final Icon linesIcon = IconUtil.loadIconFromResources("icons/linesicon.png");
+  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
 
   private IntensityPlotWindow window;
   private JButton linesVisibleButton, setupAxesButton;

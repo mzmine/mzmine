@@ -76,11 +76,11 @@ public class SpectralMatchPanel extends JPanel {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final int ICON_WIDTH = 50;
-  static final ImageIcon iconAll = new ImageIcon("icons/exp_graph_all.png");
-  static final ImageIcon iconPdf = new ImageIcon("icons/exp_graph_pdf.png");
-  static final ImageIcon iconEps = new ImageIcon("icons/exp_graph_eps.png");
-  static final ImageIcon iconEmf = new ImageIcon("icons/exp_graph_emf.png");
-  static final ImageIcon iconSvg = new ImageIcon("icons/exp_graph_svg.png");
+  static final ImageIcon iconAll = IconUtil.loadIconFromResources("icons/exp_graph_all.png");
+  static final ImageIcon iconPdf = IconUtil.loadIconFromResources("icons/exp_graph_pdf.png");
+  static final ImageIcon iconEps = IconUtil.loadIconFromResources("icons/exp_graph_eps.png");
+  static final ImageIcon iconEmf = IconUtil.loadIconFromResources("icons/exp_graph_emf.png");
+  static final ImageIcon iconSvg = IconUtil.loadIconFromResources("icons/exp_graph_svg.png");
 
   public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
 

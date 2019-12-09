@@ -20,11 +20,12 @@ package io.github.mzmine.modules.visualization.productionfilter;
 
 import java.awt.Color;
 import java.awt.Insets;
+
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Product Ion visualizer's toolbar class
@@ -35,7 +36,7 @@ class ProductIonFilterToolBar extends JToolBar {
    * 
    */
   private static final long serialVersionUID = 1L;
-  static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+  static final Icon dataPointsIcon = IconUtil.loadIconFromResources("icons/datapointsicon.png");
 
   ProductIonFilterToolBar(ProductIonFilterVisualizerWindow masterFrame) {
 

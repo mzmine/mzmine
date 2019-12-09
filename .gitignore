@@ -3,6 +3,7 @@
 .classpath
 .gradle
 .settings
+.temp*
 /target
 /build
 /bin
