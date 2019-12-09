@@ -36,14 +36,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.util.concurrent.AtomicDouble;
+
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportModule;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters;
-import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportTask;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters.MzMode;
+import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportTask;
 import io.github.mzmine.modules.io.csvexport.CSVExportTask;
 import io.github.mzmine.modules.io.csvexport.ExportRowCommonElement;
 import io.github.mzmine.modules.io.csvexport.ExportRowDataFileElement;
@@ -187,7 +191,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
    */
   private AbstractTask addAdapMgfTask(ParameterSet parameters) {
     File full = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
-    String name = FileAndPathUtil.eraseFormat(full.getName());
+    String name = FilenameUtils.removeExtension(full.getName());
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name, "mgf");
 
     ParameterSet mgfParam =
@@ -222,7 +226,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
    */
   private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
     File full = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
-    String name = FileAndPathUtil.eraseFormat(full.getName());
+    String name = FilenameUtils.removeExtension(full.getName());
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
 
     ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID,

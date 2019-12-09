@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Simple file operations
  * 
@@ -65,7 +67,7 @@ public class FileAndPathUtil {
    * @return
    */
   public static String getRealFileName(String name, String format) {
-    String result = eraseFormat(name);
+    String result = FilenameUtils.removeExtension(name);
     result = addFormat(result, format);
     return result;
   }
@@ -79,21 +81,6 @@ public class FileAndPathUtil {
    */
   public static String getRealFileName(File name, String format) {
     return getRealFileName(name.getAbsolutePath(), format);
-  }
-
-  /**
-   * erases the format. "image.png" will be returned as "image" this method is used by
-   * getRealFilePath and getRealFileName
-   * 
-   * @param name
-   * @return
-   */
-  public static String eraseFormat(String name) {
-    int lastDot = name.lastIndexOf(".");
-    if (lastDot != -1)
-      return name.substring(0, lastDot);
-    else
-      return name;
   }
 
   /**

@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -163,7 +166,7 @@ class ExtractScansTask extends AbstractTask {
   private void exportScans(File dir, RawDataFile raw, int start, int scans, double pp) {
     // Open file
     DecimalFormat format = new DecimalFormat("00");
-    File fileDir = new File(dir, FileAndPathUtil.eraseFormat(raw.getName()));
+    File fileDir = new File(dir, FilenameUtils.removeExtension(raw.getName()));
     FileAndPathUtil.createDirectory(fileDir);
     int end = Math.min(scans + start, raw.getNumOfScans());
     String linescans = "scan" + delimiter + raw.getScanNumbers()[start] + delimiter + "to"
