@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -40,6 +41,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+
+import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -401,7 +404,7 @@ public class GraphicsExportDialog extends JFrame {
         // get filename
         txtName.setText(FileAndPathUtil.getFileNameFromPath(file));
         // get format without .
-        String f = FileAndPathUtil.getFormat(file).toUpperCase();
+        String f = FilenameUtils.getExtension(file.getName()).toUpperCase();
         format.setSelectedItem(f);
       }
     }

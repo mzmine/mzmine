@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Simple file operations
  * 
@@ -65,7 +67,7 @@ public class FileAndPathUtil {
    * @return
    */
   public static String getRealFileName(String name, String format) {
-    String result = eraseFormat(name);
+    String result = FilenameUtils.removeExtension(name);
     result = addFormat(result, format);
     return result;
   }
@@ -79,21 +81,6 @@ public class FileAndPathUtil {
    */
   public static String getRealFileName(File name, String format) {
     return getRealFileName(name.getAbsolutePath(), format);
-  }
-
-  /**
-   * erases the format. "image.png" will be returned as "image" this method is used by
-   * getRealFilePath and getRealFileName
-   * 
-   * @param name
-   * @return
-   */
-  public static String eraseFormat(String name) {
-    int lastDot = name.lastIndexOf(".");
-    if (lastDot != -1)
-      return name.substring(0, lastDot);
-    else
-      return name;
   }
 
   /**
@@ -124,29 +111,6 @@ public class FileAndPathUtil {
       return name + format;
     } else
       return name + "." + format;
-  }
-
-  /**
-   * Returns the file format without a dot (f.e. "pdf") or "" if there is no format
-   * 
-   * @param file
-   * @return
-   */
-  public static String getFormat(File file) {
-    return getFormat(file.getAbsolutePath());
-  }
-
-  /**
-   * Returns the file format without a dot (f.e. "pdf") or "" if there is no format
-   * 
-   * @param file
-   * @return
-   */
-  public static String getFormat(String file) {
-    if (!isOnlyAFolder(file)) {
-      return file.substring(file.lastIndexOf(".") + 1);
-    } else
-      return "";
   }
 
   /**
@@ -189,30 +153,10 @@ public class FileAndPathUtil {
    * Checks if a given File is a folder or a data file
    */
   public static boolean isOnlyAFolder(File file) {
-    return isOnlyAFolder(file.getAbsolutePath());
+    return file.isDirectory();
   }
 
-  /**
-   * Checks if a given File is a folder or a data file
-   */
-  public static boolean isOnlyAFolder(String file) {
-    String realPath = file;
-    int lastDot = realPath.lastIndexOf(".");
-    int lastPath = realPath.lastIndexOf("/");
-    int lastDash = realPath.lastIndexOf("_");
-    int lastDash2 = realPath.lastIndexOf("-");
 
-    if (lastDot != -1 && lastDot > lastPath && lastDot > lastDash && lastDot > lastDash2) {
-      // file format needs at least one non digit character
-      for (int i = lastDot + 1; i < file.length(); i++) {
-        char c = file.charAt(i);
-        if (!Character.isDigit(c))
-          return false; // file
-      }
-      return true; // folder
-    } else
-      return true; // folder
-  }
 
   /**
    * Creates a new directory.
@@ -299,7 +243,7 @@ public class FileAndPathUtil {
         // ends with number?
         int e = name.lastIndexOf('.');
         e = e == -1 ? name.length() : e;
-        endsWithNumber = new Boolean(isNumber(name.charAt(e - 1)));
+        endsWithNumber = isNumber(name.charAt(e - 1));
       }
     });
     return files;
