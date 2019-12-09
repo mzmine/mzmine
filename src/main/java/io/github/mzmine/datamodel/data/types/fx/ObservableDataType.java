@@ -9,20 +9,28 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 
 public class ObservableDataType<T> extends SimpleObjectProperty<T> {
-
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  private DataType<T> type;
-  private ModularDataModel map;
 
   public ObservableDataType(ModularDataModel map, DataType<T> type) {
-    this.map = map;
-    this.type = type;
-
     Optional<T> o = map.get(type);
     this.set(o.orElse(null));
     // listen for changes in this rows DataTypeMap
     map.getMap().addListener((MapChangeListener.Change<? extends DataType, ?> change) -> {
       if (type.equals(change.getKey())) {
+        logger.log(Level.INFO, "Change in map DataType reflected to ObservableDataType: "
+            + type.getClass().descriptorString());
+        Optional<T> o2 = map.get(type);
+        this.set(o2.orElse(null));
+      }
+    });
+  }
+
+  public ObservableDataType(ModularDataModel map, Class<? extends DataType<T>> type) {
+    Optional<T> o = map.get(type);
+    this.set(o.orElse(null));
+    // listen for changes in this rows DataTypeMap
+    map.getMap().addListener((MapChangeListener.Change<? extends DataType, ?> change) -> {
+      if (type.equals(change.getKey().getClass())) {
         logger.log(Level.INFO, "Change in map DataType reflected to ObservableDataType: "
             + type.getClass().descriptorString());
         Optional<T> o2 = map.get(type);

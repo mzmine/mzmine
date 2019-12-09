@@ -55,6 +55,18 @@ public interface ModularDataModel {
   }
 
   /**
+   * has DataType column of this DataModel
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
+  default <T> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
+    DataType<T> type = getTypes().get(tclass);
+    return type != null;
+  }
+
+  /**
    * Optional.ofNullable(value)
    * 
    * @param <T>
