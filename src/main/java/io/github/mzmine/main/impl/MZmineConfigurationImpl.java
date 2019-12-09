@@ -28,6 +28,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,9 +41,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
@@ -284,6 +287,17 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
             File confParent = file.getParentFile();
             if ((confParent != null) && (!confParent.exists())) {
                 confParent.mkdirs();
+            }
+
+            // Java fails to write into hidden files on Windows, see
+            // https://bugs.openjdk.java.net/browse/JDK-8047342
+            if (System.getProperty("os.name").toLowerCase()
+                    .contains("windows")) {
+                if ((Boolean) Files.getAttribute(file.toPath(), "dos:hidden",
+                        LinkOption.NOFOLLOW_LINKS)) {
+                    Files.setAttribute(file.toPath(), "dos:hidden",
+                            Boolean.FALSE, LinkOption.NOFOLLOW_LINKS);
+                }
             }
 
             StreamResult result = new StreamResult(new FileOutputStream(file));
