@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,17 +26,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class MassListDeisotoperParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
-      "If true, then monotonically decreasing height of isotope pattern is required");
+    public static final BooleanParameter monotonicShape = new BooleanParameter(
+            "Monotonic shape",
+            "If true, then monotonically decreasing height of isotope pattern is required");
 
-  public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns");
+    public static final IntegerParameter maximumCharge = new IntegerParameter(
+            "Maximum charge",
+            "Maximum charge to consider for detecting the isotope patterns");
 
-
-  public MassListDeisotoperParameters() {
-    super(new Parameter[] {mzTolerance, monotonicShape, maximumCharge});
-  }
+    public MassListDeisotoperParameters() {
+        super(new Parameter[] { mzTolerance, monotonicShape, maximumCharge });
+    }
 
 }

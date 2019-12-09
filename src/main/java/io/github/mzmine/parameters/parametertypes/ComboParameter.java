@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,122 +30,126 @@ import io.github.mzmine.parameters.UserParameter;
  * 
  */
 public class ComboParameter<ValueType>
-    implements UserParameter<ValueType, ComboComponent<ValueType>> {
+        implements UserParameter<ValueType, ComboComponent<ValueType>> {
 
-  private String name, description;
-  private ValueType choices[], value;
+    private String name, description;
+    private ValueType choices[], value;
 
-  public ComboParameter(String name, String description, ValueType choices[]) {
-    this(name, description, choices, null);
-  }
-
-  public ComboParameter(String name, String description, ValueType choices[],
-      ValueType defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.choices = choices;
-    this.value = defaultValue;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public ComboComponent<ValueType> createEditingComponent() {
-    ComboComponent<ValueType> comboComponent = new ComboComponent<ValueType>(choices);
-    return comboComponent;
-  }
-
-  @Override
-  public ValueType getValue() {
-    return value;
-  }
-
-  public ValueType[] getChoices() {
-    return choices;
-  }
-
-  public void setChoices(ValueType newChoices[]) {
-    this.choices = newChoices;
-  }
-
-  @Override
-  public void setValue(ValueType value) {
-    this.value = value;
-  }
-
-  @Override
-  public ComboParameter<ValueType> cloneParameter() {
-    ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name, description, choices);
-    copy.value = this.value;
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(ComboComponent<ValueType> component) {
-    Object selectedItem = component.getSelectedItem();
-    if (selectedItem == null) {
-      value = null;
-      return;
+    public ComboParameter(String name, String description,
+            ValueType choices[]) {
+        this(name, description, choices, null);
     }
-    if (!Arrays.asList(choices).contains(selectedItem)) {
-      throw new IllegalArgumentException(
-          "Invalid value for parameter " + name + ": " + selectedItem);
+
+    public ComboParameter(String name, String description, ValueType choices[],
+            ValueType defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.choices = choices;
+        this.value = defaultValue;
     }
-    int index = component.getSelectedIndex();
-    if (index < 0)
-      return;
 
-    value = choices[index];
-  }
-
-  @Override
-  public void setValueToComponent(ComboComponent<ValueType> component, ValueType newValue) {
-    component.setSelectedItem(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    String elementString = xmlElement.getTextContent();
-    if (elementString.length() == 0)
-      return;
-    for (ValueType option : choices) {
-      if (option.toString().equals(elementString)) {
-        value = option;
-        break;
-      }
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
     }
-  }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    xmlElement.setTextContent(value.toString());
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    @Override
+    public ComboComponent<ValueType> createEditingComponent() {
+        ComboComponent<ValueType> comboComponent = new ComboComponent<ValueType>(
+                choices);
+        return comboComponent;
     }
-    return true;
-  }
+
+    @Override
+    public ValueType getValue() {
+        return value;
+    }
+
+    public ValueType[] getChoices() {
+        return choices;
+    }
+
+    public void setChoices(ValueType newChoices[]) {
+        this.choices = newChoices;
+    }
+
+    @Override
+    public void setValue(ValueType value) {
+        this.value = value;
+    }
+
+    @Override
+    public ComboParameter<ValueType> cloneParameter() {
+        ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name,
+                description, choices);
+        copy.value = this.value;
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(ComboComponent<ValueType> component) {
+        Object selectedItem = component.getSelectedItem();
+        if (selectedItem == null) {
+            value = null;
+            return;
+        }
+        if (!Arrays.asList(choices).contains(selectedItem)) {
+            throw new IllegalArgumentException("Invalid value for parameter "
+                    + name + ": " + selectedItem);
+        }
+        int index = component.getSelectedIndex();
+        if (index < 0)
+            return;
+
+        value = choices[index];
+    }
+
+    @Override
+    public void setValueToComponent(ComboComponent<ValueType> component,
+            ValueType newValue) {
+        component.setSelectedItem(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        String elementString = xmlElement.getTextContent();
+        if (elementString.length() == 0)
+            return;
+        for (ValueType option : choices) {
+            if (option.toString().equals(elementString)) {
+                value = option;
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value.toString());
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

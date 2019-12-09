@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -49,81 +49,88 @@ import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 
 public class ExportLipidModificationsAction extends AbstractAction {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  // Logger.
-  private static final Logger LOG =
-      Logger.getLogger(ExportLipidModificationsAction.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(ExportLipidModificationsAction.class.getName());
 
-  // Filename extension.
-  private static final String FILENAME_EXTENSION = "csv";
+    // Filename extension.
+    private static final String FILENAME_EXTENSION = "csv";
 
-  private LoadSaveFileChooser chooser;
+    private LoadSaveFileChooser chooser;
 
-  /**
-   * Create the action.
-   */
-  public ExportLipidModificationsAction() {
+    /**
+     * Create the action.
+     */
+    public ExportLipidModificationsAction() {
 
-    super("Export...");
-    putValue(SHORT_DESCRIPTION, "Export custom modifications to a CSV file");
+        super("Export...");
+        putValue(SHORT_DESCRIPTION,
+                "Export custom modifications to a CSV file");
 
-    chooser = null;
-  }
+        chooser = null;
+    }
 
-  @Override
-  public void actionPerformed(final ActionEvent e) {
+    @Override
+    public void actionPerformed(final ActionEvent e) {
 
-    // Parent component.
-    final LipidModificationChoiceComponent parent =
-        (LipidModificationChoiceComponent) SwingUtilities
-            .getAncestorOfClass(LipidModificationChoiceComponent.class, (Component) e.getSource());
+        // Parent component.
+        final LipidModificationChoiceComponent parent = (LipidModificationChoiceComponent) SwingUtilities
+                .getAncestorOfClass(LipidModificationChoiceComponent.class,
+                        (Component) e.getSource());
 
-    if (parent != null) {
+        if (parent != null) {
 
-      // Create the chooser if necessary.
-      if (chooser == null) {
+            // Create the chooser if necessary.
+            if (chooser == null) {
 
-        chooser = new LoadSaveFileChooser("Select lipid modifications File");
-        chooser.addChoosableFileFilter(
-            new FileNameExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
-      }
+                chooser = new LoadSaveFileChooser(
+                        "Select lipid modifications File");
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                        "Comma-separated values files", FILENAME_EXTENSION));
+            }
 
-      // Choose the file.
-      final File file = chooser.getSaveFile(parent, FILENAME_EXTENSION);
-      if (file != null) {
+            // Choose the file.
+            final File file = chooser.getSaveFile(parent, FILENAME_EXTENSION);
+            if (file != null) {
 
-        // Export the modifications.
-        try {
+                // Export the modifications.
+                try {
 
-          exportLipidModificationsToFile(file, (LipidModification[]) parent.getChoices());
-        } catch (IOException ex) {
-          final Window window =
-              (Window) SwingUtilities.getAncestorOfClass(Window.class, (Component) e.getSource());
-          final String msg = "There was a problem writing the lipid modifications file.";
-          MZmineCore.getDesktop().displayErrorMessage(window, "I/O Error",
-              msg + "\n(" + ex.getMessage() + ')');
-          LOG.log(Level.SEVERE, msg, ex);
+                    exportLipidModificationsToFile(file,
+                            (LipidModification[]) parent.getChoices());
+                } catch (IOException ex) {
+                    final Window window = (Window) SwingUtilities
+                            .getAncestorOfClass(Window.class,
+                                    (Component) e.getSource());
+                    final String msg = "There was a problem writing the lipid modifications file.";
+                    MZmineCore.getDesktop().displayErrorMessage(window,
+                            "I/O Error", msg + "\n(" + ex.getMessage() + ')');
+                    LOG.log(Level.SEVERE, msg, ex);
+                }
+            }
         }
-      }
     }
-  }
 
-  /**
-   * Writes the modifications to a CSV file.
-   *
-   * @param file the destination file.
-   * @param modifications to export.
-   * @throws IOException if there are i/o problems.
-   */
-  private static void exportLipidModificationsToFile(final File file,
-      final LipidModification[] modifications) throws IOException {
+    /**
+     * Writes the modifications to a CSV file.
+     *
+     * @param file
+     *            the destination file.
+     * @param modifications
+     *            to export.
+     * @throws IOException
+     *             if there are i/o problems.
+     */
+    private static void exportLipidModificationsToFile(final File file,
+            final LipidModification[] modifications) throws IOException {
 
-    final CSVPrinter writer = new CSVPrinter(new FileWriter(file));
-    for (final LipidModification modification : modifications) {
+        final CSVPrinter writer = new CSVPrinter(new FileWriter(file));
+        for (final LipidModification modification : modifications) {
 
-      writer.writeln(new String[] {modification.getLipidModificatio(),
-          modification.getLipidModificationLabel()});
+            writer.writeln(new String[] { modification.getLipidModificatio(),
+                    modification.getLipidModificationLabel() });
+        }
     }
-  }
 }

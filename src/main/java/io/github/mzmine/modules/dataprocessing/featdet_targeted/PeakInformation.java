@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -23,25 +23,25 @@ package io.github.mzmine.modules.dataprocessing.featdet_targeted;
  * @author scsandra
  */
 public class PeakInformation {
-  private double mz;
-  private double rt;
-  private String name;
+    private double mz;
+    private double rt;
+    private String name;
 
-  public PeakInformation(double mz, double rt, String name) {
-    this.mz = mz;
-    this.rt = rt;
-    this.name = name;
-  }
+    public PeakInformation(double mz, double rt, String name) {
+        this.mz = mz;
+        this.rt = rt;
+        this.name = name;
+    }
 
-  public double getMZ() {
-    return mz;
-  }
+    public double getMZ() {
+        return mz;
+    }
 
-  public double getRT() {
-    return rt;
-  }
+    public double getRT() {
+        return rt;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 }

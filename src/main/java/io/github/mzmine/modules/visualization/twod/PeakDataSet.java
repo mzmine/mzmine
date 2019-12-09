@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,88 +34,90 @@ import io.github.mzmine.datamodel.RawDataFile;
  */
 class PeakDataSet extends AbstractXYDataset {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private PeakList peakList;
+    private PeakList peakList;
 
-  private Feature peaks[];
+    private Feature peaks[];
 
-  private PeakDataPoint dataPoints[][];
+    private PeakDataPoint dataPoints[][];
 
-  PeakDataSet(RawDataFile dataFile, PeakList peakList, Range<Double> rtRange,
-      Range<Double> mzRange) {
+    PeakDataSet(RawDataFile dataFile, PeakList peakList, Range<Double> rtRange,
+            Range<Double> mzRange) {
 
-    this.peakList = peakList;
+        this.peakList = peakList;
 
-    Vector<Feature> processedPeaks = new Vector<Feature>(1024, 1024);
-    Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(1024, 1024);
-    Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
+        Vector<Feature> processedPeaks = new Vector<Feature>(1024, 1024);
+        Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
+                1024, 1024);
+        Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
 
-    Feature allPeaks[] = peakList.getPeaks(dataFile);
+        Feature allPeaks[] = peakList.getPeaks(dataFile);
 
-    for (Feature peak : allPeaks) {
+        for (Feature peak : allPeaks) {
 
-      int scanNumbers[] = peak.getScanNumbers();
+            int scanNumbers[] = peak.getScanNumbers();
 
-      for (int scan : scanNumbers) {
+            for (int scan : scanNumbers) {
 
-        double rt = dataFile.getScan(scan).getRetentionTime();
-        DataPoint dp = peak.getDataPoint(scan);
-        if (dp != null) {
-          if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
-            PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
-            thisPeakDataPoints.add(newDP);
-          }
+                double rt = dataFile.getScan(scan).getRetentionTime();
+                DataPoint dp = peak.getDataPoint(scan);
+                if (dp != null) {
+                    if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
+                        PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
+                        thisPeakDataPoints.add(newDP);
+                    }
+                }
+
+            }
+
+            if (thisPeakDataPoints.size() > 0) {
+                PeakDataPoint dpArray[] = thisPeakDataPoints
+                        .toArray(new PeakDataPoint[0]);
+                processedPeaks.add(peak);
+                processedPeakDataPoints.add(dpArray);
+                thisPeakDataPoints.clear();
+            }
+
         }
 
-      }
-
-      if (thisPeakDataPoints.size() > 0) {
-        PeakDataPoint dpArray[] = thisPeakDataPoints.toArray(new PeakDataPoint[0]);
-        processedPeaks.add(peak);
-        processedPeakDataPoints.add(dpArray);
-        thisPeakDataPoints.clear();
-      }
+        peaks = processedPeaks.toArray(new Feature[0]);
+        dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
 
     }
 
-    peaks = processedPeaks.toArray(new Feature[0]);
-    dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
+    @Override
+    public int getSeriesCount() {
+        return dataPoints.length;
+    }
 
-  }
+    @Override
+    public Comparable<?> getSeriesKey(int series) {
+        return new Integer(series);
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return dataPoints.length;
-  }
+    public int getItemCount(int series) {
+        return dataPoints[series].length;
+    }
 
-  @Override
-  public Comparable<?> getSeriesKey(int series) {
-    return new Integer(series);
-  }
+    public PeakList getPeakList() {
+        return peakList;
+    }
 
-  public int getItemCount(int series) {
-    return dataPoints[series].length;
-  }
+    public Feature getPeak(int series) {
+        return peaks[series];
+    }
 
-  public PeakList getPeakList() {
-    return peakList;
-  }
+    public PeakDataPoint getDataPoint(int series, int item) {
+        return dataPoints[series][item];
+    }
 
-  public Feature getPeak(int series) {
-    return peaks[series];
-  }
+    public Number getX(int series, int item) {
+        return dataPoints[series][item].getRT();
+    }
 
-  public PeakDataPoint getDataPoint(int series, int item) {
-    return dataPoints[series][item];
-  }
-
-  public Number getX(int series, int item) {
-    return dataPoints[series][item].getRT();
-  }
-
-  public Number getY(int series, int item) {
-    return dataPoints[series][item].getMZ();
-  }
+    public Number getY(int series, int item) {
+        return dataPoints[series][item].getMZ();
+    }
 
 }

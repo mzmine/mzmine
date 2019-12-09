@@ -32,42 +32,44 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV1_5Module implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Hierarchical Clustering";
-  private static final String MODULE_DESCRIPTION = "This method "
-      + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
+    private static final String MODULE_NAME = "Hierarchical Clustering";
+    private static final String MODULE_DESCRIPTION = "This method "
+            + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.SPECTRALDECONVOLUTION;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ADAP3DecompositionV1_5Parameters.class;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    PeakList[] peakLists = parameters.getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.SPECTRALDECONVOLUTION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ADAP3DecompositionV1_5Parameters.class;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        PeakList[] peakLists = parameters
+                .getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS)
+                .getValue().getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new ADAP3DecompositionV1_5Task(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
 }

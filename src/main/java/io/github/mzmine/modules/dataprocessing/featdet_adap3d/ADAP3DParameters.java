@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,16 +27,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 
 public class ADAP3DParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "features");
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "features");
 
-  public ADAP3DParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, suffix});
-  }
+    public ADAP3DParameters() {
+        super(new Parameter[] { dataFiles, scanSelection, suffix });
+    }
 
 }

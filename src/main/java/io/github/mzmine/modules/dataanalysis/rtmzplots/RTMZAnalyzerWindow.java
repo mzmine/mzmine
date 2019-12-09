@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -34,50 +34,51 @@ import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPa
 
 public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private RTMZToolbar toolbar;
-  private RTMZPlot plot;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private RTMZToolbar toolbar;
+    private RTMZPlot plot;
 
-  public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
-      InterpolatingLookupPaintScale paintScale) {
-    super("");
+    public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
+            InterpolatingLookupPaintScale paintScale) {
+        super("");
 
-    toolbar = new RTMZToolbar(this);
-    add(toolbar, BorderLayout.EAST);
+        toolbar = new RTMZToolbar(this);
+        add(toolbar, BorderLayout.EAST);
 
-    plot = new RTMZPlot(this, dataset, paintScale);
-    add(plot, BorderLayout.CENTER);
+        plot = new RTMZPlot(this, dataset, paintScale);
+        add(plot, BorderLayout.CENTER);
 
-    String title = peakList.getName();
-    title = title.concat(" : ");
-    title = title.concat(dataset.toString());
-    this.setTitle(title);
+        String title = peakList.getName();
+        title = title.concat(" : ");
+        title = title.concat(dataset.toString());
+        this.setTitle(title);
 
-    pack();
+        pack();
 
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
-      dialog.setVisible(true);
     }
 
-    if (command.equals("SETUP_COLORS")) {
-      InterpolatingLookupPaintScaleSetupDialog colorDialog =
-          new InterpolatingLookupPaintScaleSetupDialog(this, plot.getPaintScale());
-      colorDialog.setVisible(true);
+    public void actionPerformed(ActionEvent event) {
 
-      if (colorDialog.getExitCode() == ExitCode.OK)
-        plot.setPaintScale(colorDialog.getPaintScale());
+        String command = event.getActionCommand();
+
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(this,
+                    plot.getChart().getXYPlot());
+            dialog.setVisible(true);
+        }
+
+        if (command.equals("SETUP_COLORS")) {
+            InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog(
+                    this, plot.getPaintScale());
+            colorDialog.setVisible(true);
+
+            if (colorDialog.getExitCode() == ExitCode.OK)
+                plot.setPaintScale(colorDialog.getPaintScale());
+        }
+
     }
-
-  }
 
 }

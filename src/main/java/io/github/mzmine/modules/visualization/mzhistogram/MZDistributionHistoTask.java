@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,118 +36,129 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 public class MZDistributionHistoTask extends AbstractTask {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private MZmineProject project;
-  private RawDataFile dataFile;
+    private MZmineProject project;
+    private RawDataFile dataFile;
 
-  // scan counter
-  private int processedScans = 0, totalScans;
-  private ScanSelection scanSelection;
-  private Scan[] scans;
+    // scan counter
+    private int processedScans = 0, totalScans;
+    private ScanSelection scanSelection;
+    private Scan[] scans;
 
-  // User parameters
-  private String suffix, massListName;
-  private Range<Double> mzRange;
-  private boolean useRTRange;
-  private Range<Double> rtRange;
-  private double binWidth;
+    // User parameters
+    private String suffix, massListName;
+    private Range<Double> mzRange;
+    private boolean useRTRange;
+    private Range<Double> rtRange;
+    private double binWidth;
 
-  /**
-   * @param dataFile
-   * @param parameters
-   */
-  public MZDistributionHistoTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters) {
+    /**
+     * @param dataFile
+     * @param parameters
+     */
+    public MZDistributionHistoTask(MZmineProject project, RawDataFile dataFile,
+            ParameterSet parameters) {
 
-    this.project = project;
-    this.dataFile = dataFile;
-    this.scanSelection =
-        parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
-    this.massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
+        this.project = project;
+        this.dataFile = dataFile;
+        this.scanSelection = parameters
+                .getParameter(MZDistributionHistoParameters.scanSelection)
+                .getValue();
+        this.massListName = parameters
+                .getParameter(MZDistributionHistoParameters.massList)
+                .getValue();
 
-    this.mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
-    this.useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
-    if (useRTRange)
-      this.rtRange = parameters.getParameter(MZDistributionHistoParameters.rtRange)
-          .getEmbeddedParameter().getValue();
-    this.binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
-  }
+        this.mzRange = parameters
+                .getParameter(MZDistributionHistoParameters.mzRange).getValue();
+        this.useRTRange = parameters
+                .getParameter(MZDistributionHistoParameters.rtRange).getValue();
+        if (useRTRange)
+            this.rtRange = parameters
+                    .getParameter(MZDistributionHistoParameters.rtRange)
+                    .getEmbeddedParameter().getValue();
+        this.binWidth = parameters
+                .getParameter(MZDistributionHistoParameters.binWidth)
+                .getValue();
+    }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  public String getTaskDescription() {
-    return "Creating m/z distribution histogram of " + dataFile;
-  }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Creating m/z distribution histogram of " + dataFile;
+    }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  public double getFinishedPercentage() {
-    if (totalScans == 0)
-      return 0;
-    else
-      return (double) processedScans / totalScans;
-  }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (totalScans == 0)
+            return 0;
+        else
+            return (double) processedScans / totalScans;
+    }
 
-  public RawDataFile getDataFile() {
-    return dataFile;
-  }
+    public RawDataFile getDataFile() {
+        return dataFile;
+    }
 
+    /**
+     * @see Runnable#run()
+     */
+    public void run() {
+        setStatus(TaskStatus.PROCESSING);
+        logger.info(
+                "Starting to build mz distribution histogram for " + dataFile);
 
-  /**
-   * @see Runnable#run()
-   */
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    logger.info("Starting to build mz distribution histogram for " + dataFile);
+        // all selected scans
+        scans = scanSelection.getMatchingScans(dataFile);
+        totalScans = scans.length;
 
-    // all selected scans
-    scans = scanSelection.getMatchingScans(dataFile);
-    totalScans = scans.length;
+        // histo data
+        DoubleArrayList data = new DoubleArrayList();
 
-    // histo data
-    DoubleArrayList data = new DoubleArrayList();
+        for (Scan scan : scans) {
+            if (isCanceled())
+                return;
 
-    for (Scan scan : scans) {
-      if (isCanceled())
-        return;
+            // retention time in range
+            if (!useRTRange || rtRange.contains(scan.getRetentionTime())) {
+                // go through all mass lists
+                MassList massList = scan.getMassList(massListName);
+                if (massList == null) {
+                    setStatus(TaskStatus.ERROR);
+                    setErrorMessage("Scan " + dataFile + " #"
+                            + scan.getScanNumber()
+                            + " does not have a mass list " + massListName);
+                    return;
+                }
+                DataPoint mzValues[] = massList.getDataPoints();
 
-      // retention time in range
-      if (!useRTRange || rtRange.contains(scan.getRetentionTime())) {
-        // go through all mass lists
-        MassList massList = scan.getMassList(massListName);
-        if (massList == null) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-              + " does not have a mass list " + massListName);
-          return;
+                // insert all mz in order and count them
+                Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ())
+                        .filter(mz -> mzRange.contains(mz))
+                        .forEach(mz -> data.add(mz));
+                processedScans++;
+            }
         }
-        DataPoint mzValues[] = massList.getDataPoints();
 
-        // insert all mz in order and count them
-        Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
-            .forEach(mz -> data.add(mz));
-        processedScans++;
-      }
+        if (!data.isEmpty()) {
+            // to array
+            double[] histo = new double[data.size()];
+            for (int i = 0; i < data.size(); i++)
+                histo[i] = data.get(i);
+
+            // create histogram dialog
+            EHistogramDialog dialog = new EHistogramDialog("m/z distribution",
+                    "m/z", new HistogramData(histo), binWidth);
+            dialog.setVisible(true);
+        } else {
+            throw new MSDKRuntimeException(
+                    "Data was empty. Review your selected filters.");
+        }
+        setStatus(TaskStatus.FINISHED);
+        logger.info("Finished mz distribution histogram on " + dataFile);
     }
-
-    if (!data.isEmpty()) {
-      // to array
-      double[] histo = new double[data.size()];
-      for (int i = 0; i < data.size(); i++)
-        histo[i] = data.get(i);
-
-      // create histogram dialog
-      EHistogramDialog dialog =
-          new EHistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
-      dialog.setVisible(true);
-    } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
-    }
-    setStatus(TaskStatus.FINISHED);
-    logger.info("Finished mz distribution histogram on " + dataFile);
-  }
 
 }

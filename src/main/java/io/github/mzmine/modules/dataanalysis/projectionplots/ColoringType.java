@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,38 +22,40 @@ import io.github.mzmine.parameters.UserParameter;
 
 public class ColoringType {
 
-  public static final ColoringType NOCOLORING = new ColoringType("No coloring");
+    public static final ColoringType NOCOLORING = new ColoringType(
+            "No coloring");
 
-  public static final ColoringType COLORBYFILE = new ColoringType("Color by file");
+    public static final ColoringType COLORBYFILE = new ColoringType(
+            "Color by file");
 
-  private String name;
-  private UserParameter<?, ?> parameter;
+    private String name;
+    private UserParameter<?, ?> parameter;
 
-  public ColoringType(String name) {
-    this.name = name;
-  }
+    public ColoringType(String name) {
+        this.name = name;
+    }
 
-  public ColoringType(UserParameter<?, ?> parameter) {
-    this("Color by parameter " + parameter.getName());
-    this.parameter = parameter;
-  }
+    public ColoringType(UserParameter<?, ?> parameter) {
+        this("Color by parameter " + parameter.getName());
+        this.parameter = parameter;
+    }
 
-  public boolean isByParameter() {
-    return parameter != null;
-  }
+    public boolean isByParameter() {
+        return parameter != null;
+    }
 
-  public UserParameter<?, ?> getParameter() {
-    return parameter;
-  }
+    public UserParameter<?, ?> getParameter() {
+        return parameter;
+    }
 
-  public boolean equals(Object obj) {
-    if (!(obj instanceof ColoringType))
-      return false;
-    return name.equals(((ColoringType) obj).name);
-  }
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ColoringType))
+            return false;
+        return name.equals(((ColoringType) obj).name);
+    }
 
-  public String toString() {
-    return name;
-  }
+    public String toString() {
+        return name;
+    }
 
 }

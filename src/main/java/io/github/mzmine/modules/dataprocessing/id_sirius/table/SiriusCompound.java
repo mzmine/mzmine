@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -53,237 +53,250 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class SiriusCompound May contain different amount of properties 1) if the IonAnnotation is from
- * SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula 2) if
- * FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
+ * Class SiriusCompound May contain different amount of properties 1) if the
+ * IonAnnotation is from SiriusIdentificationMethod, then there will be Sirius
+ * Score, formula, name == formula 2) if FingerIdWebMethod is used, then name
+ * may differ, added SMILES & Inchi and links to DBs
  */
 public class SiriusCompound extends SimplePeakIdentity {
-  private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
-  public static final int PREVIEW_HEIGHT = 150;
-  public static final int PREVIEW_WIDTH = 150;
-  public static final int STRUCTURE_WIDTH = 600;
-  public static final int STRUCTURE_HEIGHT = 600;
+    private static final Logger logger = LoggerFactory
+            .getLogger(SiriusCompound.class);
+    public static final int PREVIEW_HEIGHT = 150;
+    public static final int PREVIEW_WIDTH = 150;
+    public static final int STRUCTURE_WIDTH = 600;
+    public static final int STRUCTURE_HEIGHT = 600;
 
-  private final SiriusIonAnnotation annotation;
-  private final IAtomContainer container;
+    private final SiriusIonAnnotation annotation;
+    private final IAtomContainer container;
 
-  /**
-   * Constructor for SiriusCompound
-   * 
-   * @param annotation
-   */
-  public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
-    super(loadProps(annotation));
-    this.annotation = annotation;
-    container = getChemicalStructure();
-  }
-
-  /**
-   * Copy constructor
-   * 
-   * @param master - SiriusCompound to copy from
-   */
-  public SiriusCompound(final SiriusCompound master) {
-    super((Hashtable<String, String>) master.getAllProperties());
-    this.annotation = master.annotation;
-    container = master.container;
-  }
-
-  /**
-   * Construct parameters from SiriusIonAnnotation Amount of params differ, either it is identified
-   * by SiriusIdentificationMethod, or also by FingerIdWebMethod
-   * 
-   * @param annotation
-   * @return constructed Hashtable
-   */
-  private static Hashtable<String, String> loadProps(final SiriusIonAnnotation annotation) {
-    String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
-    String siriusScore = String.format("%.4f", annotation.getSiriusScore());
-    String name = null;
-
-    /* Put default properties */
-    Hashtable<String, String> props = new Hashtable<>(10);
-    props.put(PROPERTY_METHOD, "Sirius");
-    props.put(PROPERTY_FORMULA, formula);
-    props.put("Sirius score", siriusScore);
-
-    /* Check that annotation is processed by FingerIdWebMethod */
-    if (annotation.getFingerIdScore() != null) {
-      name = annotation.getDescription();
-      String inchi = annotation.getInchiKey();
-      String smiles = annotation.getSMILES();
-
-      props.put("SMILES", smiles);
-      props.put("Inchi", inchi);
-      String fingerScore = String.format("%.4f", annotation.getFingerIdScore());
-      props.put("FingerId score", fingerScore);
-
-      DBLink[] links = annotation.getDBLinks();
-      Set<String> dbnames = new HashSet<>();
-
-      /*
-       * DBLinks may contain several links to Pubchem (for example)
-       */
-      for (DBLink link : links) {
-        dbnames.add(link.name);
-      }
-
-      String[] dbs = new String[dbnames.size()];
-      dbs = dbnames.toArray(dbs);
-      for (String db : dbs)
-        props.put(db, "FOUND");
+    /**
+     * Constructor for SiriusCompound
+     * 
+     * @param annotation
+     */
+    public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
+        super(loadProps(annotation));
+        this.annotation = annotation;
+        container = getChemicalStructure();
     }
 
-    // Load name param with formula, if FingerId did not identify it
-    if (name == null)
-      name = formula;
-    props.put(PROPERTY_NAME, name);
-
-    return props;
-  }
-
-  /**
-   * @return cloned object
-   */
-  public SiriusCompound clone() {
-    final SiriusCompound compound = new SiriusCompound(this);
-    return compound;
-  }
-
-  /**
-   * @return description of SiriusIonAnnotation, usually it contains name of the identified compound
-   */
-  public String getAnnotationDescription() {
-    return annotation.getDescription();
-  }
-
-  /**
-   * @return Inchi string, if exists
-   */
-  public String getInchi() {
-    return getPropertyValue("Inchi");
-  }
-
-  /**
-   * @return SMILES string, if exists
-   */
-  public String getSMILES() {
-    return getPropertyValue("SMILES");
-  }
-
-  /**
-   *
-   * @return unique names of the databases
-   */
-  public String[] getDBS() {
-    DBLink[] dblinks = getIonAnnotation().getDBLinks();
-    if (dblinks == null)
-      return null;
-
-    Set<String> dbNames = new TreeSet<String>();
-
-    for (DBLink link : dblinks)
-      dbNames.add(link.name);
-
-    String[] dbs = new String[dbNames.size()];
-    dbs = dbNames.toArray(dbs);
-
-    return dbs;
-  }
-
-  /**
-   * Method returns AtomContainer of the compound (if exists)
-   *
-   * @return IAtomContainer object
-   */
-  private IAtomContainer getChemicalStructure() {
-    IAtomContainer container = getIonAnnotation().getChemicalStructure();
-    if (container == null)
-      return null;
-
-    return container;
-  }
-
-  /**
-   * Getter for container Object (IAtomContainer)
-   *
-   * @return marker of existence of IAtomContainer object
-   */
-  public IAtomContainer getContainer() {
-    return container;
-  }
-
-  /**
-   * Method returns image generated from Chemical Structure IAtomContainer Better to use 3:2
-   * relation of width:height
-   * 
-   * @param width of the image
-   * @param height of the image
-   * @return new Image object
-   */
-  public Image generateImage(int width, int height) {
-    IAtomContainer molecule = this.annotation.getChemicalStructure();
-    if (molecule == null)
-      return null;
-
-    /* Form an area for future image */
-    Rectangle drawArea = new Rectangle(width, height);
-    Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-    /* Transform AtomContainer into image */
-    StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-    try {
-      sdg.setMolecule(molecule, false);
-      sdg.generateCoordinates();
-      List generators = new ArrayList();
-      generators.add(new BasicSceneGenerator());
-      generators.add(new BasicBondGenerator());
-      generators.add(new BasicAtomGenerator());
-      // the renderer needs to have a toolkit-specific font manager
-      AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager());
-      renderer.setup(molecule, drawArea);
-
-      Graphics2D g2 = (Graphics2D) image.getGraphics();
-      g2.setColor(Color.WHITE);
-      g2.fillRect(0, 0, width, height);
-      renderer.paint(molecule, new AWTDrawVisitor(g2));
-      return image;
-    } catch (Exception ex) {
-      logger.info("Exception during ImageIcon construction occured");
+    /**
+     * Copy constructor
+     * 
+     * @param master
+     *            - SiriusCompound to copy from
+     */
+    public SiriusCompound(final SiriusCompound master) {
+        super((Hashtable<String, String>) master.getAllProperties());
+        this.annotation = master.annotation;
+        container = master.container;
     }
-    return null;
-  }
 
-  /**
-   * @return SiriusIonAnnotation object
-   */
-  public SiriusIonAnnotation getIonAnnotation() {
-    return annotation;
-  }
+    /**
+     * Construct parameters from SiriusIonAnnotation Amount of params differ,
+     * either it is identified by SiriusIdentificationMethod, or also by
+     * FingerIdWebMethod
+     * 
+     * @param annotation
+     * @return constructed Hashtable
+     */
+    private static Hashtable<String, String> loadProps(
+            final SiriusIonAnnotation annotation) {
+        String formula = MolecularFormulaManipulator
+                .getString(annotation.getFormula());
+        String siriusScore = String.format("%.4f", annotation.getSiriusScore());
+        String name = null;
 
-  /**
-   * @return molecular formula in form of string
-   */
-  public String getStringFormula() {
-    return MolecularFormulaManipulator.getString(annotation.getFormula());
-  }
+        /* Put default properties */
+        Hashtable<String, String> props = new Hashtable<>(10);
+        props.put(PROPERTY_METHOD, "Sirius");
+        props.put(PROPERTY_FORMULA, formula);
+        props.put("Sirius score", siriusScore);
 
-  /**
-   * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
-   * 
-   * @return FingerId score, if exists
-   */
-  public String getFingerIdScore() {
-    String val = getPropertyValue("FingerId score");
-    if (val == null)
-      return "";
-    return val;
-  }
+        /* Check that annotation is processed by FingerIdWebMethod */
+        if (annotation.getFingerIdScore() != null) {
+            name = annotation.getDescription();
+            String inchi = annotation.getInchiKey();
+            String smiles = annotation.getSMILES();
 
-  /**
-   * @return Sirius score
-   */
-  public String getSiriusScore() {
-    return getPropertyValue("Sirius score");
-  }
+            props.put("SMILES", smiles);
+            props.put("Inchi", inchi);
+            String fingerScore = String.format("%.4f",
+                    annotation.getFingerIdScore());
+            props.put("FingerId score", fingerScore);
+
+            DBLink[] links = annotation.getDBLinks();
+            Set<String> dbnames = new HashSet<>();
+
+            /*
+             * DBLinks may contain several links to Pubchem (for example)
+             */
+            for (DBLink link : links) {
+                dbnames.add(link.name);
+            }
+
+            String[] dbs = new String[dbnames.size()];
+            dbs = dbnames.toArray(dbs);
+            for (String db : dbs)
+                props.put(db, "FOUND");
+        }
+
+        // Load name param with formula, if FingerId did not identify it
+        if (name == null)
+            name = formula;
+        props.put(PROPERTY_NAME, name);
+
+        return props;
+    }
+
+    /**
+     * @return cloned object
+     */
+    public SiriusCompound clone() {
+        final SiriusCompound compound = new SiriusCompound(this);
+        return compound;
+    }
+
+    /**
+     * @return description of SiriusIonAnnotation, usually it contains name of
+     *         the identified compound
+     */
+    public String getAnnotationDescription() {
+        return annotation.getDescription();
+    }
+
+    /**
+     * @return Inchi string, if exists
+     */
+    public String getInchi() {
+        return getPropertyValue("Inchi");
+    }
+
+    /**
+     * @return SMILES string, if exists
+     */
+    public String getSMILES() {
+        return getPropertyValue("SMILES");
+    }
+
+    /**
+     *
+     * @return unique names of the databases
+     */
+    public String[] getDBS() {
+        DBLink[] dblinks = getIonAnnotation().getDBLinks();
+        if (dblinks == null)
+            return null;
+
+        Set<String> dbNames = new TreeSet<String>();
+
+        for (DBLink link : dblinks)
+            dbNames.add(link.name);
+
+        String[] dbs = new String[dbNames.size()];
+        dbs = dbNames.toArray(dbs);
+
+        return dbs;
+    }
+
+    /**
+     * Method returns AtomContainer of the compound (if exists)
+     *
+     * @return IAtomContainer object
+     */
+    private IAtomContainer getChemicalStructure() {
+        IAtomContainer container = getIonAnnotation().getChemicalStructure();
+        if (container == null)
+            return null;
+
+        return container;
+    }
+
+    /**
+     * Getter for container Object (IAtomContainer)
+     *
+     * @return marker of existence of IAtomContainer object
+     */
+    public IAtomContainer getContainer() {
+        return container;
+    }
+
+    /**
+     * Method returns image generated from Chemical Structure IAtomContainer
+     * Better to use 3:2 relation of width:height
+     * 
+     * @param width
+     *            of the image
+     * @param height
+     *            of the image
+     * @return new Image object
+     */
+    public Image generateImage(int width, int height) {
+        IAtomContainer molecule = this.annotation.getChemicalStructure();
+        if (molecule == null)
+            return null;
+
+        /* Form an area for future image */
+        Rectangle drawArea = new Rectangle(width, height);
+        Image image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_RGB);
+
+        /* Transform AtomContainer into image */
+        StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+        try {
+            sdg.setMolecule(molecule, false);
+            sdg.generateCoordinates();
+            List generators = new ArrayList();
+            generators.add(new BasicSceneGenerator());
+            generators.add(new BasicBondGenerator());
+            generators.add(new BasicAtomGenerator());
+            // the renderer needs to have a toolkit-specific font manager
+            AtomContainerRenderer renderer = new AtomContainerRenderer(
+                    generators, new AWTFontManager());
+            renderer.setup(molecule, drawArea);
+
+            Graphics2D g2 = (Graphics2D) image.getGraphics();
+            g2.setColor(Color.WHITE);
+            g2.fillRect(0, 0, width, height);
+            renderer.paint(molecule, new AWTDrawVisitor(g2));
+            return image;
+        } catch (Exception ex) {
+            logger.info("Exception during ImageIcon construction occured");
+        }
+        return null;
+    }
+
+    /**
+     * @return SiriusIonAnnotation object
+     */
+    public SiriusIonAnnotation getIonAnnotation() {
+        return annotation;
+    }
+
+    /**
+     * @return molecular formula in form of string
+     */
+    public String getStringFormula() {
+        return MolecularFormulaManipulator.getString(annotation.getFormula());
+    }
+
+    /**
+     * FingerId score had negative value, the closer it is to 0, the better
+     * result is (Ex.: -115.23)
+     * 
+     * @return FingerId score, if exists
+     */
+    public String getFingerIdScore() {
+        String val = getPropertyValue("FingerId score");
+        if (val == null)
+            return "";
+        return val;
+    }
+
+    /**
+     * @return Sirius score
+     */
+    public String getSiriusScore() {
+        return getPropertyValue("Sirius score");
+    }
 }

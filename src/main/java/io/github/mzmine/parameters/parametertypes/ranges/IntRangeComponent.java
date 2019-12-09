@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,59 +29,61 @@ import com.google.common.collect.Range;
 import io.github.mzmine.util.components.GridBagPanel;
 
 public class IntRangeComponent extends GridBagPanel {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private JTextField minTxtField, maxTxtField;
+    private JTextField minTxtField, maxTxtField;
 
-  public IntRangeComponent() {
+    public IntRangeComponent() {
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    minTxtField = new JTextField();
-    minTxtField.setColumns(8);
+        minTxtField = new JTextField();
+        minTxtField.setColumns(8);
 
-    maxTxtField = new JTextField();
-    maxTxtField.setColumns(8);
+        maxTxtField = new JTextField();
+        maxTxtField.setColumns(8);
 
-    add(minTxtField, 0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
-    add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
-    add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
-  }
-
-  public Range<Integer> getValue() {
-    String minString = minTxtField.getText();
-    String maxString = maxTxtField.getText();
-
-    try {
-      if (!minString.isEmpty() && !maxString.isEmpty()) {
-        return Range.closed(Integer.parseInt(minString), Integer.parseInt(maxString));
-      } else if (!minString.isEmpty()) {
-        return Range.closed(Integer.parseInt(minString), Integer.MAX_VALUE);
-      } else if (!maxString.isEmpty()) {
-        return Range.closed(0, Integer.parseInt(maxString));
-      } else {
-        return null;
-      }
-    } catch (Exception e) {
-      return null;
+        add(minTxtField, 0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
+        add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
+        add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
     }
-  }
 
-  public void setValue(Range<Integer> value) {
-    minTxtField.setText(String.valueOf(value.lowerEndpoint()));
-    maxTxtField.setText(String.valueOf(value.upperEndpoint()));
-  }
+    public Range<Integer> getValue() {
+        String minString = minTxtField.getText();
+        String maxString = maxTxtField.getText();
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    minTxtField.setToolTipText(toolTip);
-    maxTxtField.setToolTipText(toolTip);
-  }
+        try {
+            if (!minString.isEmpty() && !maxString.isEmpty()) {
+                return Range.closed(Integer.parseInt(minString),
+                        Integer.parseInt(maxString));
+            } else if (!minString.isEmpty()) {
+                return Range.closed(Integer.parseInt(minString),
+                        Integer.MAX_VALUE);
+            } else if (!maxString.isEmpty()) {
+                return Range.closed(0, Integer.parseInt(maxString));
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    minTxtField.setEnabled(enabled);
-    maxTxtField.setEnabled(enabled);
-  }
+    public void setValue(Range<Integer> value) {
+        minTxtField.setText(String.valueOf(value.lowerEndpoint()));
+        maxTxtField.setText(String.valueOf(value.upperEndpoint()));
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        minTxtField.setToolTipText(toolTip);
+        maxTxtField.setToolTipText(toolTip);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        minTxtField.setEnabled(enabled);
+        maxTxtField.setEnabled(enabled);
+    }
 }

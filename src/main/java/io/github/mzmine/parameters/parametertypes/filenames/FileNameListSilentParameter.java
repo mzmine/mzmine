@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,98 +36,100 @@ import io.github.mzmine.parameters.Parameter;
  */
 public class FileNameListSilentParameter implements Parameter<List<File>> {
 
-  private static final String FILE_ELEMENT = "file";
-  private String name;
-  private @Nonnull List<File> value;
+    private static final String FILE_ELEMENT = "file";
+    private String name;
+    private @Nonnull List<File> value;
 
-  private List<FileNameListChangedListener> listener;
+    private List<FileNameListChangedListener> listener;
 
-  public FileNameListSilentParameter(String name) {
-    this.name = name;
-    value = new ArrayList<>();
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  @Nonnull
-  public List<File> getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(List<File> value) {
-    if (value == null)
-      this.value = new ArrayList<>();
-    else
-      this.value = value;
-    fireChanged();
-  }
-
-  public void addFile(File f) {
-    if (f == null)
-      return;
-
-    // add to last files if not already inserted
-    value.remove(f);
-    value.add(0, f);
-    fireChanged();
-  }
-
-  @Override
-  public FileNameListSilentParameter cloneParameter() {
-    FileNameListSilentParameter copy = new FileNameListSilentParameter(name);
-    copy.setValue(new ArrayList<>(this.getValue()));
-    return copy;
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    // add all still existing files
-    value = new ArrayList<>();
-    NodeList nodes = xmlElement.getChildNodes();
-    for (int i = 0; i < nodes.getLength(); i++) {
-      Node n = nodes.item(i);
-      File f = new File(n.getTextContent());
-      if (f.exists())
-        value.add(f);
+    public FileNameListSilentParameter(String name) {
+        this.name = name;
+        value = new ArrayList<>();
     }
-    fireChanged();
-  }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    // add new element for each file
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (File f : value) {
-      Element paramElement = parentDocument.createElement(FILE_ELEMENT);
-      paramElement.setTextContent(f.getAbsolutePath());
-      xmlElement.appendChild(paramElement);
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
     }
-  }
 
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    // is no parameter to select values - is to create a list of last used files
-    return true;
-  }
+    @Override
+    @Nonnull
+    public List<File> getValue() {
+        return value;
+    }
 
-  private void fireChanged() {
-    if (listener != null)
-      listener.stream().forEach(l -> l.fileListChanged(value));
-  }
+    @Override
+    public void setValue(List<File> value) {
+        if (value == null)
+            this.value = new ArrayList<>();
+        else
+            this.value = value;
+        fireChanged();
+    }
 
-  public void addFileListChangedListener(FileNameListChangedListener list) {
-    if (list == null)
-      return;
-    if (listener == null)
-      listener = new ArrayList<>();
-    listener.add(list);
-  }
+    public void addFile(File f) {
+        if (f == null)
+            return;
+
+        // add to last files if not already inserted
+        value.remove(f);
+        value.add(0, f);
+        fireChanged();
+    }
+
+    @Override
+    public FileNameListSilentParameter cloneParameter() {
+        FileNameListSilentParameter copy = new FileNameListSilentParameter(
+                name);
+        copy.setValue(new ArrayList<>(this.getValue()));
+        return copy;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        // add all still existing files
+        value = new ArrayList<>();
+        NodeList nodes = xmlElement.getChildNodes();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node n = nodes.item(i);
+            File f = new File(n.getTextContent());
+            if (f.exists())
+                value.add(f);
+        }
+        fireChanged();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        // add new element for each file
+        Document parentDocument = xmlElement.getOwnerDocument();
+        for (File f : value) {
+            Element paramElement = parentDocument.createElement(FILE_ELEMENT);
+            paramElement.setTextContent(f.getAbsolutePath());
+            xmlElement.appendChild(paramElement);
+        }
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        // is no parameter to select values - is to create a list of last used
+        // files
+        return true;
+    }
+
+    private void fireChanged() {
+        if (listener != null)
+            listener.stream().forEach(l -> l.fileListChanged(value));
+    }
+
+    public void addFileListChangedListener(FileNameListChangedListener list) {
+        if (list == null)
+            return;
+        if (listener == null)
+            listener = new ArrayList<>();
+        listener.add(list);
+    }
 }

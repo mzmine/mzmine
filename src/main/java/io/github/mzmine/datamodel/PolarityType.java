@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,37 +23,37 @@ package io.github.mzmine.datamodel;
  */
 public enum PolarityType {
 
-  POSITIVE(+1, "+"), //
-  NEGATIVE(-1, "-"), //
-  NEUTRAL(0, "n"), //
-  UNKNOWN(0, "?");
+    POSITIVE(+1, "+"), //
+    NEGATIVE(-1, "-"), //
+    NEUTRAL(0, "n"), //
+    UNKNOWN(0, "?");
 
-  private final int sign;
-  private final String charValue;
+    private final int sign;
+    private final String charValue;
 
-  PolarityType(int sign, String charValue) {
-    this.sign = sign;
-    this.charValue = charValue;
-  }
-
-  /**
-   * @return +1 for positive polarity, -1 for negative polarity, and 0 for neutral or unknown
-   *         polarity.
-   */
-  public int getSign() {
-    return sign;
-  }
-
-  public String asSingleChar() {
-    return charValue;
-  }
-
-  public static PolarityType fromSingleChar(String s) {
-    for (PolarityType p : values()) {
-      if (p.charValue.equals(s))
-        return p;
+    PolarityType(int sign, String charValue) {
+        this.sign = sign;
+        this.charValue = charValue;
     }
-    return UNKNOWN;
-  }
+
+    /**
+     * @return +1 for positive polarity, -1 for negative polarity, and 0 for
+     *         neutral or unknown polarity.
+     */
+    public int getSign() {
+        return sign;
+    }
+
+    public String asSingleChar() {
+        return charValue;
+    }
+
+    public static PolarityType fromSingleChar(String s) {
+        for (PolarityType p : values()) {
+            if (p.charValue.equals(s))
+                return p;
+        }
+        return UNKNOWN;
+    }
 
 }

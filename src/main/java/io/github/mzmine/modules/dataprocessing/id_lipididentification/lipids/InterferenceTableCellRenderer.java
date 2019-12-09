@@ -9,19 +9,19 @@ import io.github.mzmine.util.components.ColorCircle;
 
 public class InterferenceTableCellRenderer extends DefaultTableCellRenderer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  ArrayList<ColorCircle> circle = new ArrayList<ColorCircle>();
+    ArrayList<ColorCircle> circle = new ArrayList<ColorCircle>();
 
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-      boolean hasFocus, int row, int column) {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
 
-    return circle.get(row);
+        return circle.get(row);
 
-  }
+    }
 
 }

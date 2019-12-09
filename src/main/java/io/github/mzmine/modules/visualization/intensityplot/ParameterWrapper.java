@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,23 +21,24 @@ package io.github.mzmine.modules.visualization.intensityplot;
 import io.github.mzmine.parameters.UserParameter;
 
 /**
- * A simple wrapper providing the toString() method for adding parameters to combo boxes etc.
+ * A simple wrapper providing the toString() method for adding parameters to
+ * combo boxes etc.
  */
 public class ParameterWrapper {
 
-  private UserParameter<?, ?> parameter;
+    private UserParameter<?, ?> parameter;
 
-  public ParameterWrapper(UserParameter<?, ?> parameter) {
-    this.parameter = parameter;
-  }
+    public ParameterWrapper(UserParameter<?, ?> parameter) {
+        this.parameter = parameter;
+    }
 
-  public UserParameter<?, ?> getParameter() {
-    return parameter;
-  }
+    public UserParameter<?, ?> getParameter() {
+        return parameter;
+    }
 
-  @Override
-  public String toString() {
-    return parameter.getName();
-  }
+    @Override
+    public String toString() {
+        return parameter.getName();
+    }
 
 }

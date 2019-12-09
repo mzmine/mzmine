@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,16 +20,16 @@ package io.github.mzmine.modules.visualization.spectra.msms;
 
 public enum NormalizationType {
 
-  all("All data points"), similar("Data points with a m/z within 10ppm");
+    all("All data points"), similar("Data points with a m/z within 10ppm");
 
-  private String type;
+    private String type;
 
-  NormalizationType(String type) {
-    this.type = type;
-  }
+    NormalizationType(String type) {
+        this.type = type;
+    }
 
-  public String toString() {
-    return type;
-  }
+    public String toString() {
+        return type;
+    }
 
 }

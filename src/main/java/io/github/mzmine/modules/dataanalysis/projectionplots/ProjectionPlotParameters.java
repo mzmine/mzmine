@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,29 +29,30 @@ import io.github.mzmine.util.PeakMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final RawDataFilesParameter dataFiles =
-      new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+            new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
-  public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
+    public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
-          PeakMeasurementType.values());
+    public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+            "Peak measurement type", "Measure peaks using",
+            PeakMeasurementType.values());
 
-  public static final Integer[] componentPossibleValues = {1, 2, 3, 4, 5};
+    public static final Integer[] componentPossibleValues = { 1, 2, 3, 4, 5 };
 
-  public static final ComboParameter<Integer> xAxisComponent = new ComboParameter<Integer>(
-      "X-axis component", "Component on the X-axis", componentPossibleValues);
+    public static final ComboParameter<Integer> xAxisComponent = new ComboParameter<Integer>(
+            "X-axis component", "Component on the X-axis",
+            componentPossibleValues);
 
-  public static final ComboParameter<Integer> yAxisComponent =
-      new ComboParameter<Integer>("Y-axis component", "Component on the Y-axis",
-          componentPossibleValues, componentPossibleValues[1]);
+    public static final ComboParameter<Integer> yAxisComponent = new ComboParameter<Integer>(
+            "Y-axis component", "Component on the Y-axis",
+            componentPossibleValues, componentPossibleValues[1]);
 
-  public ProjectionPlotParameters() {
-    super(new Parameter[] {peakLists, dataFiles, coloringType, peakMeasurementType, xAxisComponent,
-        yAxisComponent});
-  }
+    public ProjectionPlotParameters() {
+        super(new Parameter[] { peakLists, dataFiles, coloringType,
+                peakMeasurementType, xAxisComponent, yAxisComponent });
+    }
 
 }

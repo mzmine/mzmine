@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,30 +31,33 @@ import io.github.mzmine.util.ExitCode;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+            1);
 
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.",
-      "csv");
+    public static final FileNameParameter filename = new FileNameParameter(
+            "Filename",
+            "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                    + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
+                    + "If the file already exists, it will be overwritten.",
+            "csv");
 
-  public static final ComboParameter<UserParameter<?, ?>> groupParameter =
-      new ComboParameter<UserParameter<?, ?>>("Grouping parameter",
-          "Project parameter that will be used to obtain group information to each sample (e.g. control vs disease). Please set parameters in the Project/Set sample parameters menu.",
-          new UserParameter[0]);
+    public static final ComboParameter<UserParameter<?, ?>> groupParameter = new ComboParameter<UserParameter<?, ?>>(
+            "Grouping parameter",
+            "Project parameter that will be used to obtain group information to each sample (e.g. control vs disease). Please set parameters in the Project/Set sample parameters menu.",
+            new UserParameter[0]);
 
-  public MetaboAnalystExportParameters() {
-    super(new Parameter[] {peakLists, filename, groupParameter});
-  }
+    public MetaboAnalystExportParameters() {
+        super(new Parameter[] { peakLists, filename, groupParameter });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    UserParameter<?, ?> projectParams[] =
-        MZmineCore.getProjectManager().getCurrentProject().getParameters();
-    getParameter(MetaboAnalystExportParameters.groupParameter).setChoices(projectParams);
+        UserParameter<?, ?> projectParams[] = MZmineCore.getProjectManager()
+                .getCurrentProject().getParameters();
+        getParameter(MetaboAnalystExportParameters.groupParameter)
+                .setChoices(projectParams);
 
-    return super.showSetupDialog(parent, valueCheckRequired);
-  }
+        return super.showSetupDialog(parent, valueCheckRequired);
+    }
 }

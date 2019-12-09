@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 3 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 3.
  * 
@@ -38,38 +38,38 @@ import javafx.stage.Stage;
  */
 public class HelpWindow extends Stage {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  public HelpWindow(String helpFileURL) {
+    public HelpWindow(String helpFileURL) {
 
-    // Title
-    setTitle("Loading help...");
+        // Title
+        setTitle("Loading help...");
 
-    logger.debug("Loading help file " + helpFileURL);
+        logger.debug("Loading help file " + helpFileURL);
 
-    try {
-      // Load the window FXML
-      URL mainFXML = getClass().getResource("HelpWindow.fxml");
-      FXMLLoader loader = new FXMLLoader(mainFXML);
-      BorderPane rootPane = (BorderPane) loader.load();
-      Scene scene = new Scene(rootPane, 800, 600, Color.WHITE);
-      setScene(scene);
+        try {
+            // Load the window FXML
+            URL mainFXML = getClass().getResource("HelpWindow.fxml");
+            FXMLLoader loader = new FXMLLoader(mainFXML);
+            BorderPane rootPane = (BorderPane) loader.load();
+            Scene scene = new Scene(rootPane, 800, 600, Color.WHITE);
+            setScene(scene);
 
-      // Load the requested page
-      HelpWindowController controller = loader.getController();
-      WebEngine webEngine = controller.getEngine();
-      webEngine.load(helpFileURL);
+            // Load the requested page
+            HelpWindowController controller = loader.getController();
+            WebEngine webEngine = controller.getEngine();
+            webEngine.load(helpFileURL);
 
-      // Update title based on loaded page
-      webEngine.titleProperty().addListener(e -> {
-        final String title = webEngine.getTitle();
-        if (!Strings.isNullOrEmpty(title))
-          setTitle("MZmine help: " + title);
-      });
+            // Update title based on loaded page
+            webEngine.titleProperty().addListener(e -> {
+                final String title = webEngine.getTitle();
+                if (!Strings.isNullOrEmpty(title))
+                    setTitle("MZmine help: " + title);
+            });
 
-    } catch (IOException e) {
-      e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
-
-  }
 }

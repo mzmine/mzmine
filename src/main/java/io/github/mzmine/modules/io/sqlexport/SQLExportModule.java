@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,38 +31,37 @@ import io.github.mzmine.util.ExitCode;
 
 public class SQLExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to SQL database";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into an SQL database using JDBC.";
+    private static final String MODULE_NAME = "Export to SQL database";
+    private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into an SQL database using JDBC.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    SQLExportTask newTask = new SQLExportTask(parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        SQLExportTask newTask = new SQLExportTask(parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SQLExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return SQLExportParameters.class;
+    }
 
 }

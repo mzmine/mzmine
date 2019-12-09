@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,20 +28,21 @@ import io.github.mzmine.util.ExitCode;
 
 public class ScatterPlotParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1,
+            1);
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  public ScatterPlotParameters() {
-    super(new Parameter[] {peakLists, windowSettings});
-  }
+    public ScatterPlotParameters() {
+        super(new Parameter[] { peakLists, windowSettings });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    return ExitCode.OK;
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        return ExitCode.OK;
+    }
 
 }

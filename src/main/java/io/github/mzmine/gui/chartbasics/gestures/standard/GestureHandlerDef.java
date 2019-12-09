@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,83 +28,83 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 
 /**
- * Definition of {@link ChartGestureHandler}s Used to store the definition and to generate
- * GestureHandlers
+ * Definition of {@link ChartGestureHandler}s Used to store the definition and
+ * to generate GestureHandlers
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class GestureHandlerDef implements GestureHandlerFactory {
 
-  protected Handler handler;
-  protected Entity entity;
-  protected Event[] event;
-  protected Button button;
-  protected Key key;
-  protected Object[] param;
+    protected Handler handler;
+    protected Entity entity;
+    protected Event[] event;
+    protected Button button;
+    protected Key key;
+    protected Object[] param;
 
-  public GestureHandlerDef(Handler handler, Entity entity, Event[] event, Button button, Key key,
-      Object[] param) {
-    super();
-    this.handler = handler;
-    this.entity = entity;
-    this.event = event;
-    this.button = button;
-    this.key = key;
-    this.param = param;
-  }
+    public GestureHandlerDef(Handler handler, Entity entity, Event[] event,
+            Button button, Key key, Object[] param) {
+        super();
+        this.handler = handler;
+        this.entity = entity;
+        this.event = event;
+        this.button = button;
+        this.key = key;
+        this.param = param;
+    }
 
-  @Override
-  public ChartGestureHandler createHandler() {
-    return ChartGestureHandler.createHandler(handler, new ChartGesture(entity, event, button, key),
-        param);
-  }
+    @Override
+    public ChartGestureHandler createHandler() {
+        return ChartGestureHandler.createHandler(handler,
+                new ChartGesture(entity, event, button, key), param);
+    }
 
-  public Handler getHandler() {
-    return handler;
-  }
+    public Handler getHandler() {
+        return handler;
+    }
 
-  public Entity getEntity() {
-    return entity;
-  }
+    public Entity getEntity() {
+        return entity;
+    }
 
-  public Event[] getEvent() {
-    return event;
-  }
+    public Event[] getEvent() {
+        return event;
+    }
 
-  public Button getButton() {
-    return button;
-  }
+    public Button getButton() {
+        return button;
+    }
 
-  public Key getKey() {
-    return key;
-  }
+    public Key getKey() {
+        return key;
+    }
 
-  public Object[] getParam() {
-    return param;
-  }
+    public Object[] getParam() {
+        return param;
+    }
 
-  public void setHandler(Handler handler) {
-    this.handler = handler;
-  }
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
 
-  public void setEntity(Entity entity) {
-    this.entity = entity;
-  }
+    public void setEntity(Entity entity) {
+        this.entity = entity;
+    }
 
-  public void setEvent(Event[] event) {
-    this.event = event;
-  }
+    public void setEvent(Event[] event) {
+        this.event = event;
+    }
 
-  public void setButton(Button button) {
-    this.button = button;
-  }
+    public void setButton(Button button) {
+        this.button = button;
+    }
 
-  public void setKey(Key key) {
-    this.key = key;
-  }
+    public void setKey(Key key) {
+        this.key = key;
+    }
 
-  public void setParam(Object[] param) {
-    this.param = param;
-  }
+    public void setParam(Object[] param) {
+        this.param = param;
+    }
 
 }

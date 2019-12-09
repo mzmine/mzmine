@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,59 +35,62 @@ import io.github.mzmine.datamodel.PeakIdentity;
  */
 public class CompoundIdentityCellRenderer implements TableCellRenderer {
 
-  static final Font defaultFont = new Font("SansSerif", Font.PLAIN, 10);
+    static final Font defaultFont = new Font("SansSerif", Font.PLAIN, 10);
 
-  /**
-   * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-   *      java.lang.Object, boolean, boolean, int, int)
-   */
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-      boolean hasFocus, int row, int column) {
+    /**
+     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+     *      java.lang.Object, boolean, boolean, int, int)
+     */
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
 
-    JLabel newLabel = new JLabel();
-    newLabel.setHorizontalAlignment(JLabel.LEFT);
-    newLabel.setFont(defaultFont);
-    newLabel.setOpaque(true);
+        JLabel newLabel = new JLabel();
+        newLabel.setHorizontalAlignment(JLabel.LEFT);
+        newLabel.setFont(defaultFont);
+        newLabel.setOpaque(true);
 
-    Color bgColor;
+        Color bgColor;
 
-    if (isSelected)
-      bgColor = table.getSelectionBackground();
-    else
-      bgColor = table.getBackground();
+        if (isSelected)
+            bgColor = table.getSelectionBackground();
+        else
+            bgColor = table.getBackground();
 
-    newLabel.setBackground(bgColor);
+        newLabel.setBackground(bgColor);
 
-    if (hasFocus) {
-      Border border = null;
-      if (isSelected)
-        border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-      if (border == null)
-        border = UIManager.getBorder("Table.focusCellHighlightBorder");
+        if (hasFocus) {
+            Border border = null;
+            if (isSelected)
+                border = UIManager
+                        .getBorder("Table.focusSelectedCellHighlightBorder");
+            if (border == null)
+                border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
-      /*
-       * The "border.getBorderInsets(newPanel) != null" is a workaround for OpenJDK 1.6.0 bug,
-       * otherwise setBorder() may throw a NullPointerException
-       */
-      if ((border != null) && (border.getBorderInsets(newLabel) != null)) {
-        newLabel.setBorder(border);
-      }
+            /*
+             * The "border.getBorderInsets(newPanel) != null" is a workaround
+             * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+             * NullPointerException
+             */
+            if ((border != null)
+                    && (border.getBorderInsets(newLabel) != null)) {
+                newLabel.setBorder(border);
+            }
+        }
+
+        if (value instanceof PeakIdentity) {
+
+            PeakIdentity identity = (PeakIdentity) value;
+
+            newLabel.setText(identity.getName());
+
+            String toolTipText = identity.getDescription();
+
+            newLabel.setToolTipText(toolTipText);
+
+        }
+
+        return newLabel;
+
     }
-
-    if (value instanceof PeakIdentity) {
-
-      PeakIdentity identity = (PeakIdentity) value;
-
-      newLabel.setText(identity.getName());
-
-      String toolTipText = identity.getDescription();
-
-      newLabel.setToolTipText(toolTipText);
-
-    }
-
-    return newLabel;
-
-  }
 
 }

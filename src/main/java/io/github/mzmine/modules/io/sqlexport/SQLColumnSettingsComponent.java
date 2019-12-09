@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,125 +42,131 @@ import javax.swing.table.TableCellRenderer;
 
 import io.github.mzmine.util.GUIUtils;
 
-public class SQLColumnSettingsComponent extends JPanel implements ActionListener {
+public class SQLColumnSettingsComponent extends JPanel
+        implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private final JTable columnsTable;
-  private final JButton addColumnButton, removeColumnButton;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private final JTable columnsTable;
+    private final JButton addColumnButton, removeColumnButton;
 
-  @Nonnull
-  private SQLColumnSettings value;
+    @Nonnull
+    private SQLColumnSettings value;
 
-  public SQLColumnSettingsComponent() {
+    public SQLColumnSettingsComponent() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    value = new SQLColumnSettings();
+        value = new SQLColumnSettings();
 
-    // columnsTable = new JTable(value);
-    columnsTable = new JTable(value) {
-      /**
-       * 
-       */
-      private static final long serialVersionUID = 1L;
+        // columnsTable = new JTable(value);
+        columnsTable = new JTable(value) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
 
-      public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-        Component c = super.prepareRenderer(renderer, row, column);
-        if (!isCellEditable(row, column)) {
-          if (isCellSelected(row, column)) {
-            c.setBackground(Color.decode("#3399FF"));
-            c.setForeground(Color.white);
-          } else {
-            c.setBackground(Color.decode("#E3E3E3"));
-          }
-        } else {
-          if (isCellSelected(row, column)) {
-            c.setBackground(Color.decode("#3399FF"));
-            c.setForeground(Color.white);
-          } else {
-            c.setBackground(Color.white);
-            c.setForeground(Color.black);
-          }
-        }
-        return c;
-      }
-    };
+            public Component prepareRenderer(TableCellRenderer renderer,
+                    int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isCellEditable(row, column)) {
+                    if (isCellSelected(row, column)) {
+                        c.setBackground(Color.decode("#3399FF"));
+                        c.setForeground(Color.white);
+                    } else {
+                        c.setBackground(Color.decode("#E3E3E3"));
+                    }
+                } else {
+                    if (isCellSelected(row, column)) {
+                        c.setBackground(Color.decode("#3399FF"));
+                        c.setForeground(Color.white);
+                    } else {
+                        c.setBackground(Color.white);
+                        c.setForeground(Color.black);
+                    }
+                }
+                return c;
+            }
+        };
 
-    columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    columnsTable.setRowSelectionAllowed(true);
-    columnsTable.setColumnSelectionAllowed(false);
-    columnsTable.getTableHeader().setReorderingAllowed(false);
-    columnsTable.getTableHeader().setResizingAllowed(false);
-    columnsTable.setPreferredScrollableViewportSize(new Dimension(550, 220));
+        columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        columnsTable.setRowSelectionAllowed(true);
+        columnsTable.setColumnSelectionAllowed(false);
+        columnsTable.getTableHeader().setReorderingAllowed(false);
+        columnsTable.getTableHeader().setResizingAllowed(false);
+        columnsTable
+                .setPreferredScrollableViewportSize(new Dimension(550, 220));
 
-    columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
-    columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
+        columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
+        columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
 
-    JComboBox<SQLExportDataType> dataTypeCombo =
-        new JComboBox<SQLExportDataType>(SQLExportDataType.values());
-    dataTypeCombo.setMaximumRowCount(22);
-    DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
-    columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
+        JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(
+                SQLExportDataType.values());
+        dataTypeCombo.setMaximumRowCount(22);
+        DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
+        columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
 
-    // Create an ItemListener for the JComboBox component.
-    dataTypeCombo.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
-        Boolean selected =
-            ((SQLExportDataType) dataTypeCombo.getSelectedItem()).isSelectableValue();
-        if (!selected && e.getStateChange() == 1) {
-          // Invalid selection - selection of title rows in JComboBox
-          // is not allowed
-          dataTypeCombo.setSelectedIndex(dataTypeCombo.getSelectedIndex() + 1);
-        }
-      }
-    });
+        // Create an ItemListener for the JComboBox component.
+        dataTypeCombo.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
+                Boolean selected = ((SQLExportDataType) dataTypeCombo
+                        .getSelectedItem()).isSelectableValue();
+                if (!selected && e.getStateChange() == 1) {
+                    // Invalid selection - selection of title rows in JComboBox
+                    // is not allowed
+                    dataTypeCombo.setSelectedIndex(
+                            dataTypeCombo.getSelectedIndex() + 1);
+                }
+            }
+        });
 
-    JScrollPane elementsScroll = new JScrollPane(columnsTable);
-    add(elementsScroll, BorderLayout.CENTER);
+        JScrollPane elementsScroll = new JScrollPane(columnsTable);
+        add(elementsScroll, BorderLayout.CENTER);
 
-    // Add buttons
-    JPanel buttonsPanel = new JPanel();
-    BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
-    buttonsPanel.setLayout(buttonsPanelLayout);
-    addColumnButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
-    removeColumnButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-    add(buttonsPanel, BorderLayout.EAST);
+        // Add buttons
+        JPanel buttonsPanel = new JPanel();
+        BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel,
+                BoxLayout.Y_AXIS);
+        buttonsPanel.setLayout(buttonsPanelLayout);
+        addColumnButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
+        removeColumnButton = GUIUtils.addButton(buttonsPanel, "Remove", null,
+                this);
+        add(buttonsPanel, BorderLayout.EAST);
 
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == addColumnButton) {
-      value.addNewRow();
     }
 
-    if (src == removeColumnButton) {
-      int selectedRow = columnsTable.getSelectedRow();
-      if (selectedRow < 0)
-        return;
-      value.removeRow(selectedRow);
+    public void actionPerformed(ActionEvent event) {
+
+        Object src = event.getSource();
+
+        if (src == addColumnButton) {
+            value.addNewRow();
+        }
+
+        if (src == removeColumnButton) {
+            int selectedRow = columnsTable.getSelectedRow();
+            if (selectedRow < 0)
+                return;
+            value.removeRow(selectedRow);
+        }
     }
-  }
 
-  void setValue(@Nonnull SQLColumnSettings newValue) {
+    void setValue(@Nonnull SQLColumnSettings newValue) {
 
-    // Clear the table
-    this.value = newValue;
-    columnsTable.setModel(newValue);
-  }
+        // Clear the table
+        this.value = newValue;
+        columnsTable.setModel(newValue);
+    }
 
-  @Nonnull
-  synchronized SQLColumnSettings getValue() {
-    return value;
-  }
+    @Nonnull
+    synchronized SQLColumnSettings getValue() {
+        return value;
+    }
 
 }

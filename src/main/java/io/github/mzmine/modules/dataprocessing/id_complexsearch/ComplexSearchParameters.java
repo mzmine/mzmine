@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,27 +29,28 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class ComplexSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final ComboParameter<IonizationType> ionizationMethod =
-      new ComboParameter<IonizationType>("Ionization method",
-          "Type of ion used to calculate the neutral mass", IonizationType.values());
+    public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
+            "Ionization method",
+            "Type of ion used to calculate the neutral mass",
+            IonizationType.values());
 
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  /*
-   * Max value 10000% so even high-intensity complexes can be searched for.
-   */
-  public static final PercentParameter maxComplexHeight = new PercentParameter(
-      "Max complex peak height",
-      "Maximum height of the recognized complex peak, relative to the highest of component peaks",
-      0.5, 0.0, 100.0);
+    /*
+     * Max value 10000% so even high-intensity complexes can be searched for.
+     */
+    public static final PercentParameter maxComplexHeight = new PercentParameter(
+            "Max complex peak height",
+            "Maximum height of the recognized complex peak, relative to the highest of component peaks",
+            0.5, 0.0, 100.0);
 
-  public ComplexSearchParameters() {
-    super(
-        new Parameter[] {peakLists, ionizationMethod, rtTolerance, mzTolerance, maxComplexHeight});
-  }
+    public ComplexSearchParameters() {
+        super(new Parameter[] { peakLists, ionizationMethod, rtTolerance,
+                mzTolerance, maxComplexHeight });
+    }
 
 }

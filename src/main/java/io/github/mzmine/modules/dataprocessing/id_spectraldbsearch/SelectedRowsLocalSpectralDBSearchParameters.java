@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,12 +20,14 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.parameters.Parameter;
 
-public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDBSearchParameters {
+public class SelectedRowsLocalSpectralDBSearchParameters
+        extends LocalSpectralDBSearchParameters {
 
-  public SelectedRowsLocalSpectralDBSearchParameters() {
-    super(new Parameter[] {massList, dataBaseFile, msLevel, allMS2Spectra, mzTolerancePrecursor,
-        noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance,
-        rtTolerance, minMatch, similarityFunction});
-  }
+    public SelectedRowsLocalSpectralDBSearchParameters() {
+        super(new Parameter[] { massList, dataBaseFile, msLevel, allMS2Spectra,
+                mzTolerancePrecursor, noiseLevel, deisotoping,
+                needsIsotopePattern, cropSpectraToOverlap, mzTolerance,
+                rtTolerance, minMatch, similarityFunction });
+    }
 
 }

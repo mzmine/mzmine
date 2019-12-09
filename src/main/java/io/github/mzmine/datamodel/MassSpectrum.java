@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -27,72 +27,76 @@ import com.google.common.collect.Range;
  */
 public interface MassSpectrum {
 
-  /**
-   * Returns the m/z range of this Scan. Never returns null.
-   *
-   * @return m/z range of this Scan
-   */
-  @Nonnull
-  public Range<Double> getDataPointMZRange();
+    /**
+     * Returns the m/z range of this Scan. Never returns null.
+     *
+     * @return m/z range of this Scan
+     */
+    @Nonnull
+    public Range<Double> getDataPointMZRange();
 
-  /**
-   * Returns the top intensity data point. May return null if there are no data points in this Scan.
-   *
-   * @return Base peak
-   */
-  @Nullable
-  public DataPoint getHighestDataPoint();
+    /**
+     * Returns the top intensity data point. May return null if there are no
+     * data points in this Scan.
+     *
+     * @return Base peak
+     */
+    @Nullable
+    public DataPoint getHighestDataPoint();
 
-  /**
-   * Returns the sum of intensities of all data points.
-   *
-   * @return Total ion current
-   */
-  public double getTIC();
+    /**
+     * Returns the sum of intensities of all data points.
+     *
+     * @return Total ion current
+     */
+    public double getTIC();
 
-  /**
-   * Centroid / profile / thresholded
-   * 
-   * @return
-   */
-  public MassSpectrumType getSpectrumType();
+    /**
+     * Centroid / profile / thresholded
+     * 
+     * @return
+     */
+    public MassSpectrumType getSpectrumType();
 
-  /**
-   * @return Number of m/z and intensity data points
-   */
-  public int getNumberOfDataPoints();
+    /**
+     * @return Number of m/z and intensity data points
+     */
+    public int getNumberOfDataPoints();
 
-  /**
-   * Returns data points of this m/z table sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this scan
-   */
-  @Nonnull
-  public DataPoint[] getDataPoints();
+    /**
+     * Returns data points of this m/z table sorted in m/z order.
+     *
+     * This method may need to read data from disk, therefore it may be quite
+     * slow. Modules should be aware of that and cache the data points if
+     * necessary.
+     *
+     * @return Data points (m/z and intensity pairs) of this scan
+     */
+    @Nonnull
+    public DataPoint[] getDataPoints();
 
-  /**
-   * Returns data points in given m/z range, sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this MzDataTable
-   */
-  @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
+    /**
+     * Returns data points in given m/z range, sorted in m/z order.
+     *
+     * This method may need to read data from disk, therefore it may be quite
+     * slow. Modules should be aware of that and cache the data points if
+     * necessary.
+     *
+     * @return Data points (m/z and intensity pairs) of this MzDataTable
+     */
+    @Nonnull
+    public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
-  /**
-   * Returns data points over given intensity, sorted in m/z order.
-   *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
-   *
-   * @return Data points (m/z and intensity pairs) of this MzDataTable
-   */
-  @Nonnull
-  public DataPoint[] getDataPointsOverIntensity(double intensity);
+    /**
+     * Returns data points over given intensity, sorted in m/z order.
+     *
+     * This method may need to read data from disk, therefore it may be quite
+     * slow. Modules should be aware of that and cache the data points if
+     * necessary.
+     *
+     * @return Data points (m/z and intensity pairs) of this MzDataTable
+     */
+    @Nonnull
+    public DataPoint[] getDataPointsOverIntensity(double intensity);
 
 }

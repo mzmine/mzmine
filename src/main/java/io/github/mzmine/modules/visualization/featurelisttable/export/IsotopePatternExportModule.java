@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,60 +37,66 @@ import io.github.mzmine.util.ExitCode;
 
 public class IsotopePatternExportModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "Isotope pattern export";
+    private static final String MODULE_NAME = "Isotope pattern export";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  public static void exportIsotopePattern(PeakListRow row) {
-
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(IsotopePatternExportModule.class);
-
-    ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
-    if (exitCode != ExitCode.OK)
-      return;
-
-    File outputFile = parameters.getParameter(IsotopePatternExportParameters.outputFile).getValue();
-    if (outputFile == null)
-      return;
-
-    IsotopePattern pattern = row.getBestIsotopePattern();
-
-    DataPoint isotopes[];
-
-    if (pattern != null) {
-      isotopes = pattern.getDataPoints();
-    } else {
-      isotopes = new DataPoint[1];
-      Feature bestPeak = row.getBestPeak();
-      isotopes[0] = new SimpleDataPoint(bestPeak.getMZ(), bestPeak.getHeight());
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    try {
-      FileWriter fileWriter = new FileWriter(outputFile);
-      BufferedWriter writer = new BufferedWriter(fileWriter);
+    public static void exportIsotopePattern(PeakListRow row) {
 
-      for (DataPoint isotope : isotopes) {
-        writer.write(isotope.getMZ() + " " + isotope.getIntensity());
-        writer.newLine();
-      }
+        ParameterSet parameters = MZmineCore.getConfiguration()
+                .getModuleParameters(IsotopePatternExportModule.class);
 
-      writer.close();
+        ExitCode exitCode = parameters
+                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+        if (exitCode != ExitCode.OK)
+            return;
 
-    } catch (Exception e) {
-      e.printStackTrace();
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(e));
+        File outputFile = parameters
+                .getParameter(IsotopePatternExportParameters.outputFile)
+                .getValue();
+        if (outputFile == null)
+            return;
+
+        IsotopePattern pattern = row.getBestIsotopePattern();
+
+        DataPoint isotopes[];
+
+        if (pattern != null) {
+            isotopes = pattern.getDataPoints();
+        } else {
+            isotopes = new DataPoint[1];
+            Feature bestPeak = row.getBestPeak();
+            isotopes[0] = new SimpleDataPoint(bestPeak.getMZ(),
+                    bestPeak.getHeight());
+        }
+
+        try {
+            FileWriter fileWriter = new FileWriter(outputFile);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+
+            for (DataPoint isotope : isotopes) {
+                writer.write(isotope.getMZ() + " " + isotope.getIntensity());
+                writer.newLine();
+            }
+
+            writer.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            MZmineCore.getDesktop().displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(),
+                    "Error writing to file " + outputFile + ": "
+                            + ExceptionUtils.exceptionToString(e));
+        }
+
     }
 
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return IsotopePatternExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return IsotopePatternExportParameters.class;
+    }
 
 }

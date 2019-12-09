@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -35,46 +35,51 @@ import weka.core.Instances;
 
 public class EMClusterer implements ClusteringAlgorithm {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String MODULE_NAME = "Density-based clusterer";
+    private static final String MODULE_NAME = "Density-based clusterer";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public ClusteringResult performClustering(Instances dataset, ParameterSet parameters) {
-
-    List<Integer> clusters = new ArrayList<Integer>();
-    String[] options = new String[2];
-    EM clusterer = new EM();
-
-    int numberOfIterations =
-        parameters.getParameter(EMClustererParameters.numberOfIterations).getValue();
-    options[0] = "-I";
-    options[1] = String.valueOf(numberOfIterations);
-
-    try {
-      clusterer.setOptions(options);
-      clusterer.buildClusterer(dataset);
-      Enumeration<?> e = dataset.enumerateInstances();
-      while (e.hasMoreElements()) {
-        clusters.add(clusterer.clusterInstance((Instance) e.nextElement()));
-      }
-      ClusteringResult result = new ClusteringResult(clusters, null, clusterer.numberOfClusters(),
-          parameters.getParameter(EMClustererParameters.visualization).getValue());
-      return result;
-
-    } catch (Exception ex) {
-      logger.log(Level.SEVERE, null, ex);
-      return null;
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-  }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return EMClustererParameters.class;
-  }
+    @Override
+    public ClusteringResult performClustering(Instances dataset,
+            ParameterSet parameters) {
+
+        List<Integer> clusters = new ArrayList<Integer>();
+        String[] options = new String[2];
+        EM clusterer = new EM();
+
+        int numberOfIterations = parameters
+                .getParameter(EMClustererParameters.numberOfIterations)
+                .getValue();
+        options[0] = "-I";
+        options[1] = String.valueOf(numberOfIterations);
+
+        try {
+            clusterer.setOptions(options);
+            clusterer.buildClusterer(dataset);
+            Enumeration<?> e = dataset.enumerateInstances();
+            while (e.hasMoreElements()) {
+                clusters.add(
+                        clusterer.clusterInstance((Instance) e.nextElement()));
+            }
+            ClusteringResult result = new ClusteringResult(clusters, null,
+                    clusterer.numberOfClusters(),
+                    parameters.getParameter(EMClustererParameters.visualization)
+                            .getValue());
+            return result;
+
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return EMClustererParameters.class;
+    }
 }

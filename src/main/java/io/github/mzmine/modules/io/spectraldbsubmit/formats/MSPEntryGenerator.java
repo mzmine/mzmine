@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,74 +40,92 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 
 public class MSPEntryGenerator {
 
-  /**
-   * Creates a simple MSP nist format DB entry
-   * 
-   * @param param
-   * @param dps
-   * @return
-   */
-  public static String createMSPEntry(LibrarySubmitIonParameters param, DataPoint[] dps) {
+    /**
+     * Creates a simple MSP nist format DB entry
+     * 
+     * @param param
+     * @param dps
+     * @return
+     */
+    public static String createMSPEntry(LibrarySubmitIonParameters param,
+            DataPoint[] dps) {
 
-    LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param
-        .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
+        LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param
+                .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
-    String ionMode =
-        meta.getParameter(LibraryMetaDataParameters.IONMODE).getValue().equals(Polarity.Positive)
-            ? "P"
-            : "N";
+        boolean exportRT = meta
+                .getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
+        String ionMode = meta.getParameter(LibraryMetaDataParameters.IONMODE)
+                .getValue().equals(Polarity.Positive) ? "P" : "N";
 
-    String def = ": ";
-    String br = "\n";
-    StringBuilder s = new StringBuilder();
-    // tag spectrum from mzmine2
-    // ion specific
-    s.append(DBEntryField.NAME.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME).getValue() + br);
-    s.append(DBEntryField.INCHIKEY.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.INCHI_AUX).getValue() + br);
-    s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS"
-        + meta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue() + br);
-    s.append(DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT).getValue() + br);
-    s.append(DBEntryField.INSTRUMENT.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT_NAME).getValue() + br);
-    s.append(DBEntryField.ION_MODE.getNistMspID() + def + ionMode + br);
-    s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.FRAGMENTATION_METHOD).getValue() + br);
-    s.append(DBEntryField.FORMULA.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.FORMULA).getValue() + br);
+        String def = ": ";
+        String br = "\n";
+        StringBuilder s = new StringBuilder();
+        // tag spectrum from mzmine2
+        // ion specific
+        s.append(DBEntryField.NAME.getNistMspID() + def
+                + meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME)
+                        .getValue()
+                + br);
+        s.append(DBEntryField.INCHIKEY.getNistMspID() + def + meta
+                .getParameter(LibraryMetaDataParameters.INCHI_AUX).getValue()
+                + br);
+        s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS" + meta
+                .getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue()
+                + br);
+        s.append(
+                DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
+                        + meta.getParameter(
+                                LibraryMetaDataParameters.INSTRUMENT).getValue()
+                        + br);
+        s.append(DBEntryField.INSTRUMENT.getNistMspID() + def
+                + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT_NAME)
+                        .getValue()
+                + br);
+        s.append(DBEntryField.ION_MODE.getNistMspID() + def + ionMode + br);
+        s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def
+                + meta.getParameter(
+                        LibraryMetaDataParameters.FRAGMENTATION_METHOD)
+                        .getValue()
+                + br);
+        s.append(DBEntryField.FORMULA.getNistMspID() + def + meta
+                .getParameter(LibraryMetaDataParameters.FORMULA).getValue()
+                + br);
 
-    Double exact = meta.getParameter(LibraryMetaDataParameters.EXACT_MASS).getValue();
-    if (exact != null)
-      s.append(DBEntryField.EXACT_MASS.getNistMspID() + def + exact + br);
+        Double exact = meta.getParameter(LibraryMetaDataParameters.EXACT_MASS)
+                .getValue();
+        if (exact != null)
+            s.append(DBEntryField.EXACT_MASS.getNistMspID() + def + exact + br);
 
-    Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
-    if (precursorMZ != null)
-      s.append(DBEntryField.MZ.getNistMspID() + def
-          + param.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
+        Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ)
+                .getValue();
+        if (precursorMZ != null)
+            s.append(DBEntryField.MZ.getNistMspID() + def + param
+                    .getParameter(LibrarySubmitIonParameters.MZ).getValue()
+                    + br);
 
-    String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
-    if (adduct != null && !adduct.trim().isEmpty())
-      s.append(DBEntryField.ION_TYPE.getNistMspID() + def
-          + param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue() + br);
+        String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT)
+                .getValue();
+        if (adduct != null && !adduct.trim().isEmpty())
+            s.append(DBEntryField.ION_TYPE.getNistMspID() + def + param
+                    .getParameter(LibrarySubmitIonParameters.ADDUCT).getValue()
+                    + br);
 
-    if (exportRT) {
-      Double rt =
-          meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter().getValue();
-      if (rt != null)
-        s.append(DBEntryField.RT.getNistMspID() + def + rt + br);
+        if (exportRT) {
+            Double rt = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT)
+                    .getEmbeddedParameter().getValue();
+            if (rt != null)
+                s.append(DBEntryField.RT.getNistMspID() + def + rt + br);
+        }
+
+        // num peaks and data
+        s.append(DBEntryField.NUM_PEAKS.getNistMspID() + def + dps.length + br);
+
+        NumberFormat mzForm = new DecimalFormat("0.######");
+        for (DataPoint dp : dps) {
+            s.append(mzForm.format(dp.getMZ()) + " " + dp.getIntensity() + br);
+        }
+        s.append(br);
+        return s.toString();
     }
-
-    // num peaks and data
-    s.append(DBEntryField.NUM_PEAKS.getNistMspID() + def + dps.length + br);
-
-    NumberFormat mzForm = new DecimalFormat("0.######");
-    for (DataPoint dp : dps) {
-      s.append(mzForm.format(dp.getMZ()) + " " + dp.getIntensity() + br);
-    }
-    s.append(br);
-    return s.toString();
-  }
 }

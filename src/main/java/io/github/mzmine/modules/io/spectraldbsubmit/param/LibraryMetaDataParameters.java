@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -52,64 +52,71 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class LibraryMetaDataParameters extends SimpleParameterSet {
 
+    /**
+     * TODO difference of COMPOUND MASS and EXACT mass
+     * 
+     */
+    public static final ComboParameter<CompoundSource> ACQUISITION = new ComboParameter<>(
+            "ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
+    public static final ComboParameter<Polarity> IONMODE = new ComboParameter<>(
+            "IONMODE", "", Polarity.values(), Polarity.Positive);
+    public static final ComboParameter<Instrument> INSTRUMENT = new ComboParameter<>(
+            "INSTRUMENT", "", Instrument.values(), Instrument.Orbitrap);
+    public static final ComboParameter<IonSource> ION_SOURCE = new ComboParameter<>(
+            "IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
 
-  /**
-   * TODO difference of COMPOUND MASS and EXACT mass
-   * 
-   */
-  public static final ComboParameter<CompoundSource> ACQUISITION =
-      new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
-  public static final ComboParameter<Polarity> IONMODE =
-      new ComboParameter<>("IONMODE", "", Polarity.values(), Polarity.Positive);
-  public static final ComboParameter<Instrument> INSTRUMENT =
-      new ComboParameter<>("INSTRUMENT", "", Instrument.values(), Instrument.Orbitrap);
-  public static final ComboParameter<IonSource> ION_SOURCE =
-      new ComboParameter<>("IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
+    // all general parameters
+    public static final StringParameter DESCRIPTION = new StringParameter(
+            "description", "", "", false);
+    public static final StringParameter COMPOUND_NAME = new StringParameter(
+            "COMPOUND_NAME", "", "", true);
+    public static final StringParameter PI = new StringParameter("PI",
+            "Principal investigator", "", true);
+    public static final StringParameter DATACOLLECTOR = new StringParameter(
+            "DATACOLLECTOR", "", "", true);
 
-  // all general parameters
-  public static final StringParameter DESCRIPTION =
-      new StringParameter("description", "", "", false);
-  public static final StringParameter COMPOUND_NAME =
-      new StringParameter("COMPOUND_NAME", "", "", true);
-  public static final StringParameter PI =
-      new StringParameter("PI", "Principal investigator", "", true);
-  public static final StringParameter DATACOLLECTOR =
-      new StringParameter("DATACOLLECTOR", "", "", true);
+    public static final StringParameter FRAGMENTATION_METHOD = new StringParameter(
+            "FRAGMENTATION_METHOD", "", "", false);
+    public static final StringParameter INSTRUMENT_NAME = new StringParameter(
+            "INSTRUMENT_NAME", "", "", false);
+    public static final StringParameter DATA_COLLECTOR = new StringParameter(
+            "DATACOLLECTOR", "", "", false);
+    public static final StringParameter PUBMED = new StringParameter("PUBMED",
+            "", "", false);
+    public static final StringParameter INCHI_AUX = new StringParameter(
+            "INCHIAUX", "", "", false);
+    public static final StringParameter INCHI = new StringParameter("INCHI",
+            "Structure as INCHI", "", false);
+    public static final StringParameter CAS = new StringParameter("CASNUMBER",
+            "", "", false);
+    public static final StringParameter SMILES = new StringParameter("SMILES",
+            "Structure as SMILES code", "", false);
+    public static final StringParameter FORMULA = new StringParameter("FORMULA",
+            "", "", false);
+    public static final DoubleParameter EXACT_MASS = new DoubleParameter(
+            "EXACTMASS", "Monoisotopic neutral mass of compound",
+            new DecimalFormat("0.000###"), 0d);
+    public static final IntegerParameter MS_LEVEL = new IntegerParameter(
+            "MSLEVEL", "MS level of scan", 2, true, 1, 100);
 
-  public static final StringParameter FRAGMENTATION_METHOD =
-      new StringParameter("FRAGMENTATION_METHOD", "", "", false);
-  public static final StringParameter INSTRUMENT_NAME =
-      new StringParameter("INSTRUMENT_NAME", "", "", false);
-  public static final StringParameter DATA_COLLECTOR =
-      new StringParameter("DATACOLLECTOR", "", "", false);
-  public static final StringParameter PUBMED = new StringParameter("PUBMED", "", "", false);
-  public static final StringParameter INCHI_AUX = new StringParameter("INCHIAUX", "", "", false);
-  public static final StringParameter INCHI =
-      new StringParameter("INCHI", "Structure as INCHI", "", false);
-  public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
-  public static final StringParameter SMILES =
-      new StringParameter("SMILES", "Structure as SMILES code", "", false);
-  public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
-  public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
-      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
-  public static final IntegerParameter MS_LEVEL =
-      new IntegerParameter("MSLEVEL", "MS level of scan", 2, true, 1, 100);
+    public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
+            new DoubleParameter("RT", "Retention time",
+                    MZmineCore.getConfiguration().getRTFormat(), 0d),
+            false);
 
-  public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
-      new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
-      false);
-
-  // is not used: this would override MZ (the precursor MZ)
-  // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
-  // "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
-  public LibraryMetaDataParameters() {
-    super(new Parameter[] {
-        // Always set
-        MS_LEVEL, PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT,
-        INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
-        // newly introduced
-        FORMULA,
-        // optional
-        SMILES, INCHI, INCHI_AUX, CAS, PUBMED});
-  }
+    // is not used: this would override MZ (the precursor MZ)
+    // public static final DoubleParameter MOLECULE_MASS = new
+    // DoubleParameter("MOLECULEMASS",
+    // "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
+    public LibraryMetaDataParameters() {
+        super(new Parameter[] {
+                // Always set
+                MS_LEVEL, PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME,
+                EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE,
+                ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
+                // newly introduced
+                FORMULA,
+                // optional
+                SMILES, INCHI, INCHI_AUX, CAS, PUBMED });
+    }
 }

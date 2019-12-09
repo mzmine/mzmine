@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,35 +27,35 @@ import javax.swing.JCheckBox;
  */
 public class ExtendedCheckBox<Type> extends JCheckBox {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  static final Font checkBoxFont = new Font("SansSerif", Font.PLAIN, 11);
+    static final Font checkBoxFont = new Font("SansSerif", Font.PLAIN, 11);
 
-  private Type object;
+    private Type object;
 
-  public ExtendedCheckBox(Type object) {
-    this(object, false);
-  }
+    public ExtendedCheckBox(Type object) {
+        this(object, false);
+    }
 
-  public ExtendedCheckBox(Type object, boolean selected) {
-    super(object.toString(), selected);
-    this.object = object;
-    setOpaque(false);
-    setFont(checkBoxFont);
-  }
+    public ExtendedCheckBox(Type object, boolean selected) {
+        super(object.toString(), selected);
+        this.object = object;
+        setOpaque(false);
+        setFont(checkBoxFont);
+    }
 
-  /**
-   * @return Returns the dataFile.
-   */
-  public Type getObject() {
-    return object;
-  }
+    /**
+     * @return Returns the dataFile.
+     */
+    public Type getObject() {
+        return object;
+    }
 
-  public int getPreferredWidth() {
-    return ((int) getPreferredSize().getWidth()) + 30;
-  }
+    public int getPreferredWidth() {
+        return ((int) getPreferredSize().getWidth()) + 30;
+    }
 
 }

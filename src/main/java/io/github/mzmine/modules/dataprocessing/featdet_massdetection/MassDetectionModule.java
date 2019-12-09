@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,45 +32,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class MassDetectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Mass detection";
-  private static final String MODULE_DESCRIPTION =
-      "This module detects individual ions in each scan and builds a mass list for each scan.";
+    private static final String MODULE_NAME = "Mass detection";
+    private static final String MODULE_DESCRIPTION = "This module detects individual ions in each scan and builds a mass list for each scan.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    RawDataFile[] dataFiles = parameters.getParameter(MassDetectionParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassDetectionTask(dataFile, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKPICKING;
-  }
+        RawDataFile[] dataFiles = parameters
+                .getParameter(MassDetectionParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MassDetectionParameters.class;
-  }
+        for (RawDataFile dataFile : dataFiles) {
+            Task newTask = new MassDetectionTask(dataFile, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKPICKING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MassDetectionParameters.class;
+    }
 
 }

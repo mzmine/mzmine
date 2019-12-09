@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,37 +23,39 @@ import java.util.TreeMap;
 
 import javax.swing.table.AbstractTableModel;
 
-public class InterpolatingLookupPaintScaleSetupDialogTableModel extends AbstractTableModel {
+public class InterpolatingLookupPaintScaleSetupDialogTableModel
+        extends AbstractTableModel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private static String[] columnNames = {"Value", "Color"};
+    private static String[] columnNames = { "Value", "Color" };
 
-  private TreeMap<Double, Color> lookupTable;
+    private TreeMap<Double, Color> lookupTable;
 
-  public InterpolatingLookupPaintScaleSetupDialogTableModel(TreeMap<Double, Color> lookupTable) {
-    this.lookupTable = lookupTable;
-  }
+    public InterpolatingLookupPaintScaleSetupDialogTableModel(
+            TreeMap<Double, Color> lookupTable) {
+        this.lookupTable = lookupTable;
+    }
 
-  public int getColumnCount() {
-    return 2;
-  }
+    public int getColumnCount() {
+        return 2;
+    }
 
-  public int getRowCount() {
-    return lookupTable.size();
-  }
+    public int getRowCount() {
+        return lookupTable.size();
+    }
 
-  public String getColumnName(int column) {
-    return columnNames[column];
-  }
+    public String getColumnName(int column) {
+        return columnNames[column];
+    }
 
-  public Object getValueAt(int row, int column) {
-    if (column == 0)
-      return lookupTable.keySet().toArray(new Double[0])[row];
-    return null;
-  }
+    public Object getValueAt(int row, int column) {
+        if (column == 0)
+            return lookupTable.keySet().toArray(new Double[0])[row];
+        return null;
+    }
 
 }

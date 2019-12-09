@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,17 +29,18 @@ import io.github.mzmine.util.ExitCode;
 
 public class ResampleFilterParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter binSize = new DoubleParameter("m/z bin length",
-      "The length of m/z bin", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleParameter binSize = new DoubleParameter(
+            "m/z bin length", "The length of m/z bin",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public ResampleFilterParameters() {
-    super(new Parameter[] {binSize});
-  }
+    public ResampleFilterParameters() {
+        super(new Parameter[] { binSize });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ScanFilterSetupDialog dialog =
-        new ScanFilterSetupDialog(parent, valueCheckRequired, this, ResampleFilter.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+                valueCheckRequired, this, ResampleFilter.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

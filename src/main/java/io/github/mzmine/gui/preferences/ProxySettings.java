@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,14 +27,14 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ProxySettings extends SimpleParameterSet {
 
-  public static final StringParameter proxyAddress =
-      new StringParameter("Proxy adress", "Internet address of a proxy server");
+    public static final StringParameter proxyAddress = new StringParameter(
+            "Proxy adress", "Internet address of a proxy server");
 
-  public static final StringParameter proxyPort =
-      new StringParameter("Proxy port", "TCP port of proxy server");
+    public static final StringParameter proxyPort = new StringParameter(
+            "Proxy port", "TCP port of proxy server");
 
-  public ProxySettings() {
-    super(new Parameter[] {proxyAddress, proxyPort});
-  }
+    public ProxySettings() {
+        super(new Parameter[] { proxyAddress, proxyPort });
+    }
 
 }

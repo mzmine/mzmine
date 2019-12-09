@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,44 +32,44 @@ import io.github.mzmine.util.ExitCode;
 
 public class RansacAlignerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "RANSAC aligner";
-  private static final String MODULE_DESCRIPTION =
-      "Feature list aligner based on the RANSAC algorithm.";
+    private static final String MODULE_NAME = "RANSAC aligner";
+    private static final String MODULE_DESCRIPTION = "Feature list aligner based on the RANSAC algorithm.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-    PeakList[] peakLists = parameters.getParameter(RansacAlignerParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+        PeakList[] peakLists = parameters
+                .getParameter(RansacAlignerParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-    Task task = new RansacAlignerTask(project, peakLists, parameters);
+        Task task = new RansacAlignerTask(project, peakLists, parameters);
 
-    tasks.add(task);
+        tasks.add(task);
 
-    return ExitCode.OK;
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ALIGNMENT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.ALIGNMENT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RansacAlignerParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return RansacAlignerParameters.class;
+    }
 
 }

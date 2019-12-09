@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,73 +27,73 @@ import io.github.mzmine.parameters.UserParameter;
 
 public class ParameterTableModel extends AbstractTableModel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private RawDataFile[] files;
-  private Hashtable<UserParameter<?, ?>, Object[]> parameterValues;
-  private UserParameter<?, ?>[] parameters;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private RawDataFile[] files;
+    private Hashtable<UserParameter<?, ?>, Object[]> parameterValues;
+    private UserParameter<?, ?>[] parameters;
 
-  public ParameterTableModel(RawDataFile[] files,
-      Hashtable<UserParameter<?, ?>, Object[]> parameterValues) {
-    this.files = files;
-    parameters = parameterValues.keySet().toArray(new UserParameter[0]);
-    this.parameterValues = parameterValues;
-  }
-
-  public int getColumnCount() {
-    return 1 + parameterValues.size();
-  }
-
-  public String getColumnName(int col) {
-    if (col == 0)
-      return "Raw data";
-    if (col > 0) {
-      UserParameter<?, ?> p = parameters[col - 1];
-      return p.getName();
+    public ParameterTableModel(RawDataFile[] files,
+            Hashtable<UserParameter<?, ?>, Object[]> parameterValues) {
+        this.files = files;
+        parameters = parameterValues.keySet().toArray(new UserParameter[0]);
+        this.parameterValues = parameterValues;
     }
-    return null;
-  }
 
-  public int getRowCount() {
-    return files.length;
-  }
-
-  public Object getValueAt(int row, int col) {
-    if (col == 0)
-      return files[row].getName();
-    if (col > 0) {
-      UserParameter<?, ?> p = parameters[col - 1];
-      return parameterValues.get(p)[row];
+    public int getColumnCount() {
+        return 1 + parameterValues.size();
     }
-    return null;
-  }
 
-  @Override
-  public void setValueAt(Object value, int row, int col) {
-    if (col == 0)
-      return;
-    UserParameter<?, ?> p = parameters[col - 1];
-    Object[] values = parameterValues.get(p);
-    values[row] = value;
+    public String getColumnName(int col) {
+        if (col == 0)
+            return "Raw data";
+        if (col > 0) {
+            UserParameter<?, ?> p = parameters[col - 1];
+            return p.getName();
+        }
+        return null;
+    }
 
-  }
+    public int getRowCount() {
+        return files.length;
+    }
 
-  public UserParameter<?, ?> getParameter(int column) {
-    if (column == 0)
-      return null;
-    if ((parameters == null) || (parameters.length == 0))
-      return null;
+    public Object getValueAt(int row, int col) {
+        if (col == 0)
+            return files[row].getName();
+        if (col > 0) {
+            UserParameter<?, ?> p = parameters[col - 1];
+            return parameterValues.get(p)[row];
+        }
+        return null;
+    }
 
-    return parameters[column - 1];
-  }
+    @Override
+    public void setValueAt(Object value, int row, int col) {
+        if (col == 0)
+            return;
+        UserParameter<?, ?> p = parameters[col - 1];
+        Object[] values = parameterValues.get(p);
+        values[row] = value;
 
-  @Override
-  public boolean isCellEditable(int row, int col) {
-    if (col == 0)
-      return false;
-    return true;
-  }
+    }
+
+    public UserParameter<?, ?> getParameter(int column) {
+        if (column == 0)
+            return null;
+        if ((parameters == null) || (parameters.length == 0))
+            return null;
+
+        return parameters[column - 1];
+    }
+
+    @Override
+    public boolean isCellEditable(int row, int col) {
+        if (col == 0)
+            return false;
+        return true;
+    }
 
 }

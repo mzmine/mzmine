@@ -33,42 +33,43 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Multivariate Curve Resolution";
-  private static final String MODULE_DESCRIPTION = "This method "
-      + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
+    private static final String MODULE_NAME = "Multivariate Curve Resolution";
+    private static final String MODULE_DESCRIPTION = "This method "
+            + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.SPECTRALDECONVOLUTION;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ADAP3DecompositionV2Parameters.class;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    Map<RawDataFile, ChromatogramPeakPair> lists =
-        ChromatogramPeakPair.fromParameterSet(parameters);
-
-    for (ChromatogramPeakPair pair : lists.values()) {
-      Task newTask = new ADAP3DecompositionV2Task(project, pair, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.SPECTRALDECONVOLUTION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ADAP3DecompositionV2Parameters.class;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        Map<RawDataFile, ChromatogramPeakPair> lists = ChromatogramPeakPair
+                .fromParameterSet(parameters);
+
+        for (ChromatogramPeakPair pair : lists.values()) {
+            Task newTask = new ADAP3DecompositionV2Task(project, pair,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
 }

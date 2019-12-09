@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -72,220 +72,243 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.msdk.util.IonTypeUtil;
 
 public class SingleRowIdentificationTask extends AbstractTask {
-  private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
-  private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    private static final Logger logger = LoggerFactory
+            .getLogger(SingleRowIdentificationTask.class);
+    private static final NumberFormat massFormater = MZmineCore
+            .getConfiguration().getMZFormat();
 
-  private final PeakListRow peakListRow;
-  private final String massListName;
+    private final PeakListRow peakListRow;
+    private final String massListName;
 
-  // Parameters for Sirius & FingerId methods
-  private final IonizationType ionType;
-  private final MolecularFormulaRange range; // Future constraints object
-  private final Double parentMass;
-  private final Double deviationPpm;
+    // Parameters for Sirius & FingerId methods
+    private final IonizationType ionType;
+    private final MolecularFormulaRange range; // Future constraints object
+    private final Double parentMass;
+    private final Double deviationPpm;
 
-  // Amount of components to show
-  private final Integer fingerCandidates;
-  private final Integer siriusCandidates;
+    // Amount of components to show
+    private final Integer fingerCandidates;
+    private final Integer siriusCandidates;
 
-  // Timer for Sirius Identification method. If it expires, dialogue window shows up.
-  private final Integer timer;
+    // Timer for Sirius Identification method. If it expires, dialogue window
+    // shows up.
+    private final Integer timer;
 
-  // Barrier for this task, it will be scheduled until all subtasks finish.
-  private CountDownLatch latch;
+    // Barrier for this task, it will be scheduled until all subtasks finish.
+    private CountDownLatch latch;
 
-  // Dynamic list of tasks
-  private List<FingerIdWebMethodTask> fingerTasks;
+    // Dynamic list of tasks
+    private List<FingerIdWebMethodTask> fingerTasks;
 
+    /**
+     * Create the task.
+     *
+     * @param parameters
+     *            task parameters.
+     * @param peakListRow
+     *            peak-list row to identify.
+     */
+    public SingleRowIdentificationTask(ParameterSet parameters,
+            PeakListRow peakListRow) {
+        this.peakListRow = peakListRow;
+        siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES)
+                .getValue();
+        fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES)
+                .getValue();
+        ionType = parameters.getParameter(ionizationType).getValue();
+        parentMass = parameters.getParameter(ION_MASS).getValue();
+        range = parameters.getParameter(ELEMENTS).getValue();
+        timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
+        massListName = parameters.getParameter(MASS_LIST).getValue();
 
-  /**
-   * Create the task.
-   *
-   * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
-   */
-  public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
-    this.peakListRow = peakListRow;
-    siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
-    fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
-    ionType = parameters.getParameter(ionizationType).getValue();
-    parentMass = parameters.getParameter(ION_MASS).getValue();
-    range = parameters.getParameter(ELEMENTS).getValue();
-    timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
-    massListName = parameters.getParameter(MASS_LIST).getValue();
-
-    MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
-    double mz = peakListRow.getAverageMZ();
-    double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
-    deviationPpm = (upperPoint - mz) / (mz * 1E-6);
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  public double getFinishedPercentage() {
-    if (isFinished())
-      return 1.0;
-    else if (fingerTasks != null) {
-      int amount = fingerTasks.size();
-      double value = 0;
-      for (FingerIdWebMethodTask t : fingerTasks)
-        value += t.getFinishedPercentage();
-      value /= amount;
-
-      return value;
-    }
-    return 0;
-  }
-
-  public String getTaskDescription() {
-    return "Peak identification of " + massFormater.format(parentMass) + " using Sirius module";
-  }
-
-  /**
-   * @see Runnable#run()
-   */
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-    ResultWindow window = new ResultWindow(peakListRow, this);
-    window.setTitle(
-        "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
-    window.setVisible(true);
-
-    List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
-
-    try {
-
-      Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
-      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
-      logger.debug("Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
-          + " for SIRIUS identification");
-
-      // Convert to MSDK data model
-      ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
-      for (Scan ms2Scan : top10ms2Scans) {
-        logger.debug("Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan, true)
-            + " for SIRIUS identification");
-        ms2list.add(buildMSDKSpectrum(ms2Scan, massListName));
-      }
-
-    } catch (MissingMassListException f) {
-      showError(window,
-          "Scan does not contain Mass List with requested name. [" + massListName + "]");
-      return;
+        MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE)
+                .getValue();
+        double mz = peakListRow.getAverageMZ();
+        double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
+        deviationPpm = (upperPoint - mz) / (mz * 1E-6);
     }
 
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (isFinished())
+            return 1.0;
+        else if (fingerTasks != null) {
+            int amount = fingerTasks.size();
+            double value = 0;
+            for (FingerIdWebMethodTask t : fingerTasks)
+                value += t.getFinishedPercentage();
+            value /= amount;
 
-    // Use executor to run Sirius Identification Method as an Interruptable thread.
-    // Otherwise it may compute for too long (or even forever).
-    final ExecutorService service = Executors.newSingleThreadExecutor();
-    SiriusIdentificationMethod siriusMethod = null;
-    List<IonAnnotation> siriusResults = null;
-
-    /* Sirius processing */
-    try {
-      FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
-      IonType type = IonTypeUtil.createIonType(ionType.toString());
-
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
-          parentMass, type, siriusCandidates, constraints, deviationPpm);
-      final Future<List<IonAnnotation>> f = service.submit(() -> {
-        return method.execute();
-      });
-      siriusResults = f.get(timer, TimeUnit.SECONDS);
-      siriusMethod = method;
-    } catch (InterruptedException | TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort.");
-      showError(window,
-          String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
-              parentMass) + "Reinitialize the task with larger Sirius Timer value.");
-      return;
-    } catch (ExecutionException ce) {
-      ce.printStackTrace();
-      logger.error("Concurrency error during Sirius method: " + ce.getMessage());
-      showError(window, String.format("Sirius failed to predict compounds from row with id = %d",
-          peakListRow.getID()));
-      return;
+            return value;
+        }
+        return 0;
     }
 
-    /* FingerId processing */
-    if (!ms2list.isEmpty()) {
-      try {
-        latch = new CountDownLatch(siriusResults.size());
-        Ms2Experiment experiment = siriusMethod.getExperiment();
-        fingerTasks = new LinkedList<>();
+    public String getTaskDescription() {
+        return "Peak identification of " + massFormater.format(parentMass)
+                + " using Sirius module";
+    }
 
-        /* Create a new FingerIdWebTask for each Sirius result */
-        for (IonAnnotation ia : siriusResults) {
-          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          FingerIdWebMethodTask task =
-              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
-          task.setLatch(latch);
-          fingerTasks.add(task);
-          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+    /**
+     * @see Runnable#run()
+     */
+    public void run() {
+        setStatus(TaskStatus.PROCESSING);
+
+        NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+        ResultWindow window = new ResultWindow(peakListRow, this);
+        window.setTitle("SIRIUS/CSI-FingerID identification of "
+                + massFormater.format(parentMass) + " m/z");
+        window.setVisible(true);
+
+        List<MsSpectrum> ms1list = new ArrayList<>(),
+                ms2list = new ArrayList<>();
+
+        try {
+
+            Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
+            Collection<Scan> top10ms2Scans = ScanUtils
+                    .selectBestMS2Scans(peakListRow, massListName, 10);
+            logger.debug(
+                    "Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
+                            + " for SIRIUS identification");
+
+            // Convert to MSDK data model
+            ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
+            for (Scan ms2Scan : top10ms2Scans) {
+                logger.debug("Adding MS/MS scan "
+                        + ScanUtils.scanToString(ms2Scan, true)
+                        + " for SIRIUS identification");
+                ms2list.add(buildMSDKSpectrum(ms2Scan, massListName));
+            }
+
+        } catch (MissingMassListException f) {
+            showError(window,
+                    "Scan does not contain Mass List with requested name. ["
+                            + massListName + "]");
+            return;
         }
 
-        // Sleep for not overloading boecker-labs servers
-        Thread.sleep(1000);
-      } catch (InterruptedException interrupt) {
-        logger.error("Processing of FingerWebMethods were interrupted");
-      }
-    } else {
-      /* MS/MS spectrum is not present */
-      window.addListofItems(siriusMethod.getResult());
+        // Use executor to run Sirius Identification Method as an Interruptable
+        // thread.
+        // Otherwise it may compute for too long (or even forever).
+        final ExecutorService service = Executors.newSingleThreadExecutor();
+        SiriusIdentificationMethod siriusMethod = null;
+        List<IonAnnotation> siriusResults = null;
+
+        /* Sirius processing */
+        try {
+            FormulaConstraints constraints = ConstraintsGenerator
+                    .generateConstraint(range);
+            IonType type = IonTypeUtil.createIonType(ionType.toString());
+
+            final SiriusIdentificationMethod method = new SiriusIdentificationMethod(
+                    ms1list, ms2list, parentMass, type, siriusCandidates,
+                    constraints, deviationPpm);
+            final Future<List<IonAnnotation>> f = service.submit(() -> {
+                return method.execute();
+            });
+            siriusResults = f.get(timer, TimeUnit.SECONDS);
+            siriusMethod = method;
+        } catch (InterruptedException | TimeoutException ie) {
+            logger.error("Timeout on Sirius method expired, abort.");
+            showError(window, String.format(
+                    "Processing of the peaklist with mass %.2f by Sirius module expired.\n",
+                    parentMass)
+                    + "Reinitialize the task with larger Sirius Timer value.");
+            return;
+        } catch (ExecutionException ce) {
+            ce.printStackTrace();
+            logger.error("Concurrency error during Sirius method: "
+                    + ce.getMessage());
+            showError(window, String.format(
+                    "Sirius failed to predict compounds from row with id = %d",
+                    peakListRow.getID()));
+            return;
+        }
+
+        /* FingerId processing */
+        if (!ms2list.isEmpty()) {
+            try {
+                latch = new CountDownLatch(siriusResults.size());
+                Ms2Experiment experiment = siriusMethod.getExperiment();
+                fingerTasks = new LinkedList<>();
+
+                /* Create a new FingerIdWebTask for each Sirius result */
+                for (IonAnnotation ia : siriusResults) {
+                    SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+                    FingerIdWebMethodTask task = new FingerIdWebMethodTask(
+                            annotation, experiment, fingerCandidates, window);
+                    task.setLatch(latch);
+                    fingerTasks.add(task);
+                    MZmineCore.getTaskController().addTask(task,
+                            TaskPriority.NORMAL);
+                }
+
+                // Sleep for not overloading boecker-labs servers
+                Thread.sleep(1000);
+            } catch (InterruptedException interrupt) {
+                logger.error("Processing of FingerWebMethods were interrupted");
+            }
+        } else {
+            /* MS/MS spectrum is not present */
+            window.addListofItems(siriusMethod.getResult());
+        }
+
+        // If there was a FingerId processing, wait until subtasks finish
+        try {
+            if (latch != null)
+                latch.await();
+        } catch (InterruptedException e) {
+        }
+        setStatus(TaskStatus.FINISHED);
     }
 
-    // If there was a FingerId processing, wait until subtasks finish
-    try {
-      if (latch != null)
-        latch.await();
-    } catch (InterruptedException e) {
+    /**
+     * Shows error dialogue window and sets task status as ERROR
+     * 
+     * @param window
+     *            - where to create dialogue
+     * @param msg
+     *            of the error window
+     */
+    private void showError(ResultWindow window, String msg) {
+        window.dispose();
+        setErrorMessage(msg);
+        this.setStatus(TaskStatus.ERROR);
     }
-    setStatus(TaskStatus.FINISHED);
-  }
 
-  /**
-   * Shows error dialogue window and sets task status as ERROR
-   * 
-   * @param window - where to create dialogue
-   * @param msg of the error window
-   */
-  private void showError(ResultWindow window, String msg) {
-    window.dispose();
-    setErrorMessage(msg);
-    this.setStatus(TaskStatus.ERROR);
-  }
+    /**
+     * Construct MsSpectrum object from DataPoint array
+     * 
+     * @param points
+     *            MZ/Intensity pairs
+     * @return new MsSpectrum
+     */
+    private MsSpectrum buildMSDKSpectrum(Scan scan, String massListName)
+            throws MissingMassListException {
 
-  /**
-   * Construct MsSpectrum object from DataPoint array
-   * 
-   * @param points MZ/Intensity pairs
-   * @return new MsSpectrum
-   */
-  private MsSpectrum buildMSDKSpectrum(Scan scan, String massListName)
-      throws MissingMassListException {
+        MassList ml = scan.getMassList(massListName);
+        if (ml == null)
+            throw new MissingMassListException("Scan #" + scan.getScanNumber()
+                    + " does not have mass list", massListName);
 
-    MassList ml = scan.getMassList(massListName);
-    if (ml == null)
-      throw new MissingMassListException(
-          "Scan #" + scan.getScanNumber() + " does not have mass list", massListName);
+        DataPoint[] points = ml.getDataPoints();
 
-    DataPoint[] points = ml.getDataPoints();
+        SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
+        double mz[] = new double[points.length];
+        float intensity[] = new float[points.length];
 
-    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
-    double mz[] = new double[points.length];
-    float intensity[] = new float[points.length];
+        for (int i = 0; i < points.length; i++) {
+            mz[i] = points[i].getMZ();
+            intensity[i] = (float) points[i].getIntensity();
+        }
+        DataPointSorter.sortDataPoints(mz, intensity, points.length,
+                SortingProperty.MZ, SortingDirection.ASCENDING);
 
-    for (int i = 0; i < points.length; i++) {
-      mz[i] = points[i].getMZ();
-      intensity[i] = (float) points[i].getIntensity();
+        spectrum.setDataPoints(mz, intensity, points.length);
+        return spectrum;
     }
-    DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ,
-        SortingDirection.ASCENDING);
-
-    spectrum.setDataPoints(mz, intensity, points.length);
-    return spectrum;
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -31,36 +31,36 @@ import io.github.mzmine.util.ExitCode;
 
 public class PathAlignerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Path aligner";
-  private static final String MODULE_DESCRIPTION = "Description not yet available."; // TODO
+    private static final String MODULE_NAME = "Path aligner";
+    private static final String MODULE_DESCRIPTION = "Description not yet available."; // TODO
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    Task newTask = new PathAlignerTask(project, parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        Task newTask = new PathAlignerTask(project, parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ALIGNMENT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.ALIGNMENT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return PathAlignerParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return PathAlignerParameters.class;
+    }
 
 }

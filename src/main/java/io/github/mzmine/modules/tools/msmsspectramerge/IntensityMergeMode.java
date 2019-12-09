@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.DataPoint;
 public interface IntensityMergeMode {
 
     static IntensityMergeMode[] values() {
-        return new IntensityMergeMode[]{SUM,MAXIMUM,AVERAGE};
+        return new IntensityMergeMode[] { SUM, MAXIMUM, AVERAGE };
     }
 
     public double merge(DataPoint[] sources);
@@ -55,6 +55,7 @@ public interface IntensityMergeMode {
                 sum += p.getIntensity();
             return sum;
         }
+
         @Override
         public String toString() {
             return "sum intensities";
@@ -68,6 +69,7 @@ public interface IntensityMergeMode {
                 avg += p.getIntensity();
             return avg / sources.length;
         }
+
         @Override
         public String toString() {
             return "mean intensity";

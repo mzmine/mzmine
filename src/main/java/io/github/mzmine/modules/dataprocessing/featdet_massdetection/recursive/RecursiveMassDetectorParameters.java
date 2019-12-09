@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,25 +29,29 @@ import io.github.mzmine.util.ExitCode;
 
 public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level",
+            "Intensities less than this value are interpreted as noise",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter minimumMZPeakWidth = new DoubleParameter("Min m/z peak width",
-      "Minimum acceptable peak width in m/z", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleParameter minimumMZPeakWidth = new DoubleParameter(
+            "Min m/z peak width", "Minimum acceptable peak width in m/z",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public static final DoubleParameter maximumMZPeakWidth = new DoubleParameter("Max m/z peak width",
-      "Maximum acceptable peak width in m/z", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleParameter maximumMZPeakWidth = new DoubleParameter(
+            "Max m/z peak width", "Maximum acceptable peak width in m/z",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public RecursiveMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth});
-  }
+    public RecursiveMassDetectorParameters() {
+        super(new UserParameter[] { noiseLevel, minimumMZPeakWidth,
+                maximumMZPeakWidth });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(parent, valueCheckRequired, RecursiveMassDetector.class, this);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(parent,
+                valueCheckRequired, RecursiveMassDetector.class, this);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
 }

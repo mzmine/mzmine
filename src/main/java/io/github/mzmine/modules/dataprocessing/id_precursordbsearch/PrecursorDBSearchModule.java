@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,45 +31,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class PrecursorDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Precursor search in local spectral DB";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows against a local spectral database to identify possible precursor ions";
+    public static final String MODULE_NAME = "Precursor search in local spectral DB";
+    private static final String MODULE_DESCRIPTION = "This method searches all peaklist rows against a local spectral database to identify possible precursor ions";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList peakLists[] = parameters.getParameter(PrecursorDBSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new PrecursorDBSearchTask(peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
+        PeakList peakLists[] = parameters
+                .getParameter(PrecursorDBSearchParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return PrecursorDBSearchParameters.class;
-  }
+        for (PeakList peakList : peakLists) {
+            Task newTask = new PrecursorDBSearchTask(peakList, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return PrecursorDBSearchParameters.class;
+    }
 
 }

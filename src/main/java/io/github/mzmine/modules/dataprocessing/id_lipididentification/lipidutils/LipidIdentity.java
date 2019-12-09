@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,48 +32,49 @@ import io.github.mzmine.util.FormulaUtils;
  */
 public class LipidIdentity extends SimplePeakIdentity {
 
-  private double exactMass;
-  private String sumFormula;
-  private LipidClasses lipidClass;
-  private static LipidChainBuilder chainBuilder = new LipidChainBuilder();
+    private double exactMass;
+    private String sumFormula;
+    private LipidClasses lipidClass;
+    private static LipidChainBuilder chainBuilder = new LipidChainBuilder();
 
-  public LipidIdentity(final LipidClasses lipidClass, final int chainLength,
-      final int chainDoubleBonds, final int numberOfAcylChains, final int numberOfAlkylChains) {
-    this(
-        lipidClass.getName() + " " + lipidClass.getAbbr() + '(' + chainLength + ':'
-            + chainDoubleBonds + ')',
-        lipidClass.getBackBoneFormula() + chainBuilder.calculateChainFormula(chainLength,
-            chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains));
-    this.lipidClass = lipidClass;
+    public LipidIdentity(final LipidClasses lipidClass, final int chainLength,
+            final int chainDoubleBonds, final int numberOfAcylChains,
+            final int numberOfAlkylChains) {
+        this(lipidClass.getName() + " " + lipidClass.getAbbr() + '('
+                + chainLength + ':' + chainDoubleBonds + ')',
+                lipidClass.getBackBoneFormula() + chainBuilder
+                        .calculateChainFormula(chainLength, chainDoubleBonds,
+                                numberOfAcylChains, numberOfAlkylChains));
+        this.lipidClass = lipidClass;
 
-  }
+    }
 
-  private LipidIdentity(final String name, final String formula) {
-    super(name);
-    // Parse formula
-    Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
-    // Rearrange formula
-    sumFormula = FormulaUtils.formatFormula(parsedFormula);
-    exactMass = FormulaUtils.calculateExactMass(sumFormula);
-    setPropertyValue(PROPERTY_NAME, name);
-    setPropertyValue(PROPERTY_FORMULA, sumFormula);
-    setPropertyValue(PROPERTY_METHOD, "Lipid identification");
-  }
+    private LipidIdentity(final String name, final String formula) {
+        super(name);
+        // Parse formula
+        Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
+        // Rearrange formula
+        sumFormula = FormulaUtils.formatFormula(parsedFormula);
+        exactMass = FormulaUtils.calculateExactMass(sumFormula);
+        setPropertyValue(PROPERTY_NAME, name);
+        setPropertyValue(PROPERTY_FORMULA, sumFormula);
+        setPropertyValue(PROPERTY_METHOD, "Lipid identification");
+    }
 
-  public double getMass() {
-    return exactMass;
-  }
+    public double getMass() {
+        return exactMass;
+    }
 
-  public String getFormula() {
-    return sumFormula;
-  }
+    public String getFormula() {
+        return sumFormula;
+    }
 
-  public LipidClasses getLipidClass() {
-    return lipidClass;
-  }
+    public LipidClasses getLipidClass() {
+        return lipidClass;
+    }
 
-  @Override
-  public @Nonnull Object clone() {
-    return new LipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
-  }
+    @Override
+    public @Nonnull Object clone() {
+        return new LipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
+    }
 }

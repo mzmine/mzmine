@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,23 +29,25 @@ import io.github.mzmine.util.swing.IconUtil;
 
 public class ScatterPlotToolBar extends JToolBar {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
 
-  public ScatterPlotToolBar(ScatterPlotChart chart) {
+    public ScatterPlotToolBar(ScatterPlotChart chart) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setOpaque(true);
-    setMargin(new Insets(5, 5, 5, 5));
+        setFloatable(false);
+        setFocusable(false);
+        setOpaque(true);
+        setMargin(new Insets(5, 5, 5, 5));
 
-    GUIUtils.addButton(this, null, axesIcon, chart, "SETUP_AXES", "Setup ranges for axes");
+        GUIUtils.addButton(this, null, axesIcon, chart, "SETUP_AXES",
+                "Setup ranges for axes");
 
-  }
+    }
 
 }

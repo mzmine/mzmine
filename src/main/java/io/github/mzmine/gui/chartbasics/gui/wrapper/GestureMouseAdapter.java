@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,37 +28,37 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
 
 public interface GestureMouseAdapter {
 
-  /**
-   * Add drag handlers for each key (key and handler have to be ordered)
-   * 
-   * @param g
-   * @param handler
-   */
-  public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, Button button,
-      Orientation orient, Object[] param);
+    /**
+     * Add drag handlers for each key (key and handler have to be ordered)
+     * 
+     * @param g
+     * @param handler
+     */
+    public void addDragGestureHandler(DragHandler[] handler, Key[] key,
+            Entity entity, Button button, Orientation orient, Object[] param);
 
-  /**
-   * Add a preset handler for specific gestures and ChartMouseGestureEvents
-   * 
-   * @param g
-   * @param handler
-   */
-  public void addGestureHandler(Handler handler, Entity entity, Event[] event, Button button,
-      Key key, Object[] param);
+    /**
+     * Add a preset handler for specific gestures and ChartMouseGestureEvents
+     * 
+     * @param g
+     * @param handler
+     */
+    public void addGestureHandler(Handler handler, Entity entity, Event[] event,
+            Button button, Key key, Object[] param);
 
-  /**
-   * Add a handler for specific gestures and ChartMouseGestureEvents
-   * 
-   * @param g
-   * @param handler
-   */
-  public void addGestureHandler(ChartGestureHandler handler);
+    /**
+     * Add a handler for specific gestures and ChartMouseGestureEvents
+     * 
+     * @param g
+     * @param handler
+     */
+    public void addGestureHandler(ChartGestureHandler handler);
 
-  /**
-   * Add a handler for specific gestures and ChartMouseGestureEvents
-   * 
-   * @param g
-   * @param handler
-   */
-  public void removeGestureHandler(ChartGestureHandler handler);
+    /**
+     * Add a handler for specific gestures and ChartMouseGestureEvents
+     * 
+     * @param g
+     * @param handler
+     */
+    public void removeGestureHandler(ChartGestureHandler handler);
 }

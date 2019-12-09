@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,18 +26,20 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class MzTabExportParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+            1);
 
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-          + "If the file already exists, it will be overwritten.",
-      "mzTab", 32);
+    public static final FileNameParameter filename = new FileNameParameter(
+            "Filename",
+            "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                    + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
+                    + "If the file already exists, it will be overwritten.",
+            "mzTab", 32);
 
-  public static final BooleanParameter exportall =
-      new BooleanParameter("Include all peaks", "Includes peaks with unknown identity");
+    public static final BooleanParameter exportall = new BooleanParameter(
+            "Include all peaks", "Includes peaks with unknown identity");
 
-  public MzTabExportParameters() {
-    super(new Parameter[] {peakLists, filename, exportall});
-  }
+    public MzTabExportParameters() {
+        super(new Parameter[] { peakLists, filename, exportall });
+    }
 }

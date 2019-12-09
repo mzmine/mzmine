@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,71 +22,72 @@ import java.util.logging.Logger;
 
 public abstract class TriangularMatrix {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private int dimension;
+    private int dimension;
 
-  public abstract double set(int row, int column, double value);
+    public abstract double set(int row, int column, double value);
 
-  public abstract double get(int row, int column);
+    public abstract double get(int row, int column);
 
-  // public abstract int getSize();
-  public int getDimension() {
-    return this.dimension;
-  }
-
-  protected void setDimension(int dimension) {
-    this.dimension = dimension;
-  }
-
-  public void validateArguments(int row, int column) {
-    if (row > column) {
-      throw new IllegalArgumentException(
-          "Row (" + row + " given) has to be smaller or equal than column (" + column + " given)!");
-    }
-  }
-
-  public long getListIndex(int row, int column) { // Symmetrical
-
-    if (row > column)
-      return sumFormula(row) + (long) column;
-    else
-      return sumFormula(column) + (long) row;
-  }
-
-  public long sumFormula(long i) {
-    return (i * i + i) / 2;
-  }
-
-  public void print() {
-
-    for (int i = 0; i < getDimension(); i++) {
-
-      logger.info("\n");
-
-      for (int j = 0; j < getDimension(); j++) {
-
-        logger.info(" " + this.get(i, j));
-      }
-
-    }
-  }
-
-  public abstract void printVector();
-
-  public double[][] toTwoDimArray() {
-
-    double[][] arr = new double[this.dimension][this.dimension];
-
-    for (int i = 0; i < getDimension(); i++) {
-
-      for (int j = 0; j < getDimension(); j++) {
-
-        arr[i][j] = this.get(i, j);
-      }
+    // public abstract int getSize();
+    public int getDimension() {
+        return this.dimension;
     }
 
-    return arr;
-  }
+    protected void setDimension(int dimension) {
+        this.dimension = dimension;
+    }
+
+    public void validateArguments(int row, int column) {
+        if (row > column) {
+            throw new IllegalArgumentException("Row (" + row
+                    + " given) has to be smaller or equal than column ("
+                    + column + " given)!");
+        }
+    }
+
+    public long getListIndex(int row, int column) { // Symmetrical
+
+        if (row > column)
+            return sumFormula(row) + (long) column;
+        else
+            return sumFormula(column) + (long) row;
+    }
+
+    public long sumFormula(long i) {
+        return (i * i + i) / 2;
+    }
+
+    public void print() {
+
+        for (int i = 0; i < getDimension(); i++) {
+
+            logger.info("\n");
+
+            for (int j = 0; j < getDimension(); j++) {
+
+                logger.info(" " + this.get(i, j));
+            }
+
+        }
+    }
+
+    public abstract void printVector();
+
+    public double[][] toTwoDimArray() {
+
+        double[][] arr = new double[this.dimension][this.dimension];
+
+        for (int i = 0; i < getDimension(); i++) {
+
+            for (int j = 0; j < getDimension(); j++) {
+
+                arr[i][j] = this.get(i, j);
+            }
+        }
+
+        return arr;
+    }
 
 }

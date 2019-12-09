@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,55 +28,56 @@ import javax.swing.JPanel;
 
 import io.github.mzmine.parameters.UserParameter;
 
-public class OptionalParameterComponent<EmbeddedComponent extends JComponent> extends JPanel
-    implements ActionListener {
+public class OptionalParameterComponent<EmbeddedComponent extends JComponent>
+        extends JPanel implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
-  private JCheckBox checkBox;
-  private EmbeddedComponent embeddedComponent;
+    private static final long serialVersionUID = 1L;
+    private JCheckBox checkBox;
+    private EmbeddedComponent embeddedComponent;
 
-  public OptionalParameterComponent(UserParameter<?, EmbeddedComponent> embeddedParameter) {
+    public OptionalParameterComponent(
+            UserParameter<?, EmbeddedComponent> embeddedParameter) {
 
-    super(new FlowLayout(FlowLayout.LEFT));
+        super(new FlowLayout(FlowLayout.LEFT));
 
-    checkBox = new JCheckBox();
-    checkBox.addActionListener(this);
-    add(checkBox);
+        checkBox = new JCheckBox();
+        checkBox.addActionListener(this);
+        add(checkBox);
 
-    embeddedComponent = embeddedParameter.createEditingComponent();
-    embeddedComponent.setEnabled(false);
-    add(embeddedComponent);
-  }
-
-  public EmbeddedComponent getEmbeddedComponent() {
-    return embeddedComponent;
-  }
-
-  public boolean isSelected() {
-    return checkBox.isSelected();
-  }
-
-  public void setSelected(boolean selected) {
-    checkBox.setSelected(selected);
-    embeddedComponent.setEnabled(selected);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    Object src = event.getSource();
-
-    if (src == checkBox) {
-      boolean checkBoxSelected = checkBox.isSelected();
-      embeddedComponent.setEnabled(checkBoxSelected);
+        embeddedComponent = embeddedParameter.createEditingComponent();
+        embeddedComponent.setEnabled(false);
+        add(embeddedComponent);
     }
-  }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    checkBox.setToolTipText(toolTip);
-  }
+    public EmbeddedComponent getEmbeddedComponent() {
+        return embeddedComponent;
+    }
 
-  public void addItemListener(ItemListener il) {
-    checkBox.addItemListener(il);
-  }
+    public boolean isSelected() {
+        return checkBox.isSelected();
+    }
+
+    public void setSelected(boolean selected) {
+        checkBox.setSelected(selected);
+        embeddedComponent.setEnabled(selected);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        Object src = event.getSource();
+
+        if (src == checkBox) {
+            boolean checkBoxSelected = checkBox.isSelected();
+            embeddedComponent.setEnabled(checkBoxSelected);
+        }
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        checkBox.setToolTipText(toolTip);
+    }
+
+    public void addItemListener(ItemListener il) {
+        checkBox.addItemListener(il);
+    }
 }

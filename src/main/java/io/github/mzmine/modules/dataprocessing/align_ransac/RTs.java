@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,23 +22,24 @@ import java.util.Comparator;
 
 public class RTs implements Comparator<RTs> {
 
-  public double RT;
-  public double RT2;
-  int map;
+    public double RT;
+    public double RT2;
+    int map;
 
-  public RTs() {}
-
-  public RTs(double RT, double RT2) {
-    this.RT = RT + 0.001 / Math.random();
-    this.RT2 = RT2 + 0.001 / Math.random();
-  }
-
-  public int compare(RTs arg0, RTs arg1) {
-    if (arg0.RT < arg1.RT) {
-      return -1;
-    } else {
-      return 1;
+    public RTs() {
     }
 
-  }
+    public RTs(double RT, double RT2) {
+        this.RT = RT + 0.001 / Math.random();
+        this.RT2 = RT2 + 0.001 / Math.random();
+    }
+
+    public int compare(RTs arg0, RTs arg1) {
+        if (arg0.RT < arg1.RT) {
+            return -1;
+        } else {
+            return 1;
+        }
+
+    }
 }

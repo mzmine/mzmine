@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,89 +26,89 @@ import io.github.mzmine.parameters.UserParameter;
 
 public class TextParameter implements UserParameter<String, TextComponent> {
 
-  private String name, description, value;
+    private String name, description, value;
 
-  public TextParameter(String name, String description) {
-    this(name, description, null);
-  }
-
-  public TextParameter(String name, String description, String defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public TextComponent createEditingComponent() {
-    return new TextComponent();
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  @Override
-  public TextParameter cloneParameter() {
-    TextParameter copy = new TextParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public void setValueFromComponent(TextComponent component) {
-    value = component.getText();
-  }
-
-  @Override
-  public void setValueToComponent(TextComponent component, String newValue) {
-    component.setText(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    xmlElement.setTextContent(value);
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if ((value == null) || (value.trim().length() == 0)) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    public TextParameter(String name, String description) {
+        this(name, description, null);
     }
-    return true;
-  }
+
+    public TextParameter(String name, String description, String defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public TextComponent createEditingComponent() {
+        return new TextComponent();
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public TextParameter cloneParameter() {
+        TextParameter copy = new TextParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public void setValueFromComponent(TextComponent component) {
+        value = component.getText();
+    }
+
+    @Override
+    public void setValueToComponent(TextComponent component, String newValue) {
+        component.setText(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if ((value == null) || (value.trim().length() == 0)) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,56 +31,62 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
- * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
- * how the selected mass detector and his parameters works over the raw data file.
+ * This class extends ParameterSetupDialog class, including a spectraPlot. This
+ * is used to preview how the selected mass detector and his parameters works
+ * over the raw data file.
  */
-public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
+public class MassDetectorSetupDialog
+        extends ParameterSetupDialogWithScanPreview {
 
-  private static final long serialVersionUID = 1L;
-  private MassDetector massDetector;
-  private ParameterSet parameters;
+    private static final long serialVersionUID = 1L;
+    private MassDetector massDetector;
+    private ParameterSet parameters;
 
-  /**
-   * @param parameters
-   * @param massDetectorTypeNumber
-   */
-  public MassDetectorSetupDialog(Window parent, boolean valueCheckRequired,
-      Class<?> massDetectorClass, ParameterSet parameters) {
+    /**
+     * @param parameters
+     * @param massDetectorTypeNumber
+     */
+    public MassDetectorSetupDialog(Window parent, boolean valueCheckRequired,
+            Class<?> massDetectorClass, ParameterSet parameters) {
 
-    super(parent, valueCheckRequired, parameters);
+        super(parent, valueCheckRequired, parameters);
 
-    this.parameters = parameters;
+        this.parameters = parameters;
 
-    for (MassDetector detector : MassDetectionParameters.massDetectors) {
-      if (detector.getClass().equals(massDetectorClass)) {
-        this.massDetector = detector;
-      }
+        for (MassDetector detector : MassDetectionParameters.massDetectors) {
+            if (detector.getClass().equals(massDetectorClass)) {
+                this.massDetector = detector;
+            }
+        }
     }
-  }
 
-  protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-    ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
+        ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
 
-    // Set plot mode only if it hasn't been set before
-    // if the scan is centroided, switch to centroid mode
-    spectrumPlot.setPlotMode(previewScan.getSpectrumType());
+        // Set plot mode only if it hasn't been set before
+        // if the scan is centroided, switch to centroid mode
+        spectrumPlot.setPlotMode(previewScan.getSpectrumType());
 
-    spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerWindow.scanColor, false);
+        spectrumPlot.removeAllDataSets();
+        spectrumPlot.addDataSet(spectraDataSet,
+                SpectraVisualizerWindow.scanColor, false);
 
-    // If there is some illegal value, do not load the preview but just exit
-    ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
-    if (!paramsOK)
-      return;
+        // If there is some illegal value, do not load the preview but just exit
+        ArrayList<String> errorMessages = new ArrayList<String>();
+        boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+        if (!paramsOK)
+            return;
 
-    DataPoint[] mzValues = massDetector.getMassValues(previewScan, parameters);
+        DataPoint[] mzValues = massDetector.getMassValues(previewScan,
+                parameters);
 
-    DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks", mzValues);
+        DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks",
+                mzValues);
 
-    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerWindow.peaksColor, false);
+        spectrumPlot.addDataSet(peaksDataSet,
+                SpectraVisualizerWindow.peaksColor, false);
 
-  }
+    }
 
 }

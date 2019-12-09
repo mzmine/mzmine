@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -19,15 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 public class EmptyListsException extends RuntimeException {
-  public EmptyListsException(String msg) {
-    super(msg);
-  }
+    public EmptyListsException(String msg) {
+        super(msg);
+    }
 
-  public EmptyListsException(Throwable t) {
-    super(t);
-  }
+    public EmptyListsException(Throwable t) {
+        super(t);
+    }
 
-  public EmptyListsException(String msg, Throwable t) {
-    super(msg, t);
-  }
+    public EmptyListsException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }

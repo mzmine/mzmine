@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,82 +30,85 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class RDBERestrictionChecker {
 
-  /**
-   * This table defines the ground valence states. Typically, in most molecules atoms will have the
-   * lowest (ground) valence.
-   */
-  private static final Map<String, Integer> valences = new HashMap<String, Integer>();
-  static {
-    valences.put("H", 1);
-    valences.put("C", 4);
-    valences.put("N", 3);
-    valences.put("O", 2);
-    valences.put("Si", 4);
-    valences.put("P", 3);
-    valences.put("S", 2);
-    valences.put("F", 1);
-    valences.put("Cl", 1);
-    valences.put("Br", 1);
-    valences.put("I", 1);
-    valences.put("Na", 1);
-    valences.put("K", 1);
+    /**
+     * This table defines the ground valence states. Typically, in most
+     * molecules atoms will have the lowest (ground) valence.
+     */
+    private static final Map<String, Integer> valences = new HashMap<String, Integer>();
+    static {
+        valences.put("H", 1);
+        valences.put("C", 4);
+        valences.put("N", 3);
+        valences.put("O", 2);
+        valences.put("Si", 4);
+        valences.put("P", 3);
+        valences.put("S", 2);
+        valences.put("F", 1);
+        valences.put("Cl", 1);
+        valences.put("Br", 1);
+        valences.put("I", 1);
+        valences.put("Na", 1);
+        valences.put("K", 1);
 
-  }
-
-  /**
-   * Calculates possible RDBE (degree of unsaturation) values according to the formula:
-   * 
-   * RDBE = 1 + Sum(ni x vi - 2) / 2
-   * 
-   * where ni is the number of atoms with valence vi. If multiple valences are allowed (e.g. N may
-   * have valence 3 or 5), there may be multiple results for RDBE.
-   * 
-   */
-  public static Double calculateRDBE(IMolecularFormula formula) {
-
-    double sum = 0;
-
-    Map<String, Integer> valences2 = new HashMap<String, Integer>();
-    valences2.put("H", 1);
-    valences2.put("C", 4);
-    valences2.put("N", 3);
-    valences2.put("O", 2);
-    valences2.put("Si", 4);
-    valences2.put("P", 3);
-    valences2.put("S", 2);
-    valences2.put("F", 1);
-    valences2.put("Cl", 1);
-    valences2.put("Br", 1);
-    valences2.put("I", 1);
-    valences2.put("Na", 1);
-    valences2.put("K", 1);
-
-    for (IIsotope isotope : formula.isotopes()) {
-
-      Integer valence = valences2.get(isotope.getSymbol());
-      if (valence == null)
-        return null;
-      sum += (valence - 2) * formula.getIsotopeCount(isotope);
     }
 
-    sum /= 2;
-    sum += 1;
+    /**
+     * Calculates possible RDBE (degree of unsaturation) values according to the
+     * formula:
+     * 
+     * RDBE = 1 + Sum(ni x vi - 2) / 2
+     * 
+     * where ni is the number of atoms with valence vi. If multiple valences are
+     * allowed (e.g. N may have valence 3 or 5), there may be multiple results
+     * for RDBE.
+     * 
+     */
+    public static Double calculateRDBE(IMolecularFormula formula) {
 
-    return sum;
-  }
+        double sum = 0;
 
-  public static boolean checkRDBE(double rdbeValue, ParameterSet parameters) {
+        Map<String, Integer> valences2 = new HashMap<String, Integer>();
+        valences2.put("H", 1);
+        valences2.put("C", 4);
+        valences2.put("N", 3);
+        valences2.put("O", 2);
+        valences2.put("Si", 4);
+        valences2.put("P", 3);
+        valences2.put("S", 2);
+        valences2.put("F", 1);
+        valences2.put("Cl", 1);
+        valences2.put("Br", 1);
+        valences2.put("I", 1);
+        valences2.put("Na", 1);
+        valences2.put("K", 1);
 
-    boolean mustBeInteger =
-        parameters.getParameter(RDBERestrictionParameters.rdbeWholeNum).getValue();
-    Range<Double> rdbeRange =
-        parameters.getParameter(RDBERestrictionParameters.rdbeRange).getValue();
+        for (IIsotope isotope : formula.isotopes()) {
 
-    if ((mustBeInteger) && (Math.floor(rdbeValue) != rdbeValue))
-      return false;
+            Integer valence = valences2.get(isotope.getSymbol());
+            if (valence == null)
+                return null;
+            sum += (valence - 2) * formula.getIsotopeCount(isotope);
+        }
 
-    return rdbeRange.contains(rdbeValue);
+        sum /= 2;
+        sum += 1;
 
-  }
+        return sum;
+    }
+
+    public static boolean checkRDBE(double rdbeValue, ParameterSet parameters) {
+
+        boolean mustBeInteger = parameters
+                .getParameter(RDBERestrictionParameters.rdbeWholeNum)
+                .getValue();
+        Range<Double> rdbeRange = parameters
+                .getParameter(RDBERestrictionParameters.rdbeRange).getValue();
+
+        if ((mustBeInteger) && (Math.floor(rdbeValue) != rdbeValue))
+            return false;
+
+        return rdbeRange.contains(rdbeValue);
+
+    }
 
 }

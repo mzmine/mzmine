@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,55 +32,63 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
 
 /**
- * Weighted (mz and intensity) cosine similarity. Similar to the NIST search / MassBank search
+ * Weighted (mz and intensity) cosine similarity. Similar to the NIST search /
+ * MassBank search
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction {
+public class WeightedCosineSpectralSimilarity
+        extends SpectralSimilarityFunction {
 
-  /**
-   * Returns mass and intensity values detected in given scan
-   */
-  @Override
-  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
-      DataPoint[] library, DataPoint[] query) {
-    Weights weights =
-        parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
-    double minCos =
-        parameters.getParameter(WeightedCosineSpectralSimilarityParameters.minCosine).getValue();
-    boolean removeUnmatched = parameters
-        .getParameter(WeightedCosineSpectralSimilarityParameters.removeUnmatched).getValue();
+    /**
+     * Returns mass and intensity values detected in given scan
+     */
+    @Override
+    public SpectralSimilarity getSimilarity(ParameterSet parameters,
+            MZTolerance mzTol, int minMatch, DataPoint[] library,
+            DataPoint[] query) {
+        Weights weights = parameters
+                .getParameter(WeightedCosineSpectralSimilarityParameters.weight)
+                .getValue();
+        double minCos = parameters
+                .getParameter(
+                        WeightedCosineSpectralSimilarityParameters.minCosine)
+                .getValue();
+        boolean removeUnmatched = parameters.getParameter(
+                WeightedCosineSpectralSimilarityParameters.removeUnmatched)
+                .getValue();
 
-    // align
-    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
-    // removes all signals which were not found in both masslists
-    if (removeUnmatched)
-      aligned = removeUnaligned(aligned);
-    // overlapping within mass tolerance
-    int overlap = calcOverlap(aligned);
+        // align
+        List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
+        // removes all signals which were not found in both masslists
+        if (removeUnmatched)
+            aligned = removeUnaligned(aligned);
+        // overlapping within mass tolerance
+        int overlap = calcOverlap(aligned);
 
-    if (overlap >= minMatch) {
-      // weighted cosine
-      double[][] diffArray =
-          ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
-      double diffCosine = Similarity.COSINE.calc(diffArray);
-      if (diffCosine >= minCos)
-        return new SpectralSimilarity(getName(), diffCosine, overlap, library, query, aligned);
-      else
+        if (overlap >= minMatch) {
+            // weighted cosine
+            double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(
+                    aligned, weights.getIntensity(), weights.getMz());
+            double diffCosine = Similarity.COSINE.calc(diffArray);
+            if (diffCosine >= minCos)
+                return new SpectralSimilarity(getName(), diffCosine, overlap,
+                        library, query, aligned);
+            else
+                return null;
+        }
         return null;
     }
-    return null;
-  }
 
-  @Override
-  @Nonnull
-  public String getName() {
-    return "Weighted dot-product cosine";
-  }
+    @Override
+    @Nonnull
+    public String getName() {
+        return "Weighted dot-product cosine";
+    }
 
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return WeightedCosineSpectralSimilarityParameters.class;
-  }
+    @Override
+    public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+        return WeightedCosineSpectralSimilarityParameters.class;
+    }
 }

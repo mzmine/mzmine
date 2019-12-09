@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,241 +43,257 @@ import io.github.mzmine.util.PeakUtils;
  */
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
-  // Feature lists.
-  private final MZmineProject project;
-  private final PeakList origPeakList;
-  private PeakList filteredPeakList;
-  // Processed rows counter
-  private int processedRows, totalRows;
-  // Parameters.
-  private final ParameterSet parameters;
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(PeakComparisonRowFilterTask.class.getName());
+    // Feature lists.
+    private final MZmineProject project;
+    private final PeakList origPeakList;
+    private PeakList filteredPeakList;
+    // Processed rows counter
+    private int processedRows, totalRows;
+    // Parameters.
+    private final ParameterSet parameters;
 
-  /**
-   * Create the task.
-   *
-   * @param list feature list to process.
-   * @param parameterSet task parameters.
-   */
-  public PeakComparisonRowFilterTask(final MZmineProject project, final PeakList list,
-      final ParameterSet parameterSet) {
+    /**
+     * Create the task.
+     *
+     * @param list
+     *            feature list to process.
+     * @param parameterSet
+     *            task parameters.
+     */
+    public PeakComparisonRowFilterTask(final MZmineProject project,
+            final PeakList list, final ParameterSet parameterSet) {
 
-    // Initialize.
-    this.project = project;
-    parameters = parameterSet;
-    origPeakList = list;
-    filteredPeakList = null;
-    processedRows = 0;
-    totalRows = 0;
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-
-    return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
-  }
-
-  @Override
-  public String getTaskDescription() {
-
-    return "Filtering feature list rows based on peak comparisons";
-  }
-
-  @Override
-  public void run() {
-
-    try {
-      setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list rows");
-
-      // Filter the feature list.
-      filteredPeakList = filterPeakListRows(origPeakList);
-
-      if (getStatus() == TaskStatus.ERROR)
-        return;
-
-      if (isCanceled())
-        return;
-
-      // Add new peaklist to the project
-      project.addPeakList(filteredPeakList);
-
-      // Remove the original peaklist if requested
-      if (parameters.getParameter(PeakComparisonRowFilterParameters.AUTO_REMOVE).getValue()) {
-        project.removePeakList(origPeakList);
-      }
-
-      setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished peak comparison rows filter");
-
-    } catch (Throwable t) {
-      t.printStackTrace();
-      setErrorMessage(t.getMessage());
-      setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+        // Initialize.
+        this.project = project;
+        parameters = parameterSet;
+        origPeakList = list;
+        filteredPeakList = null;
+        processedRows = 0;
+        totalRows = 0;
     }
 
-  }
+    @Override
+    public double getFinishedPercentage() {
 
-  /**
-   * Filter the feature list rows by comparing peaks within a row.
-   *
-   * @param peakList feature list to filter.
-   * @return a new feature list with rows of the original feature list that pass the filtering.
-   */
-  private PeakList filterPeakListRows(final PeakList peakList) {
-
-    // Create new feature list.
-    final PeakList newPeakList = new SimplePeakList(
-        peakList.getName() + ' '
-            + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
-
-    // Copy previous applied methods.
-    for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
-
-      newPeakList.addDescriptionOfAppliedTask(method);
+        return totalRows == 0 ? 0.0
+                : (double) processedRows / (double) totalRows;
     }
 
-    // Add task description to peakList.
-    newPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod(getTaskDescription(), parameters));
+    @Override
+    public String getTaskDescription() {
 
-    // Get parameters.
-    final boolean evalutateFoldChange =
-        parameters.getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE).getValue();
-    final boolean evalutatePPMdiff =
-        parameters.getParameter(PeakComparisonRowFilterParameters.MZ_PPM_DIFF).getValue();
-    final boolean evalutateRTdiff =
-        parameters.getParameter(PeakComparisonRowFilterParameters.RT_DIFF).getValue();
-    final int columnIndex1 =
-        parameters.getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1).getValue();
-    final int columnIndex2 =
-        parameters.getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_2).getValue();
-    final Range<Double> foldChangeRange =
-        parameters.getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
-            .getEmbeddedParameter().getValue();
-    final Range<Double> ppmDiffRange =
-        parameters.getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
-            .getEmbeddedParameter().getValue();
-    final Range<Double> rtDiffRange =
-        parameters.getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
-            .getEmbeddedParameter().getValue();
-
-    // Setup variables
-    final PeakListRow[] rows = peakList.getRows();
-    RawDataFile rawDataFile1;
-    RawDataFile rawDataFile2;
-    Feature peak1;
-    Feature peak2;
-    totalRows = rows.length;
-    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
-
-    boolean allCriteriaMatched = true;
-
-    // Error handling. User tried to select a column from the peaklist that
-    // doesn't exist.
-    if (columnIndex1 > rawDataFiles.length) {
-      setErrorMessage("Column 1 set too large.");
-      setStatus(TaskStatus.ERROR);
-      return null;
-    }
-    if (columnIndex2 > rawDataFiles.length) {
-      setErrorMessage("Column 2 set too large.");
-      setStatus(TaskStatus.ERROR);
-      return null;
+        return "Filtering feature list rows based on peak comparisons";
     }
 
-    // Loop over the rows & filter
-    for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+    @Override
+    public void run() {
 
-      if (isCanceled())
-        return null;
+        try {
+            setStatus(TaskStatus.PROCESSING);
+            LOG.info("Filtering feature list rows");
 
-      allCriteriaMatched = true;
+            // Filter the feature list.
+            filteredPeakList = filterPeakListRows(origPeakList);
 
-      double peak1Area = 1.0; // Default value in case of null peak
-      double peak2Area = 1.0;
-      double peak1MZ = -1.0;
-      double peak2MZ = -1.0;
-      double peak1RT = -1.0;
-      double peak2RT = -1.0;
-      double foldChange = 0.0;
-      double ppmDiff = 0.0;
-      double rtDiff = 0.0;
-      final PeakListRow row = rows[processedRows];
-      rawDataFile1 = rawDataFiles[columnIndex1];
-      rawDataFile2 = rawDataFiles[columnIndex2];
+            if (getStatus() == TaskStatus.ERROR)
+                return;
 
-      peak1 = row.getPeak(rawDataFile1);
-      peak2 = row.getPeak(rawDataFile2);
+            if (isCanceled())
+                return;
 
-      if (peak1 != null) {
-        peak1Area = peak1.getArea();
-        peak1MZ = peak1.getMZ();
-        peak1RT = peak1.getRT();
-      }
+            // Add new peaklist to the project
+            project.addPeakList(filteredPeakList);
 
-      if (peak2 != null) {
-        peak2Area = peak2.getArea();
-        peak2MZ = peak2.getMZ();
-        peak2RT = peak2.getRT();
-      }
+            // Remove the original peaklist if requested
+            if (parameters
+                    .getParameter(PeakComparisonRowFilterParameters.AUTO_REMOVE)
+                    .getValue()) {
+                project.removePeakList(origPeakList);
+            }
 
-      // Fold change criteria checking.
-      if (evalutateFoldChange) {
-        foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
-        if (!foldChangeRange.contains(foldChange))
-          allCriteriaMatched = false;
+            setStatus(TaskStatus.FINISHED);
+            LOG.info("Finished peak comparison rows filter");
 
-
-        // PPM difference evaluation
-        if (evalutatePPMdiff) {
-          ppmDiff = (peak1MZ - peak2MZ) / peak1MZ * 1E6;
-          if (!ppmDiffRange.contains(ppmDiff))
-            allCriteriaMatched = false;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            setErrorMessage(t.getMessage());
+            setStatus(TaskStatus.ERROR);
+            LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
         }
 
-        // RT difference evaluation
-        if (evalutateRTdiff) {
-          rtDiff = peak1RT - peak2RT;
-          if (!rtDiffRange.contains(rtDiff))
-            allCriteriaMatched = false;
+    }
+
+    /**
+     * Filter the feature list rows by comparing peaks within a row.
+     *
+     * @param peakList
+     *            feature list to filter.
+     * @return a new feature list with rows of the original feature list that
+     *         pass the filtering.
+     */
+    private PeakList filterPeakListRows(final PeakList peakList) {
+
+        // Create new feature list.
+        final PeakList newPeakList = new SimplePeakList(peakList.getName() + ' '
+                + parameters
+                        .getParameter(PeakComparisonRowFilterParameters.SUFFIX)
+                        .getValue(),
+                peakList.getRawDataFiles());
+
+        // Copy previous applied methods.
+        for (final PeakListAppliedMethod method : peakList
+                .getAppliedMethods()) {
+
+            newPeakList.addDescriptionOfAppliedTask(method);
         }
 
-      }
+        // Add task description to peakList.
+        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                getTaskDescription(), parameters));
 
-      // Good row?
-      if (allCriteriaMatched)
-        newPeakList.addRow(copyPeakRow(row));
+        // Get parameters.
+        final boolean evalutateFoldChange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getValue();
+        final boolean evalutatePPMdiff = parameters
+                .getParameter(PeakComparisonRowFilterParameters.MZ_PPM_DIFF)
+                .getValue();
+        final boolean evalutateRTdiff = parameters
+                .getParameter(PeakComparisonRowFilterParameters.RT_DIFF)
+                .getValue();
+        final int columnIndex1 = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1)
+                .getValue();
+        final int columnIndex2 = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_2)
+                .getValue();
+        final Range<Double> foldChangeRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
+        final Range<Double> ppmDiffRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
+        final Range<Double> rtDiffRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
 
+        // Setup variables
+        final PeakListRow[] rows = peakList.getRows();
+        RawDataFile rawDataFile1;
+        RawDataFile rawDataFile2;
+        Feature peak1;
+        Feature peak2;
+        totalRows = rows.length;
+        final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+
+        boolean allCriteriaMatched = true;
+
+        // Error handling. User tried to select a column from the peaklist that
+        // doesn't exist.
+        if (columnIndex1 > rawDataFiles.length) {
+            setErrorMessage("Column 1 set too large.");
+            setStatus(TaskStatus.ERROR);
+            return null;
+        }
+        if (columnIndex2 > rawDataFiles.length) {
+            setErrorMessage("Column 2 set too large.");
+            setStatus(TaskStatus.ERROR);
+            return null;
+        }
+
+        // Loop over the rows & filter
+        for (processedRows = 0; !isCanceled()
+                && processedRows < totalRows; processedRows++) {
+
+            if (isCanceled())
+                return null;
+
+            allCriteriaMatched = true;
+
+            double peak1Area = 1.0; // Default value in case of null peak
+            double peak2Area = 1.0;
+            double peak1MZ = -1.0;
+            double peak2MZ = -1.0;
+            double peak1RT = -1.0;
+            double peak2RT = -1.0;
+            double foldChange = 0.0;
+            double ppmDiff = 0.0;
+            double rtDiff = 0.0;
+            final PeakListRow row = rows[processedRows];
+            rawDataFile1 = rawDataFiles[columnIndex1];
+            rawDataFile2 = rawDataFiles[columnIndex2];
+
+            peak1 = row.getPeak(rawDataFile1);
+            peak2 = row.getPeak(rawDataFile2);
+
+            if (peak1 != null) {
+                peak1Area = peak1.getArea();
+                peak1MZ = peak1.getMZ();
+                peak1RT = peak1.getRT();
+            }
+
+            if (peak2 != null) {
+                peak2Area = peak2.getArea();
+                peak2MZ = peak2.getMZ();
+                peak2RT = peak2.getRT();
+            }
+
+            // Fold change criteria checking.
+            if (evalutateFoldChange) {
+                foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
+                if (!foldChangeRange.contains(foldChange))
+                    allCriteriaMatched = false;
+
+                // PPM difference evaluation
+                if (evalutatePPMdiff) {
+                    ppmDiff = (peak1MZ - peak2MZ) / peak1MZ * 1E6;
+                    if (!ppmDiffRange.contains(ppmDiff))
+                        allCriteriaMatched = false;
+                }
+
+                // RT difference evaluation
+                if (evalutateRTdiff) {
+                    rtDiff = peak1RT - peak2RT;
+                    if (!rtDiffRange.contains(rtDiff))
+                        allCriteriaMatched = false;
+                }
+
+            }
+
+            // Good row?
+            if (allCriteriaMatched)
+                newPeakList.addRow(copyPeakRow(row));
+
+        }
+
+        return newPeakList;
     }
 
-    return newPeakList;
-  }
+    /**
+     * Create a copy of a feature list row.
+     *
+     * @param row
+     *            the row to copy.
+     * @return the newly created copy.
+     */
+    private static PeakListRow copyPeakRow(final PeakListRow row) {
 
-  /**
-   * Create a copy of a feature list row.
-   *
-   * @param row the row to copy.
-   * @return the newly created copy.
-   */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
+        // Copy the feature list row.
+        final PeakListRow newRow = new SimplePeakListRow(row.getID());
+        PeakUtils.copyPeakListRowProperties(row, newRow);
 
-    // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+        // Copy the peaks.
+        for (final Feature peak : row.getPeaks()) {
 
-    // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
+            final Feature newPeak = new SimpleFeature(peak);
+            PeakUtils.copyPeakProperties(peak, newPeak);
+            newRow.addPeak(peak.getDataFile(), newPeak);
+        }
 
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+        return newRow;
     }
-
-    return newRow;
-  }
 
 }

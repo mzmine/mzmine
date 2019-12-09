@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,45 +32,46 @@ import io.github.mzmine.util.ExitCode;
 
 public class LinearNormalizerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Linear normalizer";
-  private static final String MODULE_DESCRIPTION =
-      "Linear normalizer divides the height (or area) of each peak in the feature list by a normalization factor, determined according to the given normalization type.";
+    private static final String MODULE_NAME = "Linear normalizer";
+    private static final String MODULE_DESCRIPTION = "Linear normalizer divides the height (or area) of each peak in the feature list by a normalization factor, determined according to the given normalization type.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList peakLists[] = parameters.getParameter(LinearNormalizerParameters.peakLists).getValue()
-        .getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new LinearNormalizerTask(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.NORMALIZATION;
-  }
+        PeakList peakLists[] = parameters
+                .getParameter(LinearNormalizerParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return LinearNormalizerParameters.class;
-  }
+        for (PeakList peakList : peakLists) {
+            Task newTask = new LinearNormalizerTask(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.NORMALIZATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return LinearNormalizerParameters.class;
+    }
 
 }

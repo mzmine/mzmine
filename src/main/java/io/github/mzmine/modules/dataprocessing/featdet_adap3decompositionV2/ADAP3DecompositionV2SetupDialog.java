@@ -62,7 +62,6 @@ import io.github.mzmine.util.GUIUtils;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     /**
      * Minimum dimensions of plots
@@ -72,17 +71,18 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     /**
      * Font for the preview combo elements
      */
-    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
+    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN,
+            10);
 
     private static final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
 
     /**
-     * One of three states:
-     * > no changes made,
-     * > change in the first phase parameters,
-     * > change in the second phase parameters
+     * One of three states: > no changes made, > change in the first phase
+     * parameters, > change in the second phase parameters
      */
-    private enum CHANGE_STATE {NONE, FIRST_PHASE, SECOND_PHASE}
+    private enum CHANGE_STATE {
+        NONE, FIRST_PHASE, SECOND_PHASE
+    }
 
     /**
      * Elements of the interface
@@ -103,10 +103,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     private Object[] currentParameters;
 
     /**
-     * Creates an instance of the class and saves the current values of all parameters
+     * Creates an instance of the class and saves the current values of all
+     * parameters
      */
     ADAP3DecompositionV2SetupDialog(Window parent, boolean valueCheckRequired,
-                                    @Nonnull final ParameterSet parameters) {
+            @Nonnull final ParameterSet parameters) {
         super(parent, valueCheckRequired, parameters);
 
         Parameter[] params = parameters.getParameters();
@@ -145,14 +146,16 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         // ComboBox for Feature lists
         cboPeakLists = new JComboBox<>();
         cboPeakLists.setFont(COMBO_FONT);
-        for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
+        for (ChromatogramPeakPair p : ChromatogramPeakPair
+                .fromParameterSet(parameterSet).values())
             cboPeakLists.addItem(p);
         cboPeakLists.addActionListener(this);
 
-        URL refreshImageURL = this.getClass().getResource("images/refresh.16.png");
-        btnRefresh = refreshImageURL != null ?
-                new JButton(new ImageIcon(refreshImageURL)) :
-                new JButton("Refresh");
+        URL refreshImageURL = this.getClass()
+                .getResource("images/refresh.16.png");
+        btnRefresh = refreshImageURL != null
+                ? new JButton(new ImageIcon(refreshImageURL))
+                : new JButton("Refresh");
         btnRefresh.addActionListener(this);
 
         // ComboBox with Clusters
@@ -160,9 +163,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         cboClusters.setFont(COMBO_FONT);
         cboClusters.addActionListener(this);
 
-        pnlComboBoxes = GUIUtils.makeTablePanel(2, 3, 1, new JComponent[]{
-                new JLabel("Feature Lists"), cboPeakLists, btnRefresh,
-                new JLabel("Clusters"), cboClusters, new JPanel()});
+        pnlComboBoxes = GUIUtils.makeTablePanel(2, 3, 1,
+                new JComponent[] { new JLabel("Feature Lists"), cboPeakLists,
+                        btnRefresh, new JLabel("Clusters"), cboClusters,
+                        new JPanel() });
 
         // --------------------------------------------------------------------
         // ----- Panel with plots --------------------------------------
@@ -206,7 +210,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
         if (source.equals(chkPreview)) {
             if (chkPreview.isSelected()) {
-                // Set the height of the chkPreview to 200 cells, so it will span
+                // Set the height of the chkPreview to 200 cells, so it will
+                // span
                 // the whole vertical length of the dialog (buttons are at row
                 // no 100). Also, we set the weight to 10, so the chkPreview
                 // component will consume most of the extra available space.
@@ -233,65 +238,74 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
             shapeCluster();
     }
 
-
     @Override
-    public void parametersChanged()
-    {
+    public void parametersChanged() {
         super.updateParameterSetFromComponents();
 
-        if (!chkPreview.isSelected()) return;
+        if (!chkPreview.isSelected())
+            return;
 
         Cursor cursor = this.getCursor();
         this.setCursor(WAIT_CURSOR);
 
         switch (compareParameters(parameterSet.getParameters())) {
-            case FIRST_PHASE:
-                retTimeCluster();
-                break;
+        case FIRST_PHASE:
+            retTimeCluster();
+            break;
 
-            case SECOND_PHASE:
-                shapeCluster();
-                break;
+        case SECOND_PHASE:
+            shapeCluster();
+            break;
         }
 
         this.setCursor(cursor);
     }
 
-    private void refresh()
-    {
+    private void refresh() {
         cboPeakLists.removeActionListener(this);
         cboPeakLists.removeAllItems();
-        for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
+        for (ChromatogramPeakPair p : ChromatogramPeakPair
+                .fromParameterSet(parameterSet).values())
             cboPeakLists.addItem(p);
         cboPeakLists.addActionListener(this);
 
-        if (cboPeakLists.getItemCount() > 0) cboPeakLists.setSelectedIndex(0);
+        if (cboPeakLists.getItemCount() > 0)
+            cboPeakLists.setSelectedIndex(0);
     }
 
     /**
      * Cluster all peaks in PeakList based on retention time
      */
     private void retTimeCluster() {
-        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists.getItemAt(cboPeakLists.getSelectedIndex());
-        if (chromatogramPeakPair == null) return;
+        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists
+                .getItemAt(cboPeakLists.getSelectedIndex());
+        if (chromatogramPeakPair == null)
+            return;
 
         PeakList chromatogramList = chromatogramPeakPair.chromatograms;
         PeakList peakList = chromatogramPeakPair.peaks;
-        if (chromatogramList == null || peakList == null) return;
+        if (chromatogramList == null || peakList == null)
+            return;
 
-        Double minDistance = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        if (minDistance == null || minDistance <= 0.0) return;
+        Double minDistance = parameterSet
+                .getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH)
+                .getValue();
+        if (minDistance == null || minDistance <= 0.0)
+            return;
 
         // Convert peakList into ranges
-        List<RetTimeClusterer.Interval> ranges = Arrays.stream(peakList.getRows())
-                .map(PeakListRow::getBestPeak)
-                .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
+        List<RetTimeClusterer.Interval> ranges = Arrays
+                .stream(peakList.getRows()).map(PeakListRow::getBestPeak)
+                .map(p -> new RetTimeClusterer.Interval(
+                        p.getRawDataPointsRTRange(), p.getMZ()))
                 .collect(Collectors.toList());
 
-        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
+        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils()
+                .getPeaks(peakList);
 
         // Form clusters of ranges
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance).execute(peaks);
+        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(
+                minDistance).execute(peaks);
 
         cboClusters.removeAllItems();
         cboClusters.removeActionListener(this);
@@ -320,27 +334,38 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
      * Cluster list of PeakInfo based on the chromatographic shapes
      */
     private void shapeCluster() {
-        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists.getItemAt(cboPeakLists.getSelectedIndex());
-        if (chromatogramPeakPair == null) return;
+        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists
+                .getItemAt(cboPeakLists.getSelectedIndex());
+        if (chromatogramPeakPair == null)
+            return;
 
         PeakList chromatogramList = chromatogramPeakPair.chromatograms;
         PeakList peakList = chromatogramPeakPair.peaks;
-        if (chromatogramList == null || peakList == null) return;
-
-        final RetTimeClusterer.Cluster cluster = cboClusters.getItemAt(cboClusters.getSelectedIndex());
-        if (cluster == null) return;
-
-        Double retTimeTolerance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
-        Boolean adjustApexRetTime = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
-        Integer minClusterSize = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        if (retTimeTolerance == null || retTimeTolerance <= 0.0
-                || adjustApexRetTime == null || minClusterSize == null || minClusterSize <= 0)
+        if (chromatogramList == null || peakList == null)
             return;
 
-        List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);
+        final RetTimeClusterer.Cluster cluster = cboClusters
+                .getItemAt(cboClusters.getSelectedIndex());
+        if (cluster == null)
+            return;
+
+        Double retTimeTolerance = parameterSet
+                .getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE)
+                .getValue();
+        Boolean adjustApexRetTime = parameterSet
+                .getParameter(
+                        ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME)
+                .getValue();
+        Integer minClusterSize = parameterSet
+                .getParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE)
+                .getValue();
+        if (retTimeTolerance == null || retTimeTolerance <= 0.0
+                || adjustApexRetTime == null || minClusterSize == null
+                || minClusterSize <= 0)
+            return;
+
+        List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils()
+                .getPeaks(chromatogramList);
 
         List<BetterComponent> components = null;
         try {
@@ -351,13 +376,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         }
 
         if (components != null)
-            retTimeIntensityPlot.updateData(chromatograms, components);  // chromatograms
+            retTimeIntensityPlot.updateData(chromatograms, components); // chromatograms
     }
 
-    private CHANGE_STATE compareParameters(Parameter[] newValues)
-    {
-        if (currentParameters == null)
-        {
+    private CHANGE_STATE compareParameters(Parameter[] newValues) {
+        if (currentParameters == null) {
             int size = newValues.length;
             currentParameters = new Object[size];
             for (int i = 0; i < size; ++i)
@@ -366,20 +389,22 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
             return CHANGE_STATE.FIRST_PHASE;
         }
 
-        final Set <Integer> firstPhaseIndices = new HashSet <> (Collections.singleton(2));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4, 5));
+        final Set<Integer> firstPhaseIndices = new HashSet<>(
+                Collections.singleton(2));
+        final Set<Integer> secondPhaseIndices = new HashSet<>(
+                Arrays.asList(3, 4, 5));
 
         int size = Math.min(currentParameters.length, newValues.length);
 
-        Set <Integer> changedIndices = new HashSet <> ();
+        Set<Integer> changedIndices = new HashSet<>();
 
-        for (int i = 0; i < size; ++i)
-        {
+        for (int i = 0; i < size; ++i) {
             Object oldValue = currentParameters[i];
             Object newValue = newValues[i].getValue();
 
             if (newValue != null && oldValue != null
-                    && oldValue.equals(newValue)) continue;
+                    && oldValue.equals(newValue))
+                continue;
 
             changedIndices.add(i);
         }
@@ -389,7 +414,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         if (!Sets.intersection(firstPhaseIndices, changedIndices).isEmpty())
             result = CHANGE_STATE.FIRST_PHASE;
 
-        else if (!Sets.intersection(secondPhaseIndices, changedIndices).isEmpty())
+        else if (!Sets.intersection(secondPhaseIndices, changedIndices)
+                .isEmpty())
             result = CHANGE_STATE.SECOND_PHASE;
 
         for (int i = 0; i < size; ++i)

@@ -33,112 +33,117 @@ import io.github.mzmine.parameters.UserParameter;
  *
  * @author aleksandrsmirnov
  */
-public class ParameterSetParameter implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
-  private static Logger LOG = Logger.getLogger(MZmineCore.class.getName());
+public class ParameterSetParameter implements
+        UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
+    private static Logger LOG = Logger.getLogger(MZmineCore.class.getName());
 
-  private String name;
-  private String description;
-  private ParameterSet value;
+    private String name;
+    private String description;
+    private ParameterSet value;
 
-  private static final String parameterElement = "parameter";
-  private static final String nameAttribute = "name";
+    private static final String parameterElement = "parameter";
+    private static final String nameAttribute = "name";
 
-  public ParameterSetParameter() {
-    this("", "", null);
-  }
-
-  public ParameterSetParameter(String name, String description, ParameterSet parameters) {
-    this.name = name;
-    this.description = description;
-    this.value = parameters;
-  }
-
-  public ParameterSet getValue() {
-    return value;
-  }
-
-  public void setValue(final ParameterSet parameters) {
-    this.value = parameters;
-  }
-
-  @Override
-  public String getName() {
-    return this.name;
-  }
-
-  @Override
-  public String getDescription() {
-    return this.description;
-  }
-
-  @Override
-  public ParameterSetParameter cloneParameter() {
-    return new ParameterSetParameter(this.name, this.description, value);
-  }
-
-  @Override
-  public void setValueToComponent(final ParameterSetComponent component,
-      final ParameterSet parameters) {
-    component.setValue(parameters);
-  }
-
-  @Override
-  public void setValueFromComponent(final ParameterSetComponent component) {
-    value = component.getValue();
-  }
-
-  @Override
-  public ParameterSetComponent createEditingComponent() {
-    return new ParameterSetComponent(this.value);
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (this.value == null)
-      return;
-
-    xmlElement.setAttribute("type", this.name);
-    Document parent = xmlElement.getOwnerDocument();
-
-    for (Parameter p : this.value.getParameters()) {
-      Element newElement = parent.createElement(parameterElement);
-      newElement.setAttribute(nameAttribute, p.getName());
-      xmlElement.appendChild(newElement);
-      p.saveValueToXML(newElement);
+    public ParameterSetParameter() {
+        this("", "", null);
     }
-  }
 
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    NodeList list = xmlElement.getElementsByTagName(parameterElement);
-    for (int i = 0; i < list.getLength(); ++i) {
-      Element nextElement = (Element) list.item(i);
-      String paramName = nextElement.getAttribute(nameAttribute);
-      for (Parameter p : this.value.getParameters()) {
-        if (p.getName().equals(paramName)) {
-          try {
-            p.loadValueFromXML(nextElement);
-          } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
-          }
+    public ParameterSetParameter(String name, String description,
+            ParameterSet parameters) {
+        this.name = name;
+        this.description = description;
+        this.value = parameters;
+    }
+
+    public ParameterSet getValue() {
+        return value;
+    }
+
+    public void setValue(final ParameterSet parameters) {
+        this.value = parameters;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public String getDescription() {
+        return this.description;
+    }
+
+    @Override
+    public ParameterSetParameter cloneParameter() {
+        return new ParameterSetParameter(this.name, this.description, value);
+    }
+
+    @Override
+    public void setValueToComponent(final ParameterSetComponent component,
+            final ParameterSet parameters) {
+        component.setValue(parameters);
+    }
+
+    @Override
+    public void setValueFromComponent(final ParameterSetComponent component) {
+        value = component.getValue();
+    }
+
+    @Override
+    public ParameterSetComponent createEditingComponent() {
+        return new ParameterSetComponent(this.value);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (this.value == null)
+            return;
+
+        xmlElement.setAttribute("type", this.name);
+        Document parent = xmlElement.getOwnerDocument();
+
+        for (Parameter p : this.value.getParameters()) {
+            Element newElement = parent.createElement(parameterElement);
+            newElement.setAttribute(nameAttribute, p.getName());
+            xmlElement.appendChild(newElement);
+            p.saveValueToXML(newElement);
         }
-      }
     }
-  }
 
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        NodeList list = xmlElement.getElementsByTagName(parameterElement);
+        for (int i = 0; i < list.getLength(); ++i) {
+            Element nextElement = (Element) list.item(i);
+            String paramName = nextElement.getAttribute(nameAttribute);
+            for (Parameter p : this.value.getParameters()) {
+                if (p.getName().equals(paramName)) {
+                    try {
+                        p.loadValueFromXML(nextElement);
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING,
+                                "Error while loading parameter values for "
+                                        + p.getName(),
+                                e);
+                    }
+                }
+            }
+        }
+    }
 
-    boolean result = true;
-    for (final Parameter p : this.value.getParameters())
-      result &= p.checkValue(errorMessages);
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
 
-    return result;
-  }
+        boolean result = true;
+        for (final Parameter p : this.value.getParameters())
+            result &= p.checkValue(errorMessages);
 
-  @Override
-  public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
-    //delegate skipSensitiveParameters embedded ParameterContainers
-    value.setSkipSensitiveParameters(skipSensitiveParameters);
-  }
+        return result;
+    }
+
+    @Override
+    public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
+        // delegate skipSensitiveParameters embedded ParameterContainers
+        value.setSkipSensitiveParameters(skipSensitiveParameters);
+    }
 }

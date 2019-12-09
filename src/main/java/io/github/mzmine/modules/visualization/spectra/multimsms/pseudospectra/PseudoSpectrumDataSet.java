@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
+ */
+package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,69 +29,71 @@ import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public class PseudoSpectrumDataSet extends XYSeriesCollection {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private Map<XYDataItem, String> annotation;
+    private Map<XYDataItem, String> annotation;
 
-  public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
-    super();
-    for (Comparable key : keys)
-      addSeries(new XYSeries(key, autoSort));
-  }
-
-  public void addDP(double x, double y, String ann) {
-    addDP(0, x, y, ann);
-  }
-
-  public void addDP(int series, double x, double y, String ann) {
-    if (series >= getSeriesCount())
-      throw new OutOfRangeException(series, 0, getSeriesCount());
-
-    XYDataItem dp = new XYDataItem(x, y);
-    getSeries(series).add(dp);
-    if (ann != null) {
-      addAnnotation(dp, ann);
+    public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
+        super();
+        for (Comparable key : keys)
+            addSeries(new XYSeries(key, autoSort));
     }
-  }
 
-  /**
-   * Add annotation
-   * 
-   * @param dp
-   * @param ann
-   */
-  public void addAnnotation(XYDataItem dp, String ann) {
-    if (annotation == null)
-      this.annotation = new HashMap<>();
-    annotation.put(dp, ann);
-  }
-
-  public String getAnnotation(int series, int item) {
-    if (annotation == null)
-      return null;
-    XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
-    for (XYDataItem key : annotation.keySet()) {
-      if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
-        return annotation.get(key);
+    public void addDP(double x, double y, String ann) {
+        addDP(0, x, y, ann);
     }
-    return null;
-  }
 
-  public void addIdentity(MZTolerance mzTolerance, AbstractMSMSIdentity ann) {
-    if (ann instanceof AbstractMSMSDataPointIdentity)
-      addDPIdentity(mzTolerance, (AbstractMSMSDataPointIdentity) ann);
-    // TODO add diff identity
-  }
+    public void addDP(int series, double x, double y, String ann) {
+        if (series >= getSeriesCount())
+            throw new OutOfRangeException(series, 0, getSeriesCount());
 
-  private void addDPIdentity(MZTolerance mzTolerance, AbstractMSMSDataPointIdentity ann) {
-    for (int s = 0; s < getSeriesCount(); s++) {
-      XYSeries series = getSeries(s);
-      for (int i = 0; i < series.getItemCount(); i++) {
-        XYDataItem dp = series.getDataItem(i);
-        if (mzTolerance.checkWithinTolerance(dp.getXValue(), ann.getMZ())) {
-          addAnnotation(dp, ann.getName());
+        XYDataItem dp = new XYDataItem(x, y);
+        getSeries(series).add(dp);
+        if (ann != null) {
+            addAnnotation(dp, ann);
         }
-      }
     }
-  }
+
+    /**
+     * Add annotation
+     * 
+     * @param dp
+     * @param ann
+     */
+    public void addAnnotation(XYDataItem dp, String ann) {
+        if (annotation == null)
+            this.annotation = new HashMap<>();
+        annotation.put(dp, ann);
+    }
+
+    public String getAnnotation(int series, int item) {
+        if (annotation == null)
+            return null;
+        XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
+        for (XYDataItem key : annotation.keySet()) {
+            if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
+                return annotation.get(key);
+        }
+        return null;
+    }
+
+    public void addIdentity(MZTolerance mzTolerance, AbstractMSMSIdentity ann) {
+        if (ann instanceof AbstractMSMSDataPointIdentity)
+            addDPIdentity(mzTolerance, (AbstractMSMSDataPointIdentity) ann);
+        // TODO add diff identity
+    }
+
+    private void addDPIdentity(MZTolerance mzTolerance,
+            AbstractMSMSDataPointIdentity ann) {
+        for (int s = 0; s < getSeriesCount(); s++) {
+            XYSeries series = getSeries(s);
+            for (int i = 0; i < series.getItemCount(); i++) {
+                XYDataItem dp = series.getDataItem(i);
+                if (mzTolerance.checkWithinTolerance(dp.getXValue(),
+                        ann.getMZ())) {
+                    addAnnotation(dp, ann.getName());
+                }
+            }
+        }
+    }
 }

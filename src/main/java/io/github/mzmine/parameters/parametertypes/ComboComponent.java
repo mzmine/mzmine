@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,43 +25,43 @@ import javax.swing.JPanel;
 
 public class ComboComponent<ValueType> extends JPanel {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private final JComboBox<ValueType> comboBox;
+    private final JComboBox<ValueType> comboBox;
 
-  public ComboComponent(ValueType choices[]) {
-    setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
-    comboBox = new JComboBox<ValueType>(choices);
-    add(comboBox);
-  }
+    public ComboComponent(ValueType choices[]) {
+        setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+        comboBox = new JComboBox<ValueType>(choices);
+        add(comboBox);
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    comboBox.setToolTipText(toolTip);
-  }
+    @Override
+    public void setToolTipText(String toolTip) {
+        comboBox.setToolTipText(toolTip);
+    }
 
-  public Object getSelectedItem() {
-    return comboBox.getSelectedItem();
-  }
+    public Object getSelectedItem() {
+        return comboBox.getSelectedItem();
+    }
 
-  public int getSelectedIndex() {
-    return comboBox.getSelectedIndex();
-  }
+    public int getSelectedIndex() {
+        return comboBox.getSelectedIndex();
+    }
 
-  public void setSelectedItem(ValueType newValue) {
-    comboBox.setSelectedItem(newValue);
-  }
+    public void setSelectedItem(ValueType newValue) {
+        comboBox.setSelectedItem(newValue);
+    }
 
-  public void setModel(ComboBoxModel<ValueType> model) {
-    comboBox.setModel(model);
-  }
+    public void setModel(ComboBoxModel<ValueType> model) {
+        comboBox.setModel(model);
+    }
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    comboBox.setEnabled(enabled);
-  }
+    @Override
+    public void setEnabled(boolean enabled) {
+        comboBox.setEnabled(enabled);
+    }
 
-  public void addItemListener(ItemListener il) {
-    comboBox.addItemListener(il);
-  }
+    public void addItemListener(ItemListener il) {
+        comboBox.addItemListener(il);
+    }
 }

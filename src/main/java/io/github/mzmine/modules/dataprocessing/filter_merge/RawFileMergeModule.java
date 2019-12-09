@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -38,98 +38,104 @@ import io.github.mzmine.util.ExitCode;
  */
 public class RawFileMergeModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Merge files";
-  private static final String MODULE_DESCRIPTION =
-      "Merge all scans of multiple files to one raw data file";
+    private static final String MODULE_NAME = "Merge files";
+    private static final String MODULE_DESCRIPTION = "Merge all scans of multiple files to one raw data file";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    // merge all selected
-    if (parameters.getParameter(RawFileMergeParameters.mode).getValue()
-        .equals(MODE.MERGE_SELECTED)) {
-      RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
-          .getMatchingRawDataFiles();
-      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw);
-      tasks.add(task);
-    } else {
-      // sort files into merge groups
-      RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
-          .getMatchingRawDataFiles();
-
-      POSITION pos = parameters.getParameter(RawFileMergeParameters.position).getValue();
-      String posMarker = parameters.getParameter(RawFileMergeParameters.posMarker).getValue();
-
-      String groupingElement = "";
-      List<RawDataFile> current = new ArrayList<>();
-      do {
-        current.clear();
-        for (int i = 0; i < raw.length; i++) {
-          if (raw[i] != null) {
-            String group = extractGroup(pos, posMarker, raw[i]);
-            if (current.isEmpty()) {
-              groupingElement = group;
-              current.add(raw[i]);
-              raw[i] = null;
-            } else if (group.equals(groupingElement)) {
-              current.add(raw[i]);
-              raw[i] = null;
-            }
-          }
-        }
-        // run task
-        if (current.size() > 1) {
-          RawFileMergeTask task = new RawFileMergeTask(project, parameters,
-              current.toArray(new RawDataFile[current.size()]));
-          tasks.add(task);
-        }
-      } while (!current.isEmpty());
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-    return ExitCode.OK;
-  }
 
-  private String extractGroup(POSITION pos, String posMarker, RawDataFile raw) {
-    String name = raw.getName();
-    switch (pos) {
-      case AFTER_LAST:
-        int index = name.lastIndexOf(posMarker);
-        if (index == -1)
-          throw new MSDKRuntimeException(
-              "Merging of raw data files not possible. Position marker was not present in file: "
-                  + name);
-        return name.substring(index + 1, name.length());
-      case BEFORE_FIRST:
-        int first = name.indexOf(posMarker);
-        if (first == -1)
-          throw new MSDKRuntimeException(
-              "Merging of raw data files not possible. Position marker was not present in file: "
-                  + name);
-        return name.substring(0, first);
-
-      default:
-        throw new MSDKRuntimeException("Should not end here");
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
     }
-  }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        // merge all selected
+        if (parameters.getParameter(RawFileMergeParameters.mode).getValue()
+                .equals(MODE.MERGE_SELECTED)) {
+            RawDataFile[] raw = parameters
+                    .getParameter(RawFileMergeParameters.dataFiles).getValue()
+                    .getMatchingRawDataFiles();
+            RawFileMergeTask task = new RawFileMergeTask(project, parameters,
+                    raw);
+            tasks.add(task);
+        } else {
+            // sort files into merge groups
+            RawDataFile[] raw = parameters
+                    .getParameter(RawFileMergeParameters.dataFiles).getValue()
+                    .getMatchingRawDataFiles();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RawFileMergeParameters.class;
-  }
+            POSITION pos = parameters
+                    .getParameter(RawFileMergeParameters.position).getValue();
+            String posMarker = parameters
+                    .getParameter(RawFileMergeParameters.posMarker).getValue();
+
+            String groupingElement = "";
+            List<RawDataFile> current = new ArrayList<>();
+            do {
+                current.clear();
+                for (int i = 0; i < raw.length; i++) {
+                    if (raw[i] != null) {
+                        String group = extractGroup(pos, posMarker, raw[i]);
+                        if (current.isEmpty()) {
+                            groupingElement = group;
+                            current.add(raw[i]);
+                            raw[i] = null;
+                        } else if (group.equals(groupingElement)) {
+                            current.add(raw[i]);
+                            raw[i] = null;
+                        }
+                    }
+                }
+                // run task
+                if (current.size() > 1) {
+                    RawFileMergeTask task = new RawFileMergeTask(project,
+                            parameters,
+                            current.toArray(new RawDataFile[current.size()]));
+                    tasks.add(task);
+                }
+            } while (!current.isEmpty());
+        }
+        return ExitCode.OK;
+    }
+
+    private String extractGroup(POSITION pos, String posMarker,
+            RawDataFile raw) {
+        String name = raw.getName();
+        switch (pos) {
+        case AFTER_LAST:
+            int index = name.lastIndexOf(posMarker);
+            if (index == -1)
+                throw new MSDKRuntimeException(
+                        "Merging of raw data files not possible. Position marker was not present in file: "
+                                + name);
+            return name.substring(index + 1, name.length());
+        case BEFORE_FIRST:
+            int first = name.indexOf(posMarker);
+            if (first == -1)
+                throw new MSDKRuntimeException(
+                        "Merging of raw data files not possible. Position marker was not present in file: "
+                                + name);
+            return name.substring(0, first);
+
+        default:
+            throw new MSDKRuntimeException("Should not end here");
+        }
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.RAWDATA;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return RawFileMergeParameters.class;
+    }
 
 }

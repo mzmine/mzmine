@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,21 +26,21 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class InfoVisualizerModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "Feature list info window";
+    private static final String MODULE_NAME = "Feature list info window";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  public static void showNewPeakListInfo(PeakList peakList) {
-    InfoVisualizerWindow newWindow = new InfoVisualizerWindow(peakList);
-    newWindow.setVisible(true);
-  }
+    public static void showNewPeakListInfo(PeakList peakList) {
+        InfoVisualizerWindow newWindow = new InfoVisualizerWindow(peakList);
+        newWindow.setVisible(true);
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return InfoVisualizerParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return InfoVisualizerParameters.class;
+    }
 
 }

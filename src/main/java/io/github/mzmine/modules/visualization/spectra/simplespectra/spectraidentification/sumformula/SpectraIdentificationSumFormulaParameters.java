@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,36 +36,38 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationSumFormulaParameters extends SimpleParameterSet {
+public class SpectraIdentificationSumFormulaParameters
+        extends SimpleParameterSet {
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");
+    public static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Charge");
 
-  public static final ComboParameter<IonizationType> ionization =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+    public static final ComboParameter<IonizationType> ionization = new ComboParameter<IonizationType>(
+            "Ionization type", "Ionization type", IonizationType.values());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise",
-      MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level",
+            "Intensities less than this value are interpreted as noise",
+            MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+    public static final ElementsParameter elements = new ElementsParameter(
+            "Elements", "Elements and ranges");
 
-  public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios =
-      new OptionalModuleParameter<ElementalHeuristicParameters>("Element count heuristics",
-          "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-          new ElementalHeuristicParameters());
+    public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios = new OptionalModuleParameter<ElementalHeuristicParameters>(
+            "Element count heuristics",
+            "Restrict formulas by heuristic restrictions of elemental counts and ratios",
+            new ElementalHeuristicParameters());
 
-  public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions =
-      new OptionalModuleParameter<RDBERestrictionParameters>("RDBE restrictions",
-          "Search only for formulas which correspond to the given RDBE restrictions",
-          new RDBERestrictionParameters());
+    public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions = new OptionalModuleParameter<RDBERestrictionParameters>(
+            "RDBE restrictions",
+            "Search only for formulas which correspond to the given RDBE restrictions",
+            new RDBERestrictionParameters());
 
-  public SpectraIdentificationSumFormulaParameters() {
-    super(new Parameter[] {charge, ionization, mzTolerance, noiseLevel, elements, elementalRatios,
-        rdbeRestrictions});
-  }
+    public SpectraIdentificationSumFormulaParameters() {
+        super(new Parameter[] { charge, ionization, mzTolerance, noiseLevel,
+                elements, elementalRatios, rdbeRestrictions });
+    }
 
 }

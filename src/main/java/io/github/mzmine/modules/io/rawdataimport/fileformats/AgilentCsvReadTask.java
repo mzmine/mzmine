@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,120 +37,128 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 public class AgilentCsvReadTask extends AbstractTask {
 
-  protected String dataSource;
-  private File file;
-  private MZmineProject project;
-  private RawDataFileImpl newMZmineFile;
-  private RawDataFile finalRawDataFile;
+    protected String dataSource;
+    private File file;
+    private MZmineProject project;
+    private RawDataFileImpl newMZmineFile;
+    private RawDataFile finalRawDataFile;
 
-  private int totalScans, parsedScans;
+    private int totalScans, parsedScans;
 
-  /**
-   * Creates a new AgilentCSVReadTask
-   * 
-   * @param file A File instance containing the file to be read
-   */
-  public AgilentCsvReadTask(MZmineProject project, File fileToOpen,
-      RawDataFileWriter newMZmineFile) {
-    this.project = project;
-    this.file = fileToOpen;
-    this.newMZmineFile = (RawDataFileImpl) newMZmineFile;
-  }
+    /**
+     * Creates a new AgilentCSVReadTask
+     * 
+     * @param file
+     *            A File instance containing the file to be read
+     */
+    public AgilentCsvReadTask(MZmineProject project, File fileToOpen,
+            RawDataFileWriter newMZmineFile) {
+        this.project = project;
+        this.file = fileToOpen;
+        this.newMZmineFile = (RawDataFileImpl) newMZmineFile;
+    }
 
-  /**
-   * Reads the file.
-   */
-  public void run() {
+    /**
+     * Reads the file.
+     */
+    public void run() {
 
-    setStatus(TaskStatus.PROCESSING);
-    Scanner scanner;
+        setStatus(TaskStatus.PROCESSING);
+        Scanner scanner;
 
-    try {
+        try {
 
-      scanner = new Scanner(this.file);
+            scanner = new Scanner(this.file);
 
-      this.dataSource = this.getMetaData(scanner, "file name");
+            this.dataSource = this.getMetaData(scanner, "file name");
 
-      String[] range = this.getMetaData(scanner, "mass range").split(",");
-      newMZmineFile.setMZRange(1,
-          Range.closed(Double.parseDouble(range[0]), Double.parseDouble(range[1])));
-      range = this.getMetaData(scanner, "time range").split(",");
-      newMZmineFile.setRTRange(1,
-          Range.closed(Double.parseDouble(range[0]), Double.parseDouble(range[1])));
-      totalScans = Integer.parseInt(this.getMetaData(scanner, "number of spectra"));
+            String[] range = this.getMetaData(scanner, "mass range").split(",");
+            newMZmineFile.setMZRange(1,
+                    Range.closed(Double.parseDouble(range[0]),
+                            Double.parseDouble(range[1])));
+            range = this.getMetaData(scanner, "time range").split(",");
+            newMZmineFile.setRTRange(1,
+                    Range.closed(Double.parseDouble(range[0]),
+                            Double.parseDouble(range[1])));
+            totalScans = Integer
+                    .parseInt(this.getMetaData(scanner, "number of spectra"));
 
-      // advance to the spectrum data...
-      while (!scanner.nextLine().trim().equals("[spectra]")) {
-      }
+            // advance to the spectrum data...
+            while (!scanner.nextLine().trim().equals("[spectra]")) {
+            }
 
-      scanner.useDelimiter(",");
+            scanner.useDelimiter(",");
 
-      for (parsedScans = 0; parsedScans < totalScans; parsedScans++) {
+            for (parsedScans = 0; parsedScans < totalScans; parsedScans++) {
 
-        if (isCanceled()) {
-          return;
-        } // if the task is canceled.
+                if (isCanceled()) {
+                    return;
+                } // if the task is canceled.
 
-        double retentionTime = scanner.nextDouble();
-        int msLevel = scanner.nextInt(); // not sure about this value
-        scanner.next();
-        scanner.next();
-        int charge = (scanner.next().equals("+") ? 1 : -1);
-        scanner.next();
+                double retentionTime = scanner.nextDouble();
+                int msLevel = scanner.nextInt(); // not sure about this value
+                scanner.next();
+                scanner.next();
+                int charge = (scanner.next().equals("+") ? 1 : -1);
+                scanner.next();
 
-        int spectrumSize = scanner.nextInt();
-        DataPoint[] dataPoints = new DataPoint[spectrumSize];
-        for (int j = 0; j < spectrumSize; j++) {
-          dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(), scanner.nextDouble());
+                int spectrumSize = scanner.nextInt();
+                DataPoint[] dataPoints = new DataPoint[spectrumSize];
+                for (int j = 0; j < spectrumSize; j++) {
+                    dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(),
+                            scanner.nextDouble());
+                }
+                newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1,
+                        msLevel, retentionTime, 0.0, charge, null, dataPoints,
+                        ScanUtils.detectSpectrumType(dataPoints),
+                        PolarityType.UNKNOWN, "", null));
+
+                scanner.nextLine();
+            }
+
+            finalRawDataFile = newMZmineFile.finishWriting();
+            project.addFile(finalRawDataFile);
+
+        } catch (Exception e) {
+            setErrorMessage(e.getMessage());
+            this.setStatus(TaskStatus.ERROR);
+            return;
         }
-        newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel, retentionTime, 0.0,
-            charge, null, dataPoints, ScanUtils.detectSpectrumType(dataPoints),
-            PolarityType.UNKNOWN, "", null));
 
-        scanner.nextLine();
-      }
+        this.setStatus(TaskStatus.FINISHED);
 
-      finalRawDataFile = newMZmineFile.finishWriting();
-      project.addFile(finalRawDataFile);
-
-    } catch (Exception e) {
-      setErrorMessage(e.getMessage());
-      this.setStatus(TaskStatus.ERROR);
-      return;
     }
 
-    this.setStatus(TaskStatus.FINISHED);
-
-  }
-
-  /**
-   * Reads meta information on the file. This must be called with the keys in order, as it does not
-   * reset the scanner position after reading.
-   * 
-   * @param scanner The Scanner which is reading this AgilentCSV file.
-   * @param key The key for the metadata to return the value of.
-   */
-  private String getMetaData(Scanner scanner, String key) {
-    String line = "";
-    while (!line.trim().startsWith(key) && scanner.hasNextLine()) {
-      line = scanner.nextLine();
-      if (line.trim().startsWith(key))
-        return line.split(",", 2)[1].trim();
+    /**
+     * Reads meta information on the file. This must be called with the keys in
+     * order, as it does not reset the scanner position after reading.
+     * 
+     * @param scanner
+     *            The Scanner which is reading this AgilentCSV file.
+     * @param key
+     *            The key for the metadata to return the value of.
+     */
+    private String getMetaData(Scanner scanner, String key) {
+        String line = "";
+        while (!line.trim().startsWith(key) && scanner.hasNextLine()) {
+            line = scanner.nextLine();
+            if (line.trim().startsWith(key))
+                return line.split(",", 2)[1].trim();
+        }
+        return null;
     }
-    return null;
-  }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
-  }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
+    }
 
-  @Override
-  public String getTaskDescription() {
-    return "Opening file " + file;
-  }
+    @Override
+    public String getTaskDescription() {
+        return "Opening file " + file;
+    }
 
 }

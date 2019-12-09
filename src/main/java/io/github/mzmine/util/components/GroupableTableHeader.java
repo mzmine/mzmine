@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,69 +34,70 @@ import javax.swing.table.TableColumnModel;
 
 public class GroupableTableHeader extends JTableHeader {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  protected Vector<ColumnGroup> columnGroups = null;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    protected Vector<ColumnGroup> columnGroups = null;
 
-  public GroupableTableHeader() {
-    super();
-    setUI(new GroupableTableHeaderUI());
-    setReorderingAllowed(false);
-  }
-
-  public GroupableTableHeader(TableColumnModel model) {
-    super(model);
-    setUI(new GroupableTableHeaderUI());
-    setReorderingAllowed(false);
-  }
-
-  public void setReorderingAllowed(boolean b) {
-    reorderingAllowed = false;
-  }
-
-  public void addColumnGroup(ColumnGroup g) {
-    if (columnGroups == null) {
-      columnGroups = new Vector<ColumnGroup>();
+    public GroupableTableHeader() {
+        super();
+        setUI(new GroupableTableHeaderUI());
+        setReorderingAllowed(false);
     }
-    columnGroups.addElement(g);
-  }
 
-  public void removeColumnGroup(ColumnGroup g) {
-    if (columnGroups == null)
-      return;
-    columnGroups.remove(g);
-  }
-
-  public ColumnGroup[] getColumnGroups() {
-    if (columnGroups == null)
-      return null;
-    return columnGroups.toArray(new ColumnGroup[0]);
-  }
-
-  public Enumeration<?> getColumnGroups(TableColumn col) {
-    if (columnGroups == null)
-      return null;
-    Enumeration<ColumnGroup> en = columnGroups.elements();
-    while (en.hasMoreElements()) {
-      ColumnGroup cGroup = (ColumnGroup) en.nextElement();
-      Vector<?> v_ret = (Vector<?>) cGroup.getColumnGroups(col, new Vector<ColumnGroup>());
-      if (v_ret != null) {
-        return v_ret.elements();
-      }
+    public GroupableTableHeader(TableColumnModel model) {
+        super(model);
+        setUI(new GroupableTableHeaderUI());
+        setReorderingAllowed(false);
     }
-    return null;
-  }
 
-  public void setColumnMargin() {
-    if (columnGroups == null)
-      return;
-    int columnMargin = getColumnModel().getColumnMargin();
-    Enumeration<ColumnGroup> en = columnGroups.elements();
-    while (en.hasMoreElements()) {
-      ColumnGroup cGroup = (ColumnGroup) en.nextElement();
-      cGroup.setColumnMargin(columnMargin);
+    public void setReorderingAllowed(boolean b) {
+        reorderingAllowed = false;
     }
-  }
+
+    public void addColumnGroup(ColumnGroup g) {
+        if (columnGroups == null) {
+            columnGroups = new Vector<ColumnGroup>();
+        }
+        columnGroups.addElement(g);
+    }
+
+    public void removeColumnGroup(ColumnGroup g) {
+        if (columnGroups == null)
+            return;
+        columnGroups.remove(g);
+    }
+
+    public ColumnGroup[] getColumnGroups() {
+        if (columnGroups == null)
+            return null;
+        return columnGroups.toArray(new ColumnGroup[0]);
+    }
+
+    public Enumeration<?> getColumnGroups(TableColumn col) {
+        if (columnGroups == null)
+            return null;
+        Enumeration<ColumnGroup> en = columnGroups.elements();
+        while (en.hasMoreElements()) {
+            ColumnGroup cGroup = (ColumnGroup) en.nextElement();
+            Vector<?> v_ret = (Vector<?>) cGroup.getColumnGroups(col,
+                    new Vector<ColumnGroup>());
+            if (v_ret != null) {
+                return v_ret.elements();
+            }
+        }
+        return null;
+    }
+
+    public void setColumnMargin() {
+        if (columnGroups == null)
+            return;
+        int columnMargin = getColumnModel().getColumnMargin();
+        Enumeration<ColumnGroup> en = columnGroups.elements();
+        while (en.hasMoreElements()) {
+            ColumnGroup cGroup = (ColumnGroup) en.nextElement();
+            cGroup.setColumnMargin(columnMargin);
+        }
+    }
 }

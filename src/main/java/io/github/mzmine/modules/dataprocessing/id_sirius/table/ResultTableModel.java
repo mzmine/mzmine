@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -24,100 +24,101 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class ResultTableModel extends AbstractTableModel {
 
-  private static final long serialVersionUID = 1L;
-  private static final String[] columnNames =
-      {"Name", "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
-  public static final int NAME_INDEX = 0;
-  public static final int FORMULA_INDEX = 1;
-  public static final int DBS_INDEX = 2;
-  public static final int SIRIUS_SCORE_INDEX = 3;
-  public static final int FINGERID_SCORE_INDEX = 4;
-  public static final int PREVIEW_INDEX = 5;
+    private static final long serialVersionUID = 1L;
+    private static final String[] columnNames = { "Name", "Formula", "DBs",
+            "Sirius score", "FingerId Score", "Chemical structure" };
+    public static final int NAME_INDEX = 0;
+    public static final int FORMULA_INDEX = 1;
+    public static final int DBS_INDEX = 2;
+    public static final int SIRIUS_SCORE_INDEX = 3;
+    public static final int FINGERID_SCORE_INDEX = 4;
+    public static final int PREVIEW_INDEX = 5;
 
+    private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
 
-  private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
-
-  public String getColumnName(int col) {
-    return columnNames[col];
-  }
-
-  public int getRowCount() {
-    return compounds.size();
-  }
-
-  public int getColumnCount() {
-    return columnNames.length;
-  }
-
-  /**
-   * There was used Double.class for score fields, but it did not work properly Now it processes
-   * Double values from String
-   * 
-   * @param column
-   * @return
-   */
-  @Override
-  public Class getColumnClass(int column) {
-    switch (column) {
-      case DBS_INDEX: // Multiline content cell
-        return String[].class;
-      case PREVIEW_INDEX: // Cell with image
-        return IAtomContainer.class;
-      default:
-        return String.class;
-    }
-  }
-
-  /**
-   * Returns an object from a row by column
-   * 
-   * @param row index
-   * @param col index
-   * @return Object from a SiriusCompound
-   */
-  @Override
-  public Object getValueAt(int row, int col) {
-    Object value = null;
-    SiriusCompound compound = compounds.get(row);
-    switch (col) {
-      case NAME_INDEX:
-        String name = compound.getAnnotationDescription();
-        value = name;
-        break;
-      case FORMULA_INDEX:
-        value = compound.getStringFormula();
-        break;
-      case DBS_INDEX:
-        value = compound.getDBS();
-        break;
-      case SIRIUS_SCORE_INDEX:
-        value = compound.getSiriusScore();
-        break;
-      case FINGERID_SCORE_INDEX:
-        value = compound.getFingerIdScore();
-        break;
-      case PREVIEW_INDEX:
-        value = compound.getContainer();
-        break;
+    public String getColumnName(int col) {
+        return columnNames[col];
     }
 
-    return value;
-  }
+    public int getRowCount() {
+        return compounds.size();
+    }
 
-  public void addElement(SiriusCompound compound) {
-    compounds.add(compound);
-    fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
-  }
+    public int getColumnCount() {
+        return columnNames.length;
+    }
 
-  public boolean isCellEditable(int row, int col) {
-    return false;
-  }
+    /**
+     * There was used Double.class for score fields, but it did not work
+     * properly Now it processes Double values from String
+     * 
+     * @param column
+     * @return
+     */
+    @Override
+    public Class getColumnClass(int column) {
+        switch (column) {
+        case DBS_INDEX: // Multiline content cell
+            return String[].class;
+        case PREVIEW_INDEX: // Cell with image
+            return IAtomContainer.class;
+        default:
+            return String.class;
+        }
+    }
 
-  public void setValueAt(Object value, int row, int col) {
+    /**
+     * Returns an object from a row by column
+     * 
+     * @param row
+     *            index
+     * @param col
+     *            index
+     * @return Object from a SiriusCompound
+     */
+    @Override
+    public Object getValueAt(int row, int col) {
+        Object value = null;
+        SiriusCompound compound = compounds.get(row);
+        switch (col) {
+        case NAME_INDEX:
+            String name = compound.getAnnotationDescription();
+            value = name;
+            break;
+        case FORMULA_INDEX:
+            value = compound.getStringFormula();
+            break;
+        case DBS_INDEX:
+            value = compound.getDBS();
+            break;
+        case SIRIUS_SCORE_INDEX:
+            value = compound.getSiriusScore();
+            break;
+        case FINGERID_SCORE_INDEX:
+            value = compound.getFingerIdScore();
+            break;
+        case PREVIEW_INDEX:
+            value = compound.getContainer();
+            break;
+        }
 
-  }
+        return value;
+    }
 
-  public SiriusCompound getCompoundAt(int row) {
-    return compounds.get(row);
-  }
+    public void addElement(SiriusCompound compound) {
+        compounds.add(compound);
+        fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
+    }
+
+    public boolean isCellEditable(int row, int col) {
+        return false;
+    }
+
+    public void setValueAt(Object value, int row, int col) {
+
+    }
+
+    public SiriusCompound getCompoundAt(int row) {
+        return compounds.get(row);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,60 +24,61 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
 
 /**
- * This class represents one data point of a spectrum (m/z and intensity pair). Data point is
- * immutable once created, to make things simple.
+ * This class represents one data point of a spectrum (m/z and intensity pair).
+ * Data point is immutable once created, to make things simple.
  */
 public class SimpleDataPoint implements DataPoint {
 
-  private double mz, intensity;
+    private double mz, intensity;
 
-  /**
-   * Constructor which copies the data from another DataPoint
-   */
-  public SimpleDataPoint(DataPoint dp) {
-    this.mz = dp.getMZ();
-    this.intensity = dp.getIntensity();
-  }
+    /**
+     * Constructor which copies the data from another DataPoint
+     */
+    public SimpleDataPoint(DataPoint dp) {
+        this.mz = dp.getMZ();
+        this.intensity = dp.getIntensity();
+    }
 
-  /**
-   * @param mz
-   * @param intensity
-   */
-  public SimpleDataPoint(double mz, double intensity) {
-    this.mz = mz;
-    this.intensity = intensity;
-  }
+    /**
+     * @param mz
+     * @param intensity
+     */
+    public SimpleDataPoint(double mz, double intensity) {
+        this.mz = mz;
+        this.intensity = intensity;
+    }
 
-  @Override
-  public double getIntensity() {
-    return intensity;
-  }
+    @Override
+    public double getIntensity() {
+        return intensity;
+    }
 
-  @Override
-  public double getMZ() {
-    return mz;
-  }
+    @Override
+    public double getMZ() {
+        return mz;
+    }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof DataPoint))
-      return false;
-    DataPoint dp = (DataPoint) obj;
-    return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
-  }
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DataPoint))
+            return false;
+        DataPoint dp = (DataPoint) obj;
+        return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
+    }
 
-  @Override
-  public int hashCode() {
-    return (int) (this.mz + this.intensity);
-  }
+    @Override
+    public int hashCode() {
+        return (int) (this.mz + this.intensity);
+    }
 
-  @Override
-  public String toString() {
-    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    String str =
-        "m/z: " + mzFormat.format(mz) + ", intensity: " + intensityFormat.format(intensity);
-    return str;
-  }
+    @Override
+    public String toString() {
+        Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+        Format intensityFormat = MZmineCore.getConfiguration()
+                .getIntensityFormat();
+        String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
+                + intensityFormat.format(intensity);
+        return str;
+    }
 
 }

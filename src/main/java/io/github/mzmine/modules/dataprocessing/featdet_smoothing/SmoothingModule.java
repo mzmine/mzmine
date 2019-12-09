@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,43 +43,43 @@ import io.github.mzmine.util.ExitCode;
  */
 public class SmoothingModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Smoothing";
-  private static final String MODULE_DESCRIPTION =
-      "This module performs smoothing of chromatograms prior to deconvolution.";
+    private static final String MODULE_NAME = "Smoothing";
+    private static final String MODULE_DESCRIPTION = "This module performs smoothing of chromatograms prior to deconvolution.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    PeakList peakLists[] =
-        parameters.getParameter(SmoothingParameters.peakLists).getValue().getMatchingPeakLists();
-
-    for (final PeakList peakList : peakLists) {
-      Task newTask = new SmoothingTask(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTPICKING;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        PeakList peakLists[] = parameters
+                .getParameter(SmoothingParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SmoothingParameters.class;
-  }
+        for (final PeakList peakList : peakLists) {
+            Task newTask = new SmoothingTask(project, peakList, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTPICKING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return SmoothingParameters.class;
+    }
 
 }

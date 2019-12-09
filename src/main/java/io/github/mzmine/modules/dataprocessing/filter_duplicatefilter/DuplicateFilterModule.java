@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,54 +33,56 @@ import io.github.mzmine.util.ExitCode;
 /**
  * Duplicate peak filter
  * 
- * This filter cleans up a feature list by keeping only the row with the strongest median peak area of
- * all rows having same (optionally) identification and similar m/z and rt values (within
- * tolerances)
+ * This filter cleans up a feature list by keeping only the row with the
+ * strongest median peak area of all rows having same (optionally)
+ * identification and similar m/z and rt values (within tolerances)
  * 
- * Idea is to run this filter before alignment on feature lists with peaks from a single raw data file
- * in each list, but it will work on aligned feature lists too.
+ * Idea is to run this filter before alignment on feature lists with peaks from
+ * a single raw data file in each list, but it will work on aligned feature
+ * lists too.
  * 
  */
 public class DuplicateFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Duplicate peak filter";
-  private static final String MODULE_DESCRIPTION =
-      "This method removes duplicate peaks (peaks with same retention times and m/z) from the feature list.";
+    private static final String MODULE_NAME = "Duplicate peak filter";
+    private static final String MODULE_DESCRIPTION = "This method removes duplicate peaks (peaks with same retention times and m/z) from the feature list.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList[] peakLists = parameters.getParameter(DuplicateFilterParameters.peakLists).getValue()
-        .getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new DuplicateFilterTask(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
+        PeakList[] peakLists = parameters
+                .getParameter(DuplicateFilterParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return DuplicateFilterParameters.class;
-  }
+        for (PeakList peakList : peakLists) {
+            Task newTask = new DuplicateFilterTask(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return DuplicateFilterParameters.class;
+    }
 }

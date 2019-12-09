@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,89 +37,91 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
-  private static final long serialVersionUID = 1L;
-
-  private final JMenuItem closeAllMenuItem;
-
-  /**
-   * Create the "Windows" menu for a MDI view
-   */
-  public WindowsMenu() {
-
-    super("Windows");
-
-    this.addMenuListener(this);
-
-    closeAllMenuItem = new JMenuItem("Close all windows");
-    closeAllMenuItem.addActionListener(this);
-    add(closeAllMenuItem);
-
-    addSeparator();
-
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src instanceof FrameMenuItem) {
-      FrameMenuItem item = (FrameMenuItem) src;
-      Window frame = item.getFrame();
-      frame.toFront();
-      frame.requestFocus();
-    }
-
-    if (src == closeAllMenuItem) {
-      // Close all Swing Frames
-      for (Frame window : Frame.getFrames()) {
-        if (window != MZmineCore.getDesktop().getMainWindow()) {
-          window.dispose();
-        }
-      }
-    }
-
-  }
-
-  class FrameMenuItem extends JRadioButtonMenuItem {
-
     private static final long serialVersionUID = 1L;
-    private Frame window;
 
-    FrameMenuItem(Frame window, ActionListener listener) {
-      super(window.getTitle());
-      addActionListener(listener);
-      this.window = window;
+    private final JMenuItem closeAllMenuItem;
+
+    /**
+     * Create the "Windows" menu for a MDI view
+     */
+    public WindowsMenu() {
+
+        super("Windows");
+
+        this.addMenuListener(this);
+
+        closeAllMenuItem = new JMenuItem("Close all windows");
+        closeAllMenuItem.addActionListener(this);
+        add(closeAllMenuItem);
+
+        addSeparator();
+
     }
 
-    Window getFrame() {
-      return window;
+    public void actionPerformed(ActionEvent event) {
+
+        Object src = event.getSource();
+
+        if (src instanceof FrameMenuItem) {
+            FrameMenuItem item = (FrameMenuItem) src;
+            Window frame = item.getFrame();
+            frame.toFront();
+            frame.requestFocus();
+        }
+
+        if (src == closeAllMenuItem) {
+            // Close all Swing Frames
+            for (Frame window : Frame.getFrames()) {
+                if (window != MZmineCore.getDesktop().getMainWindow()) {
+                    window.dispose();
+                }
+            }
+        }
+
     }
 
-  }
+    class FrameMenuItem extends JRadioButtonMenuItem {
 
-  public void menuCanceled(MenuEvent event) {}
+        private static final long serialVersionUID = 1L;
+        private Frame window;
 
-  public void menuDeselected(MenuEvent event) {}
+        FrameMenuItem(Frame window, ActionListener listener) {
+            super(window.getTitle());
+            addActionListener(listener);
+            this.window = window;
+        }
 
-  public void menuSelected(MenuEvent event) {
+        Window getFrame() {
+            return window;
+        }
 
-    // Remove all previous items
-    while (getItemCount() > 2)
-      remove(2);
-
-    int windowsAdded = 0;
-    // Create a menu item for each window
-    for (Frame window : Frame.getFrames()) {
-
-      if (window.isVisible()) {
-        FrameMenuItem newItem = new FrameMenuItem(window, this);
-        add(newItem);
-        windowsAdded++;
-      }
     }
 
-    // Disable the Close all button if we only have the main window
-    closeAllMenuItem.setEnabled(windowsAdded > 1);
-  }
+    public void menuCanceled(MenuEvent event) {
+    }
+
+    public void menuDeselected(MenuEvent event) {
+    }
+
+    public void menuSelected(MenuEvent event) {
+
+        // Remove all previous items
+        while (getItemCount() > 2)
+            remove(2);
+
+        int windowsAdded = 0;
+        // Create a menu item for each window
+        for (Frame window : Frame.getFrames()) {
+
+            if (window.isVisible()) {
+                FrameMenuItem newItem = new FrameMenuItem(window, this);
+                add(newItem);
+                windowsAdded++;
+            }
+        }
+
+        // Disable the Close all button if we only have the main window
+        closeAllMenuItem.setEnabled(windowsAdded > 1);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,24 +21,25 @@ package io.github.mzmine.datamodel;
 import java.io.IOException;
 
 /**
- * This interface represents a raw data file which is being modified. Scans can be added to the file
- * by calling the addScan() method. Final RawDataFile instance is obtained by calling
- * finishWriting() method.
+ * This interface represents a raw data file which is being modified. Scans can
+ * be added to the file by calling the addScan() method. Final RawDataFile
+ * instance is obtained by calling finishWriting() method.
  */
 public interface RawDataFileWriter {
 
-  /**
-   * Adds a new scan to the file.
-   * 
-   * @param newScan Scan to add
-   */
-  public void addScan(Scan newScan) throws IOException;
+    /**
+     * Adds a new scan to the file.
+     * 
+     * @param newScan
+     *            Scan to add
+     */
+    public void addScan(Scan newScan) throws IOException;
 
-  /**
-   * Finishes writing of the file
-   * 
-   * @return newly written file as RawDataFile
-   */
-  public RawDataFile finishWriting() throws IOException;
+    /**
+     * Finishes writing of the file
+     * 
+     * @return newly written file as RawDataFile
+     */
+    public RawDataFile finishWriting() throws IOException;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,30 +25,30 @@ import javax.annotation.Nonnull;
  */
 public interface IsotopePattern extends MassSpectrum {
 
-  public enum IsotopePatternStatus {
+    public enum IsotopePatternStatus {
+
+        /**
+         * Isotope pattern was detected by isotope grouper
+         */
+        DETECTED,
+
+        /**
+         * Isotope pattern was predicted by Isotope pattern calculator
+         */
+        PREDICTED;
+
+    }
 
     /**
-     * Isotope pattern was detected by isotope grouper
+     * Returns the isotope pattern status.
      */
-    DETECTED,
+    @Nonnull
+    public IsotopePatternStatus getStatus();
 
     /**
-     * Isotope pattern was predicted by Isotope pattern calculator
+     * Returns a description of this isotope pattern (formula, etc.)
      */
-    PREDICTED;
-
-  }
-
-  /**
-   * Returns the isotope pattern status.
-   */
-  @Nonnull
-  public IsotopePatternStatus getStatus();
-
-  /**
-   * Returns a description of this isotope pattern (formula, etc.)
-   */
-  @Nonnull
-  public String getDescription();
+    @Nonnull
+    public String getDescription();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,70 +32,72 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
  */
 public abstract class AxesRangeChangedListener implements AxisChangeListener {
 
-  // last lower / upper range
-  private ValueAxis[] axis;
-  private Range[] lastRange = null;
-  private ChartViewWrapper chart;
+    // last lower / upper range
+    private ValueAxis[] axis;
+    private Range[] lastRange = null;
+    private ChartViewWrapper chart;
 
-  /**
-   * Creates no listeners. Needs to by notified by external AxisRangeChangedListeners
-   */
-  public AxesRangeChangedListener(int axiscount) {
-    axis = new ValueAxis[axiscount];
-    lastRange = new Range[axiscount];
-  }
-
-  /**
-   * Creates two axisrangechangedlistener for the Domain and Range axis
-   * 
-   * @param cp
-   */
-  public AxesRangeChangedListener(ChartViewWrapper cp) {
-    this(2);
-    chart = cp;
-    if (chart != null && chart.getChart() != null) {
-      chart.getChart().getXYPlot().getDomainAxis().addChangeListener(this);
-      chart.getChart().getXYPlot().getRangeAxis().addChangeListener(this);
-    }
-  }
-
-  @Override
-  public void axisChanged(AxisChangeEvent e) {
-    ValueAxis a = (ValueAxis) e.getAxis();
-    Range r = a.getRange();
-
-    boolean found = false;
-    int i = 0;
-    for (i = 0; i < axis.length && !found; i++) {
-      // get index of axis
-      if (axis[i] == null)
-        break;
-      if (a.equals(axis[i])) {
-        found = true;
-        break;
-      }
-    }
-    if (i >= axis.length)
-      i = axis.length - 1;
-    // insert if not found
-    if (!found) {
-      axis[i] = a;
+    /**
+     * Creates no listeners. Needs to by notified by external
+     * AxisRangeChangedListeners
+     */
+    public AxesRangeChangedListener(int axiscount) {
+        axis = new ValueAxis[axiscount];
+        lastRange = new Range[axiscount];
     }
 
-    if (r != null && (lastRange[i] == null || !r.equals(lastRange[i]))) {
-      // range has changed
-      axesRangeChanged(chart, a, lastRange[i], r);
+    /**
+     * Creates two axisrangechangedlistener for the Domain and Range axis
+     * 
+     * @param cp
+     */
+    public AxesRangeChangedListener(ChartViewWrapper cp) {
+        this(2);
+        chart = cp;
+        if (chart != null && chart.getChart() != null) {
+            chart.getChart().getXYPlot().getDomainAxis()
+                    .addChangeListener(this);
+            chart.getChart().getXYPlot().getRangeAxis().addChangeListener(this);
+        }
     }
-    lastRange[i] = r;
-  }
 
-  /**
-   * only if axis range has changed
-   * 
-   * @param axis
-   * @param lastR
-   * @param newR
-   */
-  public abstract void axesRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
-      Range newR);
+    @Override
+    public void axisChanged(AxisChangeEvent e) {
+        ValueAxis a = (ValueAxis) e.getAxis();
+        Range r = a.getRange();
+
+        boolean found = false;
+        int i = 0;
+        for (i = 0; i < axis.length && !found; i++) {
+            // get index of axis
+            if (axis[i] == null)
+                break;
+            if (a.equals(axis[i])) {
+                found = true;
+                break;
+            }
+        }
+        if (i >= axis.length)
+            i = axis.length - 1;
+        // insert if not found
+        if (!found) {
+            axis[i] = a;
+        }
+
+        if (r != null && (lastRange[i] == null || !r.equals(lastRange[i]))) {
+            // range has changed
+            axesRangeChanged(chart, a, lastRange[i], r);
+        }
+        lastRange[i] = r;
+    }
+
+    /**
+     * only if axis range has changed
+     * 
+     * @param axis
+     * @param lastR
+     * @param newR
+     */
+    public abstract void axesRangeChanged(ChartViewWrapper chart,
+            ValueAxis axis, Range lastR, Range newR);
 }

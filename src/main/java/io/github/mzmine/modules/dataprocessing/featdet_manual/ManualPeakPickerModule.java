@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,76 +34,81 @@ import io.github.mzmine.util.ExitCode;
 
 public class ManualPeakPickerModule implements MZmineModule {
 
-  /**
-   * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
-   */
-  public @Nonnull String getName() {
-    return "Manual peak detector";
-  }
-
-  public static ExitCode runManualDetection(RawDataFile dataFile, PeakListRow peakListRow,
-      PeakList peakList, PeakListTable table) {
-    return runManualDetection(new RawDataFile[] {dataFile}, peakListRow, peakList, table);
-  }
-
-  public static ExitCode runManualDetection(RawDataFile dataFiles[], PeakListRow peakListRow,
-      PeakList peakList, PeakListTable table) {
-
-    Range<Double> mzRange = null, rtRange = null;
-
-    // Check the peaks for selected data files
-    for (RawDataFile dataFile : dataFiles) {
-      Feature peak = peakListRow.getPeak(dataFile);
-      if (peak == null)
-        continue;
-      if ((mzRange == null) || (rtRange == null)) {
-        mzRange = peak.getRawDataPointsMZRange();
-        rtRange = peak.getRawDataPointsRTRange();
-      } else {
-        mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-        rtRange = rtRange.span(peak.getRawDataPointsRTRange());
-      }
-
+    /**
+     * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
+     */
+    public @Nonnull String getName() {
+        return "Manual peak detector";
     }
 
-    // If none of the data files had a peak, check the whole row
-    if (mzRange == null) {
-      for (Feature peak : peakListRow.getPeaks()) {
-        if (peak == null)
-          continue;
-        if ((mzRange == null) || (rtRange == null)) {
-          mzRange = peak.getRawDataPointsMZRange();
-          rtRange = peak.getRawDataPointsRTRange();
-        } else {
-          mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-          rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+    public static ExitCode runManualDetection(RawDataFile dataFile,
+            PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
+        return runManualDetection(new RawDataFile[] { dataFile }, peakListRow,
+                peakList, table);
+    }
+
+    public static ExitCode runManualDetection(RawDataFile dataFiles[],
+            PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
+
+        Range<Double> mzRange = null, rtRange = null;
+
+        // Check the peaks for selected data files
+        for (RawDataFile dataFile : dataFiles) {
+            Feature peak = peakListRow.getPeak(dataFile);
+            if (peak == null)
+                continue;
+            if ((mzRange == null) || (rtRange == null)) {
+                mzRange = peak.getRawDataPointsMZRange();
+                rtRange = peak.getRawDataPointsRTRange();
+            } else {
+                mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+                rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+            }
+
         }
 
-      }
+        // If none of the data files had a peak, check the whole row
+        if (mzRange == null) {
+            for (Feature peak : peakListRow.getPeaks()) {
+                if (peak == null)
+                    continue;
+                if ((mzRange == null) || (rtRange == null)) {
+                    mzRange = peak.getRawDataPointsMZRange();
+                    rtRange = peak.getRawDataPointsRTRange();
+                } else {
+                    mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+                    rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+                }
+
+            }
+        }
+
+        ManualPickerParameters parameters = new ManualPickerParameters();
+
+        if (mzRange != null) {
+            parameters.getParameter(ManualPickerParameters.retentionTimeRange)
+                    .setValue(rtRange);
+            parameters.getParameter(ManualPickerParameters.mzRange)
+                    .setValue(mzRange);
+        }
+
+        ExitCode exitCode = parameters
+                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+
+        if (exitCode != ExitCode.OK)
+            return exitCode;
+
+        ManualPickerTask task = new ManualPickerTask(
+                MZmineCore.getProjectManager().getCurrentProject(), peakListRow,
+                dataFiles, parameters, peakList, table);
+
+        MZmineCore.getTaskController().addTask(task);
+        return exitCode;
     }
 
-    ManualPickerParameters parameters = new ManualPickerParameters();
-
-    if (mzRange != null) {
-      parameters.getParameter(ManualPickerParameters.retentionTimeRange).setValue(rtRange);
-      parameters.getParameter(ManualPickerParameters.mzRange).setValue(mzRange);
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ManualPickerParameters.class;
     }
-
-    ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
-
-    if (exitCode != ExitCode.OK)
-      return exitCode;
-
-    ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
-        peakListRow, dataFiles, parameters, peakList, table);
-
-    MZmineCore.getTaskController().addTask(task);
-    return exitCode;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ManualPickerParameters.class;
-  }
 
 }

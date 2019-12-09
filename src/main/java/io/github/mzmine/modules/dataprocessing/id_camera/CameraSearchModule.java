@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -42,45 +42,45 @@ import io.github.mzmine.util.ExitCode;
  */
 public class CameraSearchModule implements MZmineProcessingModule {
 
-  // Name and description.
-  public static final String MODULE_NAME = "CAMERA search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches for pseudo-spectra using the CAMERA algorithm.";
+    // Name and description.
+    public static final String MODULE_NAME = "CAMERA search";
+    private static final String MODULE_DESCRIPTION = "This method searches for pseudo-spectra using the CAMERA algorithm.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList peakLists[] = parameters.getParameter(CameraSearchParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new CameraSearchTask(project, parameters, peakList);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return CameraSearchParameters.class;
-  }
+        PeakList peakLists[] = parameters
+                .getParameter(CameraSearchParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new CameraSearchTask(project, parameters, peakList);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return CameraSearchParameters.class;
+    }
 
 }

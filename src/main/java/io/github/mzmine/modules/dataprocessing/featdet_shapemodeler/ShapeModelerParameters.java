@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,24 +28,27 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class ShapeModelerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final ComboParameter<ShapeModel> shapeModelerType = new ComboParameter<ShapeModel>(
-      "Shape model", "This value defines the type of shape model", ShapeModel.values());
+    public static final ComboParameter<ShapeModel> shapeModelerType = new ComboParameter<ShapeModel>(
+            "Shape model", "This value defines the type of shape model",
+            ShapeModel.values());
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "shaped peaks");
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "shaped peaks");
 
-  public static final DoubleParameter massResolution = new DoubleParameter("Mass resolution",
-      "Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-          + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
+    public static final DoubleParameter massResolution = new DoubleParameter(
+            "Mass resolution",
+            "Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
+                    + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original feature list",
-          "If checked, original feature list will be removed and only resolved version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove original feature list",
+            "If checked, original feature list will be removed and only resolved version remains");
 
-  public ShapeModelerParameters() {
-    super(new Parameter[] {peakLists, suffix, massResolution, shapeModelerType, autoRemove});
-  }
+    public ShapeModelerParameters() {
+        super(new Parameter[] { peakLists, suffix, massResolution,
+                shapeModelerType, autoRemove });
+    }
 
 }

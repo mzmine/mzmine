@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,22 +31,22 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
  */
 public class SpectraIdentificationResultsParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter file =
-      new FileNameParameter("file", "file without extension");
+    public static final FileNameParameter file = new FileNameParameter("file",
+            "file without extension");
 
-  public static final BooleanParameter all =
-      new BooleanParameter("Show export all", "Show button in panel", true);
-  public static final BooleanParameter pdf =
-      new BooleanParameter("Show export pdf", "Show button in panel", true);
-  public static final BooleanParameter emf =
-      new BooleanParameter("Show export emf", "Show button in panel", true);
-  public static final BooleanParameter eps =
-      new BooleanParameter("Show export eps", "Show button in panel", true);
-  public static final BooleanParameter svg =
-      new BooleanParameter("Show export svg", "Show button in panel", true);
+    public static final BooleanParameter all = new BooleanParameter(
+            "Show export all", "Show button in panel", true);
+    public static final BooleanParameter pdf = new BooleanParameter(
+            "Show export pdf", "Show button in panel", true);
+    public static final BooleanParameter emf = new BooleanParameter(
+            "Show export emf", "Show button in panel", true);
+    public static final BooleanParameter eps = new BooleanParameter(
+            "Show export eps", "Show button in panel", true);
+    public static final BooleanParameter svg = new BooleanParameter(
+            "Show export svg", "Show button in panel", true);
 
-  public SpectraIdentificationResultsParameters() {
-    super(new Parameter[] {file, all, pdf, emf, eps, svg});
-  }
+    public SpectraIdentificationResultsParameters() {
+        super(new Parameter[] { file, all, pdf, emf, eps, svg });
+    }
 
 }

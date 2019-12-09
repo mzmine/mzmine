@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,22 +28,23 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
 
 public class CropFilterParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
-  public static final MZRangeParameter mzRange =
-      new MZRangeParameter("m/z", "m/z boundary of the cropped region");
+    public static final MZRangeParameter mzRange = new MZRangeParameter("m/z",
+            "m/z boundary of the cropped region");
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "filtered");
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove source file after filtering",
-          "If checked, original file will be removed and only filtered version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove source file after filtering",
+            "If checked, original file will be removed and only filtered version remains");
 
-  public CropFilterParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, autoRemove});
-  }
+    public CropFilterParameters() {
+        super(new Parameter[] { dataFiles, scanSelection, mzRange, suffix,
+                autoRemove });
+    }
 
 }

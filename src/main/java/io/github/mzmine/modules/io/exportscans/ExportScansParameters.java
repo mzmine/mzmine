@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,15 +27,17 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class ExportScansParameters extends SimpleParameterSet {
 
-  public static final OptionalParameter<MassListParameter> masslist =
-      new OptionalParameter<MassListParameter>(new MassListParameter());
-  public static final FileNameParameter file = new FileNameParameter("File", "file destination");
-  public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
-      "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
-      ScanFormats.values(), ScanFormats.mgf);
+    public static final OptionalParameter<MassListParameter> masslist = new OptionalParameter<MassListParameter>(
+            new MassListParameter());
+    public static final FileNameParameter file = new FileNameParameter("File",
+            "file destination");
+    public static final ComboParameter<ScanFormats> formats = new ComboParameter<>(
+            "Format",
+            "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
+            ScanFormats.values(), ScanFormats.mgf);
 
-  public ExportScansParameters() {
-    super(new Parameter[] {file, masslist, formats});
-  }
+    public ExportScansParameters() {
+        super(new Parameter[] { file, masslist, formats });
+    }
 
 }

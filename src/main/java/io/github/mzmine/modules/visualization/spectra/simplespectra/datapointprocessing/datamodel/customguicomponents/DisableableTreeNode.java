@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,34 +23,34 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class DisableableTreeNode extends DefaultMutableTreeNode {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private boolean enabled;
+    private boolean enabled;
 
-  public DisableableTreeNode(String string) {
-    super(string);
-    enabled = true;
-  }
-
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  /**
-   * Enables/Disables this node and all children nodes
-   */
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-
-    Enumeration<?> e = this.children();
-    while (e.hasMoreElements()) {
-      DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
-      if (n instanceof DisableableTreeNode) {
-        ((DisableableTreeNode) n).setEnabled(isEnabled());
-      }
+    public DisableableTreeNode(String string) {
+        super(string);
+        enabled = true;
     }
-  }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Enables/Disables this node and all children nodes
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+
+        Enumeration<?> e = this.children();
+        while (e.hasMoreElements()) {
+            DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
+            if (n instanceof DisableableTreeNode) {
+                ((DisableableTreeNode) n).setEnabled(isEnabled());
+            }
+        }
+    }
 }

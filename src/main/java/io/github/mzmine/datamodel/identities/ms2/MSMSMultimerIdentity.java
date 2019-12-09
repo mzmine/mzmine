@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.datamodel.identities.ms2;
+ */
+package io.github.mzmine.datamodel.identities.ms2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,29 +32,30 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class MSMSMultimerIdentity extends MSMSIonIdentity {
 
-  // the identified x-mer
-  private List<MSMSMultimerIdentity> links;
+    // the identified x-mer
+    private List<MSMSMultimerIdentity> links;
 
-  public MSMSMultimerIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
-    super(mzTolerance, dp, b);
-  }
+    public MSMSMultimerIdentity(MZTolerance mzTolerance, DataPoint dp,
+            IonType b) {
+        super(mzTolerance, dp, b);
+    }
 
-  public List<MSMSMultimerIdentity> getLinks() {
-    return links;
-  }
+    public List<MSMSMultimerIdentity> getLinks() {
+        return links;
+    }
 
-  public void addLink(MSMSMultimerIdentity l) {
-    if (links == null)
-      links = new ArrayList<>();
-    links.add(l);
-  }
+    public void addLink(MSMSMultimerIdentity l) {
+        if (links == null)
+            links = new ArrayList<>();
+        links.add(l);
+    }
 
-  public int getLinksCount() {
-    return links == null ? 0 : links.size();
-  }
+    public int getLinksCount() {
+        return links == null ? 0 : links.size();
+    }
 
-  public int getMCount() {
-    return getType().getMolecules();
-  }
+    public int getMCount() {
+        return getType().getMolecules();
+    }
 
 }

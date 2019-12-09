@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,40 +28,41 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+
 /**
  * 
- * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de /
+ *         s_heuc03@uni-muenster.de
  *
  */
 public class IsotopePatternPreviewModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Isotope pattern preview";
-  private static final String MODULE_DESCRIPTION =
-      "Calculate and view isotope patterns.";
+    private static final String MODULE_NAME = "Isotope pattern preview";
+    private static final String MODULE_DESCRIPTION = "Calculate and view isotope patterns.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.TOOLS;
-  }
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.TOOLS;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return IsotopePatternPreviewParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return IsotopePatternPreviewParameters.class;
+    }
 
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        return ExitCode.OK;
+    }
 
 }

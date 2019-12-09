@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,29 +32,33 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class SpectraIdentificationCustomDatabaseParameters extends SimpleParameterSet {
+public class SpectraIdentificationCustomDatabaseParameters
+        extends SimpleParameterSet {
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification");
+    public static final FileNameParameter dataBaseFile = new FileNameParameter(
+            "Database file",
+            "Name of file that contains information for peak identification");
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
+    public static final StringParameter fieldSeparator = new StringParameter(
+            "Field separator",
+            "Character(s) used to separate fields in the database file", ",");
 
-  public static final OrderParameter<FieldItem> fieldOrder =
-      new OrderParameter<FieldItem>("Field order",
-          "Order of items in which they are read from database file", FieldItem.values());
+    public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
+            "Field order",
+            "Order of items in which they are read from database file",
+            FieldItem.values());
 
-  public static final BooleanParameter ignoreFirstLine =
-      new BooleanParameter("Ignore first line", "Ignore the first line of database file");
+    public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
+            "Ignore first line", "Ignore the first line of database file");
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Noise level", "Set a noise level");
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level", "Set a noise level");
 
-  public SpectraIdentificationCustomDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, fieldSeparator, fieldOrder, ignoreFirstLine, mzTolerance,
-        noiseLevel});
-  }
+    public SpectraIdentificationCustomDatabaseParameters() {
+        super(new Parameter[] { dataBaseFile, fieldSeparator, fieldOrder,
+                ignoreFirstLine, mzTolerance, noiseLevel });
+    }
 
 }

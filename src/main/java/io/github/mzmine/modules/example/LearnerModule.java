@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,54 +33,56 @@ import io.github.mzmine.util.ExitCode;
  * A Module creates tasks which are then added queue
  */
 public class LearnerModule implements MZmineProcessingModule {
-  // #################################################################
-  // IMPORTANT
-  // do not forget to put your module in the MZmineModulesList
-  // in the package: io.github.mzmine.main
-  // #################################################################
+    // #################################################################
+    // IMPORTANT
+    // do not forget to put your module in the MZmineModulesList
+    // in the package: io.github.mzmine.main
+    // #################################################################
 
-  private static final String MODULE_NAME = "Learner module";
-  private static final String MODULE_DESCRIPTION = "This module is for learners only";
+    private static final String MODULE_NAME = "Learner module";
+    private static final String MODULE_DESCRIPTION = "This module is for learners only";
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-    // get parameters
-    PeakList peakLists[] =
-        parameters.getParameter(LearnerParameters.peakLists).getValue().getMatchingPeakLists();
+        // get parameters
+        PeakList peakLists[] = parameters
+                .getParameter(LearnerParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-    // create and start one task for each peaklist
-    for (final PeakList peakList : peakLists) {
-      Task newTask = new PeakListRowLearnerTask(project, peakList, parameters);
-      tasks.add(newTask);
+        // create and start one task for each peaklist
+        for (final PeakList peakList : peakLists) {
+            Task newTask = new PeakListRowLearnerTask(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        /**
+         * Change category: will automatically be added to the linked menu
+         */
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
 
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return LearnerParameters.class;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    /**
-     * Change category: will automatically be added to the linked menu
-     */
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return LearnerParameters.class;
-  }
-
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 }

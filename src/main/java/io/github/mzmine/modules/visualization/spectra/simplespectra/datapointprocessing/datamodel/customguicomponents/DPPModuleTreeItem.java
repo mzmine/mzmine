@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,56 +25,58 @@ import io.github.mzmine.parameters.ParameterSet;
 import javafx.scene.control.TreeItem;
 
 /**
- * Stores {@link DataPointProcessingModule}s and their parameters in a tree item. All MZmineModules implementing
- * DataPointProcessingModule are automatically added in {@link DPPSetupWindowController}.
+ * Stores {@link DataPointProcessingModule}s and their parameters in a tree
+ * item. All MZmineModules implementing DataPointProcessingModule are
+ * automatically added in {@link DPPSetupWindowController}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class DPPModuleTreeItem extends TreeItem<String> {
 
-  private String name;
-  private DataPointProcessingModule module;
-  private ModuleSubCategory subCat;
-  private ParameterSet parameters;
+    private String name;
+    private DataPointProcessingModule module;
+    private ModuleSubCategory subCat;
+    private ParameterSet parameters;
 
-  public DPPModuleTreeItem(DataPointProcessingModule module) {
-    super(module.getName());
-    setName(module.getName());
-    setModule(module);
-    setSubCat(module.getModuleSubCategory());
-    setParameters(MZmineCore.getConfiguration().getModuleParameters(module.getClass()));
-  }
+    public DPPModuleTreeItem(DataPointProcessingModule module) {
+        super(module.getName());
+        setName(module.getName());
+        setModule(module);
+        setSubCat(module.getModuleSubCategory());
+        setParameters(MZmineCore.getConfiguration()
+                .getModuleParameters(module.getClass()));
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public DataPointProcessingModule getModule() {
-    return module;
-  }
+    public DataPointProcessingModule getModule() {
+        return module;
+    }
 
-  private void setName(String name) {
-    this.name = name;
-  }
+    private void setName(String name) {
+        this.name = name;
+    }
 
-  private void setModule(DataPointProcessingModule module) {
-    this.module = module;
-  }
+    private void setModule(DataPointProcessingModule module) {
+        this.module = module;
+    }
 
-  public ModuleSubCategory getSubCat() {
-    return subCat;
-  }
+    public ModuleSubCategory getSubCat() {
+        return subCat;
+    }
 
-  private void setSubCat(ModuleSubCategory subCat) {
-    this.subCat = subCat;
-  }
+    private void setSubCat(ModuleSubCategory subCat) {
+        this.subCat = subCat;
+    }
 
-  public ParameterSet getParameters() {
-    return parameters;
-  }
+    public ParameterSet getParameters() {
+        return parameters;
+    }
 
-  public void setParameters(ParameterSet parameters) {
-    this.parameters = parameters;
-  }
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = parameters;
+    }
 }

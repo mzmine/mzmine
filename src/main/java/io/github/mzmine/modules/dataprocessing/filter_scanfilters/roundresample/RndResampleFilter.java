@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,99 +32,104 @@ import java.util.Arrays;
 
 public class RndResampleFilter implements ScanFilter {
 
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+    public Scan filterScan(Scan scan, ParameterSet parameters) {
 
-    boolean sum_duplicates =
-        parameters.getParameter(RndResampleFilterParameters.SUM_DUPLICATES).getValue();
-    boolean remove_zero_intensity =
-        parameters.getParameter(RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
+        boolean sum_duplicates = parameters
+                .getParameter(RndResampleFilterParameters.SUM_DUPLICATES)
+                .getValue();
+        boolean remove_zero_intensity = parameters
+                .getParameter(RndResampleFilterParameters.REMOVE_ZERO_INTENSITY)
+                .getValue();
 
-    // If CENTROIDED scan, use it as-is
-    Scan inputScan;
-    if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
-      inputScan = scan;
-    // Otherwise, detect local maxima
-    else
-      inputScan = new LocMaxCentroidingAlgorithm(scan).centroidScan();
+        // If CENTROIDED scan, use it as-is
+        Scan inputScan;
+        if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
+            inputScan = scan;
+        // Otherwise, detect local maxima
+        else
+            inputScan = new LocMaxCentroidingAlgorithm(scan).centroidScan();
 
-    DataPoint dps[] = inputScan.getDataPoints();
+        DataPoint dps[] = inputScan.getDataPoints();
 
-    // Cleanup first: Remove zero intensity data points (if requested)
-    // Reuse dps array
-    int newNumOfDataPoints = 0;
-    for (int i = 0; i < dps.length; ++i) {
-      if (!remove_zero_intensity || dps[i].getIntensity() > 0.0) {
-        dps[newNumOfDataPoints] = dps[i];
-        ++newNumOfDataPoints;
-      }
-    }
-
-    // Getting started
-    SimpleDataPoint[] newDps = new SimpleDataPoint[newNumOfDataPoints];
-    for (int i = 0; i < newNumOfDataPoints; ++i) {
-      // Set the new m/z value to nearest integer / unit value
-      int newMz = (int) Math.round(dps[i].getMZ());
-      // Create new DataPoint accordingly (intensity untouched)
-      newDps[i] = new SimpleDataPoint(newMz, dps[i].getIntensity());
-    }
-
-    // Post-treatments
-    // Cleanup: Merge duplicates/overlap
-    // ArrayList<SimpleDataPoint> dpsList = new
-    // ArrayList<SimpleDataPoint>();
-    double prevMz = -1.0, curMz = -1.0;
-    double newIntensity = 0.0;
-    double divider = 1.0;
-
-    // Reuse dps array
-    newNumOfDataPoints = 0;
-    for (int i = 0; i < newDps.length; ++i) {
-
-      curMz = newDps[i].getMZ();
-      if (i > 0) {
-        // Handle duplicates
-        if (curMz == prevMz) {
-          if (sum_duplicates) {
-            // Use sum
-            newIntensity += newDps[i].getIntensity();
-            dps[newNumOfDataPoints - 1] = new SimpleDataPoint(prevMz, newIntensity);
-          } else {
-            // Use average
-            newIntensity += newDps[i].getIntensity();
-            dps[newNumOfDataPoints - 1] = new SimpleDataPoint(prevMz, newIntensity);
-            divider += 1.0;
-          }
-        } else {
-          dps[newNumOfDataPoints - 1] = new SimpleDataPoint(prevMz, newIntensity / divider);
-
-          dps[newNumOfDataPoints] = newDps[i];
-          ++newNumOfDataPoints;
-          newIntensity = dps[newNumOfDataPoints - 1].getIntensity();
-          divider = 1.0;
+        // Cleanup first: Remove zero intensity data points (if requested)
+        // Reuse dps array
+        int newNumOfDataPoints = 0;
+        for (int i = 0; i < dps.length; ++i) {
+            if (!remove_zero_intensity || dps[i].getIntensity() > 0.0) {
+                dps[newNumOfDataPoints] = dps[i];
+                ++newNumOfDataPoints;
+            }
         }
-      } else {
-        dps[newNumOfDataPoints] = newDps[i];
-        ++newNumOfDataPoints;
-      }
-      prevMz = newDps[i].getMZ();
+
+        // Getting started
+        SimpleDataPoint[] newDps = new SimpleDataPoint[newNumOfDataPoints];
+        for (int i = 0; i < newNumOfDataPoints; ++i) {
+            // Set the new m/z value to nearest integer / unit value
+            int newMz = (int) Math.round(dps[i].getMZ());
+            // Create new DataPoint accordingly (intensity untouched)
+            newDps[i] = new SimpleDataPoint(newMz, dps[i].getIntensity());
+        }
+
+        // Post-treatments
+        // Cleanup: Merge duplicates/overlap
+        // ArrayList<SimpleDataPoint> dpsList = new
+        // ArrayList<SimpleDataPoint>();
+        double prevMz = -1.0, curMz = -1.0;
+        double newIntensity = 0.0;
+        double divider = 1.0;
+
+        // Reuse dps array
+        newNumOfDataPoints = 0;
+        for (int i = 0; i < newDps.length; ++i) {
+
+            curMz = newDps[i].getMZ();
+            if (i > 0) {
+                // Handle duplicates
+                if (curMz == prevMz) {
+                    if (sum_duplicates) {
+                        // Use sum
+                        newIntensity += newDps[i].getIntensity();
+                        dps[newNumOfDataPoints - 1] = new SimpleDataPoint(
+                                prevMz, newIntensity);
+                    } else {
+                        // Use average
+                        newIntensity += newDps[i].getIntensity();
+                        dps[newNumOfDataPoints - 1] = new SimpleDataPoint(
+                                prevMz, newIntensity);
+                        divider += 1.0;
+                    }
+                } else {
+                    dps[newNumOfDataPoints - 1] = new SimpleDataPoint(prevMz,
+                            newIntensity / divider);
+
+                    dps[newNumOfDataPoints] = newDps[i];
+                    ++newNumOfDataPoints;
+                    newIntensity = dps[newNumOfDataPoints - 1].getIntensity();
+                    divider = 1.0;
+                }
+            } else {
+                dps[newNumOfDataPoints] = newDps[i];
+                ++newNumOfDataPoints;
+            }
+            prevMz = newDps[i].getMZ();
+        }
+
+        // Create updated scan
+        SimpleScan newScan = new SimpleScan(inputScan);
+        newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
+        newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+
+        return newScan;
+
     }
 
-    // Create updated scan
-    SimpleScan newScan = new SimpleScan(inputScan);
-    newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
-    newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+    @Override
+    public @Nonnull String getName() {
+        return "Round resampling filter";
+    }
 
-    return newScan;
-
-  }
-
-  @Override
-  public @Nonnull String getName() {
-    return "Round resampling filter";
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RndResampleFilterParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return RndResampleFilterParameters.class;
+    }
 }

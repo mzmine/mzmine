@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,32 +23,44 @@ import io.github.mzmine.datamodel.FeatureStatus;
 
 public enum DataFileColumnType {
 
-  STATUS("Status", FeatureStatus.class), PEAKSHAPE("Peak shape", Feature.class), MZ("m/z",
-      Double.class), RT("RT", Double.class), RT_START("RT start", Double.class), RT_END("RT end",
-          Double.class), DURATION("Duration", Double.class), HEIGHT("Height",
-              Double.class), AREA("Area", Double.class), CHARGE("Charge",
-                  Integer.class), DATAPOINTS("# Data points", Integer.class), FWHM("FWHM",
-                      Double.class), TF("Tailing factor", Double.class), AF("Asymmetry factor",
-                          Double.class), PARENT_ROW_ID("Parent Row ID", Integer.class);
+    STATUS("Status", FeatureStatus.class), PEAKSHAPE("Peak shape",
+            Feature.class), MZ("m/z", Double.class), RT("RT",
+                    Double.class), RT_START("RT start", Double.class), RT_END(
+                            "RT end", Double.class), DURATION("Duration",
+                                    Double.class), HEIGHT("Height",
+                                            Double.class), AREA("Area",
+                                                    Double.class), CHARGE(
+                                                            "Charge",
+                                                            Integer.class), DATAPOINTS(
+                                                                    "# Data points",
+                                                                    Integer.class), FWHM(
+                                                                            "FWHM",
+                                                                            Double.class), TF(
+                                                                                    "Tailing factor",
+                                                                                    Double.class), AF(
+                                                                                            "Asymmetry factor",
+                                                                                            Double.class), PARENT_ROW_ID(
+                                                                                                    "Parent Row ID",
+                                                                                                    Integer.class);
 
-  private final String columnName;
-  private final Class<?> columnClass;
+    private final String columnName;
+    private final Class<?> columnClass;
 
-  DataFileColumnType(String columnName, Class<?> columnClass) {
-    this.columnName = columnName;
-    this.columnClass = columnClass;
-  }
+    DataFileColumnType(String columnName, Class<?> columnClass) {
+        this.columnName = columnName;
+        this.columnClass = columnClass;
+    }
 
-  public String getColumnName() {
-    return columnName;
-  }
+    public String getColumnName() {
+        return columnName;
+    }
 
-  public Class<?> getColumnClass() {
-    return columnClass;
-  }
+    public Class<?> getColumnClass() {
+        return columnClass;
+    }
 
-  @Override
-  public String toString() {
-    return columnName;
-  }
+    @Override
+    public String toString() {
+        return columnName;
+    }
 }

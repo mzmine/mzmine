@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -66,261 +66,282 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  *
  */
 public class GnpsFbmnMgfExportTask extends AbstractTask {
-  // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+    // Logger.
+    private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  //
-  private final PeakList[] peakLists;
-  private final File fileName;
-  private final String plNamePattern = "{}";
-  private int currentIndex = 0;
-  private final String massListName;
-  private final MsMsSpectraMergeParameters mergeParameters;
+    //
+    private final PeakList[] peakLists;
+    private final File fileName;
+    private final String plNamePattern = "{}";
+    private int currentIndex = 0;
+    private final String massListName;
+    private final MsMsSpectraMergeParameters mergeParameters;
 
-  // by robin
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
-  // seconds
-  private NumberFormat rtsForm = new DecimalFormat("0.###");
-  // correlation
-  private NumberFormat corrForm = new DecimalFormat("0.0000");
+    // by robin
+    private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+    private NumberFormat intensityForm = MZmineCore.getConfiguration()
+            .getIntensityFormat();
+    // seconds
+    private NumberFormat rtsForm = new DecimalFormat("0.###");
+    // correlation
+    private NumberFormat corrForm = new DecimalFormat("0.0000");
 
-  private RowFilter filter;
+    private RowFilter filter;
 
-  GnpsFbmnMgfExportTask(ParameterSet parameters) {
-    this.peakLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
+    GnpsFbmnMgfExportTask(ParameterSet parameters) {
+        this.peakLists = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS)
+                .getValue().getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    this.massListName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
-    this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
-          .getEmbeddedParameters();
-    } else {
-      mergeParameters = null;
-    }
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    if (peakLists.length == 0)
-      return 1;
-    else
-      return currentIndex / peakLists.length;
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    // Shall export several files?
-    boolean substitute = fileName.getPath().contains(plNamePattern);
-
-    // Process feature lists
-    for (PeakList peakList : peakLists) {
-      currentIndex++;
-
-      // Filename
-      File curFile = fileName;
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-        // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
-      }
-      curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
-
-      // Open file
-      FileWriter writer;
-      try {
-        writer = new FileWriter(curFile);
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not open file " + curFile + " for writing.");
-        return;
-      }
-
-      try {
-        export(peakList, writer, curFile);
-      } catch (IOException e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
-        return;
-      }
-
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      // Close file
-      try {
-        writer.close();
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not close file " + curFile);
-        return;
-      }
-
-      // If feature list substitution pattern wasn't found,
-      // treat one feature list only
-      if (!substitute)
-        break;
+        this.fileName = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME)
+                .getValue();
+        this.massListName = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST)
+                .getValue();
+        this.filter = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
+                .getValue();
+        if (parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
+                .getValue()) {
+            mergeParameters = parameters
+                    .getParameter(
+                            GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
+                    .getEmbeddedParameters();
+        } else {
+            mergeParameters = null;
+        }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
-      setStatus(TaskStatus.FINISHED);
-  }
-
-  private int export(PeakList peakList, FileWriter writer, File curFile) throws IOException {
-    final String newLine = System.lineSeparator();
-
-    // count exported
-    int count = 0;
-    int countMissingMassList = 0;
-    for (PeakListRow row : peakList.getRows()) {
-      // do not export if no MSMS
-      if (!filter.filter(row))
-        continue;
-
-      String rowID = Integer.toString(row.getID());
-      double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
-
-      // Get the MS/MS scan number
-      Feature bestPeak = row.getBestPeak();
-      if (bestPeak == null)
-        continue;
-      int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-      if (rowID != null) {
-        PeakListRow copyRow = copyPeakRow(row);
-        // Best peak always exists, because feature list row has at least one peak
-        bestPeak = copyRow.getBestPeak();
-
-        // Get the heighest peak with a MS/MS scan number (with mass list)
-        boolean missingMassList = false;
-        msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-        while (msmsScanNumber < 1
-            || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
-          // missing masslist
-          if (msmsScanNumber > 0)
-            missingMassList = true;
-
-          copyRow.removePeak(bestPeak.getDataFile());
-          if (copyRow.getPeaks().length == 0)
-            break;
-
-          bestPeak = copyRow.getBestPeak();
-          msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-        }
-        if (missingMassList)
-          countMissingMassList++;
-      }
-      if (msmsScanNumber >= 1) {
-        // MS/MS scan must exist, because msmsScanNumber was > 0
-        Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
-
-        MassList massList = msmsScan.getMassList(massListName);
-
-
-        if (massList == null) {
-          continue;
-        }
-
-        writer.write("BEGIN IONS" + newLine);
-
-        if (rowID != null)
-          writer.write("FEATURE_ID=" + rowID + newLine);
-
-        String mass = mzForm.format(row.getAverageMZ());
-        if (mass != null)
-          writer.write("PEPMASS=" + mass + newLine);
-
-        if (rowID != null) {
-          writer.write("SCANS=" + rowID + newLine);
-          writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
-        }
-
-        int msmsCharge = msmsScan.getPrecursorCharge();
-        String msmsPolarity = msmsScan.getPolarity().asSingleChar();
-        if (msmsPolarity.equals("0"))
-          msmsPolarity = "";
-        if (msmsCharge == 0) {
-          msmsCharge = 1;
-          msmsPolarity = "";
-        }
-        writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
-
-        writer.write("MSLEVEL=2" + newLine);
-
-        DataPoint[] dataPoints = massList.getDataPoints();
-        if (mergeParameters != null) {
-          MsMsSpectraMergeModule merger =
-              MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-          MergedSpectrum spectrum =
-              merger.getBestMergedSpectrum(mergeParameters, row, massListName);
-          if (spectrum != null) {
-            dataPoints = spectrum.data;
-            writer.write("MERGED_STATS=");
-            writer.write(spectrum.getMergeStatsDescription());
-            writer.write(newLine);
-          }
-        }
-        for (DataPoint peak : dataPoints) {
-          writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-              + newLine);
-        }
-        writer.write("END IONS" + newLine);
-        writer.write(newLine);
-        count++;
-      }
+    @Override
+    public double getFinishedPercentage() {
+        if (peakLists.length == 0)
+            return 1;
+        else
+            return currentIndex / peakLists.length;
     }
 
-    if (count == 0)
-      LOG.log(Level.WARNING, "No MS/MS scans exported.");
-    else
-      LOG.info(
-          MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
-              count, peakList.getName()));
+    @Override
+    public void run() {
+        setStatus(TaskStatus.PROCESSING);
 
-    if (countMissingMassList > 0)
-      LOG.warning(MessageFormat.format(
-          "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
-          countMissingMassList, peakList.getName()));
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    return count;
-  }
+        // Process feature lists
+        for (PeakList peakList : peakLists) {
+            currentIndex++;
 
-  public Scan getScan(Feature f, int msmsscan) {
-    return f.getDataFile().getScan(msmsscan);
-  }
+            // Filename
+            File curFile = fileName;
+            if (substitute) {
+                // Cleanup from illegal filename characters
+                String cleanPlName = peakList.getName()
+                        .replaceAll("[^a-zA-Z0-9.-]", "_");
+                // Substitute
+                String newFilename = fileName.getPath()
+                        .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+                curFile = new File(newFilename);
+            }
+            curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
 
-  @Override
-  public String getTaskDescription() {
-    return "Exporting GNPS of feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
-  }
+            // Open file
+            FileWriter writer;
+            try {
+                writer = new FileWriter(curFile);
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage(
+                        "Could not open file " + curFile + " for writing.");
+                return;
+            }
 
-  /**
-   * Create a copy of a feature list row.
-   */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
-    // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+            try {
+                export(peakList, writer, curFile);
+            } catch (IOException e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Error while writing into file " + curFile
+                        + ": " + e.getMessage());
+                return;
+            }
 
-    // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
 
+            // Close file
+            try {
+                writer.close();
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not close file " + curFile);
+                return;
+            }
 
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+            // If feature list substitution pattern wasn't found,
+            // treat one feature list only
+            if (!substitute)
+                break;
+        }
 
+        if (getStatus() == TaskStatus.PROCESSING)
+            setStatus(TaskStatus.FINISHED);
     }
 
-    return newRow;
-  }
+    private int export(PeakList peakList, FileWriter writer, File curFile)
+            throws IOException {
+        final String newLine = System.lineSeparator();
+
+        // count exported
+        int count = 0;
+        int countMissingMassList = 0;
+        for (PeakListRow row : peakList.getRows()) {
+            // do not export if no MSMS
+            if (!filter.filter(row))
+                continue;
+
+            String rowID = Integer.toString(row.getID());
+            double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0)
+                    / 100.);
+
+            // Get the MS/MS scan number
+            Feature bestPeak = row.getBestPeak();
+            if (bestPeak == null)
+                continue;
+            int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+            if (rowID != null) {
+                PeakListRow copyRow = copyPeakRow(row);
+                // Best peak always exists, because feature list row has at
+                // least one peak
+                bestPeak = copyRow.getBestPeak();
+
+                // Get the heighest peak with a MS/MS scan number (with mass
+                // list)
+                boolean missingMassList = false;
+                msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+                while (msmsScanNumber < 1 || getScan(bestPeak, msmsScanNumber)
+                        .getMassList(massListName) == null) {
+                    // missing masslist
+                    if (msmsScanNumber > 0)
+                        missingMassList = true;
+
+                    copyRow.removePeak(bestPeak.getDataFile());
+                    if (copyRow.getPeaks().length == 0)
+                        break;
+
+                    bestPeak = copyRow.getBestPeak();
+                    msmsScanNumber = bestPeak
+                            .getMostIntenseFragmentScanNumber();
+                }
+                if (missingMassList)
+                    countMissingMassList++;
+            }
+            if (msmsScanNumber >= 1) {
+                // MS/MS scan must exist, because msmsScanNumber was > 0
+                Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+
+                MassList massList = msmsScan.getMassList(massListName);
+
+                if (massList == null) {
+                    continue;
+                }
+
+                writer.write("BEGIN IONS" + newLine);
+
+                if (rowID != null)
+                    writer.write("FEATURE_ID=" + rowID + newLine);
+
+                String mass = mzForm.format(row.getAverageMZ());
+                if (mass != null)
+                    writer.write("PEPMASS=" + mass + newLine);
+
+                if (rowID != null) {
+                    writer.write("SCANS=" + rowID + newLine);
+                    writer.write("RTINSECONDS="
+                            + rtsForm.format(retTimeInSeconds) + newLine);
+                }
+
+                int msmsCharge = msmsScan.getPrecursorCharge();
+                String msmsPolarity = msmsScan.getPolarity().asSingleChar();
+                if (msmsPolarity.equals("0"))
+                    msmsPolarity = "";
+                if (msmsCharge == 0) {
+                    msmsCharge = 1;
+                    msmsPolarity = "";
+                }
+                writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+
+                writer.write("MSLEVEL=2" + newLine);
+
+                DataPoint[] dataPoints = massList.getDataPoints();
+                if (mergeParameters != null) {
+                    MsMsSpectraMergeModule merger = MZmineCore
+                            .getModuleInstance(MsMsSpectraMergeModule.class);
+                    MergedSpectrum spectrum = merger.getBestMergedSpectrum(
+                            mergeParameters, row, massListName);
+                    if (spectrum != null) {
+                        dataPoints = spectrum.data;
+                        writer.write("MERGED_STATS=");
+                        writer.write(spectrum.getMergeStatsDescription());
+                        writer.write(newLine);
+                    }
+                }
+                for (DataPoint peak : dataPoints) {
+                    writer.write(mzForm.format(peak.getMZ()) + " "
+                            + intensityForm.format(peak.getIntensity())
+                            + newLine);
+                }
+                writer.write("END IONS" + newLine);
+                writer.write(newLine);
+                count++;
+            }
+        }
+
+        if (count == 0)
+            LOG.log(Level.WARNING, "No MS/MS scans exported.");
+        else
+            LOG.info(MessageFormat.format(
+                    "Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
+                    count, peakList.getName()));
+
+        if (countMissingMassList > 0)
+            LOG.warning(MessageFormat.format(
+                    "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
+                    countMissingMassList, peakList.getName()));
+
+        return count;
+    }
+
+    public Scan getScan(Feature f, int msmsscan) {
+        return f.getDataFile().getScan(msmsscan);
+    }
+
+    @Override
+    public String getTaskDescription() {
+        return "Exporting GNPS of feature list(s) " + Arrays.toString(peakLists)
+                + " to MGF file(s)";
+    }
+
+    /**
+     * Create a copy of a feature list row.
+     */
+    private static PeakListRow copyPeakRow(final PeakListRow row) {
+        // Copy the feature list row.
+        final PeakListRow newRow = new SimplePeakListRow(row.getID());
+        PeakUtils.copyPeakListRowProperties(row, newRow);
+
+        // Copy the peaks.
+        for (final Feature peak : row.getPeaks()) {
+
+            final Feature newPeak = new SimpleFeature(peak);
+            PeakUtils.copyPeakProperties(peak, newPeak);
+            newRow.addPeak(peak.getDataFile(), newPeak);
+
+        }
+
+        return newRow;
+    }
 
 }

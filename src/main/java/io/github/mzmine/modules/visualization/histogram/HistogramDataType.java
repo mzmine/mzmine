@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,19 +20,19 @@ package io.github.mzmine.modules.visualization.histogram;
 
 public enum HistogramDataType {
 
-  MASS("m/z"), //
-  HEIGHT("Height"), //
-  AREA("Area"), //
-  RT("Retention time");
+    MASS("m/z"), //
+    HEIGHT("Height"), //
+    AREA("Area"), //
+    RT("Retention time");
 
-  private String text;
+    private String text;
 
-  HistogramDataType(String text) {
-    this.text = text;
-  }
+    HistogramDataType(String text) {
+        this.text = text;
+    }
 
-  public String toString() {
-    return text;
-  }
+    public String toString() {
+        return text;
+    }
 
 }

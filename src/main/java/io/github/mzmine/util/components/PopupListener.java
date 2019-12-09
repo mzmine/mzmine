@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,24 +29,24 @@ import javax.swing.JPopupMenu;
  */
 public class PopupListener extends MouseAdapter {
 
-  private JPopupMenu popup;
+    private JPopupMenu popup;
 
-  public PopupListener(JPopupMenu popup) {
-    this.popup = popup;
-  }
-
-  public void mousePressed(MouseEvent e) {
-    if (e.isPopupTrigger()) {
-      popup.show(e.getComponent(), e.getX(), e.getY());
-      e.consume();
+    public PopupListener(JPopupMenu popup) {
+        this.popup = popup;
     }
-  }
 
-  public void mouseReleased(MouseEvent e) {
-    if (e.isPopupTrigger()) {
-      popup.show(e.getComponent(), e.getX(), e.getY());
-      e.consume();
+    public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            popup.show(e.getComponent(), e.getX(), e.getY());
+            e.consume();
+        }
     }
-  }
+
+    public void mouseReleased(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            popup.show(e.getComponent(), e.getX(), e.getY());
+            e.consume();
+        }
+    }
 
 }

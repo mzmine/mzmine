@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,67 +28,69 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 
 /**
- * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
- * by RawDataFileImpl.readFromFloatBufferFile()
+ * Implementation of the Scan interface which stores raw data points in a
+ * temporary file, accessed by RawDataFileImpl.readFromFloatBufferFile()
  */
 public class StorableMassList implements MassList {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private Scan scan;
-  private String name;
-  private RawDataFileImpl rawDataFile;
-  private int storageID;
+    private Scan scan;
+    private String name;
+    private RawDataFileImpl rawDataFile;
+    private int storageID;
 
-  public StorableMassList(RawDataFileImpl rawDataFile, int storageID, String name, Scan scan) {
-    this.scan = scan;
-    this.name = name;
-    this.rawDataFile = rawDataFile;
-    this.storageID = storageID;
-  }
-
-  @Override
-  public @Nonnull String getName() {
-    return name;
-  }
-
-  @Override
-  public @Nonnull Scan getScan() {
-    return scan;
-  }
-
-  public void setScan(Scan scan) {
-    this.scan = scan;
-  }
-
-  @Override
-  public @Nonnull DataPoint[] getDataPoints() {
-    try {
-      DataPoint result[] = rawDataFile.readDataPoints(storageID);
-      return result;
-
-    } catch (IOException e) {
-      logger.severe("Could not read data from temporary file " + e.toString());
-      return new DataPoint[0];
+    public StorableMassList(RawDataFileImpl rawDataFile, int storageID,
+            String name, Scan scan) {
+        this.scan = scan;
+        this.name = name;
+        this.rawDataFile = rawDataFile;
+        this.storageID = storageID;
     }
-  }
 
-  public void removeStoredData() {
-    try {
-      rawDataFile.removeStoredDataPoints(storageID);
-    } catch (IOException e) {
-      logger.severe("Could not modify temporary file " + e.toString());
+    @Override
+    public @Nonnull String getName() {
+        return name;
     }
-    storageID = -1;
-  }
 
-  public int getStorageID() {
-    return storageID;
-  }
+    @Override
+    public @Nonnull Scan getScan() {
+        return scan;
+    }
 
-  @Override
-  public String toString() {
-    return name;
-  }
+    public void setScan(Scan scan) {
+        this.scan = scan;
+    }
+
+    @Override
+    public @Nonnull DataPoint[] getDataPoints() {
+        try {
+            DataPoint result[] = rawDataFile.readDataPoints(storageID);
+            return result;
+
+        } catch (IOException e) {
+            logger.severe(
+                    "Could not read data from temporary file " + e.toString());
+            return new DataPoint[0];
+        }
+    }
+
+    public void removeStoredData() {
+        try {
+            rawDataFile.removeStoredDataPoints(storageID);
+        } catch (IOException e) {
+            logger.severe("Could not modify temporary file " + e.toString());
+        }
+        storageID = -1;
+    }
+
+    public int getStorageID() {
+        return storageID;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 
 }

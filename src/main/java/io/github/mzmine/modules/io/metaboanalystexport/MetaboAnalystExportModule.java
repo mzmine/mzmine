@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,38 +31,38 @@ import io.github.mzmine.util.ExitCode;
 
 public class MetaboAnalystExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to MetaboAnalyst file";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into a CSV (comma-separated values) file that is formatted for easy processing by the MetaboAnalyst service (http://www.metaboanalyst.ca).";
+    private static final String MODULE_NAME = "Export to MetaboAnalyst file";
+    private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a CSV (comma-separated values) file that is formatted for easy processing by the MetaboAnalyst service (http://www.metaboanalyst.ca).";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    MetaboAnalystExportTask task = new MetaboAnalystExportTask(project, parameters);
-    tasks.add(task);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        MetaboAnalystExportTask task = new MetaboAnalystExportTask(project,
+                parameters);
+        tasks.add(task);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MetaboAnalystExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MetaboAnalystExportParameters.class;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,97 +34,99 @@ import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.Scatt
 
 public class ScatterPlotTopPanel extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JLabel itemNameLabel, numOfDisplayedItems;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JLabel itemNameLabel, numOfDisplayedItems;
 
-  public ScatterPlotTopPanel() {
+    public ScatterPlotTopPanel() {
 
-    itemNameLabel = new JLabel();
-    itemNameLabel.setForeground(Color.BLUE);
-    itemNameLabel.setFont(new Font("SansSerif", Font.BOLD, 15));
+        itemNameLabel = new JLabel();
+        itemNameLabel.setForeground(Color.BLUE);
+        itemNameLabel.setFont(new Font("SansSerif", Font.BOLD, 15));
 
-    numOfDisplayedItems = new JLabel();
-    numOfDisplayedItems.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        numOfDisplayedItems = new JLabel();
+        numOfDisplayedItems.setFont(new Font("SansSerif", Font.PLAIN, 10));
 
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    add(numOfDisplayedItems);
-    add(Box.createHorizontalGlue());
-    add(itemNameLabel);
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(numOfDisplayedItems);
+        add(Box.createHorizontalGlue());
+        add(itemNameLabel);
 
-  }
-
-  public void updateNumOfItemsText(PeakList peakList, ScatterPlotDataSet dataSet,
-      ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY, int fold) {
-
-    int percentage = 100;
-
-    int totalItems = dataSet.getItemCount(0);
-
-    int itemsWithinFold = 0;
-    double x, y, ratio;
-    final double thresholdMax = fold, thresholdMin = (1.0 / fold);
-
-    for (int i = 0; i < totalItems; i++) {
-      x = dataSet.getXValue(0, i);
-      y = dataSet.getYValue(0, i);
-      ratio = x / y;
-      if ((ratio >= thresholdMin) && (ratio <= thresholdMax))
-        itemsWithinFold++;
     }
 
-    ratio = ((double) itemsWithinFold / totalItems);
+    public void updateNumOfItemsText(PeakList peakList,
+            ScatterPlotDataSet dataSet, ScatterPlotAxisSelection axisX,
+            ScatterPlotAxisSelection axisY, int fold) {
 
-    percentage = (int) Math.round(ratio * 100);
+        int percentage = 100;
 
-    String display = "<html><b>" + dataSet.getItemCount(0) + "</b> peaks displayed, <b>"
-        + percentage + "%</b> within <b>" + fold + "-fold</b> margin";
+        int totalItems = dataSet.getItemCount(0);
 
-    // If we have a selection, show it
-    if (dataSet.getSeriesCount() > 1) {
+        int itemsWithinFold = 0;
+        double x, y, ratio;
+        final double thresholdMax = fold, thresholdMin = (1.0 / fold);
 
-      itemsWithinFold = 0;
-      totalItems = dataSet.getItemCount(1);
+        for (int i = 0; i < totalItems; i++) {
+            x = dataSet.getXValue(0, i);
+            y = dataSet.getYValue(0, i);
+            ratio = x / y;
+            if ((ratio >= thresholdMin) && (ratio <= thresholdMax))
+                itemsWithinFold++;
+        }
 
-      for (int i = 0; i < totalItems; i++) {
-        x = dataSet.getXValue(1, i);
-        y = dataSet.getYValue(1, i);
-        ratio = x / y;
-        if ((ratio >= thresholdMin) && (ratio <= thresholdMax))
-          itemsWithinFold++;
-      }
+        ratio = ((double) itemsWithinFold / totalItems);
 
-      ratio = ((double) itemsWithinFold / totalItems);
+        percentage = (int) Math.round(ratio * 100);
 
-      percentage = (int) Math.round(ratio * 100);
+        String display = "<html><b>" + dataSet.getItemCount(0)
+                + "</b> peaks displayed, <b>" + percentage + "%</b> within <b>"
+                + fold + "-fold</b> margin";
 
-      display += " (" + percentage + "% of selected)";
+        // If we have a selection, show it
+        if (dataSet.getSeriesCount() > 1) {
+
+            itemsWithinFold = 0;
+            totalItems = dataSet.getItemCount(1);
+
+            for (int i = 0; i < totalItems; i++) {
+                x = dataSet.getXValue(1, i);
+                y = dataSet.getYValue(1, i);
+                ratio = x / y;
+                if ((ratio >= thresholdMin) && (ratio <= thresholdMax))
+                    itemsWithinFold++;
+            }
+
+            ratio = ((double) itemsWithinFold / totalItems);
+
+            percentage = (int) Math.round(ratio * 100);
+
+            display += " (" + percentage + "% of selected)";
+        }
+
+        display += "</html>";
+
+        numOfDisplayedItems.setText(display);
     }
 
-    display += "</html>";
+    public void updateItemNameText(PeakListRow selectedRow) {
 
-    numOfDisplayedItems.setText(display);
-  }
+        if (selectedRow == null) {
+            itemNameLabel.setText("");
+            return;
+        }
 
-  public void updateItemNameText(PeakListRow selectedRow) {
+        PeakIdentity identity = selectedRow.getPreferredPeakIdentity();
+        String itemName;
+        if (identity != null) {
+            itemName = identity.getName();
+        } else {
+            itemName = selectedRow.toString();
+        }
 
-    if (selectedRow == null) {
-      itemNameLabel.setText("");
-      return;
+        itemNameLabel.setText(itemName);
     }
-
-    PeakIdentity identity = selectedRow.getPreferredPeakIdentity();
-    String itemName;
-    if (identity != null) {
-      itemName = identity.getName();
-    } else {
-      itemName = selectedRow.toString();
-    }
-
-    itemNameLabel.setText(itemName);
-  }
 
 }

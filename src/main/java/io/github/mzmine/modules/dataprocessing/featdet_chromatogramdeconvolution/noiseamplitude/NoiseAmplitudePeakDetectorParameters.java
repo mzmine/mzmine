@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,27 +32,32 @@ import io.github.mzmine.util.ExitCode;
 
 public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter("Min peak height",
-      "Minimum acceptable height (intensity) for a chromatographic peak",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
+            "Min peak height",
+            "Minimum acceptable height (intensity) for a chromatographic peak",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+            "Peak duration range (min)", "Range of acceptable peak lengths",
+            MZmineCore.getConfiguration().getRTFormat(),
+            Range.closed(0.0, 10.0));
 
-  public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter("Amplitude of noise",
-      "This value is the intensity amplitude of the signal in the noise region",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter(
+            "Amplitude of noise",
+            "This value is the intensity amplitude of the signal in the noise region",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public NoiseAmplitudePeakDetectorParameters() {
-    super(new Parameter[] {MIN_PEAK_HEIGHT, PEAK_DURATION, NOISE_AMPLITUDE});
-  }
+    public NoiseAmplitudePeakDetectorParameters() {
+        super(new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
+                NOISE_AMPLITUDE });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(parent, valueCheckRequired,
-        this, NoiseAmplitudePeakDetector.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+                parent, valueCheckRequired, this,
+                NoiseAmplitudePeakDetector.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

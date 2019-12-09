@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,45 +33,47 @@ import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-
 public class MenuExportToExcel extends MenuItem implements MenuExport {
-  private static final long serialVersionUID = 1L;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private static final long serialVersionUID = 1L;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private FileChooser fc;
+    private FileChooser fc;
 
-  private XSSFExcelWriterReader excelWriter;
-  private EChartViewer chart;
+    private XSSFExcelWriterReader excelWriter;
+    private EChartViewer chart;
 
-  public MenuExportToExcel(XSSFExcelWriterReader excelWriter, String menuTitle,
-      EChartViewer chart) {
-    super(menuTitle);
-    this.excelWriter = excelWriter;
-    this.chart = chart;
-    setOnAction(e -> {
-      if (fc == null) {
-        fc = new FileChooser();
-        fc.getExtensionFilters().add(new ExtensionFilter("Microsoft Excel table", "*.xlsx"));
-      }
-      File f = fc.showSaveDialog(null);
-      if (f != null) {
-        exportDataToExcel(f);
-      }
-    });
-  }
-
-  public void exportDataToExcel(File f) {
-    try {
-      logger.info("retrieving data for export to excel");
-      Object[][] data = chart.getDataArrayForExport();
-      if (data != null) {
-        f = FileAndPathUtil.getRealFilePath(f, "xlsx");
-        logger.info("Exporting data to excel file: " + f.getAbsolutePath());
-        XSSFWorkbook wb = excelWriter.exportDataArrayToFile(f, "xydata", data, false);
-        excelWriter.closeWorkbook(wb);
-      }
-    } catch (InvalidFormatException | IOException e1) {
-      logger.log(Level.WARNING, "Cannot export to excel", e1);
+    public MenuExportToExcel(XSSFExcelWriterReader excelWriter,
+            String menuTitle, EChartViewer chart) {
+        super(menuTitle);
+        this.excelWriter = excelWriter;
+        this.chart = chart;
+        setOnAction(e -> {
+            if (fc == null) {
+                fc = new FileChooser();
+                fc.getExtensionFilters().add(
+                        new ExtensionFilter("Microsoft Excel table", "*.xlsx"));
+            }
+            File f = fc.showSaveDialog(null);
+            if (f != null) {
+                exportDataToExcel(f);
+            }
+        });
     }
-  }
+
+    public void exportDataToExcel(File f) {
+        try {
+            logger.info("retrieving data for export to excel");
+            Object[][] data = chart.getDataArrayForExport();
+            if (data != null) {
+                f = FileAndPathUtil.getRealFilePath(f, "xlsx");
+                logger.info(
+                        "Exporting data to excel file: " + f.getAbsolutePath());
+                XSSFWorkbook wb = excelWriter.exportDataArrayToFile(f, "xydata",
+                        data, false);
+                excelWriter.closeWorkbook(wb);
+            }
+        } catch (InvalidFormatException | IOException e1) {
+            logger.log(Level.WARNING, "Cannot export to excel", e1);
+        }
+    }
 }

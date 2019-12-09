@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,28 +24,28 @@ import io.github.mzmine.gui.framework.JColorPickerButton;
 
 public class ColorComponent extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private final JColorPickerButton colorPicker;
+    private final JColorPickerButton colorPicker;
 
-  public ColorComponent(Color color) {
-    colorPicker = new JColorPickerButton(this, color);
-    add(colorPicker);
-  }
+    public ColorComponent(Color color) {
+        colorPicker = new JColorPickerButton(this, color);
+        add(colorPicker);
+    }
 
-  public void setColor(Color color) {
-    colorPicker.setColor(color);
-  }
+    public void setColor(Color color) {
+        colorPicker.setColor(color);
+    }
 
-  public Color getColor() {
-    return colorPicker.getColor();
-  }
+    public Color getColor() {
+        return colorPicker.getColor();
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    colorPicker.setToolTipText(toolTip);
-  }
+    @Override
+    public void setToolTipText(String toolTip) {
+        colorPicker.setToolTipText(toolTip);
+    }
 }

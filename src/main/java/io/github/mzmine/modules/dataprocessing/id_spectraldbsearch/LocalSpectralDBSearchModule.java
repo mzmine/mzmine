@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,62 +34,65 @@ import io.github.mzmine.util.ExitCode;
 
 public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local spectra database search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows against a local spectral database.";
+    public static final String MODULE_NAME = "Local spectra database search";
+    private static final String MODULE_DESCRIPTION = "This method searches all peaklist rows against a local spectral database.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList peakLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
-        .getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new LocalSpectralDBSearchTask(peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-
-  }
-
-  /**
-   * Show dialog for identifying multiple selected peak-list rows.
-   * 
-   * @param row the feature list row.
-   */
-  public static void showSelectedRowsIdentificationDialog(final PeakListRow[] rows,
-      PeakListTable table) {
-
-    final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
-
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-
-      MZmineCore.getTaskController().addTask(
-          new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
     }
-  }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return LocalSpectralDBSearchParameters.class;
-  }
+        PeakList peakLists[] = parameters
+                .getParameter(LocalSpectralDBSearchParameters.peakLists)
+                .getValue().getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new LocalSpectralDBSearchTask(peakList, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    /**
+     * Show dialog for identifying multiple selected peak-list rows.
+     * 
+     * @param row
+     *            the feature list row.
+     */
+    public static void showSelectedRowsIdentificationDialog(
+            final PeakListRow[] rows, PeakListTable table) {
+
+        final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
+
+        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+                true) == ExitCode.OK) {
+
+            MZmineCore.getTaskController()
+                    .addTask(new SelectedRowsLocalSpectralDBSearchTask(rows,
+                            table, parameters.cloneParameterSet()));
+        }
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return LocalSpectralDBSearchParameters.class;
+    }
 
 }

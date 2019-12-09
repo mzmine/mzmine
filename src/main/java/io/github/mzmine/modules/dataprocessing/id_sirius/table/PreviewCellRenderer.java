@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,33 +32,34 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  * Renderer for PreviewCell compounds
  */
 public class PreviewCellRenderer implements TableCellRenderer {
-  // Store created PreviewCells and reuse later
-  private Hashtable<IAtomContainer, PreviewCell> components;
+    // Store created PreviewCells and reuse later
+    private Hashtable<IAtomContainer, PreviewCell> components;
 
-  public PreviewCellRenderer() {
-    components = new Hashtable<>(10);
-  }
-
-  /**
-   * Render PreviewCell component that contains image
-   * @param table
-   * @param value
-   * @param isSelected
-   * @param hasFocus
-   * @param row
-   * @param column
-   * @return
-   */
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-      boolean hasFocus, int row, int column) {
-    if (value == null)
-      return null;
-
-    if (!components.contains(value)) {
-      IAtomContainer container = (IAtomContainer) value;
-      components.put(container, new PreviewCell(container));
+    public PreviewCellRenderer() {
+        components = new Hashtable<>(10);
     }
-    return components.get(value);
-  }
+
+    /**
+     * Render PreviewCell component that contains image
+     * 
+     * @param table
+     * @param value
+     * @param isSelected
+     * @param hasFocus
+     * @param row
+     * @param column
+     * @return
+     */
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        if (value == null)
+            return null;
+
+        if (!components.contains(value)) {
+            IAtomContainer container = (IAtomContainer) value;
+            components.put(container, new PreviewCell(container));
+        }
+        return components.get(value);
+    }
 }

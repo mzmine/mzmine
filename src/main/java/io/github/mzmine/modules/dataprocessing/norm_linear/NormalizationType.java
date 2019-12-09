@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,18 +20,19 @@ package io.github.mzmine.modules.dataprocessing.norm_linear;
 
 public enum NormalizationType {
 
-  AverageIntensity("Average intensity"), AverageSquaredIntensity(
-      "Average squared intensity"), MaximumPeakHeight(
-          "Maximum peak intensity"), TotalRawSignal("Total raw signal");
+    AverageIntensity("Average intensity"), AverageSquaredIntensity(
+            "Average squared intensity"), MaximumPeakHeight(
+                    "Maximum peak intensity"), TotalRawSignal(
+                            "Total raw signal");
 
-  private final String name;
+    private final String name;
 
-  NormalizationType(String name) {
-    this.name = name;
-  }
+    NormalizationType(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -38,34 +38,36 @@ import io.github.mzmine.util.PeakMeasurementType;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
-          PeakMeasurementType.values());
+    public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+            "Peak measurement type", "Measure peaks using",
+            PeakMeasurementType.values());
 
-  public static final RawDataFilesParameter dataFiles =
-      new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+            new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
-  public static final PeakSelectionParameter rows =
-      new PeakSelectionParameter("Feature list rows", "Feature list rows to include in calculation",
-          Arrays.asList(new PeakSelection[] {new PeakSelection(null, null, null, null)}));
+    public static final PeakSelectionParameter rows = new PeakSelectionParameter(
+            "Feature list rows", "Feature list rows to include in calculation",
+            Arrays.asList(new PeakSelection[] {
+                    new PeakSelection(null, null, null, null) }));
 
-  private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {new EMClusterer(),
-      new FarthestFirstClusterer(), new SimpleKMeansClusterer(), new HierarClusterer()};
+    private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {
+            new EMClusterer(), new FarthestFirstClusterer(),
+            new SimpleKMeansClusterer(), new HierarClusterer() };
 
-  public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm =
-      new ModuleComboParameter<ClusteringAlgorithm>("Clustering algorithm",
-          "Select the algorithm you want to use for clustering", algorithms);
+    public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm = new ModuleComboParameter<ClusteringAlgorithm>(
+            "Clustering algorithm",
+            "Select the algorithm you want to use for clustering", algorithms);
 
-  public static final ComboParameter<ClusteringDataType> typeOfData =
-      new ComboParameter<ClusteringDataType>("Type of data",
-          "Specify the type of data used for the clustering: samples or variables",
-          ClusteringDataType.values());
+    public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
+            "Type of data",
+            "Specify the type of data used for the clustering: samples or variables",
+            ClusteringDataType.values());
 
-  public ClusteringParameters() {
-    super(new Parameter[] {peakLists, peakMeasurementType, dataFiles, rows, clusteringAlgorithm,
-        typeOfData});
-  }
+    public ClusteringParameters() {
+        super(new Parameter[] { peakLists, peakMeasurementType, dataFiles, rows,
+                clusteringAlgorithm, typeOfData });
+    }
 
 }

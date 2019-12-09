@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -14,31 +14,33 @@
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.datamodel.identities.ms2.interf;
+ */
+package io.github.mzmine.datamodel.identities.ms2.interf;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
-public abstract class AbstractMSMSDataPointIdentity extends AbstractMSMSIdentity {
+public abstract class AbstractMSMSDataPointIdentity
+        extends AbstractMSMSIdentity {
 
-  protected DataPoint dp;
+    protected DataPoint dp;
 
-  public AbstractMSMSDataPointIdentity(MZTolerance mzTolerance, DataPoint dp) {
-    super(mzTolerance);
-    this.dp = dp;
-  }
+    public AbstractMSMSDataPointIdentity(MZTolerance mzTolerance,
+            DataPoint dp) {
+        super(mzTolerance);
+        this.dp = dp;
+    }
 
-  public AbstractMSMSDataPointIdentity(DataPoint dp) {
-    this(null, dp);
-  }
+    public AbstractMSMSDataPointIdentity(DataPoint dp) {
+        this(null, dp);
+    }
 
+    public DataPoint getDp() {
+        return dp;
+    }
 
-  public DataPoint getDp() {
-    return dp;
-  }
-
-  public double getMZ() {
-    return dp.getMZ();
-  }
+    public double getMZ() {
+        return dp.getMZ();
+    }
 
 }

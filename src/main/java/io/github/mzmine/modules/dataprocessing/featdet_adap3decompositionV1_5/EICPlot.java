@@ -40,118 +40,119 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class EICPlot extends EChartPanel {
-  private final XYSeriesCollection xyDataset;
-  private final List<Double> colorDataset;
-  private final List<String> toolTips;
+    private final XYSeriesCollection xyDataset;
+    private final List<Double> colorDataset;
+    private final List<String> toolTips;
 
-  public EICPlot() {
-    this(new ArrayList<List<NavigableMap<Double, Double>>>(), new ArrayList<Double>(),
-        new ArrayList<List<String>>(), null);
-  }
-
-  public EICPlot(List<List<NavigableMap<Double, Double>>> clusters, List<Double> colors,
-      List<List<String>> info, List<NavigableMap<Double, Double>> modelPeaks) {
-    super(null, true);
-
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-    NumberAxis xAxis = new NumberAxis("Retention Time");
-    xAxis.setAutoRangeIncludesZero(false);
-    xAxis.setUpperMargin(0);
-    xAxis.setLowerMargin(0);
-
-    NumberAxis yAxis = new NumberAxis("Intensity");
-    yAxis.setAutoRangeIncludesZero(false);
-    yAxis.setUpperMargin(0);
-    yAxis.setLowerMargin(0);
-
-    xyDataset = new XYSeriesCollection();
-    colorDataset = new ArrayList<>();
-    toolTips = new ArrayList<>();
-
-    int seriesID = 0;
-
-    for (int i = 0; i < clusters.size(); ++i) {
-      List<NavigableMap<Double, Double>> cluster = clusters.get(i);
-      double color = colors.get(i);
-
-      for (int j = 0; j < cluster.size(); ++j) {
-        XYSeries series = new XYSeries(seriesID++);
-
-        for (Entry<Double, Double> e : cluster.get(j).entrySet())
-          series.add(e.getKey(), e.getValue());
-
-        xyDataset.addSeries(series);
-        colorDataset.add(color);
-        toolTips.add(info.get(i).get(j));
-      }
+    public EICPlot() {
+        this(new ArrayList<List<NavigableMap<Double, Double>>>(),
+                new ArrayList<Double>(), new ArrayList<List<String>>(), null);
     }
 
-    XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
-      @Override
-      public Paint getItemPaint(int row, int col) {
-        double c = colorDataset.get(row);
-        return Color.getHSBColor((float) c, 1.0f, 1.0f);
-      }
-    };
+    public EICPlot(List<List<NavigableMap<Double, Double>>> clusters,
+            List<Double> colors, List<List<String>> info,
+            List<NavigableMap<Double, Double>> modelPeaks) {
+        super(null, true);
 
-    renderer.setDefaultShapesVisible(false);
-    renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
-      @Override
-      public String generateToolTip(XYDataset dataset, int series, int item) {
-        try {
-          return toolTips.get(series);
-        } catch (NullPointerException | IndexOutOfBoundsException e) {
-          return "";
+        setBackground(Color.white);
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+
+        NumberAxis xAxis = new NumberAxis("Retention Time");
+        xAxis.setAutoRangeIncludesZero(false);
+        xAxis.setUpperMargin(0);
+        xAxis.setLowerMargin(0);
+
+        NumberAxis yAxis = new NumberAxis("Intensity");
+        yAxis.setAutoRangeIncludesZero(false);
+        yAxis.setUpperMargin(0);
+        yAxis.setLowerMargin(0);
+
+        xyDataset = new XYSeriesCollection();
+        colorDataset = new ArrayList<>();
+        toolTips = new ArrayList<>();
+
+        int seriesID = 0;
+
+        for (int i = 0; i < clusters.size(); ++i) {
+            List<NavigableMap<Double, Double>> cluster = clusters.get(i);
+            double color = colors.get(i);
+
+            for (int j = 0; j < cluster.size(); ++j) {
+                XYSeries series = new XYSeries(seriesID++);
+
+                for (Entry<Double, Double> e : cluster.get(j).entrySet())
+                    series.add(e.getKey(), e.getValue());
+
+                xyDataset.addSeries(series);
+                colorDataset.add(color);
+                toolTips.add(info.get(i).get(j));
+            }
         }
-      }
-    });
 
-    XYPlot plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
-    plot.setBackgroundPaint(Color.white);
-    plot.setDomainGridlinesVisible(true);
-    plot.setRangeGridlinesVisible(true);
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
+            @Override
+            public Paint getItemPaint(int row, int col) {
+                double c = colorDataset.get(row);
+                return Color.getHSBColor((float) c, 1.0f, 1.0f);
+            }
+        };
 
-    JFreeChart chart = new JFreeChart("", new Font("SansSerif", Font.BOLD, 12), plot, false);
-    chart.setBackgroundPaint(Color.white);
+        renderer.setDefaultShapesVisible(false);
+        renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
+            @Override
+            public String generateToolTip(XYDataset dataset, int series,
+                    int item) {
+                try {
+                    return toolTips.get(series);
+                } catch (NullPointerException | IndexOutOfBoundsException e) {
+                    return "";
+                }
+            }
+        });
 
-    super.setChart(chart);
+        XYPlot plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
+        plot.setBackgroundPaint(Color.white);
+        plot.setDomainGridlinesVisible(true);
+        plot.setRangeGridlinesVisible(true);
 
-    // reset zoom history
-    ZoomHistory history = getZoomHistory();
-    if (history != null)
-      history.clear();
-  }
+        JFreeChart chart = new JFreeChart("",
+                new Font("SansSerif", Font.BOLD, 12), plot, false);
+        chart.setBackgroundPaint(Color.white);
 
+        super.setChart(chart);
 
-
-  public void updateData(List<List<NavigableMap<Double, Double>>> clusters, List<Double> colors,
-      List<List<String>> info, List<NavigableMap<Double, Double>> modelPeaks) {
-    // for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
-    // xyDataset.removeSeries(i);
-    xyDataset.removeAllSeries();
-    colorDataset.clear();
-    toolTips.clear();
-
-    int seriesID = 0;
-
-    for (int i = 0; i < clusters.size(); ++i) {
-      List<NavigableMap<Double, Double>> cluster = clusters.get(i);
-      double color = colors.get(i);
-
-      for (int j = 0; j < cluster.size(); ++j) {
-        XYSeries series = new XYSeries(seriesID++);
-
-        for (Entry<Double, Double> e : cluster.get(j).entrySet())
-          series.add(e.getKey(), e.getValue());
-
-        xyDataset.addSeries(series);
-        colorDataset.add(color);
-        toolTips.add(info.get(i).get(j));
-      }
+        // reset zoom history
+        ZoomHistory history = getZoomHistory();
+        if (history != null)
+            history.clear();
     }
-  }
+
+    public void updateData(List<List<NavigableMap<Double, Double>>> clusters,
+            List<Double> colors, List<List<String>> info,
+            List<NavigableMap<Double, Double>> modelPeaks) {
+        // for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
+        // xyDataset.removeSeries(i);
+        xyDataset.removeAllSeries();
+        colorDataset.clear();
+        toolTips.clear();
+
+        int seriesID = 0;
+
+        for (int i = 0; i < clusters.size(); ++i) {
+            List<NavigableMap<Double, Double>> cluster = clusters.get(i);
+            double color = colors.get(i);
+
+            for (int j = 0; j < cluster.size(); ++j) {
+                XYSeries series = new XYSeries(seriesID++);
+
+                for (Entry<Double, Double> e : cluster.get(j).entrySet())
+                    series.add(e.getKey(), e.getValue());
+
+                xyDataset.addSeries(series);
+                colorDataset.add(color);
+                toolTips.add(info.get(i).get(j));
+            }
+        }
+    }
 }

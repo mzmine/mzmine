@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,28 +23,28 @@ import java.awt.Font;
 
 public class FontSpecs {
 
-  private Color color;
-  private Font font;
+    private Color color;
+    private Font font;
 
-  public FontSpecs(Color color, Font font) {
-    super();
-    this.color = color;
-    this.font = font;
-  }
+    public FontSpecs(Color color, Font font) {
+        super();
+        this.color = color;
+        this.font = font;
+    }
 
-  public Color getColor() {
-    return color;
-  }
+    public Color getColor() {
+        return color;
+    }
 
-  public Font getFont() {
-    return font;
-  }
+    public Font getFont() {
+        return font;
+    }
 
-  public void setColor(Color color) {
-    this.color = color;
-  }
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
-  public void setFont(Font font) {
-    this.font = font;
-  }
+    public void setFont(Font font) {
+        this.font = font;
+    }
 }

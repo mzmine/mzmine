@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,12 +35,11 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-
     public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
             new ScanSelection(1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
-    
+
     public static final FeaturesParameter features = new FeaturesParameter();
 
     public static final IntegerParameter rtResolution = new IntegerParameter(

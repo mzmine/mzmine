@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,98 +40,103 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
-public class MZRangeComponent extends DoubleRangeComponent implements ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent
+        implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
-  private final JButton setAutoButton, fromMassButton, fromFormulaButton;
+    private static final long serialVersionUID = 1L;
+    private final JButton setAutoButton, fromMassButton, fromFormulaButton;
 
-  public MZRangeComponent() {
+    public MZRangeComponent() {
 
-    super(MZmineCore.getConfiguration().getMZFormat());
+        super(MZmineCore.getConfiguration().getMZFormat());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    setAutoButton = new JButton("Auto range");
-    setAutoButton.addActionListener(this);
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    setAutoButton.setEnabled(currentFiles.length > 0);
-    add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        setAutoButton = new JButton("Auto range");
+        setAutoButton.addActionListener(this);
+        RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+        setAutoButton.setEnabled(currentFiles.length > 0);
+        add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
-    fromMassButton = new JButton("From mass");
-    fromMassButton.addActionListener(this);
-    add(fromMassButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        fromMassButton = new JButton("From mass");
+        fromMassButton.addActionListener(this);
+        add(fromMassButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
-    fromFormulaButton = new JButton("From formula");
-    fromFormulaButton.addActionListener(this);
-    add(fromFormulaButton, 5, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        fromFormulaButton = new JButton("From formula");
+        fromFormulaButton.addActionListener(this);
+        add(fromFormulaButton, 5, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
-  }
+    }
 
-  @Override
-  public void actionPerformed(ActionEvent event) {
+    @Override
+    public void actionPerformed(ActionEvent event) {
 
-    Object src = event.getSource();
+        Object src = event.getSource();
 
-    if (src == setAutoButton) {
-      RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      ScanSelection scanSelection = new ScanSelection();
+        if (src == setAutoButton) {
+            RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles();
+            ScanSelection scanSelection = new ScanSelection();
 
-      try {
-        ParameterSetupDialog setupDialog =
-            (ParameterSetupDialog) SwingUtilities.getWindowAncestor(this);
-        RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
-            .getComponentForParameter(new RawDataFilesParameter());
-        if (rdc != null) {
-          RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
-          if (matchingFiles.length > 0)
-            currentFiles = matchingFiles;
+            try {
+                ParameterSetupDialog setupDialog = (ParameterSetupDialog) SwingUtilities
+                        .getWindowAncestor(this);
+                RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
+                        .getComponentForParameter(new RawDataFilesParameter());
+                if (rdc != null) {
+                    RawDataFile matchingFiles[] = rdc.getValue()
+                            .getMatchingRawDataFiles();
+                    if (matchingFiles.length > 0)
+                        currentFiles = matchingFiles;
+                }
+                ScanSelectionComponent ssc = (ScanSelectionComponent) setupDialog
+                        .getComponentForParameter(new ScanSelectionParameter());
+                if (ssc != null)
+                    scanSelection = ssc.getValue();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Range<Double> mzRange = null;
+            for (RawDataFile file : currentFiles) {
+                Scan scans[] = scanSelection.getMatchingScans(file);
+                for (Scan s : scans) {
+                    Range<Double> scanRange = s.getDataPointMZRange();
+                    if (scanRange == null)
+                        continue;
+                    if (mzRange == null)
+                        mzRange = scanRange;
+                    else
+                        mzRange = mzRange.span(scanRange);
+                }
+            }
+            if (mzRange != null)
+                setValue(mzRange);
         }
-        ScanSelectionComponent ssc = (ScanSelectionComponent) setupDialog
-            .getComponentForParameter(new ScanSelectionParameter());
-        if (ssc != null)
-          scanSelection = ssc.getValue();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
 
-      Range<Double> mzRange = null;
-      for (RawDataFile file : currentFiles) {
-        Scan scans[] = scanSelection.getMatchingScans(file);
-        for (Scan s : scans) {
-          Range<Double> scanRange = s.getDataPointMZRange();
-          if (scanRange == null)
-            continue;
-          if (mzRange == null)
-            mzRange = scanRange;
-          else
-            mzRange = mzRange.span(scanRange);
+        if (src == fromMassButton) {
+            Range<Double> mzRange = MzRangeMassCalculatorModule
+                    .showRangeCalculationDialog();
+            if (mzRange != null)
+                setValue(mzRange);
         }
-      }
-      if (mzRange != null)
-        setValue(mzRange);
+
+        if (src == fromFormulaButton) {
+            Range<Double> mzRange = MzRangeFormulaCalculatorModule
+                    .showRangeCalculationDialog();
+            if (mzRange != null)
+                setValue(mzRange);
+        }
+
     }
 
-    if (src == fromMassButton) {
-      Range<Double> mzRange = MzRangeMassCalculatorModule.showRangeCalculationDialog();
-      if (mzRange != null)
-        setValue(mzRange);
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        setAutoButton.setEnabled(enabled);
+        fromMassButton.setEnabled(enabled);
+        fromFormulaButton.setEnabled(enabled);
     }
-
-    if (src == fromFormulaButton) {
-      Range<Double> mzRange = MzRangeFormulaCalculatorModule.showRangeCalculationDialog();
-      if (mzRange != null)
-        setValue(mzRange);
-    }
-
-  }
-
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    setAutoButton.setEnabled(enabled);
-    fromMassButton.setEnabled(enabled);
-    fromFormulaButton.setEnabled(enabled);
-  }
 
 }

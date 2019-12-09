@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,45 +32,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class ChromatogramBuilderModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Chromatogram builder (deprecated, see Help)";
-  private static final String MODULE_DESCRIPTION =
-      "This module connects data points from mass lists and builds chromatograms.";
+    private static final String MODULE_NAME = "Chromatogram builder (deprecated, see Help)";
+    private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    RawDataFile[] dataFiles = parameters.getParameter(ChromatogramBuilderParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
-
-    for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask =
-          new ChromatogramBuilderTask(project, dataFiles[i], parameters.cloneParameterSet());
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKPICKING;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ChromatogramBuilderParameters.class;
-  }
+        RawDataFile[] dataFiles = parameters
+                .getParameter(ChromatogramBuilderParameters.dataFiles)
+                .getValue().getMatchingRawDataFiles();
+
+        for (int i = 0; i < dataFiles.length; i++) {
+            Task newTask = new ChromatogramBuilderTask(project, dataFiles[i],
+                    parameters.cloneParameterSet());
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKPICKING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ChromatogramBuilderParameters.class;
+    }
 
 }

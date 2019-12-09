@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -20,12 +20,12 @@ package io.github.mzmine.taskcontrol;
 
 /**
  * 
- * This enum defines task priority. High priority tasks are always executed immediately. Normal
- * priority tasks may wait until a thread is available.
+ * This enum defines task priority. High priority tasks are always executed
+ * immediately. Normal priority tasks may wait until a thread is available.
  * 
  */
 public enum TaskPriority {
 
-  HIGH, NORMAL
+    HIGH, NORMAL
 
 }

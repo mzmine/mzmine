@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -44,119 +44,153 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
  */
 public class GnpsMgfParser extends SpectralDBParser {
 
-  public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
-  }
-
-  private static Logger logger = Logger.getLogger(GnpsMgfParser.class.getName());
-
-  private enum State {
-    WAIT_FOR_META, META, DATA;
-  }
-
-  @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
-
-    // BEGIN IONS
-    // meta data
-    // SCANS=1 .... n (the scan ID; could be used to put all spectra of the same entry together)
-    // data
-    // END IONS
-
-    int correct = 0;
-    State state = State.WAIT_FOR_META;
-    Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
-    List<DataPoint> dps = new ArrayList<>();
-    int sep = -1;
-    // create db
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
-        // main task was canceled?
-        if (mainTask != null && mainTask.isCanceled()) {
-          return false;
-        }
-        try {
-          if (l.length() > 1) {
-            // meta data start?
-            if (state.equals(State.WAIT_FOR_META)) {
-              if (l.equalsIgnoreCase("BEGIN IONS")) {
-                fields = new EnumMap<>(fields);
-                dps.clear();
-                state = State.META;
-              }
-            } else {
-              if (l.equalsIgnoreCase("END IONS")) {
-                // add entry and reset
-                if (fields.size() > 1 && dps.size() > 1) {
-                  SpectralDBEntry entry =
-                      new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
-                  // add and push
-                  addLibraryEntry(entry);
-                  correct++;
-                }
-                state = State.WAIT_FOR_META;
-              } else if (l.toLowerCase().startsWith("scans")) {
-                // belongs to the previously created entry and is another spectrum
-
-                // data starts
-                state = State.DATA;
-              } else {
-                switch (state) {
-                  case WAIT_FOR_META:
-                    // wait for next entry
-                    break;
-                  case DATA:
-                    String[] data = l.split("\t");
-                    dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                        Double.parseDouble(data[1])));
-                    break;
-                  case META:
-                    sep = l.indexOf('=');
-                    if (sep != -1 && sep < l.length() - 1) {
-                      DBEntryField field = DBEntryField.forMgfID(l.substring(0, sep));
-                      if (field != null) {
-                        String content = l.substring(sep + 1, l.length());
-                        if (!content.isEmpty()) {
-                          try {
-                            Object value = field.convertValue(content);
-
-                            // name
-                            if (field.equals(DBEntryField.NAME)) {
-                              String name = ((String) value);
-                              int lastSpace = name.lastIndexOf(' ');
-                              if (lastSpace != -1 && lastSpace < name.length() - 2) {
-                                String adductCandidate = name.substring(lastSpace + 1);
-                                // check for valid adduct with the adduct parser from export
-                                // use as adduct
-                                String adduct = AdductParser.parse(adductCandidate);
-                                if (adduct != null && !adduct.isEmpty())
-                                  fields.put(DBEntryField.ION_TYPE, adduct);
-                              }
-                            }
-
-                            fields.put(field, value);
-                          } catch (Exception e) {
-                            logger.log(Level.WARNING, "Cannot convert value type of " + content
-                                + " to " + field.getObjectClass().toString(), e);
-                          }
-                        }
-                      }
-                    }
-                    break;
-                }
-              }
-            }
-          }
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error for entry", ex);
-          state = State.WAIT_FOR_META;
-        }
-      }
-      // finish and process all entries
-      finish();
-      return true;
+    public GnpsMgfParser(int bufferEntries, LibraryEntryProcessor processor) {
+        super(bufferEntries, processor);
     }
-  }
+
+    private static Logger logger = Logger
+            .getLogger(GnpsMgfParser.class.getName());
+
+    private enum State {
+        WAIT_FOR_META, META, DATA;
+    }
+
+    @Override
+    public boolean parse(AbstractTask mainTask, File dataBaseFile)
+            throws IOException {
+        logger.info("Parsing mgf spectral library "
+                + dataBaseFile.getAbsolutePath());
+
+        // BEGIN IONS
+        // meta data
+        // SCANS=1 .... n (the scan ID; could be used to put all spectra of the
+        // same entry together)
+        // data
+        // END IONS
+
+        int correct = 0;
+        State state = State.WAIT_FOR_META;
+        Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
+        List<DataPoint> dps = new ArrayList<>();
+        int sep = -1;
+        // create db
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(dataBaseFile))) {
+            for (String l; (l = br.readLine()) != null;) {
+                // main task was canceled?
+                if (mainTask != null && mainTask.isCanceled()) {
+                    return false;
+                }
+                try {
+                    if (l.length() > 1) {
+                        // meta data start?
+                        if (state.equals(State.WAIT_FOR_META)) {
+                            if (l.equalsIgnoreCase("BEGIN IONS")) {
+                                fields = new EnumMap<>(fields);
+                                dps.clear();
+                                state = State.META;
+                            }
+                        } else {
+                            if (l.equalsIgnoreCase("END IONS")) {
+                                // add entry and reset
+                                if (fields.size() > 1 && dps.size() > 1) {
+                                    SpectralDBEntry entry = new SpectralDBEntry(
+                                            fields, dps.toArray(
+                                                    new DataPoint[dps.size()]));
+                                    // add and push
+                                    addLibraryEntry(entry);
+                                    correct++;
+                                }
+                                state = State.WAIT_FOR_META;
+                            } else if (l.toLowerCase().startsWith("scans")) {
+                                // belongs to the previously created entry and
+                                // is another spectrum
+
+                                // data starts
+                                state = State.DATA;
+                            } else {
+                                switch (state) {
+                                case WAIT_FOR_META:
+                                    // wait for next entry
+                                    break;
+                                case DATA:
+                                    String[] data = l.split("\t");
+                                    dps.add(new SimpleDataPoint(
+                                            Double.parseDouble(data[0]),
+                                            Double.parseDouble(data[1])));
+                                    break;
+                                case META:
+                                    sep = l.indexOf('=');
+                                    if (sep != -1 && sep < l.length() - 1) {
+                                        DBEntryField field = DBEntryField
+                                                .forMgfID(l.substring(0, sep));
+                                        if (field != null) {
+                                            String content = l.substring(
+                                                    sep + 1, l.length());
+                                            if (!content.isEmpty()) {
+                                                try {
+                                                    Object value = field
+                                                            .convertValue(
+                                                                    content);
+
+                                                    // name
+                                                    if (field.equals(
+                                                            DBEntryField.NAME)) {
+                                                        String name = ((String) value);
+                                                        int lastSpace = name
+                                                                .lastIndexOf(
+                                                                        ' ');
+                                                        if (lastSpace != -1
+                                                                && lastSpace < name
+                                                                        .length()
+                                                                        - 2) {
+                                                            String adductCandidate = name
+                                                                    .substring(
+                                                                            lastSpace
+                                                                                    + 1);
+                                                            // check for valid
+                                                            // adduct with the
+                                                            // adduct parser
+                                                            // from export
+                                                            // use as adduct
+                                                            String adduct = AdductParser
+                                                                    .parse(adductCandidate);
+                                                            if (adduct != null
+                                                                    && !adduct
+                                                                            .isEmpty())
+                                                                fields.put(
+                                                                        DBEntryField.ION_TYPE,
+                                                                        adduct);
+                                                        }
+                                                    }
+
+                                                    fields.put(field, value);
+                                                } catch (Exception e) {
+                                                    logger.log(Level.WARNING,
+                                                            "Cannot convert value type of "
+                                                                    + content
+                                                                    + " to "
+                                                                    + field.getObjectClass()
+                                                                            .toString(),
+                                                            e);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Error for entry", ex);
+                    state = State.WAIT_FOR_META;
+                }
+            }
+            // finish and process all entries
+            finish();
+            return true;
+        }
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -50,36 +50,40 @@ import io.github.mzmine.util.scans.sorting.ScanSortMode;
  */
 public class LibrarySubmitParameters extends SimpleParameterSet {
 
-  // scan selection and preprocessing
-  public static final MassListParameter massList = new MassListParameter();
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Noise level to filter masslists", MZmineCore.getConfiguration().getIntensityFormat(), 0d);
-  public static final IntegerParameter minSignals = new IntegerParameter("Min signals",
-      "Minimum signals in a masslist (all other masslists are discarded)", 3);
+    // scan selection and preprocessing
+    public static final MassListParameter massList = new MassListParameter();
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level", "Noise level to filter masslists",
+            MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+    public static final IntegerParameter minSignals = new IntegerParameter(
+            "Min signals",
+            "Minimum signals in a masslist (all other masslists are discarded)",
+            3);
 
-  public static final ComboParameter<ScanSortMode> sorting = new ComboParameter<>("Sorting",
-      "Sorting mode for filtered mass lists", ScanSortMode.values(), ScanSortMode.MAX_TIC);
+    public static final ComboParameter<ScanSortMode> sorting = new ComboParameter<>(
+            "Sorting", "Sorting mode for filtered mass lists",
+            ScanSortMode.values(), ScanSortMode.MAX_TIC);
 
-  // submission and creation of libraries
-  // save to local file
-  public static final OptionalParameter<FileNameParameter> LOCALFILE =
-      new OptionalParameter<>(new FileNameParameter("Local file", "Local library file"), false);
-  public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
-      "Export GNPS json file", "The GNPS library submission json format", true);
-  public static final BooleanParameter EXPORT_MSP =
-      new BooleanParameter("Export NIST msp file", "The NIST msp library format", true);
-  // user and password
-  public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS =
-      new OptionalModuleParameter<>("Submit to GNPS (MS2)",
-          "Submit new entry to GNPS library (Only for fragmentation data of MS level >1)",
-          new GnpsLibrarySubmitParameters(), true);
+    // submission and creation of libraries
+    // save to local file
+    public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
+            new FileNameParameter("Local file", "Local library file"), false);
+    public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
+            "Export GNPS json file", "The GNPS library submission json format",
+            true);
+    public static final BooleanParameter EXPORT_MSP = new BooleanParameter(
+            "Export NIST msp file", "The NIST msp library format", true);
+    // user and password
+    public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS = new OptionalModuleParameter<>(
+            "Submit to GNPS (MS2)",
+            "Submit new entry to GNPS library (Only for fragmentation data of MS level >1)",
+            new GnpsLibrarySubmitParameters(), true);
 
-
-  public LibrarySubmitParameters() {
-    super(new Parameter[] {massList, noiseLevel, minSignals, sorting,
-        // save to local file
-        LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
-        // submit to online library
-        SUBMIT_GNPS});
-  }
+    public LibrarySubmitParameters() {
+        super(new Parameter[] { massList, noiseLevel, minSignals, sorting,
+                // save to local file
+                LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
+                // submit to online library
+                SUBMIT_GNPS });
+    }
 }

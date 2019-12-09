@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -49,147 +49,161 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  *
  */
 public class GNPSUtils {
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(GNPSUtils.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(GNPSUtils.class.getName());
 
-  public static final String FBMN_SUBMIT_SITE =
-      "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
-  public static final String GC_SUBMIT_SITE =
-      "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+    public static final String FBMN_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
+    public static final String GC_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
 
-  /**
-   * Submit feature-based molecular networking (FBMN) job to GNPS
-   * 
-   * @param file
-   * @param param
-   * @return
-   */
-  public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param) throws IOException {
-    // optional
-    boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getValue();
-    boolean openWebsite = param.getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
-    String presets = param.getParameter(GnpsFbmnSubmitParameters.PRESETS).getValue().toString();
-    String title = param.getParameter(GnpsFbmnSubmitParameters.JOB_TITLE).getValue();
-    String email = param.getParameter(GnpsFbmnSubmitParameters.EMAIL).getValue();
-    String username = param.getParameter(GnpsFbmnSubmitParameters.USER).getValue();
-    String password = param.getParameter(GnpsFbmnSubmitParameters.PASSWORD).getValue();
-    //
-    File folder = file.getParentFile();
-    String name = file.getName();
-    // all file paths
-    File mgf = FileAndPathUtil.getRealFilePath(folder, name, "mgf");
-    File quan = FileAndPathUtil.getRealFilePath(folder, name + "_quant", "csv");
+    /**
+     * Submit feature-based molecular networking (FBMN) job to GNPS
+     * 
+     * @param file
+     * @param param
+     * @return
+     */
+    public static String submitFbmnJob(File file,
+            GnpsFbmnSubmitParameters param) throws IOException {
+        // optional
+        boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE)
+                .getValue();
+        boolean openWebsite = param
+                .getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
+        String presets = param.getParameter(GnpsFbmnSubmitParameters.PRESETS)
+                .getValue().toString();
+        String title = param.getParameter(GnpsFbmnSubmitParameters.JOB_TITLE)
+                .getValue();
+        String email = param.getParameter(GnpsFbmnSubmitParameters.EMAIL)
+                .getValue();
+        String username = param.getParameter(GnpsFbmnSubmitParameters.USER)
+                .getValue();
+        String password = param.getParameter(GnpsFbmnSubmitParameters.PASSWORD)
+                .getValue();
+        //
+        File folder = file.getParentFile();
+        String name = file.getName();
+        // all file paths
+        File mgf = FileAndPathUtil.getRealFilePath(folder, name, "mgf");
+        File quan = FileAndPathUtil.getRealFilePath(folder, name + "_quant",
+                "csv");
 
-    // NEEDED files
-    if (mgf.exists() && quan.exists()) {
-      File meta = !useMeta ? null
-          : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
-              .getValue();
+        // NEEDED files
+        if (mgf.exists() && quan.exists()) {
+            File meta = !useMeta ? null
+                    : param.getParameter(GnpsFbmnSubmitParameters.META_FILE)
+                            .getEmbeddedParameter().getValue();
 
-      return submitFbmnJob(mgf, quan, meta, null, title, email, username, password, presets,
-          openWebsite);
-    } else
-      return "";
-  }
+            return submitFbmnJob(mgf, quan, meta, null, title, email, username,
+                    password, presets, openWebsite);
+        } else
+            return "";
+    }
 
+    /**
+     * Submit feature-based molecular networking (FBMN) job to GNPS
+     * 
+     * @param file
+     * @param param
+     * @return
+     */
+    public static String submitFbmnJob(File mgf, File quan, File meta,
+            File[] additionalEdges, String title, String email, String username,
+            String password, String presets, boolean openWebsite)
+            throws IOException {
+        // NEEDED files
+        if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            try {
+                MultipartEntity entity = new MultipartEntity();
 
-  /**
-   * Submit feature-based molecular networking (FBMN) job to GNPS
-   * 
-   * @param file
-   * @param param
-   * @return
-   */
-  public static String submitFbmnJob(File mgf, File quan, File meta, File[] additionalEdges,
-      String title, String email, String username, String password, String presets,
-      boolean openWebsite) throws IOException {
-    // NEEDED files
-    if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
-      CloseableHttpClient httpclient = HttpClients.createDefault();
-      try {
-        MultipartEntity entity = new MultipartEntity();
+                // ######################################################
+                // NEEDED
+                // tool, presets, quant table, mgf
+                entity.addPart("featuretool", new StringBody("MZMINE2"));
+                entity.addPart("description",
+                        new StringBody(title == null ? "" : title));
+                entity.addPart("networkingpreset", new StringBody(presets));
+                entity.addPart("featurequantification", new FileBody(quan));
+                entity.addPart("featurems2", new FileBody(mgf));
 
-        // ######################################################
-        // NEEDED
-        // tool, presets, quant table, mgf
-        entity.addPart("featuretool", new StringBody("MZMINE2"));
-        entity.addPart("description", new StringBody(title == null ? "" : title));
-        entity.addPart("networkingpreset", new StringBody(presets));
-        entity.addPart("featurequantification", new FileBody(quan));
-        entity.addPart("featurems2", new FileBody(mgf));
+                // ######################################################
+                // OPTIONAL
+                // email, meta data, additional edges
+                entity.addPart("email", new StringBody(email));
+                entity.addPart("username", new StringBody(username));
+                entity.addPart("password", new StringBody(password));
+                if (meta != null && meta.exists())
+                    entity.addPart("samplemetadata", new FileBody(meta));
 
-        // ######################################################
-        // OPTIONAL
-        // email, meta data, additional edges
-        entity.addPart("email", new StringBody(email));
-        entity.addPart("username", new StringBody(username));
-        entity.addPart("password", new StringBody(password));
-        if (meta != null && meta.exists())
-          entity.addPart("samplemetadata", new FileBody(meta));
+                // add additional edges
+                if (additionalEdges != null)
+                    for (File edge : additionalEdges)
+                        if (edge != null && edge.exists())
+                            entity.addPart("additionalpairs",
+                                    new FileBody(edge));
 
-        // add additional edges
-        if (additionalEdges != null)
-          for (File edge : additionalEdges)
-            if (edge != null && edge.exists())
-              entity.addPart("additionalpairs", new FileBody(edge));
+                HttpPost httppost = new HttpPost(FBMN_SUBMIT_SITE);
+                httppost.setEntity(entity);
 
-        HttpPost httppost = new HttpPost(FBMN_SUBMIT_SITE);
-        httppost.setEntity(entity);
+                LOG.info("Submitting GNPS job " + httppost.getRequestLine());
+                CloseableHttpResponse response = httpclient.execute(httppost);
+                try {
+                    LOG.info("GNPS submit response status: "
+                            + response.getStatusLine());
+                    HttpEntity resEntity = response.getEntity();
+                    if (resEntity != null) {
+                        LOG.info("GNPS submit response content length: "
+                                + resEntity.getContentLength());
 
-        LOG.info("Submitting GNPS job " + httppost.getRequestLine());
-        CloseableHttpResponse response = httpclient.execute(httppost);
-        try {
-          LOG.info("GNPS submit response status: " + response.getStatusLine());
-          HttpEntity resEntity = response.getEntity();
-          if (resEntity != null) {
-            LOG.info("GNPS submit response content length: " + resEntity.getContentLength());
-
-            // open job website
-            if (openWebsite)
-              openWebsite(resEntity);
-            EntityUtils.consume(resEntity);
-          }
-        } finally {
-          response.close();
+                        // open job website
+                        if (openWebsite)
+                            openWebsite(resEntity);
+                        EntityUtils.consume(resEntity);
+                    }
+                } finally {
+                    response.close();
+                }
+            } finally {
+                httpclient.close();
+            }
         }
-      } finally {
-        httpclient.close();
-      }
+        return "";
     }
-    return "";
-  }
 
-  /**
-   * Open website with GNPS job
-   * 
-   * @param resEntity
-   */
-  private static void openWebsite(HttpEntity resEntity) {
-    if (Desktop.isDesktopSupported()) {
-      try {
-        JSONObject res = new JSONObject(EntityUtils.toString(resEntity));
-        String url = res.getString("url");
-        LOG.info("Response: " + res.toString());
+    /**
+     * Open website with GNPS job
+     * 
+     * @param resEntity
+     */
+    private static void openWebsite(HttpEntity resEntity) {
+        if (Desktop.isDesktopSupported()) {
+            try {
+                JSONObject res = new JSONObject(
+                        EntityUtils.toString(resEntity));
+                String url = res.getString("url");
+                LOG.info("Response: " + res.toString());
 
-        if (url != null && !url.isEmpty())
-          Desktop.getDesktop().browse(new URI(url));
+                if (url != null && !url.isEmpty())
+                    Desktop.getDesktop().browse(new URI(url));
 
-      } catch (ParseException | IOException | URISyntaxException | JSONException e) {
-        LOG.log(Level.SEVERE, "Error while submitting GNPS job", e);
-      }
+            } catch (ParseException | IOException | URISyntaxException
+                    | JSONException e) {
+                LOG.log(Level.SEVERE, "Error while submitting GNPS job", e);
+            }
+        }
     }
-  }
 
-
-  /**
-   * GNPS-GC-MS workflow: Direct submission
-   *
-   * @param fileName
-   * @param param
-   * @return
-   */
-  public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    /**
+     * GNPS-GC-MS workflow: Direct submission
+     *
+     * @param fileName
+     * @param param
+     * @return
+     */
+    public static String submitGcJob(File fileName,
+            GnpsGcSubmitParameters param) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

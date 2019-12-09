@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,22 +19,23 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED;
+    ORIGINAL, FILTERED, ALIGNED, MERGED;
 
-  /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   * 
-   * @return
-   */
-  public String toRemainderString() {
-    switch (this) {
-      case ORIGINAL:
-        return "filtered";
-      case FILTERED:
-        return "unaligned";
-      case ALIGNED:
-        return "aligned";
+    /**
+     * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned;
+     * ALIGNED is aligned
+     * 
+     * @return
+     */
+    public String toRemainderString() {
+        switch (this) {
+        case ORIGINAL:
+            return "filtered";
+        case FILTERED:
+            return "unaligned";
+        case ALIGNED:
+            return "aligned";
+        }
+        return "";
     }
-    return "";
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -65,303 +65,358 @@ import io.github.mzmine.util.SpectraPlotUtils;
  */
 public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
-  private Logger logger = Logger.getLogger(DPPSumFormulaPredictionTask.class.getName());
+    private Logger logger = Logger
+            .getLogger(DPPSumFormulaPredictionTask.class.getName());
 
-  int currentIndex;
+    int currentIndex;
 
-  private MZTolerance mzTolerance;
-  private int foundFormulas = 0;
-  private IonizationType ionType;
-  private int charge;
-  private double noiseLevel;
-  private boolean checkRatios;
-  private boolean checkRDBE;
-  private ParameterSet ratiosParameters;
-  private ParameterSet rdbeParameters;
-  private ParameterSet isotopeParameters;
-  private boolean checkIsotopes;
-  private int numResults;
+    private MZTolerance mzTolerance;
+    private int foundFormulas = 0;
+    private IonizationType ionType;
+    private int charge;
+    private double noiseLevel;
+    private boolean checkRatios;
+    private boolean checkRDBE;
+    private ParameterSet ratiosParameters;
+    private ParameterSet rdbeParameters;
+    private ParameterSet isotopeParameters;
+    private boolean checkIsotopes;
+    private int numResults;
 
-  private MolecularFormulaRange elementCounts;
-  private MolecularFormulaGenerator generator;
-  private Range<Double> massRange;
+    private MolecularFormulaRange elementCounts;
+    private MolecularFormulaGenerator generator;
+    private Range<Double> massRange;
 
-  public DPPSumFormulaPredictionTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
-      ParameterSet parameterSet, DataPointProcessingController controller,
-      TaskStatusListener listener) {
-    super(dataPoints, targetPlot, parameterSet, controller, listener);
+    public DPPSumFormulaPredictionTask(DataPoint[] dataPoints,
+            SpectraPlot targetPlot, ParameterSet parameterSet,
+            DataPointProcessingController controller,
+            TaskStatusListener listener) {
+        super(dataPoints, targetPlot, parameterSet, controller, listener);
 
-    charge = parameterSet.getParameter(DPPSumFormulaPredictionParameters.charge).getValue();
-    noiseLevel = parameterSet.getParameter(DPPSumFormulaPredictionParameters.noiseLevel).getValue();
-    ionType = parameterSet.getParameter(DPPSumFormulaPredictionParameters.ionization).getValue();
+        charge = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.charge)
+                .getValue();
+        noiseLevel = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.noiseLevel)
+                .getValue();
+        ionType = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.ionization)
+                .getValue();
 
-    checkRDBE =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions).getValue();
-    rdbeParameters = parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions)
-        .getEmbeddedParameters();
+        checkRDBE = parameterSet
+                .getParameter(
+                        DPPSumFormulaPredictionParameters.rdbeRestrictions)
+                .getValue();
+        rdbeParameters = parameterSet
+                .getParameter(
+                        DPPSumFormulaPredictionParameters.rdbeRestrictions)
+                .getEmbeddedParameters();
 
-    isotopeParameters = parameterSet.getParameter(DPPSumFormulaPredictionParameters.isotopeFilter)
-        .getEmbeddedParameters();
+        isotopeParameters = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.isotopeFilter)
+                .getEmbeddedParameters();
 
-    checkIsotopes =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.isotopeFilter).getValue();
+        checkIsotopes = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.isotopeFilter)
+                .getValue();
 
-    checkRatios =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios).getValue();
-    ratiosParameters = parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
-        .getEmbeddedParameters();
+        checkRatios = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
+                .getValue();
+        ratiosParameters = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
+                .getEmbeddedParameters();
 
-    elementCounts =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.elements).getValue();
+        elementCounts = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.elements)
+                .getValue();
 
-    mzTolerance =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
+        mzTolerance = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.mzTolerance)
+                .getValue();
 
-    setDisplayResults(
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue());
-    setColor(parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue());
+        setDisplayResults(parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.displayResults)
+                .getValue());
+        setColor(parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.datasetColor)
+                .getValue());
 
-    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
-        .getEmbeddedParameter().getValue();
+        numResults = parameterSet
+                .getParameter(DPPSumFormulaPredictionParameters.displayResults)
+                .getEmbeddedParameter().getValue();
 
-    currentIndex = 0;
-  }
-
-
-  @Override
-  public double getFinishedPercentage() {
-    if (getDataPoints().length == 0)
-      return 0;
-    return ((double) currentIndex / getDataPoints().length);
-  }
-
-  @Override
-  public void run() {
-    if(!checkParameterSet() || !checkValues()) {
-      setStatus(TaskStatus.ERROR);
-      return;
+        currentIndex = 0;
     }
 
-    if (getDataPoints().length == 0) {
-      logger.info("Data point/Spectra processing: 0 data points were passed to "
-          + getTaskDescription() + " Please check the parameters.");
-      setStatus(TaskStatus.CANCELED);
-      return;
+    @Override
+    public double getFinishedPercentage() {
+        if (getDataPoints().length == 0)
+            return 0;
+        return ((double) currentIndex / getDataPoints().length);
     }
 
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      
-      logger.info("Data point/Spectra processing: The array of data points passed to "
-          + getTaskDescription()
-          + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
-      setStatus(TaskStatus.CANCELED);
-      return;
+    @Override
+    public void run() {
+        if (!checkParameterSet() || !checkValues()) {
+            setStatus(TaskStatus.ERROR);
+            return;
+        }
+
+        if (getDataPoints().length == 0) {
+            logger.info(
+                    "Data point/Spectra processing: 0 data points were passed to "
+                            + getTaskDescription()
+                            + " Please check the parameters.");
+            setStatus(TaskStatus.CANCELED);
+            return;
+        }
+
+        if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
+
+            logger.info(
+                    "Data point/Spectra processing: The array of data points passed to "
+                            + getTaskDescription()
+                            + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
+            setStatus(TaskStatus.CANCELED);
+            return;
+        }
+
+        setStatus(TaskStatus.PROCESSING);
+
+        List<ProcessedDataPoint> resultList = new ArrayList<>();
+
+        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+
+        for (int i = 0; i < dataPoints.length; i++) {
+
+            if (isCanceled())
+                return;
+
+            if (dataPoints[i].getIntensity() < noiseLevel)
+                continue;
+
+            massRange = mzTolerance.getToleranceRange(
+                    (dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
+
+            MolecularFormulaRange elCounts = DynamicParameterUtils
+                    .buildFormulaRangeOnIsotopePatternResults(
+                            (ProcessedDataPoint) dataPoints[i], elementCounts);
+
+            generator = new MolecularFormulaGenerator(builder,
+                    massRange.lowerEndpoint(), massRange.upperEndpoint(),
+                    elCounts);
+
+            List<PredResult> formulas = generateFormulas(
+                    (ProcessedDataPoint) dataPoints[i], massRange, charge,
+                    generator);
+
+            DPPSumFormulaResult[] results = genereateResults(formulas,
+                    numResults);
+
+            ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
+            resultList.add((ProcessedDataPoint) dataPoints[i]);
+            currentIndex++;
+        }
+
+        // setResults((ProcessedDataPoint[]) dataPoints);
+        setResults(resultList.toArray(new ProcessedDataPoint[0]));
+        setStatus(TaskStatus.FINISHED);
     }
 
-    setStatus(TaskStatus.PROCESSING);
-    
-    List<ProcessedDataPoint> resultList = new ArrayList<>();
+    private class PredResult {
+        public double ppm;
+        public String formula;
+        public double score;
 
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+        PredResult(double ppm, String formula) {
+            this.ppm = ppm;
+            this.formula = formula;
+        }
 
-    for (int i = 0; i < dataPoints.length; i++) {
-
-      if (isCanceled())
-        return;
-
-      if (dataPoints[i].getIntensity() < noiseLevel)
-        continue;
-
-      massRange =
-          mzTolerance.getToleranceRange((dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
-      
-      MolecularFormulaRange elCounts = DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults((ProcessedDataPoint)dataPoints[i], elementCounts);
-      
-      generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
-          massRange.upperEndpoint(), elCounts);
-      
-
-      List<PredResult> formulas =
-          generateFormulas((ProcessedDataPoint) dataPoints[i], massRange, charge, generator);
-
-      DPPSumFormulaResult[] results = genereateResults(formulas, numResults);
-
-      ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
-      resultList.add((ProcessedDataPoint) dataPoints[i]);
-      currentIndex++;
+        PredResult(double ppm, String formula, double score) {
+            this.ppm = ppm;
+            this.formula = formula;
+            this.score = score;
+        }
     }
 
-//    setResults((ProcessedDataPoint[]) dataPoints);
-    setResults(resultList.toArray(new ProcessedDataPoint[0]));
-    setStatus(TaskStatus.FINISHED);
-  }
+    /**
+     * Predicts sum formulas for a given m/z and parameters.
+     * 
+     * @param mz
+     *            m/z to generate sum formulas from
+     * @param massRange
+     *            Mass range for sum formulas
+     * @param charge
+     *            Charge of the molecule
+     * @param generator
+     *            instance of MolecularFormulaGenerator
+     * @return List<PredResult> sorted by relative ppm difference and String of
+     *         the formula.
+     */
+    private List<PredResult> generateFormulas(ProcessedDataPoint dp,
+            Range<Double> massRange, int charge,
+            MolecularFormulaGenerator generator) {
 
+        List<PredResult> possibleFormulas = new ArrayList<>();
 
-  private class PredResult {
-    public double ppm;
-    public String formula;
-    public double score;
+        IMolecularFormula cdkFormula;
 
-    PredResult(double ppm, String formula) {
-      this.ppm = ppm;
-      this.formula = formula;
+        while ((cdkFormula = generator.getNextFormula()) != null) {
+
+            // Mass is ok, so test other constraints
+            if (!checkConstraints(cdkFormula))
+                continue;
+
+            String formula = MolecularFormulaManipulator.getString(cdkFormula);
+
+            // calc rel mass deviation
+            Double relMassDev = ((((dp.getMZ() - //
+                    ionType.getAddedMass()) / charge)//
+                    - (FormulaUtils.calculateExactMass(//
+                            MolecularFormulaManipulator.getString(cdkFormula)))
+                            / charge)
+                    / ((dp.getMZ() //
+                            - ionType.getAddedMass()) / charge))
+                    * 1000000;
+
+            // write to map
+            if (checkIsotopes
+                    && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+                double score = getIsotopeSimilarityScore(cdkFormula,
+                        (IsotopePattern) dp
+                                .getFirstResultByType(ResultType.ISOTOPEPATTERN)
+                                .getValue());
+                possibleFormulas
+                        .add(new PredResult(relMassDev, formula, score));
+            } else {
+                possibleFormulas.add(new PredResult(relMassDev, formula));
+            }
+        }
+
+        evaluateAndSortFormulas(dp, possibleFormulas);
+
+        return possibleFormulas;
     }
 
-    PredResult(double ppm, String formula, double score) {
-      this.ppm = ppm;
-      this.formula = formula;
-      this.score = score;
-    }
-  }
+    /**
+     * Put additional evaluations here. E.g. adduct checks or so
+     * 
+     * @param dp
+     * @param possibleFormulas
+     */
+    private void evaluateAndSortFormulas(ProcessedDataPoint dp,
+            List<PredResult> possibleFormulas) {
 
-  /**
-   * Predicts sum formulas for a given m/z and parameters.
-   * 
-   * @param mz m/z to generate sum formulas from
-   * @param massRange Mass range for sum formulas
-   * @param charge Charge of the molecule
-   * @param generator instance of MolecularFormulaGenerator
-   * @return List<PredResult> sorted by relative ppm difference and String of the formula.
-   */
-  private List<PredResult> generateFormulas(ProcessedDataPoint dp, Range<Double> massRange,
-      int charge, MolecularFormulaGenerator generator) {
-
-    List<PredResult> possibleFormulas = new ArrayList<>();
-
-    IMolecularFormula cdkFormula;
-
-    while ((cdkFormula = generator.getNextFormula()) != null) {
-
-      // Mass is ok, so test other constraints
-      if (!checkConstraints(cdkFormula))
-        continue;
-
-      String formula = MolecularFormulaManipulator.getString(cdkFormula);
-
-      // calc rel mass deviation
-      Double relMassDev = ((((dp.getMZ() - //
-          ionType.getAddedMass()) / charge)//
-          - (FormulaUtils.calculateExactMass(//
-              MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-          / ((dp.getMZ() //
-              - ionType.getAddedMass()) / charge))
-          * 1000000;
-
-      // write to map
-      if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-        double score = getIsotopeSimilarityScore(cdkFormula,
-            (IsotopePattern) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue());
-        possibleFormulas.add(new PredResult(relMassDev, formula, score));
-      } else {
-        possibleFormulas.add(new PredResult(relMassDev, formula));
-      }
+        // sort by score or ppm
+        if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+            possibleFormulas.sort(
+                    (Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
+                        return -1 * Double.compare(Math.abs(o1.score),
+                                Math.abs(o2.score)); // *-1 to sort
+                                                     // descending
+                    });
+        } else {
+            possibleFormulas.sort(
+                    (Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
+                        return Double.compare(Math.abs(o1.ppm),
+                                Math.abs(o2.ppm));
+                    });
+        }
     }
 
-    evaluateAndSortFormulas(dp, possibleFormulas);
+    private DPPSumFormulaResult[] genereateResults(List<PredResult> formulas,
+            int n) {
+        if (formulas.size() < n)
+            n = formulas.size();
 
-    return possibleFormulas;
-  }
-  
-  /**
-   * Put additional evaluations here. E.g. adduct checks or so
-   * @param dp
-   * @param possibleFormulas
-   */
-  private void evaluateAndSortFormulas(ProcessedDataPoint dp, List<PredResult> possibleFormulas) {
+        DPPSumFormulaResult[] results = new DPPSumFormulaResult[n];
 
-    // sort by score or ppm
-    if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-      possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
-        return -1 * Double.compare(Math.abs(o1.score), Math.abs(o2.score)); // *-1 to sort
-                                                                            // descending
-      });
-    } else {
-      possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
-        return Double.compare(Math.abs(o1.ppm), Math.abs(o2.ppm));
-      });
-    }
-  }
+        for (int i = 0; i < results.length; i++) {
+            results[i] = new DPPSumFormulaResult(formulas.get(i).formula,
+                    formulas.get(i).ppm, formulas.get(i).score);
+        }
 
-  private DPPSumFormulaResult[] genereateResults(List<PredResult> formulas, int n) {
-    if (formulas.size() < n)
-      n = formulas.size();
-
-    DPPSumFormulaResult[] results = new DPPSumFormulaResult[n];
-
-    for (int i = 0; i < results.length; i++) {
-      results[i] = new DPPSumFormulaResult(formulas.get(i).formula, formulas.get(i).ppm,
-          formulas.get(i).score);
+        return results;
     }
 
-    return results;
-  }
+    private double getIsotopeSimilarityScore(IMolecularFormula cdkFormula,
+            IsotopePattern detectedPattern) {
 
-  private double getIsotopeSimilarityScore(IMolecularFormula cdkFormula,
-      IsotopePattern detectedPattern) {
+        IsotopePattern predictedIsotopePattern = null;
+        Double isotopeScore = null;
+        String stringFormula = MolecularFormulaManipulator
+                .getString(cdkFormula);
 
-    IsotopePattern predictedIsotopePattern = null;
-    Double isotopeScore = null;
-    String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
+        String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula,
+                ionType, charge);
 
-    String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
+        final double isotopeNoiseLevel = isotopeParameters
+                .getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel)
+                .getValue();
 
-    final double isotopeNoiseLevel =
-        isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
+        final double detectedPatternHeight = detectedPattern
+                .getHighestDataPoint().getIntensity();
 
-    final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
+        final double minPredictedAbundance = isotopeNoiseLevel
+                / detectedPatternHeight;
 
-    final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
+        predictedIsotopePattern = IsotopePatternCalculator
+                .calculateIsotopePattern(adjustedFormula, minPredictedAbundance,
+                        charge, ionType.getPolarity());
 
-    predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(adjustedFormula,
-        minPredictedAbundance, charge, ionType.getPolarity());
+        isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(
+                detectedPattern, predictedIsotopePattern, isotopeParameters);
 
-    isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
-        predictedIsotopePattern, isotopeParameters);
-
-    return isotopeScore;
-  }
-
-  private boolean checkConstraints(IMolecularFormula cdkFormula) {
-
-    // Check elemental ratios
-    if (checkRatios) {
-      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
-      if (!check)
-        return false;
+        return isotopeScore;
     }
 
-    Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+    private boolean checkConstraints(IMolecularFormula cdkFormula) {
 
-    // Check RDBE condition
-    if (checkRDBE && (rdbeValue != null)) {
-      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
-      if (!check)
-        return false;
+        // Check elemental ratios
+        if (checkRatios) {
+            boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula,
+                    ratiosParameters);
+            if (!check)
+                return false;
+        }
+
+        Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+
+        // Check RDBE condition
+        if (checkRDBE && (rdbeValue != null)) {
+            boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue,
+                    rdbeParameters);
+            if (!check)
+                return false;
+        }
+
+        return true;
     }
 
-    return true;
-  }
+    @Override
+    public void cancel() {
+        super.cancel();
 
-  @Override
-  public void cancel() {
-    super.cancel();
+        // We need to cancel the formula generator, because searching for next
+        // candidate formula may take a looong time
+        if (generator != null)
+            generator.cancel();
 
-    // We need to cancel the formula generator, because searching for next
-    // candidate formula may take a looong time
-    if (generator != null)
-      generator.cancel();
-
-  }
-
-  @Override
-  public void displayResults() {
-    if (displayResults || getController().isLastTaskRunning()) {
-      SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(), DPPResultsDataSet.class);
-      DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
-      getTargetPlot().addDataSet(
-          new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")",
-              getResults()),
-          color, false, labelGen);
     }
-  }
+
+    @Override
+    public void displayResults() {
+        if (displayResults || getController().isLastTaskRunning()) {
+            SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(),
+                    DPPResultsDataSet.class);
+            DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(
+                    getTargetPlot());
+            getTargetPlot().addDataSet(
+                    new DPPResultsDataSet("Sum formula prediction results ("
+                            + getResults().length + ")", getResults()),
+                    color, false, labelGen);
+        }
+    }
 }

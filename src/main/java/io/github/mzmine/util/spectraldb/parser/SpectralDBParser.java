@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,68 +30,73 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 public abstract class SpectralDBParser {
-  private static Logger logger = Logger.getLogger(SpectralDBParser.class.getName());
+    private static Logger logger = Logger
+            .getLogger(SpectralDBParser.class.getName());
 
-  protected int bufferEntries = 1000;
-  private List<SpectralDBEntry> list;
-  private int processedEntries = 0;
-  // process entries
-  protected LibraryEntryProcessor processor;
+    protected int bufferEntries = 1000;
+    private List<SpectralDBEntry> list;
+    private int processedEntries = 0;
+    // process entries
+    protected LibraryEntryProcessor processor;
 
-  public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
-    list = new ArrayList<>();
-    this.bufferEntries = bufferEntries;
-    this.processor = processor;
-  }
-
-  /**
-   * Parses the file and creates spectral db entries
-   * 
-   * @param task
-   * 
-   * @param dataBaseFile
-   * @return the list or an empty list if something went wrong (e.g., wrong format)
-   * @throws IOException
-   */
-  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile)
-      throws UnsupportedFormatException, IOException;
-
-  /**
-   * Add DB entry and push every 1000 entries. Does not allow 0 intensity values.
-   * 
-   * @param entry
-   */
-  protected synchronized boolean addLibraryEntry(SpectralDBEntry entry) {
-    // no 0 values allowed in entry
-    if (Arrays.stream(entry.getDataPoints()).mapToDouble(DataPoint::getIntensity)
-        .anyMatch(v -> Double.compare(v, 0) == 0))
-      return false;
-    list.add(entry);
-    if (list.size() % bufferEntries == 0) {
-      // start new task for every 1000 entries
-      logger.info("Imported " + list.size() + " library entries");
-      // push entries
-      processor.processNextEntries(list, processedEntries);
-      processedEntries += list.size();
-      // new list
-      list = new ArrayList<>();
-    }
-    return true;
-  }
-
-  /**
-   * Finish and push last entries
-   */
-  protected synchronized void finish() {
-    // push entries
-    if (!list.isEmpty()) {
-      logger.info("Imported last " + list.size() + " library entries");
-      processor.processNextEntries(list, processedEntries);
-      processedEntries += list.size();
-      list = null;
+    public SpectralDBParser(int bufferEntries,
+            LibraryEntryProcessor processor) {
+        list = new ArrayList<>();
+        this.bufferEntries = bufferEntries;
+        this.processor = processor;
     }
 
-    logger.info(processedEntries + "  library entries imported");
-  }
+    /**
+     * Parses the file and creates spectral db entries
+     * 
+     * @param task
+     * 
+     * @param dataBaseFile
+     * @return the list or an empty list if something went wrong (e.g., wrong
+     *         format)
+     * @throws IOException
+     */
+    public abstract boolean parse(AbstractTask mainTask, File dataBaseFile)
+            throws UnsupportedFormatException, IOException;
+
+    /**
+     * Add DB entry and push every 1000 entries. Does not allow 0 intensity
+     * values.
+     * 
+     * @param entry
+     */
+    protected synchronized boolean addLibraryEntry(SpectralDBEntry entry) {
+        // no 0 values allowed in entry
+        if (Arrays.stream(entry.getDataPoints())
+                .mapToDouble(DataPoint::getIntensity)
+                .anyMatch(v -> Double.compare(v, 0) == 0))
+            return false;
+        list.add(entry);
+        if (list.size() % bufferEntries == 0) {
+            // start new task for every 1000 entries
+            logger.info("Imported " + list.size() + " library entries");
+            // push entries
+            processor.processNextEntries(list, processedEntries);
+            processedEntries += list.size();
+            // new list
+            list = new ArrayList<>();
+        }
+        return true;
+    }
+
+    /**
+     * Finish and push last entries
+     */
+    protected synchronized void finish() {
+        // push entries
+        if (!list.isEmpty()) {
+            logger.info("Imported last " + list.size() + " library entries");
+            processor.processNextEntries(list, processedEntries);
+            processedEntries += list.size();
+            list = null;
+        }
+
+        logger.info(processedEntries + "  library entries imported");
+    }
 
 }

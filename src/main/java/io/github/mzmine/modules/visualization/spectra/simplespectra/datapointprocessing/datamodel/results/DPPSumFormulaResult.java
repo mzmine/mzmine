@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,42 +23,42 @@ import java.text.NumberFormat;
 
 public class DPPSumFormulaResult extends DPPResult<String> {
 
-  private final double ppm;
-  private final double score;
+    private final double ppm;
+    private final double score;
 
+    private static final NumberFormat format = new DecimalFormat("0.00");
 
-  private static final NumberFormat format = new DecimalFormat("0.00");
-  
-  public DPPSumFormulaResult(String formula, double ppm) {
-    super(formula);
-    this.ppm = ppm;
-    this.score = 0.f;
-  }
-  
-  public DPPSumFormulaResult(String formula, double ppm, double score) {
-    super(formula);
-    this.ppm = ppm;
-    this.score = score;
-  }
+    public DPPSumFormulaResult(String formula, double ppm) {
+        super(formula);
+        this.ppm = ppm;
+        this.score = 0.f;
+    }
 
-  @Override
-  public String toString() {
-    String strScore = ", -";
-    if(score != 0.0d)
-      strScore = ", " + format.format(score * 100.0) + " %";
-    return getValue() + " (Δ " + format.format(ppm) + " ppm" + strScore + ")";
-  }
+    public DPPSumFormulaResult(String formula, double ppm, double score) {
+        super(formula);
+        this.ppm = ppm;
+        this.score = score;
+    }
 
-  public double getPpm() {
-    return ppm;
-  }
-  
-  public double getScore() {
-    return score;
-  }
+    @Override
+    public String toString() {
+        String strScore = ", -";
+        if (score != 0.0d)
+            strScore = ", " + format.format(score * 100.0) + " %";
+        return getValue() + " (Δ " + format.format(ppm) + " ppm" + strScore
+                + ")";
+    }
 
-  @Override
-  public ResultType getResultType() {
-    return ResultType.SUMFORMULA;
-  }
+    public double getPpm() {
+        return ppm;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    @Override
+    public ResultType getResultType() {
+        return ResultType.SUMFORMULA;
+    }
 }

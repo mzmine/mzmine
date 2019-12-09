@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,30 +28,30 @@ import java.util.List;
  */
 public class AllLipidClasses {
 
-  private static List<Object> allClasses = new ArrayList<>();
+    private static List<Object> allClasses = new ArrayList<>();
 
-  /**
-   * get list of objects containing all lipid classes
-   */
-  public static List<Object> getList() {
-    LipidMainClasses lastMain = null;
-    LipidCoreClasses lastCore = null;
-    for (LipidClasses classes : LipidClasses.values()) {
-      LipidCoreClasses core = classes.getCoreClass();
-      LipidMainClasses main = classes.getMainClass();
-      if (lastCore == null || !core.equals(lastCore)) {
-        lastCore = core;
-        // add core to list
-        allClasses.add(core);
-      }
-      if (lastMain == null || !main.equals(lastMain)) {
-        lastMain = main;
-        // add main to list
-        allClasses.add(main);
-      }
-      // add
-      allClasses.add(classes);
+    /**
+     * get list of objects containing all lipid classes
+     */
+    public static List<Object> getList() {
+        LipidMainClasses lastMain = null;
+        LipidCoreClasses lastCore = null;
+        for (LipidClasses classes : LipidClasses.values()) {
+            LipidCoreClasses core = classes.getCoreClass();
+            LipidMainClasses main = classes.getMainClass();
+            if (lastCore == null || !core.equals(lastCore)) {
+                lastCore = core;
+                // add core to list
+                allClasses.add(core);
+            }
+            if (lastMain == null || !main.equals(lastMain)) {
+                lastMain = main;
+                // add main to list
+                allClasses.add(main);
+            }
+            // add
+            allClasses.add(classes);
+        }
+        return allClasses;
     }
-    return allClasses;
-  }
 }

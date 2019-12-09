@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,160 +35,156 @@ import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 
 public class JFontSpecs extends JPanel {
 
-  private JFontBox fontBox;
-  private JFontStyleBox styleBox;
-  private JTextField txtSize;
-  private JColorPickerButton color;
-  private DelayedDocumentListener dl;
+    private JFontBox fontBox;
+    private JFontStyleBox styleBox;
+    private JTextField txtSize;
+    private JColorPickerButton color;
+    private DelayedDocumentListener dl;
 
-  public JFontSpecs() {
-    super();
-    fontBox = new JFontBox();
-    add(fontBox);
+    public JFontSpecs() {
+        super();
+        fontBox = new JFontBox();
+        add(fontBox);
 
-    styleBox = new JFontStyleBox();
-    add(styleBox);
+        styleBox = new JFontStyleBox();
+        add(styleBox);
 
+        txtSize = new JTextField();
+        txtSize.setHorizontalAlignment(SwingConstants.RIGHT);
+        txtSize.setText("14");
+        add(txtSize);
+        txtSize.setColumns(3);
 
-    txtSize = new JTextField();
-    txtSize.setHorizontalAlignment(SwingConstants.RIGHT);
-    txtSize.setText("14");
-    add(txtSize);
-    txtSize.setColumns(3);
+        color = new JColorPickerButton(this);
+        add(color);
+        color.setColor(Color.WHITE);
 
-    color = new JColorPickerButton(this);
-    add(color);
-    color.setColor(Color.WHITE);
-
-    // setPreferredSize(new Dimension(280, 30));
-    this.validate();
-    setMaximumSize(getPreferredSize());
-  }
-
-
-  public void setSelectedFont(Font font) {
-    fontBox.setSelectedItem(font.getName());
-    styleBox.setSelectedIndex(font.getStyle());
-    txtSize.setText(String.valueOf(font.getSize()));
-  }
-
-  /**
-   * FontSpecs (Font and Color)
-   * 
-   * @return
-   */
-  public FontSpecs getFontSpecs() {
-    return new FontSpecs(getColor(), getFont());
-  }
-
-  public void setFontSpecs(FontSpecs f) {
-    setColor(f.getColor());
-    setFont(f.getFont());
-  }
-
-  @Override
-  public void setFont(Font font) {
-    setSelectedFont(font);
-  }
-
-  public Font getSelectedFont() {
-    return new Font(getFontFamily(), getFontStyle(), getFontSize());
-  }
-
-  @Override
-  public Font getFont() {
-    return getSelectedFont();
-  }
-
-  public Color getColor() {
-    return color.getColor();
-  }
-
-  public void setColor(Color c) {
-    color.setColor(c);
-  }
-
-  public void setColor(Paint c) {
-    color.setColor((Color) c);
-  }
-
-  public void setFontSize(int size) {
-    txtSize.setText(String.valueOf(size));
-  }
-
-  /**
-   * The font size or 1 if there is an error.
-   * 
-   * @return
-   */
-  public int getFontSize() {
-    if (txtSize == null || txtSize.getText().length() == 0)
-      return 1;
-    try {
-      return Integer.parseInt(txtSize.getText());
-    } catch (Exception e) {
-      e.printStackTrace();
-      return 1;
+        // setPreferredSize(new Dimension(280, 30));
+        this.validate();
+        setMaximumSize(getPreferredSize());
     }
-  }
 
-  /**
-   * Style: plain, italic, bold, ...
-   * 
-   * @return
-   */
-  public int getFontStyle() {
-    if (styleBox == null)
-      return Font.PLAIN;
-    return styleBox.getSelectedStyle();
-  }
+    public void setSelectedFont(Font font) {
+        fontBox.setSelectedItem(font.getName());
+        styleBox.setSelectedIndex(font.getStyle());
+        txtSize.setText(String.valueOf(font.getSize()));
+    }
 
-  /**
-   * Family such as arial ...
-   * 
-   * @return
-   */
-  public String getFontFamily() {
-    if (fontBox == null)
-      return "Arial";
-    return String.valueOf(fontBox.getSelectedItem());
-  }
+    /**
+     * FontSpecs (Font and Color)
+     * 
+     * @return
+     */
+    public FontSpecs getFontSpecs() {
+        return new FontSpecs(getColor(), getFont());
+    }
 
-  public void addListener(ColorChangedListener ccl, ItemListener il, DocumentListener dl) {
-    fontBox.addItemListener(il);
-    styleBox.addItemListener(il);
-    txtSize.getDocument().addDocumentListener(dl);
-    color.addColorChangedListener(ccl);
-    if (dl instanceof DelayedDocumentListener)
-      this.dl = (DelayedDocumentListener) dl;
-  }
+    public void setFontSpecs(FontSpecs f) {
+        setColor(f.getColor());
+        setFont(f.getFont());
+    }
 
+    @Override
+    public void setFont(Font font) {
+        setSelectedFont(font);
+    }
 
-  public void addListener(final Consumer<FontSpecs> f) {
-    ColorChangedListener ccl = e -> f.accept(getFontSpecs());
-    ItemListener il = e -> f.accept(getFontSpecs());
-    dl = new DelayedDocumentListener() {
-      @Override
-      public void documentChanged(DocumentEvent e) {
-        f.accept(getFontSpecs());
-      }
-    };
+    public Font getSelectedFont() {
+        return new Font(getFontFamily(), getFontStyle(), getFontSize());
+    }
 
-    fontBox.addItemListener(il);
-    styleBox.addItemListener(il);
-    txtSize.getDocument().addDocumentListener(dl);
-    color.addColorChangedListener(ccl);
-  }
+    @Override
+    public Font getFont() {
+        return getSelectedFont();
+    }
 
+    public Color getColor() {
+        return color.getColor();
+    }
 
-  public JTextField getTxtSize() {
-    return txtSize;
-  }
+    public void setColor(Color c) {
+        color.setColor(c);
+    }
 
+    public void setColor(Paint c) {
+        color.setColor((Color) c);
+    }
 
-  public void stopListener() {
-    if (dl != null)
-      dl.stop();
-  }
+    public void setFontSize(int size) {
+        txtSize.setText(String.valueOf(size));
+    }
+
+    /**
+     * The font size or 1 if there is an error.
+     * 
+     * @return
+     */
+    public int getFontSize() {
+        if (txtSize == null || txtSize.getText().length() == 0)
+            return 1;
+        try {
+            return Integer.parseInt(txtSize.getText());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        }
+    }
+
+    /**
+     * Style: plain, italic, bold, ...
+     * 
+     * @return
+     */
+    public int getFontStyle() {
+        if (styleBox == null)
+            return Font.PLAIN;
+        return styleBox.getSelectedStyle();
+    }
+
+    /**
+     * Family such as arial ...
+     * 
+     * @return
+     */
+    public String getFontFamily() {
+        if (fontBox == null)
+            return "Arial";
+        return String.valueOf(fontBox.getSelectedItem());
+    }
+
+    public void addListener(ColorChangedListener ccl, ItemListener il,
+            DocumentListener dl) {
+        fontBox.addItemListener(il);
+        styleBox.addItemListener(il);
+        txtSize.getDocument().addDocumentListener(dl);
+        color.addColorChangedListener(ccl);
+        if (dl instanceof DelayedDocumentListener)
+            this.dl = (DelayedDocumentListener) dl;
+    }
+
+    public void addListener(final Consumer<FontSpecs> f) {
+        ColorChangedListener ccl = e -> f.accept(getFontSpecs());
+        ItemListener il = e -> f.accept(getFontSpecs());
+        dl = new DelayedDocumentListener() {
+            @Override
+            public void documentChanged(DocumentEvent e) {
+                f.accept(getFontSpecs());
+            }
+        };
+
+        fontBox.addItemListener(il);
+        styleBox.addItemListener(il);
+        txtSize.getDocument().addDocumentListener(dl);
+        color.addColorChangedListener(ccl);
+    }
+
+    public JTextField getTxtSize() {
+        return txtSize;
+    }
+
+    public void stopListener() {
+        if (dl != null)
+            dl.stop();
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,18 +27,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class GroupMS2Parameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  public static final MZToleranceParameter mzTol = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTol = new MZToleranceParameter();
 
-  public static final RTToleranceParameter rtTol = new RTToleranceParameter();
+    public static final RTToleranceParameter rtTol = new RTToleranceParameter();
 
-  public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
-      "Use the feature's edges (retention time) as a filter.", false);
+    public static final BooleanParameter limitRTByFeature = new BooleanParameter(
+            "Limit by RT edges",
+            "Use the feature's edges (retention time) as a filter.", false);
 
-
-  public GroupMS2Parameters() {
-    super(new Parameter[] {PEAK_LISTS, rtTol, mzTol, limitRTByFeature});
-  }
+    public GroupMS2Parameters() {
+        super(new Parameter[] { PEAK_LISTS, rtTol, mzTol, limitRTByFeature });
+    }
 
 }

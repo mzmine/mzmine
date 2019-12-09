@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,22 +28,23 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class PrecursorDBSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter(
-      "Spectral database file (MS/MS)",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+    public static final FileNameParameter dataBaseFile = new FileNameParameter(
+            "Spectral database file (MS/MS)",
+            "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
 
-  public static final MZToleranceParameter mzTolerancePrecursor =
-      new MZToleranceParameter("Precursor m/z tolerance",
-          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
+    public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+            "Precursor m/z tolerance",
+            "Precursor m/z tolerance is used to filter library entries", 0.001,
+            5);
 
-  public static final OptionalParameter<RTToleranceParameter> rtTolerance =
-      new OptionalParameter<>(new RTToleranceParameter());
+    public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+            new RTToleranceParameter());
 
-
-  public PrecursorDBSearchParameters() {
-    super(new Parameter[] {peakLists, dataBaseFile, mzTolerancePrecursor, rtTolerance});
-  }
+    public PrecursorDBSearchParameters() {
+        super(new Parameter[] { peakLists, dataBaseFile, mzTolerancePrecursor,
+                rtTolerance });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,40 +34,40 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
  */
 public class PeakSummaryVisualizerModule implements MZmineModule {
 
-  /**
-   * @see io.github.mzmine.modules.MZmineModule#getName()
-   */
-  @Override
-  public @Nonnull String getName() {
-    return "Feature list row summary";
-  }
+    /**
+     * @see io.github.mzmine.modules.MZmineModule#getName()
+     */
+    @Override
+    public @Nonnull String getName() {
+        return "Feature list row summary";
+    }
 
-  /**
-   * @see io.github.mzmine.modules.MZmineModule#setParameters(io.github.mzmine.data.ParameterSet)
-   */
-  public static void showNewPeakSummaryWindow(PeakListRow row) {
-    final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
-    newWindow.setVisible(true);
-    newWindow.setLocation(20, 20);
-    newWindow.setSize(new Dimension(1000, 600));
+    /**
+     * @see io.github.mzmine.modules.MZmineModule#setParameters(io.github.mzmine.data.ParameterSet)
+     */
+    public static void showNewPeakSummaryWindow(PeakListRow row) {
+        final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
+        newWindow.setVisible(true);
+        newWindow.setLocation(20, 20);
+        newWindow.setSize(new Dimension(1000, 600));
 
-    // Hack to show the new window in front of the main window
-    Timer timer = new Timer();
-    timer.schedule(new TimerTask() {
-      public void run() {
-        newWindow.toFront();
-      }
-    }, 200); // msecs
-    timer.schedule(new TimerTask() {
-      public void run() {
-        newWindow.toFront();
-      }
-    }, 400); // msecs
-  }
+        // Hack to show the new window in front of the main window
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                newWindow.toFront();
+            }
+        }, 200); // msecs
+        timer.schedule(new TimerTask() {
+            public void run() {
+                newWindow.toFront();
+            }
+        }, 400); // msecs
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SimpleParameterSet.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return SimpleParameterSet.class;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -23,50 +23,56 @@ import javax.swing.table.TableRowSorter;
 
 public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
 
-  public ResultTableSorter(ResultTableModel model) {
-    super(model);
+    public ResultTableSorter(ResultTableModel model) {
+        super(model);
 
-    /**
-     * Sets a comparator for sirius results Uses a trick with parsing Strings
-     */
-    this.setComparator(ResultTableModel.SIRIUS_SCORE_INDEX, new Comparator<String>() {
-      @Override
-      public int compare(String s1, String s2) {
-        // Process empty fields and move them to the end of the table
-        if (s1 == null && s2 == null)
-          return 0;
-        if (s1 == null)
-          return 1;
-        if (s2 == null)
-          return -1;
+        /**
+         * Sets a comparator for sirius results Uses a trick with parsing
+         * Strings
+         */
+        this.setComparator(ResultTableModel.SIRIUS_SCORE_INDEX,
+                new Comparator<String>() {
+                    @Override
+                    public int compare(String s1, String s2) {
+                        // Process empty fields and move them to the end of the
+                        // table
+                        if (s1 == null && s2 == null)
+                            return 0;
+                        if (s1 == null)
+                            return 1;
+                        if (s2 == null)
+                            return -1;
 
-        Double d1 = Double.parseDouble(s1);
-        Double d2 = Double.parseDouble(s2);
-        return d1.compareTo(d2);
-      }
-    });
+                        Double d1 = Double.parseDouble(s1);
+                        Double d2 = Double.parseDouble(s2);
+                        return d1.compareTo(d2);
+                    }
+                });
 
-    /**
-     * Sets a comparator for finger id results Uses a trick with parsing Strings
-     */
-    this.setComparator(ResultTableModel.FINGERID_SCORE_INDEX, new Comparator<String>() {
-      @Override
-      public int compare(String s1, String s2) {
-        // Process empty fields and move them to the end of the table
-        if (s1.equals("") && s2.equals(""))
-          return 0;
-        if (s1.equals(""))
-          return 1;
-        if (s2.equals(""))
-          return -1;
+        /**
+         * Sets a comparator for finger id results Uses a trick with parsing
+         * Strings
+         */
+        this.setComparator(ResultTableModel.FINGERID_SCORE_INDEX,
+                new Comparator<String>() {
+                    @Override
+                    public int compare(String s1, String s2) {
+                        // Process empty fields and move them to the end of the
+                        // table
+                        if (s1.equals("") && s2.equals(""))
+                            return 0;
+                        if (s1.equals(""))
+                            return 1;
+                        if (s2.equals(""))
+                            return -1;
 
-        Double d1 = Double.parseDouble(s1);
-        Double d2 = Double.parseDouble(s2);
+                        Double d1 = Double.parseDouble(s1);
+                        Double d2 = Double.parseDouble(s2);
 
-        // Inverted comparison as working with negative values
-        return d2.compareTo(d1);
-      }
-    });
-    toggleSortOrder(ResultTableModel.FINGERID_SCORE_INDEX);
-  }
+                        // Inverted comparison as working with negative values
+                        return d2.compareTo(d1);
+                    }
+                });
+        toggleSortOrder(ResultTableModel.FINGERID_SCORE_INDEX);
+    }
 }

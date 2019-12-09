@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -60,78 +60,89 @@ import io.github.mzmine.util.ExitCode;
  */
 public class GnpsGcSubmitParameters extends SimpleParameterSet {
 
-  public enum Preset {
-    HIGHRES, LOWRES;
-  }
-
-  /**
-   * Optional: Select meta data file
-   */
-  public static final OptionalParameter<FileNameParameter> KOVATS_FILE = new OptionalParameter<>(
-      new FileNameParameter("Kovats RI file", "File with Kovats retention indexes", "csv"), false);
-
-  public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
-      "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
-      Preset.HIGHRES);
-
-  public static final StringParameter JOB_TITLE = new StringParameter("Job title",
-      "The title of the new GNPS feature-based molecular networking job", "", false);
-  /**
-   * Email to be notified on job status
-   */
-  public static final StringParameter EMAIL = new StringParameter("Email",
-      "Email address for notifications about the job", "", false, true);
-  public static final StringParameter USER =
-      new StringParameter("Username", "Username for login", "", false, true);
-  public static final PasswordParameter PASSWORD = new PasswordParameter("Password",
-      "The password is sent without encryption, until the server has has moved to its final destination.",
-      "", false);
-
-  /**
-   * Show GNPS job website
-   */
-  public static final BooleanParameter OPEN_WEBSITE =
-      new BooleanParameter("Open website", "Website of GNPS job", true);
-
-  public GnpsGcSubmitParameters() {
-    super(new Parameter[] {KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    // add button to create Kovats file
-    FileNameComponent pn = (FileNameComponent) ((OptionalParameterComponent) dialog
-        .getComponentForParameter(KOVATS_FILE)).getEmbeddedComponent();
-    JButton btn = new JButton("Create");
-    pn.add(btn);
-    btn.addActionListener(e -> openKovatsDialog(pn));
-
-    dialog.updateMinimumSize();
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
-
-  /**
-   * OPen Kovats creation dialog, save file and retrieve file
-   * 
-   * @param pn
-   */
-  private void openKovatsDialog(FileNameComponent pn) {
-    // at least one raw data file in project
-    RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    if (raw == null || raw.length <= 0) {
-      DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
-          "No RAW data files",
-          "Cannot use Kovats extraction without raw data files in this project", 3500);
-      return;
+    public enum Preset {
+        HIGHRES, LOWRES;
     }
 
-    // todo open dialog
-    ParameterSet param =
-        MZmineCore.getConfiguration().getModuleParameters(KovatsIndexExtractionModule.class);
-    KovatsIndexExtractionDialog kd =
-        new KovatsIndexExtractionDialog(null, param, savedFile -> pn.setValue(savedFile));
-    kd.setVisible(true);
-  }
+    /**
+     * Optional: Select meta data file
+     */
+    public static final OptionalParameter<FileNameParameter> KOVATS_FILE = new OptionalParameter<>(
+            new FileNameParameter("Kovats RI file",
+                    "File with Kovats retention indexes", "csv"),
+            false);
+
+    public static final ComboParameter<Preset> PRESETS = new ComboParameter<>(
+            "Presets",
+            "GNPS parameter presets for high or low resolution mass spectrometry data",
+            Preset.values(), Preset.HIGHRES);
+
+    public static final StringParameter JOB_TITLE = new StringParameter(
+            "Job title",
+            "The title of the new GNPS feature-based molecular networking job",
+            "", false);
+    /**
+     * Email to be notified on job status
+     */
+    public static final StringParameter EMAIL = new StringParameter("Email",
+            "Email address for notifications about the job", "", false, true);
+    public static final StringParameter USER = new StringParameter("Username",
+            "Username for login", "", false, true);
+    public static final PasswordParameter PASSWORD = new PasswordParameter(
+            "Password",
+            "The password is sent without encryption, until the server has has moved to its final destination.",
+            "", false);
+
+    /**
+     * Show GNPS job website
+     */
+    public static final BooleanParameter OPEN_WEBSITE = new BooleanParameter(
+            "Open website", "Website of GNPS job", true);
+
+    public GnpsGcSubmitParameters() {
+        super(new Parameter[] { KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER,
+                PASSWORD, OPEN_WEBSITE });
+    }
+
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+                valueCheckRequired, this);
+        // add button to create Kovats file
+        FileNameComponent pn = (FileNameComponent) ((OptionalParameterComponent) dialog
+                .getComponentForParameter(KOVATS_FILE)).getEmbeddedComponent();
+        JButton btn = new JButton("Create");
+        pn.add(btn);
+        btn.addActionListener(e -> openKovatsDialog(pn));
+
+        dialog.updateMinimumSize();
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
+
+    /**
+     * OPen Kovats creation dialog, save file and retrieve file
+     * 
+     * @param pn
+     */
+    private void openKovatsDialog(FileNameComponent pn) {
+        // at least one raw data file in project
+        RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject()
+                .getDataFiles();
+        if (raw == null || raw.length <= 0) {
+            DialogLoggerUtil.showMessageDialogForTime(
+                    MZmineCore.getDesktop().getMainWindow(),
+                    "No RAW data files",
+                    "Cannot use Kovats extraction without raw data files in this project",
+                    3500);
+            return;
+        }
+
+        // todo open dialog
+        ParameterSet param = MZmineCore.getConfiguration()
+                .getModuleParameters(KovatsIndexExtractionModule.class);
+        KovatsIndexExtractionDialog kd = new KovatsIndexExtractionDialog(null,
+                param, savedFile -> pn.setValue(savedFile));
+        kd.setVisible(true);
+    }
 }

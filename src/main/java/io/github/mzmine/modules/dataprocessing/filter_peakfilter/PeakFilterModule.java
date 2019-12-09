@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,50 +31,50 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * Implements a filter for alignment results. The filter removes rows that have fewer than a defined
- * number of peaks detected and other conditions.
+ * Implements a filter for alignment results. The filter removes rows that have
+ * fewer than a defined number of peaks detected and other conditions.
  */
 public class PeakFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Peak filter";
-  private static final String MODULE_DESCRIPTION =
-      "This method removes certain peak entries based on given restrictions.";
+    private static final String MODULE_NAME = "Peak filter";
+    private static final String MODULE_DESCRIPTION = "This method removes certain peak entries based on given restrictions.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    final PeakList[] peakLists =
-        parameters.getParameter(PeakFilterParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-
-      Task newTask = new PeakFilterTask(project, peakList, parameters);
-      tasks.add(newTask);
-
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return PeakFilterParameters.class;
-  }
+        final PeakList[] peakLists = parameters
+                .getParameter(PeakFilterParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+
+            Task newTask = new PeakFilterTask(project, peakList, parameters);
+            tasks.add(newTask);
+
+        }
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return PeakFilterParameters.class;
+    }
 }

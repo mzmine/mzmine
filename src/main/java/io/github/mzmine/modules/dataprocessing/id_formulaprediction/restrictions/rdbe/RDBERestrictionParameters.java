@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,15 +29,17 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class RDBERestrictionParameters extends SimpleParameterSet {
 
-  public static final DoubleRangeParameter rdbeRange = new DoubleRangeParameter("RDBE range",
-      "Range of allowed RDBE (Range or Double Bonds Equivalents) value",
-      NumberFormat.getNumberInstance(), Range.closed(-1.0, 40.0));
+    public static final DoubleRangeParameter rdbeRange = new DoubleRangeParameter(
+            "RDBE range",
+            "Range of allowed RDBE (Range or Double Bonds Equivalents) value",
+            NumberFormat.getNumberInstance(), Range.closed(-1.0, 40.0));
 
-  public static final BooleanParameter rdbeWholeNum = new BooleanParameter(
-      "RDBE must be an integer", "Only integer values are allowed for RDBE", true);
+    public static final BooleanParameter rdbeWholeNum = new BooleanParameter(
+            "RDBE must be an integer",
+            "Only integer values are allowed for RDBE", true);
 
-  public RDBERestrictionParameters() {
-    super(new Parameter[] {rdbeRange, rdbeWholeNum});
-  }
+    public RDBERestrictionParameters() {
+        super(new Parameter[] { rdbeRange, rdbeWholeNum });
+    }
 
 }

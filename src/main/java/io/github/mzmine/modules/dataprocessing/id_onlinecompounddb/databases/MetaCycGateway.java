@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -46,94 +46,99 @@ import io.github.mzmine.util.InetUtils;
 
 public class MetaCycGateway implements DBGateway {
 
-  private static final String metaCycSearchAddress =
-      "https://websvc.biocyc.org/META/monoisotopicwt?wts=";
-  private static final String metaCycObjectAddress = "https://websvc.biocyc.org/getxml?META:";
-  private static final String metaCycEntryAddress =
-      "https://websvc.biocyc.org/compound?orgid=META&id=";
+    private static final String metaCycSearchAddress = "https://websvc.biocyc.org/META/monoisotopicwt?wts=";
+    private static final String metaCycObjectAddress = "https://websvc.biocyc.org/getxml?META:";
+    private static final String metaCycEntryAddress = "https://websvc.biocyc.org/compound?orgid=META&id=";
 
-  public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
-      ParameterSet parameters) throws IOException {
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+            int numOfResults, ParameterSet parameters) throws IOException {
 
-    final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
+        final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
 
-    final String queryAddress = metaCycSearchAddress + mass + "&tol=" + ppmTolerance;
+        final String queryAddress = metaCycSearchAddress + mass + "&tol="
+                + ppmTolerance;
 
-    final URL queryURL = new URL(queryAddress);
+        final URL queryURL = new URL(queryAddress);
 
-    final Logger logger = Logger.getLogger(this.getClass().getName());
+        final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    // Submit the query
-    logger.finest("Retrieving " + queryAddress);
-    final String queryResult = InetUtils.retrieveData(queryURL);
+        // Submit the query
+        logger.finest("Retrieving " + queryAddress);
+        final String queryResult = InetUtils.retrieveData(queryURL);
 
-    final List<String> results = new ArrayList<String>();
-    BufferedReader lineReader = new BufferedReader(new StringReader(queryResult));
-    String line;
-    while ((line = lineReader.readLine()) != null) {
-      String split[] = line.split("\\t");
-      if (split.length < 5)
-        continue;
-      String id = split[4];
-      results.add(id);
-      if (results.size() == numOfResults)
-        break;
+        final List<String> results = new ArrayList<String>();
+        BufferedReader lineReader = new BufferedReader(
+                new StringReader(queryResult));
+        String line;
+        while ((line = lineReader.readLine()) != null) {
+            String split[] = line.split("\\t");
+            if (split.length < 5)
+                continue;
+            String id = split[4];
+            results.add(id);
+            if (results.size() == numOfResults)
+                break;
+        }
+
+        return results.toArray(new String[0]);
+
     }
 
-    return results.toArray(new String[0]);
+    /**
+     * This method retrieves the details about PlantCyc compound
+     * 
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+            throws IOException {
 
-  }
+        final String dataURL = metaCycObjectAddress + ID;
 
-  /**
-   * This method retrieves the details about PlantCyc compound
-   * 
-   */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+        try {
 
-    final String dataURL = metaCycObjectAddress + ID;
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = dbf.newDocumentBuilder();
+            Document parsedResult = builder.parse(dataURL);
 
-    try {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
 
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      DocumentBuilder builder = dbf.newDocumentBuilder();
-      Document parsedResult = builder.parse(dataURL);
+            XPathExpression expr = xpath
+                    .compile("//ptools-xml/Compound/common-name");
+            NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult,
+                    XPathConstants.NODESET);
+            Element nameElement = (Element) nameElementNL.item(0);
 
-      XPathFactory factory = XPathFactory.newInstance();
-      XPath xpath = factory.newXPath();
+            if (nameElement == null)
+                throw new IOException("Could not parse compound name");
 
-      XPathExpression expr = xpath.compile("//ptools-xml/Compound/common-name");
-      NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult, XPathConstants.NODESET);
-      Element nameElement = (Element) nameElementNL.item(0);
+            String compoundName = nameElement.getTextContent();
 
-      if (nameElement == null)
-        throw new IOException("Could not parse compound name");
+            expr = xpath.compile("//ptools-xml/Compound/cml/molecule/formula");
+            NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult,
+                    XPathConstants.NODESET);
+            Element formulaElement = (Element) formulaElementNL.item(0);
+            String compoundFormula = formulaElement.getAttribute("concise");
+            compoundFormula = compoundFormula.replaceAll(" ", "");
 
-      String compoundName = nameElement.getTextContent();
+            final URL entryURL = new URL(metaCycEntryAddress + ID);
 
-      expr = xpath.compile("//ptools-xml/Compound/cml/molecule/formula");
-      NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult, XPathConstants.NODESET);
-      Element formulaElement = (Element) formulaElementNL.item(0);
-      String compoundFormula = formulaElement.getAttribute("concise");
-      compoundFormula = compoundFormula.replaceAll(" ", "");
+            // Unfortunately MetaCyc does not contain structures in MOL format
+            URL structure2DURL = null;
+            URL structure3DURL = null;
 
-      final URL entryURL = new URL(metaCycEntryAddress + ID);
+            if (compoundName == null) {
+                throw (new IOException("Invalid compound ID " + ID));
+            }
 
-      // Unfortunately MetaCyc does not contain structures in MOL format
-      URL structure2DURL = null;
-      URL structure3DURL = null;
+            DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID,
+                    compoundName, compoundFormula, entryURL, structure2DURL,
+                    structure3DURL);
 
-      if (compoundName == null) {
-        throw (new IOException("Invalid compound ID " + ID));
-      }
+            return newCompound;
 
-      DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID, compoundName,
-          compoundFormula, entryURL, structure2DURL, structure3DURL);
-
-      return newCompound;
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new IOException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
     }
-  }
 }

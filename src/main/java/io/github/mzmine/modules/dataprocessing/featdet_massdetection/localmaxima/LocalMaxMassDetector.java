@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,72 +31,75 @@ import io.github.mzmine.parameters.ParameterSet;
  * This class detects all local maxima in a given scan.
  */
 public class LocalMaxMassDetector implements MassDetector {
-  
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-    return getMassValues(scan.getDataPoints(), parameters);
-  }
 
-  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
-
-    double noiseLevel =
-        parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();
-
-    // List of found mz peaks
-    ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
-
-    // All data points of current m/z peak
-
-    // Top data point of current m/z peak
-    DataPoint currentMzPeakTop = null;
-
-    // True if we haven't reached the current local maximum yet
-    boolean ascending = true;
-
-    // Iterate through all data points
-    for (int i = 0; i < dataPoints.length - 1; i++) {
-
-      boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i].getIntensity();
-      boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
-      boolean currentIsZero = dataPoints[i].getIntensity() == 0;
-
-      // Ignore zero intensity regions
-      if (currentIsZero)
-        continue;
-
-      // Check for local maximum
-      if (ascending && (!nextIsBigger)) {
-        currentMzPeakTop = dataPoints[i];
-        ascending = false;
-        continue;
-      }
-
-      assert currentMzPeakTop != null;
-
-      // Check for the end of the peak
-      if ((!ascending) && (nextIsBigger || nextIsZero)) {
-
-        // Add the m/z peak if it is above the noise level
-        if (currentMzPeakTop.getIntensity() > noiseLevel) {
-          mzPeaks.add(currentMzPeakTop);
-        }
-
-        // Reset and start with new peak
-        ascending = true;
-
-      }
-
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+        return getMassValues(scan.getDataPoints(), parameters);
     }
-    return mzPeaks.toArray(new DataPoint[0]);
-  }
 
-  @Override
-  public @Nonnull String getName() {
-    return "Local maxima";
-  }
+    public DataPoint[] getMassValues(DataPoint dataPoints[],
+            ParameterSet parameters) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return LocalMaxMassDetectorParameters.class;
-  }
+        double noiseLevel = parameters
+                .getParameter(LocalMaxMassDetectorParameters.noiseLevel)
+                .getValue();
+
+        // List of found mz peaks
+        ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+
+        // All data points of current m/z peak
+
+        // Top data point of current m/z peak
+        DataPoint currentMzPeakTop = null;
+
+        // True if we haven't reached the current local maximum yet
+        boolean ascending = true;
+
+        // Iterate through all data points
+        for (int i = 0; i < dataPoints.length - 1; i++) {
+
+            boolean nextIsBigger = dataPoints[i + 1]
+                    .getIntensity() > dataPoints[i].getIntensity();
+            boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
+            boolean currentIsZero = dataPoints[i].getIntensity() == 0;
+
+            // Ignore zero intensity regions
+            if (currentIsZero)
+                continue;
+
+            // Check for local maximum
+            if (ascending && (!nextIsBigger)) {
+                currentMzPeakTop = dataPoints[i];
+                ascending = false;
+                continue;
+            }
+
+            assert currentMzPeakTop != null;
+
+            // Check for the end of the peak
+            if ((!ascending) && (nextIsBigger || nextIsZero)) {
+
+                // Add the m/z peak if it is above the noise level
+                if (currentMzPeakTop.getIntensity() > noiseLevel) {
+                    mzPeaks.add(currentMzPeakTop);
+                }
+
+                // Reset and start with new peak
+                ascending = true;
+
+            }
+
+        }
+        return mzPeaks.toArray(new DataPoint[0]);
+    }
+
+    @Override
+    public @Nonnull String getName() {
+        return "Local maxima";
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return LocalMaxMassDetectorParameters.class;
+    }
 
 }

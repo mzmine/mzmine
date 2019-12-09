@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,11 +26,11 @@ package io.github.mzmine.util.scans.sorting;
  */
 public enum ScanSortMode {
 
-  MAX_TIC, // sort by maximum TIC
-  NUMBER_OF_SIGNALS; // sort by number of signals
+    MAX_TIC, // sort by maximum TIC
+    NUMBER_OF_SIGNALS; // sort by number of signals
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
+    @Override
+    public String toString() {
+        return super.toString().replaceAll("_", " ");
+    }
 }

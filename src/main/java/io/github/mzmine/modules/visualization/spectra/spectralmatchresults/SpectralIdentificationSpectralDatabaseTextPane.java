@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,31 +21,33 @@ import javax.swing.JTextPane;
 
 public class SpectralIdentificationSpectralDatabaseTextPane extends JTextPane {
 
-  /**
-   * TextPane with line break for spectra DB reulst frame
-   * 
-   * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * TextPane with line break for spectra DB reulst frame
+     * 
+     * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+     */
+    private static final long serialVersionUID = 1L;
 
-  public SpectralIdentificationSpectralDatabaseTextPane(String databaseEntry) {
+    public SpectralIdentificationSpectralDatabaseTextPane(
+            String databaseEntry) {
 
-    // perform line wrapping for long Strings without breaks, such as SMILES strings
-    String parsedStr = null;
-    int ctr = 0;
-    char[] string = databaseEntry.toCharArray();
-    for (int i = 0; i < string.length; i++) {
-      if (string[i] == ' ') {
-        ctr++;
-      }
+        // perform line wrapping for long Strings without breaks, such as SMILES
+        // strings
+        String parsedStr = null;
+        int ctr = 0;
+        char[] string = databaseEntry.toCharArray();
+        for (int i = 0; i < string.length; i++) {
+            if (string[i] == ' ') {
+                ctr++;
+            }
+        }
+        if (databaseEntry.length() > 34 && ctr <= 1) {
+            parsedStr = databaseEntry.replaceAll("(.{35})", "$1\n");
+        } else
+            parsedStr = databaseEntry;
+        this.setText(parsedStr);
+        this.setToolTipText(databaseEntry);
+        this.setEditable(false);
     }
-    if (databaseEntry.length() > 34 && ctr <= 1) {
-      parsedStr = databaseEntry.replaceAll("(.{35})", "$1\n");
-    } else
-      parsedStr = databaseEntry;
-    this.setText(parsedStr);
-    this.setToolTipText(databaseEntry);
-    this.setEditable(false);
-  }
 
 }

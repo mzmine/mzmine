@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,9 +25,9 @@ import java.util.Comparator;
  */
 public class SimpleSorter implements Comparator<Object> {
 
-  @Override
-  public int compare(Object o1, Object o2) {
-    return o1.toString().compareTo(o2.toString());
-  }
+    @Override
+    public int compare(Object o1, Object o2) {
+        return o1.toString().compareTo(o2.toString());
+    }
 
 }

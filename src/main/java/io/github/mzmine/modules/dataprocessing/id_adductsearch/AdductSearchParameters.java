@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,26 +28,31 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class AdductSearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter("RT tolerance",
-      "Maximum allowed difference of retention time to set a relationship between peaks");
+    public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter(
+            "RT tolerance",
+            "Maximum allowed difference of retention time to set a relationship between peaks");
 
-  public static final AdductsParameter ADDUCTS = new AdductsParameter("Adducts",
-      "List of adducts, each one refers a specific distance in m/z axis between related peaks");
+    public static final AdductsParameter ADDUCTS = new AdductsParameter(
+            "Adducts",
+            "List of adducts, each one refers a specific distance in m/z axis between related peaks");
 
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
-      "Tolerance value of the m/z difference between peaks");
+    public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+            "m/z tolerance",
+            "Tolerance value of the m/z difference between peaks");
 
-  /*
-   * Max value 10000% so even high-intensity adducts can be searched for.
-   */
-  public static final PercentParameter MAX_ADDUCT_HEIGHT = new PercentParameter(
-      "Max relative adduct peak height",
-      "Maximum height of the recognized adduct peak, relative to the main peak", 0.5, 0.0, 100.0);
+    /*
+     * Max value 10000% so even high-intensity adducts can be searched for.
+     */
+    public static final PercentParameter MAX_ADDUCT_HEIGHT = new PercentParameter(
+            "Max relative adduct peak height",
+            "Maximum height of the recognized adduct peak, relative to the main peak",
+            0.5, 0.0, 100.0);
 
-  public AdductSearchParameters() {
+    public AdductSearchParameters() {
 
-    super(new Parameter[] {PEAK_LISTS, RT_TOLERANCE, ADDUCTS, MZ_TOLERANCE, MAX_ADDUCT_HEIGHT});
-  }
+        super(new Parameter[] { PEAK_LISTS, RT_TOLERANCE, ADDUCTS, MZ_TOLERANCE,
+                MAX_ADDUCT_HEIGHT });
+    }
 }

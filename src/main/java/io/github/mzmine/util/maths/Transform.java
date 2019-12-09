@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,7 +27,7 @@ package io.github.mzmine.util.maths;
 @FunctionalInterface
 public interface Transform {
 
-  public static final Transform LOG = Math::log;
+    public static final Transform LOG = Math::log;
 
-  public double transform(double v);
+    public double transform(double v);
 }

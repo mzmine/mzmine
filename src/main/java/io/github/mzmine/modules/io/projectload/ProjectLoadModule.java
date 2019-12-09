@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -30,42 +30,42 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * This class implements BatchStep interface, so project loading can be activated in a batch.
+ * This class implements BatchStep interface, so project loading can be
+ * activated in a batch.
  * 
  */
 public class ProjectLoadModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Open project";
-  private static final String MODULE_DESCRIPTION =
-      "This module opens an existing MZmine project. The current workspace will be discarded.";
+    private static final String MODULE_NAME = "Open project";
+    private static final String MODULE_DESCRIPTION = "This module opens an existing MZmine project. The current workspace will be discarded.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    ProjectOpeningTask newTask = new ProjectOpeningTask(parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        ProjectOpeningTask newTask = new ProjectOpeningTask(parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PROJECTIO;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PROJECTIO;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ProjectLoaderParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ProjectLoaderParameters.class;
+    }
 
 }

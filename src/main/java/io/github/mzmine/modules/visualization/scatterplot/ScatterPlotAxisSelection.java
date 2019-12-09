@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,86 +29,91 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
 /**
- * This class represents axis selected in the scatter plot visualizer. This can be either a
- * RawDataFile, or a project parameter value representing several RawDataFiles. In the second case,
- * the average peak area is calculated.
+ * This class represents axis selected in the scatter plot visualizer. This can
+ * be either a RawDataFile, or a project parameter value representing several
+ * RawDataFiles. In the second case, the average peak area is calculated.
  * 
  */
 public class ScatterPlotAxisSelection {
 
-  private RawDataFile file;
-  private UserParameter<?, ?> parameter;
-  private Object parameterValue;
+    private RawDataFile file;
+    private UserParameter<?, ?> parameter;
+    private Object parameterValue;
 
-  public ScatterPlotAxisSelection(RawDataFile file) {
-    this.file = file;
-  }
-
-  public ScatterPlotAxisSelection(UserParameter<?, ?> parameter, Object parameterValue) {
-    this.parameter = parameter;
-    this.parameterValue = parameterValue;
-  }
-
-  public String toString() {
-    if (file != null)
-      return file.getName();
-    return parameter.getName() + ": " + parameterValue;
-  }
-
-  public double getValue(PeakListRow row) {
-    if (file != null) {
-      Feature peak = row.getPeak(file);
-      if (peak == null)
-        return 0;
-      else
-        return peak.getArea();
+    public ScatterPlotAxisSelection(RawDataFile file) {
+        this.file = file;
     }
 
-    double totalArea = 0;
-    int numOfFiles = 0;
-    for (RawDataFile dataFile : row.getRawDataFiles()) {
-      Object fileValue =
-          MZmineCore.getProjectManager().getCurrentProject().getParameterValue(parameter, dataFile);
-      if (fileValue == null)
-        continue;
-      if (fileValue.toString().equals(parameterValue.toString())) {
-        Feature peak = row.getPeak(dataFile);
-        if ((peak != null) && (peak.getArea() > 0)) {
-          totalArea += peak.getArea();
-          numOfFiles++;
+    public ScatterPlotAxisSelection(UserParameter<?, ?> parameter,
+            Object parameterValue) {
+        this.parameter = parameter;
+        this.parameterValue = parameterValue;
+    }
+
+    public String toString() {
+        if (file != null)
+            return file.getName();
+        return parameter.getName() + ": " + parameterValue;
+    }
+
+    public double getValue(PeakListRow row) {
+        if (file != null) {
+            Feature peak = row.getPeak(file);
+            if (peak == null)
+                return 0;
+            else
+                return peak.getArea();
         }
-      }
-    }
-    if (numOfFiles == 0)
-      return 0;
-    totalArea /= numOfFiles;
-    return totalArea;
 
-  }
+        double totalArea = 0;
+        int numOfFiles = 0;
+        for (RawDataFile dataFile : row.getRawDataFiles()) {
+            Object fileValue = MZmineCore.getProjectManager()
+                    .getCurrentProject().getParameterValue(parameter, dataFile);
+            if (fileValue == null)
+                continue;
+            if (fileValue.toString().equals(parameterValue.toString())) {
+                Feature peak = row.getPeak(dataFile);
+                if ((peak != null) && (peak.getArea() > 0)) {
+                    totalArea += peak.getArea();
+                    numOfFiles++;
+                }
+            }
+        }
+        if (numOfFiles == 0)
+            return 0;
+        totalArea /= numOfFiles;
+        return totalArea;
 
-  static ScatterPlotAxisSelection[] generateOptionsForPeakList(PeakList peakList) {
-
-    Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
-
-    for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-      ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(dataFile);
-      options.add(newOption);
-    }
-
-    for (UserParameter<?, ?> parameter : MZmineCore.getProjectManager().getCurrentProject()
-        .getParameters()) {
-      if (!(parameter instanceof ComboParameter))
-        continue;
-
-      Object possibleValues[] = ((ComboParameter<?>) parameter).getChoices();
-      for (Object value : possibleValues) {
-        ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(parameter, value);
-        options.add(newOption);
-      }
     }
 
-    return options.toArray(new ScatterPlotAxisSelection[0]);
+    static ScatterPlotAxisSelection[] generateOptionsForPeakList(
+            PeakList peakList) {
 
-  }
+        Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
+
+        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+            ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
+                    dataFile);
+            options.add(newOption);
+        }
+
+        for (UserParameter<?, ?> parameter : MZmineCore.getProjectManager()
+                .getCurrentProject().getParameters()) {
+            if (!(parameter instanceof ComboParameter))
+                continue;
+
+            Object possibleValues[] = ((ComboParameter<?>) parameter)
+                    .getChoices();
+            for (Object value : possibleValues) {
+                ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
+                        parameter, value);
+                options.add(newOption);
+            }
+        }
+
+        return options.toArray(new ScatterPlotAxisSelection[0]);
+
+    }
 
 }

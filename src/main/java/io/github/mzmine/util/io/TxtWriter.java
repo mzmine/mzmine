@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,37 +29,41 @@ import com.google.common.io.Files;
 import io.github.mzmine.util.files.FileAndPathUtil;
 
 public class TxtWriter {
-  private static final Logger log = Logger.getLogger(TxtWriter.class.getName());
+    private static final Logger log = Logger
+            .getLogger(TxtWriter.class.getName());
 
+    public static boolean write(String s, File file, boolean append) {
+        try {
+            if (!file.getParentFile().exists())
+                file.getParentFile().mkdirs();
+        } catch (Exception e) {
+            log.log(Level.SEVERE,
+                    "Cannot create folder " + file.getParent() + " ", e);
+        }
 
-  public static boolean write(String s, File file, boolean append) {
-    try {
-      if (!file.getParentFile().exists())
-        file.getParentFile().mkdirs();
-    } catch (Exception e) {
-      log.log(Level.SEVERE, "Cannot create folder " + file.getParent() + " ", e);
+        try {
+            CharSink chs = append
+                    ? Files.asCharSink(file, StandardCharsets.UTF_8,
+                            FileWriteMode.APPEND)
+                    : Files.asCharSink(file, StandardCharsets.UTF_8);
+            chs.write(s);
+            return true;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Write file " + file.getAbsolutePath(), e);
+            return false;
+        }
     }
 
-    try {
-      CharSink chs = append ? Files.asCharSink(file, StandardCharsets.UTF_8, FileWriteMode.APPEND)
-          : Files.asCharSink(file, StandardCharsets.UTF_8);
-      chs.write(s);
-      return true;
-    } catch (Exception e) {
-      log.log(Level.SEVERE, "Write file " + file.getAbsolutePath(), e);
-      return false;
+    public static boolean write(String s, File file) {
+        return write(s, file, false);
     }
-  }
 
-  public static boolean write(String s, File file) {
-    return write(s, file, false);
-  }
+    public static boolean write(String s, File file, String format) {
+        return write(s, FileAndPathUtil.getRealFilePath(file, format));
+    }
 
-  public static boolean write(String s, File file, String format) {
-    return write(s, FileAndPathUtil.getRealFilePath(file, format));
-  }
-
-  public static boolean write(String s, File file, String format, boolean append) {
-    return write(s, FileAndPathUtil.getRealFilePath(file, format), append);
-  }
+    public static boolean write(String s, File file, String format,
+            boolean append) {
+        return write(s, FileAndPathUtil.getRealFilePath(file, format), append);
+    }
 }

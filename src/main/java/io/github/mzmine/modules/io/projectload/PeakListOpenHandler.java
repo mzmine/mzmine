@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.PeakList;
 
 public interface PeakListOpenHandler {
 
-  PeakList readPeakList(InputStream inputStream)
-      throws IOException, ParserConfigurationException, SAXException;
+    PeakList readPeakList(InputStream inputStream)
+            throws IOException, ParserConfigurationException, SAXException;
 
-  void cancel();
+    void cancel();
 
 }

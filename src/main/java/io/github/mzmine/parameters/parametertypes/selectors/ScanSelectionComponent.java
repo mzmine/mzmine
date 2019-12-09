@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -50,201 +50,219 @@ import io.github.mzmine.util.GUIUtils;
 
 public class ScanSelectionComponent extends JPanel implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private final JButton setButton, clearButton;
+    private final JButton setButton, clearButton;
 
-  private final JLabel restrictionsList;
+    private final JLabel restrictionsList;
 
-  private Range<Integer> scanNumberRange;
-  private Integer baseFilteringInteger;
-  private Range<Double> scanRTRange;
-  private Integer msLevel;
-  private PolarityType polarity;
-  private MassSpectrumType spectrumType;
-  private String scanDefinition;
+    private Range<Integer> scanNumberRange;
+    private Integer baseFilteringInteger;
+    private Range<Double> scanRTRange;
+    private Integer msLevel;
+    private PolarityType polarity;
+    private MassSpectrumType spectrumType;
+    private String scanDefinition;
 
-  public ScanSelectionComponent() {
+    public ScanSelectionComponent() {
 
-    BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
-    setLayout(layout);
+        BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
+        setLayout(layout);
 
-    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-    restrictionsList = new JLabel();
-    add(restrictionsList);
-    updateRestrictionList();
+        restrictionsList = new JLabel();
+        add(restrictionsList);
+        updateRestrictionList();
 
-    add(Box.createHorizontalStrut(10));
+        add(Box.createHorizontalStrut(10));
 
-    setButton = GUIUtils.addButton(this, "Set filters", null, this);
-    clearButton = GUIUtils.addButton(this, "Clear filters", null, this);
+        setButton = GUIUtils.addButton(this, "Set filters", null, this);
+        clearButton = GUIUtils.addButton(this, "Clear filters", null, this);
 
-  }
+    }
 
-  void setValue(ScanSelection newValue) {
-    scanNumberRange = newValue.getScanNumberRange();
-    baseFilteringInteger = newValue.getBaseFilteringInteger();
-    scanRTRange = newValue.getScanRTRange();
-    polarity = newValue.getPolarity();
-    spectrumType = newValue.getSpectrumType();
-    msLevel = newValue.getMsLevel();
-    scanDefinition = newValue.getScanDefinition();
+    void setValue(ScanSelection newValue) {
+        scanNumberRange = newValue.getScanNumberRange();
+        baseFilteringInteger = newValue.getBaseFilteringInteger();
+        scanRTRange = newValue.getScanRTRange();
+        polarity = newValue.getPolarity();
+        spectrumType = newValue.getSpectrumType();
+        msLevel = newValue.getMsLevel();
+        scanDefinition = newValue.getScanDefinition();
 
-    updateRestrictionList();
-  }
+        updateRestrictionList();
+    }
 
-  public ScanSelection getValue() {
-    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
-  }
+    public ScanSelection getValue() {
+        return new ScanSelection(scanNumberRange, baseFilteringInteger,
+                scanRTRange, polarity, spectrumType, msLevel, scanDefinition);
+    }
 
-  public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(ActionEvent event) {
 
-    Object src = event.getSource();
+        Object src = event.getSource();
 
-    if (src == setButton) {
+        if (src == setButton) {
 
-      SimpleParameterSet paramSet;
-      ExitCode exitCode;
-      Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
+            SimpleParameterSet paramSet;
+            ExitCode exitCode;
+            Window parent = (Window) SwingUtilities
+                    .getAncestorOfClass(Window.class, this);
 
-      final IntRangeParameter scanNumParameter = new IntRangeParameter("Scan number",
-          "Range of included scan numbers", false, scanNumberRange);
-      final IntegerParameter baseFilteringIntegerParameter = new IntegerParameter(
-          "Base Filtering Integer",
-          "Enter an integer for which every multiple of that integer in the list will be filtered. (Every Nth element will be shown)",
-          this.baseFilteringInteger, false);
-      final RTRangeParameter rtParameter = new RTRangeParameter(false);
-      if (scanRTRange != null)
-        rtParameter.setValue(scanRTRange);
-      final IntegerParameter msLevelParameter =
-          new IntegerParameter("MS level", "MS level", msLevel, false);
-      final StringParameter scanDefinitionParameter = new StringParameter("Scan definition",
-          "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
-          scanDefinition, false);
-      final String polarityTypes[] = {"Any", "+", "-"};
-      final ComboParameter<String> polarityParameter =
-          new ComboParameter<>("Polarity", "Include only scans of this polarity", polarityTypes);
-      if ((polarity == PolarityType.POSITIVE) || (polarity == PolarityType.NEGATIVE))
-        polarityParameter.setValue(polarity.asSingleChar());
-      final String spectraTypes[] = {"Any", "Centroided", "Profile", "Thresholded"};
-      final ComboParameter<String> spectrumTypeParameter =
-          new ComboParameter<>("Spectrum type", "Include only spectra of this type", spectraTypes);
-      if (spectrumType != null) {
-        switch (spectrumType) {
-          case CENTROIDED:
-            spectrumTypeParameter.setValue(spectraTypes[1]);
-            break;
-          case PROFILE:
-            spectrumTypeParameter.setValue(spectraTypes[2]);
-            break;
-          case THRESHOLDED:
-            spectrumTypeParameter.setValue(spectraTypes[3]);
-            break;
+            final IntRangeParameter scanNumParameter = new IntRangeParameter(
+                    "Scan number", "Range of included scan numbers", false,
+                    scanNumberRange);
+            final IntegerParameter baseFilteringIntegerParameter = new IntegerParameter(
+                    "Base Filtering Integer",
+                    "Enter an integer for which every multiple of that integer in the list will be filtered. (Every Nth element will be shown)",
+                    this.baseFilteringInteger, false);
+            final RTRangeParameter rtParameter = new RTRangeParameter(false);
+            if (scanRTRange != null)
+                rtParameter.setValue(scanRTRange);
+            final IntegerParameter msLevelParameter = new IntegerParameter(
+                    "MS level", "MS level", msLevel, false);
+            final StringParameter scanDefinitionParameter = new StringParameter(
+                    "Scan definition",
+                    "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
+                    scanDefinition, false);
+            final String polarityTypes[] = { "Any", "+", "-" };
+            final ComboParameter<String> polarityParameter = new ComboParameter<>(
+                    "Polarity", "Include only scans of this polarity",
+                    polarityTypes);
+            if ((polarity == PolarityType.POSITIVE)
+                    || (polarity == PolarityType.NEGATIVE))
+                polarityParameter.setValue(polarity.asSingleChar());
+            final String spectraTypes[] = { "Any", "Centroided", "Profile",
+                    "Thresholded" };
+            final ComboParameter<String> spectrumTypeParameter = new ComboParameter<>(
+                    "Spectrum type", "Include only spectra of this type",
+                    spectraTypes);
+            if (spectrumType != null) {
+                switch (spectrumType) {
+                case CENTROIDED:
+                    spectrumTypeParameter.setValue(spectraTypes[1]);
+                    break;
+                case PROFILE:
+                    spectrumTypeParameter.setValue(spectraTypes[2]);
+                    break;
+                case THRESHOLDED:
+                    spectrumTypeParameter.setValue(spectraTypes[3]);
+                    break;
+                }
+            }
+
+            paramSet = new SimpleParameterSet(new Parameter[] {
+                    scanNumParameter, baseFilteringIntegerParameter,
+                    rtParameter, msLevelParameter, scanDefinitionParameter,
+                    polarityParameter, spectrumTypeParameter });
+            exitCode = paramSet.showSetupDialog(parent, true);
+            if (exitCode == ExitCode.OK) {
+                scanNumberRange = paramSet.getParameter(scanNumParameter)
+                        .getValue();
+                this.baseFilteringInteger = paramSet
+                        .getParameter(baseFilteringIntegerParameter).getValue();
+                scanRTRange = paramSet.getParameter(rtParameter).getValue();
+                msLevel = paramSet.getParameter(msLevelParameter).getValue();
+                scanDefinition = paramSet.getParameter(scanDefinitionParameter)
+                        .getValue();
+                final int selectedPolarityIndex = Arrays.asList(polarityTypes)
+                        .indexOf(paramSet.getParameter(polarityParameter)
+                                .getValue());
+                switch (selectedPolarityIndex) {
+                case 1:
+                    polarity = PolarityType.POSITIVE;
+                    break;
+                case 2:
+                    polarity = PolarityType.NEGATIVE;
+                    break;
+                default:
+                    polarity = null;
+                    break;
+                }
+                final int selectedSpectraTypeIndex = Arrays.asList(spectraTypes)
+                        .indexOf(paramSet.getParameter(spectrumTypeParameter)
+                                .getValue());
+                switch (selectedSpectraTypeIndex) {
+                case 1:
+                    spectrumType = MassSpectrumType.CENTROIDED;
+                    break;
+                case 2:
+                    spectrumType = MassSpectrumType.PROFILE;
+                    break;
+                case 3:
+                    spectrumType = MassSpectrumType.THRESHOLDED;
+                    break;
+                default:
+                    spectrumType = null;
+                    break;
+                }
+
+            }
         }
-      }
 
-      paramSet = new SimpleParameterSet(
-          new Parameter[] {scanNumParameter, baseFilteringIntegerParameter, rtParameter,
-              msLevelParameter, scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
-      exitCode = paramSet.showSetupDialog(parent, true);
-      if (exitCode == ExitCode.OK) {
-        scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
-        this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
-        scanRTRange = paramSet.getParameter(rtParameter).getValue();
-        msLevel = paramSet.getParameter(msLevelParameter).getValue();
-        scanDefinition = paramSet.getParameter(scanDefinitionParameter).getValue();
-        final int selectedPolarityIndex = Arrays.asList(polarityTypes)
-            .indexOf(paramSet.getParameter(polarityParameter).getValue());
-        switch (selectedPolarityIndex) {
-          case 1:
-            polarity = PolarityType.POSITIVE;
-            break;
-          case 2:
-            polarity = PolarityType.NEGATIVE;
-            break;
-          default:
+        if (src == clearButton) {
+            scanNumberRange = null;
+            baseFilteringInteger = null;
+            scanRTRange = null;
             polarity = null;
-            break;
-        }
-        final int selectedSpectraTypeIndex = Arrays.asList(spectraTypes)
-            .indexOf(paramSet.getParameter(spectrumTypeParameter).getValue());
-        switch (selectedSpectraTypeIndex) {
-          case 1:
-            spectrumType = MassSpectrumType.CENTROIDED;
-            break;
-          case 2:
-            spectrumType = MassSpectrumType.PROFILE;
-            break;
-          case 3:
-            spectrumType = MassSpectrumType.THRESHOLDED;
-            break;
-          default:
             spectrumType = null;
-            break;
+            msLevel = null;
+            scanDefinition = null;
         }
 
-      }
+        updateRestrictionList();
+
     }
 
-    if (src == clearButton) {
-      scanNumberRange = null;
-      baseFilteringInteger = null;
-      scanRTRange = null;
-      polarity = null;
-      spectrumType = null;
-      msLevel = null;
-      scanDefinition = null;
+    @Override
+    public void setToolTipText(String toolTip) {
+        restrictionsList.setToolTipText(toolTip);
     }
 
-    updateRestrictionList();
+    private void updateRestrictionList() {
 
-  }
+        if ((scanNumberRange == null) && (scanRTRange == null)
+                && (polarity == null) && (spectrumType == null)
+                && (msLevel == null) && Strings.isNullOrEmpty(scanDefinition)
+                && (baseFilteringInteger == null)) {
+            restrictionsList.setText("All");
+            return;
+        }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    restrictionsList.setToolTipText(toolTip);
-  }
+        StringBuilder newText = new StringBuilder("<html>");
+        if (scanNumberRange != null) {
+            int upperEndpoint = scanNumberRange.upperEndpoint();
+            String maxCountText = upperEndpoint == Integer.MAX_VALUE ? "Max"
+                    : Integer.toString(upperEndpoint);
+            newText.append("Scan number: " + scanNumberRange.lowerEndpoint()
+                    + " - " + maxCountText + "<br>");
+        }
+        if (baseFilteringInteger != null) {
+            newText.append(
+                    "Base Filtering Integer: " + baseFilteringInteger + "<br>");
+        }
+        if (scanRTRange != null) {
+            NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+            newText.append("Retention time: "
+                    + rtFormat.format(scanRTRange.lowerEndpoint()) + " - "
+                    + rtFormat.format(scanRTRange.upperEndpoint())
+                    + " min.<br>");
+        }
+        if (msLevel != null) {
+            newText.append("MS level: " + msLevel + "<br>");
+        }
+        if (!Strings.isNullOrEmpty(scanDefinition)) {
+            newText.append("Scan definition: " + scanDefinition + "<br>");
+        }
+        if (polarity != null) {
+            newText.append("Polarity: " + polarity.asSingleChar() + "<br>");
+        }
+        if (spectrumType != null) {
+            newText.append(
+                    "Spectrum type: " + spectrumType.toString().toLowerCase());
+        }
 
-  private void updateRestrictionList() {
-
-    if ((scanNumberRange == null) && (scanRTRange == null) && (polarity == null)
-        && (spectrumType == null) && (msLevel == null) && Strings.isNullOrEmpty(scanDefinition)
-        && (baseFilteringInteger == null)) {
-      restrictionsList.setText("All");
-      return;
+        restrictionsList.setText(newText.toString());
     }
-
-    StringBuilder newText = new StringBuilder("<html>");
-    if (scanNumberRange != null) {
-      int upperEndpoint = scanNumberRange.upperEndpoint();
-      String maxCountText =
-          upperEndpoint == Integer.MAX_VALUE ? "Max" : Integer.toString(upperEndpoint);
-      newText.append(
-          "Scan number: " + scanNumberRange.lowerEndpoint() + " - " + maxCountText + "<br>");
-    }
-    if (baseFilteringInteger != null) {
-      newText.append("Base Filtering Integer: " + baseFilteringInteger + "<br>");
-    }
-    if (scanRTRange != null) {
-      NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-      newText.append("Retention time: " + rtFormat.format(scanRTRange.lowerEndpoint()) + " - "
-          + rtFormat.format(scanRTRange.upperEndpoint()) + " min.<br>");
-    }
-    if (msLevel != null) {
-      newText.append("MS level: " + msLevel + "<br>");
-    }
-    if (!Strings.isNullOrEmpty(scanDefinition)) {
-      newText.append("Scan definition: " + scanDefinition + "<br>");
-    }
-    if (polarity != null) {
-      newText.append("Polarity: " + polarity.asSingleChar() + "<br>");
-    }
-    if (spectrumType != null) {
-      newText.append("Spectrum type: " + spectrumType.toString().toLowerCase());
-    }
-
-    restrictionsList.setText(newText.toString());
-  }
 }

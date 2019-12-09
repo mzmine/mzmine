@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -41,131 +41,137 @@ import io.github.mzmine.util.components.ComponentToolTipManager;
 import io.github.mzmine.util.components.ComponentToolTipProvider;
 
 /**
- * Class ResultTable for SingleIdentificationTask results Implements ComponentToolTipProvider in
- * order to provide specific tooltip on a cells. Images of chemical structures
+ * Class ResultTable for SingleIdentificationTask results Implements
+ * ComponentToolTipProvider in order to provide specific tooltip on a cells.
+ * Images of chemical structures
  */
 public class ResultTable extends JTable implements ComponentToolTipProvider {
-  private final Hashtable<IAtomContainer, Image> images;
-  private final ComponentToolTipManager ttm;
-  private final ResultTableModel listElementModel;
+    private final Hashtable<IAtomContainer, Image> images;
+    private final ComponentToolTipManager ttm;
+    private final ResultTableModel listElementModel;
 
-  /**
-   * Constructor for ResultTable class. Configures internal parameters 1) Registers in
-   * ComponentToolTipManager. 2) Initializes hashtable
-   *
-   * @param model
-   */
-  public ResultTable(ResultTableModel model) {
-    super(model);
-    this.listElementModel = model;
-    images = new Hashtable<>(10);
+    /**
+     * Constructor for ResultTable class. Configures internal parameters 1)
+     * Registers in ComponentToolTipManager. 2) Initializes hashtable
+     *
+     * @param model
+     */
+    public ResultTable(ResultTableModel model) {
+        super(model);
+        this.listElementModel = model;
+        images = new Hashtable<>(10);
 
-    // Register in ComponentToolTipManager to receive updates
-    ttm = new ComponentToolTipManager();
-    ttm.registerComponent(this);
+        // Register in ComponentToolTipManager to receive updates
+        ttm = new ComponentToolTipManager();
+        ttm.registerComponent(this);
 
-    // Configure table
-    setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    getTableHeader().setReorderingAllowed(false);
-    // Special configuration of multiline cell
-    setDefaultRenderer(String[].class, new MultiLineTableCellRenderer());
-    setDefaultRenderer(IAtomContainer.class, new PreviewCellRenderer());
+        // Configure table
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        getTableHeader().setReorderingAllowed(false);
+        // Special configuration of multiline cell
+        setDefaultRenderer(String[].class, new MultiLineTableCellRenderer());
+        setDefaultRenderer(IAtomContainer.class, new PreviewCellRenderer());
 
-    /* Sorter orders by FingerID score by default */
-    ResultTableSorter sorter = new ResultTableSorter(listElementModel);
-    setRowSorter(sorter);
+        /* Sorter orders by FingerID score by default */
+        ResultTableSorter sorter = new ResultTableSorter(listElementModel);
+        setRowSorter(sorter);
 
-    /* Configure rows & columns sizes */
-    setRowHeight(SiriusCompound.PREVIEW_HEIGHT);
-  }
-
-  @Override
-  public String getToolTipText(MouseEvent e) {
-    Point p = e.getPoint();
-    int column = columnAtPoint(p);
-
-    // Show tooltip iff mouse points on an image preview cell
-    if (column == PREVIEW_INDEX) {
-      return "PRINT_IMAGE";
+        /* Configure rows & columns sizes */
+        setRowHeight(SiriusCompound.PREVIEW_HEIGHT);
     }
 
-    return null;
-  }
+    @Override
+    public String getToolTipText(MouseEvent e) {
+        Point p = e.getPoint();
+        int column = columnAtPoint(p);
 
-  /**
-   * Provided by interface `ComponentToolTipProvider` Allows to set more complex tooltips for
-   * components In this case full size image is shown (chemical structure) of a compound
-   * 
-   * @param event
-   * @return constructed complex tooltip
-   */
-  public JComponent getCustomToolTipComponent(MouseEvent event) {
-    JComponent component = null;
-    String text = this.getToolTipText(event);
-
-    if (text == null) {
-      return null;
-    }
-
-    // Flag of tooltip form preview_image cell
-    if (text.contains("PRINT_IMAGE")) {
-      Point p = event.getPoint();
-      int row = this.rowAtPoint(p);
-      int realRow = this.convertRowIndexToModel(row);
-
-      ResultTableModel model = (ResultTableModel) (this.getModel());
-      SiriusCompound compound = model.getCompoundAt(realRow);
-
-      // Obtain a preview from the compound, if it is null -> it is not processed by fingerId
-      IAtomContainer shortcut = compound.getContainer();
-      if (shortcut != null) {
-        // Using hash of the image, retrieve a large image
-        Image img = getIconImage(shortcut);
-
-        // Construct new tooltip
-        JLabel label = new JLabel();
-        if (img != null) {
-          label.setIcon(new ImageIcon(img)); // set image
-          JPanel panel = new JPanel();
-          panel.setBackground(ComponentToolTipManager.bg);
-          panel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-          panel.add(label);
-          component = panel;
-        } else {
-          return null;
+        // Show tooltip iff mouse points on an image preview cell
+        if (column == PREVIEW_INDEX) {
+            return "PRINT_IMAGE";
         }
-      }
+
+        return null;
     }
 
-    return component;
-  }
+    /**
+     * Provided by interface `ComponentToolTipProvider` Allows to set more
+     * complex tooltips for components In this case full size image is shown
+     * (chemical structure) of a compound
+     * 
+     * @param event
+     * @return constructed complex tooltip
+     */
+    public JComponent getCustomToolTipComponent(MouseEvent event) {
+        JComponent component = null;
+        String text = this.getToolTipText(event);
 
-  /**
-   * Identify Image by its' non-null IAtomContainer object
-   * 
-   * @param container IAtomContainer of the image
-   * @return null, if there is no such image and large version otherwise.
-   */
-  private @Nullable Image getIconImage(IAtomContainer container) {
-    return images.get(container);
-  }
+        if (text == null) {
+            return null;
+        }
 
-  /**
-   * Generate large image and store <IAtomContainer, Image> pairs in the dictionary.
-   * 
-   * @param compound
-   */
-  public void generateIconImage(SiriusCompound compound) {
-    Object preview = compound.getContainer();
+        // Flag of tooltip form preview_image cell
+        if (text.contains("PRINT_IMAGE")) {
+            Point p = event.getPoint();
+            int row = this.rowAtPoint(p);
+            int realRow = this.convertRowIndexToModel(row);
 
-    // If there is no preview - no large image should be generated
-    if (preview == null)
-      return;
+            ResultTableModel model = (ResultTableModel) (this.getModel());
+            SiriusCompound compound = model.getCompoundAt(realRow);
 
-    IAtomContainer container = compound.getContainer();
-    Image image = compound.generateImage(SiriusCompound.STRUCTURE_WIDTH,
-        SiriusCompound.STRUCTURE_HEIGHT);
-    if (image != null)
-      images.put(container, image);
-  }
+            // Obtain a preview from the compound, if it is null -> it is not
+            // processed by fingerId
+            IAtomContainer shortcut = compound.getContainer();
+            if (shortcut != null) {
+                // Using hash of the image, retrieve a large image
+                Image img = getIconImage(shortcut);
+
+                // Construct new tooltip
+                JLabel label = new JLabel();
+                if (img != null) {
+                    label.setIcon(new ImageIcon(img)); // set image
+                    JPanel panel = new JPanel();
+                    panel.setBackground(ComponentToolTipManager.bg);
+                    panel.setBorder(
+                            BorderFactory.createEmptyBorder(1, 1, 1, 1));
+                    panel.add(label);
+                    component = panel;
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        return component;
+    }
+
+    /**
+     * Identify Image by its' non-null IAtomContainer object
+     * 
+     * @param container
+     *            IAtomContainer of the image
+     * @return null, if there is no such image and large version otherwise.
+     */
+    private @Nullable Image getIconImage(IAtomContainer container) {
+        return images.get(container);
+    }
+
+    /**
+     * Generate large image and store <IAtomContainer, Image> pairs in the
+     * dictionary.
+     * 
+     * @param compound
+     */
+    public void generateIconImage(SiriusCompound compound) {
+        Object preview = compound.getContainer();
+
+        // If there is no preview - no large image should be generated
+        if (preview == null)
+            return;
+
+        IAtomContainer container = compound.getContainer();
+        Image image = compound.generateImage(SiriusCompound.STRUCTURE_WIDTH,
+                SiriusCompound.STRUCTURE_HEIGHT);
+        if (image != null)
+            images.put(container, image);
+    }
 }

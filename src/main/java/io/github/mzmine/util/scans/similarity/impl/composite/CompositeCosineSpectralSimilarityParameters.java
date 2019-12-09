@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,24 +30,25 @@ import io.github.mzmine.util.scans.similarity.Weights;
 /**
  * 
  */
-public class CompositeCosineSpectralSimilarityParameters extends SimpleParameterSet {
+public class CompositeCosineSpectralSimilarityParameters
+        extends SimpleParameterSet {
 
-  public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
-      "Weights for m/z and intensity", Weights.VALUES, Weights.MASSBANK);
-  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
-      "Minimum cosine similarity. (All signals in the masslist against the spectral library entry. "
-          + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.000"), 0.7);
+    public static final ComboParameter<Weights> weight = new ComboParameter<>(
+            "Weights", "Weights for m/z and intensity", Weights.VALUES,
+            Weights.MASSBANK);
+    public static final DoubleParameter minCosine = new DoubleParameter(
+            "Minimum  cos similarity",
+            "Minimum cosine similarity. (All signals in the masslist against the spectral library entry. "
+                    + "Considers only signals which were found in both the masslist and the library entry)",
+            new DecimalFormat("0.000"), 0.7);
 
-  public static final BooleanParameter removeUnmatched = new BooleanParameter(
-      "Remove unmatched signals",
-      "CAUTION: Remove unmatched signals before cosine calculation. (Does only use signals which are present in both the query and library spectrum) Leeds to higher cosine similarity but also to a higher false positive rate. Especially good for noisy library or query spectra.",
-      false);
+    public static final BooleanParameter removeUnmatched = new BooleanParameter(
+            "Remove unmatched signals",
+            "CAUTION: Remove unmatched signals before cosine calculation. (Does only use signals which are present in both the query and library spectrum) Leeds to higher cosine similarity but also to a higher false positive rate. Especially good for noisy library or query spectra.",
+            false);
 
-
-
-  public CompositeCosineSpectralSimilarityParameters() {
-    super(new Parameter[] {weight, minCosine, removeUnmatched});
-  }
+    public CompositeCosineSpectralSimilarityParameters() {
+        super(new Parameter[] { weight, minCosine, removeUnmatched });
+    }
 
 }

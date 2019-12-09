@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,94 +24,99 @@ import io.github.mzmine.datamodel.RawDataFile;
  */
 public class CursorPosition {
 
-  private double retentionTime, mzValue, intensityValue;
-  private RawDataFile dataFile;
-  private int scanNumber;
+    private double retentionTime, mzValue, intensityValue;
+    private RawDataFile dataFile;
+    private int scanNumber;
 
-  /**
-   * @param retentionTime
-   * @param mzValue
-   * @param intensityValue
-   * @param rawDataFile
-   * @param scanNumber
-   */
-  public CursorPosition(double retentionTime, double mzValue, double intensityValue,
-      RawDataFile dataFile, int scanNumber) {
-    this.retentionTime = retentionTime;
-    this.mzValue = mzValue;
-    this.intensityValue = intensityValue;
-    this.dataFile = dataFile;
-    this.scanNumber = scanNumber;
-  }
+    /**
+     * @param retentionTime
+     * @param mzValue
+     * @param intensityValue
+     * @param rawDataFile
+     * @param scanNumber
+     */
+    public CursorPosition(double retentionTime, double mzValue,
+            double intensityValue, RawDataFile dataFile, int scanNumber) {
+        this.retentionTime = retentionTime;
+        this.mzValue = mzValue;
+        this.intensityValue = intensityValue;
+        this.dataFile = dataFile;
+        this.scanNumber = scanNumber;
+    }
 
-  /**
-   * @return Returns the intensityValue.
-   */
-  public double getIntensityValue() {
-    return intensityValue;
-  }
+    /**
+     * @return Returns the intensityValue.
+     */
+    public double getIntensityValue() {
+        return intensityValue;
+    }
 
-  /**
-   * @param intensityValue The intensityValue to set.
-   */
-  public void setIntensityValue(double intensityValue) {
-    this.intensityValue = intensityValue;
-  }
+    /**
+     * @param intensityValue
+     *            The intensityValue to set.
+     */
+    public void setIntensityValue(double intensityValue) {
+        this.intensityValue = intensityValue;
+    }
 
-  /**
-   * @return Returns the mzValue.
-   */
-  public double getMzValue() {
-    return mzValue;
-  }
+    /**
+     * @return Returns the mzValue.
+     */
+    public double getMzValue() {
+        return mzValue;
+    }
 
-  /**
-   * @param mzValue The mzValue to set.
-   */
-  public void setMzValue(double mzValue) {
-    this.mzValue = mzValue;
-  }
+    /**
+     * @param mzValue
+     *            The mzValue to set.
+     */
+    public void setMzValue(double mzValue) {
+        this.mzValue = mzValue;
+    }
 
-  /**
-   * @return Returns the retentionTime.
-   */
-  public double getRetentionTime() {
-    return retentionTime;
-  }
+    /**
+     * @return Returns the retentionTime.
+     */
+    public double getRetentionTime() {
+        return retentionTime;
+    }
 
-  /**
-   * @param retentionTime The retentionTime to set.
-   */
-  public void setRetentionTime(double retentionTime) {
-    this.retentionTime = retentionTime;
-  }
+    /**
+     * @param retentionTime
+     *            The retentionTime to set.
+     */
+    public void setRetentionTime(double retentionTime) {
+        this.retentionTime = retentionTime;
+    }
 
-  /**
-   * @return Returns the dataFile.
-   */
-  public RawDataFile getDataFile() {
-    return dataFile;
-  }
+    /**
+     * @return Returns the dataFile.
+     */
+    public RawDataFile getDataFile() {
+        return dataFile;
+    }
 
-  /**
-   * @param dataFile The dataFile to set.
-   */
-  public void setDataFile(RawDataFile dataFile) {
-    this.dataFile = dataFile;
-  }
+    /**
+     * @param dataFile
+     *            The dataFile to set.
+     */
+    public void setDataFile(RawDataFile dataFile) {
+        this.dataFile = dataFile;
+    }
 
-  /**
-   * @return Returns the scanNumber.
-   */
-  public int getScanNumber() {
-    return scanNumber;
-  }
+    /**
+     * @return Returns the scanNumber.
+     */
+    public int getScanNumber() {
+        return scanNumber;
+    }
 
-  /**
-   * @param scanNumber The scanNumber to set.
-   */
-  public void setScanNumber(int scanNumber) {
-    this.scanNumber = scanNumber;
-  }
+    /**
+     * @param scanNumber
+     *            The scanNumber to set.
+     */
+    public void setScanNumber(int scanNumber) {
+        this.scanNumber = scanNumber;
+    }
 
 }

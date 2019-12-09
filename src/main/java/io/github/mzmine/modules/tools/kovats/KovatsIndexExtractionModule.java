@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,35 +30,34 @@ import io.github.mzmine.util.ExitCode;
 
 public class KovatsIndexExtractionModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Kovats index extraction";
-  private static final String MODULE_DESCRIPTION =
-      "Extract Kovats indexes from a raw data file and save to csv.";
+    private static final String MODULE_NAME = "Kovats index extraction";
+    private static final String MODULE_DESCRIPTION = "Extract Kovats indexes from a raw data file and save to csv.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.TOOLS;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.TOOLS;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return KovatsIndexExtractionParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return KovatsIndexExtractionParameters.class;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-    return ExitCode.OK;
-  }
+        return ExitCode.OK;
+    }
 
 }

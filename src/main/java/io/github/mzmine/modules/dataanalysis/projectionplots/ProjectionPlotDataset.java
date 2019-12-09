@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,16 +24,16 @@ import io.github.mzmine.taskcontrol.Task;
 
 public interface ProjectionPlotDataset extends XYDataset, Task {
 
-  public String getRawDataFile(int item);
+    public String getRawDataFile(int item);
 
-  public int getGroupNumber(int item);
+    public int getGroupNumber(int item);
 
-  public Object getGroupParameterValue(int groupNumber);
+    public Object getGroupParameterValue(int groupNumber);
 
-  public int getNumberOfGroups();
+    public int getNumberOfGroups();
 
-  public String getXLabel();
+    public String getXLabel();
 
-  public String getYLabel();
+    public String getYLabel();
 
 }

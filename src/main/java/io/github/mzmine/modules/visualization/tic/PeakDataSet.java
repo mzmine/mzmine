@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,117 +25,120 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * Integrated peak area data set. Separate data set is created for every peak shown in this
- * visualizer window.
+ * Integrated peak area data set. Separate data set is created for every peak
+ * shown in this visualizer window.
  */
 public class PeakDataSet extends AbstractXYDataset {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private final Feature peak;
-  private final double[] retentionTimes;
-  private final double[] intensities;
-  private final double[] mzValues;
-  private final String name;
-  private final int peakItem;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private final Feature peak;
+    private final double[] retentionTimes;
+    private final double[] intensities;
+    private final double[] mzValues;
+    private final String name;
+    private final int peakItem;
 
-  /**
-   * Create the data set.
-   *
-   * @param p the peak.
-   * @param id peak identity to use as a label.
-   */
-  public PeakDataSet(final Feature p, final String id) {
+    /**
+     * Create the data set.
+     *
+     * @param p
+     *            the peak.
+     * @param id
+     *            peak identity to use as a label.
+     */
+    public PeakDataSet(final Feature p, final String id) {
 
-    peak = p;
-    name = id;
+        peak = p;
+        name = id;
 
-    final int[] scanNumbers = peak.getScanNumbers();
-    final RawDataFile dataFile = peak.getDataFile();
-    final int peakScanNumber = peak.getRepresentativeScanNumber();
+        final int[] scanNumbers = peak.getScanNumbers();
+        final RawDataFile dataFile = peak.getDataFile();
+        final int peakScanNumber = peak.getRepresentativeScanNumber();
 
-    // Copy peak data.
-    final int scanCount = scanNumbers.length;
-    retentionTimes = new double[scanCount];
-    intensities = new double[scanCount];
-    mzValues = new double[scanCount];
-    int peakIndex = -1;
-    for (int i = 0; i < scanCount; i++) {
+        // Copy peak data.
+        final int scanCount = scanNumbers.length;
+        retentionTimes = new double[scanCount];
+        intensities = new double[scanCount];
+        mzValues = new double[scanCount];
+        int peakIndex = -1;
+        for (int i = 0; i < scanCount; i++) {
 
-      // Representative scan number?
-      final int scanNumber = scanNumbers[i];
-      if (peakIndex < 0 && scanNumber == peakScanNumber) {
+            // Representative scan number?
+            final int scanNumber = scanNumbers[i];
+            if (peakIndex < 0 && scanNumber == peakScanNumber) {
 
-        peakIndex = i;
-      }
+                peakIndex = i;
+            }
 
-      // Copy RT and m/z.
-      retentionTimes[i] = dataFile.getScan(scanNumber).getRetentionTime();
-      final DataPoint dataPoint = peak.getDataPoint(scanNumber);
-      if (dataPoint == null) {
+            // Copy RT and m/z.
+            retentionTimes[i] = dataFile.getScan(scanNumber).getRetentionTime();
+            final DataPoint dataPoint = peak.getDataPoint(scanNumber);
+            if (dataPoint == null) {
 
-        mzValues[i] = 0.0;
-        intensities[i] = 0.0;
+                mzValues[i] = 0.0;
+                intensities[i] = 0.0;
 
-      } else {
+            } else {
 
-        mzValues[i] = dataPoint.getMZ();
-        intensities[i] = dataPoint.getIntensity();
-      }
+                mzValues[i] = dataPoint.getMZ();
+                intensities[i] = dataPoint.getIntensity();
+            }
+        }
+
+        peakItem = peakIndex;
     }
 
-    peakItem = peakIndex;
-  }
+    /**
+     * Create the data set - no label.
+     *
+     * @param p
+     *            the peak.
+     */
+    public PeakDataSet(final Feature p) {
+        this(p, null);
+    }
 
-  /**
-   * Create the data set - no label.
-   *
-   * @param p the peak.
-   */
-  public PeakDataSet(final Feature p) {
-    this(p, null);
-  }
+    @Override
+    public int getSeriesCount() {
+        return 1;
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    @Override
+    public Comparable<?> getSeriesKey(final int series) {
+        return peak.toString();
+    }
 
-  @Override
-  public Comparable<?> getSeriesKey(final int series) {
-    return peak.toString();
-  }
+    @Override
+    public int getItemCount(final int series) {
+        return retentionTimes.length;
+    }
 
-  @Override
-  public int getItemCount(final int series) {
-    return retentionTimes.length;
-  }
+    @Override
+    public Number getX(final int series, final int item) {
+        return retentionTimes[item];
+    }
 
-  @Override
-  public Number getX(final int series, final int item) {
-    return retentionTimes[item];
-  }
+    @Override
+    public Number getY(final int series, final int item) {
+        return intensities[item];
+    }
 
-  @Override
-  public Number getY(final int series, final int item) {
-    return intensities[item];
-  }
+    public double getMZ(final int item) {
+        return mzValues[item];
+    }
 
-  public double getMZ(final int item) {
-    return mzValues[item];
-  }
+    public Feature getFeature() {
+        return peak;
+    }
 
-  public Feature getFeature() {
-    return peak;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public String getName() {
-    return name;
-  }
-
-  public boolean isPeak(final int item) {
-    return item == peakItem;
-  }
+    public boolean isPeak(final int item) {
+        return item == peakItem;
+    }
 }

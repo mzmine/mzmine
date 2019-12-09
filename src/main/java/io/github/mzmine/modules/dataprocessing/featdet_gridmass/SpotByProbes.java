@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,189 +21,201 @@ package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 import java.util.ArrayList;
 
 class SpotByProbes implements Comparable<SpotByProbes> {
-  ArrayList<Probe> probes = new ArrayList<Probe>();
-  int minScan = Integer.MAX_VALUE;
-  int maxScan = Integer.MIN_VALUE;
-  double maxMZ = Double.NEGATIVE_INFINITY;
-  double minMZ = Double.POSITIVE_INFINITY;
-  double minIntensity = Double.POSITIVE_INFINITY;
-  double maxIntensity = Double.NEGATIVE_INFINITY;
-  static int sid = 0;
-  int spotId = -1;
-  Probe center = null;
-  int consecutiveScans = 0;
-  ArrayList<Datum> maxDatums = null;
+    ArrayList<Probe> probes = new ArrayList<Probe>();
+    int minScan = Integer.MAX_VALUE;
+    int maxScan = Integer.MIN_VALUE;
+    double maxMZ = Double.NEGATIVE_INFINITY;
+    double minMZ = Double.POSITIVE_INFINITY;
+    double minIntensity = Double.POSITIVE_INFINITY;
+    double maxIntensity = Double.NEGATIVE_INFINITY;
+    static int sid = 0;
+    int spotId = -1;
+    Probe center = null;
+    int consecutiveScans = 0;
+    ArrayList<Datum> maxDatums = null;
 
-  SpotByProbes() {}
-
-  void assignSpotId() {
-    if (spotId < 0) {
-      sid++;
-      spotId = sid;
+    SpotByProbes() {
     }
-  }
 
-  int size() {
-    return probes.size();
-  }
-
-  public int compareTo(SpotByProbes other) {
-    if (other == null || other.center == null)
-      return -1;
-    return this.center.compareTo(other.center);
-  }
-
-  void addProbe(Probe p) {
-    probes.add(p);
-    if (center == null)
-      center = p;
-    if (p.mz > maxMZ)
-      maxMZ = p.mz;
-    if (p.mz < minMZ)
-      minMZ = p.mz;
-    if (p.mzCenter > maxMZ)
-      maxMZ = p.mzCenter;
-    if (p.mzCenter < minMZ)
-      minMZ = p.mzCenter;
-    if (p.scan > maxScan)
-      maxScan = p.scan;
-    if (p.scan < minScan)
-      minScan = p.scan;
-    if (p.scanCenter > maxScan)
-      maxScan = p.scanCenter;
-    if (p.scanCenter < minScan)
-      minScan = p.scanCenter;
-    if (p.intensityCenter > maxIntensity)
-      maxIntensity = p.intensityCenter;
-    if (p.intensityCenter < minIntensity)
-      minIntensity = p.intensityCenter;
-  }
-
-  void setSpotIdToDatum(Datum d) {
-    d.spotId = spotId;
-    if (d.mz > maxMZ)
-      maxMZ = d.mz;
-    if (d.mz < minMZ)
-      minMZ = d.mz;
-    if (d.scan > maxScan)
-      maxScan = d.scan;
-    if (d.scan < minScan)
-      minScan = d.scan;
-    if (d.intensity > maxIntensity)
-      maxIntensity = d.intensity;
-    if (d.intensity < minIntensity)
-      minIntensity = d.intensity;
-  }
-
-  void addProbesFromSpot(SpotByProbes sbp, boolean clear) {
-    for (Probe p : sbp.probes) {
-      addProbe(p);
+    void assignSpotId() {
+        if (spotId < 0) {
+            sid++;
+            spotId = sid;
+        }
     }
-    if (center.intensityCenter < sbp.center.intensityCenter)
-      center = sbp.center;
-    if (clear) {
-      sbp.clear();
+
+    int size() {
+        return probes.size();
     }
-  }
 
-  void clear() {
-    probes.clear();
-    center = null;
-    spotId = -1;
-    minScan = Integer.MAX_VALUE;
-    maxScan = Integer.MIN_VALUE;
-    maxMZ = Double.NEGATIVE_INFINITY;
-    minMZ = Double.POSITIVE_INFINITY;
-    minIntensity = Double.POSITIVE_INFINITY;
-    maxIntensity = Double.NEGATIVE_INFINITY;
-  }
-
-  public String toString() {
-    return spotId + " : "
-        + (center != null
-            ? "MZ=" + Math.round(center.mzCenter * 10000) / 10000.0 + ", Scan=" + center.scanCenter
-                + ", Intensity=" + Math.round(center.intensityCenter * 10) / 10.0 + ", "
-            : "")
-        + "Scans=[" + minScan + "~" + maxScan + "],  MZ=[" + Math.round(minMZ * 10000) / 10000.0
-        + "~" + Math.round(maxMZ * 10000) / 10000.0 + "]";
-  }
-
-  public String toString(double[] rettimes) {
-    return spotId + " : "
-        + (center != null
-            ? "MZ=" + Math.round(center.mzCenter * 10000) / 10000.0 + ", Time="
-                + Math.round(rettimes[center.scanCenter] * 1000.0) / 1000.0 + ", Intensity="
-                + Math.round(center.intensityCenter * 10) / 10.0 + ", "
-            : "")
-        + "Times=[" + Math.round(rettimes[minScan] * 1000.0) / 1000.0 + "~"
-        + Math.round(rettimes[maxScan] * 1000.0) / 1000.0 + "],  MZ=["
-        + Math.round(minMZ * 10000) / 10000.0 + "~" + Math.round(maxMZ * 10000) / 10000.0 + "]";
-  }
-
-  public void printDebugInfo() {
-    System.out.println("*** SpotId : " + spotId + " ***");
-    for (Probe p : probes) {
-      System.out.println("SpotId=" + spotId + ", Probe Scan=" + p.scan + ", Probe m/z=" + p.mz
-          + " Feature Scan=" + p.scanCenter + ", Feature m/z=" + p.mzCenter);
+    public int compareTo(SpotByProbes other) {
+        if (other == null || other.center == null)
+            return -1;
+        return this.center.compareTo(other.center);
     }
-  }
 
-  void buildMaxDatumFromScans(Datum[][] roi, double minimumHeight) {
+    void addProbe(Probe p) {
+        probes.add(p);
+        if (center == null)
+            center = p;
+        if (p.mz > maxMZ)
+            maxMZ = p.mz;
+        if (p.mz < minMZ)
+            minMZ = p.mz;
+        if (p.mzCenter > maxMZ)
+            maxMZ = p.mzCenter;
+        if (p.mzCenter < minMZ)
+            minMZ = p.mzCenter;
+        if (p.scan > maxScan)
+            maxScan = p.scan;
+        if (p.scan < minScan)
+            minScan = p.scan;
+        if (p.scanCenter > maxScan)
+            maxScan = p.scanCenter;
+        if (p.scanCenter < minScan)
+            minScan = p.scanCenter;
+        if (p.intensityCenter > maxIntensity)
+            maxIntensity = p.intensityCenter;
+        if (p.intensityCenter < minIntensity)
+            minIntensity = p.intensityCenter;
+    }
 
-    int i, j;
-    ArrayList<Datum> mxD = new ArrayList<Datum>();
-    int cont = 0;
-    consecutiveScans = 0;
-    double theMinMZ = minMZ;// - mzTol;
-    double theMaxMZ = maxMZ;// + mzTol;
-    for (i = minScan; i <= maxScan; i++) {
-      Datum[] di = roi[i];
-      if (di != null && di.length > 0) {
-        Datum max = null;
-        int idx = GridMassTask.findFirstMass(theMinMZ, di);
-        for (j = idx; j < di.length && di[j].mz <= theMaxMZ; j++) {
-          Datum d = di[j];
-          if (d.spotId == spotId) {
-            if ((max == null || d.intensity > max.intensity) && d.intensity > minimumHeight) { // d.mz
-                                                                                               // >=
-              // theMinMZ &&
-              // (it is
-              // already
-              // assigned to
-              // spotid)
-              max = d;
+    void setSpotIdToDatum(Datum d) {
+        d.spotId = spotId;
+        if (d.mz > maxMZ)
+            maxMZ = d.mz;
+        if (d.mz < minMZ)
+            minMZ = d.mz;
+        if (d.scan > maxScan)
+            maxScan = d.scan;
+        if (d.scan < minScan)
+            minScan = d.scan;
+        if (d.intensity > maxIntensity)
+            maxIntensity = d.intensity;
+        if (d.intensity < minIntensity)
+            minIntensity = d.intensity;
+    }
+
+    void addProbesFromSpot(SpotByProbes sbp, boolean clear) {
+        for (Probe p : sbp.probes) {
+            addProbe(p);
+        }
+        if (center.intensityCenter < sbp.center.intensityCenter)
+            center = sbp.center;
+        if (clear) {
+            sbp.clear();
+        }
+    }
+
+    void clear() {
+        probes.clear();
+        center = null;
+        spotId = -1;
+        minScan = Integer.MAX_VALUE;
+        maxScan = Integer.MIN_VALUE;
+        maxMZ = Double.NEGATIVE_INFINITY;
+        minMZ = Double.POSITIVE_INFINITY;
+        minIntensity = Double.POSITIVE_INFINITY;
+        maxIntensity = Double.NEGATIVE_INFINITY;
+    }
+
+    public String toString() {
+        return spotId + " : " + (center != null
+                ? "MZ=" + Math.round(center.mzCenter * 10000) / 10000.0
+                        + ", Scan=" + center.scanCenter + ", Intensity="
+                        + Math.round(center.intensityCenter * 10) / 10.0 + ", "
+                : "") + "Scans=[" + minScan + "~" + maxScan + "],  MZ=["
+                + Math.round(minMZ * 10000) / 10000.0 + "~"
+                + Math.round(maxMZ * 10000) / 10000.0 + "]";
+    }
+
+    public String toString(double[] rettimes) {
+        return spotId + " : "
+                + (center != null
+                        ? "MZ=" + Math.round(center.mzCenter * 10000) / 10000.0
+                                + ", Time="
+                                + Math.round(
+                                        rettimes[center.scanCenter] * 1000.0)
+                                        / 1000.0
+                                + ", Intensity="
+                                + Math.round(center.intensityCenter * 10) / 10.0
+                                + ", "
+                        : "")
+                + "Times=[" + Math.round(rettimes[minScan] * 1000.0) / 1000.0
+                + "~" + Math.round(rettimes[maxScan] * 1000.0) / 1000.0
+                + "],  MZ=[" + Math.round(minMZ * 10000) / 10000.0 + "~"
+                + Math.round(maxMZ * 10000) / 10000.0 + "]";
+    }
+
+    public void printDebugInfo() {
+        System.out.println("*** SpotId : " + spotId + " ***");
+        for (Probe p : probes) {
+            System.out.println("SpotId=" + spotId + ", Probe Scan=" + p.scan
+                    + ", Probe m/z=" + p.mz + " Feature Scan=" + p.scanCenter
+                    + ", Feature m/z=" + p.mzCenter);
+        }
+    }
+
+    void buildMaxDatumFromScans(Datum[][] roi, double minimumHeight) {
+
+        int i, j;
+        ArrayList<Datum> mxD = new ArrayList<Datum>();
+        int cont = 0;
+        consecutiveScans = 0;
+        double theMinMZ = minMZ;// - mzTol;
+        double theMaxMZ = maxMZ;// + mzTol;
+        for (i = minScan; i <= maxScan; i++) {
+            Datum[] di = roi[i];
+            if (di != null && di.length > 0) {
+                Datum max = null;
+                int idx = GridMassTask.findFirstMass(theMinMZ, di);
+                for (j = idx; j < di.length && di[j].mz <= theMaxMZ; j++) {
+                    Datum d = di[j];
+                    if (d.spotId == spotId) {
+                        if ((max == null || d.intensity > max.intensity)
+                                && d.intensity > minimumHeight) { // d.mz
+                                                                  // >=
+                            // theMinMZ &&
+                            // (it is
+                            // already
+                            // assigned to
+                            // spotid)
+                            max = d;
+                        }
+                    }
+                }
+                if (max != null && max.intensity > 0) {
+                    mxD.add(max);
+                    cont++;
+                } else {
+                    cont = 0;
+                }
+            } else {
+                cont = 0;
             }
-          }
+            if (cont > consecutiveScans)
+                consecutiveScans = cont;
         }
-        if (max != null && max.intensity > 0) {
-          mxD.add(max);
-          cont++;
-        } else {
-          cont = 0;
-        }
-      } else {
-        cont = 0;
-      }
-      if (cont > consecutiveScans)
-        consecutiveScans = cont;
+        maxDatums = mxD;
+
     }
-    maxDatums = mxD;
 
-  }
+    int getMaxDatumScans() {
+        return (maxDatums == null || maxDatums.size() == 0 ? 0
+                : maxDatums.get(maxDatums.size() - 1).scan
+                        - maxDatums.get(0).scan + 1); // maxDatums.size()
+    }
 
-  int getMaxDatumScans() {
-    return (maxDatums == null || maxDatums.size() == 0 ? 0
-        : maxDatums.get(maxDatums.size() - 1).scan - maxDatums.get(0).scan + 1); // maxDatums.size()
-  }
+    int getContigousMaxDatumScans() {
+        return (maxDatums == null || maxDatums.size() == 0 ? 0
+                : consecutiveScans);
+    }
 
-  int getContigousMaxDatumScans() {
-    return (maxDatums == null || maxDatums.size() == 0 ? 0 : consecutiveScans);
-  }
-
-  float getContigousToMaxDatumScansRatio() {
-    if (maxDatums == null || maxDatums.size() == 0)
-      return 0;
-    return ((float) getContigousMaxDatumScans() / (float) getMaxDatumScans());
-  }
+    float getContigousToMaxDatumScansRatio() {
+        if (maxDatums == null || maxDatums.size() == 0)
+            return 0;
+        return ((float) getContigousMaxDatumScans()
+                / (float) getMaxDatumScans());
+    }
 
 }

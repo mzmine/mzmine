@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -67,7 +67,8 @@ public class MergedSpectrum {
     public final double precursorMz;
 
     /**
-     * the maximum score over all source spectra. The reflects the quality of the MS/MS (high intensity, low chimeric contamination)
+     * the maximum score over all source spectra. The reflects the quality of
+     * the MS/MS (high intensity, low chimeric contamination)
      */
     protected double bestFragmentScanScore;
 
@@ -81,7 +82,9 @@ public class MergedSpectrum {
      */
     public int removedScansByLowCosine;
 
-    private final static MergedSpectrum EMPTY = new MergedSpectrum(new MergedDataPoint[0],new RawDataFile[0],new int[0],0d, PolarityType.UNKNOWN,0, 0,0, 0d);
+    private final static MergedSpectrum EMPTY = new MergedSpectrum(
+            new MergedDataPoint[0], new RawDataFile[0], new int[0], 0d,
+            PolarityType.UNKNOWN, 0, 0, 0, 0d);
 
     /**
      * @return an empty merged spectrum
@@ -91,29 +94,43 @@ public class MergedSpectrum {
     }
 
     /**
-     * @return an empty merged spectrum with the information how many scans were rejected
+     * @return an empty merged spectrum with the information how many scans were
+     *         rejected
      */
     public static MergedSpectrum empty(int removedScansByLowQuality) {
-        return new MergedSpectrum(new MergedDataPoint[0],new RawDataFile[0],new int[0],0d, PolarityType.UNKNOWN,0, removedScansByLowQuality,0, 0d);
+        return new MergedSpectrum(new MergedDataPoint[0], new RawDataFile[0],
+                new int[0], 0d, PolarityType.UNKNOWN, 0,
+                removedScansByLowQuality, 0, 0d);
     }
 
-    public MergedSpectrum(MergedDataPoint[] data, Set<RawDataFile> origins, Set<Integer> scanIds, double precursorMz, PolarityType polarity, int precursorCharge, int removedScansByLowQuality, int removedScansByLowCosine) {
-        this(data, origins.toArray(new RawDataFile[origins.size()]), scanIds.stream().sorted().mapToInt(x->x).toArray(), precursorMz, polarity,precursorCharge, removedScansByLowQuality, removedScansByLowCosine, 0d);
+    public MergedSpectrum(MergedDataPoint[] data, Set<RawDataFile> origins,
+            Set<Integer> scanIds, double precursorMz, PolarityType polarity,
+            int precursorCharge, int removedScansByLowQuality,
+            int removedScansByLowCosine) {
+        this(data, origins.toArray(new RawDataFile[origins.size()]),
+                scanIds.stream().sorted().mapToInt(x -> x).toArray(),
+                precursorMz, polarity, precursorCharge,
+                removedScansByLowQuality, removedScansByLowCosine, 0d);
     }
 
     /**
      * build a merged spectrum containing only a single spectrum
-     * @param single the spectrum
-     * @param massList the name of the mass list that should be used for extracting peak information
+     * 
+     * @param single
+     *            the spectrum
+     * @param massList
+     *            the name of the mass list that should be used for extracting
+     *            peak information
      */
     public MergedSpectrum(Scan single, String massList) {
         DataPoint[] dataPoints = single.getMassList(massList).getDataPoints();
         this.data = new MergedDataPoint[dataPoints.length];
-        for (int k=0; k < dataPoints.length; ++k) {
-            this.data[k] = new MergedDataPoint(MzMergeMode.MOST_INTENSE, IntensityMergeMode.MAXIMUM, dataPoints[k]);
+        for (int k = 0; k < dataPoints.length; ++k) {
+            this.data[k] = new MergedDataPoint(MzMergeMode.MOST_INTENSE,
+                    IntensityMergeMode.MAXIMUM, dataPoints[k]);
         }
-        this.origins = new RawDataFile[]{single.getDataFile()};
-        this.scanIds = new int[]{single.getScanNumber()};
+        this.origins = new RawDataFile[] { single.getDataFile() };
+        this.scanIds = new int[] { single.getScanNumber() };
         this.polarity = single.getPolarity();
         this.precursorCharge = single.getPrecursorCharge();
         this.removedScansByLowCosine = 0;
@@ -121,7 +138,10 @@ public class MergedSpectrum {
         this.precursorMz = single.getPrecursorMZ();
     }
 
-    public MergedSpectrum(MergedDataPoint[] data, RawDataFile[] origins, int[] scanIds, double precursorMz, PolarityType polarity, int precursorCharge, int removedScansByLowQuality, int removedScansByLowCosine, double bestFragmentScanScore) {
+    public MergedSpectrum(MergedDataPoint[] data, RawDataFile[] origins,
+            int[] scanIds, double precursorMz, PolarityType polarity,
+            int precursorCharge, int removedScansByLowQuality,
+            int removedScansByLowCosine, double bestFragmentScanScore) {
         this.data = data;
         this.origins = origins;
         this.scanIds = scanIds;
@@ -135,14 +155,16 @@ public class MergedSpectrum {
 
     @Override
     public String toString() {
-        if (origins.length>0) {
+        if (origins.length > 0) {
             final String name = origins[0].getName();
-            if (origins.length>1) {
-                return "Merged spectrum from " + name + " and " + (origins.length-1) + " others";
+            if (origins.length > 1) {
+                return "Merged spectrum from " + name + " and "
+                        + (origins.length - 1) + " others";
             } else {
                 return "Merged spectrum from " + name;
             }
-        } else return "merged spectrum";
+        } else
+            return "merged spectrum";
     }
 
     public double getBestFragmentScanScore() {
@@ -150,28 +172,48 @@ public class MergedSpectrum {
     }
 
     /**
-     * @return the total number of scans that contribute to this merged spectrum, including all rejected (low quality) scans
+     * @return the total number of scans that contribute to this merged
+     *         spectrum, including all rejected (low quality) scans
      */
     public int totalNumberOfScans() {
-        return scanIds.length+removedScansByLowCosine+removedScansByLowQuality;
+        return scanIds.length + removedScansByLowCosine
+                + removedScansByLowQuality;
     }
 
     public String getMergeStatsDescription() {
-        return String.format(Locale.US, "%d / %d (%d removed due to low quality, %d removed due to low cosine).",scanIds.length, totalNumberOfScans(), removedScansByLowQuality, removedScansByLowCosine);
+        return String.format(Locale.US,
+                "%d / %d (%d removed due to low quality, %d removed due to low cosine).",
+                scanIds.length, totalNumberOfScans(), removedScansByLowQuality,
+                removedScansByLowCosine);
     }
 
     /**
-     * merge to spectra. The merging of data points itself is done within the MsMsSpectraMerge#merge method
-     * @param right spectra to merge
-     * @param mergedSpectrum merged data points
-     * @return merged spectrum containing meta information of both sources and the given merged data points
+     * merge to spectra. The merging of data points itself is done within the
+     * MsMsSpectraMerge#merge method
+     * 
+     * @param right
+     *            spectra to merge
+     * @param mergedSpectrum
+     *            merged data points
+     * @return merged spectrum containing meta information of both sources and
+     *         the given merged data points
      */
-    public MergedSpectrum merge(MergedSpectrum right, MergedDataPoint[] mergedSpectrum) {
-        final RawDataFile[] norigs = Arrays.copyOf(origins, origins.length+right.origins.length);
-        System.arraycopy(right.origins, 0, norigs, origins.length, right.origins.length);
-        final int[] nscans = Arrays.copyOf(scanIds, scanIds.length+right.scanIds.length);
-        System.arraycopy(right.scanIds, 0, nscans, scanIds.length, right.scanIds.length);
-        MergedSpectrum newMerged = new MergedSpectrum(mergedSpectrum, norigs, nscans, right.precursorMz, right.polarity, right.precursorCharge, removedScansByLowQuality + right.removedScansByLowQuality, removedScansByLowCosine + right.removedScansByLowCosine, Math.max(bestFragmentScanScore, right.bestFragmentScanScore));
+    public MergedSpectrum merge(MergedSpectrum right,
+            MergedDataPoint[] mergedSpectrum) {
+        final RawDataFile[] norigs = Arrays.copyOf(origins,
+                origins.length + right.origins.length);
+        System.arraycopy(right.origins, 0, norigs, origins.length,
+                right.origins.length);
+        final int[] nscans = Arrays.copyOf(scanIds,
+                scanIds.length + right.scanIds.length);
+        System.arraycopy(right.scanIds, 0, nscans, scanIds.length,
+                right.scanIds.length);
+        MergedSpectrum newMerged = new MergedSpectrum(mergedSpectrum, norigs,
+                nscans, right.precursorMz, right.polarity,
+                right.precursorCharge,
+                removedScansByLowQuality + right.removedScansByLowQuality,
+                removedScansByLowCosine + right.removedScansByLowCosine,
+                Math.max(bestFragmentScanScore, right.bestFragmentScanScore));
         return newMerged;
     }
 
@@ -186,29 +228,33 @@ public class MergedSpectrum {
     }
 
     /**
-     * @param minimumRelativeNumberOfScans in how many scans the peaks have to be contained (in percent)
-     * @return new merged spectrum containing only peaks that occur consistently in source spectra
+     * @param minimumRelativeNumberOfScans
+     *            in how many scans the peaks have to be contained (in percent)
+     * @return new merged spectrum containing only peaks that occur consistently
+     *         in source spectra
      */
-    public MergedSpectrum filterByRelativeNumberOfScans(double minimumRelativeNumberOfScans) {
-        int minNum = (int)(scanIds.length*minimumRelativeNumberOfScans);
-        if (minNum>1) return filterByNumberOfScans(minNum);
-        else return this;
+    public MergedSpectrum filterByRelativeNumberOfScans(
+            double minimumRelativeNumberOfScans) {
+        int minNum = (int) (scanIds.length * minimumRelativeNumberOfScans);
+        if (minNum > 1)
+            return filterByNumberOfScans(minNum);
+        else
+            return this;
     }
 
     /**
-     * @param minimumNumberOfScans in how many scans the peaks have to be contained
-     * @return new merged spectrum containing only peaks that occur consistently in source spectra
+     * @param minimumNumberOfScans
+     *            in how many scans the peaks have to be contained
+     * @return new merged spectrum containing only peaks that occur consistently
+     *         in source spectra
      */
     public MergedSpectrum filterByNumberOfScans(int minimumNumberOfScans) {
         return new MergedSpectrum(
-                Arrays.stream(data).filter(x->x.sources.length >= minimumNumberOfScans).toArray(MergedDataPoint[]::new),
-                origins,
-                scanIds,
-                precursorMz,
-                polarity,
-                precursorCharge,
-                removedScansByLowQuality,
-                removedScansByLowCosine,
+                Arrays.stream(data)
+                        .filter(x -> x.sources.length >= minimumNumberOfScans)
+                        .toArray(MergedDataPoint[]::new),
+                origins, scanIds, precursorMz, polarity, precursorCharge,
+                removedScansByLowQuality, removedScansByLowCosine,
                 bestFragmentScanScore
 
         );

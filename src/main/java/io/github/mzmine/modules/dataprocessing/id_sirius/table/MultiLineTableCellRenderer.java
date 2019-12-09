@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -27,17 +27,17 @@ import javax.swing.table.TableCellRenderer;
 /**
  * Class for multiline String cell rendering.
  */
-public class MultiLineTableCellRenderer extends JList<String> implements TableCellRenderer {
+public class MultiLineTableCellRenderer extends JList<String>
+        implements TableCellRenderer {
 
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-      boolean hasFocus, int row, int column) {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
 
+        if (value instanceof String[]) {
+            setListData((String[]) value);
+        }
 
-    if (value instanceof String[]) {
-      setListData((String[]) value);
+        return this;
     }
-
-    return this;
-  }
 }

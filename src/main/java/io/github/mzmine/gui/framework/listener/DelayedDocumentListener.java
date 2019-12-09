@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,120 +31,122 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class DelayedDocumentListener
-    implements DocumentListener, Runnable, EventListener, Serializable {
-  private static final long serialVersionUID = 1L;
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+        implements DocumentListener, Runnable, EventListener, Serializable {
+    private static final long serialVersionUID = 1L;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private long lastAutoUpdateTime = -1;
-  private boolean isAutoUpdateStarted = false;
-  private long delay = 1500;
-  private boolean isActive = true;
-  private DocumentEvent lastEvent = null;
-  private boolean isStopped = false;
-  private Consumer<DocumentEvent> consumer = null;
+    private long lastAutoUpdateTime = -1;
+    private boolean isAutoUpdateStarted = false;
+    private long delay = 1500;
+    private boolean isActive = true;
+    private DocumentEvent lastEvent = null;
+    private boolean isStopped = false;
+    private Consumer<DocumentEvent> consumer = null;
 
-  public DelayedDocumentListener() {
-    this(null);
-  }
-
-  public DelayedDocumentListener(Consumer<DocumentEvent> consumer) {
-    super();
-    this.consumer = consumer;
-  }
-
-  public DelayedDocumentListener(long delay) {
-    this(delay, null);
-  }
-
-  public DelayedDocumentListener(long delay, Consumer<DocumentEvent> consumer) {
-    super();
-    this.delay = delay;
-    this.consumer = consumer;
-  }
-
-  /**
-   * starts the auto update function
-   */
-  public void startAutoUpdater(DocumentEvent e) {
-    lastAutoUpdateTime = System.currentTimeMillis();
-    lastEvent = e;
-    isStopped = false;
-    if (!isAutoUpdateStarted) {
-      logger.debug("Auto update started");
-      isAutoUpdateStarted = true;
-      Thread t = new Thread(this);
-      t.start();
-    } else
-      logger.debug("no auto update this time");
-  }
-
-  @Override
-  public void run() {
-    while (!isStopped) {
-      if (lastAutoUpdateTime + delay <= System.currentTimeMillis()) {
-        documentChanged(lastEvent);
-        lastAutoUpdateTime = -1;
-        isAutoUpdateStarted = false;
-        break;
-      }
-      try {
-        Thread.currentThread().sleep(80);
-      } catch (InterruptedException e) {
-        logger.error("", e);
-      }
+    public DelayedDocumentListener() {
+        this(null);
     }
-    isAutoUpdateStarted = false;
-    isStopped = false;
-  }
 
-  /**
-   * the document was changed
-   * 
-   * @param e last document event (only)
-   */
-  public void documentChanged(DocumentEvent e) {
-    if (consumer != null)
-      consumer.accept(e);
-  }
+    public DelayedDocumentListener(Consumer<DocumentEvent> consumer) {
+        super();
+        this.consumer = consumer;
+    }
 
-  @Override
-  public void removeUpdate(DocumentEvent arg0) {
-    if (isActive)
-      startAutoUpdater(arg0);
-  }
+    public DelayedDocumentListener(long delay) {
+        this(delay, null);
+    }
 
-  @Override
-  public void insertUpdate(DocumentEvent arg0) {
-    if (isActive)
-      startAutoUpdater(arg0);
-  }
+    public DelayedDocumentListener(long delay,
+            Consumer<DocumentEvent> consumer) {
+        super();
+        this.delay = delay;
+        this.consumer = consumer;
+    }
 
-  @Override
-  public void changedUpdate(DocumentEvent arg0) {
-    if (isActive)
-      startAutoUpdater(arg0);
-  }
+    /**
+     * starts the auto update function
+     */
+    public void startAutoUpdater(DocumentEvent e) {
+        lastAutoUpdateTime = System.currentTimeMillis();
+        lastEvent = e;
+        isStopped = false;
+        if (!isAutoUpdateStarted) {
+            logger.debug("Auto update started");
+            isAutoUpdateStarted = true;
+            Thread t = new Thread(this);
+            t.start();
+        } else
+            logger.debug("no auto update this time");
+    }
 
-  public long getDalay() {
-    return delay;
-  }
+    @Override
+    public void run() {
+        while (!isStopped) {
+            if (lastAutoUpdateTime + delay <= System.currentTimeMillis()) {
+                documentChanged(lastEvent);
+                lastAutoUpdateTime = -1;
+                isAutoUpdateStarted = false;
+                break;
+            }
+            try {
+                Thread.currentThread().sleep(80);
+            } catch (InterruptedException e) {
+                logger.error("", e);
+            }
+        }
+        isAutoUpdateStarted = false;
+        isStopped = false;
+    }
 
-  public void setDalay(long dalay) {
-    this.delay = dalay;
-  }
+    /**
+     * the document was changed
+     * 
+     * @param e
+     *            last document event (only)
+     */
+    public void documentChanged(DocumentEvent e) {
+        if (consumer != null)
+            consumer.accept(e);
+    }
 
-  public boolean isActive() {
-    return isActive;
-  }
+    @Override
+    public void removeUpdate(DocumentEvent arg0) {
+        if (isActive)
+            startAutoUpdater(arg0);
+    }
 
-  public void setActive(boolean isActive) {
-    this.isActive = isActive;
-    if (!isActive)
-      stop();
-  }
+    @Override
+    public void insertUpdate(DocumentEvent arg0) {
+        if (isActive)
+            startAutoUpdater(arg0);
+    }
 
-  public void stop() {
-    isStopped = true;
-  }
+    @Override
+    public void changedUpdate(DocumentEvent arg0) {
+        if (isActive)
+            startAutoUpdater(arg0);
+    }
+
+    public long getDalay() {
+        return delay;
+    }
+
+    public void setDalay(long dalay) {
+        this.delay = dalay;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
+        if (!isActive)
+            stop();
+    }
+
+    public void stop() {
+        isStopped = true;
+    }
 
 }

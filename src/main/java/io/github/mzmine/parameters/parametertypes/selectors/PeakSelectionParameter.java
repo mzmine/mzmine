@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,134 +35,139 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.XMLUtils;
 
 public class PeakSelectionParameter
-    implements UserParameter<List<PeakSelection>, PeakSelectionComponent> {
+        implements UserParameter<List<PeakSelection>, PeakSelectionComponent> {
 
-  private final String name, description;
-  private List<PeakSelection> value;
+    private final String name, description;
+    private List<PeakSelection> value;
 
-  public PeakSelectionParameter() {
-    this("Peaks", "Select peaks that should be included.", null);
-  }
-
-  public PeakSelectionParameter(String name, String description, List<PeakSelection> defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-  }
-
-  @Override
-  public List<PeakSelection> getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(List<PeakSelection> newValue) {
-    this.value = Lists.newArrayList(newValue);
-  }
-
-  @Override
-  public PeakSelectionParameter cloneParameter() {
-    PeakSelectionParameter copy =
-        new PeakSelectionParameter(name, description, Lists.newArrayList(value));
-    return copy;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if ((value == null) || (value.size() == 0)) {
-      errorMessages.add("No peaks selected");
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-
-    List<PeakSelection> newValue = Lists.newArrayList();
-    NodeList selItems = xmlElement.getElementsByTagName("selection");
-    for (int i = 0; i < selItems.getLength(); i++) {
-      Element selElement = (Element) selItems.item(i);
-      Range<Integer> idRange = XMLUtils.parseIntegerRange(selElement, "id");
-      Range<Double> mzRange = XMLUtils.parseDoubleRange(selElement, "mz");
-      Range<Double> rtRange = XMLUtils.parseDoubleRange(selElement, "rt");
-      String name = XMLUtils.parseString(selElement, "name");
-      PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange, name);
-      newValue.add(ps);
-    }
-    this.value = newValue;
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    Document parentDocument = xmlElement.getOwnerDocument();
-
-    for (PeakSelection ps : value) {
-      Element selElement = parentDocument.createElement("selection");
-      xmlElement.appendChild(selElement);
-      XMLUtils.appendRange(selElement, "id", ps.getIDRange());
-      XMLUtils.appendRange(selElement, "mz", ps.getMZRange());
-      XMLUtils.appendRange(selElement, "rt", ps.getRTRange());
-      XMLUtils.appendString(selElement, "name", ps.getName());
+    public PeakSelectionParameter() {
+        this("Peaks", "Select peaks that should be included.", null);
     }
 
-  }
-
-  @Override
-  public PeakSelectionComponent createEditingComponent() {
-    return new PeakSelectionComponent();
-  }
-
-  @Override
-  public void setValueFromComponent(PeakSelectionComponent component) {
-    value = component.getValue();
-  }
-
-  @Override
-  public void setValueToComponent(PeakSelectionComponent component, List<PeakSelection> newValue) {
-    component.setValue(newValue);
-  }
-
-  /**
-   * Shortcut to set value based on feature list rows
-   */
-  public void setValue(PeakListRow rows[]) {
-    List<PeakSelection> newValue = Lists.newArrayList();
-    for (PeakListRow row : rows) {
-      Range<Integer> idRange = Range.singleton(row.getID());
-      Range<Double> mzRange = Range.singleton(row.getAverageMZ());
-      Range<Double> rtRange = Range.singleton(row.getAverageRT());
-      PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange, null);
-      newValue.add(ps);
+    public PeakSelectionParameter(String name, String description,
+            List<PeakSelection> defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
     }
-    setValue(newValue);
-  }
 
-  public PeakListRow[] getMatchingRows(PeakList peakList) {
+    @Override
+    public List<PeakSelection> getValue() {
+        return value;
+    }
 
-    final List<PeakListRow> matchingRows = new ArrayList<>();
-    rows: for (PeakListRow row : peakList.getRows()) {
-      for (PeakSelection ps : value) {
-        if (ps.checkPeakListRow(row)) {
-          matchingRows.add(row);
-          continue rows;
+    @Override
+    public void setValue(List<PeakSelection> newValue) {
+        this.value = Lists.newArrayList(newValue);
+    }
+
+    @Override
+    public PeakSelectionParameter cloneParameter() {
+        PeakSelectionParameter copy = new PeakSelectionParameter(name,
+                description, Lists.newArrayList(value));
+        return copy;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if ((value == null) || (value.size() == 0)) {
+            errorMessages.add("No peaks selected");
+            return false;
         }
-      }
+        return true;
     }
-    return matchingRows.toArray(new PeakListRow[matchingRows.size()]);
 
-  }
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+
+        List<PeakSelection> newValue = Lists.newArrayList();
+        NodeList selItems = xmlElement.getElementsByTagName("selection");
+        for (int i = 0; i < selItems.getLength(); i++) {
+            Element selElement = (Element) selItems.item(i);
+            Range<Integer> idRange = XMLUtils.parseIntegerRange(selElement,
+                    "id");
+            Range<Double> mzRange = XMLUtils.parseDoubleRange(selElement, "mz");
+            Range<Double> rtRange = XMLUtils.parseDoubleRange(selElement, "rt");
+            String name = XMLUtils.parseString(selElement, "name");
+            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange,
+                    name);
+            newValue.add(ps);
+        }
+        this.value = newValue;
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+
+        for (PeakSelection ps : value) {
+            Element selElement = parentDocument.createElement("selection");
+            xmlElement.appendChild(selElement);
+            XMLUtils.appendRange(selElement, "id", ps.getIDRange());
+            XMLUtils.appendRange(selElement, "mz", ps.getMZRange());
+            XMLUtils.appendRange(selElement, "rt", ps.getRTRange());
+            XMLUtils.appendString(selElement, "name", ps.getName());
+        }
+
+    }
+
+    @Override
+    public PeakSelectionComponent createEditingComponent() {
+        return new PeakSelectionComponent();
+    }
+
+    @Override
+    public void setValueFromComponent(PeakSelectionComponent component) {
+        value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(PeakSelectionComponent component,
+            List<PeakSelection> newValue) {
+        component.setValue(newValue);
+    }
+
+    /**
+     * Shortcut to set value based on feature list rows
+     */
+    public void setValue(PeakListRow rows[]) {
+        List<PeakSelection> newValue = Lists.newArrayList();
+        for (PeakListRow row : rows) {
+            Range<Integer> idRange = Range.singleton(row.getID());
+            Range<Double> mzRange = Range.singleton(row.getAverageMZ());
+            Range<Double> rtRange = Range.singleton(row.getAverageRT());
+            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange,
+                    null);
+            newValue.add(ps);
+        }
+        setValue(newValue);
+    }
+
+    public PeakListRow[] getMatchingRows(PeakList peakList) {
+
+        final List<PeakListRow> matchingRows = new ArrayList<>();
+        rows: for (PeakListRow row : peakList.getRows()) {
+            for (PeakSelection ps : value) {
+                if (ps.checkPeakListRow(row)) {
+                    matchingRows.add(row);
+                    continue rows;
+                }
+            }
+        }
+        return matchingRows.toArray(new PeakListRow[matchingRows.size()]);
+
+    }
 
 }

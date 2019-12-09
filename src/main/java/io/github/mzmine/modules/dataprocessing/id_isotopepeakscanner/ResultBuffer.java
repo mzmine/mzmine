@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,50 +21,51 @@ package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 import java.util.ArrayList;
 
 /**
- * This class serves as a buffer for possible result peaks. It stores the number of possibly
- * matching peaks for every expected isotope peak. The row index (addRow), row ID (addID) are also
- * stored so you can either manage via id or row index.
+ * This class serves as a buffer for possible result peaks. It stores the number
+ * of possibly matching peaks for every expected isotope peak. The row index
+ * (addRow), row ID (addID) are also stored so you can either manage via id or
+ * row index.
  *
- * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de /
+ *         s_heuc03@uni-muenster.de
  *
  */
 public class ResultBuffer {
-  private int found;
-  private ArrayList<Integer> row;
-  private ArrayList<Integer> ID;
+    private int found;
+    private ArrayList<Integer> row;
+    private ArrayList<Integer> ID;
 
+    public int getFoundCount() {
+        return found;
+    }
 
-  public int getFoundCount() {
-    return found;
-  }
+    public void addFound() {
+        this.found++;
+    }
 
-  public void addFound() {
-    this.found++;
-  }
+    public int getSize() {
+        return row.size();
+    }
 
-  public int getSize() {
-    return row.size();
-  }
+    public void addRow(int r) {
+        row.add((Integer) r);
+    }
 
-  public void addRow(int r) {
-    row.add((Integer) r);
-  }
+    public void addID(int id) {
+        ID.add((Integer) id);
+    }
 
-  public void addID(int id) {
-    ID.add((Integer) id);
-  }
+    public int getRow(int i) {
+        return row.get(i).intValue();
+    }
 
-  public int getRow(int i) {
-    return row.get(i).intValue();
-  }
+    public int getID(int i) {
+        return ID.get(i).intValue();
+    }
 
-  public int getID(int i) {
-    return ID.get(i).intValue();
-  }
-
-  public ResultBuffer() {
-    found = 0;
-    row = new ArrayList<Integer>();
-    ID = new ArrayList<Integer>();
-  }
+    public ResultBuffer() {
+        found = 0;
+        row = new ArrayList<Integer>();
+        ID = new ArrayList<Integer>();
+    }
 }

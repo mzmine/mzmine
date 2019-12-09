@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,27 +28,30 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentPa
 import io.github.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(BatchModeParameters.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(BatchModeParameters.class.getName());
 
-  public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter("Last used files");
-  public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
+    public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter(
+            "Last used files");
+    public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
 
-  public BatchModeParameters() {
-    super(new Parameter[] {batchQueue, lastFiles});
-  }
+    public BatchModeParameters() {
+        super(new Parameter[] { batchQueue, lastFiles });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    // set lastUsed files list
-    final BatchSetupComponent batchComponent =
-        ((BatchSetupComponent) dialog.getComponentForParameter(batchQueue));
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+                valueCheckRequired, this);
+        // set lastUsed files list
+        final BatchSetupComponent batchComponent = ((BatchSetupComponent) dialog
+                .getComponentForParameter(batchQueue));
 
-    // new last used files are inserted to this list in the component
-    batchComponent.setLastFiles(lastFiles.getValue());
+        // new last used files are inserted to this list in the component
+        batchComponent.setLastFiles(lastFiles.getValue());
 
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

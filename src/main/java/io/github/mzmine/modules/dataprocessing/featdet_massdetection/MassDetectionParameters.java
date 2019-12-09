@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,95 +43,100 @@ import io.github.mzmine.util.ExitCode;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector()};
+    public static final MassDetector massDetectors[] = {
+            new CentroidMassDetector(), new ExactMassDetector(),
+            new LocalMaxMassDetector(), new RecursiveMassDetector(),
+            new WaveletMassDetector() };
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+    public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+            "Mass detector",
+            "Algorithm to use for mass detection and its parameters",
+            massDetectors);
 
-  public static final StringParameter name = new StringParameter("Mass list name",
-      "Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
-      "masses");
+    public static final StringParameter name = new StringParameter(
+            "Mass list name",
+            "Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
+            "masses");
 
-  public static final FileNameParameter outFilename =
-      new FileNameParameter("Output netCDF filename (optional)",
-          "If selected, centroided spectra will be written to this file netCDF file. "
-              + "If the file already exists, it will be overwritten.",
-          "cdf");
+    public static final FileNameParameter outFilename = new FileNameParameter(
+            "Output netCDF filename (optional)",
+            "If selected, centroided spectra will be written to this file netCDF file. "
+                    + "If the file already exists, it will be overwritten.",
+            "cdf");
 
-  public static final OptionalParameter<FileNameParameter> outFilenameOption =
-      new OptionalParameter<>(outFilename);
+    public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
+            outFilename);
 
-  public MassDetectionParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, massDetector, name, outFilenameOption});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    ExitCode exitCode = super.showSetupDialog(parent, valueCheckRequired);
-
-    // If the parameters are not complete, let's just stop here
-    if (exitCode != ExitCode.OK)
-      return exitCode;
-
-    RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
-
-    // If no file selected (e.g. in batch mode setup), just return
-    if ((selectedFiles == null) || (selectedFiles.length == 0))
-      return exitCode;
-
-
-    // Do an additional check for centroid/continuous data and show a
-    // warning if there is a potential problem
-    long numCentroided = 0, numProfile = 0;
-    ScanSelection scanSel = getParameter(scanSelection).getValue();
-
-    for (RawDataFile file : selectedFiles) {
-      Scan scans[] = scanSel.getMatchingScans(file);
-      for (Scan s : scans) {
-        if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
-          numCentroided++;
-        else
-          numProfile++;
-      }
+    public MassDetectionParameters() {
+        super(new Parameter[] { dataFiles, scanSelection, massDetector, name,
+                outFilenameOption });
     }
 
-    // If no scans found, let's just stop here
-    if (numCentroided + numProfile == 0)
-      return exitCode;
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-    // Do we have mostly centroided scans?
-    final double proportionCentroided = (double) numCentroided / (numCentroided + numProfile);
-    final boolean mostlyCentroided = proportionCentroided > 0.5;
-    logger.finest("Proportion of scans estimated to be centroided: " + proportionCentroided);
+        ExitCode exitCode = super.showSetupDialog(parent, valueCheckRequired);
 
-    // Check the selected mass detector
-    String massDetectorName = getParameter(massDetector).getValue().toString();
+        // If the parameters are not complete, let's just stop here
+        if (exitCode != ExitCode.OK)
+            return exitCode;
 
-    if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
+        RawDataFile selectedFiles[] = getParameter(dataFiles).getValue()
+                .getMatchingRawDataFiles();
+
+        // If no file selected (e.g. in batch mode setup), just return
+        if ((selectedFiles == null) || (selectedFiles.length == 0))
+            return exitCode;
+
+        // Do an additional check for centroid/continuous data and show a
+        // warning if there is a potential problem
+        long numCentroided = 0, numProfile = 0;
+        ScanSelection scanSel = getParameter(scanSelection).getValue();
+
+        for (RawDataFile file : selectedFiles) {
+            Scan scans[] = scanSel.getMatchingScans(file);
+            for (Scan s : scans) {
+                if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
+                    numCentroided++;
+                else
+                    numProfile++;
+            }
+        }
+
+        // If no scans found, let's just stop here
+        if (numCentroided + numProfile == 0)
+            return exitCode;
+
+        // Do we have mostly centroided scans?
+        final double proportionCentroided = (double) numCentroided
+                / (numCentroided + numProfile);
+        final boolean mostlyCentroided = proportionCentroided > 0.5;
+        logger.finest("Proportion of scans estimated to be centroided: "
+                + proportionCentroided);
+
+        // Check the selected mass detector
+        String massDetectorName = getParameter(massDetector).getValue()
+                .toString();
+
+        if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
+            String msg = "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
+            MZmineCore.getDesktop().displayMessage(null, msg);
+        }
+
+        if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
+            String msg = "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
+            MZmineCore.getDesktop().displayMessage(null, msg);
+        }
+
+        return exitCode;
+
     }
-
-    if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
-    }
-
-    return exitCode;
-
-  }
 
 }

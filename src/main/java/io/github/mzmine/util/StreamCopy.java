@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -28,77 +28,84 @@ import java.nio.channels.WritableByteChannel;
 
 public class StreamCopy {
 
-  private long copiedLength, totalLength;
-  private boolean canceled = false, finished = false;
+    private long copiedLength, totalLength;
+    private boolean canceled = false, finished = false;
 
-  /**
-   * Copy the data from inputStream to outputStream using nio channels
-   * 
-   * @param input InputStream
-   * @param output OutputStream
-   */
-  public void copy(InputStream input, OutputStream output) throws IOException {
-    this.copy(input, output, 0);
-  }
-
-  /**
-   * Copy the data from inputStream to outputStream using nio channels
-   * 
-   * @param input InputStream
-   * @param output OutputStream
-   */
-  public void copy(InputStream input, OutputStream output, long totalLength) throws IOException {
-
-    this.totalLength = totalLength;
-
-    ReadableByteChannel in = Channels.newChannel(input);
-    WritableByteChannel out = Channels.newChannel(output);
-
-    // Allocate 1MB buffer
-    ByteBuffer bbuffer = ByteBuffer.allocate(1 << 20);
-
-    int len = 0;
-
-    while ((len = in.read(bbuffer)) != -1) {
-
-      if (canceled)
-        return;
-
-      bbuffer.flip();
-      out.write(bbuffer);
-      bbuffer.clear();
-      copiedLength += len;
+    /**
+     * Copy the data from inputStream to outputStream using nio channels
+     * 
+     * @param input
+     *            InputStream
+     * @param output
+     *            OutputStream
+     */
+    public void copy(InputStream input, OutputStream output)
+            throws IOException {
+        this.copy(input, output, 0);
     }
 
-    finished = true;
+    /**
+     * Copy the data from inputStream to outputStream using nio channels
+     * 
+     * @param input
+     *            InputStream
+     * @param output
+     *            OutputStream
+     */
+    public void copy(InputStream input, OutputStream output, long totalLength)
+            throws IOException {
 
-  }
+        this.totalLength = totalLength;
 
-  /**
-   * 
-   * @return the progress of the "copy()" function copying the data from one stream to another
-   */
-  public double getProgress() {
-    if (finished)
-      return 1.0;
-    if (totalLength == 0)
-      return 0;
-    if (copiedLength >= totalLength)
-      return 1.0;
-    return (double) (double) copiedLength / (double) totalLength;
-  }
+        ReadableByteChannel in = Channels.newChannel(input);
+        WritableByteChannel out = Channels.newChannel(output);
 
-  /**
-   * Cancel the copying
-   */
-  public void cancel() {
-    canceled = true;
-  }
+        // Allocate 1MB buffer
+        ByteBuffer bbuffer = ByteBuffer.allocate(1 << 20);
 
-  /**
-   * Checks if copying is finished
-   */
-  public boolean finished() {
-    return finished;
-  }
+        int len = 0;
+
+        while ((len = in.read(bbuffer)) != -1) {
+
+            if (canceled)
+                return;
+
+            bbuffer.flip();
+            out.write(bbuffer);
+            bbuffer.clear();
+            copiedLength += len;
+        }
+
+        finished = true;
+
+    }
+
+    /**
+     * 
+     * @return the progress of the "copy()" function copying the data from one
+     *         stream to another
+     */
+    public double getProgress() {
+        if (finished)
+            return 1.0;
+        if (totalLength == 0)
+            return 0;
+        if (copiedLength >= totalLength)
+            return 1.0;
+        return (double) (double) copiedLength / (double) totalLength;
+    }
+
+    /**
+     * Cancel the copying
+     */
+    public void cancel() {
+        canceled = true;
+    }
+
+    /**
+     * Checks if copying is finished
+     */
+    public boolean finished() {
+        return finished;
+    }
 }

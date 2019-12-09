@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,75 +35,80 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
-public class RTRangeComponent extends DoubleRangeComponent implements ActionListener {
+public class RTRangeComponent extends DoubleRangeComponent
+        implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
-  private final JButton setAutoButton;
+    private static final long serialVersionUID = 1L;
+    private final JButton setAutoButton;
 
-  public RTRangeComponent() {
+    public RTRangeComponent() {
 
-    super(MZmineCore.getConfiguration().getRTFormat());
+        super(MZmineCore.getConfiguration().getRTFormat());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    add(new JLabel("min."), 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        add(new JLabel("min."), 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
-    setAutoButton = new JButton("Auto range");
-    setAutoButton.addActionListener(this);
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    setAutoButton.setEnabled(currentFiles.length > 0);
-    add(setAutoButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == setAutoButton) {
-      RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-
-      try {
-        ParameterSetupDialog setupDialog =
-            (ParameterSetupDialog) SwingUtilities.getWindowAncestor(this);
-        RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
-            .getComponentForParameter(new RawDataFilesParameter());
-
-        // If the current setup dialog has no raw data file selector, it
-        // is probably in the parent dialog, so let's check it
-        if (rdc == null) {
-          setupDialog = (ParameterSetupDialog) setupDialog.getParent();
-          if (setupDialog != null) {
-            rdc = (RawDataFilesComponent) setupDialog
-                .getComponentForParameter(new RawDataFilesParameter());
-          }
-        }
-        if (rdc != null) {
-          RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
-          if (matchingFiles.length > 0)
-            currentFiles = matchingFiles;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-      Range<Double> rtRange = null;
-      for (RawDataFile file : currentFiles) {
-        Range<Double> fileRange = file.getDataRTRange();
-        if (rtRange == null)
-          rtRange = fileRange;
-        else
-          rtRange = rtRange.span(fileRange);
-      }
-      setValue(rtRange);
+        setAutoButton = new JButton("Auto range");
+        setAutoButton.addActionListener(this);
+        RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+        setAutoButton.setEnabled(currentFiles.length > 0);
+        add(setAutoButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
     }
 
-  }
+    @Override
+    public void actionPerformed(ActionEvent event) {
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    setAutoButton.setEnabled(enabled);
-  }
+        Object src = event.getSource();
+
+        if (src == setAutoButton) {
+            RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles();
+
+            try {
+                ParameterSetupDialog setupDialog = (ParameterSetupDialog) SwingUtilities
+                        .getWindowAncestor(this);
+                RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
+                        .getComponentForParameter(new RawDataFilesParameter());
+
+                // If the current setup dialog has no raw data file selector, it
+                // is probably in the parent dialog, so let's check it
+                if (rdc == null) {
+                    setupDialog = (ParameterSetupDialog) setupDialog
+                            .getParent();
+                    if (setupDialog != null) {
+                        rdc = (RawDataFilesComponent) setupDialog
+                                .getComponentForParameter(
+                                        new RawDataFilesParameter());
+                    }
+                }
+                if (rdc != null) {
+                    RawDataFile matchingFiles[] = rdc.getValue()
+                            .getMatchingRawDataFiles();
+                    if (matchingFiles.length > 0)
+                        currentFiles = matchingFiles;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Range<Double> rtRange = null;
+            for (RawDataFile file : currentFiles) {
+                Range<Double> fileRange = file.getDataRTRange();
+                if (rtRange == null)
+                    rtRange = fileRange;
+                else
+                    rtRange = rtRange.span(fileRange);
+            }
+            setValue(rtRange);
+        }
+
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        setAutoButton.setEnabled(enabled);
+    }
 }

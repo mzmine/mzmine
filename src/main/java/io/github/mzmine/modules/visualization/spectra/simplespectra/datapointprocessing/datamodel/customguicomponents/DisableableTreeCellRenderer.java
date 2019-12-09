@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,34 +31,37 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 
 public class DisableableTreeCellRenderer extends DefaultTreeCellRenderer {
 
-  private static Logger logger = Logger.getLogger(DisableableTreeCellRenderer.class.getName());
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  public DisableableTreeCellRenderer() {
-    super();
-  }
+    private static Logger logger = Logger
+            .getLogger(DisableableTreeCellRenderer.class.getName());
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  @Override
-  public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected,
-      boolean expanded, boolean leaf, int row, boolean hasFocus) {
+    public DisableableTreeCellRenderer() {
+        super();
+    }
 
-    JComponent c = (JComponent) super.getTreeCellRendererComponent(tree, value, isSelected,
-        expanded, leaf, row, hasFocus);
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree, Object value,
+            boolean isSelected, boolean expanded, boolean leaf, int row,
+            boolean hasFocus) {
 
-    if(value instanceof DisableableTreeNode)
-      c.setEnabled(((DisableableTreeNode)value).isEnabled());
-    
-    return c;
-  }
-  
-//  private Color getNodeColor(DPPMSLevelTreeNode node, boolean diffMSn) {
-//    if(!diffMSn && node.getMSLevel() == MSLevel.MSONE)
-//      return Color.GREEN;
-//    if(!diffMSn && node.getMSLevel() == MSLevel.MSMS)
-//      return Color.RED;
-//    
-//    return Color.GREEN;
-//  }
+        JComponent c = (JComponent) super.getTreeCellRendererComponent(tree,
+                value, isSelected, expanded, leaf, row, hasFocus);
+
+        if (value instanceof DisableableTreeNode)
+            c.setEnabled(((DisableableTreeNode) value).isEnabled());
+
+        return c;
+    }
+
+    // private Color getNodeColor(DPPMSLevelTreeNode node, boolean diffMSn) {
+    // if(!diffMSn && node.getMSLevel() == MSLevel.MSONE)
+    // return Color.GREEN;
+    // if(!diffMSn && node.getMSLevel() == MSLevel.MSMS)
+    // return Color.RED;
+    //
+    // return Color.GREEN;
+    // }
 }

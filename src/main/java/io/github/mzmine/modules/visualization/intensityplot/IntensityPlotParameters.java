@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -38,46 +38,48 @@ import io.github.mzmine.util.SortingProperty;
 
 public class IntensityPlotParameters extends SimpleParameterSet {
 
-  public static final String rawDataFilesOption = "Raw data file";
+    public static final String rawDataFilesOption = "Raw data file";
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakList = new PeakListsParameter(1,
+            1);
 
-  public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Raw data files", "Raw data files to display",
-          new RawDataFile[0]);
+    public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+            "Raw data files", "Raw data files to display", new RawDataFile[0]);
 
-  public static final ComboParameter<Object> xAxisValueSource =
-      new ComboParameter<Object>("X axis value", "X axis value", new Object[] {rawDataFilesOption});
+    public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
+            "X axis value", "X axis value",
+            new Object[] { rawDataFilesOption });
 
-  public static final ComboParameter<YAxisValueSource> yAxisValueSource =
-      new ComboParameter<YAxisValueSource>("Y axis value", "Y axis value",
-          YAxisValueSource.values());
+    public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
+            "Y axis value", "Y axis value", YAxisValueSource.values());
 
-  public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
+    public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  public IntensityPlotParameters() {
-    super(new Parameter[] {peakList, dataFiles, xAxisValueSource, yAxisValueSource, selectedRows,
-        windowSettings});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
-    if (selectedPeakLists.length > 0) {
-      RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-      PeakListRow plRows[] = selectedPeakLists[0].getRows();
-      Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-      getParameter(dataFiles).setChoices(plDataFiles);
-      getParameter(dataFiles).setValue(plDataFiles);
+    public IntensityPlotParameters() {
+        super(new Parameter[] { peakList, dataFiles, xAxisValueSource,
+                yAxisValueSource, selectedRows, windowSettings });
     }
 
-    return super.showSetupDialog(parent, valueCheckRequired);
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+
+        PeakList selectedPeakLists[] = getParameter(peakList).getValue()
+                .getMatchingPeakLists();
+        if (selectedPeakLists.length > 0) {
+            RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+            PeakListRow plRows[] = selectedPeakLists[0].getRows();
+            Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
+                    SortingDirection.Ascending));
+            getParameter(dataFiles).setChoices(plDataFiles);
+            getParameter(dataFiles).setValue(plDataFiles);
+        }
+
+        return super.showSetupDialog(parent, valueCheckRequired);
+    }
 
 }

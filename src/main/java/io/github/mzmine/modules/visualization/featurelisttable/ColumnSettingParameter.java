@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,71 +26,73 @@ import org.w3c.dom.NodeList;
 
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 
-public class ColumnSettingParameter<ValueType> extends MultiChoiceParameter<ValueType> {
+public class ColumnSettingParameter<ValueType>
+        extends MultiChoiceParameter<ValueType> {
 
-  private int columnWidths[];
+    private int columnWidths[];
 
-  public ColumnSettingParameter(String name, String description, ValueType choices[]) {
-    super(name, description, choices, choices, 0);
-    columnWidths = new int[choices.length];
-    Arrays.fill(columnWidths, 100);
-  }
-
-  public int getColumnWidth(int index) {
-    return columnWidths[index];
-  }
-
-  public void setColumnWidth(int index, int width) {
-    columnWidths[index] = width;
-  }
-
-  @Override
-  public ColumnSettingParameter<ValueType> cloneParameter() {
-    ColumnSettingParameter<ValueType> copy =
-        new ColumnSettingParameter<ValueType>(getName(), getDescription(), getChoices());
-    copy.setValue(getValue());
-    copy.columnWidths = columnWidths.clone();
-    return copy;
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    super.loadValueFromXML(xmlElement);
-
-    // If loading of the parameters caused all columns to be hidden, ignore
-    // the loaded value and set all to visible
-    ValueType newValues[] = getValue();
-    if (newValues.length == 0)
-      setValue(getChoices());
-
-    NodeList items = xmlElement.getElementsByTagName("widths");
-    if (items.getLength() != 1)
-      return;
-    String widthsString = items.item(0).getTextContent();
-    String widthsArray[] = widthsString.split(":");
-    if (widthsArray.length != getChoices().length)
-      return;
-    int newColumnWidths[] = new int[widthsArray.length];
-    for (int i = 0; i < newColumnWidths.length; i++) {
-      newColumnWidths[i] = Integer.parseInt(widthsArray[i]);
+    public ColumnSettingParameter(String name, String description,
+            ValueType choices[]) {
+        super(name, description, choices, choices, 0);
+        columnWidths = new int[choices.length];
+        Arrays.fill(columnWidths, 100);
     }
-    columnWidths = newColumnWidths;
-  }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    super.saveValueToXML(xmlElement);
-    Document parentDocument = xmlElement.getOwnerDocument();
-    Element widthsElement = parentDocument.createElement("widths");
-    StringBuilder widthsString = new StringBuilder();
-    for (int i = 0; i < columnWidths.length; i++) {
-      widthsString.append(String.valueOf(columnWidths[i]));
-      if (i < columnWidths.length - 1)
-        widthsString.append(":");
+    public int getColumnWidth(int index) {
+        return columnWidths[index];
     }
-    widthsElement.setTextContent(widthsString.toString());
-    xmlElement.appendChild(widthsElement);
 
-  }
+    public void setColumnWidth(int index, int width) {
+        columnWidths[index] = width;
+    }
+
+    @Override
+    public ColumnSettingParameter<ValueType> cloneParameter() {
+        ColumnSettingParameter<ValueType> copy = new ColumnSettingParameter<ValueType>(
+                getName(), getDescription(), getChoices());
+        copy.setValue(getValue());
+        copy.columnWidths = columnWidths.clone();
+        return copy;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        super.loadValueFromXML(xmlElement);
+
+        // If loading of the parameters caused all columns to be hidden, ignore
+        // the loaded value and set all to visible
+        ValueType newValues[] = getValue();
+        if (newValues.length == 0)
+            setValue(getChoices());
+
+        NodeList items = xmlElement.getElementsByTagName("widths");
+        if (items.getLength() != 1)
+            return;
+        String widthsString = items.item(0).getTextContent();
+        String widthsArray[] = widthsString.split(":");
+        if (widthsArray.length != getChoices().length)
+            return;
+        int newColumnWidths[] = new int[widthsArray.length];
+        for (int i = 0; i < newColumnWidths.length; i++) {
+            newColumnWidths[i] = Integer.parseInt(widthsArray[i]);
+        }
+        columnWidths = newColumnWidths;
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        super.saveValueToXML(xmlElement);
+        Document parentDocument = xmlElement.getOwnerDocument();
+        Element widthsElement = parentDocument.createElement("widths");
+        StringBuilder widthsString = new StringBuilder();
+        for (int i = 0; i < columnWidths.length; i++) {
+            widthsString.append(String.valueOf(columnWidths[i]));
+            if (i < columnWidths.length - 1)
+                widthsString.append(":");
+        }
+        widthsElement.setTextContent(widthsString.toString());
+        xmlElement.appendChild(widthsElement);
+
+    }
 
 }

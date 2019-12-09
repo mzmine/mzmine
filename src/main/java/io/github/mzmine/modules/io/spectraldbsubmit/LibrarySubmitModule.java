@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,19 +43,18 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public class LibrarySubmitModule implements MZmineModule {
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+    private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  private static final String MODULE_NAME = "Export spectral library entries (submit to GNPS)";
+    private static final String MODULE_NAME = "Export spectral library entries (submit to GNPS)";
 
-  @Override
-  public String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return LibrarySubmitParameters.class;
-  }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+        return LibrarySubmitParameters.class;
+    }
 
 }
-

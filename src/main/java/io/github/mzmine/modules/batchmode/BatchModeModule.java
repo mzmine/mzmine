@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,71 +40,77 @@ import io.github.mzmine.util.ExitCode;
  */
 public class BatchModeModule implements MZmineProcessingModule {
 
-  private static Logger logger = Logger.getLogger(BatchModeModule.class.getName());
+    private static Logger logger = Logger
+            .getLogger(BatchModeModule.class.getName());
 
-  private static final String MODULE_NAME = "Batch mode";
-  private static final String MODULE_DESCRIPTION =
-      "This module allows execution of multiple processing tasks in a batch.";
+    private static final String MODULE_NAME = "Batch mode";
+    private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    BatchTask newTask = new BatchTask(project, parameters);
-
-    /*
-     * We do not add the task to the tasks collection, but instead directly submit to the task
-     * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
-     * maximum number of concurrent tasks is set to 1 in the MZmine preferences, then this BatchTask
-     * would block all other tasks. See getTaskPriority in BatchTask
-     */
-    tasks.add(newTask);
-
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PROJECT;
-  }
-
-  public static ExitCode runBatch(@Nonnull MZmineProject project, File batchFile) {
-
-    logger.info("Running batch from file " + batchFile);
-
-    try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document parsedBatchXML = docBuilder.parse(batchFile);
-      BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement());
-      ParameterSet parameters = new BatchModeParameters();
-      parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
-      Task batchTask = new BatchTask(project, parameters);
-      batchTask.run();
-      if (batchTask.getStatus() == TaskStatus.FINISHED)
-        return ExitCode.OK;
-      else
-        return ExitCode.ERROR;
-    } catch (Throwable e) {
-      logger.log(Level.SEVERE, "Error while running batch", e);
-      e.printStackTrace();
-      return ExitCode.ERROR;
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return BatchModeParameters.class;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        BatchTask newTask = new BatchTask(project, parameters);
+
+        /*
+         * We do not add the task to the tasks collection, but instead directly
+         * submit to the task controller, because we need to set the priority to
+         * HIGH. If the priority is not HIGH and the maximum number of
+         * concurrent tasks is set to 1 in the MZmine preferences, then this
+         * BatchTask would block all other tasks. See getTaskPriority in
+         * BatchTask
+         */
+        tasks.add(newTask);
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PROJECT;
+    }
+
+    public static ExitCode runBatch(@Nonnull MZmineProject project,
+            File batchFile) {
+
+        logger.info("Running batch from file " + batchFile);
+
+        try {
+            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder();
+            Document parsedBatchXML = docBuilder.parse(batchFile);
+            BatchQueue newQueue = BatchQueue
+                    .loadFromXml(parsedBatchXML.getDocumentElement());
+            ParameterSet parameters = new BatchModeParameters();
+            parameters.getParameter(BatchModeParameters.batchQueue)
+                    .setValue(newQueue);
+            Task batchTask = new BatchTask(project, parameters);
+            batchTask.run();
+            if (batchTask.getStatus() == TaskStatus.FINISHED)
+                return ExitCode.OK;
+            else
+                return ExitCode.ERROR;
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, "Error while running batch", e);
+            e.printStackTrace();
+            return ExitCode.ERROR;
+        }
+
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return BatchModeParameters.class;
+    }
 
 }

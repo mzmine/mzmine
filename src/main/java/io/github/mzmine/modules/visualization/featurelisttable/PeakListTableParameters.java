@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,35 +28,36 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
 
-  public static final ColumnSettingParameter<CommonColumnType> commonColumns =
-      new ColumnSettingParameter<CommonColumnType>("Common columns",
-          "Visible common columns. Note: The ID, m/z and RT columns will always be visible, no matter what the setting is.",
-          CommonColumnType.values());
+    public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
+            "Common columns",
+            "Visible common columns. Note: The ID, m/z and RT columns will always be visible, no matter what the setting is.",
+            CommonColumnType.values());
 
-  public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns =
-      new ColumnSettingParameter<DataFileColumnType>("Data file columns", "Visible common columns",
-          DataFileColumnType.values());
+    public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns = new ColumnSettingParameter<DataFileColumnType>(
+            "Data file columns", "Visible common columns",
+            DataFileColumnType.values());
 
-  public static final IntegerParameter rowHeight =
-      new IntegerParameter("Row height", "Row height", 30);
+    public static final IntegerParameter rowHeight = new IntegerParameter(
+            "Row height", "Row height", 30);
 
-  public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization =
-      new ComboParameter<PeakShapeNormalization>("Peak shape normalization",
-          "Peak shape normalization", PeakShapeNormalization.values());
+    public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization = new ComboParameter<PeakShapeNormalization>(
+            "Peak shape normalization", "Peak shape normalization",
+            PeakShapeNormalization.values());
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  public PeakListTableParameters() {
-    super(new Parameter[] {commonColumns, dataFileColumns, rowHeight, peakShapeNormalization,
-        windowSettings});
+    public PeakListTableParameters() {
+        super(new Parameter[] { commonColumns, dataFileColumns, rowHeight,
+                peakShapeNormalization, windowSettings });
 
-    // Set the default settings for data file columns
-    DataFileColumnType[] defaultColumns = new DataFileColumnType[] {DataFileColumnType.STATUS,
-        DataFileColumnType.HEIGHT, DataFileColumnType.AREA};
-    getParameter(dataFileColumns).setValue(defaultColumns);
-  }
+        // Set the default settings for data file columns
+        DataFileColumnType[] defaultColumns = new DataFileColumnType[] {
+                DataFileColumnType.STATUS, DataFileColumnType.HEIGHT,
+                DataFileColumnType.AREA };
+        getParameter(dataFileColumns).setValue(defaultColumns);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,36 +32,40 @@ import io.github.mzmine.main.MZmineCore;
 /**
  * 
  */
-class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator, XYToolTipGenerator {
+class IntensityPlotTooltipGenerator
+        implements CategoryToolTipGenerator, XYToolTipGenerator {
 
-  /**
-   * @see org.jfree.chart.labels.CategoryToolTipGenerator#generateToolTip(org.jfree.data.category.CategoryDataset,
-   *      int, int)
-   */
-  public String generateToolTip(CategoryDataset dataset, int row, int column) {
-    Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    Feature peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
-    RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
+    /**
+     * @see org.jfree.chart.labels.CategoryToolTipGenerator#generateToolTip(org.jfree.data.category.CategoryDataset,
+     *      int, int)
+     */
+    public String generateToolTip(CategoryDataset dataset, int row,
+            int column) {
+        Format intensityFormat = MZmineCore.getConfiguration()
+                .getIntensityFormat();
+        Feature peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row,
+                column);
+        RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0; i < files.length; i++) {
-      sb.append(files[i].getName());
-      sb.append(": ");
-      if (peaks[i] != null) {
-        sb.append(peaks[i].toString());
-        sb.append(", height: ");
-        sb.append(intensityFormat.format(peaks[i].getHeight()));
-      } else {
-        sb.append("N/A");
-      }
-      sb.append("\n");
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < files.length; i++) {
+            sb.append(files[i].getName());
+            sb.append(": ");
+            if (peaks[i] != null) {
+                sb.append(peaks[i].toString());
+                sb.append(", height: ");
+                sb.append(intensityFormat.format(peaks[i].getHeight()));
+            } else {
+                sb.append("N/A");
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 
-    return sb.toString();
-  }
-
-  public String generateToolTip(XYDataset dataset, int series, int item) {
-    return generateToolTip((CategoryDataset) dataset, series, item);
-  }
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+        return generateToolTip((CategoryDataset) dataset, series, item);
+    }
 
 }

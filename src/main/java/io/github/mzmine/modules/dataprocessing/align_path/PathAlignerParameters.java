@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -30,29 +30,32 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class PathAlignerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name");
+    public static final StringParameter peakListName = new StringParameter(
+            "Feature list name", "Feature list name");
 
-  public static final MZToleranceParameter MZTolerance =
-      new MZToleranceParameter("m/z tolerance", "Maximum allowed M/Z difference");
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+            "m/z tolerance", "Maximum allowed M/Z difference");
 
-  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-      "Require same charge state", "If checked, only rows having same charge state can be aligned");
+    public static final BooleanParameter SameChargeRequired = new BooleanParameter(
+            "Require same charge state",
+            "If checked, only rows having same charge state can be aligned");
 
-  public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
-      "If checked, only rows having same compound identities (or no identities) can be aligned");
+    public static final BooleanParameter SameIDRequired = new BooleanParameter(
+            "Require same ID",
+            "If checked, only rows having same compound identities (or no identities) can be aligned");
 
-  public static final OptionalModuleParameter compareIsotopePattern =
-      new OptionalModuleParameter("Compare isotope pattern",
-          "If both peaks represent an isotope pattern, add isotope pattern score to match score",
-          new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter compareIsotopePattern = new OptionalModuleParameter(
+            "Compare isotope pattern",
+            "If both peaks represent an isotope pattern, add isotope pattern score to match score",
+            new IsotopePatternScoreParameters());
 
-  public PathAlignerParameters() {
-    super(new Parameter[] {peakLists, peakListName, MZTolerance, RTTolerance, SameChargeRequired,
-        SameIDRequired, compareIsotopePattern});
-  }
+    public PathAlignerParameters() {
+        super(new Parameter[] { peakLists, peakListName, MZTolerance,
+                RTTolerance, SameChargeRequired, SameIDRequired,
+                compareIsotopePattern });
+    }
 }

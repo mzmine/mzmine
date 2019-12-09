@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,94 +31,102 @@ import io.github.mzmine.util.FormulaUtils;
  */
 public class LipidModification {
 
-  private String lipidModification;
-  private String lipidModificationLabel;
+    private String lipidModification;
+    private String lipidModificationLabel;
 
-  public LipidModification(String lipidModification, String lipidModificationLabel) {
-    this.lipidModification = lipidModification;
-    this.lipidModificationLabel = lipidModificationLabel;
-  }
-
-  public String getLipidModificatio() {
-    return lipidModification;
-  }
-
-  public String getLipidModificationLabel() {
-    return lipidModificationLabel;
-  }
-
-  public void setLipidModification(String newLipidModification) {
-    lipidModification = newLipidModification;
-  }
-
-  public void setLipidModificationLabel(String newLipidModificationLabel) {
-    lipidModificationLabel = newLipidModificationLabel;
-  }
-
-  /**
-   * This method calculates the exact mass of a lipid modification
-   */
-  public double getModificationMass() {
-    Double lipidModificationMass = 0.0;
-    ArrayList<String> subModificationList = new ArrayList<String>();
-    ArrayList<String> subModificationListSign = new ArrayList<String>();
-    // split modification string at - oder +
-    for (int i = 0; i < lipidModification.length(); i++) {
-      // search for mathematical sign
-      if (lipidModification.charAt(i) == '+') {
-        subModificationListSign.add("+");
-        // search for next mathematical sign or last char
-        for (int j = i + 1; j < lipidModification.length(); j++) {
-          if (lipidModification.charAt(j) == '+') {
-            subModificationList.add(lipidModification.substring(i + 1, j));
-            break;
-          } else if (lipidModification.charAt(j) == '-') {
-            subModificationList.add(lipidModification.substring(i + 1, j));
-            break;
-          } else if (j + 1 == lipidModification.length()) {
-            subModificationList.add(lipidModification.substring(i + 1, lipidModification.length()));
-            break;
-          }
-        }
-      }
-      if (lipidModification.charAt(i) == '-') {
-        subModificationListSign.add("-");
-        for (int j = i + 1; j < lipidModification.length(); j++) {
-          if (lipidModification.charAt(j) == '+') {
-            subModificationList.add(lipidModification.substring(i + 1, j));
-            break;
-          } else if (lipidModification.charAt(j) == '-') {
-            subModificationList.add(lipidModification.substring(i + 1, j));
-            break;
-          } else if (j + 1 == lipidModification.length()) {
-            subModificationList.add(lipidModification.substring(i + 1, lipidModification.length()));
-            break;
-          }
-        }
-      }
+    public LipidModification(String lipidModification,
+            String lipidModificationLabel) {
+        this.lipidModification = lipidModification;
+        this.lipidModificationLabel = lipidModificationLabel;
     }
 
-    // Calculate masses for sub modifications
-    for (int i = 0; i < subModificationList.size(); i++) {
-      if (subModificationListSign.get(i) == "+") {
-        lipidModificationMass =
-            lipidModificationMass + FormulaUtils.calculateExactMass(subModificationList.get(i));
-      } else if (subModificationListSign.get(i) == "-") {
-        lipidModificationMass = lipidModificationMass
-            + FormulaUtils.calculateExactMass(subModificationList.get(i)) * (-1);
-      } else {
-        lipidModificationMass =
-            lipidModificationMass + FormulaUtils.calculateExactMass(subModificationList.get(i));
-      }
+    public String getLipidModificatio() {
+        return lipidModification;
     }
-    return lipidModificationMass;
-  }
 
-  @Override
-  public String toString() {
-    NumberFormat format = new DecimalFormat("0.0000");
-    return "Modify lipid with [" + lipidModification + "] (" + format.format(getModificationMass())
-        + ") " + lipidModificationLabel;
-  }
+    public String getLipidModificationLabel() {
+        return lipidModificationLabel;
+    }
+
+    public void setLipidModification(String newLipidModification) {
+        lipidModification = newLipidModification;
+    }
+
+    public void setLipidModificationLabel(String newLipidModificationLabel) {
+        lipidModificationLabel = newLipidModificationLabel;
+    }
+
+    /**
+     * This method calculates the exact mass of a lipid modification
+     */
+    public double getModificationMass() {
+        Double lipidModificationMass = 0.0;
+        ArrayList<String> subModificationList = new ArrayList<String>();
+        ArrayList<String> subModificationListSign = new ArrayList<String>();
+        // split modification string at - oder +
+        for (int i = 0; i < lipidModification.length(); i++) {
+            // search for mathematical sign
+            if (lipidModification.charAt(i) == '+') {
+                subModificationListSign.add("+");
+                // search for next mathematical sign or last char
+                for (int j = i + 1; j < lipidModification.length(); j++) {
+                    if (lipidModification.charAt(j) == '+') {
+                        subModificationList
+                                .add(lipidModification.substring(i + 1, j));
+                        break;
+                    } else if (lipidModification.charAt(j) == '-') {
+                        subModificationList
+                                .add(lipidModification.substring(i + 1, j));
+                        break;
+                    } else if (j + 1 == lipidModification.length()) {
+                        subModificationList.add(lipidModification
+                                .substring(i + 1, lipidModification.length()));
+                        break;
+                    }
+                }
+            }
+            if (lipidModification.charAt(i) == '-') {
+                subModificationListSign.add("-");
+                for (int j = i + 1; j < lipidModification.length(); j++) {
+                    if (lipidModification.charAt(j) == '+') {
+                        subModificationList
+                                .add(lipidModification.substring(i + 1, j));
+                        break;
+                    } else if (lipidModification.charAt(j) == '-') {
+                        subModificationList
+                                .add(lipidModification.substring(i + 1, j));
+                        break;
+                    } else if (j + 1 == lipidModification.length()) {
+                        subModificationList.add(lipidModification
+                                .substring(i + 1, lipidModification.length()));
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Calculate masses for sub modifications
+        for (int i = 0; i < subModificationList.size(); i++) {
+            if (subModificationListSign.get(i) == "+") {
+                lipidModificationMass = lipidModificationMass + FormulaUtils
+                        .calculateExactMass(subModificationList.get(i));
+            } else if (subModificationListSign.get(i) == "-") {
+                lipidModificationMass = lipidModificationMass + FormulaUtils
+                        .calculateExactMass(subModificationList.get(i)) * (-1);
+            } else {
+                lipidModificationMass = lipidModificationMass + FormulaUtils
+                        .calculateExactMass(subModificationList.get(i));
+            }
+        }
+        return lipidModificationMass;
+    }
+
+    @Override
+    public String toString() {
+        NumberFormat format = new DecimalFormat("0.0000");
+        return "Modify lipid with [" + lipidModification + "] ("
+                + format.format(getModificationMass()) + ") "
+                + lipidModificationLabel;
+    }
 
 }

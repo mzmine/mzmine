@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,31 +24,31 @@ import javax.swing.JTextArea;
 
 public class TextComponent extends JScrollPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+    public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-  private final JTextArea textArea;
+    private final JTextArea textArea;
 
-  public TextComponent() {
-    textArea = new JTextArea(5, 30);
-    textArea.setFont(smallFont);
-    getViewport().add(textArea);
-  }
+    public TextComponent() {
+        textArea = new JTextArea(5, 30);
+        textArea.setFont(smallFont);
+        getViewport().add(textArea);
+    }
 
-  public void setText(String text) {
-    textArea.setText(text);
-  }
+    public void setText(String text) {
+        textArea.setText(text);
+    }
 
-  public String getText() {
-    return textArea.getText();
-  }
+    public String getText() {
+        return textArea.getText();
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    textArea.setToolTipText(toolTip);
-  }
+    @Override
+    public void setToolTipText(String toolTip) {
+        textArea.setToolTipText(toolTip);
+    }
 }

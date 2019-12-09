@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,12 +24,12 @@ package io.github.mzmine.util.R.Rsession;
 
 public interface Logger {
 
-  public enum Level {
-    OUTPUT, INFO, WARNING, ERROR;
-  }
+    public enum Level {
+        OUTPUT, INFO, WARNING, ERROR;
+    }
 
-  /** Support R messages printing */
-  public void println(String message, Level l);
+    /** Support R messages printing */
+    public void println(String message, Level l);
 
-  public void close();
+    public void close();
 }

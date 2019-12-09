@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,23 +27,26 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class IsotopePatternScoreParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter mzTolerance =
-      new MZToleranceParameter("Isotope m/z tolerance",
-          "m/z tolerance which defines what isotopes would be considered same when "
-              + "comparing two isotopic patterns. This tolerance needs to be "
-              + "higher than general m/z precision of the data, because some "
-              + "small isotopes may overlap with the sides of bigger isotopic " + "peaks.");
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+            "Isotope m/z tolerance",
+            "m/z tolerance which defines what isotopes would be considered same when "
+                    + "comparing two isotopic patterns. This tolerance needs to be "
+                    + "higher than general m/z precision of the data, because some "
+                    + "small isotopes may overlap with the sides of bigger isotopic "
+                    + "peaks.");
 
-  public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
-      "Minimum absolute intensity",
-      "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
+            "Minimum absolute intensity",
+            "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
-      "Minimum score", "If the score between isotope pattern is lower, discard this match");
+    public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
+            "Minimum score",
+            "If the score between isotope pattern is lower, discard this match");
 
-  public IsotopePatternScoreParameters() {
-    super(new Parameter[] {mzTolerance, isotopeNoiseLevel, isotopePatternScoreThreshold});
-  }
+    public IsotopePatternScoreParameters() {
+        super(new Parameter[] { mzTolerance, isotopeNoiseLevel,
+                isotopePatternScoreThreshold });
+    }
 
 }

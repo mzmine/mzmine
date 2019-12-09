@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,36 +31,35 @@ import io.github.mzmine.util.ExitCode;
 
 public class MzTabExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to mzTab file";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into a mzTab file.";
+    private static final String MODULE_NAME = "Export to mzTab file";
+    private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a mzTab file.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MzTabExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MzTabExportParameters.class;
+    }
 
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    MzTabExportTask task = new MzTabExportTask(project, parameters);
-    tasks.add(task);
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        MzTabExportTask task = new MzTabExportTask(project, parameters);
+        tasks.add(task);
+        return ExitCode.OK;
+    }
 
 }

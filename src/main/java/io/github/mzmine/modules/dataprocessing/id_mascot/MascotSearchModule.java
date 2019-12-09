@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -34,42 +34,43 @@ import io.github.mzmine.util.ExitCode;
  */
 public class MascotSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
-  private static final String MODULE_DESCRIPTION = "Mascot MS/MS Ion Search (experimental)";
+    private static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
+    private static final String MODULE_DESCRIPTION = "Mascot MS/MS Ion Search (experimental)";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-    /*
-     * PeakList peakLists[] = parameters.getParameter( MascotParameters.peakLists).getValue();
-     * 
-     * for (PeakList peakList : peakLists) { Task newTask = new MascotSearchTask(parameters,
-     * peakList); tasks.add(newTask); }
-     */
+        /*
+         * PeakList peakLists[] = parameters.getParameter(
+         * MascotParameters.peakLists).getValue();
+         * 
+         * for (PeakList peakList : peakLists) { Task newTask = new
+         * MascotSearchTask(parameters, peakList); tasks.add(newTask); }
+         */
 
-    return ExitCode.OK;
-  }
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MascotSearchParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MascotSearchParameters.class;
+    }
 
 }

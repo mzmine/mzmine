@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,24 +24,24 @@ import io.github.mzmine.modules.dataprocessing.featdet_shapemodeler.peakmodels.T
 
 public enum ShapeModel {
 
-  Gaussian("Gaussian", GaussianPeakModel.class), //
-  EMG("Exponentially modified Gaussian", EMGPeakModel.class), //
-  Triangle("Triangle", TrianglePeakModel.class);
+    Gaussian("Gaussian", GaussianPeakModel.class), //
+    EMG("Exponentially modified Gaussian", EMGPeakModel.class), //
+    Triangle("Triangle", TrianglePeakModel.class);
 
-  private final String modelName;
-  private final Class<?> modelClass;
+    private final String modelName;
+    private final Class<?> modelClass;
 
-  ShapeModel(String modelName, Class<?> modelClass) {
-    this.modelName = modelName;
-    this.modelClass = modelClass;
-  }
+    ShapeModel(String modelName, Class<?> modelClass) {
+        this.modelName = modelName;
+        this.modelClass = modelClass;
+    }
 
-  public String getModelName() {
-    return modelName;
-  }
+    public String getModelName() {
+        return modelName;
+    }
 
-  public Class<?> getModelClass() {
-    return modelClass;
-  }
+    public Class<?> getModelClass() {
+        return modelClass;
+    }
 
 }

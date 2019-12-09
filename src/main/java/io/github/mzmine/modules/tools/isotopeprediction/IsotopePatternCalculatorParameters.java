@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,23 +29,24 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 
-  public static final FormulaParameter formula = new FormulaParameter();
+    public static final FormulaParameter formula = new FormulaParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Charge of the molecule (z for calculating m/z values)", 1);
+    public static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Charge of the molecule (z for calculating m/z values)", 1);
 
-  public static final ComboParameter<PolarityType> polarity = new ComboParameter<PolarityType>(
-      "Polarity",
-      "Set positive or negative charge of the molecule. Depending on polarity, electron mass is added or removed.",
-      PolarityType.values());
+    public static final ComboParameter<PolarityType> polarity = new ComboParameter<PolarityType>(
+            "Polarity",
+            "Set positive or negative charge of the molecule. Depending on polarity, electron mass is added or removed.",
+            PolarityType.values());
 
-  public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance",
-      "Minimum abundance of the predicted isotopes", 0.001);
+    public static final PercentParameter minAbundance = new PercentParameter(
+            "Minimum abundance", "Minimum abundance of the predicted isotopes",
+            0.001);
 
-  public IsotopePatternCalculatorParameters() {
-    super(new UserParameter[] {formula, charge, polarity, minAbundance});
-  }
+    public IsotopePatternCalculatorParameters() {
+        super(new UserParameter[] { formula, charge, polarity, minAbundance });
+    }
 
 }

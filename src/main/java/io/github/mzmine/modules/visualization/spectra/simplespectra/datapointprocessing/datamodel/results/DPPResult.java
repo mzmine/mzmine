@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,7 +19,8 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 /**
- * This interface is used to store data point processing results in a {@link io.github.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}
+ * This interface is used to store data point processing results in a
+ * {@link io.github.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}
  * When adding a new result type, also add it to the ResultType enum.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
@@ -27,19 +28,21 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
  */
 public abstract class DPPResult<T> {
 
-  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT, ISOTOPECOMPOSITION, ISOTOPICPEAK};
-  
-  final T value;
-  
-  public DPPResult (T value) {
-    this.value = value;
-  }
-  
-  public T getValue() {
-    return value;
-  }
+    public enum ResultType {
+        SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT, ISOTOPECOMPOSITION, ISOTOPICPEAK
+    };
 
-  public abstract String toString();
-  
-  public abstract ResultType getResultType();
+    final T value;
+
+    public DPPResult(T value) {
+        this.value = value;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public abstract String toString();
+
+    public abstract ResultType getResultType();
 }

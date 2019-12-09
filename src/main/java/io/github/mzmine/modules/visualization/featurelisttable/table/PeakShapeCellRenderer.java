@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,82 +38,87 @@ import io.github.mzmine.util.components.PeakXICComponent;
 
 class PeakShapeCellRenderer implements TableCellRenderer {
 
-  private PeakList peakList;
-  private ParameterSet parameters;
+    private PeakList peakList;
+    private ParameterSet parameters;
 
-  PeakShapeCellRenderer(PeakList peakList, ParameterSet parameters) {
-    this.peakList = peakList;
-    this.parameters = parameters;
-  }
-
-  /**
-   * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-   *      java.lang.Object, boolean, boolean, int, int)
-   */
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-      boolean hasFocus, int row, int column) {
-
-    JPanel newPanel = new JPanel();
-    newPanel.setLayout(new OverlayLayout(newPanel));
-
-    Color bgColor;
-
-    if (isSelected)
-      bgColor = table.getSelectionBackground();
-    else
-      bgColor = table.getBackground();
-
-    newPanel.setBackground(bgColor);
-
-    if (value instanceof Feature) {
-
-      Feature peak = (Feature) value;
-      double maxHeight = 0;
-
-      PeakShapeNormalization norm =
-          parameters.getParameter(PeakListTableParameters.peakShapeNormalization).getValue();
-      if (norm == null)
-        norm = PeakShapeNormalization.ROWMAX;
-      switch (norm) {
-        case GLOBALMAX:
-          maxHeight = peakList.getDataPointMaxIntensity();
-          break;
-        case ROWMAX:
-          int rowNumber = peakList.getPeakRowNum(peak);
-          maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
-          break;
-        default:
-          maxHeight = peak.getRawDataPointsIntensityRange().upperEndpoint();
-          break;
-      }
-      PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
-
-      newPanel.add(xic);
-
-      newPanel.setToolTipText(xic.getToolTipText());
-
+    PeakShapeCellRenderer(PeakList peakList, ParameterSet parameters) {
+        this.peakList = peakList;
+        this.parameters = parameters;
     }
 
-    if (value instanceof PeakListRow) {
+    /**
+     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+     *      java.lang.Object, boolean, boolean, int, int)
+     */
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
 
-      PeakListRow plRow = (PeakListRow) value;
+        JPanel newPanel = new JPanel();
+        newPanel.setLayout(new OverlayLayout(newPanel));
 
-      RawDataFile[] dataFiles = peakList.getRawDataFiles();
-      Feature[] peaks = new Feature[dataFiles.length];
-      for (int i = 0; i < dataFiles.length; i++) {
-        peaks[i] = plRow.getPeak(dataFiles[i]);
-      }
+        Color bgColor;
 
-      CombinedXICComponent xic = new CombinedXICComponent(peaks, plRow.getID());
+        if (isSelected)
+            bgColor = table.getSelectionBackground();
+        else
+            bgColor = table.getBackground();
 
-      newPanel.add(xic);
+        newPanel.setBackground(bgColor);
 
-      newPanel.setToolTipText(xic.getToolTipText());
+        if (value instanceof Feature) {
+
+            Feature peak = (Feature) value;
+            double maxHeight = 0;
+
+            PeakShapeNormalization norm = parameters
+                    .getParameter(
+                            PeakListTableParameters.peakShapeNormalization)
+                    .getValue();
+            if (norm == null)
+                norm = PeakShapeNormalization.ROWMAX;
+            switch (norm) {
+            case GLOBALMAX:
+                maxHeight = peakList.getDataPointMaxIntensity();
+                break;
+            case ROWMAX:
+                int rowNumber = peakList.getPeakRowNum(peak);
+                maxHeight = peakList.getRow(rowNumber)
+                        .getDataPointMaxIntensity();
+                break;
+            default:
+                maxHeight = peak.getRawDataPointsIntensityRange()
+                        .upperEndpoint();
+                break;
+            }
+            PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
+
+            newPanel.add(xic);
+
+            newPanel.setToolTipText(xic.getToolTipText());
+
+        }
+
+        if (value instanceof PeakListRow) {
+
+            PeakListRow plRow = (PeakListRow) value;
+
+            RawDataFile[] dataFiles = peakList.getRawDataFiles();
+            Feature[] peaks = new Feature[dataFiles.length];
+            for (int i = 0; i < dataFiles.length; i++) {
+                peaks[i] = plRow.getPeak(dataFiles[i]);
+            }
+
+            CombinedXICComponent xic = new CombinedXICComponent(peaks,
+                    plRow.getID());
+
+            newPanel.add(xic);
+
+            newPanel.setToolTipText(xic.getToolTipText());
+
+        }
+
+        return newPanel;
 
     }
-
-    return newPanel;
-
-  }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,59 +30,61 @@ import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.PeakM
  * 
  * where
  * 
- * a... height of the model (intensityMain) b... center of the model (mzMain) HWHM... Half Width at
- * Half Maximum
+ * a... height of the model (intensityMain) b... center of the model (mzMain)
+ * HWHM... Half Width at Half Maximum
  * 
  */
 
 public class LorentzianPeak implements PeakModel {
 
-  private double mzMain, intensityMain, squareHWHM;
+    private double mzMain, intensityMain, squareHWHM;
 
-  /**
-   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
-   *      double, double)
-   */
-  public void setParameters(double mzMain, double intensityMain, double resolution) {
+    /**
+     * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+     *      double, double)
+     */
+    public void setParameters(double mzMain, double intensityMain,
+            double resolution) {
 
-    this.mzMain = mzMain;
-    this.intensityMain = intensityMain;
+        this.mzMain = mzMain;
+        this.intensityMain = intensityMain;
 
-    // HWFM (Half Width at Half Maximum) ^ 2
-    squareHWHM = (double) Math.pow((mzMain / resolution) / 2, 2);
-  }
+        // HWFM (Half Width at Half Maximum) ^ 2
+        squareHWHM = (double) Math.pow((mzMain / resolution) / 2, 2);
+    }
 
-  /**
-   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
-   */
-  public Range<Double> getWidth(double partialIntensity) {
+    /**
+     * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
+     */
+    public Range<Double> getWidth(double partialIntensity) {
 
-    // The height value must be bigger than zero.
-    if (partialIntensity <= 0)
-      return Range.atLeast(0.0);
+        // The height value must be bigger than zero.
+        if (partialIntensity <= 0)
+            return Range.atLeast(0.0);
 
-    // Using the Lorentzian function we calculate the peak width
-    double squareX = ((intensityMain / partialIntensity) - 1) * squareHWHM;
+        // Using the Lorentzian function we calculate the peak width
+        double squareX = ((intensityMain / partialIntensity) - 1) * squareHWHM;
 
-    double sideRange = (double) Math.sqrt(squareX);
+        double sideRange = (double) Math.sqrt(squareX);
 
-    // This range represents the width of our peak in m/z terms
-    Range<Double> rangePeak = Range.closed(mzMain - sideRange, mzMain + sideRange);
+        // This range represents the width of our peak in m/z terms
+        Range<Double> rangePeak = Range.closed(mzMain - sideRange,
+                mzMain + sideRange);
 
-    return rangePeak;
-  }
+        return rangePeak;
+    }
 
-  /**
-   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
-   */
-  public double getIntensity(double mz) {
+    /**
+     * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
+     */
+    public double getIntensity(double mz) {
 
-    // Using the Lorentzian function we calculate the intensity at given
-    // m/z
-    double squareX = (double) Math.pow((mz - mzMain), 2);
-    double ratio = squareX / squareHWHM;
-    double intensity = intensityMain / (1 + ratio);
-    return intensity;
-  }
+        // Using the Lorentzian function we calculate the intensity at given
+        // m/z
+        double squareX = (double) Math.pow((mz - mzMain), 2);
+        double ratio = squareX / squareHWHM;
+        double intensity = intensityMain / (1 + ratio);
+        return intensity;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -60,7 +60,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JScrollPane scrollPane = new JScrollPane(jlist);
-        scrollPane.setPreferredSize(new Dimension(300,60));
+        scrollPane.setPreferredSize(new Dimension(300, 60));
         add(scrollPane, BorderLayout.CENTER);
 
         buttonPane = new JPanel();
@@ -70,9 +70,9 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         this.add(buttonPane, BorderLayout.EAST);
 
         for (FeatureSelection features : currentValue) {
-          model.addElement(features.getFeature().toString());
+            model.addElement(features.getFeature().toString());
         }
-        
+
     }
 
     public void setValue(List<FeatureSelection> newValue) {

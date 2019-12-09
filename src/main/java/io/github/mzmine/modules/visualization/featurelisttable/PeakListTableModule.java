@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,23 +27,24 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class PeakListTableModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "Feature list table";
+    private static final String MODULE_NAME = "Feature list table";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  public static void showNewPeakListVisualizerWindow(PeakList peakList) {
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(PeakListTableModule.class);
-    final PeakListTableWindow window = new PeakListTableWindow(peakList, parameters);
-    window.setVisible(true);
-  }
+    public static void showNewPeakListVisualizerWindow(PeakList peakList) {
+        ParameterSet parameters = MZmineCore.getConfiguration()
+                .getModuleParameters(PeakListTableModule.class);
+        final PeakListTableWindow window = new PeakListTableWindow(peakList,
+                parameters);
+        window.setVisible(true);
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return PeakListTableParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return PeakListTableParameters.class;
+    }
 
 }

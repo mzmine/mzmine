@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,8 +25,8 @@ import io.github.mzmine.datamodel.MZmineProject;
  */
 public interface ProjectManager {
 
-  public MZmineProject getCurrentProject();
+    public MZmineProject getCurrentProject();
 
-  public void setCurrentProject(MZmineProject newProject);
+    public void setCurrentProject(MZmineProject newProject);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,24 +24,24 @@ import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.peakm
 
 public enum PeakModelType {
 
-  GAUSS("Gaussian", GaussPeak.class), //
-  LORENTZ("Lorentzian", LorentzianPeak.class), //
-  LORENTZEXTENDED("Lorentzian extended", ExtendedLorentzianPeak.class);
+    GAUSS("Gaussian", GaussPeak.class), //
+    LORENTZ("Lorentzian", LorentzianPeak.class), //
+    LORENTZEXTENDED("Lorentzian extended", ExtendedLorentzianPeak.class);
 
-  private final String modelName;
-  private final Class<?> modelClass;
+    private final String modelName;
+    private final Class<?> modelClass;
 
-  PeakModelType(String modelName, Class<?> modelClass) {
-    this.modelName = modelName;
-    this.modelClass = modelClass;
-  }
+    PeakModelType(String modelName, Class<?> modelClass) {
+        this.modelName = modelName;
+        this.modelClass = modelClass;
+    }
 
-  public String toString() {
-    return modelName;
-  }
+    public String toString() {
+        return modelName;
+    }
 
-  public Class<?> getModelClass() {
-    return modelClass;
-  }
+    public Class<?> getModelClass() {
+        return modelClass;
+    }
 
 }

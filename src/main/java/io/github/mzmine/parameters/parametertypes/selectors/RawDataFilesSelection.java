@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,107 +28,109 @@ import io.github.mzmine.util.TextUtils;
 
 public class RawDataFilesSelection implements Cloneable {
 
-  private RawDataFilesSelectionType selectionType;
-  private RawDataFile specificFiles[];
-  private String namePattern;
-  private RawDataFile batchLastFiles[];
+    private RawDataFilesSelectionType selectionType;
+    private RawDataFile specificFiles[];
+    private String namePattern;
+    private RawDataFile batchLastFiles[];
 
-  public RawDataFilesSelection() {
-    this(RawDataFilesSelectionType.GUI_SELECTED_FILES);
-  }
+    public RawDataFilesSelection() {
+        this(RawDataFilesSelectionType.GUI_SELECTED_FILES);
+    }
 
-  public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
-    this.selectionType = selectionType;
-  }
+    public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
+        this.selectionType = selectionType;
+    }
 
-  public RawDataFile[] getMatchingRawDataFiles() {
+    public RawDataFile[] getMatchingRawDataFiles() {
 
-    switch (selectionType) {
+        switch (selectionType) {
 
-      case GUI_SELECTED_FILES:
-        return MZmineCore.getDesktop().getSelectedDataFiles();
-      case ALL_FILES:
-        return MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      case SPECIFIC_FILES:
-        if (specificFiles == null)
-          return new RawDataFile[0];
-        return specificFiles;
-      case NAME_PATTERN:
-        if (Strings.isNullOrEmpty(namePattern))
-          return new RawDataFile[0];
-        ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-        RawDataFile allDataFiles[] =
-            MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+        case GUI_SELECTED_FILES:
+            return MZmineCore.getDesktop().getSelectedDataFiles();
+        case ALL_FILES:
+            return MZmineCore.getProjectManager().getCurrentProject()
+                    .getDataFiles();
+        case SPECIFIC_FILES:
+            if (specificFiles == null)
+                return new RawDataFile[0];
+            return specificFiles;
+        case NAME_PATTERN:
+            if (Strings.isNullOrEmpty(namePattern))
+                return new RawDataFile[0];
+            ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
+            RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles();
 
-        fileCheck: for (RawDataFile file : allDataFiles) {
+            fileCheck: for (RawDataFile file : allDataFiles) {
 
-          final String fileName = file.getName();
+                final String fileName = file.getName();
 
-          final String regex = TextUtils.createRegexFromWildcards(namePattern);
+                final String regex = TextUtils
+                        .createRegexFromWildcards(namePattern);
 
-          if (fileName.matches(regex)) {
-            if (matchingDataFiles.contains(file))
-              continue;
-            matchingDataFiles.add(file);
-            continue fileCheck;
-          }
+                if (fileName.matches(regex)) {
+                    if (matchingDataFiles.contains(file))
+                        continue;
+                    matchingDataFiles.add(file);
+                    continue fileCheck;
+                }
+            }
+            return matchingDataFiles.toArray(new RawDataFile[0]);
+        case BATCH_LAST_FILES:
+            if (batchLastFiles == null)
+                return new RawDataFile[0];
+            return batchLastFiles;
         }
-        return matchingDataFiles.toArray(new RawDataFile[0]);
-      case BATCH_LAST_FILES:
-        if (batchLastFiles == null)
-          return new RawDataFile[0];
-        return batchLastFiles;
+
+        throw new IllegalStateException("This code should be unreachable");
+
     }
 
-    throw new IllegalStateException("This code should be unreachable");
-
-  }
-
-  public RawDataFilesSelectionType getSelectionType() {
-    return selectionType;
-  }
-
-  public void setSelectionType(RawDataFilesSelectionType selectionType) {
-    this.selectionType = selectionType;
-  }
-
-  public RawDataFile[] getSpecificFiles() {
-    return specificFiles;
-  }
-
-  public void setSpecificFiles(RawDataFile[] specificFiles) {
-    this.specificFiles = specificFiles;
-  }
-
-  public String getNamePattern() {
-    return namePattern;
-  }
-
-  public void setNamePattern(String namePattern) {
-    this.namePattern = namePattern;
-  }
-
-  public void setBatchLastFiles(RawDataFile[] batchLastFiles) {
-    this.batchLastFiles = batchLastFiles;
-  }
-
-  public RawDataFilesSelection clone() {
-    RawDataFilesSelection newSelection = new RawDataFilesSelection();
-    newSelection.selectionType = selectionType;
-    newSelection.specificFiles = specificFiles;
-    newSelection.namePattern = namePattern;
-    return newSelection;
-  }
-
-  public String toString() {
-    StringBuilder str = new StringBuilder();
-    RawDataFile files[] = getMatchingRawDataFiles();
-    for (int i = 0; i < files.length; i++) {
-      if (i > 0)
-        str.append("\n");
-      str.append(files[i].getName());
+    public RawDataFilesSelectionType getSelectionType() {
+        return selectionType;
     }
-    return str.toString();
-  }
+
+    public void setSelectionType(RawDataFilesSelectionType selectionType) {
+        this.selectionType = selectionType;
+    }
+
+    public RawDataFile[] getSpecificFiles() {
+        return specificFiles;
+    }
+
+    public void setSpecificFiles(RawDataFile[] specificFiles) {
+        this.specificFiles = specificFiles;
+    }
+
+    public String getNamePattern() {
+        return namePattern;
+    }
+
+    public void setNamePattern(String namePattern) {
+        this.namePattern = namePattern;
+    }
+
+    public void setBatchLastFiles(RawDataFile[] batchLastFiles) {
+        this.batchLastFiles = batchLastFiles;
+    }
+
+    public RawDataFilesSelection clone() {
+        RawDataFilesSelection newSelection = new RawDataFilesSelection();
+        newSelection.selectionType = selectionType;
+        newSelection.specificFiles = specificFiles;
+        newSelection.namePattern = namePattern;
+        return newSelection;
+    }
+
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        RawDataFile files[] = getMatchingRawDataFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (i > 0)
+                str.append("\n");
+            str.append(files[i].getName());
+        }
+        return str.toString();
+    }
 
 }

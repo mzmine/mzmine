@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,96 +27,103 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 
 /**
- * This class can be used to handle feature lists by ID rather than row indices. Set up via the
- * constructor by passing a feature list or via setUp(PeakList) Rows can also be added manually, for
- * example if you want to create a result feature list that does not contain duplicates. Since this
- * class uses a tree map the results will be in order and duplicates will be overwritten, which is
+ * This class can be used to handle feature lists by ID rather than row indices.
+ * Set up via the constructor by passing a feature list or via setUp(PeakList)
+ * Rows can also be added manually, for example if you want to create a result
+ * feature list that does not contain duplicates. Since this class uses a tree
+ * map the results will be in order and duplicates will be overwritten, which is
  * why it has the method containsID to check.
  *
- * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de /
+ *         s_heuc03@uni-muenster.de
  *
  */
 public class PeakListHandler {
 
-  private TreeMap<Integer, PeakListRow> map;
+    private TreeMap<Integer, PeakListRow> map;
 
-  public PeakListHandler() {
-    map = new TreeMap<Integer, PeakListRow>();
-  }
-
-  public PeakListHandler(PeakList pL) {
-    map = new TreeMap<Integer, PeakListRow>();
-    setUp(pL);
-  }
-
-  /**
-   * use this if you want to manage an existing PeakList
-   * 
-   * @param pL the feature list you want to manage
-   */
-  public void setUp(PeakList pL) {
-    for (PeakListRow row : pL.getRows()) {
-      map.put(row.getID(), row);
+    public PeakListHandler() {
+        map = new TreeMap<Integer, PeakListRow>();
     }
-  }
 
-  /**
-   * Manually add a PeakListRow
-   * 
-   * @param row row to be added
-   */
-  public void addRow(PeakListRow row) {
-    map.put(row.getID(), row);
-  }
+    public PeakListHandler(PeakList pL) {
+        map = new TreeMap<Integer, PeakListRow>();
+        setUp(pL);
+    }
 
-  /**
-   * 
-   * @return number of rows handled with plh
-   */
-  public int size() {
-    return map.size();
-  }
+    /**
+     * use this if you want to manage an existing PeakList
+     * 
+     * @param pL
+     *            the feature list you want to manage
+     */
+    public void setUp(PeakList pL) {
+        for (PeakListRow row : pL.getRows()) {
+            map.put(row.getID(), row);
+        }
+    }
 
-  /**
-   * 
-   * @param ID ID to check for
-   * @return true if contained, false if not
-   */
-  public boolean containsID(int ID) {
-    return map.containsKey(ID);
-  }
+    /**
+     * Manually add a PeakListRow
+     * 
+     * @param row
+     *            row to be added
+     */
+    public void addRow(PeakListRow row) {
+        map.put(row.getID(), row);
+    }
 
-  /**
-   * 
-   * @return ArrayList<Integer> of all IDs of the feature list rows
-   */
-  public ArrayList<Integer> getAllKeys() {
-    Set<Integer> set = map.keySet();
-    ArrayList<Integer> list = new ArrayList<Integer>(set);
+    /**
+     * 
+     * @return number of rows handled with plh
+     */
+    public int size() {
+        return map.size();
+    }
 
-    return list;
-  }
+    /**
+     * 
+     * @param ID
+     *            ID to check for
+     * @return true if contained, false if not
+     */
+    public boolean containsID(int ID) {
+        return map.containsKey(ID);
+    }
 
-  /**
-   * 
-   * @param ID ID of the row you want
-   * @return Row with specified ID
-   */
-  public PeakListRow getRowByID(int ID) {
-    return map.get(ID);
-  }
+    /**
+     * 
+     * @return ArrayList<Integer> of all IDs of the feature list rows
+     */
+    public ArrayList<Integer> getAllKeys() {
+        Set<Integer> set = map.keySet();
+        ArrayList<Integer> list = new ArrayList<Integer>(set);
 
-  /**
-   * 
-   * @param ID integer array of IDs
-   * @return all rows with specified ids
-   */
-  public PeakListRow[] getRowsByID(int ID[]) {
-    PeakListRow[] rows = new PeakListRow[ID.length];
+        return list;
+    }
 
-    for (int i = 0; i < ID.length; i++)
-      rows[i] = map.get(ID[i]);
+    /**
+     * 
+     * @param ID
+     *            ID of the row you want
+     * @return Row with specified ID
+     */
+    public PeakListRow getRowByID(int ID) {
+        return map.get(ID);
+    }
 
-    return rows;
-  }
+    /**
+     * 
+     * @param ID
+     *            integer array of IDs
+     * @return all rows with specified ids
+     */
+    public PeakListRow[] getRowsByID(int ID[]) {
+        PeakListRow[] rows = new PeakListRow[ID.length];
+
+        for (int i = 0; i < ID.length; i++)
+            rows[i] = map.get(ID[i]);
+
+        return rows;
+    }
 }

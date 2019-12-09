@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,8 +24,8 @@ package io.github.mzmine.util.R.Rsession;
 
 public interface UpdateObjectsListener {
 
-  public void setTarget(Rsession r);
+    public void setTarget(Rsession r);
 
-  /** Notify the changing of R environment objects */
-  public void update();
+    /** Notify the changing of R environment objects */
+    public void update();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,19 +24,21 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 
 public class ElementalHeuristicParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter checkHC =
-      new BooleanParameter("H/C ratio", "0.1 <= H/C ratio <= 6", true);
+    public static final BooleanParameter checkHC = new BooleanParameter(
+            "H/C ratio", "0.1 <= H/C ratio <= 6", true);
 
-  public static final BooleanParameter checkNOPS = new BooleanParameter("NOPS/C ratios",
-      "N/C ratio <= 4, O/C ratio <= 3, P/C ratio <= 2, S/C ratio <= 3", true);
+    public static final BooleanParameter checkNOPS = new BooleanParameter(
+            "NOPS/C ratios",
+            "N/C ratio <= 4, O/C ratio <= 3, P/C ratio <= 2, S/C ratio <= 3",
+            true);
 
-  public static final BooleanParameter checkMultiple = new BooleanParameter(
-      "Multiple element counts",
-      "Check for multiple element count restrictions. See help for detailed description of this rule",
-      true);
+    public static final BooleanParameter checkMultiple = new BooleanParameter(
+            "Multiple element counts",
+            "Check for multiple element count restrictions. See help for detailed description of this rule",
+            true);
 
-  public ElementalHeuristicParameters() {
-    super(new Parameter[] {checkHC, checkNOPS, checkMultiple});
-  }
+    public ElementalHeuristicParameters() {
+        super(new Parameter[] { checkHC, checkNOPS, checkMultiple });
+    }
 
 }

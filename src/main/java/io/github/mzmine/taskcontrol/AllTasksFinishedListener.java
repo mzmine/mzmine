@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,83 +29,91 @@ import java.util.function.Consumer;
  */
 public class AllTasksFinishedListener implements TaskStatusListener {
 
-  private List<AbstractTask> tasks;
-  private Consumer<List<AbstractTask>> operation;
-  private Consumer<List<AbstractTask>> operationOnError;
-  private Consumer<List<AbstractTask>> operationOnCancel;
-  private boolean stopOnError = false;
-  // mark when done
-  private boolean done = false;
+    private List<AbstractTask> tasks;
+    private Consumer<List<AbstractTask>> operation;
+    private Consumer<List<AbstractTask>> operationOnError;
+    private Consumer<List<AbstractTask>> operationOnCancel;
+    private boolean stopOnError = false;
+    // mark when done
+    private boolean done = false;
 
-  private double progress = 0;
+    private double progress = 0;
 
-  public AllTasksFinishedListener(List<AbstractTask> tasks,
-      Consumer<List<AbstractTask>> operation) {
-    this(tasks, false, operation);
-  }
-
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation) {
-    this(tasks, stopOnError, operation, null);
-  }
-
-  /**
-   * 
-   * @param tasks
-   * @param stopOnError
-   * @param operation gets fired on completion of all tasks
-   * @param operationOnError gets fired on error (only once)
-   */
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation, Consumer<List<AbstractTask>> operationOnError) {
-    this(tasks, stopOnError, operation, operationOnError, null);
-  }
-
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation, Consumer<List<AbstractTask>> operationOnError,
-      Consumer<List<AbstractTask>> operationOnCancel) {
-    this.tasks = tasks;
-    this.stopOnError = stopOnError;
-    this.operationOnCancel = operationOnCancel;
-    this.operation = operation;
-    this.operationOnError = operationOnError;
-    tasks.stream().forEach(t -> t.addTaskStatusListener(this));
-  }
-
-  @Override
-  public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-    if (done)
-      return;
-    // if one is cancelled cancel all
-    if (tasks.stream().map(Task::getStatus).anyMatch(s -> s.equals(TaskStatus.CANCELED))) {
-      tasks.forEach(AbstractTask::cancel);
-      if (operationOnCancel != null)
-        operationOnCancel.accept(tasks);
-      done = true;
-      return;
+    public AllTasksFinishedListener(List<AbstractTask> tasks,
+            Consumer<List<AbstractTask>> operation) {
+        this(tasks, false, operation);
     }
 
-    // stop on error
-    if (stopOnError
-        && tasks.stream().map(Task::getStatus).anyMatch(s -> s.equals(TaskStatus.ERROR))) {
-      if (operationOnError != null)
-        operationOnError.accept(tasks);
-      done = true;
-      return;
+    public AllTasksFinishedListener(List<AbstractTask> tasks,
+            boolean stopOnError, Consumer<List<AbstractTask>> operation) {
+        this(tasks, stopOnError, operation, null);
     }
-    // is one still running?
-    long stillRunning = tasks.stream().map(Task::getStatus)
-        .filter(s -> (s.equals(TaskStatus.WAITING) || s.equals(TaskStatus.PROCESSING))).count();
-    progress = (tasks.size() - stillRunning) / (double) tasks.size();
-    if (stillRunning == 0) {
-      // all done
-      operation.accept(tasks);
-      done = true;
-      return;
-    }
-  }
 
-  public double getProgress() {
-    return progress;
-  }
+    /**
+     * 
+     * @param tasks
+     * @param stopOnError
+     * @param operation
+     *            gets fired on completion of all tasks
+     * @param operationOnError
+     *            gets fired on error (only once)
+     */
+    public AllTasksFinishedListener(List<AbstractTask> tasks,
+            boolean stopOnError, Consumer<List<AbstractTask>> operation,
+            Consumer<List<AbstractTask>> operationOnError) {
+        this(tasks, stopOnError, operation, operationOnError, null);
+    }
+
+    public AllTasksFinishedListener(List<AbstractTask> tasks,
+            boolean stopOnError, Consumer<List<AbstractTask>> operation,
+            Consumer<List<AbstractTask>> operationOnError,
+            Consumer<List<AbstractTask>> operationOnCancel) {
+        this.tasks = tasks;
+        this.stopOnError = stopOnError;
+        this.operationOnCancel = operationOnCancel;
+        this.operation = operation;
+        this.operationOnError = operationOnError;
+        tasks.stream().forEach(t -> t.addTaskStatusListener(this));
+    }
+
+    @Override
+    public void taskStatusChanged(Task task, TaskStatus newStatus,
+            TaskStatus oldStatus) {
+        if (done)
+            return;
+        // if one is cancelled cancel all
+        if (tasks.stream().map(Task::getStatus)
+                .anyMatch(s -> s.equals(TaskStatus.CANCELED))) {
+            tasks.forEach(AbstractTask::cancel);
+            if (operationOnCancel != null)
+                operationOnCancel.accept(tasks);
+            done = true;
+            return;
+        }
+
+        // stop on error
+        if (stopOnError && tasks.stream().map(Task::getStatus)
+                .anyMatch(s -> s.equals(TaskStatus.ERROR))) {
+            if (operationOnError != null)
+                operationOnError.accept(tasks);
+            done = true;
+            return;
+        }
+        // is one still running?
+        long stillRunning = tasks.stream().map(Task::getStatus)
+                .filter(s -> (s.equals(TaskStatus.WAITING)
+                        || s.equals(TaskStatus.PROCESSING)))
+                .count();
+        progress = (tasks.size() - stillRunning) / (double) tasks.size();
+        if (stillRunning == 0) {
+            // all done
+            operation.accept(tasks);
+            done = true;
+            return;
+        }
+    }
+
+    public double getProgress() {
+        return progress;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,19 +28,20 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class MzRangeFormulaCalculatorParameters extends SimpleParameterSet {
 
-  static final FormulaParameter formula = new FormulaParameter();
+    static final FormulaParameter formula = new FormulaParameter();
 
-  static final ComboParameter<IonizationType> ionType =
-      new ComboParameter<IonizationType>("Ionization type",
-          "Please choose the type of ion to produce from the formula", IonizationType.values());
+    static final ComboParameter<IonizationType> ionType = new ComboParameter<IonizationType>(
+            "Ionization type",
+            "Please choose the type of ion to produce from the formula",
+            IonizationType.values());
 
-  static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Charge of the ion", 1, 1, null);
+    static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Charge of the ion", 1, 1, null);
 
-  static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public MzRangeFormulaCalculatorParameters() {
-    super(new Parameter[] {formula, ionType, charge, mzTolerance});
-  }
+    public MzRangeFormulaCalculatorParameters() {
+        super(new Parameter[] { formula, ionType, charge, mzTolerance });
+    }
 
 }

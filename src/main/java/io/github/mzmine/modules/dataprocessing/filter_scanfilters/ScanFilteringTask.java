@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,128 +34,132 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 class ScanFilteringTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final MZmineProject project;
-  private RawDataFile dataFile, filteredRawDataFile;
+    private final MZmineProject project;
+    private RawDataFile dataFile, filteredRawDataFile;
 
-  // scan counter
-  private int processedScans = 0, totalScans;
-  private int[] scanNumbers;
+    // scan counter
+    private int processedScans = 0, totalScans;
+    private int[] scanNumbers;
 
-  // User parameters
-  private String suffix;
-  private boolean removeOriginal;
+    // User parameters
+    private String suffix;
+    private boolean removeOriginal;
 
-  // Raw Data Filter
-  private MZmineProcessingStep<ScanFilter> rawDataFilter;
+    // Raw Data Filter
+    private MZmineProcessingStep<ScanFilter> rawDataFilter;
 
-  private ScanSelection select;
+    private ScanSelection select;
 
+    /**
+     * @param dataFile
+     * @param parameters
+     */
+    ScanFilteringTask(MZmineProject project, RawDataFile dataFile,
+            ParameterSet parameters) {
 
-  /**
-   * @param dataFile
-   * @param parameters
-   */
-  ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+        this.project = project;
+        this.dataFile = dataFile;
 
-    this.project = project;
-    this.dataFile = dataFile;
+        rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter)
+                .getValue();
 
-    rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter).getValue();
+        suffix = parameters.getParameter(ScanFiltersParameters.suffix)
+                .getValue();
+        select = parameters.getParameter(ScanFiltersParameters.scanSelect)
+                .getValue();
 
-    suffix = parameters.getParameter(ScanFiltersParameters.suffix).getValue();
-    select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
-
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  @Override
-  public String getTaskDescription() {
-    return "Filtering scans in " + dataFile;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (totalScans == 0) {
-      return 0;
-    } else {
-      return (double) processedScans / totalScans;
-    }
-  }
-
-  public RawDataFile getDataFile() {
-    return dataFile;
-  }
-
-  /**
-   * @see Runnable#run()
-   */
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    logger.info("Started filtering scans on " + dataFile);
-
-    scanNumbers = dataFile.getScanNumbers();
-    totalScans = scanNumbers.length;
-
-    try {
-
-      // Create new raw data file
-
-      String newName = dataFile.getName() + " " + suffix;
-      RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
-
-      for (int i = 0; i < totalScans; i++) {
-
-        if (isCanceled()) {
-          return;
-        }
-
-
-        Scan scan = dataFile.getScan(scanNumbers[i]);
-        Scan newScan = null;
-        if (select.matches(scan))
-          newScan = rawDataFilter.getModule().filterScan(scan, rawDataFilter.getParameterSet());
-        else
-          newScan = scan;
-
-        if (newScan != null) {
-          rawDataFileWriter.addScan(newScan);
-        }
-
-        processedScans++;
-      }
-
-      // Finalize writing
-      try {
-        filteredRawDataFile = rawDataFileWriter.finishWriting();
-        project.addFile(filteredRawDataFile);
-
-        // Remove the original file if requested
-        if (removeOriginal) {
-          project.removeFile(dataFile);
-        }
-      } catch (Exception exception) {
-        exception.printStackTrace();
-      }
-
-      setStatus(TaskStatus.FINISHED);
-      logger.info("Finished scan filter on " + dataFile);
-
-    } catch (IOException e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
-      return;
     }
 
-  }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    @Override
+    public String getTaskDescription() {
+        return "Filtering scans in " + dataFile;
+    }
+
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        if (totalScans == 0) {
+            return 0;
+        } else {
+            return (double) processedScans / totalScans;
+        }
+    }
+
+    public RawDataFile getDataFile() {
+        return dataFile;
+    }
+
+    /**
+     * @see Runnable#run()
+     */
+    @Override
+    public void run() {
+
+        setStatus(TaskStatus.PROCESSING);
+
+        logger.info("Started filtering scans on " + dataFile);
+
+        scanNumbers = dataFile.getScanNumbers();
+        totalScans = scanNumbers.length;
+
+        try {
+
+            // Create new raw data file
+
+            String newName = dataFile.getName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore
+                    .createNewFile(newName);
+
+            for (int i = 0; i < totalScans; i++) {
+
+                if (isCanceled()) {
+                    return;
+                }
+
+                Scan scan = dataFile.getScan(scanNumbers[i]);
+                Scan newScan = null;
+                if (select.matches(scan))
+                    newScan = rawDataFilter.getModule().filterScan(scan,
+                            rawDataFilter.getParameterSet());
+                else
+                    newScan = scan;
+
+                if (newScan != null) {
+                    rawDataFileWriter.addScan(newScan);
+                }
+
+                processedScans++;
+            }
+
+            // Finalize writing
+            try {
+                filteredRawDataFile = rawDataFileWriter.finishWriting();
+                project.addFile(filteredRawDataFile);
+
+                // Remove the original file if requested
+                if (removeOriginal) {
+                    project.removeFile(dataFile);
+                }
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+
+            setStatus(TaskStatus.FINISHED);
+            logger.info("Finished scan filter on " + dataFile);
+
+        } catch (IOException e) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(e.toString());
+            return;
+        }
+
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,18 +24,21 @@ import io.github.mzmine.main.MZmineCore;
 
 public class AdductIdentity extends SimplePeakIdentity {
 
-  /**
-   * Create the identity.
-   *
-   * @param originalPeakListRow adduct of this feature list row.
-   * @param adduct type of adduct.
-   */
-  public AdductIdentity(final PeakListRow originalPeakListRow, final AdductType adduct) {
+    /**
+     * Create the identity.
+     *
+     * @param originalPeakListRow
+     *            adduct of this feature list row.
+     * @param adduct
+     *            type of adduct.
+     */
+    public AdductIdentity(final PeakListRow originalPeakListRow,
+            final AdductType adduct) {
 
-    super(adduct.toString() + " adduct of "
-        + MZmineCore.getConfiguration().getMZFormat().format(originalPeakListRow.getAverageMZ())
-        + " m/z");
+        super(adduct.toString() + " adduct of " + MZmineCore.getConfiguration()
+                .getMZFormat().format(originalPeakListRow.getAverageMZ())
+                + " m/z");
 
-    setPropertyValue(PROPERTY_METHOD, "Adduct search");
-  }
+        setPropertyValue(PROPERTY_METHOD, "Adduct search");
+    }
 }

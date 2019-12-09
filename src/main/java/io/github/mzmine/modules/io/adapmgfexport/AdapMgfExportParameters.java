@@ -29,53 +29,56 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportParameters extends SimpleParameterSet {
-  /**
-   * Defines the representative m/z value for a cluster
-   * 
-   * @author Robin Schmid (robinschmid@uni-muenster.de)
-   *
-   */
-  public static enum MzMode {
-    AS_IN_FEATURE_TABLE("As in feature table"), HIGHEST_MZ("Highest m/z"), MAX_INTENSITY(
-        "Max. intensity");
+    /**
+     * Defines the representative m/z value for a cluster
+     * 
+     * @author Robin Schmid (robinschmid@uni-muenster.de)
+     *
+     */
+    public static enum MzMode {
+        AS_IN_FEATURE_TABLE("As in feature table"), HIGHEST_MZ(
+                "Highest m/z"), MAX_INTENSITY("Max. intensity");
 
-    private final String name;
+        private final String name;
 
-    MzMode(String name) {
-      this.name = name;
+        MzMode(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
-    @Override
-    public String toString() {
-      return name;
+    public static final String ROUND_MODE_MAX = "Maximum";
+    public static final String ROUND_MODE_SUM = "Sum";
+
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+
+    public static final FileNameParameter FILENAME = new FileNameParameter(
+            "Filename",
+            "Name of the output MGF file. "
+                    + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                    + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
+                    + "If the file already exists, it will be overwritten.",
+            "mgf");
+
+    public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter(
+            "Fractional m/z values", "If checked, write fractional m/z values",
+            false);
+
+    public static final ComboParameter<String> ROUND_MODE = new ComboParameter<>(
+            "Merging Mode",
+            "Determines how to merge intensities with the same m/z values",
+            new String[] { ROUND_MODE_MAX, ROUND_MODE_SUM }, ROUND_MODE_MAX);
+
+    public static final ComboParameter<MzMode> REPRESENTATIVE_MZ = new ComboParameter<AdapMgfExportParameters.MzMode>(
+            "Representative m/z", "Choose the representative m/z of a cluster.",
+            MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
+
+    public AdapMgfExportParameters() {
+        super(new Parameter[] { PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ,
+                FRACTIONAL_MZ, ROUND_MODE });
     }
-  }
-
-  public static final String ROUND_MODE_MAX = "Maximum";
-  public static final String ROUND_MODE_SUM = "Sum";
-
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
-
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
-          + "If the file already exists, it will be overwritten.",
-      "mgf");
-
-  public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
-      "If checked, write fractional m/z values", false);
-
-  public static final ComboParameter<String> ROUND_MODE = new ComboParameter<>("Merging Mode",
-      "Determines how to merge intensities with the same m/z values",
-      new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX);
-
-  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
-      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
-          "Choose the representative m/z of a cluster.", MzMode.values(),
-          MzMode.AS_IN_FEATURE_TABLE);
-
-  public AdapMgfExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
-  }
 }

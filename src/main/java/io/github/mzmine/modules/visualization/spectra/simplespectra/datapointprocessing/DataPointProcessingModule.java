@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,17 +35,19 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
  */
 public interface DataPointProcessingModule extends MZmineModule {
 
-  /**
-   * @return The module sub category of this module.
-   */
-  @Nonnull
-  public ModuleSubCategory getModuleSubCategory();
+    /**
+     * @return The module sub category of this module.
+     */
+    @Nonnull
+    public ModuleSubCategory getModuleSubCategory();
 
-  @Nonnull
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
-  
-  @Nonnull
-  public MSLevel getApplicableMSLevel();
+    @Nonnull
+    public DataPointProcessingTask createTask(DataPoint[] dataPoints,
+            ParameterSet parameterSet, SpectraPlot plot,
+            DataPointProcessingController controller,
+            TaskStatusListener listener);
+
+    @Nonnull
+    public MSLevel getApplicableMSLevel();
 
 }

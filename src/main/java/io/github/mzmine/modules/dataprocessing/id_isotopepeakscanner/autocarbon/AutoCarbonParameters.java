@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,16 +28,18 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
  *
  */
 public class AutoCarbonParameters extends SimpleParameterSet {
-  
-  public static final IntegerParameter minCarbon =
-      new IntegerParameter("Min. carbon", "Minumum amount of carbon to search for.", 15, true);
-  public static final IntegerParameter maxCarbon =
-      new IntegerParameter("Max. carbon", "Maximum amount of carbon to search for.", 25, true);
-  public static final IntegerParameter minPatternSize =
-      new IntegerParameter("Min. pattern size", "Set the minimum amount of data points in an isotope pattern\n"
-          + "Make sure this does not exclude every pattern.", 2, true);
-  
-  public AutoCarbonParameters() {
-    super(new Parameter[] { minCarbon, maxCarbon, minPatternSize});
-  }
+
+    public static final IntegerParameter minCarbon = new IntegerParameter(
+            "Min. carbon", "Minumum amount of carbon to search for.", 15, true);
+    public static final IntegerParameter maxCarbon = new IntegerParameter(
+            "Max. carbon", "Maximum amount of carbon to search for.", 25, true);
+    public static final IntegerParameter minPatternSize = new IntegerParameter(
+            "Min. pattern size",
+            "Set the minimum amount of data points in an isotope pattern\n"
+                    + "Make sure this does not exclude every pattern.",
+            2, true);
+
+    public AutoCarbonParameters() {
+        super(new Parameter[] { minCarbon, maxCarbon, minPatternSize });
+    }
 }

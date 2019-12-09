@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -72,17 +72,26 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
     private static final int SIZE = 40;
     // icons
-    static final Icon iconTIC = IconUtil.loadIconFromResources("icons/btnTIC.png", SIZE);
-    static final Icon iconTICFalse = IconUtil.loadIconFromResources("icons/btnTIC_grey.png", SIZE);
-    static final Icon iconSignals = IconUtil.loadIconFromResources("icons/btnSignals.png", SIZE);
-    static final Icon iconSignalsFalse = IconUtil.loadIconFromResources(
-            "icons/btnSignals_grey.png", SIZE);
-    static final Icon iconAccept = IconUtil.loadIconFromResources("icons/btnAccept.png", SIZE);
-    static final Icon iconCross = IconUtil.loadIconFromResources("icons/btnCross.png", SIZE);
-    static final Icon iconNext = IconUtil.loadIconFromResources("icons/btnNext.png", SIZE);
-    static final Icon iconPrev = IconUtil.loadIconFromResources("icons/btnPrev.png", SIZE);
-    static final Icon iconNextGrey = IconUtil.loadIconFromResources("icons/btnNext_grey.png", SIZE);
-    static final Icon iconPrevGrey = IconUtil.loadIconFromResources("icons/btnPrev_grey.png", SIZE);
+    static final Icon iconTIC = IconUtil
+            .loadIconFromResources("icons/btnTIC.png", SIZE);
+    static final Icon iconTICFalse = IconUtil
+            .loadIconFromResources("icons/btnTIC_grey.png", SIZE);
+    static final Icon iconSignals = IconUtil
+            .loadIconFromResources("icons/btnSignals.png", SIZE);
+    static final Icon iconSignalsFalse = IconUtil
+            .loadIconFromResources("icons/btnSignals_grey.png", SIZE);
+    static final Icon iconAccept = IconUtil
+            .loadIconFromResources("icons/btnAccept.png", SIZE);
+    static final Icon iconCross = IconUtil
+            .loadIconFromResources("icons/btnCross.png", SIZE);
+    static final Icon iconNext = IconUtil
+            .loadIconFromResources("icons/btnNext.png", SIZE);
+    static final Icon iconPrev = IconUtil
+            .loadIconFromResources("icons/btnPrev.png", SIZE);
+    static final Icon iconNextGrey = IconUtil
+            .loadIconFromResources("icons/btnNext_grey.png", SIZE);
+    static final Icon iconPrevGrey = IconUtil
+            .loadIconFromResources("icons/btnPrev_grey.png", SIZE);
 
     private Logger log = Logger.getLogger(this.getClass().getName());
     private final Color errorColor = Color.decode("#ffb3b3");
@@ -675,8 +684,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
         txtAdduct.setBorder(BorderFactory.createLineBorder(Color.black));
         return formatted;
     }
-
-
 
     public void setChartSize(Dimension dim) {
         chartSize = dim;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,26 +32,28 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
  */
 public class TwoDVisualizerParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<PlotType> plotType = new ComboParameter<>("Type of plot",
-      "Resampled data -> fast. Raw data -> slow.", PlotType.values());
+    public static final ComboParameter<PlotType> plotType = new ComboParameter<>(
+            "Type of plot", "Resampled data -> fast. Raw data -> slow.",
+            PlotType.values());
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+            1, 1);
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
-  public static final MZRangeParameter mzRange = new MZRangeParameter();
+    public static final MZRangeParameter mzRange = new MZRangeParameter();
 
-  public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
+    public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-  public TwoDVisualizerParameters() {
-    super(new Parameter[] {plotType, dataFiles, scanSelection, mzRange, peakThresholdSettings,
-        windowSettings});
-  }
+    public TwoDVisualizerParameters() {
+        super(new Parameter[] { plotType, dataFiles, scanSelection, mzRange,
+                peakThresholdSettings, windowSettings });
+    }
 
 }

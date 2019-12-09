@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,35 +31,35 @@ import io.github.mzmine.util.ExitCode;
 
 public class SammonsPlotModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Sammon's projection";
-  private static final String MODULE_DESCRIPTION = "Sammon's projection"; // TODO
+    private static final String MODULE_NAME = "Sammon's projection";
+    private static final String MODULE_DESCRIPTION = "Sammon's projection"; // TODO
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    ProjectionPlotDataset dataset = new SammonsDataset(project, parameters);
-    tasks.add(dataset);
-    return ExitCode.OK;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        ProjectionPlotDataset dataset = new SammonsDataset(project, parameters);
+        tasks.add(dataset);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.DATAANALYSIS;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.DATAANALYSIS;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ProjectionPlotParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ProjectionPlotParameters.class;
+    }
 }

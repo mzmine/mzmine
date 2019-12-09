@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,25 +27,24 @@ import javax.swing.JComboBox;
 
 public class JFontBox extends JComboBox<String> {
 
-  public JFontBox() {
-    super(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+    public JFontBox() {
+        super(GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getAvailableFontFamilyNames());
 
-    setSelectedItem("Arial");
-    setPreferredSize(new Dimension(120, 22));
-    setMaximumSize(getPreferredSize());
-    setMaximumRowCount(20);
-    setRenderer(new FontBoxRenderer(this));
-    addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          final String fontName = getSelectedItem().toString();
-          setFont(new Font(fontName, Font.PLAIN, 14));
-        }
-      }
-    });
-  }
-
-
+        setSelectedItem("Arial");
+        setPreferredSize(new Dimension(120, 22));
+        setMaximumSize(getPreferredSize());
+        setMaximumRowCount(20);
+        setRenderer(new FontBoxRenderer(this));
+        addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    final String fontName = getSelectedItem().toString();
+                    setFont(new Font(fontName, Font.PLAIN, 14));
+                }
+            }
+        });
+    }
 
 }

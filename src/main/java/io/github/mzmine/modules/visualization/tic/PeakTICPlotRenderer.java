@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,25 +33,27 @@ import org.jfree.data.xy.XYDataset;
 
 public class PeakTICPlotRenderer extends XYAreaRenderer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private static final float OPACITY = 0.6f;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private static final float OPACITY = 0.6f;
 
-  private static Composite makeComposite(final float alpha) {
+    private static Composite makeComposite(final float alpha) {
 
-    return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
-  }
+        return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+    }
 
-  @Override
-  public void drawItem(final Graphics2D g2, final XYItemRendererState state,
-      final Rectangle2D dataArea, final PlotRenderingInfo info, final XYPlot plot,
-      final ValueAxis domainAxis, final ValueAxis rangeAxis, final XYDataset dataSet,
-      final int series, final int item, final CrosshairState crosshairState, final int pass) {
+    @Override
+    public void drawItem(final Graphics2D g2, final XYItemRendererState state,
+            final Rectangle2D dataArea, final PlotRenderingInfo info,
+            final XYPlot plot, final ValueAxis domainAxis,
+            final ValueAxis rangeAxis, final XYDataset dataSet,
+            final int series, final int item,
+            final CrosshairState crosshairState, final int pass) {
 
-    g2.setComposite(makeComposite(OPACITY));
-    super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataSet, series, item,
-        crosshairState, pass);
-  }
+        g2.setComposite(makeComposite(OPACITY));
+        super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+                dataSet, series, item, crosshairState, pass);
+    }
 }

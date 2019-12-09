@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,82 +35,91 @@ import io.github.mzmine.util.color.Vision;
 
 public class MZminePreferences extends SimpleParameterSet {
 
-  public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
-      "Color palettes (color blindness mode)",
-      "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
-      Vision.values(), Vision.DEUTERANOPIA);
+    public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
+            "Color palettes (color blindness mode)",
+            "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
+            Vision.values(), Vision.DEUTERANOPIA);
 
-  public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
-      "Format of m/z values", false, new DecimalFormat("0.0000"));
+    public static final NumberFormatParameter mzFormat = new NumberFormatParameter(
+            "m/z value format", "Format of m/z values", false,
+            new DecimalFormat("0.0000"));
 
-  public static final NumberFormatParameter rtFormat =
-      new NumberFormatParameter("Retention time value format", "Format of retention time values",
-          false, new DecimalFormat("0.00"));
+    public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
+            "Retention time value format", "Format of retention time values",
+            false, new DecimalFormat("0.00"));
 
-  public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
-      "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
+    public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
+            "Intensity format", "Format of intensity values", true,
+            new DecimalFormat("0.0E0"));
 
-  public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
+    public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
-  public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-      "Use proxy", "Use proxy for internet connection?", new ProxySettings());
+    public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
+            "Use proxy", "Use proxy for internet connection?",
+            new ProxySettings());
 
-  public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
-      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.");
+    public static final FileNameParameter rExecPath = new FileNameParameter(
+            "R executable path",
+            "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.");
 
-  public static final BooleanParameter sendStatistics =
-      new BooleanParameter("Send anonymous statistics",
-          "Allow MZmine to send anonymous statistics on the module usage?", true);
+    public static final BooleanParameter sendStatistics = new BooleanParameter(
+            "Send anonymous statistics",
+            "Allow MZmine to send anonymous statistics on the module usage?",
+            true);
 
-  public static final OptionalModuleParameter sendErrorEMail =
-      new OptionalModuleParameter("Send error e-Mail notifications",
-          "Send error e-Mail notifications", new ErrorMailSettings());
+    public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
+            "Send error e-Mail notifications",
+            "Send error e-Mail notifications", new ErrorMailSettings());
 
-  public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
+    public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
-  public MZminePreferences() {
-    super(new Parameter[] {colorPalettes, mzFormat, rtFormat, intensityFormat, numOfThreads,
-        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-    ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
-
-    if (retVal == ExitCode.OK) {
-
-      // Update proxy settings
-      updateSystemProxySettings();
-
-      // Repaint windows to update number formats
-      MZmineCore.getDesktop().getMainWindow().repaint();
+    public MZminePreferences() {
+        super(new Parameter[] { colorPalettes, mzFormat, rtFormat,
+                intensityFormat, numOfThreads, proxySettings, rExecPath,
+                sendStatistics, windowSetttings, sendErrorEMail });
     }
 
-    return retVal;
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-  @Override
-  public void loadValuesFromXML(Element xmlElement) {
-    super.loadValuesFromXML(xmlElement);
-    updateSystemProxySettings();
-  }
+        ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
 
-  private void updateSystemProxySettings() {
-    // Update system proxy settings
-    Boolean proxyEnabled = getParameter(proxySettings).getValue();
-    if ((proxyEnabled != null) && (proxyEnabled)) {
-      ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
-      String address = proxyParams.getParameter(ProxySettings.proxyAddress).getValue();
-      String port = proxyParams.getParameter(ProxySettings.proxyPort).getValue();
-      System.setProperty("http.proxySet", "true");
-      System.setProperty("http.proxyHost", address);
-      System.setProperty("http.proxyPort", port);
-    } else {
-      System.clearProperty("http.proxySet");
-      System.clearProperty("http.proxyHost");
-      System.clearProperty("http.proxyPort");
+        if (retVal == ExitCode.OK) {
+
+            // Update proxy settings
+            updateSystemProxySettings();
+
+            // Repaint windows to update number formats
+            MZmineCore.getDesktop().getMainWindow().repaint();
+        }
+
+        return retVal;
     }
-  }
+
+    @Override
+    public void loadValuesFromXML(Element xmlElement) {
+        super.loadValuesFromXML(xmlElement);
+        updateSystemProxySettings();
+    }
+
+    private void updateSystemProxySettings() {
+        // Update system proxy settings
+        Boolean proxyEnabled = getParameter(proxySettings).getValue();
+        if ((proxyEnabled != null) && (proxyEnabled)) {
+            ParameterSet proxyParams = getParameter(proxySettings)
+                    .getEmbeddedParameters();
+            String address = proxyParams
+                    .getParameter(ProxySettings.proxyAddress).getValue();
+            String port = proxyParams.getParameter(ProxySettings.proxyPort)
+                    .getValue();
+            System.setProperty("http.proxySet", "true");
+            System.setProperty("http.proxyHost", address);
+            System.setProperty("http.proxyPort", port);
+        } else {
+            System.clearProperty("http.proxySet");
+            System.clearProperty("http.proxyHost");
+            System.clearProperty("http.proxyPort");
+        }
+    }
 
 }

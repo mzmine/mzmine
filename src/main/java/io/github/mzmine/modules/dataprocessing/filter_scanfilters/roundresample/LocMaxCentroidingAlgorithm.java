@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -33,103 +33,108 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
  */
 public class LocMaxCentroidingAlgorithm {
 
-  private final DataPoint[] dataPoints;
-  private Scan inputScan;
-  private SimpleScan newScan;
+    private final DataPoint[] dataPoints;
+    private Scan inputScan;
+    private SimpleScan newScan;
 
-  // Data structures
-  private double mzBuffer[] = null;
-  private double intensityBuffer[] = null;
+    // Data structures
+    private double mzBuffer[] = null;
+    private double intensityBuffer[] = null;
 
-  public LocMaxCentroidingAlgorithm(Scan inputScan) {
-    this.inputScan = inputScan;
-    this.dataPoints = inputScan.getDataPoints();
-    mzBuffer = new double[this.dataPoints.length];
-    intensityBuffer = new double[this.dataPoints.length];
-  }
-
-  public Scan centroidScan() {
-
-    // Copy all scan properties
-    this.newScan = new SimpleScan(inputScan);
-
-    // Load data points
-    for (int i = 0; i < dataPoints.length; ++i) {
-      mzBuffer[i] = dataPoints[i].getMZ();
-      intensityBuffer[i] = dataPoints[i].getIntensity();
+    public LocMaxCentroidingAlgorithm(Scan inputScan) {
+        this.inputScan = inputScan;
+        this.dataPoints = inputScan.getDataPoints();
+        mzBuffer = new double[this.dataPoints.length];
+        intensityBuffer = new double[this.dataPoints.length];
     }
 
-    final int numOfDataPoints = inputScan.getNumberOfDataPoints();
-    int newNumOfDataPoints = 0;
+    public Scan centroidScan() {
 
-    // If there are no data points, just return the scan
-    ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>();
-    if (numOfDataPoints == 0) {
-      for (int i = 0; i < numOfDataPoints; ++i) {
-        newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
-      }
-      newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-      newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
-      return newScan;
-    }
+        // Copy all scan properties
+        this.newScan = new SimpleScan(inputScan);
 
-    int localMaximumIndex = 0;
-    int rangeBeginning = 0, rangeEnd;
-    boolean ascending = true;
+        // Load data points
+        for (int i = 0; i < dataPoints.length; ++i) {
+            mzBuffer[i] = dataPoints[i].getMZ();
+            intensityBuffer[i] = dataPoints[i].getIntensity();
+        }
 
-    // Iterate through all data points
-    for (int i = 0; i < numOfDataPoints - 1; i++) {
+        final int numOfDataPoints = inputScan.getNumberOfDataPoints();
+        int newNumOfDataPoints = 0;
 
-      final boolean nextIsBigger = intensityBuffer[i + 1] > intensityBuffer[i];
-      final boolean nextIsZero = intensityBuffer[i + 1] == 0f;
-      final boolean currentIsZero = intensityBuffer[i] == 0f;
+        // If there are no data points, just return the scan
+        ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>();
+        if (numOfDataPoints == 0) {
+            for (int i = 0; i < numOfDataPoints; ++i) {
+                newDataPoints.add(
+                        new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
+            }
+            newScan.setDataPoints(newDataPoints
+                    .toArray(new SimpleDataPoint[newDataPoints.size()]));
+            newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+            return newScan;
+        }
 
-      // Ignore zero intensity regions
-      if (currentIsZero) {
-        continue;
-      }
+        int localMaximumIndex = 0;
+        int rangeBeginning = 0, rangeEnd;
+        boolean ascending = true;
 
-      // Add current (non-zero) data point to the current m/z peak
-      rangeEnd = i;
+        // Iterate through all data points
+        for (int i = 0; i < numOfDataPoints - 1; i++) {
 
-      // Check for local maximum
-      if (ascending && (!nextIsBigger)) {
-        localMaximumIndex = i;
-        ascending = false;
-        continue;
-      }
+            final boolean nextIsBigger = intensityBuffer[i
+                    + 1] > intensityBuffer[i];
+            final boolean nextIsZero = intensityBuffer[i + 1] == 0f;
+            final boolean currentIsZero = intensityBuffer[i] == 0f;
 
-      // Check for the end of the peak
-      if ((!ascending) && (nextIsBigger || nextIsZero)) {
+            // Ignore zero intensity regions
+            if (currentIsZero) {
+                continue;
+            }
 
-        final int numOfPeakDataPoints = rangeEnd - rangeBeginning;
+            // Add current (non-zero) data point to the current m/z peak
+            rangeEnd = i;
 
-        // Add the m/z peak if it has at least 4 data points
-        if (numOfPeakDataPoints >= 4) {
+            // Check for local maximum
+            if (ascending && (!nextIsBigger)) {
+                localMaximumIndex = i;
+                ascending = false;
+                continue;
+            }
 
-          // Add the new data point
-          mzBuffer[newNumOfDataPoints] = mzBuffer[localMaximumIndex];
-          intensityBuffer[newNumOfDataPoints] = intensityBuffer[localMaximumIndex];
-          newNumOfDataPoints++;
+            // Check for the end of the peak
+            if ((!ascending) && (nextIsBigger || nextIsZero)) {
+
+                final int numOfPeakDataPoints = rangeEnd - rangeBeginning;
+
+                // Add the m/z peak if it has at least 4 data points
+                if (numOfPeakDataPoints >= 4) {
+
+                    // Add the new data point
+                    mzBuffer[newNumOfDataPoints] = mzBuffer[localMaximumIndex];
+                    intensityBuffer[newNumOfDataPoints] = intensityBuffer[localMaximumIndex];
+                    newNumOfDataPoints++;
+
+                }
+
+                // Reset and start with new peak
+                ascending = true;
+                rangeBeginning = i;
+            }
 
         }
 
-        // Reset and start with new peak
-        ascending = true;
-        rangeBeginning = i;
-      }
+        // Store the new data points
+        for (int i = 0; i < newNumOfDataPoints; ++i) {
+            newDataPoints
+                    .add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
+        }
+        newScan.setDataPoints(newDataPoints
+                .toArray(new SimpleDataPoint[newDataPoints.size()]));
+        newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+
+        return newScan;
 
     }
-
-    // Store the new data points
-    for (int i = 0; i < newNumOfDataPoints; ++i) {
-      newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
-    }
-    newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
-    newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
-
-    return newScan;
-
-  }
 
 }

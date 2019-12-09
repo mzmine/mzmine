@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,24 +28,25 @@ import io.github.mzmine.util.ExitCode;
 
 public class RndResampleFilterParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter SUM_DUPLICATES = new BooleanParameter(
-      "Sum duplicate intensities",
-      "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. "
-          + "If unchecked, the intensities are averaged rather than summed.",
-      false);
+    public static final BooleanParameter SUM_DUPLICATES = new BooleanParameter(
+            "Sum duplicate intensities",
+            "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. "
+                    + "If unchecked, the intensities are averaged rather than summed.",
+            false);
 
-  public static final BooleanParameter REMOVE_ZERO_INTENSITY =
-      new BooleanParameter("Remove zero intensity m/z peaks",
-          "Clear all scans spectra from m/z peaks with intensity equal to zero.", true);
+    public static final BooleanParameter REMOVE_ZERO_INTENSITY = new BooleanParameter(
+            "Remove zero intensity m/z peaks",
+            "Clear all scans spectra from m/z peaks with intensity equal to zero.",
+            true);
 
-  public RndResampleFilterParameters() {
-    super(new Parameter[] {SUM_DUPLICATES, REMOVE_ZERO_INTENSITY});
-  }
+    public RndResampleFilterParameters() {
+        super(new Parameter[] { SUM_DUPLICATES, REMOVE_ZERO_INTENSITY });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ScanFilterSetupDialog dialog =
-        new ScanFilterSetupDialog(parent, valueCheckRequired, this, RndResampleFilter.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+                valueCheckRequired, this, RndResampleFilter.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

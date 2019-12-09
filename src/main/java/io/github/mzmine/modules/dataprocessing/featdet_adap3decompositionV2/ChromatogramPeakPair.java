@@ -28,46 +28,52 @@ import java.util.*;
  * @author Du-Lab Team dulab.binf@gmail.com
  */
 public class ChromatogramPeakPair {
-  public final PeakList chromatograms;
-  public final PeakList peaks;
+    public final PeakList chromatograms;
+    public final PeakList peaks;
 
-  private ChromatogramPeakPair(@Nonnull PeakList chromatograms, @Nonnull PeakList peaks) {
-    this.chromatograms = chromatograms;
-    this.peaks = peaks;
-  }
-
-  @Override
-  public String toString() {
-    return chromatograms.getName() + " / " + peaks.getName();
-  }
-
-  public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
-      @Nonnull ParameterSet parameterSet) {
-    Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
-
-    PeakList[] chromatograms =
-        parameterSet.getParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue()
-            .getMatchingPeakLists();
-    PeakList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists();
-    if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0)
-      return pairs;
-
-    Set<RawDataFile> dataFiles = new HashSet<>();
-    for (PeakList peakList : chromatograms)
-      dataFiles.add(peakList.getRawDataFile(0));
-    for (PeakList peakList : peaks)
-      dataFiles.add(peakList.getRawDataFile(0));
-
-    for (RawDataFile dataFile : dataFiles) {
-      PeakList chromatogram = Arrays.stream(chromatograms)
-          .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
-      PeakList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile).findFirst()
-          .orElse(null);
-      if (chromatogram != null && peak != null)
-        pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+    private ChromatogramPeakPair(@Nonnull PeakList chromatograms,
+            @Nonnull PeakList peaks) {
+        this.chromatograms = chromatograms;
+        this.peaks = peaks;
     }
 
-    return pairs;
-  }
+    @Override
+    public String toString() {
+        return chromatograms.getName() + " / " + peaks.getName();
+    }
+
+    public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
+            @Nonnull ParameterSet parameterSet) {
+        Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
+
+        PeakList[] chromatograms = parameterSet
+                .getParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS)
+                .getValue().getMatchingPeakLists();
+        PeakList[] peaks = parameterSet
+                .getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
+                .getValue().getMatchingPeakLists();
+        if (chromatograms == null || chromatograms.length == 0 || peaks == null
+                || peaks.length == 0)
+            return pairs;
+
+        Set<RawDataFile> dataFiles = new HashSet<>();
+        for (PeakList peakList : chromatograms)
+            dataFiles.add(peakList.getRawDataFile(0));
+        for (PeakList peakList : peaks)
+            dataFiles.add(peakList.getRawDataFile(0));
+
+        for (RawDataFile dataFile : dataFiles) {
+            PeakList chromatogram = Arrays.stream(chromatograms)
+                    .filter(c -> c.getRawDataFile(0) == dataFile).findFirst()
+                    .orElse(null);
+            PeakList peak = Arrays.stream(peaks)
+                    .filter(c -> c.getRawDataFile(0) == dataFile).findFirst()
+                    .orElse(null);
+            if (chromatogram != null && peak != null)
+                pairs.put(dataFile,
+                        new ChromatogramPeakPair(chromatogram, peak));
+        }
+
+        return pairs;
+    }
 }

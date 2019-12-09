@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,17 +28,17 @@ import io.github.mzmine.util.ExitCode;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter oneSidedWindowLength =
-      new DoubleParameter("Window length", "One-sided length of the smoothing window");
+    public static final DoubleParameter oneSidedWindowLength = new DoubleParameter(
+            "Window length", "One-sided length of the smoothing window");
 
-  public MeanFilterParameters() {
-    super(new UserParameter[] {oneSidedWindowLength});
-  }
+    public MeanFilterParameters() {
+        super(new UserParameter[] { oneSidedWindowLength });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ScanFilterSetupDialog dialog =
-        new ScanFilterSetupDialog(parent, valueCheckRequired, this, MeanFilter.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+                valueCheckRequired, this, MeanFilter.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

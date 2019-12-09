@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,39 +32,40 @@ import io.github.mzmine.util.ExitCode;
 
 public class MzTabImportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Import mzTab file";
-  private static final String MODULE_DESCRIPTION =
-      "This method imports a feature list from a mzTab file.";
+    private static final String MODULE_NAME = "Import mzTab file";
+    private static final String MODULE_DESCRIPTION = "This method imports a feature list from a mzTab file.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTIMPORT;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MzTabImportParameters.class;
-  }
-
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
-    for (File inputFile : inputFiles) {
-      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile);
-      tasks.add(task);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-    return ExitCode.OK;
-  }
+
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTIMPORT;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MzTabImportParameters.class;
+    }
+
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        File inputFiles[] = parameters.getParameter(MzTabImportParameters.file)
+                .getValue();
+        for (File inputFile : inputFiles) {
+            MzTabImportTask task = new MzTabImportTask(project, parameters,
+                    inputFile);
+            tasks.add(task);
+        }
+        return ExitCode.OK;
+    }
 
 }

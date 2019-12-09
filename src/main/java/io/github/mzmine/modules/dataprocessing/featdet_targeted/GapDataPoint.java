@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,34 +25,34 @@ import io.github.mzmine.datamodel.DataPoint;
  */
 class GapDataPoint implements DataPoint {
 
-  private int scanNumber;
-  private double mz, rt, intensity;
+    private int scanNumber;
+    private double mz, rt, intensity;
 
-  /**
-   */
-  GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
+    /**
+     */
+    GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
 
-    this.scanNumber = scanNumber;
-    this.mz = mz;
-    this.rt = rt;
-    this.intensity = intensity;
+        this.scanNumber = scanNumber;
+        this.mz = mz;
+        this.rt = rt;
+        this.intensity = intensity;
 
-  }
+    }
 
-  int getScanNumber() {
-    return scanNumber;
-  }
+    int getScanNumber() {
+        return scanNumber;
+    }
 
-  public double getIntensity() {
-    return intensity;
-  }
+    public double getIntensity() {
+        return intensity;
+    }
 
-  public double getMZ() {
-    return mz;
-  }
+    public double getMZ() {
+        return mz;
+    }
 
-  public double getRT() {
-    return rt;
-  }
+    public double getRT() {
+        return rt;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,22 +20,22 @@ package io.github.mzmine.modules.io.csvexport;
 
 public enum ExportRowCommonElement {
 
-  ROW_ID("Export row ID"), //
-  ROW_MZ("Export row m/z"), //
-  ROW_RT("Export row retention time"), //
-  ROW_IDENTITY("Export row identity (main ID)"), //
-  ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
-  ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
-  ROW_COMMENT("Export row comment"), //
-  ROW_PEAK_NUMBER("Export row number of detected peaks");
+    ROW_ID("Export row ID"), //
+    ROW_MZ("Export row m/z"), //
+    ROW_RT("Export row retention time"), //
+    ROW_IDENTITY("Export row identity (main ID)"), //
+    ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
+    ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
+    ROW_COMMENT("Export row comment"), //
+    ROW_PEAK_NUMBER("Export row number of detected peaks");
 
-  private final String name;
+    private final String name;
 
-  ExportRowCommonElement(String name) {
-    this.name = name;
-  }
+    ExportRowCommonElement(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 }

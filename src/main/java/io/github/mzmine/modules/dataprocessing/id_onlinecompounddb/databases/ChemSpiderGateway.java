@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -60,97 +60,104 @@ import io.github.mzmine.util.RangeUtils;
  */
 public class ChemSpiderGateway implements DBGateway {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  
-  // Compound names.
-  private static final String UNKNOWN_NAME = "Unknown name";
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  // Pattern for chemical structure URLs - replace CSID.
-  private static final String STRUCTURE_URL_PATTERN =
-      "http://www.chemspider.com/Chemical-Structure.CSID.html";
-  private static final String STRUCTURE2D_URL_PATTERN =
-      "http://www.chemspider.com/FilesHandler.ashx?type=str&id=CSID";
-  private static final String STRUCTURE3D_URL_PATTERN =
-      "http://www.chemspider.com/FilesHandler.ashx?type=str&3d=yes&id=CSID";
+    // Compound names.
+    private static final String UNKNOWN_NAME = "Unknown name";
 
-  // Pattern to clean-up formulas.
-  private static final Pattern FORMULA_PATTERN = Pattern.compile("[\\W_]*");
+    // Pattern for chemical structure URLs - replace CSID.
+    private static final String STRUCTURE_URL_PATTERN = "http://www.chemspider.com/Chemical-Structure.CSID.html";
+    private static final String STRUCTURE2D_URL_PATTERN = "http://www.chemspider.com/FilesHandler.ashx?type=str&id=CSID";
+    private static final String STRUCTURE3D_URL_PATTERN = "http://www.chemspider.com/FilesHandler.ashx?type=str&3d=yes&id=CSID";
 
-  @Override
-  public String[] findCompounds(final double mass, final MZTolerance mzTolerance,
-      final int numOfResults, ParameterSet parameters) throws IOException {
+    // Pattern to clean-up formulas.
+    private static final Pattern FORMULA_PATTERN = Pattern.compile("[\\W_]*");
 
-    logger.finest("Searching by mass...");
+    @Override
+    public String[] findCompounds(final double mass,
+            final MZTolerance mzTolerance, final int numOfResults,
+            ParameterSet parameters) throws IOException {
 
-    // Get search range
-    final Range<Double> mzRange = mzTolerance.getToleranceRange(mass);
-    final double queryMz = RangeUtils.rangeCenter(mzRange);
-    final double queryRange = RangeUtils.rangeLength(mzRange) / 2.0;
+        logger.finest("Searching by mass...");
 
-    // Get security token.
-    final String apiKey = parameters.getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
+        // Get search range
+        final Range<Double> mzRange = mzTolerance.getToleranceRange(mass);
+        final double queryMz = RangeUtils.rangeCenter(mzRange);
+        final double queryRange = RangeUtils.rangeLength(mzRange) / 2.0;
 
-    try {
+        // Get security token.
+        final String apiKey = parameters
+                .getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
 
-      FilterByMassRequest filterRequest = new FilterByMassRequest();
-      filterRequest.setMass(queryMz);
-      filterRequest.setRange(queryRange);
-      filterRequest.setOrderBy(OrderByEnum.RECORDID);
+        try {
 
-      FilteringApi apiInstance = new FilteringApi();
-      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
-      
-      FilterQueryResponse queryId = apiInstance.filterMassPost(filterRequest, apiKey);
-      QueryResultResponse result =
-          apiInstance.filterQueryIdResultsGet(queryId.getQueryId(), apiKey, 0, numOfResults);
-      List<Integer> integerIDs = result.getResults();
-      List<String> stringIDs = Lists.transform(integerIDs, Functions.toStringFunction());
+            FilterByMassRequest filterRequest = new FilterByMassRequest();
+            filterRequest.setMass(queryMz);
+            filterRequest.setRange(queryRange);
+            filterRequest.setOrderBy(OrderByEnum.RECORDID);
 
-      return stringIDs.toArray(new String[0]);
+            FilteringApi apiInstance = new FilteringApi();
+            apiInstance.getApiClient()
+                    .setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
 
-    } catch (ApiException e) {
-      throw new IOException(e);
-    }
-  }
+            FilterQueryResponse queryId = apiInstance
+                    .filterMassPost(filterRequest, apiKey);
+            QueryResultResponse result = apiInstance.filterQueryIdResultsGet(
+                    queryId.getQueryId(), apiKey, 0, numOfResults);
+            List<Integer> integerIDs = result.getResults();
+            List<String> stringIDs = Lists.transform(integerIDs,
+                    Functions.toStringFunction());
 
-  @Override
-  public DBCompound getCompound(final String ID, ParameterSet parameters) throws IOException {
+            return stringIDs.toArray(new String[0]);
 
-    logger.finest("Fetching compound info for CSID #" + ID);
-
-    // Get security token.
-    final String apiKey = parameters.getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
-
-    final List<String> fields = Arrays.asList("Formula", "CommonName", "MonoisotopicMass");
-
-    try {
-      RecordsApi apiInstance = new RecordsApi();
-      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
-
-      Integer recordId = Integer.valueOf(ID);
-      RecordResponse response = apiInstance.recordsRecordIdDetailsGet(recordId, fields, apiKey);
-
-      String name = response.getCommonName();
-      if (Strings.isNullOrEmpty(name))
-        name = UNKNOWN_NAME;
-      String formula = response.getFormula();
-
-      // Fix formula formatting
-      if (!Strings.isNullOrEmpty(formula))
-        formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
-
-      // Create and return the compound record.
-      return new DBCompound(OnlineDatabases.CHEMSPIDER, ID, name, formula,
-          new URL(STRUCTURE_URL_PATTERN.replaceFirst("CSID", ID)),
-          new URL(STRUCTURE2D_URL_PATTERN.replaceFirst("CSID", ID)),
-          new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));
-
-    } catch (ApiException e) {
-      logger.log(Level.WARNING, "Failed to fetch compound info for CSID #" + ID, e);
-      throw new IOException(e);
+        } catch (ApiException e) {
+            throw new IOException(e);
+        }
     }
 
-  }
+    @Override
+    public DBCompound getCompound(final String ID, ParameterSet parameters)
+            throws IOException {
 
+        logger.finest("Fetching compound info for CSID #" + ID);
+
+        // Get security token.
+        final String apiKey = parameters
+                .getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
+
+        final List<String> fields = Arrays.asList("Formula", "CommonName",
+                "MonoisotopicMass");
+
+        try {
+            RecordsApi apiInstance = new RecordsApi();
+            apiInstance.getApiClient()
+                    .setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
+
+            Integer recordId = Integer.valueOf(ID);
+            RecordResponse response = apiInstance
+                    .recordsRecordIdDetailsGet(recordId, fields, apiKey);
+
+            String name = response.getCommonName();
+            if (Strings.isNullOrEmpty(name))
+                name = UNKNOWN_NAME;
+            String formula = response.getFormula();
+
+            // Fix formula formatting
+            if (!Strings.isNullOrEmpty(formula))
+                formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
+
+            // Create and return the compound record.
+            return new DBCompound(OnlineDatabases.CHEMSPIDER, ID, name, formula,
+                    new URL(STRUCTURE_URL_PATTERN.replaceFirst("CSID", ID)),
+                    new URL(STRUCTURE2D_URL_PATTERN.replaceFirst("CSID", ID)),
+                    new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));
+
+        } catch (ApiException e) {
+            logger.log(Level.WARNING,
+                    "Failed to fetch compound info for CSID #" + ID, e);
+            throw new IOException(e);
+        }
+
+    }
 
 }
