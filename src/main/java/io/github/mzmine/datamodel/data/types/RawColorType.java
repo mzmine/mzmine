@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.util.color.ColorsFX;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -55,6 +56,11 @@ public class RawColorType extends DataType<ObjectProperty<Color>>
     pane.setStyle("-fx-background-color: #"
         + ColorsFX.toHexString(value.getValue() == null ? Color.BLACK : value.getValue()));
     return pane;
+  }
+
+  @Override
+  public ObjectProperty<Color> createProperty() {
+    return new SimpleObjectProperty<Color>();
   }
 
 }

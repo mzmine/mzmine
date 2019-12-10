@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -49,6 +50,11 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
     circle.setRadius(10);
     circle.setFill(cellData.getColorFX());
     return circle;
+  }
+
+  @Override
+  public ObjectProperty<FeatureStatus> createProperty() {
+    return new SimpleObjectProperty<FeatureStatus>();
   }
 
 }

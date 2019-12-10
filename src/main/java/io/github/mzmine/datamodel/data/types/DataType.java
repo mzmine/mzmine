@@ -115,23 +115,6 @@ public abstract class DataType<T extends Property<?>> {
     return col;
   }
 
-  public boolean checkValidValue(Object value) {
-    if (value == null)
-      return true;
-    else {
-      try {
-        cast(value);
-        return true;
-      } catch (Exception e) {
-        return false;
-      }
-    }
-  }
-
-  public T cast(Object value) {
-    return (T) value;
-  }
-
   // TODO dirty hack to make this a "singleton"
   @Override
   public boolean equals(Object obj) {
@@ -142,4 +125,11 @@ public abstract class DataType<T extends Property<?>> {
   public int hashCode() {
     return getClass().hashCode();
   }
+
+  /**
+   * Creating a property which is used in a {@link ModularDataModel}
+   * 
+   * @return
+   */
+  public abstract T createProperty();
 }

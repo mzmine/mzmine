@@ -23,6 +23,8 @@ import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SimpleFloatProperty;
 
 public class HeightType extends FloatType {
 
@@ -45,6 +47,11 @@ public class HeightType extends FloatType {
   @Nonnull
   public String getHeaderString() {
     return "Height";
+  }
+
+  @Override
+  public FloatProperty createProperty() {
+    return new SimpleFloatProperty();
   }
 
 }

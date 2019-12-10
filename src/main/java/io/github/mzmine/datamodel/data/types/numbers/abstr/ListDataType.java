@@ -18,33 +18,16 @@
 
 package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javax.annotation.Nonnull;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import java.util.ArrayList;
+import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
 
-public abstract class IntegerType extends NumberType<IntegerProperty> {
-
-  protected IntegerType() {
-    super(new DecimalFormat("0"));
-  }
+public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
 
   @Override
-  public NumberFormat getFormatter() {
-    return DEFAULT_FORMAT;
-  }
-
-  @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull IntegerProperty value) {
-    if (value.getValue() == null)
-      return "";
-    return getFormatter().format(value.getValue().intValue());
-  }
-
-  @Override
-  public IntegerProperty createProperty() {
-    return new SimpleIntegerProperty();
+  public ListProperty<T> createProperty() {
+    return new SimpleListProperty<T>(FXCollections.observableList(new ArrayList<T>()));
   }
 }

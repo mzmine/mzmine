@@ -136,32 +136,52 @@ public interface ModularDataModel {
     return getFormattedString(type);
   }
 
-  default <T extends Property<?>> void set(DataType<T> type, T value) {
+  /**
+   * Feature list adds the properties
+   * 
+   * @param <T>
+   * @param type
+   * @param value
+   */
+  default void setProperty(DataType<?> type, Property<?> value) {
     // type in defined columns?
     if (!getTypes().containsKey(type.getClass()))
       throw new TypeColumnUndefinedException(this, type.getClass());
 
     DataType realType = getTypes().get(type.getClass());
-    if (type.checkValidValue(value)) {
-      getMap().put(realType, value);
-    }
-    // wrong data type. Check code that supplied this data
-    else
-      throw new WrongTypeException(type.getClass(), value);
+    getMap().put(realType, value);
   }
 
-  default <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, T value) {
+  /**
+   * Set the value that is wrapped inside a property
+   * 
+   * @param <T>
+   * @param type
+   * @param value
+   */
+  default <T extends Property<?>> void set(DataType<T> type, Object value) {
+    // type in defined columns?
+    if (!getTypes().containsKey(type.getClass()))
+      throw new TypeColumnUndefinedException(this, type.getClass());
+
+    DataType realType = getTypes().get(type.getClass());
+    get(realType).setValue(value);
+  }
+
+  /**
+   * Set the value that is wrapped inside a property
+   * 
+   * @param <T>
+   * @param tclass
+   * @param value
+   */
+  default <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass))
       throw new TypeColumnUndefinedException(this, tclass);
 
-    DataType type = getTypeColumn(tclass);
-    if (type.checkValidValue(value)) {
-      getMap().put(type, value);
-    }
-    // wrong data type. Check code that supplied this data
-    else
-      throw new WrongTypeException(type.getClass(), value);
+    DataType realType = getTypeColumn(tclass);
+    get(realType).setValue(value);
   }
 
   default void remove(Class<? extends DataType<?>> tclass) {

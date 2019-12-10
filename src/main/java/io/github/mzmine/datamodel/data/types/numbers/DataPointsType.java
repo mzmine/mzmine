@@ -19,11 +19,10 @@
 package io.github.mzmine.datamodel.data.types.numbers;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
-import javafx.beans.property.ListProperty;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.ListDataType;
 
-public class DataPointsType extends DataType<ListProperty<DataPoint>> implements NullColumnType {
+public class DataPointsType extends ListDataType<DataPoint> implements NullColumnType {
 
   @Override
   public String getHeaderString() {

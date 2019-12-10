@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
 public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implements NullColumnType {
 
@@ -31,5 +32,8 @@ public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implement
     return "Raw";
   }
 
-
+  @Override
+  public ObjectProperty<RawDataFile> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
 }

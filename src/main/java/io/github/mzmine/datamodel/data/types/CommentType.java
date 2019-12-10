@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
@@ -43,5 +44,11 @@ public class CommentType extends DataType<StringProperty>
   public StringConverter<String> getStringConverter() {
     return converter;
   }
+
+  @Override
+  public StringProperty createProperty() {
+    return new SimpleStringProperty("");
+  }
+
 
 }

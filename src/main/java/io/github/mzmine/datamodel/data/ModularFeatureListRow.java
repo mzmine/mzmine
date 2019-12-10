@@ -72,8 +72,6 @@ public class ModularFeatureListRow implements ModularDataModel {
       // wrap in fixed size not thread safe! TODO discuss
       // only allows change of existing elements
       features = MapUtils.fixedSizeMap(fmap);
-      // create FeaturesType
-      set(FeaturesType.class, features);
     } else
       features = Collections.emptyMap();
   }

@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.data.types.numbers.abstr;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 
 public abstract class DoubleType extends NumberType<DoubleProperty> {
 
@@ -34,5 +35,10 @@ public abstract class DoubleType extends NumberType<DoubleProperty> {
     if (value.getValue() == null)
       return "";
     return getFormatter().format(value.getValue().doubleValue());
+  }
+
+  @Override
+  public DoubleProperty createProperty() {
+    return new SimpleDoubleProperty();
   }
 }

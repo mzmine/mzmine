@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.abstr.NumberType;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
@@ -50,6 +51,11 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends
     return value.getValue() == null ? ""
         : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
             + getFormatter().format(value.getValue().upperEndpoint());
+  }
+
+  @Override
+  public ObjectProperty<Range<T>> createProperty() {
+    return new SimpleObjectProperty<Range<T>>();
   }
 
 

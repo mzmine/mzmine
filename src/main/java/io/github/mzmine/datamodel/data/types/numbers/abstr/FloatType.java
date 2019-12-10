@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.data.types.numbers.abstr;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SimpleFloatProperty;
 
 public abstract class FloatType extends NumberType<FloatProperty> {
 
@@ -34,5 +35,10 @@ public abstract class FloatType extends NumberType<FloatProperty> {
     if (value.getValue() == null)
       return "";
     return getFormatter().format(value.getValue().doubleValue());
+  }
+
+  @Override
+  public FloatProperty createProperty() {
+    return new SimpleFloatProperty();
   }
 }

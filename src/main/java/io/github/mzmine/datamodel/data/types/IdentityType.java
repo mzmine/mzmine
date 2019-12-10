@@ -20,10 +20,11 @@ package io.github.mzmine.datamodel.data.types;
 
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.ListDataType;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 
-public class IdentityType extends DataType<ListProperty<PeakIdentity>> {
+public class IdentityType extends ListDataType<PeakIdentity> {
 
   @Override
   public String getHeaderString() {
@@ -36,4 +37,5 @@ public class IdentityType extends DataType<ListProperty<PeakIdentity>> {
     ObservableList<PeakIdentity> list = value.getValue();
     return list == null || list.isEmpty() ? "" : list.get(0).toString();
   }
+
 }

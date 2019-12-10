@@ -3,6 +3,7 @@ package io.github.mzmine.datamodel.data;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -86,32 +87,32 @@ public class ModularFeatureList implements PeakList {
     for (DataType<?> type : types) {
       if (!getFeatureTypes().containsKey(type.getClass())) {
         getFeatureTypes().put(type.getClass(), type);
+        // add to maps
+        streamFeatures().forEach(f -> {
+          f.setProperty(type, type.createProperty());
+        });
       }
     }
   }
 
   public void addFeatureType(@Nonnull DataType<?>... types) {
-    for (DataType<?> type : types) {
-      if (!getFeatureTypes().containsKey(type.getClass())) {
-        getFeatureTypes().put(type.getClass(), type);
-      }
-    }
+    addRowType(Arrays.asList(types));
   }
 
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!getRowTypes().containsKey(type.getClass())) {
         getRowTypes().put(type.getClass(), type);
+        // add to maps
+        stream().forEach(row -> {
+          row.setProperty(type, type.createProperty());
+        });
       }
     }
   }
 
   public void addRowType(@Nonnull DataType<?>... types) {
-    for (DataType<?> type : types) {
-      if (!getRowTypes().containsKey(type.getClass())) {
-        getRowTypes().put(type.getClass(), type);
-      }
-    }
+    addRowType(Arrays.asList(types));
   }
 
   /**
