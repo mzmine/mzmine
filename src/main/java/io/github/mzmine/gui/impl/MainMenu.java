@@ -27,6 +27,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -230,7 +231,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
         helpMenu.setMnemonic(KeyEvent.VK_H);
         this.add(helpMenu);
 
-        showAbout = new JMenuItem("About MZmine 2");
+        showAbout = new JMenuItem("About MZmine");
         showAbout.addActionListener(this);
         addMenuItem(MZmineModuleCategory.HELPSYSTEM, showAbout);
 

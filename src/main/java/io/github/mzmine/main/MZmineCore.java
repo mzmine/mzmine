@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -218,7 +217,8 @@ public final class MZmineCore {
             desktop.getMainWindow().setVisible(true);
 
             // show the welcome message
-            desktop.setStatusBarText("Welcome to MZmine 2!");
+            desktop.setStatusBarText(
+                    "Welcome to MZmine " + MZmineCore.getMZmineVersion() + "!");
 
             // Check for updated version
             NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
