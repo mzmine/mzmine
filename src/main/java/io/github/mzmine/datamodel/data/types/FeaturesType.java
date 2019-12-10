@@ -54,8 +54,8 @@ import javafx.scene.layout.StackPane;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeaturesType extends DataType<MapProperty<Map<RawDataFile, ModularFeature>>>
-    implements SubColumnsFactory<MapProperty<Map<RawDataFile, ModularFeature>>> {
+public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
+    implements SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
 
   /**
    * TODO listen to changes in features, hold list of open FeatureTablesFX instances

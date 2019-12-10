@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -40,8 +40,8 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellValueFactory<T> implements
-    Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, T>, ObservableValue<T>>,
+public class DataTypeCellValueFactory<T extends Property<?>>
+    implements Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, T>, T>,
     Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -61,7 +61,7 @@ public class DataTypeCellValueFactory<T> implements
   }
 
   @Override
-  public ObservableValue<T> call(CellDataFeatures<ModularFeatureListRow, T> param) {
+  public T call(CellDataFeatures<ModularFeatureListRow, T> param) {
     final ModularDataModel map = dataMapSupplier.apply(param);
     if (map == null) {
       logger.log(Level.WARNING,
@@ -71,9 +71,7 @@ public class DataTypeCellValueFactory<T> implements
       return null;
     }
 
-    logger.log(Level.INFO,
-        "Created an ObservableDataType for " + type.getClass().descriptorString());
-    return new ObservableDataType<>(map, type);
+    return map.get(type);
   }
 
 

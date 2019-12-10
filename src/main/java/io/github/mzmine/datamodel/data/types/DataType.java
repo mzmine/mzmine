@@ -44,27 +44,7 @@ import javafx.scene.control.TreeTableColumn;
 public abstract class DataType<T extends Property<?>> {
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
-  protected ModularDataModel model;
-
   public DataType() {}
-
-  /**
-   * The current data model (should only be added to one data model). Data model registers itself.
-   * 
-   * @return
-   */
-  public ModularDataModel getDataModel() {
-    return model;
-  }
-
-  /**
-   * Set current data model - should only be added to one data model. Data model registers itself.
-   * 
-   * @param model
-   */
-  public void setDataModel(ModularDataModel model) {
-    this.model = model;
-  }
 
   /**
    * A formatted string representation of the value
@@ -114,7 +94,8 @@ public abstract class DataType<T extends Property<?>> {
     } else {
       col.setSortable(true);
       // define observable
-      col.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
+      DataTypeCellValueFactory cvFactory = new DataTypeCellValueFactory<>(raw, this);
+      col.setCellValueFactory(cvFactory);
       // value representation
       if (this instanceof EditableColumnType) {
         col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this));

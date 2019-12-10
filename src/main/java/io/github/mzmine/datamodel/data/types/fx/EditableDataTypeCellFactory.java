@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
+import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -37,7 +38,7 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class EditableDataTypeCellFactory<T> implements
+public class EditableDataTypeCellFactory<T extends Property<?>> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -59,7 +60,6 @@ public class EditableDataTypeCellFactory<T> implements
   @Override
   public TreeTableCell<ModularFeatureListRow, T> call(
       TreeTableColumn<ModularFeatureListRow, T> param) {
-
     TextFieldTreeTableCell<ModularFeatureListRow, T> cell = new TextFieldTreeTableCell<>();
 
     if (type instanceof StringParser) {

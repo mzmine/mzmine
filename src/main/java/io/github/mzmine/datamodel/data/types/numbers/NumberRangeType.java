@@ -62,12 +62,14 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends
     // create column per name
     TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> min =
         new TreeTableColumn<>("min");
-    min.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
+    DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory<>(raw, this);
+    min.setCellValueFactory(cvFactoryMin);
     min.setCellFactory(new DataTypeCellFactory<>(raw, this, 0));
 
     TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> max =
         new TreeTableColumn<>("max");
-    max.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
+    DataTypeCellValueFactory cvFactoryMax = new DataTypeCellValueFactory<>(raw, this);
+    max.setCellValueFactory(cvFactoryMax);
     max.setCellFactory(new DataTypeCellFactory<>(raw, this, 1));
 
     // add all

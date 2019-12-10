@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -39,7 +40,7 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellFactory<T> implements
+public class DataTypeCellFactory<T extends Property<?>> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -63,10 +64,6 @@ public class DataTypeCellFactory<T> implements
       TreeTableColumn<ModularFeatureListRow, T> param) {
     logger.log(Level.INFO, "Creating cell in DataTypeCellFactory");
     return new TreeTableCell<>() {
-      private T lastItem = null;
-      private Tooltip lastTP = null;
-      private Node lastNode = null;
-      private String lastText = null;
 
       @Override
       protected void updateItem(T item, boolean empty) {
@@ -75,10 +72,6 @@ public class DataTypeCellFactory<T> implements
         if (item == null || empty) {
           setGraphic(null);
           setText(null);
-        } else if (lastItem != null && lastItem.equals(item)) {
-          setText(lastText);
-          setGraphic(lastNode);
-          setTooltip(lastTP);
         } else {
           // sub columns provide values
           if (type instanceof SubColumnsFactory) {
@@ -102,12 +95,6 @@ public class DataTypeCellFactory<T> implements
             }
           }
         }
-        // save last
-        lastText = getText();
-        lastNode = getGraphic();
-        lastTP = getTooltip();
-        lastItem = item;
-
         setAlignment(Pos.CENTER);
       }
     };
