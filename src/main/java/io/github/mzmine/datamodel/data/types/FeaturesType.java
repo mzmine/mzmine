@@ -41,6 +41,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
+import javafx.beans.property.MapProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -53,8 +54,8 @@ import javafx.scene.layout.StackPane;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements SubColumnsFactory<Map<RawDataFile, ModularFeature>> {
+public class FeaturesType extends DataType<MapProperty<Map<RawDataFile, ModularFeature>>>
+    implements SubColumnsFactory<MapProperty<Map<RawDataFile, ModularFeature>>> {
 
   /**
    * TODO listen to changes in features, hold list of open FeatureTablesFX instances

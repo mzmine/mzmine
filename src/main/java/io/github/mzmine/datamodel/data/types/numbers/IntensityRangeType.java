@@ -24,8 +24,10 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.main.MZmineCore;
 
 public class IntensityRangeType extends NumberRangeType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
+
+  protected IntensityRangeType() {
+    super(new DecimalFormat("0.0E00"));
+  }
 
   @Override
   public NumberFormat getFormatter() {

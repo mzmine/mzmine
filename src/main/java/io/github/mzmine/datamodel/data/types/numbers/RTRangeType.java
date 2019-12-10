@@ -24,8 +24,10 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.main.MZmineCore;
 
 public class RTRangeType extends NumberRangeType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
+
+  protected RTRangeType() {
+    super(new DecimalFormat("0.00"));
+  }
 
   @Override
   public NumberFormat getFormatter() {

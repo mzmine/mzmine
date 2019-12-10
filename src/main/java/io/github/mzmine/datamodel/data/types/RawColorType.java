@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.util.color.ColorsFX;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -36,7 +37,8 @@ import javafx.scene.paint.Color;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class RawColorType extends DataType<Color> implements GraphicalColumType<Color> {
+public class RawColorType extends DataType<ObjectProperty<Color>>
+    implements GraphicalColumType<ObjectProperty<Color>> {
 
   @Override
   @Nonnull
@@ -45,12 +47,13 @@ public class RawColorType extends DataType<Color> implements GraphicalColumType<
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Color> cell,
-      TreeTableColumn<ModularFeatureListRow, Color> coll, Color value, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, ObjectProperty<Color>> cell,
+      TreeTableColumn<ModularFeatureListRow, ObjectProperty<Color>> coll,
+      ObjectProperty<Color> value, RawDataFile raw) {
 
     Pane pane = new Pane();
-    pane.setStyle(
-        "-fx-background-color: #" + ColorsFX.toHexString(value == null ? Color.BLACK : value));
+    pane.setStyle("-fx-background-color: #"
+        + ColorsFX.toHexString(value.getValue() == null ? Color.BLACK : value.getValue()));
     return pane;
   }
 

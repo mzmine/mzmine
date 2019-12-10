@@ -18,10 +18,10 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.IntegerType;
 
-public class BestScanNumberType extends DataType<Integer> implements NullColumnType {
+public class BestScanNumberType extends IntegerType implements NullColumnType {
 
   @Override
   public String getHeaderString() {

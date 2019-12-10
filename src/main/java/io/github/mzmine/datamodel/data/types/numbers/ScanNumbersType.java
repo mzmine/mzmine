@@ -18,11 +18,11 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import java.util.List;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
+import javafx.beans.property.ListProperty;
 
-public class ScanNumbersType extends DataType<List<Integer>> implements NullColumnType {
+public class ScanNumbersType extends DataType<ListProperty<Integer>> implements NullColumnType {
 
   @Override
   public String getHeaderString() {

@@ -20,11 +20,15 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
 
-public class HeightType extends NumberType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
+public class HeightType extends FloatType {
+
+  public HeightType() {
+    super(new DecimalFormat("0.0E00"));
+  }
 
   @Override
   public NumberFormat getFormatter() {
@@ -38,7 +42,9 @@ public class HeightType extends NumberType<Float> {
 
 
   @Override
+  @Nonnull
   public String getHeaderString() {
     return "Height";
   }
+
 }

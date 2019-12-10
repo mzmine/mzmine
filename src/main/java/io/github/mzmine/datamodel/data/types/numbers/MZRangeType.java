@@ -24,8 +24,10 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.main.MZmineCore;
 
 public class MZRangeType extends NumberRangeType<Double> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0000");
+
+  protected MZRangeType() {
+    super(new DecimalFormat("0.0000"));
+  }
 
   @Override
   public NumberFormat getFormatter() {

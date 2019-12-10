@@ -18,11 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakIdentity;
+import javafx.beans.property.ListProperty;
+import javafx.collections.ObservableList;
 
-public class IdentityType extends DataType<List<PeakIdentity>> {
+public class IdentityType extends DataType<ListProperty<PeakIdentity>> {
 
   @Override
   public String getHeaderString() {
@@ -31,7 +32,8 @@ public class IdentityType extends DataType<List<PeakIdentity>> {
 
   @Override
   @Nonnull
-  public String getFormattedString(List<PeakIdentity> value) {
-    return value == null || value.isEmpty() ? "" : value.get(0).toString();
+  public String getFormattedString(@Nonnull ListProperty<PeakIdentity> value) {
+    ObservableList<PeakIdentity> list = value.getValue();
+    return list == null || list.isEmpty() ? "" : list.get(0).toString();
   }
 }

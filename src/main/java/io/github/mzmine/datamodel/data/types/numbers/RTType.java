@@ -20,11 +20,14 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
 
-public class RTType extends NumberType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
+public class RTType extends FloatType {
+
+  public RTType() {
+    super(new DecimalFormat("0.00"));
+  }
 
   @Override
   public NumberFormat getFormatter() {

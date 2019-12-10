@@ -31,16 +31,17 @@ import io.github.mzmine.datamodel.data.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableColumn;
 
 /**
- * Class of data types: Provides formatters. Should only be added to one {@link ModularDataModel}
+ * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  * @param <T>
  */
-public abstract class DataType<T> {
+public abstract class DataType<T extends Property<?>> {
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected ModularDataModel model;
@@ -71,9 +72,9 @@ public abstract class DataType<T> {
    * @return the formatted representation of the value (or an empty String)
    */
   @Nonnull
-  public String getFormattedString(T value) {
-    if (value != null)
-      return value.toString();
+  public String getFormattedString(@Nonnull T property) {
+    if (property.getValue() != null)
+      return property.getValue().toString();
     else
       return "";
   }

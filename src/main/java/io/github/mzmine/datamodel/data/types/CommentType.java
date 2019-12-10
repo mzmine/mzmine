@@ -20,10 +20,11 @@ package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
+import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 
-public class CommentType extends DataType<String>
+public class CommentType extends DataType<StringProperty>
     implements EditableColumnType, StringParser<String> {
 
   private StringConverter<String> converter = new DefaultStringConverter();

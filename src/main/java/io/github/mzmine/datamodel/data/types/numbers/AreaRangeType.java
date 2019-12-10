@@ -18,24 +18,9 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import javax.annotation.Nonnull;
-import io.github.mzmine.main.MZmineCore;
 
-public class AreaRangeType extends NumberRangeType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
-
-  @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getMZFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
-  }
+public class AreaRangeType extends IntensityRangeType {
 
   @Override
   @Nonnull

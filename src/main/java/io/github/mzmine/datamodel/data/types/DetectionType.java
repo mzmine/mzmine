@@ -23,12 +23,13 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.shape.Circle;
 
-public class DetectionType extends DataType<FeatureStatus>
+public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
     implements GraphicalColumType<FeatureStatus> {
 
   @Override

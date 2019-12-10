@@ -16,18 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types.numbers;
+package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
 import java.text.NumberFormat;
-import io.github.mzmine.datamodel.data.types.DataType;
+import javax.annotation.Nonnull;
+import javafx.beans.property.DoubleProperty;
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
+public abstract class DoubleType extends NumberType<DoubleProperty> {
 
-  @Override
-  public String getFormattedString(T value) {
-    return value == null ? "" : getFormatter().format(value);
+  protected DoubleType(NumberFormat defaultFormat) {
+    super(defaultFormat);
   }
 
-  public abstract NumberFormat getFormatter();
-
+  @Override
+  @Nonnull
+  public String getFormattedString(@Nonnull DoubleProperty value) {
+    if (value.getValue() == null)
+      return "";
+    return getFormatter().format(value.getValue().doubleValue());
+  }
 }

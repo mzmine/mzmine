@@ -20,8 +20,9 @@ package io.github.mzmine.datamodel.data.types;
 
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.IsotopePattern;
+import javafx.beans.property.ObjectProperty;
 
-public class IsotopePatternType extends DataType<IsotopePattern> {
+public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>> {
 
   @Override
   @Nonnull
@@ -31,8 +32,8 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
 
   @Override
   @Nonnull
-  public String getFormattedString(IsotopePattern value) {
-    return value != null ? "" + value.getNumberOfDataPoints() : "";
+  public String getFormattedString(@Nonnull ObjectProperty<IsotopePattern> property) {
+    return property.getValue() != null ? "" + property.getValue().getNumberOfDataPoints() : "";
   }
 
 }

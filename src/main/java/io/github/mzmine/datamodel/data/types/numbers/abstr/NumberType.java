@@ -16,20 +16,18 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
-import javafx.beans.property.ObjectProperty;
+import java.text.NumberFormat;
+import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.beans.property.Property;
 
-public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implements NullColumnType {
+public abstract class NumberType<T extends Property<?>> extends DataType<T> {
+  protected final NumberFormat DEFAULT_FORMAT;
 
-  @Override
-  @Nonnull
-  public String getHeaderString() {
-    return "Raw";
+  protected NumberType(NumberFormat defaultFormat) {
+    DEFAULT_FORMAT = defaultFormat;
   }
 
-
+  public abstract NumberFormat getFormatter();
 }

@@ -2,11 +2,12 @@ package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
-public abstract class GraphicalDataType<T> extends DataType<T> {
+public abstract class GraphicalDataType<T extends Property<?>> extends DataType<T> {
 
   /**
    * 

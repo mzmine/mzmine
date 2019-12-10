@@ -18,9 +18,10 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.IntegerType;
 
-public class IDType extends DataType<Integer> {
+public class IDType extends IntegerType {
+
 
   @Override
   public String getHeaderString() {

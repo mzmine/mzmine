@@ -20,9 +20,9 @@ package io.github.mzmine.datamodel.data;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.stream.Stream;
 import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
 
 public interface ModularDataModel {
@@ -40,7 +40,7 @@ public interface ModularDataModel {
    * @param
    * @return
    */
-  public ObservableMap<DataType, Object> getMap();
+  public ObservableMap<DataType, Property<?>> getMap();
 
   /**
    * Get DataType column of this DataModel
@@ -49,7 +49,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
+  default <T extends Property<?>> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypes().get(tclass);
     return type;
   }
@@ -61,7 +61,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
+  default <T extends Property<?>> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypes().get(tclass);
     return type != null;
   }
@@ -73,7 +73,7 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
-  default <T> Entry<DataType<T>, Optional<T>> getEntry(DataType<T> type) {
+  default <T extends Property<?>> Entry<DataType<T>, T> getEntry(DataType<T> type) {
     return new SimpleEntry<>(type, get(type));
   }
 
@@ -84,7 +84,8 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> Entry<DataType<T>, Optional<T>> getEntry(Class<? extends DataType<T>> tclass) {
+  default <T extends Property<?>> Entry<DataType<T>, T> getEntry(
+      Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return getEntry(type);
   }
@@ -96,8 +97,8 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
-  default <T> Optional<T> get(DataType<T> type) {
-    return Optional.ofNullable((T) getMap().get(type));
+  default <T extends Property<?>> T get(DataType<T> type) {
+    return (T) getMap().get(type);
   }
 
   /**
@@ -107,7 +108,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> Optional<T> get(Class<? extends DataType<T>> tclass) {
+  default <T extends Property<?>> T get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);
   }
@@ -119,8 +120,8 @@ public interface ModularDataModel {
    * @param type
    * @return
    */
-  default <T> Optional<String> getFormattedString(DataType<T> type) {
-    return get(type).map(v -> type.getFormattedString(v));
+  default <T extends Property<?>> String getFormattedString(DataType<T> type) {
+    return type.getFormattedString(get(type));
   }
 
   /**
@@ -130,12 +131,13 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> Optional<String> getFormattedString(Class<? extends DataType<T>> tclass) {
+  default <T extends Property<?>> String getFormattedString(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return getFormattedString(type);
   }
 
-  default <T> void set(DataType<T> type, T value) {
+  default <T extends Property<?>> void set(DataType<T> type, T value) {
+    // type in defined columns?
     if (!getTypes().containsKey(type.getClass()))
       throw new TypeColumnUndefinedException(this, type.getClass());
 
@@ -148,7 +150,8 @@ public interface ModularDataModel {
       throw new WrongTypeException(type.getClass(), value);
   }
 
-  default <T> void set(Class<? extends DataType<T>> tclass, T value) {
+  default <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, T value) {
+    // type in defined columns?
     if (!getTypes().containsKey(tclass))
       throw new TypeColumnUndefinedException(this, tclass);
 
@@ -167,7 +170,7 @@ public interface ModularDataModel {
       getMap().remove(type);
   }
 
-  default Stream<Entry<DataType, Object>> stream() {
+  default Stream<Entry<DataType, Property<?>>> stream() {
     return getMap().entrySet().stream();
   }
 }

@@ -26,39 +26,47 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.NumberType;
+import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
-public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<Range<T>>
-    implements SubColumnsFactory<Range<T>> {
+public abstract class NumberRangeType<T extends Comparable<?>> extends
+    NumberType<ObjectProperty<Range<T>>> implements SubColumnsFactory<ObjectProperty<Range<T>>> {
 
+  protected NumberRangeType(NumberFormat defaultFormat) {
+    super(defaultFormat);
+  }
+
+  @Override
   public abstract NumberFormat getFormatter();
 
   @Override
   @Nonnull
-  public String getFormattedString(Range<T> value) {
-    return value == null ? ""
-        : getFormatter().format(value.lowerEndpoint()) + "-"
-            + getFormatter().format(value.upperEndpoint());
+  public String getFormattedString(@Nonnull ObjectProperty<Range<T>> value) {
+    return value.getValue() == null ? ""
+        : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
+            + getFormatter().format(value.getValue().upperEndpoint());
   }
 
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, Range<T>>> createSubColumns(
-      final @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, Range<T>>> cols = new ArrayList<>();
+  public List<TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>>> createSubColumns(
+      @Nullable RawDataFile raw) {
+    List<TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>>> cols = new ArrayList<>();
 
     // create column per name
-    TreeTableColumn<ModularFeatureListRow, Range<T>> min = new TreeTableColumn<>("min");
+    TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> min =
+        new TreeTableColumn<>("min");
     min.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
     min.setCellFactory(new DataTypeCellFactory<>(raw, this, 0));
 
-    TreeTableColumn<ModularFeatureListRow, Range<T>> max = new TreeTableColumn<>("max");
+    TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> max =
+        new TreeTableColumn<>("max");
     max.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this));
     max.setCellFactory(new DataTypeCellFactory<>(raw, this, 1));
 
@@ -72,15 +80,16 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Range<T>> cell,
-      TreeTableColumn<ModularFeatureListRow, Range<T>> coll, Range<T> value, RawDataFile raw) {
-    if (value == null)
+      TreeTableCell<ModularFeatureListRow, ObjectProperty<Range<T>>> cell,
+      TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> coll,
+      ObjectProperty<Range<T>> value, RawDataFile raw) {
+    if (value.getValue() == null)
       return "";
     switch (subcolumn) {
       case 0:
-        return getFormatter().format(value.lowerEndpoint());
+        return getFormatter().format(value.getValue().lowerEndpoint());
       case 1:
-        return getFormatter().format(value.upperEndpoint());
+        return getFormatter().format(value.getValue().upperEndpoint());
     }
     return "";
   }

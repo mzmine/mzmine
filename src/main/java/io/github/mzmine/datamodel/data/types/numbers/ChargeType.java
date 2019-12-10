@@ -18,9 +18,9 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.IntegerType;
 
-public class ChargeType extends DataType<Integer> {
+public class ChargeType extends IntegerType {
 
   @Override
   public String getHeaderString() {
