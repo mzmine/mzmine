@@ -62,7 +62,7 @@ ext {
     slf4jVersion = "1.7.28"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
-    controlsfxVersion = "11.0.0"
+    controlsfxVersion = "11.0.1"
 }
 
 dependencies {
