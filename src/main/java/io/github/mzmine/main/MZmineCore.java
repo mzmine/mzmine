@@ -21,6 +21,7 @@ package io.github.mzmine.main;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Locale;
@@ -30,10 +31,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import javax.swing.SwingUtilities;
 
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.gui.impl.MainWindow;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -51,6 +52,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Application;
 
 /**
  * MZmine main class
@@ -77,7 +79,18 @@ public final class MZmineCore {
         // be . or , depending on the locale)
         Locale.setDefault(new Locale("en", "US"));
 
+        /*
+         * Configure the logging properties before we start logging
+         */
+        MZmineLogging.configureLogging();
+        
         logger.info("Starting MZmine " + getMZmineVersion());
+        
+        /*
+         * Report current working directory
+         */
+        final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
+        logger.finest("Working directory is " + cwd);
 
         // Remove old temporary files, if we find any
         TmpFileCleanup.removeOldTemporaryFiles();
@@ -134,39 +147,26 @@ public final class MZmineCore {
         // If we have no arguments, run in GUI mode, otherwise run in batch mode
         if (args.length == 0) {
 
-            // Create the Swing GUI in the event-dispatching thread, as is
-            // generally recommended
-            Runnable desktopInit = new Runnable() {
-                @Override
-                public void run() {
-
-                    logger.fine("Initializing GUI");
-                    MainWindow mainWindow = new MainWindow();
-                    desktop = mainWindow;
-                    mainWindow.initModule();
-
-                    // Activate project - bind it to the desktop's project tree
-                    MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
-                            .getCurrentProject();
-                    currentProject.activateProject();
-
-                    // add desktop menu icon
-                    for (Class<?> moduleClass : MZmineModulesList.MODULES) {
-                        MZmineModule module = initializedModules
-                                .get(moduleClass);
-                        if (module instanceof MZmineRunnableModule) {
-
-                            mainWindow.getMainMenu().addMenuItemForModule(
-                                    (MZmineRunnableModule) module);
-                        }
-                    }
-                };
-
-            };
-
             try {
-                SwingUtilities.invokeAndWait(desktopInit);
-            } catch (Exception e) {
+                logger.info("Starting MZmine GUI");
+                Application.launch(MZmineGUI.class, args);  
+                
+                // Activate project - bind it to the desktop's project tree
+                MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
+                        .getCurrentProject();
+                currentProject.activateProject();
+
+                // add desktop menu icon
+                for (Class<?> moduleClass : MZmineModulesList.MODULES) {
+                    MZmineModule module = initializedModules
+                            .get(moduleClass);
+                    if (module instanceof MZmineRunnableModule) {
+
+                        // mainWindow.getMainMenu().addMenuItemForModule(
+                             //   (MZmineRunnableModule) module);
+                    }
+                }
+            } catch (Throwable e) {
                 logger.log(Level.SEVERE, "Could not initialize GUI", e);
                 e.printStackTrace();
                 System.exit(1);

@@ -262,10 +262,6 @@ tasks.runtime.doLast {
         into(relativePath(imageDir) + "/log")
     }
     copy {
-        from("src/main/conf/logging.properties")
-        into(relativePath(imageDir) + "/conf/")
-    }
-    copy {
         from("manual.pdf")
         into(relativePath(imageDir))
     }

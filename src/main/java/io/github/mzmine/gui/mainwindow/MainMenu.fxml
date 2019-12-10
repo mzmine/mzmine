@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.input.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import io.github.mzmine.gui.mainwindow.*?>
+
+<MenuBar useSystemMenuBar="true" xmlns="http://javafx.com/javafx/8"
+	xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
+	<Menu text="File">
+		<MenuItem text="Open Project">
+			<accelerator>
+				<KeyCodeCombination alt="UP" code="O" control="DOWN"
+					meta="UP" shift="UP" shortcut="UP" />
+			</accelerator>
+		</MenuItem>
+		<MenuItem text="Save Project">
+			<accelerator>
+				<KeyCodeCombination alt="UP" code="S" control="DOWN"
+					meta="UP" shift="UP" shortcut="UP" />
+			</accelerator>
+		</MenuItem>
+		<MenuItem text="Save Project As">
+			<accelerator>
+				<KeyCodeCombination alt="DOWN" code="S" control="DOWN"
+					meta="UP" shift="UP" shortcut="UP" />
+			</accelerator>
+		</MenuItem>
+		<MenuItem text="Close Project" onAction="#closeProject">
+			<accelerator>
+				<KeyCodeCombination alt="UP" code="W" control="DOWN"
+					meta="UP" shift="UP" shortcut="UP" />
+			</accelerator>
+		</MenuItem>
+		<SeparatorMenuItem />
+		<Menu text="Import...">
+			<ModuleMenuItem text="Raw Data"
+				moduleClass="io.github.mzmine.modules.rawdata.rawdataimport.RawDataImportModule" />
+			<ModuleMenuItem text="Feature Tables"
+				moduleClass="io.github.mzmine.modules.featuretableimport.FeatureTableImportModule" />
+		</Menu>
+		<SeparatorMenuItem />
+		<Menu text="Export Feature Tables...">
+			<ModuleMenuItem text="CSV"
+				moduleClass="io.github.mzmine.modules.io.csvexport.CsvExportModule" />
+			<ModuleMenuItem text="mzTab"
+				moduleClass="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+			<MenuItem text="XML" />
+			<MenuItem text="SQL Database" />
+		</Menu>
+		<Menu text="Export Raw Data...">
+			<MenuItem text="CSV" />
+			<MenuItem text="MGF" />
+			<MenuItem text="MSP" />
+			<ModuleMenuItem text="mzML"
+				moduleClass="io.github.mzmine.modules.rawdata.mzmlexport.MzMLExportModule" />
+			<MenuItem text="TXT" />
+		</Menu>
+		<SeparatorMenuItem />
+		<ModuleMenuItem text="Export Audit Log"
+			moduleClass="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
+		<SeparatorMenuItem />
+		<MenuItem text="Exit" onAction="#exitApplication" />
+	</Menu>
+	<Menu text="Batch Processing">
+		<MenuItem text="Batch Processing with GUI" />
+		<MenuItem text="Batch Processing without GUI" />
+	</Menu>
+	<Menu text="Raw Data Methods">
+		<Menu text="Filtering">
+			<MenuItem text="Crop Filter" />
+			<MenuItem text="Scan by Scan Filter" />
+			<MenuItem text="FTMS Shoulder Feature Filter" />
+		</Menu>
+		<Menu text="Smoothing">
+			<MenuItem text="Baseline Correction" />
+		</Menu>
+		<Menu text="Centroiding">
+			<ModuleMenuItem text="Binning"
+				moduleClass="io.github.mzmine.modules.rawdata.centroiding.binning.BinningCentroidingModule" />
+			<ModuleMenuItem text="Local Maxima"
+				moduleClass="io.github.mzmine.modules.rawdata.centroiding.localmaxima.LocalMaxCentroidingModule" />
+			<ModuleMenuItem text="Exact Mass"
+				moduleClass="io.github.mzmine.modules.rawdata.centroiding.exactmass.ExactMassCentroidingModule" />
+			<ModuleMenuItem text="Recursive"
+				moduleClass="io.github.mzmine.modules.rawdata.centroiding.recursive.RecursiveCentroidingModule" />
+			<ModuleMenuItem text="Wavelet"
+				moduleClass="io.github.mzmine.modules.rawdata.centroiding.wavelet.WaveletCentroidingModule" />
+		</Menu>
+		<Menu text="Feature Detection">
+			<Menu text="MS">
+				<ModuleMenuItem text="Chromatoram Builder"
+					moduleClass="io.github.mzmine.modules.featuredetection.chromatogrambuilder.ChromatogramBuilderModule" />
+				<MenuItem text="GridMass - 2D Feature Detection" />
+				<ModuleMenuItem text="Targeted Feature Detection"
+					moduleClass="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />
+			</Menu>
+			<Menu text="MS/MS">
+				<ModuleMenuItem text="MS/MS Feature List Builder"
+					moduleClass="io.github.mzmine.modules.featuredetection.msmsdetection.MsMsDetectionModule" />
+			</Menu>
+			<Menu text="SRM">
+				<ModuleMenuItem text="SRM Feature List Builder"
+					moduleClass="io.github.mzmine.modules.featuredetection.srmdetection.SrmDetectionModule" />
+			</Menu>
+		</Menu>
+	</Menu>
+	<Menu text="Feature Table Methods">
+		<Menu text="Feature Detection">
+			<MenuItem text="Chromatogram Deconvolution" />
+			<MenuItem text="Smoothing" />
+		</Menu>
+		<Menu text="Isotopes">
+			<ModuleMenuItem text="Isotope Grouper"
+				moduleClass="io.github.mzmine.modules.isotopes.isotopegrouper.IsotopeGrouperModule" />
+		</Menu>
+		<Menu text="Filtering">
+			<ModuleMenuItem text="Feature Filter"
+				moduleClass="io.github.mzmine.modules.filtering.featurefilter.FeatureFilterModule" />
+			<ModuleMenuItem text="Row Filter"
+				moduleClass="io.github.mzmine.modules.filtering.rowfilter.RowFilterModule" />
+		</Menu>
+		<Menu text="Alignment">
+			<ModuleMenuItem text="Join aligner"
+				moduleClass="io.github.mzmine.modules.alignment.joinaligner.JoinAlignerModule" />
+			<MenuItem text="RANSAC Aligner" />
+		</Menu>
+		<Menu text="Gap Filling">
+			<ModuleMenuItem text="Peak Finder"
+				moduleClass="io.github.mzmine.modules.gapfilling.peakfinder.PeakFinderModule" />
+		</Menu>
+		<Menu text="Normalization">
+			<MenuItem text="Linear Normalizer" />
+			<MenuItem text="Retention Time Normalizer" />
+			<MenuItem text="Standard Compound Normalizer" />
+		</Menu>
+		<Menu text="Identification">
+			<Menu text="MS">
+				<Menu text="Search using m/z and RT">
+					<ModuleMenuItem text="Local Database Search"
+						moduleClass="io.github.mzmine.modules.identification.ms.localdatabasesearch.LocalDatabaseSearchModule" />
+				</Menu>
+				<Menu text="Search using m/z">
+					<MenuItem text="Online Database Search" />
+					<MenuItem text="NIST MS Search" />
+					<MenuItem text="Formula Prediction" />
+					<MenuItem text="Glycerophospholipid Preciction" />
+				</Menu>
+				<Menu text="Search related peaks">
+					<MenuItem text="CAMERA Search" />
+					<MenuItem text="Adduct Search" />
+					<MenuItem text="Fragment Search" />
+					<MenuItem text="Complex Search" />
+				</Menu>
+			</Menu>
+			<Menu text="MS/MS" />
+
+		</Menu>
+	</Menu>
+	<Menu text="Plots">
+		<Menu text="Raw Data">
+			<ModuleMenuItem text="MS Spectrum"
+				moduleClass="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
+			<ModuleMenuItem text="Isotope Pattern"
+				moduleClass="io.github.mzmine.modules.plots.isotopepattern.IsotopePatternPlotModule" />
+			<ModuleMenuItem text="Chromatogram Plot"
+				moduleClass="io.github.mzmine.modules.plots.chromatogram.ChromatogramPlotModule" />
+			<MenuItem text="2D Plot" />
+			<ModuleMenuItem text="3D Plot"
+				moduleClass="io.github.mzmine.modules.plots.threed.ThreeDPlotModule" />
+			<MenuItem text="MS/MS Plot" />
+			<MenuItem text="Neutral Loss Plot" />
+		</Menu>
+		<Menu text="Feature Data">
+			<MenuItem text="Scatter Plot" />
+			<MenuItem text="Histogram Plot" />
+			<MenuItem text="Feature Plot" />
+			<MenuItem text="Heat Map Plot" />
+		</Menu>
+	</Menu>
+	<Menu text="Data Analysis">
+		<Menu text="Bubble Plots">
+			<MenuItem text="Coefficient of Variation Plot" />
+			<MenuItem text="Logratio Analysis" />
+		</Menu>
+		<Menu text="Dimensionality Reduction">
+			<MenuItem text="Principal Component Analysis (PCA)" />
+			<MenuItem text="Curvilinear Distance Analysis (CDA)" />
+			<MenuItem text="Sammon's Projection" />
+		</Menu>
+		<MenuItem text="Clustering" />
+	</Menu>
+	<Menu text="Settings">
+		<MenuItem text="Set Preferences" onAction="#setPreferences" />
+	</Menu>
+	<Menu text="Help">
+		<MenuItem text="Tutorials" onAction="#openLink" />
+		<MenuItem text="Support" onAction="#openLink" />
+		<MenuItem text="Report Problem" onAction="#openLink" />
+		<SeparatorMenuItem />
+		<MenuItem text="Check for Updates" onAction="#versionCheck" />
+		<SeparatorMenuItem />
+		<MenuItem text="About" onAction="#showAbout" />
+	</Menu>
+</MenuBar>

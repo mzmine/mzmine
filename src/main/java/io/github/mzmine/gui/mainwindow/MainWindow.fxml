@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.controlsfx.control.*?>
+<?import org.controlsfx.glyphfont.Glyph ?>
+<?import javafx.scene.Scene ?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import java.net.URL?>
+<?import javafx.scene.text.Text ?>
+
+<Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/8"
+	xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
+	<stylesheets>
+		<URL value="@MZmine.css" />
+	</stylesheets>
+	<BorderPane fx:id="mainWindowPane" minWidth="400" minHeight="400"
+		prefWidth="1000" prefHeight="700">
+		<top>
+			<fx:include source="MainMenu.fxml" />
+		</top>
+		<center>
+			<SplitPane dividerPositions="0.8" minHeight="100"
+				orientation="VERTICAL">
+				<items>
+					<SplitPane dividerPositions="0.5" minHeight="100"
+						orientation="HORIZONTAL">
+						<items>
+							<ListView fx:id="rawDataTree" prefHeight="120">
+								<contextMenu>
+									<ContextMenu>
+										<items>
+											<MenuItem text="Show TIC" onAction="#handleShowTIC" />
+											<MenuItem text="Show MS spectrum" onAction="#handleShowMsSpectrum" />
+											<MenuItem text="Export" />
+											<MenuItem text="Report" />
+											<MenuItem text="Remove" onAction="#removeRawData" />
+										</items>
+									</ContextMenu>
+								</contextMenu>
+							</ListView>
+							<ListView fx:id="featureTree" prefHeight="120">
+								<contextMenu>
+									<ContextMenu>
+										<items>
+											<MenuItem text="Remove" onAction="#removeFeatureTable" />
+										</items>
+									</ContextMenu>
+								</contextMenu>
+							</ListView>
+						</items>
+					</SplitPane>
+					<TaskProgressView fx:id="tasksView" minHeight="50"
+						prefHeight="120" />
+				</items>
+			</SplitPane>
+		</center>
+		<bottom>
+			<StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
+				<rightItems>
+					<StackPane minWidth="1" minHeight="1" scaleShape="true">
+						<ProgressBar fx:id="memoryBar" maxWidth="1000"
+							opacity="0.3" />
+						<Label fx:id="memoryBarLabel" maxWidth="1000"
+							onMouseClicked="#memoryBarClicked">
+							<tooltip>
+								<Tooltip text="Free/total memory available for the application" />
+							</tooltip>
+						</Label>
+					</StackPane>
+				</rightItems>
+			</StatusBar>
+		</bottom>
+	</BorderPane>
+</Scene>

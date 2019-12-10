@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import java.io.File;
 
 import io.github.mzmine.parameters.UserParameter;
+import javafx.collections.ObservableList;
 
 /**
  * 
@@ -124,6 +125,10 @@ public interface MZmineProject {
      * Returns all feature lists of the project
      */
     public PeakList[] getPeakLists();
+    
+    public ObservableList<RawDataFile> rawDataFiles();
+    
+    public ObservableList<PeakList> featureLists();
 
     /**
      * Returns all feature lists which contain given data file

@@ -1,0 +1,57 @@
+.root {
+    -fx-font-size: 10.0pt;
+}
+
+/* Table cell alignment */
+.table-column {
+  -fx-alignment: CENTER-LEFT;
+}
+
+#memoryBarLabel { 
+	-fx-font-size: 9.0pt; 
+	-fx-label-padding: 0.0 20.0 0.0 20.0; 
+}
+
+.tooltip {
+    -fx-font-size: 10.0pt;
+}
+
+.tool-bar {
+	-fx-background-color: white;
+}
+
+.chart-item-label {
+	-fx-font-size: 8.0pt;
+}
+
+.chart {
+	-fx-background-color: white;  
+}
+
+.chart-series-line {
+    -fx-stroke-width: 1.0px;
+    -fx-effect: null;
+	-fx-background-color: white;  
+}
+
+.splashText {
+	-fx-font-size: 8.0pt;
+} 
+
+/* Some useful CSS properties:
+:focused {
+    -fx-base: rgb(132, 145, 47);
+    -fx-font-size: 11pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font: bold italic 20pt "Arial";
+    -fx-opacity: 0.6;
+    -fx-text-fill: blue
+    -fx-border-color: red;
+    -fx-fill: linear-gradient(from 0% 0% to 100% 200%, repeat, aqua 0%, red 50%);
+    -fx-background-color: #333333;
+    -fx-effect: dropshadow( one-pass-box , black , 8 , 0.0 , 2 , 0 );
+    -fx-stroke: black;
+    -fx-stroke-width: 1;
+    -fx-alignment: CENTER;
+}
+*/
