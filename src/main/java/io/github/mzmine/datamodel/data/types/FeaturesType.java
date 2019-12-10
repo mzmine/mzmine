@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.data.types.graphicalnodes.AreaBarChart;
 import io.github.mzmine.datamodel.data.types.graphicalnodes.AreaShareChart;
 import io.github.mzmine.datamodel.data.types.graphicalnodes.FeatureShapeChart;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -42,6 +41,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -68,25 +68,30 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   }
 
   @Override
+  public MapProperty<RawDataFile, ModularFeature> createProperty() {
+    return new SimpleMapProperty<RawDataFile, ModularFeature>();
+  }
+
+  @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>>> createSubColumns(
       final @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>>> cols =
+    List<TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>>> cols =
         new ArrayList<>();
     // create bar chart
-    TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> barsCol =
+    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> barsCol =
         new TreeTableColumn<>("Area Bars");
     barsCol.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
     barsCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(barsCol);
 
-    TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> sharesCol =
+    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> sharesCol =
         new TreeTableColumn<>("Area Share");
     sharesCol.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
     sharesCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(sharesCol);
 
-    TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> shapes =
+    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> shapes =
         new TreeTableColumn<>("Shapes");
     shapes.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
     shapes.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
@@ -124,18 +129,18 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
+      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
+      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     return "";
   }
 
   @Override
   @Nullable
   public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
+      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
+      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;
@@ -155,7 +160,7 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
 
       @Override
       public void run() {
-        rowID = row.get(IDType.class).orElse(-1);
+        rowID = row.getID();
 
         setStatus(TaskStatus.PROCESSING);
         final Node n;

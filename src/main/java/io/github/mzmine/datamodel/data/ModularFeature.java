@@ -42,6 +42,11 @@ import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.util.DataTypeUtils;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -54,7 +59,8 @@ import javafx.collections.ObservableMap;
 public class ModularFeature implements ModularDataModel {
 
   private final @Nonnull ModularFeatureList flist;
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Property<?>> map =
+      FXCollections.observableMap(new HashMap<>());
 
   public ModularFeature(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -111,7 +117,7 @@ public class ModularFeature implements ModularDataModel {
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
+  public ObservableMap<DataType, Property<?>> getMap() {
     return map;
   }
 
@@ -122,32 +128,33 @@ public class ModularFeature implements ModularDataModel {
     return getDataPoints().get(index);
   }
 
-  public List<Integer> getScanNumbers() {
-    return get(ScanNumbersType.class).orElse(List.of());
+  public ListProperty<Integer> getScanNumbers() {
+    return get(ScanNumbersType.class);
   }
 
-  public List<DataPoint> getDataPoints() {
-    return get(DataPointsType.class).orElse(List.of());
+  public ListProperty<DataPoint> getDataPoints() {
+    return get(DataPointsType.class);
   }
 
   public RawDataFile getRawDataFile() {
-    return get(RawFileType.class).orElse(null);
+    ObjectProperty<RawDataFile> raw = get(RawFileType.class);
+    return raw.getValue();
   }
 
-  public float getRT() {
-    return get(RTType.class).orElse(-1f);
+  public FloatProperty getRT() {
+    return get(RTType.class);
   }
 
-  public double getMZ() {
-    return get(MZType.class).orElse(-1d);
+  public DoubleProperty getMZ() {
+    return get(MZType.class);
   }
 
-  public float getHeight() {
-    return get(HeightType.class).orElse(0f);
+  public FloatProperty getHeight() {
+    return get(HeightType.class);
   }
 
-  public float getArea() {
-    return get(AreaType.class).orElse(0f);
+  public FloatProperty getArea() {
+    return get(AreaType.class);
   }
 
 }

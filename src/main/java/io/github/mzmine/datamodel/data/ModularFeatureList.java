@@ -223,8 +223,9 @@ public class ModularFeatureList implements PeakList {
     }
 
     peakListRows.add(row);
-    if (row.getHeight() > maxDataPointIntensity) {
-      maxDataPointIntensity = row.getHeight();
+    float height = row.getHeight().getValue() == null ? 0 : row.getHeight().get();
+    if (height > maxDataPointIntensity) {
+      maxDataPointIntensity = height;
     }
 
     if (mzRange == null) {

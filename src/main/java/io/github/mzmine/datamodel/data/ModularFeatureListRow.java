@@ -36,6 +36,11 @@ import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -50,7 +55,8 @@ import javafx.scene.Node;
 public class ModularFeatureListRow implements ModularDataModel {
 
   private final @Nonnull ModularFeatureList flist;
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Property<?>> map =
+      FXCollections.observableMap(new HashMap<>());
 
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
@@ -74,6 +80,9 @@ public class ModularFeatureListRow implements ModularDataModel {
       features = MapUtils.fixedSizeMap(fmap);
     } else
       features = Collections.emptyMap();
+
+    // set
+    set(FeaturesType.class, features);
   }
 
   /**
@@ -101,7 +110,7 @@ public class ModularFeatureListRow implements ModularDataModel {
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
+  public ObservableMap<DataType, Property<?>> getMap() {
     return map;
   }
 
@@ -112,27 +121,27 @@ public class ModularFeatureListRow implements ModularDataModel {
   // Helper methods
   // most common data types
   public FeatureStatus getDetectionType() {
-    return get(DetectionType.class).orElse(FeatureStatus.UNKNOWN);
+    return get(DetectionType.class).getValue();
   }
 
-  public Double getMZ() {
-    return get(MZType.class).orElse(-1d);
+  public DoubleProperty getMZ() {
+    return get(MZType.class);
   }
 
-  public Float getRT() {
-    return get(RTType.class).orElse(-1f);
+  public FloatProperty getRT() {
+    return get(RTType.class);
   }
 
-  public double getHeight() {
-    return get(HeightType.class).orElse(0f);
+  public FloatProperty getHeight() {
+    return get(HeightType.class);
   }
 
-  public double getArea() {
-    return get(AreaType.class).orElse(0f);
+  public FloatProperty getArea() {
+    return get(AreaType.class);
   }
 
-  public Map<RawDataFile, ModularFeature> getFeatures() {
-    return get(FeaturesType.class).orElse(Collections.emptyMap());
+  public MapProperty<RawDataFile, ModularFeature> getFeatures() {
+    return get(FeaturesType.class);
   }
 
   /**
@@ -150,7 +159,8 @@ public class ModularFeatureListRow implements ModularDataModel {
    * @return
    */
   public int getID() {
-    return get(IDType.class).orElse(-1);
+    IntegerProperty idProp = get(IDType.class);
+    return idProp == null ? -1 : get(IDType.class).get();
   }
 
   public List<RawDataFile> getRawDataFiles() {
