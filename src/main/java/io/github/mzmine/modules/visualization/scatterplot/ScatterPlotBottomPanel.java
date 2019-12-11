@@ -253,7 +253,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
                         searchRegex, searchRange);
                 chart.updateSearchDefinition(newSearch);
             } catch (PatternSyntaxException pe) {
-                MZmineCore.getDesktop().displayErrorMessage(window,
+                MZmineCore.getDesktop().displayErrorMessage(null,
                         "The regular expression's syntax is invalid: " + pe);
             }
             return;

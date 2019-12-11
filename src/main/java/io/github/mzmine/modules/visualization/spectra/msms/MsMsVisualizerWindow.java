@@ -33,7 +33,6 @@ import org.jfree.chart.LegendItemCollection;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.tic.CursorPosition;
@@ -93,11 +92,11 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
         // bottom panel
         bottomPanel.rebuildPeakListSelector();
 
-        MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+       // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();
@@ -115,7 +114,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
 
     public void dispose() {
         super.dispose();
-        MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
+        // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
     void updateTitle() {

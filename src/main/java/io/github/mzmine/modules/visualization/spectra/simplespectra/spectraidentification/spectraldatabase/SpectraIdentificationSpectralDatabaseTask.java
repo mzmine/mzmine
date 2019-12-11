@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
@@ -148,10 +148,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
         resultWindow.setMatchingFinished();
         resultWindow.revalidate();
         resultWindow.repaint();
-        // Repaint the window
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
+
 
         setStatus(TaskStatus.FINISHED);
 

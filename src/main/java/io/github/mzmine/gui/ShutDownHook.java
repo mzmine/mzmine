@@ -16,9 +16,11 @@
  * USA
  */
 
-package io.github.mzmine.main;
+package io.github.mzmine.gui;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineConfiguration;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;

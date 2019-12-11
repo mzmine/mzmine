@@ -371,7 +371,7 @@ public class BaselineCorrectorSetupDialog
                 LOG.log(Level.SEVERE, "Baseline correction error",
                         this.getErrorMessage());
                 MZmineCore.getDesktop().displayErrorMessage(
-                        BaselineCorrectorSetupDialog.this,
+                        null,
                         "Error of preview task ", this.getErrorMessage());
                 hidePreview();
             }

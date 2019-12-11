@@ -62,7 +62,7 @@ public class AddLipidModificationAction extends AbstractAction {
             // Show dialog.
             final ParameterSet parameters = new AddLipidModificationParameters();
             if (parameters.showSetupDialog(
-                    MZmineCore.getDesktop().getMainWindow(),
+                    null,
                     true) == ExitCode.OK) {
                 // Create new lipid modification
                 lipidModification = new LipidModification(

@@ -27,13 +27,16 @@ import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.jfree.data.general.DatasetChangeEvent;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.gui.Desktop;
@@ -69,7 +72,7 @@ public class ProductIonFilterSetHighlightDialog extends JDialog
             String command) {
 
         // Make dialog modal
-        super(MZmineCore.getDesktop().getMainWindow(), "", true);
+        super((JFrame) null, "", true);
 
         this.desktop = MZmineCore.getDesktop();
         this.plot = plot;
@@ -144,7 +147,7 @@ public class ProductIonFilterSetHighlightDialog extends JDialog
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
         setResizable(false);
 
     }
@@ -162,7 +165,7 @@ public class ProductIonFilterSetHighlightDialog extends JDialog
 
                 if ((fieldMinMZ.getValue() == null)
                         || (fieldMinMZ.getValue() == null)) {
-                    desktop.displayErrorMessage(this, "Invalid bounds");
+                    desktop.displayErrorMessage(null, "Invalid bounds");
                     return;
                 }
 
@@ -185,7 +188,7 @@ public class ProductIonFilterSetHighlightDialog extends JDialog
                 dispose();
 
             } catch (IllegalArgumentException iae) {
-                desktop.displayErrorMessage(this, iae.getMessage());
+                desktop.displayErrorMessage(null, iae.getMessage());
             } catch (Exception e) {
                 logger.log(Level.FINE, "Error while setting highlighted range",
                         e);

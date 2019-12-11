@@ -23,8 +23,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.SwingUtilities;
+
 import org.jfree.data.xy.AbstractXYZDataset;
+
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 

@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.gui.impl.helpwindow;
+package io.github.mzmine.gui.helpwindow;
 
 import java.awt.Desktop;
 import java.net.URI;

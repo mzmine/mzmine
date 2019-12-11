@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -200,11 +200,6 @@ class Ms2SearchTask extends AbstractTask {
         ((SimplePeakList) peakList1)
                 .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
                         "Identification of similar MS2s", parameters));
-
-        // Repaint the window to reflect the change in the feature list
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
 
         setStatus(TaskStatus.FINISHED);
 

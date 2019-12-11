@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
@@ -192,11 +192,6 @@ public class LipidSearchTask extends AbstractTask {
         // Add task description to peakList
         ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
                 new SimplePeakListAppliedMethod("Lipid search", parameters));
-
-        // Repaint the window to reflect the change in the peak list
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
 
         setStatus(TaskStatus.FINISHED);
 

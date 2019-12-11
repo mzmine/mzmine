@@ -174,7 +174,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 
             if ((name == null) || (name.length() == 0)) {
                 String message = "Name not valid";
-                desktop.displayErrorMessage(this, message);
+                desktop.displayErrorMessage(null, message);
                 return;
             }
 

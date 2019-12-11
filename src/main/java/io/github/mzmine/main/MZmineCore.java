@@ -33,21 +33,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
-import io.github.mzmine.gui.impl.MainWindow;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.NewVersionCheck.CheckType;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
@@ -75,7 +72,6 @@ public final class MZmineCore {
     /**
      * Main method
      */
-    @SuppressWarnings("unchecked")
     public static void main(String args[]) {
 
         // In the beginning, set the default locale to English, to avoid
@@ -114,29 +110,7 @@ public final class MZmineCore {
         projectManager.initModule();
         taskController.initModule();
 
-        // If we have no arguments, run in GUI mode, otherwise run in batch mode
-        if (args.length == 0) {
-
-            try {
-                logger.info("Starting MZmine GUI");
-                Application.launch(MZmineGUI.class, args);
-
-                // Activate project - bind it to the desktop's project tree
-                MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
-                        .getCurrentProject();
-                currentProject.activateProject();
-
-            } catch (Throwable e) {
-                logger.log(Level.SEVERE, "Could not initialize GUI", e);
-                e.printStackTrace();
-                System.exit(1);
-            }
-
-        } else {
-            desktop = new HeadLessDesktop();
-        }
-
-        // load configuration
+        // Load configuration
         if (MZmineConfiguration.CONFIG_FILE.exists()
                 && MZmineConfiguration.CONFIG_FILE.canRead()) {
             try {
@@ -147,61 +121,24 @@ public final class MZmineCore {
             }
         }
 
-        // if we have GUI, show it now
-        if (desktop.getMainWindow() != null
-                && !(desktop instanceof HeadLessDesktop)) {
-            // update the size and position of the main window
-            ParameterSet paramSet = configuration.getPreferences();
-            WindowSettingsParameter settings = paramSet
-                    .getParameter(MZminePreferences.windowSetttings);
-            settings.applySettingsToWindow(desktop.getMainWindow());
+        // Activate project - bind it to the desktop's project tree
+        MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
+                .getCurrentProject();
+        currentProject.activateProject();
 
-            // add last project menu items
-            if (desktop instanceof MainWindow) {
-                ((MainWindow) desktop).createLastUsedProjectsMenu(
-                        configuration.getLastProjects());
-                // listen for changes
-                configuration.getLastProjectsParameter()
-                        .addFileListChangedListener(list -> {
-                            // new list of last used projects
-                            Desktop desk = getDesktop();
-                            if (desk instanceof MainWindow) {
-                                ((MainWindow) desk)
-                                        .createLastUsedProjectsMenu(list);
-                            }
-                        });
+        // If we have no arguments, run in GUI mode, otherwise run in batch mode
+        if (args.length == 0) {
+            try {
+                logger.info("Starting MZmine GUI");
+                Application.launch(MZmineGUI.class, args);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                logger.log(Level.SEVERE, "Could not initialize GUI", e);
+                System.exit(1);
             }
 
-            // show the GUI
-            logger.info("Showing main window");
-            desktop.getMainWindow().setVisible(true);
-
-            // show the welcome message
-            desktop.setStatusBarText(
-                    "Welcome to MZmine " + MZmineCore.getMZmineVersion() + "!");
-
-            // Check for updated version
-            NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
-            Thread nvcThread = new Thread(NVC);
-            nvcThread.setPriority(Thread.MIN_PRIORITY);
-            nvcThread.start();
-
-            // Tracker
-            GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(
-                    "MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
-            Thread gatThread = new Thread(GAT);
-            gatThread.setPriority(Thread.MIN_PRIORITY);
-            gatThread.start();
-
-            // register shutdown hook only if we have GUI - we don't want to
-            // save configuration on exit if we only run a batch
-            ShutDownHook shutDownHook = new ShutDownHook();
-            Runtime.getRuntime().addShutdownHook(shutDownHook);
-        }
-
-        // if arguments were specified (= running without GUI), run the batch
-        // mode
-        if (args.length > 0 && desktop instanceof HeadLessDesktop) {
+        } else {
+            desktop = new HeadLessDesktop();
 
             // Tracker
             GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(
@@ -221,6 +158,7 @@ public final class MZmineCore {
                 System.exit(0);
             else
                 System.exit(1);
+
         }
 
     }
@@ -230,20 +168,29 @@ public final class MZmineCore {
         return taskController;
     }
 
-    // Removed @Nonnull
-    // Function returns null when called from logger (line 94 of this file)
-    // @Nonnull
+    /**
+     * May return null during application startup when desktop is not ready yet.
+     */
+    @Nullable
     public static Desktop getDesktop() {
         return desktop;
+    }
+    
+    @Nonnull
+    public static void setDesktop(Desktop desktop) {
+        assert desktop != null;
+        MZmineCore.desktop = desktop;
     }
 
     @Nonnull
     public static ProjectManager getProjectManager() {
+        assert projectManager != null;
         return projectManager;
     }
 
     @Nonnull
     public static MZmineConfiguration getConfiguration() {
+        assert configuration != null;
         return configuration;
     }
 
@@ -260,14 +207,15 @@ public final class MZmineCore {
 
             try {
 
-                logger.finest("Starting module " + moduleClass.getName());
+                logger.finest("Creating an instance of the module "
+                        + moduleClass.getName());
 
                 // Create instance and init module
-                ModuleType moduleInstance = (ModuleType) moduleClass
-                        .getDeclaredConstructor().newInstance();
+                module = (ModuleType) moduleClass.getDeclaredConstructor()
+                        .newInstance();
 
                 // Add to the module list
-                initializedModules.put(moduleClass, moduleInstance);
+                initializedModules.put(moduleClass, module);
 
             } catch (Throwable e) {
                 logger.log(Level.SEVERE,

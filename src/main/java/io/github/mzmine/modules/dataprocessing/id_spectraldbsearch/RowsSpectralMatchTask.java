@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
@@ -212,7 +212,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
             if (isCanceled()) {
                 logger.info("Added " + count
                         + " spectral library matches (before being cancelled)");
-                repaintWindow();
                 return;
             }
 
@@ -277,18 +276,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
         if (count > 0)
             logger.info("Added " + count + " spectral library matches");
 
-        // Repaint the window to reflect the change in the feature list
-        repaintWindow();
-
         list = null;
 
         setStatus(TaskStatus.FINISHED);
-    }
-
-    private void repaintWindow() {
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
     }
 
     /**

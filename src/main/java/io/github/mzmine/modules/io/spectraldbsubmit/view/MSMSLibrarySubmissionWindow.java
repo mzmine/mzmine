@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -53,6 +54,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 
@@ -64,7 +66,7 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
-import io.github.mzmine.gui.impl.helpwindow.HelpWindow;
+import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.LibrarySubmitModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.LibrarySubmitTask;
@@ -491,7 +493,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame
         } else {
             String message = messages.stream()
                     .collect(Collectors.joining("\n"));
-            MZmineCore.getDesktop().displayMessage(this, message);
+            MZmineCore.getDesktop().displayMessage(null, message);
             return false;
         }
     }
@@ -524,7 +526,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame
                 int adducts = countSelectedAdducts();
                 // every valid selected ion needs an adduct for MS2
                 if (ions != adducts) {
-                    MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
+                    MZmineCore.getDesktop().displayErrorMessage(null, "ERROR",
                             MessageFormat.format(
                                     "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set",
                                     ions, adducts));

@@ -79,7 +79,7 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
         parameters.getParameter(SingleRowIdentificationParameters.ION_MASS)
                 .setValue(row.getAverageMZ());
 
-        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+        if (parameters.showSetupDialog(null,
                 true) == ExitCode.OK) {
             String massListName = parameters
                     .getParameter(SingleRowIdentificationParameters.MASS_LIST)

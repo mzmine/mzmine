@@ -127,7 +127,7 @@ public class ResultWindow extends JFrame implements ActionListener {
             int index = IDList.getSelectedRow();
 
             if (index < 0) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Select one result to add as compound identity");
                 return;
 
@@ -141,9 +141,6 @@ public class ResultWindow extends JFrame implements ActionListener {
             MZmineCore.getProjectManager().getCurrentProject()
                     .notifyObjectChanged(peakListRow, false);
 
-            // Repaint the window to reflect the change in the feature list
-            MZmineCore.getDesktop().getMainWindow().repaint();
-
             dispose();
         }
 
@@ -152,7 +149,7 @@ public class ResultWindow extends JFrame implements ActionListener {
             int index = IDList.getSelectedRow();
 
             if (index < 0) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Select one result to display molecule structure");
                 return;
             }
@@ -174,7 +171,7 @@ public class ResultWindow extends JFrame implements ActionListener {
             int index = IDList.getSelectedRow();
 
             if (index < 0) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Select one result to display the isotope pattern");
                 return;
             }
@@ -200,7 +197,7 @@ public class ResultWindow extends JFrame implements ActionListener {
             int index = IDList.getSelectedRow();
 
             if (index < 0) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Select one compound to display in a web browser");
                 return;
 

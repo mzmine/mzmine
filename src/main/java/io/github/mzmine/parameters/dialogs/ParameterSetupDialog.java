@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
+
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -45,7 +46,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
-import io.github.mzmine.gui.impl.helpwindow.HelpWindow;
+import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -379,7 +380,7 @@ public class ParameterSetupDialog extends JDialog
                         message.append(m);
                         message.append("\n");
                     }
-                    MZmineCore.getDesktop().displayMessage(this,
+                    MZmineCore.getDesktop().displayMessage(null,
                             message.toString());
                     return;
                 }

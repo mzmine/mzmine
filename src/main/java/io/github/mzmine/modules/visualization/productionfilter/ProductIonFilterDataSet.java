@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;

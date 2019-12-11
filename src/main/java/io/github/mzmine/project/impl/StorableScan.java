@@ -20,12 +20,10 @@ package io.github.mzmine.project.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import javax.swing.SwingUtilities;
 
 import com.google.common.collect.Range;
 
@@ -35,7 +33,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -346,12 +343,6 @@ public class StorableScan implements Scan {
         MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
                 .getProjectManager().getCurrentProject();
 
-        // Check if we are adding to the current project
-        if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-            final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-            treeModel.addObjectWithoutGUIUpdate(storedMassList);
-        }
-
     }
 
     @Override
@@ -362,24 +353,6 @@ public class StorableScan implements Scan {
         if (massList instanceof StorableMassList) {
             StorableMassList storableMassList = (StorableMassList) massList;
             storableMassList.removeStoredData();
-        }
-
-        // Remove from the tree model
-        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-                .getProjectManager().getCurrentProject();
-
-        // Check if we are using the current project
-        if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-            final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-            Runnable swingCode = new Runnable() {
-                @Override
-                public void run() {
-                    treeModel.removeObject(massList);
-                }
-            };
-
-            SwingUtilities.invokeLater(swingCode);
-
         }
 
     }

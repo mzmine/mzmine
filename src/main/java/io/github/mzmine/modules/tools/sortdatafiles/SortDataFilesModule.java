@@ -18,25 +18,17 @@
 
 package io.github.mzmine.modules.tools.sortdatafiles;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
 import javax.annotation.Nonnull;
-import javax.swing.tree.DefaultMutableTreeNode;
-import io.github.msdk.MSDKRuntimeException;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.MainWindow;
-import io.github.mzmine.gui.impl.projecttree.ProjectTree;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
@@ -67,7 +59,7 @@ public class SortDataFilesModule implements MZmineProcessingModule {
                 parameters.getParameter(SortDataFilesParameters.dataFiles)
                         .getValue().getMatchingRawDataFiles());
 
-        RawDataTreeModel model = null;
+        /*RawDataTreeModel model = null;
         if (project instanceof MZmineProjectImpl) {
             model = ((MZmineProjectImpl) project).getRawDataTreeModel();
         } else if (MZmineCore.getDesktop() instanceof MainWindow) {
@@ -122,7 +114,7 @@ public class SortDataFilesModule implements MZmineProcessingModule {
             model.insertNodeInto(node, rootNode, insertPosition);
             insertPosition++;
         }
-
+*/
         return ExitCode.OK;
     }
 

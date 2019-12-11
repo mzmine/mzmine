@@ -25,18 +25,14 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Vector;
 
-import javax.swing.SwingUtilities;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MZmineProjectListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.MainWindow;
-import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
-import io.github.mzmine.gui.impl.projecttree.ProjectTree;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
+import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -48,13 +44,11 @@ public class MZmineProjectImpl implements MZmineProject {
 
     private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
-    private PeakListTreeModel peakListTreeModel;
-    private RawDataTreeModel rawDataTreeModel;
-    
-    private final ObservableList<RawDataFile> rawDataFiles = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+    private final ObservableList<RawDataFile> rawDataFiles = FXCollections
+            .synchronizedObservableList(FXCollections.observableArrayList());
 
-    private final ObservableList<PeakList> featureLists = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-
+    private final ObservableList<PeakList> featureLists = FXCollections
+            .synchronizedObservableList(FXCollections.observableArrayList());
 
     private File projectFile;
 
@@ -63,9 +57,6 @@ public class MZmineProjectImpl implements MZmineProject {
 
     public MZmineProjectImpl() {
 
-        this.peakListTreeModel = new PeakListTreeModel(this);
-        this.rawDataTreeModel = new RawDataTreeModel(this);
-
         projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
 
     }
@@ -73,33 +64,11 @@ public class MZmineProjectImpl implements MZmineProject {
     public void activateProject() {
 
         // If running without GUI, just return
-        if (!(MZmineCore.getDesktop() instanceof MainWindow))
+        if (MZmineCore.getDesktop() == null)
             return;
 
-        Runnable swingThreadCode = new Runnable() {
-            public void run() {
-                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+        MZmineGUI.activateProject(this);
 
-                // Update the name of the project in the window title
-                mainWindow.updateTitle();
-
-                ProjectTree peakListTree = mainWindow.getMainPanel()
-                        .getPeakListTree();
-                peakListTree.setModel(peakListTreeModel);
-                ProjectTree rawDataTree = mainWindow.getMainPanel()
-                        .getRawDataTree();
-                rawDataTree.setModel(rawDataTreeModel);
-
-            }
-        };
-        try {
-            if (SwingUtilities.isEventDispatchThread())
-                swingThreadCode.run();
-            else
-                SwingUtilities.invokeAndWait(swingThreadCode);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void addParameter(UserParameter<?, ?> parameter) {
@@ -150,16 +119,20 @@ public class MZmineProjectImpl implements MZmineProject {
 
         assert newFile != null;
 
-        rawDataFiles.add(newFile);
-        
+        Platform.runLater(() -> {
+            rawDataFiles.add(newFile);
+        });
+
     }
 
     public void removeFile(final RawDataFile file) {
 
         assert file != null;
 
-        rawDataFiles.remove(file);
-        
+        Platform.runLater(() -> {
+            rawDataFiles.remove(file);
+        });
+
         // Close the data file, which also removed the temporary data
         file.close();
 
@@ -176,16 +149,19 @@ public class MZmineProjectImpl implements MZmineProject {
     public void addPeakList(final PeakList peakList) {
 
         assert peakList != null;
-        featureLists.add(peakList) ;
+        Platform.runLater(() -> {
+            featureLists.add(peakList);
+        });
 
-        
     }
 
     public void removePeakList(final PeakList peakList) {
 
         assert peakList != null;
 
-        featureLists.remove(peakList);
+        Platform.runLater(() -> {
+            featureLists.remove(peakList);
+        });
     }
 
     public PeakList[] getPeakLists(RawDataFile file) {
@@ -225,16 +201,8 @@ public class MZmineProjectImpl implements MZmineProject {
 
     @Override
     public void notifyObjectChanged(Object object, boolean structureChanged) {
-        peakListTreeModel.notifyObjectChanged(object, structureChanged);
-        rawDataTreeModel.notifyObjectChanged(object, structureChanged);
-    }
-
-    public PeakListTreeModel getPeakListTreeModel() {
-        return peakListTreeModel;
-    }
-
-    public RawDataTreeModel getRawDataTreeModel() {
-        return rawDataTreeModel;
+        // peakListTreeModel.notifyObjectChanged(object, structureChanged);
+        // awDataTreeModel.notifyObjectChanged(object, structureChanged);
     }
 
     @Override

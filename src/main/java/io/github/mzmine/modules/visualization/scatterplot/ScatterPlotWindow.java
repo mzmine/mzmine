@@ -31,7 +31,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.parameters.ParameterSet;
@@ -80,7 +79,7 @@ public class ScatterPlotWindow extends JFrame {
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();

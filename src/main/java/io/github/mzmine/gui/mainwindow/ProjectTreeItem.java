@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.NewVersionCheck;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.main.NewVersionCheck;
-import io.github.mzmine.main.NewVersionCheck.CheckType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;

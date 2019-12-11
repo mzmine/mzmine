@@ -32,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.jfree.data.general.DatasetChangeEvent;
@@ -70,7 +71,7 @@ public class NeutralLossSetHighlightDialog extends JDialog
     public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
         // Make dialog modal
-        super(MZmineCore.getDesktop().getMainWindow(), "", true);
+        super((JFrame) null, "", true);
 
         this.desktop = MZmineCore.getDesktop();
         this.plot = plot;
@@ -145,7 +146,7 @@ public class NeutralLossSetHighlightDialog extends JDialog
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
         setResizable(false);
 
     }
@@ -163,7 +164,7 @@ public class NeutralLossSetHighlightDialog extends JDialog
 
                 if ((fieldMinMZ.getValue() == null)
                         || (fieldMinMZ.getValue() == null)) {
-                    desktop.displayErrorMessage(this, "Invalid bounds");
+                    desktop.displayErrorMessage(null, "Invalid bounds");
                     return;
                 }
 
@@ -186,7 +187,7 @@ public class NeutralLossSetHighlightDialog extends JDialog
                 dispose();
 
             } catch (IllegalArgumentException iae) {
-                desktop.displayErrorMessage(this, iae.getMessage());
+                desktop.displayErrorMessage(null, iae.getMessage());
             } catch (Exception e) {
                 logger.log(Level.FINE, "Error while setting highlighted range",
                         e);

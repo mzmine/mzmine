@@ -23,7 +23,7 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.parameters.ParameterSet;
@@ -217,9 +217,6 @@ public class PeakListIdentificationTask extends AbstractTask {
         MZmineCore.getProjectManager().getCurrentProject()
                 .notifyObjectChanged(row, false);
 
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
     }
 
     /**

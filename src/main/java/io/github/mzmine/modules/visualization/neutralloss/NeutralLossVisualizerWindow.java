@@ -30,7 +30,6 @@ import javax.swing.JMenuBar;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -89,7 +88,7 @@ public class NeutralLossVisualizerWindow extends JFrame
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();

@@ -28,25 +28,27 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.SwingUtilities;
+
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.exportscans.ExportScansModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -123,11 +125,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         bottomPanel = new SpectraBottomPanel(this, dataFile);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+        // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();
@@ -152,7 +154,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     @Override
     public void dispose() {
         super.dispose();
-        MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
+        // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
     public void loadRawData(Scan scan) {
@@ -568,7 +570,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
                         ExitCode exitCode = DataPointProcessingManager.getInst()
                                 .getParameters().showSetupDialog(
-                                        MZmineCore.getDesktop().getMainWindow(),
+                                        null,
                                         true);
 
                         dppmWindowOpen = false;

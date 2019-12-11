@@ -92,7 +92,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
                 .getDataFiles();
         if (raw == null || raw.length <= 0) {
             DialogLoggerUtil.showMessageDialogForTime(
-                    MZmineCore.getDesktop().getMainWindow(),
+                    null,
                     "No RAW data files",
                     "Cannot use Kovats extraction without raw data files in this project",
                     3500);

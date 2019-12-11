@@ -13,6 +13,7 @@
 package io.github.mzmine.modules.io.siriusexport;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,7 +57,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
                     .getModuleParameters(SiriusExportModule.class);
 
             ExitCode exitCode = parameters.showSetupDialog(
-                    MZmineCore.getDesktop().getMainWindow(), true);
+                    null, true);
             if (exitCode != ExitCode.OK)
                 return;
             // Open file
@@ -78,7 +79,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
                     .getModuleParameters(SiriusExportModule.class);
 
             ExitCode exitCode = parameters.showSetupDialog(
-                    MZmineCore.getDesktop().getMainWindow(), true);
+                    null, true);
             if (exitCode != ExitCode.OK)
                 return;
             // Open file

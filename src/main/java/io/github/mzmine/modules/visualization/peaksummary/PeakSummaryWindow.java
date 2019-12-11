@@ -24,7 +24,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.util.components.PeakSummaryComponent;
 
 /**
@@ -51,7 +50,7 @@ public class PeakSummaryWindow extends JFrame {
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();

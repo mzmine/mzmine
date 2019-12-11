@@ -54,13 +54,11 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.components.PercentageCellRenderer;
 
@@ -158,7 +156,7 @@ public class ResultWindow extends JFrame implements ActionListener {
             fileChooser.setApproveButtonText("Export");
 
             int result = fileChooser
-                    .showSaveDialog(MZmineCore.getDesktop().getMainWindow());
+                    .showSaveDialog(null);
             if (result != JFileChooser.APPROVE_OPTION)
                 return;
             File outputFile = fileChooser.getSelectedFile();
@@ -222,9 +220,6 @@ public class ResultWindow extends JFrame implements ActionListener {
             // Notify the GUI about the change in the project
             MZmineCore.getProjectManager().getCurrentProject()
                     .notifyObjectChanged(peakListRow, false);
-
-            // Repaint the window to reflect the change in the feature list
-            MZmineCore.getDesktop().getMainWindow().repaint();
 
             dispose();
         }

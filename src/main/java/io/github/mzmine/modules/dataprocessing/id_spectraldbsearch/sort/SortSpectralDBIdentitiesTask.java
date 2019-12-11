@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -101,11 +101,6 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
         peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
                 "Sorted spectral database identities of DB search ",
                 parameters));
-
-        // Repaint the window to reflect the change in the feature list
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
 
         setStatus(TaskStatus.FINISHED);
     }

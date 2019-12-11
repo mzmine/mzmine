@@ -100,7 +100,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
                     .setValue(mzRange);
 
         ExitCode exitCode = parameters
-                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+                .showSetupDialog(null, true);
 
         if (exitCode != ExitCode.OK)
             return;

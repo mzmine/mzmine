@@ -109,7 +109,7 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
                     .setValue(minPeakInt);
 
         ExitCode exitCode = parameters
-                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+                .showSetupDialog(null, true);
 
         if (exitCode != ExitCode.OK)
             return;

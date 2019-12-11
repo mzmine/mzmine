@@ -26,15 +26,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Stream;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 
 /**
  * Simple implementation of the PeakList interface.
@@ -256,12 +254,6 @@ public class SimplePeakList implements PeakList {
     @Override
     public void removeRow(PeakListRow row) {
         peakListRows.remove(row);
-
-        // We have to update the project tree model
-        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-                .getProjectManager().getCurrentProject();
-        PeakListTreeModel treeModel = project.getPeakListTreeModel();
-        treeModel.removeObject(row);
 
         updateMaxIntensity();
     }

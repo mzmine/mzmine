@@ -23,8 +23,9 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
+
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
@@ -33,7 +34,6 @@ import org.jfree.chart.plot.XYPlot;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
 
 /**
@@ -59,9 +59,9 @@ public class VanKrevelenDiagramWindow extends JFrame implements ActionListener {
         add(toolBar, BorderLayout.EAST);
 
         // Add the Windows menu
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
-        setJMenuBar(menuBar);
+        // JMenuBar menuBar = new JMenuBar();
+        // // menuBar.add(new WindowsMenu());
+        // setJMenuBar(menuBar);
 
         // mouse listener
         chartPanel.addChartMouseListener(new ChartMouseListener() {

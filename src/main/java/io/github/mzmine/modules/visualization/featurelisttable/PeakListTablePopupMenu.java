@@ -32,12 +32,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.Feature;
@@ -619,7 +621,7 @@ public class PeakListTablePopupMenu extends JPopupMenu
                         SpectraVisualizerModule.showNewSpectrumWindow(
                                 showPeak.getDataFile(), scanNumber);
                     } else {
-                        MZmineCore.getDesktop().displayMessage(window,
+                        MZmineCore.getDesktop().displayMessage(null,
                                 "There is no fragment for "
                                         + MZmineCore.getConfiguration()
                                                 .getMZFormat()
@@ -676,7 +678,7 @@ public class PeakListTablePopupMenu extends JPopupMenu
                         clickedPeakListRow, raw);
                 multiSpectraWindow.setVisible(true);
             } else {
-                MZmineCore.getDesktop().displayMessage(window,
+                MZmineCore.getDesktop().displayMessage(null,
                         "There is no fragment for "
                                 + MZmineCore.getConfiguration().getMZFormat()
                                         .format(showPeak.getMZ())

@@ -93,7 +93,7 @@ public class ManualPeakPickerModule implements MZmineModule {
         }
 
         ExitCode exitCode = parameters
-                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+                .showSetupDialog(null, true);
 
         if (exitCode != ExitCode.OK)
             return exitCode;

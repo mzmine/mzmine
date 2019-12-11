@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.net.URL;
+
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -33,9 +34,9 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.components.MultiLineLabel;
@@ -156,7 +157,7 @@ public class MolStructureViewer extends JFrame {
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();

@@ -23,9 +23,9 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -39,10 +39,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import io.github.mzmine.gui.impl.MainWindow;
+import io.github.mzmine.main.MZmineCore;
+import javafx.application.Platform;
 
 /**
  * GUI related utilities
@@ -106,11 +108,23 @@ public class GUIUtils {
      * Close all open MZmine windows, except the main (project) window
      */
     public static void closeAllWindows() {
-        for (Window window : Window.getWindows()) {
-            if (window instanceof MainWindow)
-                continue;
-            window.dispose();
-        }
+        // Close AWT windows
+        SwingUtilities.invokeLater(() -> {
+            for (java.awt.Window window : java.awt.Window.getWindows()) {
+                window.dispose();
+            }
+        });
+
+        // Close JavaFX windows
+        Platform.runLater(() -> {
+            for (javafx.stage.Window window : javafx.stage.Window
+                    .getWindows()) {
+                if (window == MZmineCore.getDesktop().getMainWindow())
+                    continue;
+                window.hide();
+            }
+        });
+
     }
 
     /**

@@ -133,7 +133,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         if ((isotopeFilter) && (detectedPattern == null)) {
             final String msg = "Cannot calculate isotope pattern scores, because selected"
                     + " peak does not have any isotopes. Have you run the isotope peak grouper?";
-            MZmineCore.getDesktop().displayMessage(window, msg);
+            MZmineCore.getDesktop().displayMessage(null, msg);
         }
 
         try {

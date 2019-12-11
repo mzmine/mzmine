@@ -30,7 +30,7 @@ import java.util.Locale;
 import java.util.Random;
 
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 
 import java.net.HttpURLConnection;
 
@@ -54,7 +54,7 @@ public class GoogleAnalyticsTracker implements Runnable {
         this.sendGUIinfo = false;
         Desktop desktop = MZmineCore.getDesktop();
         // Only if not in "headless" mode
-        this.sendGUIinfo = (desktop.getMainWindow() != null
+        this.sendGUIinfo = (MZmineCore.getDesktop() == null
                 && !(desktop instanceof HeadLessDesktop));
         if (this.sendGUIinfo) {
             screenSize = Toolkit.getDefaultToolkit().getScreenSize();

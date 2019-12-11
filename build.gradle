@@ -197,8 +197,8 @@ application {
                                  "-XX:MinRAMPercentage=80",
                                  "-XX:MaxRAMPercentage=80",
                                  "-Djava.library.path=lib",
-                                 "-Dapple.awt.application.name=MZmine ${version}", 
-                                 "-Dapple.laf.useScreenMenuBar=true"
+                                 "-enableassertions",
+                                 "-Dapple.awt.application.name=MZmine ${version}" 
                                 ]
 }
 
@@ -273,6 +273,7 @@ tasks.runtime.doLast {
         from("src/main/lib/vendor_lib")
         into(relativePath(imageDir) + "/lib/vendor_lib")
     }
+
 }
 
 /*

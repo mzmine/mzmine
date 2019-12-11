@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -236,10 +236,7 @@ public class PeakListIdentificationTask extends AbstractTask {
             // Notify the GUI about the change in the project
             MZmineCore.getProjectManager().getCurrentProject()
                     .notifyObjectChanged(row, false);
-            // Repaint the window to reflect the change in the feature list
-            Desktop desktop = MZmineCore.getDesktop();
-            if (!(desktop instanceof HeadLessDesktop))
-                desktop.getMainWindow().repaint();
+
         }
     }
 }

@@ -59,7 +59,7 @@ public class LipidSpectraSearchModule implements MZmineModule {
         ;
 
         // Run task.
-        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+        if (parameters.showSetupDialog(null,
                 true) == ExitCode.OK) {
 
             MZmineCore.getTaskController()

@@ -19,18 +19,14 @@
 package io.github.mzmine.gui;
 
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.Window;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.JFrame;
-import javax.swing.event.TreeModelListener;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.util.ExitCode;
+import javafx.stage.Stage;
 
 /**
  * This interface represents the application GUI
@@ -42,9 +38,9 @@ public interface Desktop extends MZmineModule {
      * Returns a reference to main application window. May return null if MZmine
      * is running in headless (batch) mode.
      * 
-     * @return Main window frame
+     * @return Main window
      */
-    public JFrame getMainWindow();
+    public Stage getMainWindow();
 
     /**
      * Displays a given text on the application status bar in black color
@@ -70,7 +66,7 @@ public interface Desktop extends MZmineModule {
      * @param msg
      *            Text to show
      */
-    public void displayMessage(Window window, String msg);
+    public void displayMessage(Stage window, String msg);
 
     /**
      * Displays a message box with a given text
@@ -80,7 +76,7 @@ public interface Desktop extends MZmineModule {
      * @param msg
      *            Text to show
      */
-    public void displayMessage(Window window, String title, String msg);
+    public void displayMessage(Stage window, String title, String msg);
 
     /**
      * Displays an error message box with a given text
@@ -88,7 +84,7 @@ public interface Desktop extends MZmineModule {
      * @param msg
      *            Text to show
      */
-    public void displayErrorMessage(Window window, String msg);
+    public void displayErrorMessage(Stage window, String msg);
 
     /**
      * Displays an error message box with a given text
@@ -98,13 +94,13 @@ public interface Desktop extends MZmineModule {
      * @param msg
      *            Text to show
      */
-    public void displayErrorMessage(Window window, String title, String msg);
+    public void displayErrorMessage(Stage window, String title, String msg);
 
     /**
      * Displays an error message
      *
      */
-    public void displayException(Window window, Exception e);
+    public void displayException(Stage window, Exception e);
 
     /**
      * Returns array of currently selected raw data files in GUI
@@ -120,18 +116,7 @@ public interface Desktop extends MZmineModule {
      */
     public PeakList[] getSelectedPeakLists();
 
-    public void addRawDataTreeListener(TreeModelListener listener);
-
-    public void addPeakListTreeListener(TreeModelListener listener);
-
-    public void removeRawDataTreeListener(TreeModelListener listener);
-
-    public void removePeakListTreeListener(TreeModelListener listener);
-
     @Nonnull
     public ExitCode exitMZmine();
-
-    @Nullable
-    public Image getMZmineIcon();
 
 }

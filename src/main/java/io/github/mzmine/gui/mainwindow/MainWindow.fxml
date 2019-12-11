@@ -26,7 +26,7 @@
 					<SplitPane dividerPositions="0.5" minHeight="100"
 						orientation="HORIZONTAL">
 						<items>
-							<ListView fx:id="rawDataTree" prefHeight="120">
+							<ListView fx:id="rawDataTree" prefHeight="120" >
 								<contextMenu>
 									<ContextMenu>
 										<items>

@@ -118,7 +118,7 @@ public class ProjectParametersImporter {
         chooser.setDialogTitle(
                 "Please select a file containing project parameter values for files.");
         chooser.setFileFilter(filter);
-        int returnVal = chooser.showOpenDialog(desktop.getMainWindow());
+        int returnVal = chooser.showOpenDialog(null);
         if (returnVal == JFileChooser.CANCEL_OPTION) {
             return null;
         }

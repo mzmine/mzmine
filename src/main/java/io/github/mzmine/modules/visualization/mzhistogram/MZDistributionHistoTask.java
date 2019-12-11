@@ -20,7 +20,9 @@ package io.github.mzmine.modules.visualization.mzhistogram;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
+
 import com.google.common.collect.Range;
+
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;

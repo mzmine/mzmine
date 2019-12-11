@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.productionfilter;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;

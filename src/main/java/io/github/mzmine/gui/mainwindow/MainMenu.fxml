@@ -194,6 +194,8 @@
 	<Menu text="Settings">
 		<MenuItem text="Set Preferences" onAction="#setPreferences" />
 	</Menu>
+	<Menu text="Windows">
+	</Menu>
 	<Menu text="Help">
 		<MenuItem text="Tutorials" onAction="#openLink" />
 		<MenuItem text="Support" onAction="#openLink" />

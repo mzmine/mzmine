@@ -27,12 +27,9 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
-import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import ucar.ma2.ArrayDouble;
@@ -175,12 +172,6 @@ public class MassDetectionTask extends AbstractTask {
                 processedScans++;
             }
 
-            // Update the GUI with all new mass lists
-            MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-                    .getProjectManager().getCurrentProject();
-            final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-            treeModel.updateGUIWithNewObjects();
-            ;
 
             if (this.saveToCDF) {
                 // ************** write mass list

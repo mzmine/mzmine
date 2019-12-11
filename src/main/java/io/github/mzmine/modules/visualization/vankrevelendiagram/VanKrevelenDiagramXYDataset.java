@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.ArrayList;
+
 import org.jfree.data.xy.AbstractXYDataset;
 
 import io.github.mzmine.datamodel.PeakListRow;

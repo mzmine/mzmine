@@ -60,7 +60,7 @@ public class SpectraIdentificationSpectralDatabaseModule
 
         // Run task.
         if (parameters.showSetupDialog(scan,
-                MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+                null, true) == ExitCode.OK) {
 
             MZmineCore.getTaskController()
                     .addTask(new SpectraIdentificationSpectralDatabaseTask(

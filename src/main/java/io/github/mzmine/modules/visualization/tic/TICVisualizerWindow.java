@@ -32,9 +32,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.axis.NumberAxis;
@@ -43,6 +45,7 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.LegendItemEntity;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
@@ -51,7 +54,6 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -138,7 +140,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();
@@ -330,7 +332,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
         final Scan scans[] = scanSelection.getMatchingScans(newFile);
         if (scans.length == 0) {
-            desktop.displayErrorMessage(this, "No scans found.");
+            desktop.displayErrorMessage(null, "No scans found.");
             return;
         }
 

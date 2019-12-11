@@ -537,7 +537,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
                     } else {
                         JFrame frame = (JFrame) SwingUtilities
                                 .getAncestorOfClass(JFrame.class, this);
-                        MZmineCore.getDesktop().displayMessage(frame,
+                        MZmineCore.getDesktop().displayMessage(null,
                                 "There is no fragment for the mass "
                                         + MZmineCore.getConfiguration()
                                                 .getMZFormat()

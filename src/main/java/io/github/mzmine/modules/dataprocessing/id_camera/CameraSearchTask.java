@@ -51,7 +51,7 @@ import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -238,8 +238,8 @@ public class CameraSearchTask extends AbstractTask {
 
             // Repaint the window to reflect the change in the feature list
             Desktop desktop = MZmineCore.getDesktop();
-            if (!(desktop instanceof HeadLessDesktop))
-                desktop.getMainWindow().repaint();
+           // if (!(desktop instanceof HeadLessDesktop))
+              //  desktop.getMainWindow().repaint();
 
         } catch (Throwable t) {
 

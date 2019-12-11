@@ -52,7 +52,7 @@ public class XICManualPickerParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
         ParameterSetupDialog dialog = new XICManualPickerDialog(
-                MZmineCore.getDesktop().getMainWindow(), true, this);
+                null, true, this);
         dialog.setVisible(true);
 
         return dialog.getExitCode();

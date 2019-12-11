@@ -16,24 +16,20 @@
  * USA
  */
 
-package io.github.mzmine.gui.impl;
+package io.github.mzmine.gui;
 
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.Window;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.JFrame;
-import javax.swing.event.TreeModelListener;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.ExitCode;
+import javafx.stage.Stage;
 
 public class HeadLessDesktop implements Desktop {
 
@@ -42,7 +38,7 @@ public class HeadLessDesktop implements Desktop {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Override
-    public JFrame getMainWindow() {
+    public Stage getMainWindow() {
         return null;
     }
 
@@ -56,27 +52,28 @@ public class HeadLessDesktop implements Desktop {
     }
 
     @Override
-    public void displayMessage(Window window, String msg) {
+    public void displayMessage(Stage window, String msg) {
         logger.info(msg);
     }
 
     @Override
-    public void displayMessage(Window window, String title, String msg) {
+    public void displayMessage(Stage window, String title, String msg) {
         logger.info(msg);
     }
 
     @Override
-    public void displayErrorMessage(Window window, String msg) {
+    public void displayErrorMessage(Stage window, String msg) {
         logger.severe(msg);
     }
 
     @Override
-    public void displayErrorMessage(Window window, String title, String msg) {
+    public void displayErrorMessage(Stage window, String title, String msg) {
         logger.severe(msg);
     }
 
     @Override
-    public void displayException(Window window, Exception e) {
+    public void displayException(Stage window, Exception e) {
+        logger.log(Level.SEVERE, e.toString(), e);
         e.printStackTrace();
     }
 
@@ -104,36 +101,6 @@ public class HeadLessDesktop implements Desktop {
     public @Nonnull ExitCode exitMZmine() {
         System.exit(0);
         return ExitCode.OK;
-    }
-
-    @Override
-    public void addRawDataTreeListener(TreeModelListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void addPeakListTreeListener(TreeModelListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeRawDataTreeListener(TreeModelListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removePeakListTreeListener(TreeModelListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    @Nullable
-    public Image getMZmineIcon() {
-        return null;
     }
 
 }

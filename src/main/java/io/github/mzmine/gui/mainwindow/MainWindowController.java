@@ -40,7 +40,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TreeItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
@@ -245,4 +244,6 @@ public class MainWindowController {
        * " (" + featureTables + ")"; featureTablesTab.setText(title); return; }
        */
     }
+
+
 }

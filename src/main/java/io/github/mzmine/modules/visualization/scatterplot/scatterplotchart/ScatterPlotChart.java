@@ -253,7 +253,7 @@ public class ScatterPlotChart extends EChartPanel
             PeakListRow selectedRow = mainDataSet.getRow(valueX, valueY);
 
             if (selectedRow == null) {
-                MZmineCore.getDesktop().displayErrorMessage(window,
+                MZmineCore.getDesktop().displayErrorMessage(null,
                         "No peak is selected");
                 return;
             }

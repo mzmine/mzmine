@@ -153,13 +153,13 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
                     comboPeakList.setSelectedItem(selected[0]);
                 else
                     comboPeakList.setSelectedIndex(0);
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+                // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
             } else {
                 mainPanel.remove(pnlPlotXY);
                 pnlVisible.remove(pnlLabelsFields);
                 updateMinimumSize();
                 pack();
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+                // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
             }
             return;
         }
@@ -240,7 +240,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
         } catch (Exception e) {
             String message = "Error trying to make an instance of Peak Builder "
                     + model;
-            MZmineCore.getDesktop().displayErrorMessage(this, message);
+            MZmineCore.getDesktop().displayErrorMessage(null, message);
             logger.severe(message);
             e.printStackTrace();
             return;
@@ -311,7 +311,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
 
         updateMinimumSize();
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
     }
 

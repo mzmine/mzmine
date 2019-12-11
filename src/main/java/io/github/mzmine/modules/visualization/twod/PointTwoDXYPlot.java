@@ -20,8 +20,13 @@ package io.github.mzmine.modules.visualization.twod;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
@@ -30,12 +35,6 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * This class is responsible for drawing the actual data points. modified by

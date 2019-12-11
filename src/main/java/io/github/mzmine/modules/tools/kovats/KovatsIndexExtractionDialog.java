@@ -42,6 +42,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -54,23 +55,25 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
+
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffEvent;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffEvent;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
@@ -933,7 +936,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
             saveToFile();
         } else {
             DialogLoggerUtil.showMessageDialogForTime(
-                    MZmineCore.getDesktop().getMainWindow(),
+                    null,
                     "Select multiple files",
                     "Please select multiple files for combination", 3500);
         }

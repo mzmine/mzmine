@@ -26,13 +26,14 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.xml.transform.TransformerConfigurationException;
+
 import org.xml.sax.SAXException;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.impl.MainWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -221,10 +222,10 @@ public class ProjectSavingTask extends AbstractTask {
             savedProject.setProjectFile(saveFile);
 
             // Update the window title to reflect the new name of the project
-            if (MZmineCore.getDesktop() instanceof MainWindow) {
-                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-                mainWindow.updateTitle();
-            }
+            // if (MZmineCore.getDesktop() instanceof MainWindow) {
+                // MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+                // mainWindow.updateTitle();
+            //}
 
             logger.info("Finished saving the project to " + saveFile);
             setStatus(TaskStatus.FINISHED);

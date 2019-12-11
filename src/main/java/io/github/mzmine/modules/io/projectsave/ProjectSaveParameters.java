@@ -78,7 +78,7 @@ public class ProjectSaveParameters extends SimpleParameterSet {
             }
             if (selectedFile.exists()) {
                 int selectedValue = JOptionPane.showConfirmDialog(
-                        MZmineCore.getDesktop().getMainWindow(),
+                        null,
                         selectedFile.getName() + " already exists, overwrite ?",
                         "Question...", JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE);

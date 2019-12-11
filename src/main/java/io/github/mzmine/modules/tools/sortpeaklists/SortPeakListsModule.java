@@ -18,26 +18,18 @@
 
 package io.github.mzmine.modules.tools.sortpeaklists;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
-import javax.swing.tree.DefaultMutableTreeNode;
-import io.github.msdk.MSDKRuntimeException;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.gui.impl.MainWindow;
-import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
-import io.github.mzmine.gui.impl.projecttree.ProjectTree;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
@@ -70,7 +62,7 @@ public class SortPeakListsModule implements MZmineProcessingModule {
         List<PeakList> peakLists = Arrays.asList(
                 parameters.getParameter(SortPeakListsParameters.peakLists)
                         .getValue().getMatchingPeakLists());
-
+/*
         PeakListTreeModel model = null;
         if (project instanceof MZmineProjectImpl) {
             model = ((MZmineProjectImpl) project).getPeakListTreeModel();
@@ -127,7 +119,7 @@ public class SortPeakListsModule implements MZmineProcessingModule {
             model.insertNodeInto(node, rootNode, insertPosition);
             insertPosition++;
         }
-
+*/
         return ExitCode.OK;
     }
 

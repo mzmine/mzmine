@@ -30,9 +30,6 @@ import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -219,7 +216,6 @@ public class SpectralMatchTask extends AbstractTask {
                 if (isCanceled()) {
                     logger.info("Added " + count
                             + " spectral library matches (before being cancelled)");
-                    repaintWindow();
                     return;
                 }
 
@@ -254,9 +250,6 @@ public class SpectralMatchTask extends AbstractTask {
             setErrorMessage("Spectral data base matching failed");
             return;
         }
-
-        // Repaint the window to reflect the change in the feature list
-        repaintWindow();
 
         list = null;
         setStatus(TaskStatus.FINISHED);
@@ -303,11 +296,6 @@ public class SpectralMatchTask extends AbstractTask {
         return false;
     }
 
-    private void repaintWindow() {
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
-    }
 
     /**
      * 

@@ -119,7 +119,7 @@ public class DBFrame extends JFrame implements ActionListener {
             int index = dbTable.getSelectedRow();
 
             if (index < 0) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Select one result to add as compound identity");
                 return;
             }
@@ -136,7 +136,7 @@ public class DBFrame extends JFrame implements ActionListener {
                     Desktop.getDesktop().browse(url.toURI());
                 }
             } catch (RuntimeException f) {
-                MZmineCore.getDesktop().displayMessage(this,
+                MZmineCore.getDesktop().displayMessage(null,
                         "Not supported Database");
             } catch (URISyntaxException | IOException d) {
                 logger.error("Error happened on opening db link for {} : {}",

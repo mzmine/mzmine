@@ -60,7 +60,7 @@ public class OnlineDBSpectraSearchModule implements MZmineModule {
                 .getModuleParameters(OnlineDBSpectraSearchModule.class);
 
         // Run task.
-        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+        if (parameters.showSetupDialog(null,
                 true) == ExitCode.OK) {
 
             MZmineCore.getTaskController()

@@ -63,7 +63,7 @@ public class ProjectCloseModule implements MZmineProcessingModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
         int selectedValue = JOptionPane.showInternalConfirmDialog(
-                MZmineCore.getDesktop().getMainWindow().getContentPane(),
+                null,
                 "Are you sure you want to close the current project?",
                 "Close project", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);

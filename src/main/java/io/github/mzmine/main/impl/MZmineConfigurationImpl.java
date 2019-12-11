@@ -183,6 +183,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
                 .getValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void loadConfiguration(File file) throws IOException {
 
@@ -224,21 +225,27 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
             logger.finest("Loading modules configuration");
 
-            for (MZmineModule module : MZmineCore.getAllModules()) {
+            expr = xpath.compile("//configuration/modules/module");
+            nodes = (NodeList) expr.evaluate(configuration,
+                    XPathConstants.NODESET);
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Element moduleElement = (Element) nodes.item(i);
+                String moduleClassName = moduleElement.getAttribute("class");
 
-                String className = module.getClass().getName();
-                expr = xpath.compile("//configuration/modules/module[@class='"
-                        + className + "']/parameters");
-                nodes = (NodeList) expr.evaluate(configuration,
-                        XPathConstants.NODESET);
-                if (nodes.getLength() != 1)
-                    continue;
+                try {
+                    Class<? extends MZmineModule> moduleClass = (Class<? extends MZmineModule>) Class
+                            .forName(moduleClassName);
 
-                Element moduleElement = (Element) nodes.item(0);
-
-                ParameterSet moduleParameters = getModuleParameters(
-                        module.getClass());
-                moduleParameters.loadValuesFromXML(moduleElement);
+                    ParameterSet moduleParameters = getModuleParameters(
+                            moduleClass);
+                    moduleParameters.loadValuesFromXML(moduleElement);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    logger.log(Level.WARNING,
+                            "Failed to load configuration for module "
+                                    + moduleClassName,
+                            e);
+                }
             }
 
             logger.info("Loaded configuration from file " + file);

@@ -28,94 +28,82 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.main.NewVersionCheck;
-import io.github.mzmine.main.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.NewVersionCheck;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 
 /**
- * The controller class for conf/mainmenu.fxml
+ * The controller class for MainMenu.fxml
  * 
  */
 public class MainMenuController {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  public void closeProject(ActionEvent event) {
-    MZmineGUI.closeProject();
-  }
-
-  public void exitApplication(ActionEvent event) {
-    MZmineGUI.requestQuit();
-  }
-
-  public void openLink(ActionEvent event) {
-    String url = "";
-
-    // Link for menu item
-    MenuItem item = (MenuItem) event.getSource();
-    switch (item.getText()) {
-      case "Tutorials":
-        url = "http://mzmine.github.io/documentation.html";
-        break;
-      case "Support":
-        url = "http://mzmine.github.io/support.html";
-        break;
-      case "Report Problem":
-        url = "https://github.com/mzmine/mzmine3/issues";
-        break;
+    public void closeProject(ActionEvent event) {
+        MZmineGUI.closeProject();
     }
 
-    // Open link in browser
-    if (Desktop.isDesktopSupported()) {
-      Desktop desktop = Desktop.getDesktop();
-      try {
-        desktop.browse(new URI(url));
-      } catch (IOException | URISyntaxException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    } else {
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec("xdg-open " + url);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    public void exitApplication(ActionEvent event) {
+        MZmineGUI.requestQuit();
     }
-  }
 
-  public void versionCheck(ActionEvent event) {
-    // Check for new version of MZmine
-    logger.info("Checking for new MZmine version");
-    NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
-    Thread nvcThread = new Thread(NVC);
-    nvcThread.setPriority(Thread.MIN_PRIORITY);
-    nvcThread.start();
-  }
+    public void openLink(ActionEvent event) {
+        String url = "";
 
-  public void setPreferences(ActionEvent event) {
-    // Show the Preferences dialog
-    logger.info("Showing the Preferences dialog");
-   // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
-  }
+        // Link for menu item
+        MenuItem item = (MenuItem) event.getSource();
+        switch (item.getText()) {
+        case "Tutorials":
+            url = "http://mzmine.github.io/documentation.html";
+            break;
+        case "Support":
+            url = "http://mzmine.github.io/support.html";
+            break;
+        case "Report Problem":
+            url = "https://github.com/mzmine/mzmine3/issues";
+            break;
+        }
 
-  public void showAbout(ActionEvent event) {
-    // Show the about window
-    try {
-      final String aboutWindowFXML = "file:conf/AboutWindow.fxml";
-      URL fxmlFile = new URL(aboutWindowFXML);
-      FXMLLoader fxmlLoader = new FXMLLoader(fxmlFile);
-      Pane pane = fxmlLoader.load();
-
-      // Open the window
-      MZmineGUI.addWindow(pane, "About MZmine");
-    } catch (Exception e1) {
-      e1.printStackTrace();
+        // Open link in browser
+        if (Desktop.isDesktopSupported()) {
+            Desktop desktop = Desktop.getDesktop();
+            try {
+                desktop.browse(new URI(url));
+            } catch (IOException | URISyntaxException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec("xdg-open " + url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
-  }
+
+    public void versionCheck(ActionEvent event) {
+        // Check for new version of MZmine
+        logger.info("Checking for new MZmine version");
+        NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
+        Thread nvcThread = new Thread(NVC);
+        nvcThread.setPriority(Thread.MIN_PRIORITY);
+        nvcThread.start();
+    }
+
+    public void setPreferences(ActionEvent event) {
+        // Show the Preferences dialog
+        logger.info("Showing the Preferences dialog");
+        // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
+    }
+
+    public void showAbout(ActionEvent event) {
+        MZmineGUI.showAboutWindow();
+    }
 
 }

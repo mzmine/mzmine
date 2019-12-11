@@ -131,7 +131,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         } catch (Throwable t) {
 
             LOG.log(Level.SEVERE, "Peak deconvolution error", t);
-            MZmineCore.getDesktop().displayErrorMessage(this,
+            MZmineCore.getDesktop().displayErrorMessage(null,
                     "Couldn't create peak resolver (" + t.getMessage() + ')');
         }
 
@@ -192,7 +192,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
                     comboPeakList.setSelectedIndex(0);
                 }
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+                // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
             } else {
 
                 mainPanel.remove(pnlPlotXY);
@@ -277,7 +277,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                 } catch (Throwable t) {
 
                     LOG.log(Level.SEVERE, "Peak deconvolution error", t);
-                    MZmineCore.getDesktop().displayErrorMessage(this,
+                    MZmineCore.getDesktop().displayErrorMessage(null,
                             t.toString());
                 }
 
@@ -292,10 +292,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
                 // Check peak count.
                 if (resolvedPeaks.length > MAX_PEAKS) {
-                    // MZmineCore.getDesktop().displayMessage(this,
+                    // MZmineCore.getDesktop().displayMessage(null,
                     // "Too many peaks detected, please adjust parameter
                     // values");
-                    MZmineCore.getDesktop().displayMessage(this,
+                    MZmineCore.getDesktop().displayMessage(null,
                             "Too many peaks detected. Not all of the peaks might be displayed");
                 }
             }
@@ -378,6 +378,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
         updateMinimumSize();
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+        // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
     }
 }

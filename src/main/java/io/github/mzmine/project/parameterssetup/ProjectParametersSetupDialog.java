@@ -31,6 +31,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -72,7 +73,7 @@ public class ProjectParametersSetupDialog extends JDialog
     private Desktop desktop;
 
     public ProjectParametersSetupDialog() {
-        super(MZmineCore.getDesktop().getMainWindow(), true);
+        super((JFrame) null, true);
 
         parameterValues = new Hashtable<UserParameter<?, ?>, Object[]>();
 
@@ -87,7 +88,7 @@ public class ProjectParametersSetupDialog extends JDialog
 
         setupTableModel();
 
-        setLocationRelativeTo(desktop.getMainWindow());
+        setLocationRelativeTo(null);
 
     }
 
@@ -138,7 +139,7 @@ public class ProjectParametersSetupDialog extends JDialog
             UserParameter<?, ?> parameter = tablemodelParameterValues
                     .getParameter(selectedColumn);
             if (parameter == null) {
-                desktop.displayErrorMessage(this,
+                desktop.displayErrorMessage(null,
                         "Select a parameter column from the table first.");
                 return;
             }
@@ -234,7 +235,7 @@ public class ProjectParametersSetupDialog extends JDialog
                         try {
                             Double.parseDouble((String) objValue);
                         } catch (NumberFormatException ex) {
-                            desktop.displayErrorMessage(this,
+                            desktop.displayErrorMessage(null,
                                     "Incorrect value (" + objValue
                                             + ") for parameter "
                                             + parameter.getName()

@@ -105,7 +105,7 @@ public class ExportLipidModificationsAction extends AbstractAction {
                             .getAncestorOfClass(Window.class,
                                     (Component) e.getSource());
                     final String msg = "There was a problem writing the lipid modifications file.";
-                    MZmineCore.getDesktop().displayErrorMessage(window,
+                    MZmineCore.getDesktop().displayErrorMessage(null,
                             "I/O Error", msg + "\n(" + ex.getMessage() + ')');
                     LOG.log(Level.SEVERE, msg, ex);
                 }

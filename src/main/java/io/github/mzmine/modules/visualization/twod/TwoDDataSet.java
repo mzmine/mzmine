@@ -21,7 +21,9 @@ package io.github.mzmine.modules.visualization.twod;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.jfree.data.xy.AbstractXYDataset;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;

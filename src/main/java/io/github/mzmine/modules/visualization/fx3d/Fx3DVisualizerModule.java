@@ -182,8 +182,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
         myParameters.getParameter(Fx3DVisualizerParameters.features)
                 .setValue(featuresList);
-        if (myParameters.showSetupDialog(
-                MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+        if (myParameters.showSetupDialog(null, true) == ExitCode.OK) {
             myInstance.runModule(
                     MZmineCore.getProjectManager().getCurrentProject(),
                     myParameters.cloneParameterSet(), new ArrayList<Task>());

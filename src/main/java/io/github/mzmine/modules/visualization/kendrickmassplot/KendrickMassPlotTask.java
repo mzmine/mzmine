@@ -24,7 +24,9 @@ import java.awt.Font;
 import java.awt.Paint;
 import java.util.Arrays;
 import java.util.logging.Logger;
+
 import javax.swing.JFrame;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -43,6 +45,7 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.PeakList;

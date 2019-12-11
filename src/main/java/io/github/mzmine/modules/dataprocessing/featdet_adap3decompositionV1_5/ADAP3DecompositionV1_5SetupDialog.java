@@ -216,7 +216,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
             updateMinimumSize();
             pack();
-            setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+            // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
         }
 
         else if (source.equals(comboPeakList)) {

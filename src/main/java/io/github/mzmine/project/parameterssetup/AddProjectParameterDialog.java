@@ -202,7 +202,7 @@ public class AddProjectParameterDialog extends JDialog
 
         if (src == buttonAddParameter) {
             if (fieldName.getText().length() == 0) {
-                desktop.displayErrorMessage(this,
+                desktop.displayErrorMessage(null,
                         "Give a name for the parameter first.");
                 return;
             }
@@ -222,7 +222,7 @@ public class AddProjectParameterDialog extends JDialog
             if (radiobuttonCategorical.isSelected()) {
                 String[] possibleValues = new String[categories.size()];
                 if (possibleValues.length == 0) {
-                    desktop.displayErrorMessage(this,
+                    desktop.displayErrorMessage(null,
                             "Give at least a single parameter value.");
                     return;
                 }
@@ -259,7 +259,7 @@ public class AddProjectParameterDialog extends JDialog
                 return;
             if (((DefaultListModel<String>) listCategories.getModel())
                     .contains(inputValue)) {
-                desktop.displayErrorMessage(this, "Value already exists.");
+                desktop.displayErrorMessage(null, "Value already exists.");
                 return;
             }
             ((DefaultListModel<String>) listCategories.getModel())
@@ -270,7 +270,7 @@ public class AddProjectParameterDialog extends JDialog
 
             int[] selectedIndices = listCategories.getSelectedIndices();
             if ((selectedIndices == null) || (selectedIndices.length == 0)) {
-                desktop.displayErrorMessage(this,
+                desktop.displayErrorMessage(null,
                         "Select at least one value first.");
                 return;
             }

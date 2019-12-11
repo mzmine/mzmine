@@ -50,7 +50,7 @@ public class MSMSExportModule implements MZmineModule {
                 .getModuleParameters(MSMSExportModule.class);
 
         ExitCode exitCode = parameters
-                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+                .showSetupDialog(null, true);
         if (exitCode != ExitCode.OK)
             return;
 

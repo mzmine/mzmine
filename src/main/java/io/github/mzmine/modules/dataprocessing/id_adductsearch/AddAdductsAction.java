@@ -76,7 +76,7 @@ public class AddAdductsAction extends AbstractAction {
             // Show dialog.
             final ParameterSet parameters = new AddAdductParameters();
             if (parameters.showSetupDialog(
-                    MZmineCore.getDesktop().getMainWindow(),
+                    null,
                     true) == ExitCode.OK) {
 
                 // Create new adduct.

@@ -24,8 +24,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
+
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -44,7 +46,6 @@ import org.jfree.chart.title.TextTitle;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -180,7 +181,7 @@ public class IntensityPlotWindow extends JFrame {
 
         // Add the Windows menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
+        // menuBar.add(new WindowsMenu());
         setJMenuBar(menuBar);
 
         pack();
