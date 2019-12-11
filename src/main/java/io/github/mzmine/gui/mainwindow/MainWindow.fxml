@@ -8,6 +8,7 @@
 <?import javafx.scene.image.*?>
 <?import java.net.URL?>
 <?import javafx.scene.text.Text ?>
+<?import javafx.embed.swing.SwingNode ?>
 
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/8"
 	xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -50,8 +51,11 @@
 							</ListView>
 						</items>
 					</SplitPane>
-					<TaskProgressView fx:id="tasksView" minHeight="50"
-						prefHeight="120" />
+					<BorderPane minHeight="120">
+					    <center>
+					        <SwingNode fx:id="tasksView" />
+					    </center>
+					</BorderPane>
 				</items>
 			</SplitPane>
 		</center>
