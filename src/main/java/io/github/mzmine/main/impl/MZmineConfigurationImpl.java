@@ -27,6 +27,7 @@ import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -93,8 +94,29 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
             Class<? extends MZmineModule> moduleClass) {
         ParameterSet parameters = moduleParameters.get(moduleClass);
         if (parameters == null) {
-            throw new IllegalArgumentException("Module " + moduleClass
-                    + " does not have any parameter set instance");
+            // Create an instance of parameter set
+            MZmineModule moduleInstance = MZmineCore
+                    .getModuleInstance(moduleClass);
+            final Class<? extends ParameterSet> parameterSetClass = moduleInstance
+                    .getParameterSetClass();
+            if (parameterSetClass == null)
+                return null;
+
+            try {
+                parameters = parameterSetClass.getDeclaredConstructor()
+                        .newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.log(Level.SEVERE,
+                        "Could not create an instance of parameter set class "
+                                + parameterSetClass,
+                        e);
+                return null;
+            }
+
+            // Add the parameter set to the configuration
+            moduleParameters.put(moduleClass, parameters);
+
         }
         return parameters;
     }
@@ -107,6 +129,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
         Class<? extends ParameterSet> parametersClass = moduleInstance
                 .getParameterSetClass();
+        if (parametersClass == null) {
+            throw new IllegalArgumentException(
+                    "Module " + moduleClass + " has no parameter set class");
+        }
         if (!parametersClass.isInstance(parameters)) {
             throw new IllegalArgumentException(
                     "Given parameter set is an instance of "

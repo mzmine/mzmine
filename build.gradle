@@ -258,7 +258,7 @@ tasks.runtime.doLast {
     delete file(relativePath(imageDir) + "/release")
 
     copy {
-        from("src/main/log")
+        from("log")
         into(relativePath(imageDir) + "/log")
     }
     copy {

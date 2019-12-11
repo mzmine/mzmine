@@ -18,71 +18,75 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ExitCode;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.MenuItem;
 
 public final class ModuleMenuItem extends MenuItem {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final StringProperty moduleClass = new SimpleStringProperty();
+    private final StringProperty moduleClass = new SimpleStringProperty();
 
-  @SuppressWarnings({"unchecked"})
-  public ModuleMenuItem() {
-    setOnAction(event -> {
-      logger.info("Menu item activated: " + event);
-      Class<? extends MZmineRunnableModule> moduleJavaClass;
-      try {
-        moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass.get());
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-        MZmineGUI.displayMessage("Cannot find module class " + moduleClass.get());
-        return;
-      }
+    @SuppressWarnings({ "unchecked" })
+    public ModuleMenuItem() {
+        setOnAction(event -> {
+            logger.info("Menu item activated: " + event);
+            Class<? extends MZmineRunnableModule> moduleJavaClass;
+            try {
+                moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class
+                        .forName(moduleClass.get());
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                MZmineGUI.displayMessage(
+                        "Cannot find module class " + moduleClass.get());
+                return;
+            }
 
-      MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
+            MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
 
-      if (module == null) {
-        MZmineGUI.displayMessage("Cannot find module of class " + moduleClass.get());
-        return;
-      }
+            if (module == null) {
+                MZmineGUI.displayMessage(
+                        "Cannot find module of class " + moduleClass.get());
+                return;
+            }
 
-      ParameterSet moduleParameters =
-          MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+            ParameterSet moduleParameters = MZmineCore.getConfiguration()
+                    .getModuleParameters(moduleJavaClass);
 
-      logger.info("Setting parameters for module " + module.getName());
-      String title = "Set parameters for " + module.getName();
-      
-      //ButtonType exitCode = moduleParameters.showSetupDialog(title);
-      // if (exitCode != ButtonType.OK)
-        // return;
+            logger.info("Setting parameters for module " + module.getName());
+            String title = "Set parameters for " + module.getName();
 
-      //ParameterSet parametersCopy = moduleParameters.clone();
-      //logger.debug("Starting module " + module.getName() + " with parameters " + parametersCopy);
-      // MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+            ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
+            if (exitCode != ExitCode.OK)
+                return;
 
-    });
-  }
+            ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+            logger.finest("Starting module " + module.getName()
+                    + " with parameters " + parametersCopy);
+            MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
 
-  public String getModuleClass() {
-    return moduleClass.get();
-  }
+        });
+    }
 
-  public void setModuleClass(String newClass) {
-    moduleClass.set(newClass);
-  }
+    public String getModuleClass() {
+        return moduleClass.get();
+    }
 
-  public StringProperty moduleClassProperty() {
-    return moduleClass;
-  }
+    public void setModuleClass(String newClass) {
+        moduleClass.set(newClass);
+    }
+
+    public StringProperty moduleClassProperty() {
+        return moduleClass;
+    }
 
 }
