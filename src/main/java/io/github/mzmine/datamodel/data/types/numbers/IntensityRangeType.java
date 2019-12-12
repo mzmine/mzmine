@@ -25,7 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 
 public class IntensityRangeType extends NumberRangeType<Float> {
 
-  protected IntensityRangeType() {
+  public IntensityRangeType() {
     super(new DecimalFormat("0.0E00"));
   }
 

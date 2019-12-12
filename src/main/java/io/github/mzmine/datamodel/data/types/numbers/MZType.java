@@ -25,7 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 
 public class MZType extends DoubleType {
 
-  private MZType() {
+  public MZType() {
     super(new DecimalFormat("0.0000"));
   }
 

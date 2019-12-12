@@ -25,7 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 
 public class MZRangeType extends NumberRangeType<Double> {
 
-  protected MZRangeType() {
+  public MZRangeType() {
     super(new DecimalFormat("0.0000"));
   }
 

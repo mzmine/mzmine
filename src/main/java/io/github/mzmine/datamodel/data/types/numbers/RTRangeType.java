@@ -25,7 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 
 public class RTRangeType extends NumberRangeType<Float> {
 
-  protected RTRangeType() {
+  public RTRangeType() {
     super(new DecimalFormat("0.00"));
   }
 
