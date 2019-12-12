@@ -64,6 +64,11 @@ public class ModularFeature implements ModularDataModel {
 
   public ModularFeature(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
+
+    // add type property columns to maps
+    flist.getFeatureTypes().values().forEach(type -> {
+      this.setProperty(type, type.createProperty());
+    });
   }
 
   /**

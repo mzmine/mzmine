@@ -38,7 +38,6 @@ public class ModularFeatureList implements PeakList {
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
-  private double maxDataPointIntensity = 0;
 
   public ModularFeatureList(String name) {
     this(name, List.of());
@@ -51,6 +50,9 @@ public class ModularFeatureList implements PeakList {
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = Collections.unmodifiableList(dataFiles);
+    peakListRows = new ArrayList<>();
+    descriptionOfAppliedTasks = new ArrayList<>();
+    dateCreated = DATA_FORMAT.format(new Date());
 
     addRowType(new IDType());
     // has raw files - add column to row and feature
@@ -58,10 +60,6 @@ public class ModularFeatureList implements PeakList {
       addRowType(new FeaturesType());
       addFeatureType(new RawFileType());
     }
-
-    peakListRows = new ArrayList<>();
-    descriptionOfAppliedTasks = new ArrayList<>();
-    dateCreated = DATA_FORMAT.format(new Date());
   }
 
   @Override
@@ -96,14 +94,14 @@ public class ModularFeatureList implements PeakList {
   }
 
   public void addFeatureType(@Nonnull DataType<?>... types) {
-    addRowType(Arrays.asList(types));
+    addFeatureType(Arrays.asList(types));
   }
 
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!getRowTypes().containsKey(type.getClass())) {
         getRowTypes().put(type.getClass(), type);
-        // add to maps
+        // add type columns to maps
         stream().forEach(row -> {
           row.setProperty(type, type.createProperty());
         });
@@ -225,19 +223,10 @@ public class ModularFeatureList implements PeakList {
     }
 
     peakListRows.add(row);
-    float height = row.getHeight().getValue() == null ? 0 : row.getHeight().get();
-    if (height > maxDataPointIntensity) {
-      maxDataPointIntensity = height;
-    }
 
     // TODO solve with bindings
-    if (mzRange == null) {
-      mzRange = Range.singleton(row.getMZ().get());
-      rtRange = Range.singleton(row.getRT().get());
-    } else {
-      mzRange = mzRange.span(Range.singleton(row.getMZ().get()));
-      rtRange = rtRange.span(Range.singleton(row.getRT().get()));
-    }
+    // max intensity
+    // ranges
   }
 
   /**
@@ -338,7 +327,8 @@ public class ModularFeatureList implements PeakList {
    */
   @Override
   public double getDataPointMaxIntensity() {
-    return maxDataPointIntensity;
+    // TODO max intensity by binding
+    return 0;
   }
 
   @Override

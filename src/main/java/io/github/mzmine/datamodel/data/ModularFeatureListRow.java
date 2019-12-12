@@ -69,6 +69,11 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
+    // add type property columns to maps
+    flist.getRowTypes().values().forEach(type -> {
+      this.setProperty(type, type.createProperty());
+    });
+
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
@@ -77,12 +82,11 @@ public class ModularFeatureListRow implements ModularDataModel {
         fmap.put(r, null);
       // wrap in fixed size not thread safe! TODO discuss
       // only allows change of existing elements
-      features = MapUtils.fixedSizeMap(fmap);
+      features = FXCollections.observableMap(MapUtils.fixedSizeMap(fmap));
+      // set
+      set(FeaturesType.class, features);
     } else
       features = Collections.emptyMap();
-
-    // set
-    set(FeaturesType.class, features);
   }
 
   /**

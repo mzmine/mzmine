@@ -149,7 +149,9 @@ public interface ModularDataModel {
       throw new TypeColumnUndefinedException(this, type.getClass());
 
     DataType realType = getTypes().get(type.getClass());
-    getMap().put(realType, value);
+    // only set datatype -> property value once
+    if (getMap().get(realType) == null)
+      getMap().put(realType, value);
   }
 
   /**

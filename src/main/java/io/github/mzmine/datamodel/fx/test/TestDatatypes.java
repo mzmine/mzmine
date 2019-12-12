@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.TypeColumnUndefinedException;
-import io.github.mzmine.datamodel.data.WrongTypeException;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
@@ -50,6 +49,7 @@ public class TestDatatypes {
 
   @Before
   public void setUp() throws Exception {
+    // create feature list and add column types
     flist = new ModularFeatureList("flist");
     flist.addRowType(new DetectionType());
     flist.addRowType(new MZType());
@@ -73,13 +73,13 @@ public class TestDatatypes {
     data.set(AreaType.class, 20f);
   }
 
-  @Test(expected = WrongTypeException.class)
+  @Test(expected = ClassCastException.class)
   public void testInsertWrongTypeByInstance() {
     DataType type = new MZType();
     data.set(type, "String");
   }
 
-  @Test(expected = WrongTypeException.class)
+  @Test(expected = ClassCastException.class)
   public void testInsertWrongTypeByClass() {
     Class c = MZType.class;
     data.set(c, "String");
@@ -88,7 +88,7 @@ public class TestDatatypes {
   @Test
   public void testDataTypes() {
     // is not defined as column - should be null
-    Assert.assertNull(data.get(AreaType.class).getValue());
+    Assert.assertNull(data.get(AreaType.class));
 
     // detection type is present
     Assert.assertEquals(detection.toString(), data.getDetectionType().toString());
