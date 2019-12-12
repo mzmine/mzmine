@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -39,6 +38,7 @@ import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import javafx.beans.property.ObjectProperty;
 import junit.framework.Assert;
 
 public class TestDatatypes {
@@ -88,15 +88,14 @@ public class TestDatatypes {
   @Test
   public void testDataTypes() {
     // is not defined as column - should be null
-    Assert.assertNull(data.get(AreaType.class).orElse(null));
+    Assert.assertNull(data.get(AreaType.class).getValue());
 
     // detection type is present
     Assert.assertEquals(detection.toString(), data.getDetectionType().toString());
-    Assert.assertEquals(detection.toString(), data.getFormattedString(DetectionType.class).get());
-    Entry<DataType<FeatureStatus>, Optional<FeatureStatus>> entry =
+    Assert.assertEquals(detection.toString(), data.getFormattedString(DetectionType.class));
+    Entry<DataType<ObjectProperty<FeatureStatus>>, ObjectProperty<FeatureStatus>> entry =
         data.getEntry(DetectionType.class);
-    Assert.assertEquals(detection.toString(),
-        entry.getValue().map(v -> entry.getKey().getFormattedString(v)).get());
+    Assert.assertEquals(detection.toString(), entry.getKey().getFormattedString(entry.getValue()));
 
     // should contain a value
     Assert.assertNotNull(data.get(MZType.class).get());

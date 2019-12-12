@@ -81,19 +81,19 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
     // create bar chart
     TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> barsCol =
         new TreeTableColumn<>("Area Bars");
-    barsCol.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
+    barsCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
     barsCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(barsCol);
 
     TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> sharesCol =
         new TreeTableColumn<>("Area Share");
-    sharesCol.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
+    sharesCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
     sharesCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(sharesCol);
 
     TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> shapes =
         new TreeTableColumn<>("Shapes");
-    shapes.setCellValueFactory(new DataTypeCellValueFactory<>(null, this));
+    shapes.setCellValueFactory(new DataTypeCellValueFactory(null, this));
     shapes.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
     cols.add(shapes);
 

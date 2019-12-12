@@ -209,7 +209,9 @@ public class ModularFeatureList implements PeakList {
   @Override
   public List<ModularFeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
-    return stream().filter(row -> rtRange.contains(row.getRT()) && mzRange.contains(row.getMZ()))
+    // TODO handle if mz or rt is not present
+    return stream()
+        .filter(row -> rtRange.contains(row.getRT().get()) && mzRange.contains(row.getMZ().get()))
         .collect(Collectors.toList());
   }
 
@@ -228,12 +230,13 @@ public class ModularFeatureList implements PeakList {
       maxDataPointIntensity = height;
     }
 
+    // TODO solve with bindings
     if (mzRange == null) {
-      mzRange = Range.singleton(row.getMZ());
-      rtRange = Range.singleton(row.getRT());
+      mzRange = Range.singleton(row.getMZ().get());
+      rtRange = Range.singleton(row.getRT().get());
     } else {
-      mzRange = mzRange.span(Range.singleton(row.getMZ()));
-      rtRange = rtRange.span(Range.singleton(row.getRT()));
+      mzRange = mzRange.span(Range.singleton(row.getMZ().get()));
+      rtRange = rtRange.span(Range.singleton(row.getRT().get()));
     }
   }
 
@@ -266,9 +269,10 @@ public class ModularFeatureList implements PeakList {
   @Override
   public List<ModularFeature> getPeaksInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
+    // TODO solve with bindings and check for rt or mz presence in row
     return stream().map(ModularFeatureListRow::getFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
-        .filter(f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
+        .filter(f -> rtRange.contains(f.getRT().get()) && mzRange.contains(f.getMZ().get()))
         .collect(Collectors.toList());
   }
 
@@ -290,21 +294,8 @@ public class ModularFeatureList implements PeakList {
   }
 
   private void updateMaxIntensity() {
-    maxDataPointIntensity = 0;
-    mzRange = null;
-    rtRange = null;
-    for (ModularFeatureListRow peakListRow : peakListRows) {
-      if (peakListRow.getHeight() > maxDataPointIntensity)
-        maxDataPointIntensity = peakListRow.getHeight();
-
-      if (mzRange == null) {
-        mzRange = Range.singleton(peakListRow.getMZ());
-        rtRange = Range.singleton(peakListRow.getRT());
-      } else {
-        mzRange = mzRange.span(Range.singleton(peakListRow.getMZ()));
-        rtRange = rtRange.span(Range.singleton(peakListRow.getRT()));
-      }
-    }
+    // TODO
+    // binding
   }
 
   @Override
