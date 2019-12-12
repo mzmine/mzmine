@@ -20,11 +20,18 @@ package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
+import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
-public abstract class IntegerType extends NumberType<IntegerProperty> {
+public abstract class IntegerType extends NumberType<IntegerProperty>
+    implements BindingsFactoryType {
 
   protected IntegerType() {
     super(new DecimalFormat("0"));
@@ -46,5 +53,57 @@ public abstract class IntegerType extends NumberType<IntegerProperty> {
   @Override
   public IntegerProperty createProperty() {
     return new SimpleIntegerProperty();
+  }
+
+
+  @Override
+  public NumberBinding createBinding(BindingsType bind, ModularFeatureListRow row) {
+    // get all properties of all features
+    IntegerProperty[] prop =
+        row.streamFeatures().map(f -> f.get(this)).toArray(IntegerProperty[]::new);
+    switch (bind) {
+      case AVERAGE:
+        return Bindings.createIntegerBinding(() -> {
+          int sum = 0;
+          int n = 0;
+          for (IntegerProperty p : prop) {
+            if (p.getValue() != null) {
+              sum += p.get();
+              n++;
+            }
+          }
+          return sum / n;
+        }, prop);
+      case MIN:
+        return Bindings.createIntegerBinding(() -> {
+          int min = Integer.MAX_VALUE;
+          for (IntegerProperty p : prop)
+            if (p.getValue() != null && p.get() < min)
+              min = p.get();
+          return min;
+        }, prop);
+      case MAX:
+        return Bindings.createIntegerBinding(() -> {
+          int max = Integer.MIN_VALUE;
+          for (IntegerProperty p : prop)
+            if (p.getValue() != null && p.get() > max)
+              max = p.get();
+          return max;
+        }, prop);
+      case SUM:
+        return Bindings.createIntegerBinding(() -> {
+          int sum = 0;
+          for (IntegerProperty p : prop)
+            if (p.getValue() != null)
+              sum += p.get();
+          return sum;
+        }, prop);
+      case COUNT:
+        return Bindings.createLongBinding(() -> {
+          return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
+        }, prop);
+      default:
+        return null;
+    }
   }
 }

@@ -19,11 +19,17 @@
 package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
 import java.text.NumberFormat;
+import java.util.Arrays;
 import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
+import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
-public abstract class DoubleType extends NumberType<DoubleProperty> {
+public abstract class DoubleType extends NumberType<DoubleProperty> implements BindingsFactoryType {
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -40,5 +46,56 @@ public abstract class DoubleType extends NumberType<DoubleProperty> {
   @Override
   public DoubleProperty createProperty() {
     return new SimpleDoubleProperty();
+  }
+
+  @Override
+  public NumberBinding createBinding(BindingsType bind, ModularFeatureListRow row) {
+    // get all properties of all features
+    DoubleProperty[] prop =
+        row.streamFeatures().map(f -> f.get(this)).toArray(DoubleProperty[]::new);
+    switch (bind) {
+      case AVERAGE:
+        return Bindings.createDoubleBinding(() -> {
+          double sum = 0;
+          int n = 0;
+          for (DoubleProperty p : prop) {
+            if (p.getValue() != null) {
+              sum += p.get();
+              n++;
+            }
+          }
+          return sum / n;
+        }, prop);
+      case MIN:
+        return Bindings.createDoubleBinding(() -> {
+          double min = Double.POSITIVE_INFINITY;
+          for (DoubleProperty p : prop)
+            if (p.getValue() != null && p.get() < min)
+              min = p.get();
+          return min;
+        }, prop);
+      case MAX:
+        return Bindings.createDoubleBinding(() -> {
+          double max = Double.NEGATIVE_INFINITY;
+          for (DoubleProperty p : prop)
+            if (p.getValue() != null && p.get() > max)
+              max = p.get();
+          return max;
+        }, prop);
+      case SUM:
+        return Bindings.createDoubleBinding(() -> {
+          double sum = 0;
+          for (DoubleProperty p : prop)
+            if (p.getValue() != null)
+              sum += p.get();
+          return sum;
+        }, prop);
+      case COUNT:
+        return Bindings.createLongBinding(() -> {
+          return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
+        }, prop);
+      default:
+        return null;
+    }
   }
 }

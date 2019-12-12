@@ -91,7 +91,30 @@ public interface ModularDataModel {
   }
 
   /**
-   * Optional.ofNullable(value)
+   * Value for this datatype
+   * 
+   * @param <T>
+   * @param type
+   * @return
+   */
+  default Object getValue(DataType type) {
+    return getMap().get(type).getValue();
+  }
+
+  /**
+   * Value for this datatype
+   * 
+   * @param <T>
+   * @param tclass
+   * @return
+   */
+  default Object getValue(Class tclass) {
+    DataType type = getTypeColumn(tclass);
+    return get(type).getValue();
+  }
+
+  /**
+   * Property for this datatype
    * 
    * @param <T>
    * @param type
@@ -102,7 +125,7 @@ public interface ModularDataModel {
   }
 
   /**
-   * Optional.ofNullable(value)
+   * Property for this datatype
    * 
    * @param <T>
    * @param tclass
@@ -114,7 +137,7 @@ public interface ModularDataModel {
   }
 
   /**
-   * Optional.ofNullable(type.getFormattedString(value))
+   * type.getFormattedString(value)
    * 
    * @param <T>
    * @param type
@@ -125,7 +148,7 @@ public interface ModularDataModel {
   }
 
   /**
-   * Optional.ofNullable(type.getFormattedString(value))
+   * type.getFormattedString(value)
    * 
    * @param <T>
    * @param tclass

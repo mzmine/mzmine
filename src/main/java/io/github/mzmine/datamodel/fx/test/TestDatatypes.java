@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -33,19 +34,34 @@ import io.github.mzmine.datamodel.data.TypeColumnUndefinedException;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.FloatProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import junit.framework.Assert;
 
 public class TestDatatypes {
+  Logger logger = Logger.getLogger(TestDatatypes.class.getName());
   ModularFeatureList flist;
   ModularFeatureListRow data;
   ModularFeatureListRow empty;
   private FeatureStatus detection;
   private ModularFeatureList flistWithRaw;
+
+  // test binding
+  private ModularFeatureList flistWithBinding;
+  private float area[] = new float[] {100, 200};
+  private double mz[] = new double[] {50, 51};
+  private RawDataFile[] rawsBinding;
+
 
   @Before
   public void setUp() throws Exception {
@@ -66,6 +82,80 @@ public class TestDatatypes {
     List<RawDataFile> raw = new ArrayList<>();
     raw.add(new RawDataFileImpl("Raw"));
     flistWithRaw = new ModularFeatureList("flist name", raw);
+
+    // with binding
+    rawsBinding = new RawDataFile[] {new RawDataFileImpl("raw1"), new RawDataFileImpl("raw2")};
+    flistWithBinding = new ModularFeatureList("flist with binding", rawsBinding);
+    flistWithBinding.addRowType(new AreaType());
+    flistWithBinding.addRowType(new MZType());
+    // ftype
+    flistWithBinding.addFeatureType(new AreaType());
+    flistWithBinding.addFeatureType(new MZType());
+
+    ModularFeatureListRow row = new ModularFeatureListRow(flistWithBinding);
+    flistWithBinding.addRow(row);
+  }
+
+  @Test
+  public void simpleSumBinding() {
+    DoubleProperty a = new SimpleDoubleProperty();
+    DoubleProperty b = new SimpleDoubleProperty();
+    DoubleProperty sum = new SimpleDoubleProperty();
+
+    sum.bind(a.add(b));
+    sum.add(b);
+    logger.info("Sum=" + sum.get() + "   " + sum.getValue());
+    a.set(10);
+    logger.info("Sum=" + sum.get() + "   " + sum.getValue());
+    b.set(5);
+    logger.info("Sum=" + sum.get() + "   " + sum.getValue());
+  }
+
+  @Test
+  public void simpleAvgBinding() {
+    DoubleProperty a = new SimpleDoubleProperty();
+    DoubleProperty b = new SimpleDoubleProperty();
+    DoubleProperty avg = new SimpleDoubleProperty();
+    DoubleBinding avgBinding = Bindings.createDoubleBinding(() -> {
+      int i = a.getValue() != null ? 1 : 0;
+      i += b.getValue() != null ? 1 : 0;
+
+      return (a.getValue().doubleValue() + b.getValue().doubleValue()) / i;
+    }, a, b);
+    avg.bind(avgBinding);
+    logger.info("avg=" + avg.get() + "   " + avg.getValue());
+    a.set(10);
+    logger.info("avg=" + avg.get() + "   " + avg.getValue());
+    b.set(5);
+    logger.info("avg=" + avg.get() + "   " + avg.getValue());
+  }
+
+  @Test
+  public void testBinding() {
+    ModularFeatureListRow row = flistWithBinding.getRow(0);
+    // add bindings first and check after changing values
+    DoubleProperty mzProperty = row.get(MZType.class);
+    FloatProperty areaProperty = row.get(AreaType.class);
+
+    DataType<FloatProperty> type = row.getTypeColumn(AreaType.class);
+    if (type instanceof BindingsFactoryType)
+      areaProperty.bind(((BindingsFactoryType) type).createBinding(BindingsType.SUM, row));
+
+    DataType<DoubleProperty> typeMZ = row.getTypeColumn(MZType.class);
+    if (typeMZ instanceof BindingsFactoryType)
+      mzProperty.bind(((BindingsFactoryType) typeMZ).createBinding(BindingsType.AVERAGE, row));
+
+    logger.info("avg mz=" + row.getMZ().getValue());
+    logger.info("sum area=" + row.getArea().getValue());
+
+    // add values
+    for (int i = 0; i < rawsBinding.length; i++) {
+      ModularFeature f = row.getFeature(rawsBinding[i]);
+      f.set(AreaType.class, area[i]);
+      f.set(MZType.class, mz[i]);
+      logger.info("after settings values: avg mz=" + row.getMZ().getValue());
+      logger.info("after setting values: sum area=" + row.getArea().getValue());
+    }
   }
 
   @Test(expected = TypeColumnUndefinedException.class)

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.apache.commons.collections4.MapUtils;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -79,10 +78,8 @@ public class ModularFeatureListRow implements ModularDataModel {
       // init FeaturesType map (is final)
       HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
       for (RawDataFile r : raws)
-        fmap.put(r, null);
-      // wrap in fixed size not thread safe! TODO discuss
-      // only allows change of existing elements
-      features = FXCollections.observableMap(MapUtils.fixedSizeMap(fmap));
+        fmap.put(r, new ModularFeature(flist));
+      features = FXCollections.unmodifiableObservableMap(FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
     } else
@@ -154,7 +151,15 @@ public class ModularFeatureListRow implements ModularDataModel {
    * @param f
    */
   public void addPeak(RawDataFile raw, ModularFeature f) {
-    features.put(raw, f);
+    if (!f.getFeatureList().equals(getFeatureList())) {
+      throw new WrongFeatureListException();
+    }
+    // features are final - replace all values for all data types
+    // keep old feature
+    ModularFeature old = getFeatures().get(raw);
+    for (DataType type : flist.getFeatureTypes().values()) {
+      old.set(type, f.get(type).getValue());
+    }
   }
 
   /**
@@ -181,6 +186,17 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   public void addBufferedColChart(String colname, Node node) {
     buffertColCharts.put(colname, node);
+  }
+
+  /**
+   * nonnull if this feature list contains this raw data file. Even if there is no feature in this
+   * raw data file
+   * 
+   * @param raw
+   * @return
+   */
+  public ModularFeature getFeature(RawDataFile raw) {
+    return features.get(raw);
   }
 
 }
