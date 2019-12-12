@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import javafx.beans.property.FloatProperty;
 
 /**
  * Calculates quality parameters for each peak in a feature list: - Full width at half maximum
@@ -42,19 +43,26 @@ public class QualityParameters {
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
     flist.streamFeatures().forEach(peak -> {
-      float height = peak.getHeight();
-      float rt = peak.getRT();
+      FloatProperty height = peak.getHeight();
+      FloatProperty rt = peak.getRT();
 
       List<Integer> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       List<DataPoint> dps = peak.getDataPoints();
-      Range<Float> rtRange = peak.get(RTRangeType.class).orElse(Range.singleton(rt));
+      if (height.getValue() == null || rt.getValue() == null || dataFile == null
+          || scanNumbers.isEmpty() || dps.isEmpty())
+        return;
+
+      Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
+      if (rtRange == null)
+        rtRange = Range.singleton(rt.get());
 
       height = peak.getHeight();
       rt = peak.getRT();
 
       // FWHM
-      double rtValues[] = peakFindRTs(height / 2.0, rt, scanNumbers, dps, dataFile, rtRange);
+      double rtValues[] =
+          peakFindRTs(height.get() / 2.0, rt.get(), scanNumbers, dps, dataFile, rtRange);
       Double fwhm = rtValues[1] - rtValues[0];
       if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
         fwhm = null;
@@ -63,8 +71,9 @@ public class QualityParameters {
         peak.set(FwhmType.class, (fwhm.floatValue()));
 
       // Tailing Factor - TF
-      double rtValues2[] = peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
-      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
+      double rtValues2[] =
+          peakFindRTs(height.get() * 0.05, rt.get(), scanNumbers, dps, dataFile, rtRange);
+      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt.get() - rtValues2[0]));
       if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
         tf = null;
       }
@@ -72,8 +81,9 @@ public class QualityParameters {
         peak.set(TailingFactorType.class, (tf.floatValue()));
 
       // Asymmetry factor - AF
-      double rtValues3[] = peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
-      Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
+      double rtValues3[] =
+          peakFindRTs(height.get() * 0.1, rt.get(), scanNumbers, dps, dataFile, rtRange);
+      Double af = (rtValues3[1] - rt.get()) / (rt.get() - rtValues3[0]);
       if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
         af = null;
       }
