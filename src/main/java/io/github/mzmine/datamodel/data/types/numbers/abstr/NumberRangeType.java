@@ -54,6 +54,22 @@ public abstract class NumberRangeType<T extends Comparable<?>>
             + getFormatter().format(value.getValue().upperEndpoint());
   }
 
+  /**
+   * A formatted string representation of the value
+   * 
+   * @return the formatted representation of the value (or an empty String)
+   */
+  @Override
+  @Nonnull
+  public String getFormattedString(@Nullable Object value) {
+    if (value instanceof Range) {
+      Range r = (Range) value;
+      return getFormatter().format(r.lowerEndpoint()) + "-"
+          + getFormatter().format(r.upperEndpoint());
+    } else
+      return "";
+  }
+
   @Override
   public ObjectProperty<Range<T>> createProperty() {
     return new SimpleObjectProperty<Range<T>>();
@@ -90,15 +106,15 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, ObjectProperty<Range<T>>> cell,
-      TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> coll,
-      ObjectProperty<Range<T>> value, RawDataFile raw) {
-    if (value.getValue() == null)
+      TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> coll, Object value,
+      RawDataFile raw) {
+    if (value == null)
       return "";
     switch (subcolumn) {
       case 0:
-        return getFormatter().format(value.getValue().lowerEndpoint());
+        return getFormatter().format(((Range) value).lowerEndpoint());
       case 1:
-        return getFormatter().format(value.getValue().upperEndpoint());
+        return getFormatter().format(((Range) value).upperEndpoint());
     }
     return "";
   }

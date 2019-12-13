@@ -45,12 +45,12 @@ public interface SubColumnsFactory<T> {
 
   @Nullable
   public String getFormattedSubColValue(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw);
+      TreeTableColumn<ModularFeatureListRow, T> coll, Object cellData, RawDataFile raw);
 
 
   @Nullable
   default public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, T> coll, Object cellData, RawDataFile raw) {
     return null;
   }
 }

@@ -46,6 +46,7 @@ public abstract class DoubleType extends NumberType<Property<Double>>
     return getFormatter().format(value.getValue().doubleValue());
   }
 
+
   @Override
   public Property<Double> createProperty() {
     return new SimpleObjectProperty<>();

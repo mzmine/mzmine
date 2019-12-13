@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -40,33 +39,33 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellFactory<T extends Property<?>> implements
-    Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
+public class DataTypeCellFactory<Object> implements
+    Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
-  private DataType<T> type;
+  private DataType<?> type;
   private int subcolumn = -1;
 
 
-  public DataTypeCellFactory(RawDataFile raw, DataType<T> type) {
+  public DataTypeCellFactory(RawDataFile raw, DataType<?> type) {
     this(raw, type, -1);
   }
 
-  public DataTypeCellFactory(RawDataFile raw, DataType<T> type, int subcolumn) {
+  public DataTypeCellFactory(RawDataFile raw, DataType<?> type, int subcolumn) {
     this.type = type;
     this.raw = raw;
     this.subcolumn = subcolumn;
   }
 
   @Override
-  public TreeTableCell<ModularFeatureListRow, T> call(
-      TreeTableColumn<ModularFeatureListRow, T> param) {
+  public TreeTableCell<ModularFeatureListRow, Object> call(
+      TreeTableColumn<ModularFeatureListRow, Object> param) {
     logger.log(Level.INFO, "Creating cell in DataTypeCellFactory");
     return new TreeTableCell<>() {
 
       @Override
-      protected void updateItem(T item, boolean empty) {
+      protected void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
         logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
         if (item == null || empty) {

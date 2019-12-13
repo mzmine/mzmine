@@ -15,6 +15,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import javafx.collections.FXCollections;
@@ -62,6 +63,7 @@ public class ModularFeatureList implements PeakList {
     if (!dataFiles.isEmpty()) {
       addRowType(new FeaturesType());
       addFeatureType(new RawFileType());
+      addFeatureType(new RawColorType());
     }
   }
 

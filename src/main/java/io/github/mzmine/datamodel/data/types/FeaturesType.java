@@ -131,7 +131,7 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   public String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
       TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      Object cellData, RawDataFile raw) {
     return "";
   }
 
@@ -140,7 +140,7 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   public Node getSubColNode(int subcolumn,
       TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
       TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      Object cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;

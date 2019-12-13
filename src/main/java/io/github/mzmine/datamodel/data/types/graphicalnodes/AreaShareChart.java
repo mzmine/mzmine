@@ -31,6 +31,8 @@ public class AreaShareChart extends StackPane {
       if (areaProperty.getValue() != null) {
         // color from sample
         Color color = entry.getValue().get(RawColorType.class).getValue();
+        if (color == null)
+          color = Color.DARKORANGE;
 
         float ratio = areaProperty.getValue() / sum;
         Rectangle rect = new Rectangle();
