@@ -53,6 +53,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 /**
@@ -112,21 +113,18 @@ public class MainWindowController {
                 .setSelectionMode(SelectionMode.MULTIPLE);
         // rawDataTree.setShowRoot(true);
 
-        rawDataTree.setCellFactory(rawDataListView -> {
-            ListCell<RawDataFile> cell = new ListCell<>() {
-                @Override
-                protected void updateItem(RawDataFile item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty) {
-                        setText(null);
-                        setGraphic(null);
-                        return;
-                    }
-                    setText(item.getName());
-                    setGraphic(new ImageView(rawDataFileIcon));
+        rawDataTree.setCellFactory(rawDataListView -> new ListCell<>() {
+            @Override
+            protected void updateItem(RawDataFile item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || (item == null)) {
+                    setText("");
+                    setGraphic(null);
+                    return;
                 }
-            };
-            return cell;
+                setText(item.getName());
+                setGraphic(new ImageView(rawDataFileIcon));
+            }
         });
 
         ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController()
@@ -154,8 +152,11 @@ public class MainWindowController {
                         if (empty)
                             return;
                         ProgressBar progressBar = new ProgressBar(value);
+                        progressBar.prefWidthProperty().bind(taskProgressColumn
+                                .widthProperty().subtract(20));
                         String labelText = percentFormat.format(value);
                         Label percentLabel = new Label(labelText);
+                        percentLabel.setTextFill(Color.BLACK);
                         StackPane stack = new StackPane();
                         stack.setManaged(true);
                         stack.getChildren().addAll(progressBar, percentLabel);

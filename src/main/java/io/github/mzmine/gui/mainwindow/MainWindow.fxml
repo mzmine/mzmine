@@ -59,10 +59,10 @@
         										<Label text="No running tasks" />
     										</placeholder>
          									<columns>
-        									<TableColumn fx:id="taskNameColumn" minWidth="300" text="Task" reorderable="false" style="width: auto;" />
-        									<TableColumn fx:id="taskPriorityColumn" minWidth="100" maxWidth="100" text="Priority" reorderable="false" />
-        									<TableColumn fx:id="taskStatusColumn" minWidth="100" maxWidth="100" text="Status" reorderable="false" />
-        									<TableColumn fx:id="taskProgressColumn" minWidth="100" maxWidth="400" text="\% done" reorderable="false" />
+        									<TableColumn fx:id="taskNameColumn" minWidth="300" text="Task" reorderable="false" sortable="false" />
+        									<TableColumn fx:id="taskPriorityColumn" minWidth="100" maxWidth="100" text="Priority" reorderable="false" sortable="false" />
+        									<TableColumn fx:id="taskStatusColumn" minWidth="100" maxWidth="100" text="Status" reorderable="false" sortable="false" />
+        									<TableColumn fx:id="taskProgressColumn" minWidth="100" maxWidth="400" text="\% done" reorderable="false" sortable="false" />
         							     </columns>
              						     <contextMenu>
 											<ContextMenu>

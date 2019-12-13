@@ -232,14 +232,19 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     public static void activateProject(MZmineProject project) {
-        MZmineCore.getProjectManager().setCurrentProject(project);
 
-        ListView<RawDataFile> rawDataTree = mainWindowController
-                .getRawDataTree();
-        rawDataTree.setItems(project.rawDataFiles());
+        Platform.runLater(() -> {
 
-        ListView<PeakList> featureTree = mainWindowController.getFeatureTree();
-        featureTree.setItems(project.featureLists());
+            MZmineCore.getProjectManager().setCurrentProject(project);
+
+            ListView<RawDataFile> rawDataTree = mainWindowController
+                    .getRawDataTree();
+            rawDataTree.setItems(project.rawDataFiles());
+
+            ListView<PeakList> featureTree = mainWindowController
+                    .getFeatureTree();
+            featureTree.setItems(project.featureLists());
+        });
 
     }
 
@@ -331,7 +336,7 @@ public class MZmineGUI extends Application implements Desktop {
     public TableView<WrappedTask> getTasksView() {
         return mainWindowController.getTasksView();
     }
-    
+
     @Override
     public void setStatusBarText(String message) {
         setStatusBarText(message, Color.black);
