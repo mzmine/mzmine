@@ -16,34 +16,16 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types.numbers;
+package io.github.mzmine.datamodel.data;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.data.types.numbers.abstr.DoubleRangeType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 
-public class MZRangeType extends DoubleRangeType {
+public class UndefinedRowBindingException extends RuntimeException {
+  private static final long serialVersionUID = 1L;
 
-  public MZRangeType() {
-    super(new DecimalFormat("0.0000"));
+  public UndefinedRowBindingException(DataType<?> type, BindingsType bindType) {
+    super("This following datatype does not support this binding type: DataType="
+        + type.getClass().descriptorString() + "  binding=" + bindType.toString());
   }
-
-  @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getMZFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
-  }
-
-  @Override
-  @Nonnull
-  public String getHeaderString() {
-    return "m/z Range";
-  }
-
 }

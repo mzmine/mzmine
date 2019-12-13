@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types.numbers;
+package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -28,15 +28,16 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.data.types.numbers.abstr.NumberType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
-public abstract class NumberRangeType<T extends Comparable<?>> extends
-    NumberType<ObjectProperty<Range<T>>> implements SubColumnsFactory<ObjectProperty<Range<T>>> {
+public abstract class NumberRangeType<T extends Comparable<?>>
+    extends NumberType<ObjectProperty<Range<T>>>
+    implements SubColumnsFactory<ObjectProperty<Range<T>>>, BindingsFactoryType {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -101,5 +102,6 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends
     }
     return "";
   }
+
 
 }

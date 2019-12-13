@@ -19,10 +19,14 @@
 package io.github.mzmine.datamodel.data;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.beans.property.Property;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 public interface ModularDataModel {
@@ -185,12 +189,7 @@ public interface ModularDataModel {
    * @param value
    */
   default <T extends Property<?>> void set(DataType<T> type, Object value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(type.getClass()))
-      throw new TypeColumnUndefinedException(this, type.getClass());
-
-    DataType realType = getTypes().get(type.getClass());
-    get(realType).setValue(value);
+    set((Class) type.getClass(), value);
   }
 
   /**
@@ -206,7 +205,14 @@ public interface ModularDataModel {
       throw new TypeColumnUndefinedException(this, tclass);
 
     DataType realType = getTypeColumn(tclass);
-    get(realType).setValue(value);
+    Property property = get(realType);
+    // lists need to be ObservableList
+    if (value instanceof List && !(value instanceof ObservableList))
+      property.setValue(FXCollections.observableList((List) value));
+    else if (value instanceof Map && !(value instanceof ObservableMap))
+      property.setValue(FXCollections.observableMap((Map) value));
+    else
+      property.setValue(value);
   }
 
   default void remove(Class<? extends DataType<?>> tclass) {

@@ -21,9 +21,10 @@ package io.github.mzmine.datamodel.data.types.numbers;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatRangeType;
 import io.github.mzmine.main.MZmineCore;
 
-public class RTRangeType extends NumberRangeType<Float> {
+public class RTRangeType extends FloatRangeType {
 
   public RTRangeType() {
     super(new DecimalFormat("0.00"));

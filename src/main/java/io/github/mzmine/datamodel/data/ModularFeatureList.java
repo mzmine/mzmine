@@ -27,6 +27,9 @@ public class ModularFeatureList implements PeakList {
       FXCollections.observableHashMap();
   private final ObservableMap<Class<? extends DataType>, DataType> featureTypes =
       FXCollections.observableHashMap();
+  // bindings for values
+  private final List<RowBinding> rowBindings = new ArrayList<>();
+
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -70,6 +73,34 @@ public class ModularFeatureList implements PeakList {
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * Bind row types to feature types to calculate averages, sums, min, max, counts.
+   * 
+   * @param binding
+   */
+  public void addRowBinding(@Nonnull List<RowBinding> bindings) {
+    for (RowBinding b : bindings) {
+      rowBindings.add(b);
+      // apply to all rows
+      stream().forEach(row -> {
+        b.apply(row);
+      });
+    }
+  }
+
+  public void addRowBinding(@Nonnull RowBinding... bindings) {
+    addRowBinding(Arrays.asList(bindings));
+  }
+
+  /**
+   * Apply all bindings to all this row
+   * 
+   * @param row
+   */
+  private void applyRowBindings(ModularFeatureListRow row) {
+    rowBindings.forEach(bind -> bind.apply(row));
   }
 
   /**
@@ -224,10 +255,13 @@ public class ModularFeatureList implements PeakList {
 
     peakListRows.add(row);
 
+    applyRowBindings(row);
+
     // TODO solve with bindings
     // max intensity
     // ranges
   }
+
 
   /**
    * Returns all peaks overlapping with a retention time range

@@ -21,7 +21,9 @@ package io.github.mzmine.datamodel.data.types.numbers.abstr;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import javafx.beans.binding.Bindings;
@@ -95,8 +97,21 @@ public abstract class DoubleType extends NumberType<Property<Double>>
         return Bindings.createObjectBinding(() -> {
           return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
         }, prop);
+      case RANGE:
+        return Bindings.createObjectBinding(() -> {
+          Range<Double> result = null;
+          for (Property<Double> p : prop) {
+            if (p.getValue() != null) {
+              if (result == null)
+                result = Range.singleton(p.getValue());
+              else
+                result = result.span(Range.singleton(p.getValue()));
+            }
+          }
+          return result;
+        }, prop);
       default:
-        return null;
+        throw new UndefinedRowBindingException(this, bind);
     }
   }
 }
