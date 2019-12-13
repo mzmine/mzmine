@@ -36,9 +36,9 @@
 		<SeparatorMenuItem />
 		<Menu text="Import...">
 			<ModuleMenuItem text="Raw Data"
-				moduleClass="io.github.mzmine.modules.rawdata.rawdataimport.RawDataImportModule" />
-			<ModuleMenuItem text="Feature Tables"
-				moduleClass="io.github.mzmine.modules.featuretableimport.FeatureTableImportModule" />
+				moduleClass="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
+			<ModuleMenuItem text="mzTab"
+				moduleClass="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
 		</Menu>
 		<SeparatorMenuItem />
 		<Menu text="Export Feature Tables...">
@@ -54,7 +54,7 @@
 			<MenuItem text="MGF" />
 			<MenuItem text="MSP" />
 			<ModuleMenuItem text="mzML"
-				moduleClass="io.github.mzmine.modules.rawdata.mzmlexport.MzMLExportModule" />
+				moduleClass="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
 			<MenuItem text="TXT" />
 		</Menu>
 		<SeparatorMenuItem />
