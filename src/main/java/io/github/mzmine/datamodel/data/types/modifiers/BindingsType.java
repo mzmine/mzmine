@@ -1,4 +1,4 @@
-package io.github.mzmine.datamodel.data.types.rowsum;
+package io.github.mzmine.datamodel.data.types.modifiers;
 
 public enum BindingsType {
 

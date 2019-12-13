@@ -42,8 +42,6 @@ import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.util.DataTypeUtils;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.FloatProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -146,19 +144,19 @@ public class ModularFeature implements ModularDataModel {
     return raw.getValue();
   }
 
-  public FloatProperty getRT() {
+  public Property<Float> getRT() {
     return get(RTType.class);
   }
 
-  public DoubleProperty getMZ() {
+  public Property<Double> getMZ() {
     return get(MZType.class);
   }
 
-  public FloatProperty getHeight() {
+  public Property<Float> getHeight() {
     return get(HeightType.class);
   }
 
-  public FloatProperty getArea() {
+  public Property<Float> getArea() {
     return get(AreaType.class);
   }
 

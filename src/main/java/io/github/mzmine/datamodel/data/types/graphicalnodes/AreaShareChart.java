@@ -10,7 +10,7 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import javafx.beans.property.FloatProperty;
+import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -21,18 +21,18 @@ public class AreaShareChart extends StackPane {
 
   public AreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
     Float sum = row.streamFeatures().map(ModularFeature::getArea).filter(p -> p.getValue() != null)
-        .map(FloatProperty::get).reduce(0f, Float::sum);
+        .map(Property<Float>::getValue).reduce(0f, Float::sum);
 
     List<Rectangle> all = new ArrayList<>();
     int i = 0;
     int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
-      FloatProperty areaProperty = entry.getValue().get(AreaType.class);
+      Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       if (areaProperty.getValue() != null) {
         // color from sample
         Color color = entry.getValue().get(RawColorType.class).getValue();
 
-        float ratio = areaProperty.get() / sum;
+        float ratio = areaProperty.getValue() / sum;
         Rectangle rect = new Rectangle();
         rect.setFill(color);
         // bind width

@@ -35,9 +35,6 @@ import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.FloatProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
@@ -125,19 +122,19 @@ public class ModularFeatureListRow implements ModularDataModel {
     return get(DetectionType.class).getValue();
   }
 
-  public DoubleProperty getMZ() {
+  public Property<Double> getMZ() {
     return get(MZType.class);
   }
 
-  public FloatProperty getRT() {
+  public Property<Float> getRT() {
     return get(RTType.class);
   }
 
-  public FloatProperty getHeight() {
+  public Property<Float> getHeight() {
     return get(HeightType.class);
   }
 
-  public FloatProperty getArea() {
+  public Property<Float> getArea() {
     return get(AreaType.class);
   }
 
@@ -168,8 +165,8 @@ public class ModularFeatureListRow implements ModularDataModel {
    * @return
    */
   public int getID() {
-    IntegerProperty idProp = get(IDType.class);
-    return idProp == null ? -1 : get(IDType.class).get();
+    Property<Integer> idProp = get(IDType.class);
+    return idProp == null || idProp.getValue() == null ? -1 : get(IDType.class).getValue();
   }
 
   public List<RawDataFile> getRawDataFiles() {

@@ -35,17 +35,18 @@ import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.FloatProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import junit.framework.Assert;
 
 public class TestDatatypes {
@@ -113,38 +114,50 @@ public class TestDatatypes {
 
   @Test
   public void simpleAvgBinding() {
-    DoubleProperty a = new SimpleDoubleProperty();
-    DoubleProperty b = new SimpleDoubleProperty();
-    DoubleProperty avg = new SimpleDoubleProperty();
-    DoubleBinding avgBinding = Bindings.createDoubleBinding(() -> {
-      int i = a.getValue() != null ? 1 : 0;
-      i += b.getValue() != null ? 1 : 0;
+    Property<Double> a = new SimpleObjectProperty<>();
+    Property<Double> b = new SimpleObjectProperty<>();
+    Property<Double>[] properties = new Property[] {a, b};
+    Property<Double> avg = new SimpleObjectProperty<>();
 
-      return (a.getValue().doubleValue() + b.getValue().doubleValue()) / i;
-    }, a, b);
+    ObjectBinding<Double> avgBinding = Bindings.createObjectBinding(() -> {
+      double sum = 0;
+      int n = 0;
+      for (Property<Double> p : properties) {
+        if (p.getValue() != null) {
+          sum += p.getValue().doubleValue();
+          n++;
+        }
+      }
+      return n == 0 ? 0 : sum / n;
+    }, properties);
     avg.bind(avgBinding);
-    logger.info("avg=" + avg.get() + "   " + avg.getValue());
-    a.set(10);
-    logger.info("avg=" + avg.get() + "   " + avg.getValue());
-    b.set(5);
-    logger.info("avg=" + avg.get() + "   " + avg.getValue());
+    logger.info("avg=" + avg.getValue().doubleValue() + "   " + avg.getValue());
+    a.setValue(10d);
+    logger.info("avg=" + avg.getValue().doubleValue() + "   " + avg.getValue());
+    b.setValue(5d);
+    logger.info("avg=" + avg.getValue().doubleValue() + "   " + avg.getValue());
   }
 
   @Test
   public void testBinding() {
     ModularFeatureListRow row = flistWithBinding.getRow(0);
     // add bindings first and check after changing values
-    DoubleProperty mzProperty = row.get(MZType.class);
-    FloatProperty areaProperty = row.get(AreaType.class);
+    Property<Double> mzProperty = row.get(MZType.class);
+    Property<Float> areaProperty = row.get(AreaType.class);
 
-    DataType<FloatProperty> type = row.getTypeColumn(AreaType.class);
-    if (type instanceof BindingsFactoryType)
-      areaProperty.bind(((BindingsFactoryType) type).createBinding(BindingsType.SUM, row));
+    DataType<Property<Float>> type = row.getTypeColumn(AreaType.class);
+    if (type instanceof BindingsFactoryType) {
+      ObjectBinding<Float> sumBind =
+          (ObjectBinding<Float>) ((BindingsFactoryType) type).createBinding(BindingsType.SUM, row);
+      areaProperty.bind(sumBind);
+    }
 
-    DataType<DoubleProperty> typeMZ = row.getTypeColumn(MZType.class);
-    if (typeMZ instanceof BindingsFactoryType)
-      mzProperty.bind(((BindingsFactoryType) typeMZ).createBinding(BindingsType.AVERAGE, row));
-
+    DataType<Property<Double>> typeMZ = row.getTypeColumn(MZType.class);
+    if (typeMZ instanceof BindingsFactoryType) {
+      ObjectBinding<Double> avgBind = (ObjectBinding<Double>) ((BindingsFactoryType) typeMZ)
+          .createBinding(BindingsType.AVERAGE, row);
+      mzProperty.bind(avgBind);
+    }
     logger.info("avg mz=" + row.getMZ().getValue());
     logger.info("sum area=" + row.getArea().getValue());
 
@@ -188,8 +201,8 @@ public class TestDatatypes {
     Assert.assertEquals(detection.toString(), entry.getKey().getFormattedString(entry.getValue()));
 
     // should contain a value
-    Assert.assertNotNull(data.get(MZType.class).get());
-    Assert.assertNotNull(data.get(new MZType()).get());
+    Assert.assertNotNull(data.get(MZType.class).getValue());
+    Assert.assertNotNull(data.get(new MZType()).getValue());
   }
 
 

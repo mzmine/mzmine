@@ -23,13 +23,13 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
-import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.NumberBinding;
-import javafx.beans.property.FloatProperty;
-import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 
-public abstract class FloatType extends NumberType<FloatProperty> implements BindingsFactoryType {
+public abstract class FloatType extends NumberType<Property<Float>> implements BindingsFactoryType {
 
   protected FloatType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -37,60 +37,61 @@ public abstract class FloatType extends NumberType<FloatProperty> implements Bin
 
   @Override
   @Nonnull
-  public String getFormattedString(@Nonnull FloatProperty value) {
+  public String getFormattedString(@Nonnull Property<Float> value) {
     if (value.getValue() == null)
       return "";
-    return getFormatter().format(value.getValue().doubleValue());
+    return getFormatter().format(value.getValue().floatValue());
   }
 
   @Override
-  public FloatProperty createProperty() {
-    return new SimpleFloatProperty();
+  public Property<Float> createProperty() {
+    return new SimpleObjectProperty<Float>();
   }
 
   @Override
-  public NumberBinding createBinding(BindingsType bind, ModularFeatureListRow row) {
+  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
-    FloatProperty[] prop = row.streamFeatures().map(f -> f.get(this)).toArray(FloatProperty[]::new);
+    @SuppressWarnings("unchecked")
+    Property<Float>[] prop = row.streamFeatures().map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
-        return Bindings.createFloatBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           float sum = 0;
           int n = 0;
-          for (FloatProperty p : prop) {
+          for (Property<Float> p : prop) {
             if (p.getValue() != null) {
-              sum += p.get();
+              sum += p.getValue();
               n++;
             }
           }
-          return sum / n;
+          return n == 0 ? 0 : sum / n;
         }, prop);
       case MIN:
-        return Bindings.createFloatBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           float min = Float.POSITIVE_INFINITY;
-          for (FloatProperty p : prop)
-            if (p.getValue() != null && p.get() < min)
-              min = p.get();
+          for (Property<Float> p : prop)
+            if (p.getValue() != null && p.getValue() < min)
+              min = p.getValue();
           return min;
         }, prop);
       case MAX:
-        return Bindings.createFloatBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           float max = Float.NEGATIVE_INFINITY;
-          for (FloatProperty p : prop)
-            if (p.getValue() != null && p.get() > max)
-              max = p.get();
+          for (Property<Float> p : prop)
+            if (p.getValue() != null && p.getValue() > max)
+              max = p.getValue();
           return max;
         }, prop);
       case SUM:
-        return Bindings.createFloatBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           float sum = 0;
-          for (FloatProperty p : prop)
+          for (Property<Float> p : prop)
             if (p.getValue() != null)
-              sum += p.get();
+              sum += p.getValue();
           return sum;
         }, prop);
       case COUNT:
-        return Bindings.createLongBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
         }, prop);
       default:

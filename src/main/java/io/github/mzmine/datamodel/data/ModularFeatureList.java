@@ -208,8 +208,8 @@ public class ModularFeatureList implements PeakList {
   public List<ModularFeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
-    return stream()
-        .filter(row -> rtRange.contains(row.getRT().get()) && mzRange.contains(row.getMZ().get()))
+    return stream().filter(
+        row -> rtRange.contains(row.getRT().getValue()) && mzRange.contains(row.getMZ().getValue()))
         .collect(Collectors.toList());
   }
 
@@ -261,7 +261,8 @@ public class ModularFeatureList implements PeakList {
     // TODO solve with bindings and check for rt or mz presence in row
     return stream().map(ModularFeatureListRow::getFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
-        .filter(f -> rtRange.contains(f.getRT().get()) && mzRange.contains(f.getMZ().get()))
+        .filter(
+            f -> rtRange.contains(f.getRT().getValue()) && mzRange.contains(f.getMZ().getValue()))
         .collect(Collectors.toList());
   }
 

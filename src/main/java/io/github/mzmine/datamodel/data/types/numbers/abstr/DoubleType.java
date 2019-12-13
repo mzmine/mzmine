@@ -23,13 +23,14 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
-import io.github.mzmine.datamodel.data.types.rowsum.BindingsType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.NumberBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 
-public abstract class DoubleType extends NumberType<DoubleProperty> implements BindingsFactoryType {
+public abstract class DoubleType extends NumberType<Property<Double>>
+    implements BindingsFactoryType {
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -37,61 +38,61 @@ public abstract class DoubleType extends NumberType<DoubleProperty> implements B
 
   @Override
   @Nonnull
-  public String getFormattedString(@Nonnull DoubleProperty value) {
+  public String getFormattedString(@Nonnull Property<Double> value) {
     if (value.getValue() == null)
       return "";
     return getFormatter().format(value.getValue().doubleValue());
   }
 
   @Override
-  public DoubleProperty createProperty() {
-    return new SimpleDoubleProperty();
+  public Property<Double> createProperty() {
+    return new SimpleObjectProperty<>();
   }
 
   @Override
-  public NumberBinding createBinding(BindingsType bind, ModularFeatureListRow row) {
+  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
-    DoubleProperty[] prop =
-        row.streamFeatures().map(f -> f.get(this)).toArray(DoubleProperty[]::new);
+    @SuppressWarnings("unchecked")
+    Property<Double>[] prop = row.streamFeatures().map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
-        return Bindings.createDoubleBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           double sum = 0;
           int n = 0;
-          for (DoubleProperty p : prop) {
+          for (Property<Double> p : prop) {
             if (p.getValue() != null) {
-              sum += p.get();
+              sum += p.getValue();
               n++;
             }
           }
-          return sum / n;
+          return n == 0 ? 0 : sum / n;
         }, prop);
       case MIN:
-        return Bindings.createDoubleBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           double min = Double.POSITIVE_INFINITY;
-          for (DoubleProperty p : prop)
-            if (p.getValue() != null && p.get() < min)
-              min = p.get();
+          for (Property<Double> p : prop)
+            if (p.getValue() != null && p.getValue() < min)
+              min = p.getValue();
           return min;
         }, prop);
       case MAX:
-        return Bindings.createDoubleBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           double max = Double.NEGATIVE_INFINITY;
-          for (DoubleProperty p : prop)
-            if (p.getValue() != null && p.get() > max)
-              max = p.get();
+          for (Property<Double> p : prop)
+            if (p.getValue() != null && p.getValue() > max)
+              max = p.getValue();
           return max;
         }, prop);
       case SUM:
-        return Bindings.createDoubleBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           double sum = 0;
-          for (DoubleProperty p : prop)
+          for (Property<Double> p : prop)
             if (p.getValue() != null)
-              sum += p.get();
+              sum += p.getValue();
           return sum;
         }, prop);
       case COUNT:
-        return Bindings.createLongBinding(() -> {
+        return Bindings.createObjectBinding(() -> {
           return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
         }, prop);
       default:

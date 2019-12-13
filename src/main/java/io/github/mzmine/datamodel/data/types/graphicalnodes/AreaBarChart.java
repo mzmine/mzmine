@@ -7,7 +7,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import javafx.beans.property.FloatProperty;
+import javafx.beans.property.Property;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -21,9 +21,9 @@ public class AreaBarChart extends StackPane {
     int i = 1;
     int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
-      FloatProperty areaProperty = entry.getValue().get(AreaType.class);
-      data.getData()
-          .add(new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.get()));
+      Property<Float> areaProperty = entry.getValue().get(AreaType.class);
+      data.getData().add(
+          new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue()));
       i++;
       if (progress != null)
         progress.addAndGet(1.0 / size);
