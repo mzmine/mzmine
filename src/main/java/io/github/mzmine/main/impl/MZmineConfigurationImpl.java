@@ -240,7 +240,6 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
                             moduleClass);
                     moduleParameters.loadValuesFromXML(moduleElement);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     logger.log(Level.WARNING,
                             "Failed to load configuration for module "
                                     + moduleClassName,

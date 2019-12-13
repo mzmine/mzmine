@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2016 The MZmine 3 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 3.
  * 
@@ -47,7 +47,6 @@ public final class ModuleMenuItem extends MenuItem {
                 moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class
                         .forName(moduleClass.get());
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
                 MZmineGUI.displayMessage(
                         "Cannot find module class " + moduleClass.get());
                 return;

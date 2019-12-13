@@ -90,8 +90,8 @@
 		</Menu>
 		<Menu text="Feature Detection">
 			<Menu text="MS">
-				<ModuleMenuItem text="Chromatoram Builder"
-					moduleClass="io.github.mzmine.modules.featuredetection.chromatogrambuilder.ChromatogramBuilderModule" />
+				<ModuleMenuItem text="Chromatogram Builder"
+					moduleClass="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
 				<MenuItem text="GridMass - 2D Feature Detection" />
 				<ModuleMenuItem text="Targeted Feature Detection"
 					moduleClass="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />

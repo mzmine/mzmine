@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopSetup;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
@@ -93,8 +94,10 @@ public final class MZmineCore {
                 .toString();
         logger.finest("Working directory is " + cwd);
 
-        // Remove old temporary files, if we find any
-        TmpFileCleanup.removeOldTemporaryFiles();
+        // Remove old temporary files on a new thread
+        Thread cleanupThread = new Thread(new TmpFileCleanup());
+        cleanupThread.setPriority(Thread.MIN_PRIORITY);
+        cleanupThread.start();
 
         logger.fine("Loading core classes..");
 
@@ -128,6 +131,13 @@ public final class MZmineCore {
 
         // If we have no arguments, run in GUI mode, otherwise run in batch mode
         if (args.length == 0) {
+
+            // Configure desktop properties such as the application taskbar icon
+            // on a new thread
+            Thread desktopSetupThread = new Thread(new DesktopSetup());
+            desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
+            desktopSetupThread.start();
+
             try {
                 logger.info("Starting MZmine GUI");
                 Application.launch(MZmineGUI.class, args);
@@ -175,7 +185,7 @@ public final class MZmineCore {
     public static Desktop getDesktop() {
         return desktop;
     }
-    
+
     @Nonnull
     public static void setDesktop(Desktop desktop) {
         assert desktop != null;

@@ -28,7 +28,9 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 
 public class HeadLessDesktop implements Desktop {
@@ -101,6 +103,11 @@ public class HeadLessDesktop implements Desktop {
     public @Nonnull ExitCode exitMZmine() {
         System.exit(0);
         return ExitCode.OK;
+    }
+
+    @Override
+    public TableView<WrappedTask> getTasksView() {
+        return null;
     }
 
 }

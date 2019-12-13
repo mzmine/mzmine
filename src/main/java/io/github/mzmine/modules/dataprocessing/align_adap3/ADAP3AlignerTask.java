@@ -1,4 +1,5 @@
-/* Copyright 2006-2019 The MZmine 2 Development Team
+/*
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -16,6 +17,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.Nullable;
+
 import dulab.adap.common.algorithms.machineleanring.OptimizationParameters;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
@@ -28,26 +39,19 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.*;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+import io.github.mzmine.datamodel.impl.SimplePeakList;
+import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.adap.ADAPInterface;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.Nullable;
 
 /**
  * @author aleksandrsmirnov

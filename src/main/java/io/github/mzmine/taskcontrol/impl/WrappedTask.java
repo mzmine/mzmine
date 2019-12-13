@@ -20,12 +20,19 @@ package io.github.mzmine.taskcontrol.impl;
 
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
  * Wrapper class for Tasks that stores additional information
  */
 public class WrappedTask {
 
+    private StringProperty name = new SimpleStringProperty("Gagaga");
+    public final String getName() { return name.get(); }
+    public final void setName(String value) { name.set(value); }
+    public StringProperty nameProperty() { return name; }
+    
     private Task task;
     private TaskPriority priority;
     private WorkerThread assignedTo;

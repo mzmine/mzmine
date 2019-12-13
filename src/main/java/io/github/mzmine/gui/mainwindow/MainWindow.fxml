@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import org.controlsfx.control.*?>
+<?import org.controlsfx.control.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
 <?import javafx.scene.Scene ?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.*?>
+<?import javafx.scene.control.* ?>
+<?import javafx.scene.layout.* ?>
+<?import javafx.scene.image.* ?>
+<?import javafx.scene.control.cell.* ?>
 <?import java.net.URL?>
 <?import javafx.scene.text.Text ?>
-<?import javafx.embed.swing.SwingNode ?>
 
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/8"
 	xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -51,11 +51,31 @@
 							</ListView>
 						</items>
 					</SplitPane>
-					<BorderPane minHeight="120">
-					    <center>
-					        <SwingNode fx:id="tasksView" />
-					    </center>
-					</BorderPane>
+					                 <TableView fx:id="tasksView">
+         									<columnResizePolicy>
+            									<TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         									</columnResizePolicy>
+         									<placeholder>
+        										<Label text="No running tasks" />
+    										</placeholder>
+         									<columns>
+        									<TableColumn fx:id="taskNameColumn" minWidth="300" text="Task" reorderable="false" style="width: auto;" />
+        									<TableColumn fx:id="taskPriorityColumn" minWidth="100" maxWidth="100" text="Priority" reorderable="false" />
+        									<TableColumn fx:id="taskStatusColumn" minWidth="100" maxWidth="100" text="Status" reorderable="false" />
+        									<TableColumn fx:id="taskProgressColumn" minWidth="100" maxWidth="400" text="\% done" reorderable="false" />
+        							     </columns>
+             						     <contextMenu>
+											<ContextMenu>
+												<items>
+													<MenuItem text="Show TIC" onAction="#handleShowTIC" />
+													<MenuItem text="Show MS spectrum" onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Export" />
+													<MenuItem text="Report" />
+													<MenuItem text="Remove" onAction="#removeRawData" />
+												</items>
+											</ContextMenu>
+										</contextMenu>
+					                 </TableView>
 				</items>
 			</SplitPane>
 		</center>

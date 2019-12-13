@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2016 The MZmine 3 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 3.
  * 
@@ -22,7 +22,6 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +30,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.Pane;
 
 /**
  * The controller class for MainMenu.fxml
@@ -44,7 +41,7 @@ public class MainMenuController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public void closeProject(ActionEvent event) {
-        MZmineGUI.closeProject();
+        MZmineGUI.requestCloseProject();
     }
 
     public void exitApplication(ActionEvent event) {

@@ -25,7 +25,9 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 
 /**
@@ -118,5 +120,7 @@ public interface Desktop extends MZmineModule {
 
     @Nonnull
     public ExitCode exitMZmine();
+    
+    public TableView<WrappedTask> getTasksView();
 
 }

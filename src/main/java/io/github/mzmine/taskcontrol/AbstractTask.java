@@ -21,6 +21,9 @@ package io.github.mzmine.taskcontrol;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  * An abstract implementation of task which defines common methods to make Task
  * implementation easier. Added task status listener
@@ -32,6 +35,12 @@ public abstract class AbstractTask implements Task {
     // listener to control status changes
     private List<TaskStatusListener> listener;
 
+    private StringProperty name = new SimpleStringProperty("Gagaga");
+    public final String getName() { return name.get(); }
+    public final void setName(String value) { name.set(value); }
+    public StringProperty nameProperty() { return name; }
+    
+    
     /**
      * @see io.github.mzmine.taskcontrol.Task#setStatus()
      */

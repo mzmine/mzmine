@@ -1,4 +1,5 @@
-/* Copyright 2006-2019 The MZmine 2 Development Team
+/*
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -16,6 +17,8 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
+import java.text.NumberFormat;
+
 import dulab.adap.workflow.AlignmentParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -25,8 +28,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-
-import java.text.NumberFormat;
 
 /**
  * @author aleksandrsmirnov

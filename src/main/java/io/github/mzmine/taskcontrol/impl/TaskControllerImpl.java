@@ -20,15 +20,14 @@ package io.github.mzmine.taskcontrol.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskControlListener;
@@ -66,6 +65,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
      */
     public void initModule() {
 
+        logger.finest("Starting task controller thread");
         taskQueue = new TaskQueue();
 
         runningThreads = new Vector<WorkerThread>();
@@ -113,27 +113,13 @@ public class TaskControllerImpl implements TaskController, Runnable {
         if ((tasks == null) || (tasks.length == 0))
             return;
 
-        Set<String> uniqueTaskClasses = new HashSet<String>();
-        String taskClassName;
         for (int i = 0; i < tasks.length; i++) {
             Task task = tasks[i];
             TaskPriority priority = priorities[i];
-            taskClassName = task.getClass().getName();
-            taskClassName = taskClassName
-                    .substring(taskClassName.lastIndexOf(".") + 1);
-            uniqueTaskClasses.add(taskClassName);
             WrappedTask newQueueEntry = new WrappedTask(task, priority);
             taskQueue.addWrappedTask(newQueueEntry);
-        }
-
-        // Track module usage
-
-        for (String value : uniqueTaskClasses) {
-            GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(value,
-                    "/JAVA/" + value);
-            Thread gatThread = new Thread(GAT);
-            gatThread.setPriority(Thread.MIN_PRIORITY);
-            gatThread.start();
+            // logger.finest("Added wrapped task for " +
+            // task.getTaskDescription());
         }
 
         // Wake up the task controller thread
@@ -227,8 +213,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
                 }
             }
 
-            // Tell the queue to refresh the Task progress window
-            taskQueue.refresh();
+            // Refresh the tasks window
+            Desktop desktop = MZmineCore.getDesktop();
+            if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
+                desktop.getTasksView().refresh();
+            }
 
             // Sleep for a while until next update
             try {
@@ -254,12 +243,15 @@ public class TaskControllerImpl implements TaskController, Runnable {
                 logger.finest("Setting priority of task \""
                         + task.getTaskDescription() + "\" to " + priority);
                 wrappedTask.setPriority(priority);
-
-                // Call refresh to re-sort the queue according to new priority
-                // and update the Task progress window
-                taskQueue.refresh();
             }
         }
+
+        // Refresh the tasks window
+        Desktop desktop = MZmineCore.getDesktop();
+        if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
+            desktop.getTasksView().refresh();
+        }
+
     }
 
     @Override

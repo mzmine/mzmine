@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2016 The MZmine 3 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 3.
  * 
@@ -18,32 +18,41 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import java.util.Collection;
+import java.text.NumberFormat;
 import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
 
 import org.controlsfx.control.StatusBar;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
 /**
@@ -53,6 +62,12 @@ import javafx.util.Duration;
 public class MainWindowController {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private static final Image rawDataFileIcon = FxIconUtil
+            .loadImageFromResources("icons/fileicon.png");
+
+    private static final NumberFormat percentFormat = NumberFormat
+            .getPercentInstance();
 
     @FXML
     private Scene mainScene;
@@ -67,7 +82,7 @@ public class MainWindowController {
     private ListView<PeakList> featureTree;
 
     @FXML
-    private SwingNode tasksView;
+    private TableView<WrappedTask> tasksView;
 
     @FXML
     private StatusBar statusBar;
@@ -79,11 +94,75 @@ public class MainWindowController {
     private Label memoryBarLabel;
 
     @FXML
+    private TableColumn<WrappedTask, String> taskNameColumn;
+
+    @FXML
+    private TableColumn<WrappedTask, TaskPriority> taskPriorityColumn;
+
+    @FXML
+    private TableColumn<WrappedTask, TaskStatus> taskStatusColumn;
+
+    @FXML
+    private TableColumn<WrappedTask, Double> taskProgressColumn;
+
+    @FXML
     public void initialize() {
 
         rawDataTree.getSelectionModel()
                 .setSelectionMode(SelectionMode.MULTIPLE);
         // rawDataTree.setShowRoot(true);
+
+        rawDataTree.setCellFactory(rawDataListView -> {
+            ListCell<RawDataFile> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(RawDataFile item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setText(null);
+                        setGraphic(null);
+                        return;
+                    }
+                    setText(item.getName());
+                    setGraphic(new ImageView(rawDataFileIcon));
+                }
+            };
+            return cell;
+        });
+
+        ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController()
+                .getTaskQueue().getTasks();
+        tasksView.setItems(tasksQueue);
+
+        taskNameColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(
+                cell.getValue().getActualTask().getTaskDescription()));
+        taskPriorityColumn
+                .setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(
+                        cell.getValue().getActualTask().getTaskPriority()));
+
+        taskStatusColumn
+                .setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(
+                        cell.getValue().getActualTask().getStatus()));
+        taskProgressColumn
+                .setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell
+                        .getValue().getActualTask().getFinishedPercentage()));
+        taskProgressColumn
+                .setCellFactory(column -> new TableCell<WrappedTask, Double>() {
+
+                    @Override
+                    public void updateItem(Double value, boolean empty) {
+                        super.updateItem(value, empty);
+                        if (empty)
+                            return;
+                        ProgressBar progressBar = new ProgressBar(value);
+                        String labelText = percentFormat.format(value);
+                        Label percentLabel = new Label(labelText);
+                        StackPane stack = new StackPane();
+                        stack.setManaged(true);
+                        stack.getChildren().addAll(progressBar, percentLabel);
+                        setGraphic(stack);
+                        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                    }
+                });
 
         // Add mouse clicked event handler
         rawDataTree.setOnMouseClicked(event -> {
@@ -115,10 +194,9 @@ public class MainWindowController {
             }
         });
 
-        SwingUtilities.invokeLater(() -> {
-            TaskProgressTable taskTable = new TaskProgressTable();
-            tasksView.setContent(taskTable);
-        });
+        // taskNameColumn.setPrefWidth(800.0);
+        // taskNameColumn.setMinWidth(600.0);
+        // taskNameColumn.setMinWidth(100.0);
 
         statusBar.setText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
 
@@ -130,9 +208,11 @@ public class MainWindowController {
         // Setup the Timeline to update the memory indicator periodically
         final Timeline memoryUpdater = new Timeline();
         int UPDATE_FREQUENCY = 500; // ms
-                                    // memoryUpdater.setCycleCount(Animation.INDEFINITE);
+        memoryUpdater.setCycleCount(Animation.INDEFINITE);
         memoryUpdater.getKeyFrames()
                 .add(new KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
+
+                    tasksView.refresh();
 
                     final long freeMemMB = Runtime.getRuntime().freeMemory()
                             / (1024 * 1024);
@@ -148,22 +228,17 @@ public class MainWindowController {
         memoryUpdater.play();
 
         // Setup the Timeline to update the MZmine tasks periodically final
-        /*Timeline msdkTaskUpdater = new Timeline();
-        UPDATE_FREQUENCY = 50; // ms
-        msdkTaskUpdater.setCycleCount(Animation.INDEFINITE);
-        msdkTaskUpdater.getKeyFrames()
-                .add(new KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
-
-                    Collection<Task<?>> tasks = tasksView.getTasks();
-                    for (Task<?> task : tasks) {
-                        if (task instanceof MZmineTask) {
-                            MZmineTask mzmineTask = (MZmineTask) task;
-                            mzmineTask.refreshStatus();
-                        }
-                    }
-                }));
-        msdkTaskUpdater.play();
-*/
+        /*
+         * Timeline msdkTaskUpdater = new Timeline(); UPDATE_FREQUENCY = 50; //
+         * ms msdkTaskUpdater.setCycleCount(Animation.INDEFINITE);
+         * msdkTaskUpdater.getKeyFrames() .add(new
+         * KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
+         * 
+         * Collection<Task<?>> tasks = tasksView.getTasks(); for (Task<?> task :
+         * tasks) { if (task instanceof MZmineTask) { MZmineTask mzmineTask =
+         * (MZmineTask) task; mzmineTask.refreshStatus(); } } }));
+         * msdkTaskUpdater.play();
+         */
     }
 
     @FXML
@@ -191,6 +266,10 @@ public class MainWindowController {
 
     public StatusBar getStatusBar() {
         return statusBar;
+    }
+
+    public TableView<WrappedTask> getTasksView() {
+        return tasksView;
     }
 
     public void handleShowTIC(ActionEvent event) {

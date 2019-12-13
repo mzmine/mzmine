@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2016 The MZmine 3 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 3.
  * 
@@ -19,18 +19,13 @@
 package io.github.mzmine.gui;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Taskbar;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
 
 import org.controlsfx.control.StatusBar;
 
@@ -39,17 +34,17 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.components.MultiLineToolTipUI;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -58,9 +53,9 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 /**
@@ -79,20 +74,13 @@ public class MZmineGUI extends Application implements Desktop {
     private static Stage mainStage;
     private static Scene rootScene;
 
-   // private static TaskbarProgressbar taskProgressbar;
-
     @Override
     public void start(Stage stage) {
 
         MZmineGUI.mainStage = stage;
         MZmineCore.setDesktop(this);
-        
-        logger.finest("Initializing MZmine GUI");
-        configureGUI();
-        
-        
 
-      //  taskProgressbar = new TaskbarProgressbar(stage);
+        logger.finest("Initializing MZmine main window");
 
         try {
             // Load the main window
@@ -110,8 +98,8 @@ public class MZmineGUI extends Application implements Desktop {
         }
 
         stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
-        stage.setMinWidth(300);
-        stage.setMinHeight(300);
+        stage.setMinWidth(600);
+        stage.setMinHeight(400);
 
         // Set application icon
         stage.getIcons().setAll(mzMineIcon);
@@ -162,37 +150,44 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     public static void requestQuit() {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(mzMineIcon);
-        alert.setTitle("Confirmation");
-        alert.setHeaderText("Exit MZmine");
-        String s = "Are you sure you want to exit?";
-        alert.setContentText(s);
-        Optional<ButtonType> result = alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(mzMineIcon);
+            alert.setTitle("Confirmation");
+            alert.setHeaderText("Exit MZmine");
+            String s = "Are you sure you want to exit?";
+            alert.setContentText(s);
+            Optional<ButtonType> result = alert.showAndWait();
 
-        if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
-            Platform.exit();
-            System.exit(0);
-        }
+            if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+                // Quit the JavaFX thread
+                Platform.exit();
+                // Call System.exit() cause there are probably some background
+                // threads still running
+                System.exit(0);
+            }
+        });
     }
 
-    public static void closeProject() {
-        Alert alert = new Alert(AlertType.CONFIRMATION);
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(mzMineIcon);
-        alert.setTitle("Confirmation");
-        alert.setHeaderText("Close project");
-        String s = "Are you sure you want to close the current project?";
-        alert.setContentText(s);
-        Optional<ButtonType> result = alert.showAndWait();
+    public static void requestCloseProject() {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.CONFIRMATION);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(mzMineIcon);
+            alert.setTitle("Confirmation");
+            alert.setHeaderText("Close project");
+            String s = "Are you sure you want to close the current project?";
+            alert.setContentText(s);
+            Optional<ButtonType> result = alert.showAndWait();
 
-        if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
-            /*
-             * MZmineProject newProject = new MZmineProject();
-             * activateProject(newProject); setStatusBarMessage("");
-             */
-        }
+            if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
+                /*
+                 * MZmineProject newProject = new MZmineProject();
+                 * activateProject(newProject); setStatusBarMessage("");
+                 */
+            }
+        });
     }
 
     public static void displayMessage(String msg) {
@@ -209,6 +204,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     public static void setStatusBarMessage(String message) {
         Platform.runLater(() -> {
+            System.out.println("logging msg " + message);
             StatusBar statusBar = mainWindowController.getStatusBar();
             statusBar.setText(message);
         });
@@ -293,131 +289,6 @@ public class MZmineGUI extends Application implements Desktop {
      * }
      */
 
-    private void configureGUI() {
-
-        // Get tooltip manager instance
-        ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
-
-        // Set tooltip display after 10 ms
-        tooltipManager.setInitialDelay(10);
-
-        // Never dismiss tooltips
-        tooltipManager.setDismissDelay(Integer.MAX_VALUE);
-
-        // Prepare default fonts
-        Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
-        Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
-        Font tinyFont = new Font("SansSerif", Font.PLAIN, 10);
-
-        // Set default font
-        Enumeration<Object> keys = UIManager.getDefaults().keys();
-        while (keys.hasMoreElements()) {
-            Object key = keys.nextElement();
-            Object value = UIManager.get(key);
-            if (value instanceof Font)
-                UIManager.put(key, defaultFont);
-        }
-
-        // Set small font where necessary
-        UIManager.put("List.font", smallFont);
-        UIManager.put("Table.font", smallFont);
-        UIManager.put("ToolTip.font", tinyFont);
-
-        // Set platform look & feel
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-            // ignore
-        }
-
-        // Set tooltip UI to support multi-line tooltips
-        UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
-        UIManager.put(MultiLineToolTipUI.class.getName(),
-                MultiLineToolTipUI.class);
-
-        // Set basic desktop handlers
-        final java.awt.Desktop awtDesktop = java.awt.Desktop.getDesktop();
-        if (awtDesktop != null) {
-
-            // Setup About handler
-            if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_ABOUT)) {
-                awtDesktop.setAboutHandler(e -> {
-                    showAboutWindow();
-                });
-            }
-
-            // Setup Quit handler
-            if (awtDesktop
-                    .isSupported(java.awt.Desktop.Action.APP_QUIT_HANDLER)) {
-                awtDesktop.setQuitHandler((e, response) -> {
-                    ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
-                    if (exitCode == ExitCode.OK)
-                        response.performQuit();
-                    else
-                        response.cancelQuit();
-                });
-            }
-        }
-
-        if (Taskbar.isTaskbarSupported()) {
-
-            final Taskbar taskBar = Taskbar.getTaskbar();
-
-            // Set the main app icon
-            if ((mzMineIcon != null)
-                    && taskBar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
-                final java.awt.Image mzMineIconAWT = SwingFXUtils
-                        .fromFXImage(mzMineIcon, null);
-                taskBar.setIconImage(mzMineIconAWT);
-            }
-
-            // Add a task controller listener to show task progress
-            MZmineCore.getTaskController().addTaskControlListener(
-                    (numOfWaitingTasks, percentDone) -> {
-                        if (numOfWaitingTasks > 0) {
-                            if (taskBar.isSupported(
-                                    Taskbar.Feature.ICON_BADGE_NUMBER)) {
-                                String badge = String
-                                        .valueOf(numOfWaitingTasks);
-                                taskBar.setIconBadge(badge);
-                            }
-                            
-                            if (taskBar.isSupported(
-                                    Taskbar.Feature.PROGRESS_VALUE))
-                                taskBar.setProgressValue(percentDone);
-                            
-
-                        } else {
-                            
-                            if (taskBar.isSupported(
-                                    Taskbar.Feature.ICON_BADGE_NUMBER))
-                                taskBar.setIconBadge(null);
-                            /*if (taskBar.isSupported(
-                                    Taskbar.Feature.PROGRESS_STATE_WINDOW))
-                                taskBar.setWindowProgressState(
-                                        MZmineCore.getDesktop().getMainWindow(),
-                                        Taskbar.State.OFF);*/
-                            if (taskBar.isSupported(
-                                    Taskbar.Feature.PROGRESS_VALUE))
-                                taskBar.setProgressValue(-1);
-                            /*if (taskBar.isSupported(
-                                    Taskbar.Feature.PROGRESS_VALUE_WINDOW))
-                                taskBar.setWindowProgressValue(
-                                        MZmineCore.getDesktop().getMainWindow(),
-                                        -1);
-                                        */
-                        }
-                    });
-
-        }
-
-        // Let the OS decide the location of new windows. Otherwise, all windows
-        // would appear at the top left corner by default.
-        System.setProperty("java.awt.Window.locationByPlatform", "true");
-
-    }
-
     public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
             @Nonnull Class<ModuleType> moduleClass) {
 
@@ -432,19 +303,14 @@ public class MZmineGUI extends Application implements Desktop {
 
     public static void showAboutWindow() {
         // Show the about window
-        try {
-            final String aboutWindowFXML = "file:conf/AboutWindow.fxml";
-            URL fxmlFile = new URL(aboutWindowFXML);
-            FXMLLoader fxmlLoader = new FXMLLoader(fxmlFile);
-            Pane pane = fxmlLoader.load();
-
-            // Open the window
-            MZmineGUI.addWindow(pane, "About MZmine");
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
+        Platform.runLater(() -> {
+            final URL aboutPage = MZmineGUI.class.getClassLoader()
+                    .getResource("aboutpage/AboutMZmine.html");
+            HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
+            aboutWindow.show();
+        });
     }
-    
+
     @Override
     public String getName() {
         return "MZmine desktop";
@@ -462,17 +328,25 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     @Override
+    public TableView<WrappedTask> getTasksView() {
+        return mainWindowController.getTasksView();
+    }
+    
+    @Override
     public void setStatusBarText(String message) {
-        Platform.runLater(() -> {
-            mainWindowController.getStatusBar().setText(message);
-          });
+        setStatusBarText(message, Color.black);
     }
 
     @Override
     public void setStatusBarText(String message, Color textColor) {
         Platform.runLater(() -> {
-            mainWindowController.getStatusBar().setText(message);
-          });
+            if (mainWindowController == null)
+                return;
+            final StatusBar statusBar = mainWindowController.getStatusBar();
+            if (statusBar == null)
+                return;
+            statusBar.setText(message);
+        });
     }
 
     @Override
@@ -493,7 +367,7 @@ public class MZmineGUI extends Application implements Desktop {
     @Override
     public void displayErrorMessage(Stage window, String title, String msg) {
         MZmineGUI.displayMessage(msg);
-        
+
     }
 
     @Override
@@ -513,7 +387,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     @Override
     public ExitCode exitMZmine() {
-        
+
         requestQuit();
         return ExitCode.UNKNOWN;
     }

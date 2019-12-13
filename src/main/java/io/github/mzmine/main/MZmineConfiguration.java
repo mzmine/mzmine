@@ -36,7 +36,7 @@ import io.github.mzmine.util.color.Vision;
 public interface MZmineConfiguration {
 
     public static final File CONFIG_FILE = new File(
-            System.getProperty("user.home"), ".mzmine.conf");
+            System.getProperty("user.home"), ".mzmine3.conf");
 
     public ParameterSet getModuleParameters(
             Class<? extends MZmineModule> module);
