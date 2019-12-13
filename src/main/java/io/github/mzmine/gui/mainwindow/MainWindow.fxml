@@ -51,7 +51,7 @@
 							</ListView>
 						</items>
 					</SplitPane>
-					                 <TableView fx:id="tasksView">
+					                 <TableView fx:id="tasksView" minHeight="100">
          									<columnResizePolicy>
             									<TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          									</columnResizePolicy>
