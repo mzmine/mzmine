@@ -38,7 +38,6 @@ import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.DesktopSetup;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
@@ -131,13 +130,6 @@ public final class MZmineCore {
 
         // If we have no arguments, run in GUI mode, otherwise run in batch mode
         if (args.length == 0) {
-
-            // Configure desktop properties such as the application taskbar icon
-            // on a new thread
-            Thread desktopSetupThread = new Thread(new DesktopSetup());
-            desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
-            desktopSetupThread.start();
-
             try {
                 logger.info("Starting MZmine GUI");
                 Application.launch(MZmineGUI.class, args);

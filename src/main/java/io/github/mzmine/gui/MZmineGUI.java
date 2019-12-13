@@ -109,6 +109,14 @@ public class MZmineGUI extends Application implements Desktop {
             e.consume();
         });
 
+        // Configure desktop properties such as the application taskbar icon
+        // on a new thread. It is important to start this thread after the
+        // JavaFX subsystem has started. Otherwise we could be treated like a
+        // Swing application.
+        Thread desktopSetupThread = new Thread(new DesktopSetup());
+        desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
+        desktopSetupThread.start();
+
         stage.show();
 
         // update the size and position of the main window
