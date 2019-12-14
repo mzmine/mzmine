@@ -19,9 +19,7 @@
 package io.github.mzmine.datamodel.data.types;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.util.concurrent.AtomicDouble;
@@ -57,11 +55,6 @@ import javafx.scene.layout.StackPane;
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
 
-  /**
-   * TODO listen to changes in features, hold list of open FeatureTablesFX instances
-   */
-  private Map<Integer, Node> buffertCharts = new HashMap<>();
-
   @Override
   public String getHeaderString() {
     return "Features";
@@ -74,27 +67,23 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>>> cols =
-        new ArrayList<>();
+    List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
     // create bar chart
-    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> barsCol =
-        new TreeTableColumn<>("Area Bars");
+    TreeTableColumn<ModularFeatureListRow, Object> barsCol = new TreeTableColumn<>("Area Bars");
     barsCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    barsCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
+    barsCol.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
     cols.add(barsCol);
 
-    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> sharesCol =
-        new TreeTableColumn<>("Area Share");
+    TreeTableColumn<ModularFeatureListRow, Object> sharesCol = new TreeTableColumn<>("Area Share");
     sharesCol.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    sharesCol.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
+    sharesCol.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
     cols.add(sharesCol);
 
-    TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> shapes =
-        new TreeTableColumn<>("Shapes");
+    TreeTableColumn<ModularFeatureListRow, Object> shapes = new TreeTableColumn<>("Shapes");
     shapes.setCellValueFactory(new DataTypeCellValueFactory(null, this));
-    shapes.setCellFactory(new DataTypeCellFactory<>(null, this, cols.size()));
+    shapes.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
     cols.add(shapes);
 
     /*
@@ -129,18 +118,15 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      Object cellData, RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
     return "";
   }
 
   @Override
   @Nullable
-  public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      Object cellData, RawDataFile raw) {
+  public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;

@@ -88,11 +88,12 @@ public abstract class DataType<T extends Property<?>> {
    * @return the TreeTableColumn or null if this DataType.value is not represented in a column
    */
   @Nullable
-  public TreeTableColumn<ModularFeatureListRow, T> createColumn(final @Nullable RawDataFile raw) {
+  public TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      final @Nullable RawDataFile raw) {
     if (this instanceof NullColumnType)
       return null;
     // create column
-    TreeTableColumn<ModularFeatureListRow, T> col = new TreeTableColumn<>(getHeaderString());
+    TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(getHeaderString());
 
     if (this instanceof SubColumnsFactory) {
       col.setSortable(false);
@@ -104,14 +105,14 @@ public abstract class DataType<T extends Property<?>> {
     } else {
       col.setSortable(true);
       // define observable
-      DataTypeCellValueFactory cvFactory = new DataTypeCellValueFactory<>(raw, this);
+      DataTypeCellValueFactory cvFactory = new DataTypeCellValueFactory(raw, this);
       col.setCellValueFactory(cvFactory);
       // value representation
       if (this instanceof EditableColumnType) {
-        col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this));
+        col.setCellFactory(new EditableDataTypeCellFactory(raw, this));
         col.setEditable(true);
         col.setOnEditCommit(event -> {
-          T data = event.getNewValue();
+          Object data = event.getNewValue();
           if (data != null) {
             if (raw == null)
               event.getRowValue().getValue().set(this, data);
@@ -120,7 +121,7 @@ public abstract class DataType<T extends Property<?>> {
           }
         });
       } else
-        col.setCellFactory(new DataTypeCellFactory<>(raw, this));
+        col.setCellFactory(new DataTypeCellFactory(raw, this));
     }
     return col;
   }

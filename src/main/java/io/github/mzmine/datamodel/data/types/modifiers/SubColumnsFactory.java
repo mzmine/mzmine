@@ -40,17 +40,19 @@ public interface SubColumnsFactory<T> {
    * @return
    */
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, T>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw);
 
   @Nullable
-  public String getFormattedSubColValue(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, Object cellData, RawDataFile raw);
+  public String getFormattedSubColValue(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw);
 
 
   @Nullable
-  default public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, Object cellData, RawDataFile raw) {
+  default public Node getSubColNode(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
     return null;
   }
 }

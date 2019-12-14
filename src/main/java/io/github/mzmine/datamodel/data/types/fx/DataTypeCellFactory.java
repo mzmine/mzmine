@@ -39,7 +39,7 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellFactory<Object> implements
+public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());

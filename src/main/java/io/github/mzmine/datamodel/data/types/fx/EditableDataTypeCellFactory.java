@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
-import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -38,29 +37,29 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class EditableDataTypeCellFactory<T extends Property<?>> implements
-    Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
+public class EditableDataTypeCellFactory implements
+    Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
-  private DataType<T> type;
+  private DataType<?> type;
   private int subcolumn = -1;
 
 
-  public EditableDataTypeCellFactory(RawDataFile raw, DataType<T> type) {
+  public EditableDataTypeCellFactory(RawDataFile raw, DataType<?> type) {
     this(raw, type, -1);
   }
 
-  public EditableDataTypeCellFactory(RawDataFile raw, DataType<T> type, int subcolumn) {
+  public EditableDataTypeCellFactory(RawDataFile raw, DataType<?> type, int subcolumn) {
     this.type = type;
     this.raw = raw;
     this.subcolumn = subcolumn;
   }
 
   @Override
-  public TreeTableCell<ModularFeatureListRow, T> call(
-      TreeTableColumn<ModularFeatureListRow, T> param) {
-    TextFieldTreeTableCell<ModularFeatureListRow, T> cell = new TextFieldTreeTableCell<>();
+  public TreeTableCell<ModularFeatureListRow, Object> call(
+      TreeTableColumn<ModularFeatureListRow, Object> param) {
+    TextFieldTreeTableCell<ModularFeatureListRow, Object> cell = new TextFieldTreeTableCell<>();
 
     if (type instanceof StringParser) {
       cell.setConverter(((StringParser) type).getStringConverter());

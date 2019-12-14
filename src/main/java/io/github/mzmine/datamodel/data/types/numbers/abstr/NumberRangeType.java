@@ -78,22 +78,20 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>>> createSubColumns(
+  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       @Nullable RawDataFile raw) {
-    List<TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>>> cols = new ArrayList<>();
+    List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
     // create column per name
-    TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> min =
-        new TreeTableColumn<>("min");
-    DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory<>(raw, this);
+    TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>("min");
+    DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
     min.setCellValueFactory(cvFactoryMin);
-    min.setCellFactory(new DataTypeCellFactory<>(raw, this, 0));
+    min.setCellFactory(new DataTypeCellFactory(raw, this, 0));
 
-    TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> max =
-        new TreeTableColumn<>("max");
-    DataTypeCellValueFactory cvFactoryMax = new DataTypeCellValueFactory<>(raw, this);
+    TreeTableColumn<ModularFeatureListRow, Object> max = new TreeTableColumn<>("max");
+    DataTypeCellValueFactory cvFactoryMax = new DataTypeCellValueFactory(raw, this);
     max.setCellValueFactory(cvFactoryMax);
-    max.setCellFactory(new DataTypeCellFactory<>(raw, this, 1));
+    max.setCellFactory(new DataTypeCellFactory(raw, this, 1));
 
     // add all
     cols.add(min);
@@ -105,9 +103,8 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, ObjectProperty<Range<T>>> cell,
-      TreeTableColumn<ModularFeatureListRow, ObjectProperty<Range<T>>> coll, Object value,
-      RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
     if (value == null)
       return "";
     switch (subcolumn) {

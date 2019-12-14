@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.RawColorType;
@@ -59,6 +60,7 @@ public class ModularFeatureList implements PeakList {
     dateCreated = DATA_FORMAT.format(new Date());
 
     addRowType(new IDType());
+    addRowType(new CommentType());
     // has raw files - add column to row and feature
     if (!dataFiles.isEmpty()) {
       addRowType(new FeaturesType());

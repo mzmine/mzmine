@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import javafx.beans.property.Property;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -40,28 +40,28 @@ import javafx.util.Callback;
  *
  * @param <T>
  */
-public class DataTypeCellValueFactory<T extends Property<?>>
-    implements Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, T>, T>,
-    Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> {
+public class DataTypeCellValueFactory implements
+    Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, Object>, ObservableValue<Object>>,
+    Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile raw;
-  private DataType<T> type;
-  private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier;
+  private DataType<?> type;
+  private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> dataMapSupplier;
 
-  public DataTypeCellValueFactory(RawDataFile raw, DataType<T> type) {
+  public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type) {
     this(raw, type, null);
   }
 
-  public DataTypeCellValueFactory(RawDataFile raw, DataType<T> type,
-      Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier) {
+  public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type,
+      Function<CellDataFeatures<ModularFeatureListRow, Object>, ModularDataModel> dataMapSupplier) {
     this.type = type;
     this.raw = raw;
     this.dataMapSupplier = dataMapSupplier == null ? this : dataMapSupplier;
   }
 
   @Override
-  public T call(CellDataFeatures<ModularFeatureListRow, T> param) {
+  public ObservableValue<Object> call(CellDataFeatures<ModularFeatureListRow, Object> param) {
     final ModularDataModel map = dataMapSupplier.apply(param);
     if (map == null) {
       logger.log(Level.WARNING,
@@ -71,7 +71,7 @@ public class DataTypeCellValueFactory<T extends Property<?>>
       return null;
     }
 
-    return map.get(type);
+    return (ObservableValue<Object>) map.get(type);
   }
 
 
@@ -79,7 +79,7 @@ public class DataTypeCellValueFactory<T extends Property<?>>
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.
    */
   @Override
-  public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, T> param) {
+  public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, Object> param) {
     if (raw != null) {
       // find data type map for feature for this raw file
       Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFeatures();
