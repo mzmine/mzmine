@@ -1,4 +1,4 @@
-package io.github.mzmine.datamodel.test;
+package io.github.mzmine.datamodel.data.test;
 
 import java.io.IOException;
 import java.util.ArrayList;
