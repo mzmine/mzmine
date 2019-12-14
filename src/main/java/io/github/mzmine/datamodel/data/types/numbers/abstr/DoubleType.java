@@ -23,7 +23,7 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.UndefinedRowBindingException;
+import io.github.mzmine.datamodel.data.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import javafx.beans.binding.Bindings;

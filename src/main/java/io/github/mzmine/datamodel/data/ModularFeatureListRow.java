@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.exceptions.WrongFeatureListException;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;

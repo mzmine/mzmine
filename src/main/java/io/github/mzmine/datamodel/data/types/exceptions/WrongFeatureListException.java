@@ -16,15 +16,11 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data;
+package io.github.mzmine.datamodel.data.types.exceptions;
 
-public class WrongTypeException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
+public class WrongFeatureListException extends RuntimeException {
 
-  public WrongTypeException(Class key, Object data) {
-    super(
-        "Wrong type for feature data. This is a programming error in this module. Please report with full log. Key: "
-            + key.descriptorString() + "; value: " + data + " as "
-            + (data == null ? "null" : data.getClass().descriptorString()));
+  public WrongFeatureListException() {
+    super("Mismatching feature lists");
   }
 }

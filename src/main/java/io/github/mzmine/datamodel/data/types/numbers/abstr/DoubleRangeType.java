@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.data.types.numbers.abstr;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.UndefinedRowBindingException;
+import io.github.mzmine.datamodel.data.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;

@@ -16,7 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data;
+package io.github.mzmine.datamodel.data.types.exceptions;
+
+import io.github.mzmine.datamodel.data.ModularDataModel;
 
 public class TypeColumnUndefinedException extends RuntimeException {
   private static final long serialVersionUID = 1L;

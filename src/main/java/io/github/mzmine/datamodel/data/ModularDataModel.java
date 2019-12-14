@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.exceptions.TypeColumnUndefinedException;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

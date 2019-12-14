@@ -16,11 +16,16 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data;
+package io.github.mzmine.datamodel.data.types.exceptions;
 
-public class WrongFeatureListException extends RuntimeException {
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
 
-  public WrongFeatureListException() {
-    super("Mismatching feature lists");
+public class UndefinedRowBindingException extends RuntimeException {
+  private static final long serialVersionUID = 1L;
+
+  public UndefinedRowBindingException(DataType<?> type, BindingsType bindType) {
+    super("This following datatype does not support this binding type: DataType="
+        + type.getClass().descriptorString() + "  binding=" + bindType.toString());
   }
 }
