@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.fx;
+package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import java.util.Random;
 import java.util.logging.Logger;

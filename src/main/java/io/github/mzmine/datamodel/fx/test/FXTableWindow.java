@@ -13,7 +13,7 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
-import io.github.mzmine.datamodel.fx.FeatureTableFXWindow;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXWindow;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import javafx.application.Application;
 import javafx.stage.Stage;

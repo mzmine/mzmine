@@ -1,4 +1,4 @@
-package io.github.mzmine.datamodel.fx;
+package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import javafx.scene.Scene;
