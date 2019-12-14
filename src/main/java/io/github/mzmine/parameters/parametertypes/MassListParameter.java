@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,94 +24,98 @@ import org.w3c.dom.Element;
 
 import io.github.mzmine.parameters.UserParameter;
 
-public class MassListParameter implements UserParameter<String, MassListComponent> {
+public class MassListParameter
+        implements UserParameter<String, MassListComponent> {
 
-  private String name, description, value;
+    private String name, description, value;
 
-  /**
-   * This new constructor will be used if cloneParameter is called, so it's possible to create mass
-   * list parameters with a different name and description if needed. (e.g. if it's an optional
-   * parameter)
-   * 
-   * @param name1 Name of the parameter.
-   * @param description1 Description of the parameter.
-   */
-  public MassListParameter(String name1, String description1) {
-    this.name = name1;
-    this.description = description1;
-  }
-
-  public MassListParameter() {
-    this.name = "Mass list";
-    this.description = "Please select a mass list name";
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public MassListComponent createEditingComponent() {
-    return new MassListComponent();
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  @Override
-  public MassListParameter cloneParameter() {
-    MassListParameter copy = new MassListParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(MassListComponent component) {
-    value = component.getValue();
-  }
-
-  @Override
-  public void setValueToComponent(MassListComponent component, String newValue) {
-    component.setValue(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    xmlElement.setTextContent(value);
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if ((value == null) || (value.trim().length() == 0)) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    /**
+     * This new constructor will be used if cloneParameter is called, so it's
+     * possible to create mass list parameters with a different name and
+     * description if needed. (e.g. if it's an optional parameter)
+     * 
+     * @param name1
+     *            Name of the parameter.
+     * @param description1
+     *            Description of the parameter.
+     */
+    public MassListParameter(String name1, String description1) {
+        this.name = name1;
+        this.description = description1;
     }
-    return true;
-  }
+
+    public MassListParameter() {
+        this.name = "Mass list";
+        this.description = "Please select a mass list name";
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public MassListComponent createEditingComponent() {
+        return new MassListComponent();
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public MassListParameter cloneParameter() {
+        MassListParameter copy = new MassListParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(MassListComponent component) {
+        value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(MassListComponent component,
+            String newValue) {
+        component.setValue(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if ((value == null) || (value.trim().length() == 0)) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

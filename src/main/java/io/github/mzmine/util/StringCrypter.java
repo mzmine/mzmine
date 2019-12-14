@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -41,10 +41,10 @@ import java.util.logging.Logger;
  * @author Markus Fleischauer (markus.fleischauer@gmail.com)
  */
 public class StringCrypter {
-    private static final Logger LOGGER = Logger.getLogger(StringCrypter.class.getName());
+    private static final Logger LOGGER = Logger
+            .getLogger(StringCrypter.class.getName());
     private static final String HASH_METHOD = "SHA-512";
     private static final String CRYPT_METHOD = "AES";
-
 
     private final SecretKeySpec PRIVATE_KEY;
 
@@ -73,7 +73,9 @@ public class StringCrypter {
         try {
             byte[] randomBytes = new byte[40];
             SecureRandom.getInstanceStrong().nextBytes(randomBytes);
-            byte[] hashed = Arrays.copyOf(MessageDigest.getInstance(HASH_METHOD).digest(randomBytes), 16);
+            byte[] hashed = Arrays.copyOf(
+                    MessageDigest.getInstance(HASH_METHOD).digest(randomBytes),
+                    16);
             return new SecretKeySpec(hashed, CRYPT_METHOD);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -81,7 +83,8 @@ public class StringCrypter {
     }
 
     public String encrypt(String toEncrypt) throws EncryptionException {
-        //this checks are just to prevent trouble wiht empty encrypted parementers that contain
+        // this checks are just to prevent trouble wiht empty encrypted
+        // parementers that contain
         // no null checks
         if (toEncrypt == null || toEncrypt.isEmpty()) {
             LOGGER.warning("Skipped empty encryption try.");
@@ -93,7 +96,9 @@ public class StringCrypter {
             cipher.init(Cipher.ENCRYPT_MODE, PRIVATE_KEY);
             byte[] encrypted = cipher.doFinal(toEncrypt.getBytes());
             return base64Encode(encrypted);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException
+                | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException e) {
             throw new EncryptionException(e);
         }
     }
@@ -115,7 +120,9 @@ public class StringCrypter {
             cipher.init(Cipher.DECRYPT_MODE, PRIVATE_KEY);
             byte[] cipherData2 = cipher.doFinal(crypted2);
             return new String(cipherData2);
-        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException
+                | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException e) {
             throw new DecryptionException(e);
         }
     }
@@ -124,4 +131,3 @@ public class StringCrypter {
         return Base64.getDecoder().decode(property);
     }
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,60 +36,64 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  */
 public class RawDataExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Raw data export";
-  private static final String MODULE_DESCRIPTION =
-      "This module exports raw data files from your MZmine project into various formats";
+    private static final String MODULE_NAME = "Raw data export";
+    private static final String MODULE_DESCRIPTION = "This module exports raw data files from your MZmine project into various formats";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    RawDataFileType type = parameters.getParameter(RawDataExportParameters.type).getValue();
-    String extension = "";
-    switch (type) {
-      case MZML:
-        extension = "mzML";
-        break;
-      case NETCDF:
-        extension = "cdf";
-        break;
-      default:
-        throw new MSDKRuntimeException("This format is not covered in the export module");
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    File folder = parameters.getParameter(RawDataExportParameters.fileName).getValue();
-    if (!folder.isDirectory())
-      folder = folder.getParentFile();
-
-    RawDataFile[] dataFile = parameters.getParameter(RawDataExportParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    for (RawDataFile r : dataFile) {
-      File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);
-      Task newTask = new RawDataExportTask(r, fullName);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
     }
-    return ExitCode.OK;
-  }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(final @Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        RawDataFileType type = parameters
+                .getParameter(RawDataExportParameters.type).getValue();
+        String extension = "";
+        switch (type) {
+        case MZML:
+            extension = "mzML";
+            break;
+        case NETCDF:
+            extension = "cdf";
+            break;
+        default:
+            throw new MSDKRuntimeException(
+                    "This format is not covered in the export module");
+        }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RawDataExportParameters.class;
-  }
+        File folder = parameters.getParameter(RawDataExportParameters.fileName)
+                .getValue();
+        if (!folder.isDirectory())
+            folder = folder.getParentFile();
+
+        RawDataFile[] dataFile = parameters
+                .getParameter(RawDataExportParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+
+        for (RawDataFile r : dataFile) {
+            File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(),
+                    extension);
+            Task newTask = new RawDataExportTask(r, fullName);
+            tasks.add(newTask);
+        }
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.RAWDATA;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return RawDataExportParameters.class;
+    }
 
 }

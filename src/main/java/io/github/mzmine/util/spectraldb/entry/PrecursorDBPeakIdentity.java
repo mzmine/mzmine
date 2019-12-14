@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,25 +25,26 @@ import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 
 public class PrecursorDBPeakIdentity extends SimplePeakIdentity {
 
-  private final SpectralDBEntry entry;
+    private final SpectralDBEntry entry;
 
-  public PrecursorDBPeakIdentity(SpectralDBEntry entry, String method) {
-    super(
-        MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
-            entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
-            entry.getField(DBEntryField.FORMULA).orElse(""), // molecular formula
-            entry.getField(DBEntryField.ION_TYPE).orElse("")), // Ion type
-        entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
-    this.entry = entry;
-  }
+    public PrecursorDBPeakIdentity(SpectralDBEntry entry, String method) {
+        super(MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
+                entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
+                entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+                entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
+                                                                 // formula
+                entry.getField(DBEntryField.ION_TYPE).orElse("")), // Ion type
+                entry.getField(DBEntryField.FORMULA).orElse("").toString(),
+                method, "", "");
+        this.entry = entry;
+    }
 
-  public SpectralDBEntry getEntry() {
-    return entry;
-  }
+    public SpectralDBEntry getEntry() {
+        return entry;
+    }
 
-  public DataPoint[] getLibraryDataPoints() {
-    return entry.getDataPoints();
-  }
+    public DataPoint[] getLibraryDataPoints() {
+        return entry.getDataPoints();
+    }
 
 }

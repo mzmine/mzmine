@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -57,8 +57,9 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
                 return;
             value = new StringCrypter(nuVal);
         } catch (IOException e) {
-            Logger.getLogger(this.getClass().getName()).warning("Could not load Encryption key! " +
-                    "Encrypted parameters in the config file might not be decryptable.");
+            Logger.getLogger(this.getClass().getName())
+                    .warning("Could not load Encryption key! "
+                            + "Encrypted parameters in the config file might not be decryptable.");
         }
     }
 

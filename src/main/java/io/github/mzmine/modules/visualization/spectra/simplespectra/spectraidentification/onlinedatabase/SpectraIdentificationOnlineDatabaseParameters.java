@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,29 +27,28 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-
 /**
  * Parameters for identifying peaks by searching on-line databases.
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
+public class SpectraIdentificationOnlineDatabaseParameters
+        extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> database =
-      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values());
+    public static final ModuleComboParameter<OnlineDatabases> database = new ModuleComboParameter<OnlineDatabases>(
+            "Database", "Database to search", OnlineDatabases.values());
 
-  public static final ComboParameter<IonizationType> ionizationType =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+    public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+            "Ionization type", "Ionization type", IonizationType.values());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Noise level", "Set a noise level");
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level", "Set a noise level");
 
-  public SpectraIdentificationOnlineDatabaseParameters() {
-    super(new Parameter[] {database, ionizationType, mzTolerance, noiseLevel});
-  }
+    public SpectraIdentificationOnlineDatabaseParameters() {
+        super(new Parameter[] { database, ionizationType, mzTolerance,
+                noiseLevel });
+    }
 
 }

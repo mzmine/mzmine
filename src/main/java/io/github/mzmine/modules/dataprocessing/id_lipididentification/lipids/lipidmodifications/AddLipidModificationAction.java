@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -41,59 +41,67 @@ import io.github.mzmine.util.ExitCode;
  */
 public class AddLipidModificationAction extends AbstractAction {
 
-  private static final long serialVersionUID = 1L;
-  private LipidModification lipidModification = null;
+    private static final long serialVersionUID = 1L;
+    private LipidModification lipidModification = null;
 
-  /**
-   * Create the action.
-   */
-  public AddLipidModificationAction() {
-    super("Add...");
-  }
+    /**
+     * Create the action.
+     */
+    public AddLipidModificationAction() {
+        super("Add...");
+    }
 
-  @Override
-  public void actionPerformed(final ActionEvent e) {
+    @Override
+    public void actionPerformed(final ActionEvent e) {
 
-    // Parent component.
-    final LipidModificationChoiceComponent parent =
-        (LipidModificationChoiceComponent) SwingUtilities
-            .getAncestorOfClass(LipidModificationChoiceComponent.class, (Component) e.getSource());
-    if (parent != null) {
-      // Show dialog.
-      final ParameterSet parameters = new AddLipidModificationParameters();
-      if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
-          true) == ExitCode.OK) {
-        // Create new lipid modification
-        lipidModification = new LipidModification(
-            parameters.getParameter(AddLipidModificationParameters.lipidModification).getValue(),
-            parameters.getParameter(AddLipidModificationParameters.lipidModificationLabel)
-                .getValue());
+        // Parent component.
+        final LipidModificationChoiceComponent parent = (LipidModificationChoiceComponent) SwingUtilities
+                .getAncestorOfClass(LipidModificationChoiceComponent.class,
+                        (Component) e.getSource());
+        if (parent != null) {
+            // Show dialog.
+            final ParameterSet parameters = new AddLipidModificationParameters();
+            if (parameters.showSetupDialog(
+                    MZmineCore.getDesktop().getMainWindow(),
+                    true) == ExitCode.OK) {
+                // Create new lipid modification
+                lipidModification = new LipidModification(
+                        parameters.getParameter(
+                                AddLipidModificationParameters.lipidModification)
+                                .getValue(),
+                        parameters.getParameter(
+                                AddLipidModificationParameters.lipidModificationLabel)
+                                .getValue());
 
-        // Add to list of choices (if not already present).
-        final Collection<LipidModification> choices = new ArrayList<LipidModification>(
-            Arrays.asList((LipidModification[]) parent.getChoices()));
-        if (!choices.contains(lipidModification)) {
-          choices.add(lipidModification);
-          parent.setChoices(choices.toArray(new LipidModification[choices.size()]));
+                // Add to list of choices (if not already present).
+                final Collection<LipidModification> choices = new ArrayList<LipidModification>(
+                        Arrays.asList(
+                                (LipidModification[]) parent.getChoices()));
+                if (!choices.contains(lipidModification)) {
+                    choices.add(lipidModification);
+                    parent.setChoices(choices
+                            .toArray(new LipidModification[choices.size()]));
+                }
+            }
         }
-      }
     }
-  }
 
-  /**
-   * Represents a lipid modification.
-   */
-  private static class AddLipidModificationParameters extends SimpleParameterSet {
+    /**
+     * Represents a lipid modification.
+     */
+    private static class AddLipidModificationParameters
+            extends SimpleParameterSet {
 
-    // lipid modification
-    private static final StringParameter lipidModification =
-        new StringParameter("Lipid modification", "Lipid modification");
+        // lipid modification
+        private static final StringParameter lipidModification = new StringParameter(
+                "Lipid modification", "Lipid modification");
 
-    private static final StringParameter lipidModificationLabel =
-        new StringParameter("Lipid modification label", "Lipid modification label", "");
+        private static final StringParameter lipidModificationLabel = new StringParameter(
+                "Lipid modification label", "Lipid modification label", "");
 
-    private AddLipidModificationParameters() {
-      super(new Parameter[] {lipidModification, lipidModificationLabel});
+        private AddLipidModificationParameters() {
+            super(new Parameter[] { lipidModification,
+                    lipidModificationLabel });
+        }
     }
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,35 +30,36 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
  */
 class PeakDataRenderer extends XYLineAndShapeRenderer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private static final Color peakColor = Color.green;
+    private static final Color peakColor = Color.green;
 
-  // data points shape
-  private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
+    // data points shape
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
+            5);
 
-  PeakDataRenderer() {
-    setDefaultShapesFilled(true);
-    setDrawOutlines(false);
-    setUseFillPaint(false);
-    setDefaultShapesVisible(false);
-    setDefaultShape(dataPointsShape);
+    PeakDataRenderer() {
+        setDefaultShapesFilled(true);
+        setDrawOutlines(false);
+        setUseFillPaint(false);
+        setDefaultShapesVisible(false);
+        setDefaultShape(dataPointsShape);
 
-    PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-    setDefaultToolTipGenerator(toolTipGenerator);
+        PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
+        setDefaultToolTipGenerator(toolTipGenerator);
 
-    setDrawSeriesLineAsPath(true);
-  }
+        setDrawSeriesLineAsPath(true);
+    }
 
-  public Paint getItemPaint(int row, int column) {
-    return peakColor;
-  }
+    public Paint getItemPaint(int row, int column) {
+        return peakColor;
+    }
 
-  public Shape getItemShape(int row, int column) {
-    return dataPointsShape;
-  }
+    public Shape getItemShape(int row, int column) {
+        return dataPointsShape;
+    }
 
 }

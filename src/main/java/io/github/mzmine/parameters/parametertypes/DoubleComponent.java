@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,88 +31,93 @@ import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 
 public class DoubleComponent extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private final NumberFormat format;
-  private final Double minimum;
-  private final Double maximum;
-  private final JTextField textField;
+    private final NumberFormat format;
+    private final Double minimum;
+    private final Double maximum;
+    private final JTextField textField;
 
-  public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format) {
-    this.minimum = minimum;
-    this.maximum = maximum;
-    this.format = format;
+    public DoubleComponent(int inputsize, Double minimum, Double maximum,
+            NumberFormat format) {
+        this.minimum = minimum;
+        this.maximum = maximum;
+        this.format = format;
 
-    textField = new JTextField();
-    textField.setPreferredSize(new Dimension(inputsize, textField.getPreferredSize().height));
-    // Add an input verifier if any bounds are specified.
-    if (minimum != null || maximum != null) {
-      textField.setInputVerifier(new MinMaxVerifier());
+        textField = new JTextField();
+        textField.setPreferredSize(
+                new Dimension(inputsize, textField.getPreferredSize().height));
+        // Add an input verifier if any bounds are specified.
+        if (minimum != null || maximum != null) {
+            textField.setInputVerifier(new MinMaxVerifier());
+        }
+
+        add(textField);
     }
 
-    add(textField);
-  }
+    public void setText(String text) {
+        textField.setText(text);
+    }
 
-  public void setText(String text) {
-    textField.setText(text);
-  }
-
-  public String getText() {
-    return textField.getText().trim();
-  }
-
-  @Override
-  public void setToolTipText(String toolTip) {
-    textField.setToolTipText(toolTip);
-  }
-
-  private boolean checkBounds(final double number) {
-
-    return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
-  }
-
-  /**
-   * Input verifier used when minimum or maximum bounds are defined.
-   */
-  private class MinMaxVerifier extends InputVerifier {
-
-    @Override
-    public boolean shouldYieldFocus(final JComponent input) {
-
-      final boolean yield = super.shouldYieldFocus(input);
-      if (!yield) {
-
-        // Beep and highlight.
-        Toolkit.getDefaultToolkit().beep();
-        ((JTextComponent) input).selectAll();
-      }
-
-      return yield;
+    public String getText() {
+        return textField.getText().trim();
     }
 
     @Override
-    public boolean verify(final JComponent input) {
-
-      boolean verified = false;
-      try {
-
-        verified = checkBounds(format.parse(((JTextComponent) input).getText()).doubleValue());
-      } catch (ParseException e) {
-
-        // Not a number.
-      }
-      return verified;
+    public void setToolTipText(String toolTip) {
+        textField.setToolTipText(toolTip);
     }
-  }
 
-  public JTextField getTextField() {
-    return textField;
-  }
+    private boolean checkBounds(final double number) {
 
-  public void addDocumentListener(DelayedDocumentListener dl) {
-    textField.getDocument().addDocumentListener(dl);
-  }
+        return (minimum == null || number >= minimum)
+                && (maximum == null || number <= maximum);
+    }
+
+    /**
+     * Input verifier used when minimum or maximum bounds are defined.
+     */
+    private class MinMaxVerifier extends InputVerifier {
+
+        @Override
+        public boolean shouldYieldFocus(final JComponent input) {
+
+            final boolean yield = super.shouldYieldFocus(input);
+            if (!yield) {
+
+                // Beep and highlight.
+                Toolkit.getDefaultToolkit().beep();
+                ((JTextComponent) input).selectAll();
+            }
+
+            return yield;
+        }
+
+        @Override
+        public boolean verify(final JComponent input) {
+
+            boolean verified = false;
+            try {
+
+                verified = checkBounds(
+                        format.parse(((JTextComponent) input).getText())
+                                .doubleValue());
+            } catch (ParseException e) {
+
+                // Not a number.
+            }
+            return verified;
+        }
+    }
+
+    public JTextField getTextField() {
+        return textField;
+    }
+
+    public void addDocumentListener(DelayedDocumentListener dl) {
+        textField.getDocument().addDocumentListener(dl);
+    }
 }

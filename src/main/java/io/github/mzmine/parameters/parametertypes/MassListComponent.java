@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,96 +38,97 @@ import io.github.mzmine.main.MZmineCore;
 
 public class MassListComponent extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JTextField nameField;
-  private JButton lookupButton;
-  private JPopupMenu lookupMenu;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JTextField nameField;
+    private JButton lookupButton;
+    private JPopupMenu lookupMenu;
 
-  public MassListComponent() {
+    public MassListComponent() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-    nameField = new JTextField(15);
+        nameField = new JTextField(15);
 
-    add(nameField, BorderLayout.CENTER);
+        add(nameField, BorderLayout.CENTER);
 
-    lookupButton = new JButton("Choose...");
-    lookupButton.addActionListener(this);
-    add(lookupButton, BorderLayout.EAST);
+        lookupButton = new JButton("Choose...");
+        lookupButton.addActionListener(this);
+        add(lookupButton, BorderLayout.EAST);
 
-    lookupMenu = new JPopupMenu("Select name");
-
-  }
-
-  public String getValue() {
-    return nameField.getText();
-  }
-
-  public void setValue(String value) {
-    nameField.setText(value);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-
-    Object src = e.getSource();
-
-    if (src == lookupButton) {
-      List<String> currentNames = getMassListNames();
-
-      lookupMenu.removeAll();
-      for (String name : currentNames) {
-        JMenuItem item = new JMenuItem(name);
-        item.addActionListener(this);
-        lookupMenu.add(item);
-      }
-
-      lookupMenu.show(lookupButton, 0, 0);
+        lookupMenu = new JPopupMenu("Select name");
 
     }
 
-    if (src instanceof JMenuItem) {
-      String name = ((JMenuItem) src).getText();
-      nameField.setText(name);
+    public String getValue() {
+        return nameField.getText();
     }
 
-  }
+    public void setValue(String value) {
+        nameField.setText(value);
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    nameField.setToolTipText(toolTip);
-  }
+    @Override
+    public void actionPerformed(ActionEvent e) {
 
-  /**
-   * Method returns the list of all identified MassList names in scans
-   * 
-   * @return unique MassList names
-   */
-  public static List<String> getMassListNames() {
-    ArrayList<String> names = new ArrayList<>();
-    RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    for (RawDataFile dataFile : dataFiles) {
-      int scanNums[] = dataFile.getScanNumbers();
-      for (int scanNum : scanNums) {
-        Scan scan = dataFile.getScan(scanNum);
-        MassList massLists[] = scan.getMassLists();
-        for (MassList massList : massLists) {
-          String name = massList.getName();
-          if (!names.contains(name))
-            names.add(name);
+        Object src = e.getSource();
+
+        if (src == lookupButton) {
+            List<String> currentNames = getMassListNames();
+
+            lookupMenu.removeAll();
+            for (String name : currentNames) {
+                JMenuItem item = new JMenuItem(name);
+                item.addActionListener(this);
+                lookupMenu.add(item);
+            }
+
+            lookupMenu.show(lookupButton, 0, 0);
+
         }
-      }
+
+        if (src instanceof JMenuItem) {
+            String name = ((JMenuItem) src).getText();
+            nameField.setText(name);
+        }
+
     }
 
-    return names;
-  }
+    @Override
+    public void setToolTipText(String toolTip) {
+        nameField.setToolTipText(toolTip);
+    }
 
-  public void addDocumentListener(DocumentListener dl) {
-    nameField.getDocument().addDocumentListener(dl);
-  }
+    /**
+     * Method returns the list of all identified MassList names in scans
+     * 
+     * @return unique MassList names
+     */
+    public static List<String> getMassListNames() {
+        ArrayList<String> names = new ArrayList<>();
+        RawDataFile dataFiles[] = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+        for (RawDataFile dataFile : dataFiles) {
+            int scanNums[] = dataFile.getScanNumbers();
+            for (int scanNum : scanNums) {
+                Scan scan = dataFile.getScan(scanNum);
+                MassList massLists[] = scan.getMassLists();
+                for (MassList massList : massLists) {
+                    String name = massList.getName();
+                    if (!names.contains(name))
+                        names.add(name);
+                }
+            }
+        }
+
+        return names;
+    }
+
+    public void addDocumentListener(DocumentListener dl) {
+        nameField.getDocument().addDocumentListener(dl);
+    }
 }

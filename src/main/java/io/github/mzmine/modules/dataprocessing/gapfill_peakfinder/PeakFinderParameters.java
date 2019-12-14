@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,33 +29,36 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class PeakFinderParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "gap-filled");
+    public static final StringParameter suffix = new StringParameter(
+            "Name suffix", "Suffix to be added to feature list name",
+            "gap-filled");
 
-  public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
-      "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
+    public static final PercentParameter intTolerance = new PercentParameter(
+            "Intensity tolerance",
+            "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final BooleanParameter RTCorrection = new BooleanParameter("RT correction",
-      "If checked, correction of the retention time will be applied to avoid the"
-          + "\nproblems caused by the deviation of the retention time between the samples.");
+    public static final BooleanParameter RTCorrection = new BooleanParameter(
+            "RT correction",
+            "If checked, correction of the retention time will be applied to avoid the"
+                    + "\nproblems caused by the deviation of the retention time between the samples.");
 
+    public static final BooleanParameter useParallel = new BooleanParameter(
+            "Parallel (never combined with RT correction)",
+            "Parallel processing of gaps (RT correction is always on a single thread)");
 
-  public static final BooleanParameter useParallel =
-      new BooleanParameter("Parallel (never combined with RT correction)",
-          "Parallel processing of gaps (RT correction is always on a single thread)");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove original feature list",
+            "If checked, the original feature list will be removed");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
-
-  public PeakFinderParameters() {
-    super(new Parameter[] {peakLists, suffix, intTolerance, MZTolerance, RTTolerance, RTCorrection,
-        useParallel, autoRemove});
-  }
+    public PeakFinderParameters() {
+        super(new Parameter[] { peakLists, suffix, intTolerance, MZTolerance,
+                RTTolerance, RTCorrection, useParallel, autoRemove });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,49 +30,52 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * m/z range calculator module. Calculates m/z range from a given mass and m/z tolerance.
+ * m/z range calculator module. Calculates m/z range from a given mass and m/z
+ * tolerance.
  */
 public class MzRangeMassCalculatorModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "m/z range calculator from formula";
+    private static final String MODULE_NAME = "m/z range calculator from formula";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MzRangeMassCalculatorParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MzRangeMassCalculatorParameters.class;
+    }
 
-  /**
-   * Shows the calculation dialog and returns the calculated m/z range. May return null in case user
-   * clicked Cancel.
-   */
-  @Nullable
-  public static Range<Double> showRangeCalculationDialog() {
+    /**
+     * Shows the calculation dialog and returns the calculated m/z range. May
+     * return null in case user clicked Cancel.
+     */
+    @Nullable
+    public static Range<Double> showRangeCalculationDialog() {
 
-    ParameterSet myParameters =
-        MZmineCore.getConfiguration().getModuleParameters(MzRangeMassCalculatorModule.class);
+        ParameterSet myParameters = MZmineCore.getConfiguration()
+                .getModuleParameters(MzRangeMassCalculatorModule.class);
 
-    if (myParameters == null)
-      return null;
+        if (myParameters == null)
+            return null;
 
-    ExitCode exitCode = myParameters.showSetupDialog(null, true);
-    if (exitCode != ExitCode.OK)
-      return null;
+        ExitCode exitCode = myParameters.showSetupDialog(null, true);
+        if (exitCode != ExitCode.OK)
+            return null;
 
-    Double mz = myParameters.getParameter(MzRangeMassCalculatorParameters.mz).getValue();
-    MZTolerance mzTolerance =
-        myParameters.getParameter(MzRangeMassCalculatorParameters.mzTolerance).getValue();
+        Double mz = myParameters
+                .getParameter(MzRangeMassCalculatorParameters.mz).getValue();
+        MZTolerance mzTolerance = myParameters
+                .getParameter(MzRangeMassCalculatorParameters.mzTolerance)
+                .getValue();
 
-    if ((mz == null) || (mzTolerance == null))
-      return null;
+        if ((mz == null) || (mzTolerance == null))
+            return null;
 
-    Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
+        Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
 
-    return mzRange;
-  }
+        return mzRange;
+    }
 
 }

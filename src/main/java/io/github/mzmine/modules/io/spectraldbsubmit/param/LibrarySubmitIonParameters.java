@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -44,22 +44,24 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class LibrarySubmitIonParameters extends SimpleParameterSet {
 
-  public static final ParameterSetParameter META_PARAM =
-      new ParameterSetParameter("Metadata", "", new LibraryMetaDataParameters());
-  public static final ParameterSetParameter SUBMIT_PARAM =
-      new ParameterSetParameter("Submit", "", new LibrarySubmitParameters());
-  // set later
-  public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
-  public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
-  public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE", "", 0);
+    public static final ParameterSetParameter META_PARAM = new ParameterSetParameter(
+            "Metadata", "", new LibraryMetaDataParameters());
+    public static final ParameterSetParameter SUBMIT_PARAM = new ParameterSetParameter(
+            "Submit", "", new LibrarySubmitParameters());
+    // set later
+    public static final StringParameter ADDUCT = new StringParameter("ADDUCT",
+            "", "", false);
+    public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
+    public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE",
+            "", 0);
 
-  public LibrarySubmitIonParameters() {
-    super(new Parameter[] {
-        // meta data param
-        META_PARAM,
-        // submit param
-        SUBMIT_PARAM,
-        // Ion specific
-        ADDUCT, MZ, CHARGE});
-  }
+    public LibrarySubmitIonParameters() {
+        super(new Parameter[] {
+                // meta data param
+                META_PARAM,
+                // submit param
+                SUBMIT_PARAM,
+                // Ion specific
+                ADDUCT, MZ, CHARGE });
+    }
 }

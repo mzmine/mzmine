@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,84 +32,83 @@ import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 /**
- * Definition of {@link ChartGestureDragDiffHandler}s Used to store the definition of a drag
- * difference handler and to generate GestureHandlers
+ * Definition of {@link ChartGestureDragDiffHandler}s Used to store the
+ * definition of a drag difference handler and to generate GestureHandlers
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class DragGestureHandlerDef implements GestureHandlerFactory {
 
-  protected DragHandler[] handler;
-  protected Key[] key;
-  protected Entity entity;
-  protected Button button;
-  protected Orientation orient;
-  protected Object[] param;
+    protected DragHandler[] handler;
+    protected Key[] key;
+    protected Entity entity;
+    protected Button button;
+    protected Orientation orient;
+    protected Object[] param;
 
-  public DragGestureHandlerDef(DragHandler[] handler, Key[] key, Entity entity, Button button,
-      Orientation orient, Object[] param) {
-    super();
-    this.handler = handler;
-    this.key = key;
-    this.entity = entity;
-    this.button = button;
-    this.orient = orient;
-    this.param = param;
-  }
+    public DragGestureHandlerDef(DragHandler[] handler, Key[] key,
+            Entity entity, Button button, Orientation orient, Object[] param) {
+        super();
+        this.handler = handler;
+        this.key = key;
+        this.entity = entity;
+        this.button = button;
+        this.orient = orient;
+        this.param = param;
+    }
 
-  @Override
-  public ChartGestureHandler createHandler() {
-    return ChartGestureHandler.createDragDiffHandler(handler, key, entity, button, orient, param);
-  }
+    @Override
+    public ChartGestureHandler createHandler() {
+        return ChartGestureHandler.createDragDiffHandler(handler, key, entity,
+                button, orient, param);
+    }
 
-  public DragHandler[] getHandler() {
-    return handler;
-  }
+    public DragHandler[] getHandler() {
+        return handler;
+    }
 
-  public Key[] getKey() {
-    return key;
-  }
+    public Key[] getKey() {
+        return key;
+    }
 
-  public Entity getEntity() {
-    return entity;
-  }
+    public Entity getEntity() {
+        return entity;
+    }
 
-  public Button getButton() {
-    return button;
-  }
+    public Button getButton() {
+        return button;
+    }
 
-  public Orientation getOrient() {
-    return orient;
-  }
+    public Orientation getOrient() {
+        return orient;
+    }
 
-  public Object[] getParam() {
-    return param;
-  }
+    public Object[] getParam() {
+        return param;
+    }
 
-  public void setHandler(DragHandler[] handler) {
-    this.handler = handler;
-  }
+    public void setHandler(DragHandler[] handler) {
+        this.handler = handler;
+    }
 
-  public void setKey(Key[] key) {
-    this.key = key;
-  }
+    public void setKey(Key[] key) {
+        this.key = key;
+    }
 
-  public void setEntity(Entity entity) {
-    this.entity = entity;
-  }
+    public void setEntity(Entity entity) {
+        this.entity = entity;
+    }
 
-  public void setButton(Button button) {
-    this.button = button;
-  }
+    public void setButton(Button button) {
+        this.button = button;
+    }
 
-  public void setOrient(Orientation orient) {
-    this.orient = orient;
-  }
+    public void setOrient(Orientation orient) {
+        this.orient = orient;
+    }
 
-  public void setParam(Object[] param) {
-    this.param = param;
-  }
-
-
+    public void setParam(Object[] param) {
+        this.param = param;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,31 +28,35 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 
-public class DPPSumFormulaPredictionModule implements DataPointProcessingModule {
+public class DPPSumFormulaPredictionModule
+        implements DataPointProcessingModule {
 
-  @Override
-  public String getName() {
-    return "Sum formula prediction";
-  }
+    @Override
+    public String getName() {
+        return "Sum formula prediction";
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return DPPSumFormulaPredictionParameters.class;
-  }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+        return DPPSumFormulaPredictionParameters.class;
+    }
 
-  @Override
-  public ModuleSubCategory getModuleSubCategory() {
-    return ModuleSubCategory.IDENTIFICATION;
-  }
+    @Override
+    public ModuleSubCategory getModuleSubCategory() {
+        return ModuleSubCategory.IDENTIFICATION;
+    }
 
-  @Override
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
-    return new DPPSumFormulaPredictionTask(dataPoints, plot, parameterSet, controller, listener);
-  }
+    @Override
+    public DataPointProcessingTask createTask(DataPoint[] dataPoints,
+            ParameterSet parameterSet, SpectraPlot plot,
+            DataPointProcessingController controller,
+            TaskStatusListener listener) {
+        return new DPPSumFormulaPredictionTask(dataPoints, plot, parameterSet,
+                controller, listener);
+    }
 
-  @Override
-  public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSANY;
-  }
+    @Override
+    public MSLevel getApplicableMSLevel() {
+        return MSLevel.MSANY;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,24 +21,25 @@ package io.github.mzmine.gui.impl.projecttree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
- * This class represents a simple JTree node which always return false from isLeaf() method. The
- * purpose is that this node can always be expanded/collapsed, even when it is empty. Normally,
- * leafs cannot be expanded/collapsed unless they have children. But we want our main project tree
- * nodes to be always expanded by default.
+ * This class represents a simple JTree node which always return false from
+ * isLeaf() method. The purpose is that this node can always be
+ * expanded/collapsed, even when it is empty. Normally, leafs cannot be
+ * expanded/collapsed unless they have children. But we want our main project
+ * tree nodes to be always expanded by default.
  */
 public class ProjectTreeNode extends DefaultMutableTreeNode {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  public ProjectTreeNode(String name) {
-    super(name);
-  }
+    public ProjectTreeNode(String name) {
+        super(name);
+    }
 
-  public boolean isLeaf() {
-    return false;
-  }
+    public boolean isLeaf() {
+        return false;
+    }
 
 }

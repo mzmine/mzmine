@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,7 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.gui.swing.demo;
 
-
 import java.awt.BorderLayout;
 import java.util.Random;
 import javax.swing.JFrame;
@@ -33,42 +32,44 @@ import javafx.scene.layout.StackPane;
 
 public class SwingChartGestureDemo extends JFrame {
 
-  /**
-   * @param args the command line arguments
-   */
-  public static void main(String[] args) {
-    new SwingChartGestureDemo().setVisible(true);
-  }
-
-  public SwingChartGestureDemo() {
-    setSize(800, 600);
-    setTitle("Chart gesture test");
-    XYDataset dataset = createDataset();
-    JFreeChart chart = ChartFactory.createXYLineChart("Random", "i", "r", createDataset());
-    EChartPanel canvas = new EChartPanel(chart);
-    StackPane stackPane = new StackPane();
-    getContentPane().add(canvas, BorderLayout.CENTER);
-  }
-
-  /**
-   * Creates a dataset, consisting of two series of monthly data.
-   *
-   * @return the dataset.
-   */
-  private static XYDataset createDataset() {
-    XYSeriesCollection data = new XYSeriesCollection();
-
-    Random r = new Random(System.currentTimeMillis());
-
-    for (int i = 0; i < 3; i++) {
-      XYSeries s = new XYSeries("Series" + i);
-      for (int x = 0; x < 100; x++) {
-        double v = r.nextGaussian() * (i + 1);
-        s.add(x, v);
-      }
-      data.addSeries(s);
+    /**
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) {
+        new SwingChartGestureDemo().setVisible(true);
     }
-    return data;
-  }
+
+    public SwingChartGestureDemo() {
+        setSize(800, 600);
+        setTitle("Chart gesture test");
+        XYDataset dataset = createDataset();
+        JFreeChart chart = ChartFactory.createXYLineChart("Random", "i", "r",
+                createDataset());
+        EChartPanel canvas = new EChartPanel(chart);
+        StackPane stackPane = new StackPane();
+        getContentPane().add(canvas, BorderLayout.CENTER);
+    }
+
+    /**
+     * Creates a dataset, consisting of two series of monthly data.
+     *
+     * @return the dataset.
+     */
+    private static XYDataset createDataset() {
+        XYSeriesCollection data = new XYSeriesCollection();
+
+        Random r = new Random(System.currentTimeMillis());
+
+        for (int i = 0; i < 3; i++) {
+            XYSeries s = new XYSeries("Series" + i);
+            for (int x = 0; x < 100; x++) {
+                double v = r.nextGaussian() * (i + 1);
+                s.add(x, v);
+            }
+            data.addSeries(s);
+        }
+        return data;
+    }
 
 }

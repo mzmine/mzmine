@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -51,103 +51,110 @@ import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 
 public class ImportLipidModificationsAction extends AbstractAction {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  // Logger.
-  private static final Logger LOG =
-      Logger.getLogger(ImportLipidModificationsAction.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(ImportLipidModificationsAction.class.getName());
 
-  // Filename extension.
-  private static final String FILENAME_EXTENSION = "csv";
+    // Filename extension.
+    private static final String FILENAME_EXTENSION = "csv";
 
-  private LoadSaveFileChooser chooser;
+    private LoadSaveFileChooser chooser;
 
-  /**
-   * Create the action.
-   */
-  public ImportLipidModificationsAction() {
+    /**
+     * Create the action.
+     */
+    public ImportLipidModificationsAction() {
 
-    super("Import...");
-    putValue(SHORT_DESCRIPTION, "Import lipid modifications from a CSV file");
+        super("Import...");
+        putValue(SHORT_DESCRIPTION,
+                "Import lipid modifications from a CSV file");
 
-    chooser = null;
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    // Parent component.
-    final LipidModificationChoiceComponent parent =
-        (LipidModificationChoiceComponent) SwingUtilities
-            .getAncestorOfClass(LipidModificationChoiceComponent.class, (Component) e.getSource());
-
-    if (parent != null) {
-
-      // Create the chooser if necessary.
-      if (chooser == null) {
-
-        chooser = new LoadSaveFileChooser("Select lipid modification file");
-        chooser.addChoosableFileFilter(
-            new FileNameExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
-      }
-
-      // Select a file.
-      final File file = chooser.getLoadFile(parent);
-      if (file != null) {
-
-        // Read the CSV file into a string array.
-        String[][] csvLines = null;
-        try {
-
-          csvLines = CSVParser.parse(new FileReader(file));
-        } catch (IOException ex) {
-          final Window window =
-              (Window) SwingUtilities.getAncestorOfClass(Window.class, (Component) e.getSource());
-          final String msg = "There was a problem reading the lipid modification file.";
-          MZmineCore.getDesktop().displayErrorMessage(window, "I/O Error",
-              msg + "\n(" + ex.getMessage() + ')');
-          LOG.log(Level.SEVERE, msg, ex);
-        }
-
-        // Read the lipid modifications data.
-        if (csvLines != null) {
-
-          // Load adducts from CSV data into parent choices.
-          parent.setChoices(loadLipidModificationsIntoChoices(csvLines,
-              (LipidModification[]) parent.getChoices()));
-        }
-      }
-    }
-  }
-
-  /**
-   * Load the lipid modificatons into the list
-   *
-   * @param lines CSV lines to parse.
-   */
-  private static LipidModification[] loadLipidModificationsIntoChoices(final String[][] lines,
-      final LipidModification[] modifications) {
-
-    // Create a list of lipid modifications.
-    final ArrayList<LipidModification> choices =
-        new ArrayList<LipidModification>(Arrays.asList(modifications));
-
-    int i = 1;
-    for (final String line[] : lines) {
-      try {
-
-        // Create new modification and add it to the choices if it's new.
-        final LipidModification modification = new LipidModification(line[0], line[1]);
-        if (!choices.contains(modification)) {
-
-          choices.add(modification);
-        }
-      } catch (final NumberFormatException ignored) {
-
-        LOG.warning("Couldn't find lipid modifier in line " + line[0]);
-      }
+        chooser = null;
     }
 
-    return choices.toArray(new LipidModification[choices.size()]);
-  }
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+
+        // Parent component.
+        final LipidModificationChoiceComponent parent = (LipidModificationChoiceComponent) SwingUtilities
+                .getAncestorOfClass(LipidModificationChoiceComponent.class,
+                        (Component) e.getSource());
+
+        if (parent != null) {
+
+            // Create the chooser if necessary.
+            if (chooser == null) {
+
+                chooser = new LoadSaveFileChooser(
+                        "Select lipid modification file");
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                        "Comma-separated values files", FILENAME_EXTENSION));
+            }
+
+            // Select a file.
+            final File file = chooser.getLoadFile(parent);
+            if (file != null) {
+
+                // Read the CSV file into a string array.
+                String[][] csvLines = null;
+                try {
+
+                    csvLines = CSVParser.parse(new FileReader(file));
+                } catch (IOException ex) {
+                    final Window window = (Window) SwingUtilities
+                            .getAncestorOfClass(Window.class,
+                                    (Component) e.getSource());
+                    final String msg = "There was a problem reading the lipid modification file.";
+                    MZmineCore.getDesktop().displayErrorMessage(window,
+                            "I/O Error", msg + "\n(" + ex.getMessage() + ')');
+                    LOG.log(Level.SEVERE, msg, ex);
+                }
+
+                // Read the lipid modifications data.
+                if (csvLines != null) {
+
+                    // Load adducts from CSV data into parent choices.
+                    parent.setChoices(
+                            loadLipidModificationsIntoChoices(csvLines,
+                                    (LipidModification[]) parent.getChoices()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Load the lipid modificatons into the list
+     *
+     * @param lines
+     *            CSV lines to parse.
+     */
+    private static LipidModification[] loadLipidModificationsIntoChoices(
+            final String[][] lines, final LipidModification[] modifications) {
+
+        // Create a list of lipid modifications.
+        final ArrayList<LipidModification> choices = new ArrayList<LipidModification>(
+                Arrays.asList(modifications));
+
+        int i = 1;
+        for (final String line[] : lines) {
+            try {
+
+                // Create new modification and add it to the choices if it's
+                // new.
+                final LipidModification modification = new LipidModification(
+                        line[0], line[1]);
+                if (!choices.contains(modification)) {
+
+                    choices.add(modification);
+                }
+            } catch (final NumberFormatException ignored) {
+
+                LOG.warning("Couldn't find lipid modifier in line " + line[0]);
+            }
+        }
+
+        return choices.toArray(new LipidModification[choices.size()]);
+    }
 }

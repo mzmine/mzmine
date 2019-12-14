@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,27 +32,31 @@ import io.github.mzmine.util.ExitCode;
 
 public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT =
-      new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
-          MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
+            "Min peak height",
+            "Minimum acceptable peak height (absolute intensity)",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+            "Peak duration range (min)", "Range of acceptable peak lengths",
+            MZmineCore.getConfiguration().getRTFormat(),
+            Range.closed(0.0, 10.0));
 
-  public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter("Baseline level",
-      "Level below which all data points of the chromatogram are removed (absolute intensity)",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter(
+            "Baseline level",
+            "Level below which all data points of the chromatogram are removed (absolute intensity)",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public BaselinePeakDetectorParameters() {
-    super(new Parameter[] {MIN_PEAK_HEIGHT, PEAK_DURATION, BASELINE_LEVEL});
-  }
+    public BaselinePeakDetectorParameters() {
+        super(new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
+                BASELINE_LEVEL });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog =
-        new PeakResolverSetupDialog(parent, valueCheckRequired, this, BaselinePeakDetector.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+                parent, valueCheckRequired, this, BaselinePeakDetector.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

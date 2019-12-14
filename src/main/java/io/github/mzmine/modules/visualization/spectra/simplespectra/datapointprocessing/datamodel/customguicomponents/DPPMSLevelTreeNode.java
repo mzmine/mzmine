@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,29 +21,29 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
 
 /**
- * Stores MSLevel in a tree item. Used to organize the tree view automatically. Every
- * {@link MSLevel} is automatically added in {@link ProcessingComponent}.
+ * Stores MSLevel in a tree item. Used to organize the tree view automatically.
+ * Every {@link MSLevel} is automatically added in {@link ProcessingComponent}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class DPPMSLevelTreeNode extends DisableableTreeNode {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private MSLevel mslevel;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private MSLevel mslevel;
 
-  public DPPMSLevelTreeNode(MSLevel mslevel) {
-    super(mslevel.toString());
-    setMSLevel(mslevel);
-  }
+    public DPPMSLevelTreeNode(MSLevel mslevel) {
+        super(mslevel.toString());
+        setMSLevel(mslevel);
+    }
 
-  public MSLevel getMSLevel() {
-    return mslevel;
-  }
+    public MSLevel getMSLevel() {
+        return mslevel;
+    }
 
-  private void setMSLevel(MSLevel mslevel) {
-    this.mslevel = mslevel;
-  }
+    private void setMSLevel(MSLevel mslevel) {
+        this.mslevel = mslevel;
+    }
 }

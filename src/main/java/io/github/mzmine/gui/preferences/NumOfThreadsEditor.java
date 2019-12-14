@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,60 +31,61 @@ import javax.swing.JPanel;
  */
 public class NumOfThreadsEditor extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private static final String options[] =
-      {"Set to the number of CPU cores (" + Runtime.getRuntime().availableProcessors() + ")",
-          "Set manually"};
+    private static final String options[] = {
+            "Set to the number of CPU cores ("
+                    + Runtime.getRuntime().availableProcessors() + ")",
+            "Set manually" };
 
-  private JComboBox<String> optionCombo;
-  private JFormattedTextField numField;
+    private JComboBox<String> optionCombo;
+    private JFormattedTextField numField;
 
-  public NumOfThreadsEditor() {
+    public NumOfThreadsEditor() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    optionCombo = new JComboBox<String>(options);
-    optionCombo.addActionListener(this);
-    add(optionCombo, BorderLayout.WEST);
+        optionCombo = new JComboBox<String>(options);
+        optionCombo.addActionListener(this);
+        add(optionCombo, BorderLayout.WEST);
 
-    numField = new JFormattedTextField(NumberFormat.getIntegerInstance());
-    numField.setColumns(3);
-    add(numField, BorderLayout.CENTER);
+        numField = new JFormattedTextField(NumberFormat.getIntegerInstance());
+        numField.setColumns(3);
+        add(numField, BorderLayout.CENTER);
 
-  }
-
-  public void setValue(boolean automatic, int numOfThreads) {
-    if (automatic) {
-      optionCombo.setSelectedIndex(0);
-    } else {
-      optionCombo.setSelectedIndex(1);
-    }
-    numField.setValue(numOfThreads);
-    numField.setEnabled(!automatic);
-  }
-
-  public boolean isAutomatic() {
-    int index = optionCombo.getSelectedIndex();
-    return index <= 0;
-  }
-
-  public Number getNumOfThreads() {
-    return (Number) numField.getValue();
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == optionCombo) {
-      numField.setEnabled(!isAutomatic());
     }
 
-  }
+    public void setValue(boolean automatic, int numOfThreads) {
+        if (automatic) {
+            optionCombo.setSelectedIndex(0);
+        } else {
+            optionCombo.setSelectedIndex(1);
+        }
+        numField.setValue(numOfThreads);
+        numField.setEnabled(!automatic);
+    }
+
+    public boolean isAutomatic() {
+        int index = optionCombo.getSelectedIndex();
+        return index <= 0;
+    }
+
+    public Number getNumOfThreads() {
+        return (Number) numField.getValue();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+
+        Object src = event.getSource();
+
+        if (src == optionCombo) {
+            numField.setEnabled(!isAutomatic());
+        }
+
+    }
 
 }

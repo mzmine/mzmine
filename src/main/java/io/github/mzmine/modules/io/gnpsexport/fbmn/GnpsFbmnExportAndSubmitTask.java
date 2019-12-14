@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,6 +36,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.main.MZmineCore;
@@ -59,149 +62,167 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  *
  */
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
-  // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+    // Logger.
+    private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  private ParameterSet parameters;
-  private AtomicDouble progress = new AtomicDouble(0);
+    private ParameterSet parameters;
+    private AtomicDouble progress = new AtomicDouble(0);
 
+    GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
+        this.parameters = parameters;
+    }
 
-  GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
-    this.parameters = parameters;
-  }
+    @Override
+    public TaskPriority getTaskPriority() {
+        // to not block mzmine with single process (1 thread)
+        return TaskPriority.HIGH;
+    }
 
-  @Override
-  public TaskPriority getTaskPriority() {
-    // to not block mzmine with single process (1 thread)
-    return TaskPriority.HIGH;
-  }
+    @Override
+    public String getTaskDescription() {
+        return "Exporting files GNPS feature based molecular networking job";
+    }
 
-  @Override
-  public String getTaskDescription() {
-    return "Exporting files GNPS feature based molecular networking job";
-  }
+    @Override
+    public double getFinishedPercentage() {
+        return progress.get();
+    }
 
-  @Override
-  public double getFinishedPercentage() {
-    return progress.get();
-  }
+    @Override
+    public void run() {
+        final AbstractTask thistask = this;
+        setStatus(TaskStatus.PROCESSING);
 
-  @Override
-  public void run() {
-    final AbstractTask thistask = this;
-    setStatus(TaskStatus.PROCESSING);
+        boolean openFolder = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER)
+                .getValue();
+        boolean submit = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT)
+                .getValue();
+        File file = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME)
+                .getValue();
+        file = FileAndPathUtil.eraseFormat(file);
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME)
+                .setValue(file);
 
-    boolean openFolder =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER).getValue();
-    boolean submit = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue();
-    File file = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    file = FileAndPathUtil.eraseFormat(file);
-    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
+        List<AbstractTask> list = new ArrayList<>(3);
+        GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
+        list.add(task);
 
-    List<AbstractTask> list = new ArrayList<>(3);
-    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
-    list.add(task);
+        // add csv quant table
+        list.add(addQuantTableTask(parameters, null));
 
-    // add csv quant table
-    list.add(addQuantTableTask(parameters, null));
+        // finish listener to submit
+        final File fileName = file;
+        final File folder = file.getParentFile();
+        new AllTasksFinishedListener(list, true,
+                // succeed
+                l -> {
+                    try {
+                        LOG.info("succeed" + thistask.getStatus().toString());
+                        if (submit) {
+                            GnpsFbmnSubmitParameters param = parameters
+                                    .getParameter(
+                                            GnpsFbmnExportAndSubmitParameters.SUBMIT)
+                                    .getEmbeddedParameters();
+                            submit(fileName, param);
+                        }
 
-    // finish listener to submit
-    final File fileName = file;
-    final File folder = file.getParentFile();
-    new AllTasksFinishedListener(list, true,
-        // succeed
-        l -> {
-          try {
-            LOG.info("succeed" + thistask.getStatus().toString());
-            if (submit) {
-              GnpsFbmnSubmitParameters param = parameters
-                  .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(fileName, param);
+                        // open folder
+                        try {
+                            if (openFolder && Desktop.isDesktopSupported()) {
+                                Desktop.getDesktop().open(folder);
+                            }
+                        } catch (Exception ex) {
+                        }
+                    } finally {
+                        // finish task
+                        if (thistask.getStatus() == TaskStatus.PROCESSING)
+                            thistask.setStatus(TaskStatus.FINISHED);
+                    }
+                }, lerror -> {
+                    setErrorMessage(
+                            "GNPS submit was not started due too errors while file export");
+                    thistask.setStatus(TaskStatus.ERROR);
+                    throw new MSDKRuntimeException(
+                            "GNPS submit was not started due too errors while file export");
+                },
+                // cancel if one was cancelled
+                listCancelled -> cancel()) {
+            @Override
+            public void taskStatusChanged(Task task, TaskStatus newStatus,
+                    TaskStatus oldStatus) {
+                super.taskStatusChanged(task, newStatus, oldStatus);
+                // show progress
+                progress.getAndSet(getProgress());
             }
+        };
 
-            // open folder
+        MZmineCore.getTaskController()
+                .addTasks(list.toArray(new AbstractTask[list.size()]));
+
+        // wait till finish
+        while (!(isCanceled() || isFinished())) {
             try {
-              if (openFolder && Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(folder);
-              }
-            } catch (Exception ex) {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                LOG.log(Level.SEVERE, "Error in GNPS export/submit task", e);
             }
-          } finally {
-            // finish task
-            if (thistask.getStatus() == TaskStatus.PROCESSING)
-              thistask.setStatus(TaskStatus.FINISHED);
-          }
-        }, lerror -> {
-          setErrorMessage("GNPS submit was not started due too errors while file export");
-          thistask.setStatus(TaskStatus.ERROR);
-          throw new MSDKRuntimeException(
-              "GNPS submit was not started due too errors while file export");
-        },
-        // cancel if one was cancelled
-        listCancelled -> cancel()) {
-      @Override
-      public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-        super.taskStatusChanged(task, newStatus, oldStatus);
-        // show progress
-        progress.getAndSet(getProgress());
-      }
-    };
-
-    MZmineCore.getTaskController().addTasks(list.toArray(new AbstractTask[list.size()]));
-
-    // wait till finish
-    while (!(isCanceled() || isFinished())) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        LOG.log(Level.SEVERE, "Error in GNPS export/submit task", e);
-      }
+        }
     }
-  }
 
-
-  /**
-   * Submit GNPS job
-   * 
-   * @param fileName
-   * @param param
-   */
-  private void submit(File fileName, GnpsFbmnSubmitParameters param) {
-    try {
-      String url = GNPSUtils.submitFbmnJob(fileName, param);
-      if (url == null || url.isEmpty())
-        LOG.log(Level.WARNING, "GNPS submit failed (response url empty)");
-    } catch (Exception e) {
-      LOG.log(Level.WARNING, "GNPS submit failed", e);
+    /**
+     * Submit GNPS job
+     * 
+     * @param fileName
+     * @param param
+     */
+    private void submit(File fileName, GnpsFbmnSubmitParameters param) {
+        try {
+            String url = GNPSUtils.submitFbmnJob(fileName, param);
+            if (url == null || url.isEmpty())
+                LOG.log(Level.WARNING,
+                        "GNPS submit failed (response url empty)");
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "GNPS submit failed", e);
+        }
     }
-  }
 
-  /**
-   * Export quant table
-   * 
-   * @param parameters
-   * @param tasks
-   */
-  private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
-    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    String name = FileAndPathUtil.eraseFormat(full.getName());
-    full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
+    /**
+     * Export quant table
+     * 
+     * @param parameters
+     * @param tasks
+     */
+    private AbstractTask addQuantTableTask(ParameterSet parameters,
+            Collection<Task> tasks) {
+        File full = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME)
+                .getValue();
+        final String name = FilenameUtils.removeExtension(full.getName());
+        full = new File(full.getParentFile(), name + "_quant.csv");
 
-    ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID,
-        ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT};
+        ExportRowCommonElement[] common = new ExportRowCommonElement[] {
+                ExportRowCommonElement.ROW_ID, ExportRowCommonElement.ROW_MZ,
+                ExportRowCommonElement.ROW_RT };
 
-    ExportRowDataFileElement[] rawdata =
-        new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
+        ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[] {
+                ExportRowDataFileElement.PEAK_AREA };
 
-    RowFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+        RowFilter filter = parameters
+                .getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
+                .getValue();
 
-    CSVExportTask quanExport = new CSVExportTask(
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue()
-            .getMatchingPeakLists(), //
-        full, ",", common, rawdata, false, ";", filter);
-    if (tasks != null)
-      tasks.add(quanExport);
-    return quanExport;
-  }
+        CSVExportTask quanExport = new CSVExportTask(
+                parameters
+                        .getParameter(
+                                GnpsFbmnExportAndSubmitParameters.PEAK_LISTS)
+                        .getValue().getMatchingPeakLists(), //
+                full, ",", common, rawdata, false, ";", filter);
+        if (tasks != null)
+            tasks.add(quanExport);
+        return quanExport;
+    }
 
 }

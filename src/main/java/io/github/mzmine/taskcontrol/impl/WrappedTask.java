@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,63 +26,64 @@ import io.github.mzmine.taskcontrol.TaskPriority;
  */
 public class WrappedTask {
 
-  private Task task;
-  private TaskPriority priority;
-  private WorkerThread assignedTo;
+    private Task task;
+    private TaskPriority priority;
+    private WorkerThread assignedTo;
 
-  WrappedTask(Task task, TaskPriority priority) {
-    this.task = task;
-    this.priority = priority;
-  }
-
-  /**
-   * @return Returns the priority.
-   */
-  TaskPriority getPriority() {
-    return priority;
-  }
-
-  /**
-   * @param priority The priority to set.
-   */
-  void setPriority(TaskPriority priority) {
-    this.priority = priority;
-    if (assignedTo != null) {
-      switch (priority) {
-        case HIGH:
-          assignedTo.setPriority(Thread.MAX_PRIORITY);
-          break;
-        case NORMAL:
-          assignedTo.setPriority(Thread.NORM_PRIORITY);
-          break;
-      }
+    WrappedTask(Task task, TaskPriority priority) {
+        this.task = task;
+        this.priority = priority;
     }
-  }
 
-  /**
-   * @return Returns the assigned.
-   */
-  boolean isAssigned() {
-    return assignedTo != null;
-  }
+    /**
+     * @return Returns the priority.
+     */
+    TaskPriority getPriority() {
+        return priority;
+    }
 
-  void assignTo(WorkerThread thread) {
-    assignedTo = thread;
-  }
+    /**
+     * @param priority
+     *            The priority to set.
+     */
+    void setPriority(TaskPriority priority) {
+        this.priority = priority;
+        if (assignedTo != null) {
+            switch (priority) {
+            case HIGH:
+                assignedTo.setPriority(Thread.MAX_PRIORITY);
+                break;
+            case NORMAL:
+                assignedTo.setPriority(Thread.NORM_PRIORITY);
+                break;
+            }
+        }
+    }
 
-  /**
-   * @return Returns the task.
-   */
-  public synchronized Task getActualTask() {
-    return task;
-  }
+    /**
+     * @return Returns the assigned.
+     */
+    boolean isAssigned() {
+        return assignedTo != null;
+    }
 
-  public synchronized String toString() {
-    return task.getTaskDescription();
-  }
+    void assignTo(WorkerThread thread) {
+        assignedTo = thread;
+    }
 
-  synchronized void removeTaskReference() {
-    task = new FinishedTask(task);
-  }
+    /**
+     * @return Returns the task.
+     */
+    public synchronized Task getActualTask() {
+        return task;
+    }
+
+    public synchronized String toString() {
+        return task.getTaskDescription();
+    }
+
+    synchronized void removeTaskReference() {
+        task = new FinishedTask(task);
+    }
 
 }

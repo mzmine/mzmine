@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,166 +22,171 @@ import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 
 public class SettingsBasicStroke {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private float w, miterlimit, dashphase;
-  private int cap, join;
-  private float[] array;
+    private float w, miterlimit, dashphase;
+    private int cap, join;
+    private float[] array;
 
-  private transient BasicStroke stroke;
+    private transient BasicStroke stroke;
 
-  public SettingsBasicStroke() {
-    resetAll();
-  }
-
-  public SettingsBasicStroke(float w, int cap, int join, float miterlimit, float[] array,
-      float dashphase) {
-    this();
-    setAll(w, cap, join, miterlimit, array, dashphase);
-
-  }
-
-  public SettingsBasicStroke(float w, int cap, int join, float miter) {
-    this();
-    setAll(w, cap, join, miter, new float[] {10.f}, 0);
-  }
-
-  public SettingsBasicStroke(float w) {
-    this();
-    setAll(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2, new float[] {10.f}, 0);
-  }
-
-  public SettingsBasicStroke(BasicStroke s) {
-    this();
-    setStroke(s);
-  }
-
-
-  public void setAll(float w, int cap, int join, float miterlimit, float[] array, float dashphase) {
-    setLineWidth(w);
-    setMiterlimit(miterlimit);
-    setDashArray(array);
-    setDashphase(dashphase);
-    setCap(cap);
-    setJoin(join);
-  }
-
-  public void setLineWidth(float w) {
-    if (Math.abs(this.w - w) > 0.001) {
-      this.w = w;
-      stroke = null;
+    public SettingsBasicStroke() {
+        resetAll();
     }
-  }
 
-  public void setMiterlimit(float miterlimit) {
-    if (Math.abs(this.miterlimit - miterlimit) > 0.00001) {
-      this.miterlimit = miterlimit;
-      stroke = null;
+    public SettingsBasicStroke(float w, int cap, int join, float miterlimit,
+            float[] array, float dashphase) {
+        this();
+        setAll(w, cap, join, miterlimit, array, dashphase);
+
     }
-  }
 
-  public void setDashphase(float dashphase) {
-    if (Math.abs(this.dashphase - dashphase) > 0.00001) {
-      this.dashphase = dashphase;
-      stroke = null;
+    public SettingsBasicStroke(float w, int cap, int join, float miter) {
+        this();
+        setAll(w, cap, join, miter, new float[] { 10.f }, 0);
     }
-  }
 
-  public void setCap(int cap) {
-    if (this.cap != cap) {
-      this.cap = cap;
-      stroke = null;
+    public SettingsBasicStroke(float w) {
+        this();
+        setAll(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2,
+                new float[] { 10.f }, 0);
     }
-  }
 
-  public void setJoin(int join) {
-    if (this.join != join) {
-      this.join = join;
-      stroke = null;
+    public SettingsBasicStroke(BasicStroke s) {
+        this();
+        setStroke(s);
     }
-  }
 
-  public void setDashArray(float[] array) {
-    if (!this.array.equals(array)) {
-      this.array = array;
-      stroke = null;
+    public void setAll(float w, int cap, int join, float miterlimit,
+            float[] array, float dashphase) {
+        setLineWidth(w);
+        setMiterlimit(miterlimit);
+        setDashArray(array);
+        setDashphase(dashphase);
+        setCap(cap);
+        setJoin(join);
     }
-  }
 
-  public void resetAll() {
-    this.w = 1.5f;
-    this.miterlimit = 2.f;
-    this.dashphase = 0;
-    this.cap = BasicStroke.CAP_ROUND;
-    this.join = BasicStroke.JOIN_MITER;
-    this.array = new float[] {10.f};
-    stroke = null;
-  }
-
-  public BasicStroke getStroke() {
-    if (stroke == null) {
-      stroke = new BasicStroke(w, cap, join, miterlimit, array, dashphase);
+    public void setLineWidth(float w) {
+        if (Math.abs(this.w - w) > 0.001) {
+            this.w = w;
+            stroke = null;
+        }
     }
-    return stroke;
-  }
 
-  public float[] getDashArray() {
-    return array;
-  }
+    public void setMiterlimit(float miterlimit) {
+        if (Math.abs(this.miterlimit - miterlimit) > 0.00001) {
+            this.miterlimit = miterlimit;
+            stroke = null;
+        }
+    }
 
-  public float getDashPhase() {
-    // TODO Auto-generated method stub
-    return dashphase;
-  }
+    public void setDashphase(float dashphase) {
+        if (Math.abs(this.dashphase - dashphase) > 0.00001) {
+            this.dashphase = dashphase;
+            stroke = null;
+        }
+    }
 
-  /**
-   * Returns the line width. Line width is represented in user space, which is the
-   * default-coordinate space used by Java 2D. See the <code>Graphics2D</code> class comments for
-   * more information on the user space coordinate system.
-   * 
-   * @return the line width of this <code>BasicStroke</code>.
-   * @see Graphics2D
-   */
-  public float getLineWidth() {
-    return w;
-  }
+    public void setCap(int cap) {
+        if (this.cap != cap) {
+            this.cap = cap;
+            stroke = null;
+        }
+    }
 
-  /**
-   * Returns the end cap style.
-   * 
-   * @return the end cap style of this <code>BasicStroke</code> as one of the static
-   *         <code>int</code> values that define possible end cap styles.
-   */
-  public int getEndCap() {
-    return cap;
-  }
+    public void setJoin(int join) {
+        if (this.join != join) {
+            this.join = join;
+            stroke = null;
+        }
+    }
 
-  /**
-   * Returns the line join style.
-   * 
-   * @return the line join style of the <code>BasicStroke</code> as one of the static
-   *         <code>int</code> values that define possible line join styles.
-   */
-  public int getLineJoin() {
-    return join;
-  }
+    public void setDashArray(float[] array) {
+        if (!this.array.equals(array)) {
+            this.array = array;
+            stroke = null;
+        }
+    }
 
-  /**
-   * Returns the limit of miter joins.
-   * 
-   * @return the limit of miter joins of the <code>BasicStroke</code>.
-   */
-  public float getMiterLimit() {
-    return miterlimit;
-  }
+    public void resetAll() {
+        this.w = 1.5f;
+        this.miterlimit = 2.f;
+        this.dashphase = 0;
+        this.cap = BasicStroke.CAP_ROUND;
+        this.join = BasicStroke.JOIN_MITER;
+        this.array = new float[] { 10.f };
+        stroke = null;
+    }
 
-  public void setStroke(BasicStroke s) {
-    setAll(s.getLineWidth(), s.getEndCap(), s.getLineJoin(), s.getMiterLimit(), s.getDashArray(),
-        s.getDashPhase());
-    stroke = s;
-  }
+    public BasicStroke getStroke() {
+        if (stroke == null) {
+            stroke = new BasicStroke(w, cap, join, miterlimit, array,
+                    dashphase);
+        }
+        return stroke;
+    }
+
+    public float[] getDashArray() {
+        return array;
+    }
+
+    public float getDashPhase() {
+        // TODO Auto-generated method stub
+        return dashphase;
+    }
+
+    /**
+     * Returns the line width. Line width is represented in user space, which is
+     * the default-coordinate space used by Java 2D. See the
+     * <code>Graphics2D</code> class comments for more information on the user
+     * space coordinate system.
+     * 
+     * @return the line width of this <code>BasicStroke</code>.
+     * @see Graphics2D
+     */
+    public float getLineWidth() {
+        return w;
+    }
+
+    /**
+     * Returns the end cap style.
+     * 
+     * @return the end cap style of this <code>BasicStroke</code> as one of the
+     *         static <code>int</code> values that define possible end cap
+     *         styles.
+     */
+    public int getEndCap() {
+        return cap;
+    }
+
+    /**
+     * Returns the line join style.
+     * 
+     * @return the line join style of the <code>BasicStroke</code> as one of the
+     *         static <code>int</code> values that define possible line join
+     *         styles.
+     */
+    public int getLineJoin() {
+        return join;
+    }
+
+    /**
+     * Returns the limit of miter joins.
+     * 
+     * @return the limit of miter joins of the <code>BasicStroke</code>.
+     */
+    public float getMiterLimit() {
+        return miterlimit;
+    }
+
+    public void setStroke(BasicStroke s) {
+        setAll(s.getLineWidth(), s.getEndCap(), s.getLineJoin(),
+                s.getMiterLimit(), s.getDashArray(), s.getDashPhase());
+        stroke = s;
+    }
 
 }

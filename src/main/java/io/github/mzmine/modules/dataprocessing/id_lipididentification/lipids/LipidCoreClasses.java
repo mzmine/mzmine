@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,26 +24,27 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidCoreClasses {
-  FATTYACYLS("Fatty Acyls"), //
-  GLYCEROLIPIDS("Glycerolipids"), //
-  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
-  SPHINGOLIPIDS("Sphingolipids");//
-  private String name;
+    FATTYACYLS("Fatty Acyls"), //
+    GLYCEROLIPIDS("Glycerolipids"), //
+    GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
+    SPHINGOLIPIDS("Sphingolipids");//
 
-  LipidCoreClasses(String name) {
-    this.name = name;
-  }
+    private String name;
 
-  public String getName() {
-    return name;
-  }
+    LipidCoreClasses(String name) {
+        this.name = name;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  @Override
-  public String toString() {
-    return this.name;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

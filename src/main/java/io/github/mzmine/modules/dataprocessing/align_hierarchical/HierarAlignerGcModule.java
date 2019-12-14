@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,40 +31,39 @@ import io.github.mzmine.util.ExitCode;
 
 public class HierarAlignerGcModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Hierachical aligner (GC)";
-  private static final String MODULE_DESCRIPTION =
-      "This method aligns detected peaks using a match score. This score is calculated based on the MZ profile and RT of each peak using preset tolerances.";
+    private static final String MODULE_NAME = "Hierachical aligner (GC)";
+    private static final String MODULE_DESCRIPTION = "This method aligns detected peaks using a match score. This score is calculated based on the MZ profile and RT of each peak using preset tolerances.";
 
-  public static final String MISSING_PEAK_VAL = "0";
+    public static final String MISSING_PEAK_VAL = "0";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    Task newTask = new HierarAlignerGCTask(project, parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        Task newTask = new HierarAlignerGCTask(project, parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ALIGNMENT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.ALIGNMENT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return HierarAlignerGCParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return HierarAlignerGCParameters.class;
+    }
 
 }

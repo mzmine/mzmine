@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,151 +33,158 @@ import io.github.mzmine.parameters.UserParameter;
  * Simple Parameter implementation
  * 
  */
-public class FileNameParameter implements UserParameter<File, FileNameComponent> {
+public class FileNameParameter
+        implements UserParameter<File, FileNameComponent> {
 
-  private static final String CURRENT_FILE_ELEMENT = "current_file";
-  private static final String LAST_FILE_ELEMENT = "last_file";
-  private String name, description;
-  private File value;
-  private List<File> lastFiles;
-  private String extension;
-  private int textfield_columns = 15;
+    private static final String CURRENT_FILE_ELEMENT = "current_file";
+    private static final String LAST_FILE_ELEMENT = "last_file";
+    private String name, description;
+    private File value;
+    private List<File> lastFiles;
+    private String extension;
+    private int textfield_columns = 15;
 
-  public FileNameParameter(String name, String description) {
-    this(name, description, null);
-  }
-
-  public FileNameParameter(String name, String description, String extension) {
-    this.name = name;
-    this.description = description;
-    this.extension = extension;
-    lastFiles = new ArrayList<>();
-  }
-
-  public FileNameParameter(String name, String description, String extension,
-      int textfield_columns) {
-    this.name = name;
-    this.description = description;
-    this.extension = extension;
-    this.textfield_columns = textfield_columns;
-    lastFiles = new ArrayList<>();
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public FileNameComponent createEditingComponent() {
-    return new FileNameComponent(textfield_columns, lastFiles);
-  }
-
-  @Override
-  public File getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(File value) {
-    this.value = value;
-  }
-
-  public List<File> getLastFiles() {
-    return lastFiles;
-  }
-
-  public void setLastFiles(List<File> lastFiles) {
-    this.lastFiles = lastFiles;
-  }
-
-  @Override
-  public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description);
-    copy.setValue(this.getValue());
-    copy.setLastFiles(new ArrayList<>(lastFiles));
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(FileNameComponent component) {
-    File compValue = component.getValue();
-    if (extension != null) {
-      if (!compValue.getName().toLowerCase().endsWith(extension.toLowerCase()))
-        compValue = new File(compValue.getPath() + "." + extension);
-    }
-    if (compValue != null) {
-      // add to last files if not already inserted
-      lastFiles.remove(compValue);
-      lastFiles.add(0, compValue);
-      setLastFiles(lastFiles);
+    public FileNameParameter(String name, String description) {
+        this(name, description, null);
     }
 
-    this.value = compValue;
-  }
-
-  @Override
-  public void setValueToComponent(FileNameComponent component, File newValue) {
-    component.setValue(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    NodeList current = xmlElement.getElementsByTagName(CURRENT_FILE_ELEMENT);
-    if (current.getLength() == 1)
-      setValue(new File(current.item(0).getTextContent()));
-    // add all still existing files
-    lastFiles = new ArrayList<>();
-
-    NodeList last = xmlElement.getElementsByTagName(LAST_FILE_ELEMENT);
-    for (int i = 0; i < last.getLength(); i++) {
-      Node n = last.item(i);
-      if (n.getTextContent() != null) {
-        File f = new File(n.getTextContent());
-        if (f.exists())
-          lastFiles.add(f);
-      }
-    }
-    setLastFiles(lastFiles);
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    // add new element for each file
-    Document parentDocument = xmlElement.getOwnerDocument();
-    if (value != null) {
-      Element paramElement = parentDocument.createElement(CURRENT_FILE_ELEMENT);
-      paramElement.setTextContent(value.getAbsolutePath());
-      xmlElement.appendChild(paramElement);
+    public FileNameParameter(String name, String description,
+            String extension) {
+        this.name = name;
+        this.description = description;
+        this.extension = extension;
+        lastFiles = new ArrayList<>();
     }
 
-    if (lastFiles != null) {
-      for (File f : lastFiles) {
-        Element paramElement = parentDocument.createElement(LAST_FILE_ELEMENT);
-        paramElement.setTextContent(f.getAbsolutePath());
-        xmlElement.appendChild(paramElement);
-      }
+    public FileNameParameter(String name, String description, String extension,
+            int textfield_columns) {
+        this.name = name;
+        this.description = description;
+        this.extension = extension;
+        this.textfield_columns = textfield_columns;
+        lastFiles = new ArrayList<>();
     }
-  }
 
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
     }
-    return true;
-  }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public FileNameComponent createEditingComponent() {
+        return new FileNameComponent(textfield_columns, lastFiles);
+    }
+
+    @Override
+    public File getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(File value) {
+        this.value = value;
+    }
+
+    public List<File> getLastFiles() {
+        return lastFiles;
+    }
+
+    public void setLastFiles(List<File> lastFiles) {
+        this.lastFiles = lastFiles;
+    }
+
+    @Override
+    public FileNameParameter cloneParameter() {
+        FileNameParameter copy = new FileNameParameter(name, description);
+        copy.setValue(this.getValue());
+        copy.setLastFiles(new ArrayList<>(lastFiles));
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(FileNameComponent component) {
+        File compValue = component.getValue();
+        if (extension != null) {
+            if (!compValue.getName().toLowerCase()
+                    .endsWith(extension.toLowerCase()))
+                compValue = new File(compValue.getPath() + "." + extension);
+        }
+        if (compValue != null) {
+            // add to last files if not already inserted
+            lastFiles.remove(compValue);
+            lastFiles.add(0, compValue);
+            setLastFiles(lastFiles);
+        }
+
+        this.value = compValue;
+    }
+
+    @Override
+    public void setValueToComponent(FileNameComponent component,
+            File newValue) {
+        component.setValue(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        NodeList current = xmlElement
+                .getElementsByTagName(CURRENT_FILE_ELEMENT);
+        if (current.getLength() == 1)
+            setValue(new File(current.item(0).getTextContent()));
+        // add all still existing files
+        lastFiles = new ArrayList<>();
+
+        NodeList last = xmlElement.getElementsByTagName(LAST_FILE_ELEMENT);
+        for (int i = 0; i < last.getLength(); i++) {
+            Node n = last.item(i);
+            if (n.getTextContent() != null) {
+                File f = new File(n.getTextContent());
+                if (f.exists())
+                    lastFiles.add(f);
+            }
+        }
+        setLastFiles(lastFiles);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        // add new element for each file
+        Document parentDocument = xmlElement.getOwnerDocument();
+        if (value != null) {
+            Element paramElement = parentDocument
+                    .createElement(CURRENT_FILE_ELEMENT);
+            paramElement.setTextContent(value.getAbsolutePath());
+            xmlElement.appendChild(paramElement);
+        }
+
+        if (lastFiles != null) {
+            for (File f : lastFiles) {
+                Element paramElement = parentDocument
+                        .createElement(LAST_FILE_ELEMENT);
+                paramElement.setTextContent(f.getAbsolutePath());
+                xmlElement.appendChild(paramElement);
+            }
+        }
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

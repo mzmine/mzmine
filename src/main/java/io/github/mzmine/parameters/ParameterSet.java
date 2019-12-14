@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,30 +26,30 @@ import java.awt.*;
 import java.util.Collection;
 
 /**
- * This class represents a general parameter set of a module. Typical module will use a
- * SimpleParameterSet instance.
+ * This class represents a general parameter set of a module. Typical module
+ * will use a SimpleParameterSet instance.
  * 
  * @param <T>
  */
-public interface ParameterSet extends ParameterContainer{
+public interface ParameterSet extends ParameterContainer {
 
-  public Parameter<?>[] getParameters();
+    public Parameter<?>[] getParameters();
 
-  public <T extends Parameter<?>> T getParameter(T parameter);
+    public <T extends Parameter<?>> T getParameter(T parameter);
 
-  public void loadValuesFromXML(Element element);
+    public void loadValuesFromXML(Element element);
 
-  public void saveValuesToXML(Element element);
+    public void saveValuesToXML(Element element);
 
-  public boolean checkParameterValues(Collection<String> errorMessages);
+    public boolean checkParameterValues(Collection<String> errorMessages);
 
-  public ParameterSet cloneParameterSet();
+    public ParameterSet cloneParameterSet();
 
-  /**
-   * Represent method's parameters and their values in human-readable format
-   */
-  public String toString();
+    /**
+     * Represent method's parameters and their values in human-readable format
+     */
+    public String toString();
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired);
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired);
 
 }

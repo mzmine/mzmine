@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,51 +29,55 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
- * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
- * how the selected raw data filter and his parameters works over the raw data file.
+ * This class extends ParameterSetupDialog class, including a spectraPlot. This
+ * is used to preview how the selected raw data filter and his parameters works
+ * over the raw data file.
  */
 public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-  private static final long serialVersionUID = 1L;
-  private ParameterSet filterParameters;
-  private ScanFilter rawDataFilter;
+    private static final long serialVersionUID = 1L;
+    private ParameterSet filterParameters;
+    private ScanFilter rawDataFilter;
 
-  /**
-   * @param parameters
-   * @param rawDataFilterTypeNumber
-   */
-  public ScanFilterSetupDialog(Window parent, boolean valueCheckRequired,
-      ParameterSet filterParameters, Class<? extends ScanFilter> filterClass) {
+    /**
+     * @param parameters
+     * @param rawDataFilterTypeNumber
+     */
+    public ScanFilterSetupDialog(Window parent, boolean valueCheckRequired,
+            ParameterSet filterParameters,
+            Class<? extends ScanFilter> filterClass) {
 
-    super(parent, valueCheckRequired, filterParameters);
-    this.filterParameters = filterParameters;
+        super(parent, valueCheckRequired, filterParameters);
+        this.filterParameters = filterParameters;
 
-    try {
-      this.rawDataFilter = filterClass.newInstance();
-    } catch (Exception e) {
-      e.printStackTrace();
+        try {
+            this.rawDataFilter = filterClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-  }
 
-  /**
-   * This function set all the information into the plot chart
-   * 
-   * @param scanNumber
-   */
-  protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+    /**
+     * This function set all the information into the plot chart
+     * 
+     * @param scanNumber
+     */
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-    Scan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
+        Scan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
 
-    ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
-    ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan", previewScan);
+        ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
+        ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan",
+                previewScan);
 
-    spectrumPlot.removeAllDataSets();
+        spectrumPlot.removeAllDataSets();
 
-    spectrumPlot.addDataSet(spectraOriginalDataSet, SpectraVisualizerWindow.scanColor, true);
-    spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
+        spectrumPlot.addDataSet(spectraOriginalDataSet,
+                SpectraVisualizerWindow.scanColor, true);
+        spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
 
-    // if the scan is centroided, switch to centroid mode
-    spectrumPlot.setPlotMode(previewScan.getSpectrumType());
+        // if the scan is centroided, switch to centroid mode
+        spectrumPlot.setPlotMode(previewScan.getSpectrumType());
 
-  }
+    }
 }

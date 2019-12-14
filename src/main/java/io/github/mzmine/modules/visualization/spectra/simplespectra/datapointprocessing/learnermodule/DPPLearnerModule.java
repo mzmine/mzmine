@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,43 +29,48 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 
 /**
- * New modules need to implement DataPointProcessingModules. To make them show up in the list of
- * addable modules, they have to be added in the MZmineModulesList.java
+ * New modules need to implement DataPointProcessingModules. To make them show
+ * up in the list of addable modules, they have to be added in the
+ * MZmineModulesList.java
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class DPPLearnerModule implements DataPointProcessingModule {
 
-  @Override
-  public String getName() {
-    return "Learner module";
-  }
+    @Override
+    public String getName() {
+        return "Learner module";
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
 
-    return DPPLearnerModuleParameters.class;
-  }
+        return DPPLearnerModuleParameters.class;
+    }
 
-  @Override
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
+    @Override
+    public DataPointProcessingTask createTask(DataPoint[] dataPoints,
+            ParameterSet parameterSet, SpectraPlot plot,
+            DataPointProcessingController controller,
+            TaskStatusListener listener) {
 
-    return new DPPLearnerModuleTask(dataPoints, plot, parameterSet, controller, listener);
-  }
+        return new DPPLearnerModuleTask(dataPoints, plot, parameterSet,
+                controller, listener);
+    }
 
-  /**
-   * Additional module categories can be added in {@link ModuleSubCategory}. The module is
-   * classified by this value and listed accordingly in the tree view of the ProcessingComponent.
-   */
-  @Override
-  public ModuleSubCategory getModuleSubCategory() {
-    return ModuleSubCategory.IDENTIFICATION;
-  }
+    /**
+     * Additional module categories can be added in {@link ModuleSubCategory}.
+     * The module is classified by this value and listed accordingly in the tree
+     * view of the ProcessingComponent.
+     */
+    @Override
+    public ModuleSubCategory getModuleSubCategory() {
+        return ModuleSubCategory.IDENTIFICATION;
+    }
 
-  @Override
-  public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSANY;
-  }
+    @Override
+    public MSLevel getApplicableMSLevel() {
+        return MSLevel.MSANY;
+    }
 }

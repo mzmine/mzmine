@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,224 +38,238 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 class MetaboAnalystExportTask extends AbstractTask {
 
-  private static final String fieldSeparator = ",";
+    private static final String fieldSeparator = ",";
 
-  private final MZmineProject project;
-  private final PeakList[] peakLists;
-  private String plNamePattern = "{}";
-  private int processedRows = 0, totalRows = 0;
+    private final MZmineProject project;
+    private final PeakList[] peakLists;
+    private String plNamePattern = "{}";
+    private int processedRows = 0, totalRows = 0;
 
-  // parameter values
-  private File fileName;
-  private UserParameter<?, ?> groupParameter;
+    // parameter values
+    private File fileName;
+    private UserParameter<?, ?> groupParameter;
 
-  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
+    MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
 
-    this.project = project;
-    this.peakLists = parameters.getParameter(MetaboAnalystExportParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+        this.project = project;
+        this.peakLists = parameters
+                .getParameter(MetaboAnalystExportParameters.peakLists)
+                .getValue().getMatchingPeakLists();
 
-    fileName = parameters.getParameter(MetaboAnalystExportParameters.filename).getValue();
-    groupParameter =
-        parameters.getParameter(MetaboAnalystExportParameters.groupParameter).getValue();
+        fileName = parameters
+                .getParameter(MetaboAnalystExportParameters.filename)
+                .getValue();
+        groupParameter = parameters
+                .getParameter(MetaboAnalystExportParameters.groupParameter)
+                .getValue();
 
-  }
-
-  public double getFinishedPercentage() {
-    if (totalRows == 0) {
-      return 0;
-    }
-    return (double) processedRows / (double) totalRows;
-  }
-
-  public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MetaboAnalyst CSV file(s)";
-  }
-
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    // Shall export several files?
-    boolean substitute = fileName.getPath().contains(plNamePattern);
-
-    // Total number of rows
-    for (PeakList peakList : peakLists) {
-      totalRows += peakList.getNumberOfRows();
     }
 
-    // Process feature lists
-    for (PeakList peakList : peakLists) {
-
-      // Filename
-      File curFile = fileName;
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-        // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
-      }
-
-      // Check the feature list for MetaboAnalyst requirements
-      boolean checkResult = checkPeakList(peakList);
-      if (checkResult == false) {
-        MZmineCore.getDesktop().displayErrorMessage(null, "Feature list " + peakList.getName()
-            + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
-      }
-
-      try {
-
-        // Open file
-        FileWriter writer = new FileWriter(curFile);
-
-        // Get number of rows
-        totalRows = peakList.getNumberOfRows();
-
-        exportPeakList(peakList, writer);
-
-        // Close file
-        writer.close();
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
-        return;
-      }
-    }
-
-    if (getStatus() == TaskStatus.PROCESSING)
-      setStatus(TaskStatus.FINISHED);
-
-  }
-
-  private boolean checkPeakList(PeakList peakList) {
-
-    // Check if each sample group has at least 3 samples
-    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
-    for (RawDataFile file : rawDataFiles) {
-      final String fileValue = String.valueOf(project.getParameterValue(groupParameter, file));
-      int count = 0;
-      for (RawDataFile countFile : rawDataFiles) {
-        final String countValue =
-            String.valueOf(project.getParameterValue(groupParameter, countFile));
-        if (countValue.equals(fileValue))
-          count++;
-      }
-      if (count < 3)
-        return false;
-    }
-    return true;
-  }
-
-  private void exportPeakList(PeakList peakList, FileWriter writer) throws IOException {
-
-    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
-
-    // Buffer for writing
-    StringBuffer line = new StringBuffer();
-
-    // Write sample (raw data file) names
-    line.append("\"Sample\"");
-    for (RawDataFile file : rawDataFiles) {
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-
-      line.append(fieldSeparator);
-      final String value = file.getName().replace('"', '\'');
-      line.append("\"");
-      line.append(value);
-      line.append("\"");
-    }
-
-    line.append("\n");
-
-    // Write grouping parameter values
-    line.append("\"");
-    line.append(groupParameter.getName().replace('"', '\''));
-    line.append("\"");
-
-    for (RawDataFile file : rawDataFiles) {
-
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      line.append(fieldSeparator);
-      String value = String.valueOf(project.getParameterValue(groupParameter, file));
-      value = value.replace('"', '\'');
-      line.append("\"");
-      line.append(value);
-      line.append("\"");
-    }
-
-    line.append("\n");
-    writer.write(line.toString());
-
-    // Write data rows
-    for (PeakListRow peakListRow : peakList.getRows()) {
-
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      // Reset the buffer
-      line.setLength(0);
-
-      final String rowName = generateUniquePeakListRowName(peakListRow);
-
-      line.append("\"" + rowName + "\"");
-
-      for (RawDataFile dataFile : rawDataFiles) {
-        line.append(fieldSeparator);
-
-        Feature peak = peakListRow.getPeak(dataFile);
-        if (peak != null) {
-          final double area = peak.getArea();
-          line.append(String.valueOf(area));
+    public double getFinishedPercentage() {
+        if (totalRows == 0) {
+            return 0;
         }
-      }
-
-      line.append("\n");
-      writer.write(line.toString());
-
-      processedRows++;
+        return (double) processedRows / (double) totalRows;
     }
-  }
 
-  /**
-   * Generates a unique name for each feature list row
-   */
-  private String generateUniquePeakListRowName(PeakListRow row) {
+    public String getTaskDescription() {
+        return "Exporting feature list(s) " + Arrays.toString(peakLists)
+                + " to MetaboAnalyst CSV file(s)";
+    }
 
-    final double mz = row.getAverageMZ();
-    final double rt = row.getAverageRT();
-    final int rowId = row.getID();
+    public void run() {
 
-    String generatedName = rowId + "/" + MZmineCore.getConfiguration().getMZFormat().format(mz)
-        + "mz/" + MZmineCore.getConfiguration().getRTFormat().format(rt) + "min";
-    PeakIdentity peakIdentity = row.getPreferredPeakIdentity();
+        setStatus(TaskStatus.PROCESSING);
 
-    if (peakIdentity == null)
-      return generatedName;
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    String idName = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_NAME);
+        // Total number of rows
+        for (PeakList peakList : peakLists) {
+            totalRows += peakList.getNumberOfRows();
+        }
 
-    if (idName == null)
-      return generatedName;
+        // Process feature lists
+        for (PeakList peakList : peakLists) {
 
-    idName = idName.replace('"', '\'');
-    generatedName = generatedName + " (" + idName + ")";
+            // Filename
+            File curFile = fileName;
+            if (substitute) {
+                // Cleanup from illegal filename characters
+                String cleanPlName = peakList.getName()
+                        .replaceAll("[^a-zA-Z0-9.-]", "_");
+                // Substitute
+                String newFilename = fileName.getPath()
+                        .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+                curFile = new File(newFilename);
+            }
 
-    return generatedName;
+            // Check the feature list for MetaboAnalyst requirements
+            boolean checkResult = checkPeakList(peakList);
+            if (checkResult == false) {
+                MZmineCore.getDesktop()
+                        .displayErrorMessage(null, "Feature list "
+                                + peakList.getName()
+                                + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
+            }
 
-  }
+            try {
+
+                // Open file
+                FileWriter writer = new FileWriter(curFile);
+
+                // Get number of rows
+                totalRows = peakList.getNumberOfRows();
+
+                exportPeakList(peakList, writer);
+
+                // Close file
+                writer.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not export feature list to file "
+                        + curFile + ": " + e.getMessage());
+                return;
+            }
+        }
+
+        if (getStatus() == TaskStatus.PROCESSING)
+            setStatus(TaskStatus.FINISHED);
+
+    }
+
+    private boolean checkPeakList(PeakList peakList) {
+
+        // Check if each sample group has at least 3 samples
+        final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+        for (RawDataFile file : rawDataFiles) {
+            final String fileValue = String
+                    .valueOf(project.getParameterValue(groupParameter, file));
+            int count = 0;
+            for (RawDataFile countFile : rawDataFiles) {
+                final String countValue = String.valueOf(
+                        project.getParameterValue(groupParameter, countFile));
+                if (countValue.equals(fileValue))
+                    count++;
+            }
+            if (count < 3)
+                return false;
+        }
+        return true;
+    }
+
+    private void exportPeakList(PeakList peakList, FileWriter writer)
+            throws IOException {
+
+        final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+
+        // Buffer for writing
+        StringBuffer line = new StringBuffer();
+
+        // Write sample (raw data file) names
+        line.append("\"Sample\"");
+        for (RawDataFile file : rawDataFiles) {
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            line.append(fieldSeparator);
+            final String value = file.getName().replace('"', '\'');
+            line.append("\"");
+            line.append(value);
+            line.append("\"");
+        }
+
+        line.append("\n");
+
+        // Write grouping parameter values
+        line.append("\"");
+        line.append(groupParameter.getName().replace('"', '\''));
+        line.append("\"");
+
+        for (RawDataFile file : rawDataFiles) {
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            line.append(fieldSeparator);
+            String value = String
+                    .valueOf(project.getParameterValue(groupParameter, file));
+            value = value.replace('"', '\'');
+            line.append("\"");
+            line.append(value);
+            line.append("\"");
+        }
+
+        line.append("\n");
+        writer.write(line.toString());
+
+        // Write data rows
+        for (PeakListRow peakListRow : peakList.getRows()) {
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            // Reset the buffer
+            line.setLength(0);
+
+            final String rowName = generateUniquePeakListRowName(peakListRow);
+
+            line.append("\"" + rowName + "\"");
+
+            for (RawDataFile dataFile : rawDataFiles) {
+                line.append(fieldSeparator);
+
+                Feature peak = peakListRow.getPeak(dataFile);
+                if (peak != null) {
+                    final double area = peak.getArea();
+                    line.append(String.valueOf(area));
+                }
+            }
+
+            line.append("\n");
+            writer.write(line.toString());
+
+            processedRows++;
+        }
+    }
+
+    /**
+     * Generates a unique name for each feature list row
+     */
+    private String generateUniquePeakListRowName(PeakListRow row) {
+
+        final double mz = row.getAverageMZ();
+        final double rt = row.getAverageRT();
+        final int rowId = row.getID();
+
+        String generatedName = rowId + "/"
+                + MZmineCore.getConfiguration().getMZFormat().format(mz) + "mz/"
+                + MZmineCore.getConfiguration().getRTFormat().format(rt)
+                + "min";
+        PeakIdentity peakIdentity = row.getPreferredPeakIdentity();
+
+        if (peakIdentity == null)
+            return generatedName;
+
+        String idName = peakIdentity
+                .getPropertyValue(PeakIdentity.PROPERTY_NAME);
+
+        if (idName == null)
+            return generatedName;
+
+        idName = idName.replace('"', '\'');
+        generatedName = generatedName + " (" + idName + ")";
+
+        return generatedName;
+
+    }
 
 }

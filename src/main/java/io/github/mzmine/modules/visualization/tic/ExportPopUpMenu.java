@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -43,71 +43,74 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class ExportPopUpMenu extends JMenu implements MenuListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  // The visualizer window.
-  private final TICVisualizerWindow visualizer;
-  private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    // The visualizer window.
+    private final TICVisualizerWindow visualizer;
+    private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
 
-  /**
-   * Create the menu item.
-   *
-   * @param window the visualizer window.
-   */
-  public ExportPopUpMenu(final TICVisualizerWindow window) {
+    /**
+     * Create the menu item.
+     *
+     * @param window
+     *            the visualizer window.
+     */
+    public ExportPopUpMenu(final TICVisualizerWindow window) {
 
-    super("Export chromatogram...");
-    visualizer = window;
-    addMenuListener(this);
-  }
-
-  @Override
-  public void menuSelected(final MenuEvent e) {
-
-    // Clear the menu
-    removeAll();
-
-    // get all project files
-    RawDataFile[] openFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    List<RawDataFile> visualizedFiles = Arrays.asList(visualizer.getRawDataFiles());
-
-    menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
-    for (final RawDataFile file : openFiles) {
-
-      // if file is not part of plot, skip it
-      if (!visualizedFiles.contains(file))
-        continue;
-
-      // add a menu item for file
-      JMenuItem newItem = new JMenuItem(file.getName());
-
-      // Handle item selection.
-      newItem.addActionListener(new ActionListener() {
-
-        @Override
-        public void actionPerformed(final ActionEvent event) {
-
-          if (file != null) {
-            visualizer.exportChromatogram(file);
-          }
-        }
-      });
-
-      menuItemFiles.put(newItem, file);
-      add(newItem);
+        super("Export chromatogram...");
+        visualizer = window;
+        addMenuListener(this);
     }
 
-  }
+    @Override
+    public void menuSelected(final MenuEvent e) {
 
-  @Override
-  public void menuDeselected(final MenuEvent e) {
-    // do nothing
-  }
+        // Clear the menu
+        removeAll();
 
-  @Override
-  public void menuCanceled(final MenuEvent e) {
-    // do nothing
-  }
+        // get all project files
+        RawDataFile[] openFiles = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+        List<RawDataFile> visualizedFiles = Arrays
+                .asList(visualizer.getRawDataFiles());
+
+        menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+        for (final RawDataFile file : openFiles) {
+
+            // if file is not part of plot, skip it
+            if (!visualizedFiles.contains(file))
+                continue;
+
+            // add a menu item for file
+            JMenuItem newItem = new JMenuItem(file.getName());
+
+            // Handle item selection.
+            newItem.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(final ActionEvent event) {
+
+                    if (file != null) {
+                        visualizer.exportChromatogram(file);
+                    }
+                }
+            });
+
+            menuItemFiles.put(newItem, file);
+            add(newItem);
+        }
+
+    }
+
+    @Override
+    public void menuDeselected(final MenuEvent e) {
+        // do nothing
+    }
+
+    @Override
+    public void menuCanceled(final MenuEvent e) {
+        // do nothing
+    }
 }

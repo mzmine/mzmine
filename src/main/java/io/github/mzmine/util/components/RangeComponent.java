@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,50 +33,53 @@ import com.google.common.collect.Range;
  */
 public class RangeComponent extends GridBagPanel {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  public static final int TEXTFIELD_COLUMNS = 8;
+    public static final int TEXTFIELD_COLUMNS = 8;
 
-  private JFormattedTextField minTxtField, maxTxtField;
+    private JFormattedTextField minTxtField, maxTxtField;
 
-  public RangeComponent(NumberFormat format) {
-    minTxtField = new JFormattedTextField(format);
-    maxTxtField = new JFormattedTextField(format);
-    minTxtField.setColumns(TEXTFIELD_COLUMNS);
-    maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-    add(minTxtField, 0, 0, 1, 1, 1, 0);
-    add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
-    add(maxTxtField, 2, 0, 1, 1, 1, 0);
-  }
+    public RangeComponent(NumberFormat format) {
+        minTxtField = new JFormattedTextField(format);
+        maxTxtField = new JFormattedTextField(format);
+        minTxtField.setColumns(TEXTFIELD_COLUMNS);
+        maxTxtField.setColumns(TEXTFIELD_COLUMNS);
+        add(minTxtField, 0, 0, 1, 1, 1, 0);
+        add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
+        add(maxTxtField, 2, 0, 1, 1, 1, 0);
+    }
 
-  /**
-   * @return Returns the current values
-   */
-  public Range<Double> getRangeValue() {
-    double minValue = ((Number) minTxtField.getValue()).doubleValue();
-    double maxValue = ((Number) maxTxtField.getValue()).doubleValue();
-    return Range.closed(minValue, maxValue);
-  }
+    /**
+     * @return Returns the current values
+     */
+    public Range<Double> getRangeValue() {
+        double minValue = ((Number) minTxtField.getValue()).doubleValue();
+        double maxValue = ((Number) maxTxtField.getValue()).doubleValue();
+        return Range.closed(minValue, maxValue);
+    }
 
-  public void setRangeValue(Range<Double> value) {
-    minTxtField.setValue(value.lowerEndpoint());
-    maxTxtField.setValue(value.upperEndpoint());
-  }
+    public void setRangeValue(Range<Double> value) {
+        minTxtField.setValue(value.lowerEndpoint());
+        maxTxtField.setValue(value.upperEndpoint());
+    }
 
-  public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-    minTxtField.addPropertyChangeListener(property, listener);
-    maxTxtField.addPropertyChangeListener(property, listener);
-  }
+    public void addPropertyChangeListener(String property,
+            PropertyChangeListener listener) {
+        minTxtField.addPropertyChangeListener(property, listener);
+        maxTxtField.addPropertyChangeListener(property, listener);
+    }
 
-  public void removePropertyChangeListener(String property, PropertyChangeListener listener) {
-    minTxtField.removePropertyChangeListener(property, listener);
-    maxTxtField.removePropertyChangeListener(property, listener);
-  }
+    public void removePropertyChangeListener(String property,
+            PropertyChangeListener listener) {
+        minTxtField.removePropertyChangeListener(property, listener);
+        maxTxtField.removePropertyChangeListener(property, listener);
+    }
 
-  public void setNumberFormat(NumberFormat format) {
-    DefaultFormatterFactory fac = new DefaultFormatterFactory(new NumberFormatter(format));
-    minTxtField.setFormatterFactory(fac);
-    maxTxtField.setFormatterFactory(fac);
-  }
+    public void setNumberFormat(NumberFormat format) {
+        DefaultFormatterFactory fac = new DefaultFormatterFactory(
+                new NumberFormatter(format));
+        minTxtField.setFormatterFactory(fac);
+        maxTxtField.setFormatterFactory(fac);
+    }
 
 }

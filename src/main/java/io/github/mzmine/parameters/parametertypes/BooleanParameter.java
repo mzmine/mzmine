@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,91 +34,92 @@ import io.github.mzmine.parameters.UserParameter;
  */
 public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
 
-  private String name, description;
-  private Boolean value;
+    private String name, description;
+    private Boolean value;
 
-  public BooleanParameter(String name, String description) {
-    this(name, description, null);
-  }
-
-  public BooleanParameter(String name, String description, Boolean defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public JCheckBox createEditingComponent() {
-    JCheckBox checkBox = new JCheckBox();
-    checkBox.setMargin(new Insets(0, 7, 0, 0));
-    return checkBox;
-  }
-
-  @Override
-  public Boolean getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(Boolean value) {
-    this.value = value;
-  }
-
-  @Override
-  public BooleanParameter cloneParameter() {
-    BooleanParameter copy = new BooleanParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(JCheckBox component) {
-    value = component.isSelected();
-  }
-
-  @Override
-  public void setValueToComponent(JCheckBox component, Boolean newValue) {
-    component.setSelected(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    String rangeString = xmlElement.getTextContent();
-    if (rangeString.length() == 0)
-      return;
-    this.value = Boolean.valueOf(rangeString);
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    xmlElement.setTextContent(value.toString());
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    public BooleanParameter(String name, String description) {
+        this(name, description, null);
     }
-    return true;
-  }
+
+    public BooleanParameter(String name, String description,
+            Boolean defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public JCheckBox createEditingComponent() {
+        JCheckBox checkBox = new JCheckBox();
+        checkBox.setMargin(new Insets(0, 7, 0, 0));
+        return checkBox;
+    }
+
+    @Override
+    public Boolean getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(Boolean value) {
+        this.value = value;
+    }
+
+    @Override
+    public BooleanParameter cloneParameter() {
+        BooleanParameter copy = new BooleanParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(JCheckBox component) {
+        value = component.isSelected();
+    }
+
+    @Override
+    public void setValueToComponent(JCheckBox component, Boolean newValue) {
+        component.setSelected(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        String rangeString = xmlElement.getTextContent();
+        if (rangeString.length() == 0)
+            return;
+        this.value = Boolean.valueOf(rangeString);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value.toString());
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

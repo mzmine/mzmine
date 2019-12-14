@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,17 +16,17 @@
  * USA
  */
 
-
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Van Krevelen diagram toolbar class
@@ -35,39 +35,44 @@ import io.github.mzmine.util.GUIUtils;
  */
 public class VanKrevelenDiagramToolBar extends JToolBar {
 
-  private static final long serialVersionUID = 1L;
-  static final Icon blockSizeIcon = new ImageIcon("icons/blocksizeicon.png");
-  static final Icon backColorIcon = new ImageIcon("icons/bgicon.png");
-  static final Icon gridIcon = new ImageIcon("icons/gridicon.png");
-  static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+    private static final long serialVersionUID = 1L;
+    static final Icon blockSizeIcon = IconUtil
+            .loadIconFromResources("icons/blocksizeicon.png");
+    static final Icon backColorIcon = IconUtil
+            .loadIconFromResources("icons/bgicon.png");
+    static final Icon gridIcon = IconUtil
+            .loadIconFromResources("icons/gridicon.png");
+    static final Icon annotationsIcon = IconUtil
+            .loadIconFromResources("icons/annotationsicon.png");
 
-  public VanKrevelenDiagramToolBar(ActionListener masterFrame) {
+    public VanKrevelenDiagramToolBar(ActionListener masterFrame) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+        setFloatable(false);
+        setFocusable(false);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBackground(Color.white);
 
-    GUIUtils.addButton(this, null, blockSizeIcon, masterFrame, "TOGGLE_BLOCK_SIZE",
-        "Toggle block size");
+        GUIUtils.addButton(this, null, blockSizeIcon, masterFrame,
+                "TOGGLE_BLOCK_SIZE", "Toggle block size");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, backColorIcon, masterFrame, "TOGGLE_BACK_COLOR",
-        "Toggle background color white/black");
+        GUIUtils.addButton(this, null, backColorIcon, masterFrame,
+                "TOGGLE_BACK_COLOR", "Toggle background color white/black");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID", "Toggle grid");
+        GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID",
+                "Toggle grid");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "TOGGLE_ANNOTATIONS",
-        "Toggle annotations");
+        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+                "TOGGLE_ANNOTATIONS", "Toggle annotations");
 
-    addSeparator();
+        addSeparator();
 
-  }
+    }
 }

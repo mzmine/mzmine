@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,67 +33,61 @@ import io.github.mzmine.datamodel.Scan;
 /**
  * Simple implementation of the Scan interface.
  */
-public class MZmineToMSDKRawDataFile implements io.github.msdk.datamodel.RawDataFile {
+public class MZmineToMSDKRawDataFile
+        implements io.github.msdk.datamodel.RawDataFile {
 
-  private final RawDataFile mzmineRawdataFile;
-  private final List<MsScan> scans = new ArrayList<>();
-  private final List<Chromatogram> chromatograms = new ArrayList<>();
+    private final RawDataFile mzmineRawdataFile;
+    private final List<MsScan> scans = new ArrayList<>();
+    private final List<Chromatogram> chromatograms = new ArrayList<>();
 
-  /**
-   * Clone constructor
-   */
-  public MZmineToMSDKRawDataFile(RawDataFile mzmineRawdataFile) {
-    this.mzmineRawdataFile = mzmineRawdataFile;
+    /**
+     * Clone constructor
+     */
+    public MZmineToMSDKRawDataFile(RawDataFile mzmineRawdataFile) {
+        this.mzmineRawdataFile = mzmineRawdataFile;
 
-    int scanNumbers[] = mzmineRawdataFile.getScanNumbers();
-    for (int scanNum : scanNumbers) {
-      Scan mzmineScan = mzmineRawdataFile.getScan(scanNum);
-      MsScan msdkScan = new MZmineToMSDKMsScan(mzmineScan);
-      scans.add(msdkScan);
+        int scanNumbers[] = mzmineRawdataFile.getScanNumbers();
+        for (int scanNum : scanNumbers) {
+            Scan mzmineScan = mzmineRawdataFile.getScan(scanNum);
+            MsScan msdkScan = new MZmineToMSDKMsScan(mzmineScan);
+            scans.add(msdkScan);
+        }
+
     }
 
-  }
+    @Override
+    public String getName() {
+        return mzmineRawdataFile.getName();
+    }
 
+    @Override
+    public Optional<File> getOriginalFile() {
+        return Optional.empty();
+    }
 
-  @Override
-  public String getName() {
-    return mzmineRawdataFile.getName();
-  }
+    @Override
+    public FileType getRawDataFileType() {
+        return FileType.UNKNOWN;
+    }
 
+    @Override
+    public List<String> getMsFunctions() {
+        return Arrays.asList(new String[] { "ms" });
+    }
 
-  @Override
-  public Optional<File> getOriginalFile() {
-    return Optional.empty();
-  }
+    @Override
+    public List<MsScan> getScans() {
+        return scans;
+    }
 
+    @Override
+    public List<Chromatogram> getChromatograms() {
+        return chromatograms;
+    }
 
-  @Override
-  public FileType getRawDataFileType() {
-    return FileType.UNKNOWN;
-  }
-
-
-  @Override
-  public List<String> getMsFunctions() {
-    return Arrays.asList(new String[] {"ms"});
-  }
-
-
-  @Override
-  public List<MsScan> getScans() {
-    return scans;
-  }
-
-
-  @Override
-  public List<Chromatogram> getChromatograms() {
-    return chromatograms;
-  }
-
-
-  @Override
-  public void dispose() {
-    mzmineRawdataFile.close();
-  }
+    @Override
+    public void dispose() {
+        mzmineRawdataFile.close();
+    }
 
 }

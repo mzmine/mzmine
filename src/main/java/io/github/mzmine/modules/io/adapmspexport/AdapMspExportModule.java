@@ -31,40 +31,38 @@ import io.github.mzmine.util.ExitCode;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class AdapMspExportModule implements MZmineProcessingModule {
-  private static final String MODULE_NAME = "Export to MSP file (ADAP)";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports all ADAP clustered spectra in a feature lists to an MSP file.";
+    private static final String MODULE_NAME = "Export to MSP file (ADAP)";
+    private static final String MODULE_DESCRIPTION = "This method exports all ADAP clustered spectra in a feature lists to an MSP file.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    AdapMspExportTask task = new AdapMspExportTask(parameters);
-    tasks.add(task);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        AdapMspExportTask task = new AdapMspExportTask(parameters);
+        tasks.add(task);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return AdapMspExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return AdapMspExportParameters.class;
+    }
 
 }

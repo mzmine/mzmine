@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,27 +28,31 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class Ms2SearchParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList1 = new PeakListsParameter("Feature List 1", 1, 1);
+    public static final PeakListsParameter peakList1 = new PeakListsParameter(
+            "Feature List 1", 1, 1);
 
-  public static final PeakListsParameter peakList2 = new PeakListsParameter("Feature List 2", 1, 1);
+    public static final PeakListsParameter peakList2 = new PeakListsParameter(
+            "Feature List 2", 1, 1);
 
-  public static final MassListParameter massList = new MassListParameter();
+    public static final MassListParameter massList = new MassListParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter intensityThreshold = new DoubleParameter(
-      "Minimum MS2 ion intensity", "Minimum ion intensity to consider in MS2 comparison");
+    public static final DoubleParameter intensityThreshold = new DoubleParameter(
+            "Minimum MS2 ion intensity",
+            "Minimum ion intensity to consider in MS2 comparison");
 
-  public static final IntegerParameter minimumIonsMatched =
-      new IntegerParameter("Minimum ion(s) matched per MS2 comparison",
-          "Minimum number of peaks between two MS2s that must match");
+    public static final IntegerParameter minimumIonsMatched = new IntegerParameter(
+            "Minimum ion(s) matched per MS2 comparison",
+            "Minimum number of peaks between two MS2s that must match");
 
-  public static final DoubleParameter scoreThreshold = new DoubleParameter(
-      "Minimum spectral match score to report", "Minimum MS2 comparison score to report");
+    public static final DoubleParameter scoreThreshold = new DoubleParameter(
+            "Minimum spectral match score to report",
+            "Minimum MS2 comparison score to report");
 
-  public Ms2SearchParameters() {
-    super(new Parameter[] {peakList1, peakList2, massList, mzTolerance, intensityThreshold,
-        minimumIonsMatched, scoreThreshold});
-  }
+    public Ms2SearchParameters() {
+        super(new Parameter[] { peakList1, peakList2, massList, mzTolerance,
+                intensityThreshold, minimumIonsMatched, scoreThreshold });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,47 +40,51 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  */
 public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");
+    public static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Charge");
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Minimum intensity of a data point to predict a sum formula for.");
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level",
+            "Minimum intensity of a data point to predict a sum formula for.");
 
-  public static final ComboParameter<IonizationType> ionization =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+    public static final ComboParameter<IonizationType> ionization = new ComboParameter<IonizationType>(
+            "Ionization type", "Ionization type", IonizationType.values());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+    public static final ElementsParameter elements = new ElementsParameter(
+            "Elements", "Elements and ranges");
 
-  public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios =
-      new OptionalModuleParameter<ElementalHeuristicParameters>("Element count heuristics",
-          "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-          new ElementalHeuristicParameters());
+    public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios = new OptionalModuleParameter<ElementalHeuristicParameters>(
+            "Element count heuristics",
+            "Restrict formulas by heuristic restrictions of elemental counts and ratios",
+            new ElementalHeuristicParameters());
 
-  public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions =
-      new OptionalModuleParameter<RDBERestrictionParameters>("RDBE restrictions",
-          "Search only for formulas which correspond to the given RDBE restrictions",
-          new RDBERestrictionParameters());
+    public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions = new OptionalModuleParameter<RDBERestrictionParameters>(
+            "RDBE restrictions",
+            "Search only for formulas which correspond to the given RDBE restrictions",
+            new RDBERestrictionParameters());
 
-  public static final OptionalModuleParameter<IsotopePatternScoreParameters> isotopeFilter =
-      new OptionalModuleParameter("Isotope pattern filter",
-          "Search only for formulas with a isotope pattern similar",
-          new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter<IsotopePatternScoreParameters> isotopeFilter = new OptionalModuleParameter(
+            "Isotope pattern filter",
+            "Search only for formulas with a isotope pattern similar",
+            new IsotopePatternScoreParameters());
 
-  public static final OptionalParameter<IntegerParameter> displayResults =
-      new OptionalParameter<IntegerParameter>(new IntegerParameter("Display results (#)",
-          "Check if you want to display the sum formula prediction results in the plot. "
-              + "Displaying too much datasets might decrease clarity.\nPlease enter the number "
-              + "of predicted sum formulas, you would like to display.",
-          1));
+    public static final OptionalParameter<IntegerParameter> displayResults = new OptionalParameter<IntegerParameter>(
+            new IntegerParameter("Display results (#)",
+                    "Check if you want to display the sum formula prediction results in the plot. "
+                            + "Displaying too much datasets might decrease clarity.\nPlease enter the number "
+                            + "of predicted sum formulas, you would like to display.",
+                    1));
 
-  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
-      "Set the color you want the detected isotope patterns to be displayed with.", Color.BLACK);
+    public static final ColorParameter datasetColor = new ColorParameter(
+            "Dataset color",
+            "Set the color you want the detected isotope patterns to be displayed with.",
+            Color.BLACK);
 
-  public DPPSumFormulaPredictionParameters() {
-    super(new Parameter[] {charge, noiseLevel, ionization, mzTolerance, elements, elementalRatios,
-        rdbeRestrictions, isotopeFilter, displayResults, datasetColor});
-  }
+    public DPPSumFormulaPredictionParameters() {
+        super(new Parameter[] { charge, noiseLevel, ionization, mzTolerance,
+                elements, elementalRatios, rdbeRestrictions, isotopeFilter,
+                displayResults, datasetColor });
+    }
 }

@@ -29,38 +29,42 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-
 public class AdapMspExportParameters extends SimpleParameterSet {
-  public static final String ROUND_MODE_MAX = "Merging mode: Maximum";
-  public static final String ROUND_MODE_SUM = "Merging mode: Sum";
+    public static final String ROUND_MODE_MAX = "Merging mode: Maximum";
+    public static final String ROUND_MODE_SUM = "Merging mode: Sum";
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MSP file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
-          + "If the file already exists, it will be overwritten.",
-      "msp");
+    public static final FileNameParameter FILENAME = new FileNameParameter(
+            "Filename",
+            "Name of the output MSP file. "
+                    + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                    + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
+                    + "If the file already exists, it will be overwritten.",
+            "msp");
 
-  public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
-          new StringParameter("Add retention time",
-                  "If selected, each MSP record will contain the feature's retention time",
-                  "RT"), true);
+    public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
+            new StringParameter("Add retention time",
+                    "If selected, each MSP record will contain the feature's retention time",
+                    "RT"),
+            true);
 
-  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
-          new StringParameter("Add ANOVA p-value (if calculated)",
-                  "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
-                  "ANOVA_P_VALUE"), true);
+    public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
+            new StringParameter("Add ANOVA p-value (if calculated)",
+                    "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
+                    "ANOVA_P_VALUE"),
+            true);
 
-  public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ = new OptionalParameter<>(
-          new ComboParameter<>("Integer m/z",
-          "If selected, fractional m/z values will be merged into integer values, based on the selected " +
-                  "merging mode",
-              new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX),
-          false);
+    public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ = new OptionalParameter<>(
+            new ComboParameter<>("Integer m/z",
+                    "If selected, fractional m/z values will be merged into integer values, based on the selected "
+                            + "merging mode",
+                    new String[] { ROUND_MODE_MAX, ROUND_MODE_SUM },
+                    ROUND_MODE_MAX),
+            false);
 
-  public AdapMspExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
-  }
+    public AdapMspExportParameters() {
+        super(new Parameter[] { PEAK_LISTS, FILENAME, ADD_RET_TIME,
+                ADD_ANOVA_P_VALUE, INTEGER_MZ });
+    }
 }

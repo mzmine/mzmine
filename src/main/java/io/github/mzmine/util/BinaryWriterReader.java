@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,114 +33,116 @@ import java.io.ObjectOutputStream;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class BinaryWriterReader {
-  private FileOutputStream FOS = null;
-  private ObjectOutputStream OOS = null;
-  private FileInputStream FIS = null;
-  private ObjectInputStream OIS = null;
+    private FileOutputStream FOS = null;
+    private ObjectOutputStream OOS = null;
+    private FileInputStream FIS = null;
+    private ObjectInputStream OIS = null;
 
-  public BinaryWriterReader() {}
-
-  public void save2file(Object obj, File file) {
-    if (OOS == null || FOS == null) {
-      open_out(file);
+    public BinaryWriterReader() {
     }
 
-    try {
-      OOS.writeObject(obj);
-    } catch (IOException ioe) {
-      System.err.println("Error: Could not serialize object.");
-      ioe.printStackTrace(System.err);
-    }
-  }
+    public void save2file(Object obj, File file) {
+        if (OOS == null || FOS == null) {
+            open_out(file);
+        }
 
-  public Object readFromFile(File file) {
-    if (OIS == null || FIS == null) {
-      open_in(file);
-    }
-
-    try {
-      Object obj = (Object) OIS.readObject();
-      return obj;
-    } catch (IOException ioe) {
-      System.err.println("Error: Could not deserialize object.");
-      ioe.printStackTrace(System.err);
-    } catch (ClassNotFoundException cnfe) {
-      System.err.println("Error: Could not find class!");
-      cnfe.printStackTrace(System.err);
-    }
-    return null;
-  }
-
-  private void open_out(File file) {
-    if (OOS != null || FOS != null) {
-      closeOut();
+        try {
+            OOS.writeObject(obj);
+        } catch (IOException ioe) {
+            System.err.println("Error: Could not serialize object.");
+            ioe.printStackTrace(System.err);
+        }
     }
 
-    try {
-      FOS = new FileOutputStream(file);
-      OOS = new ObjectOutputStream(FOS);
-    } catch (IOException ioe) {
-      System.err.println(ioe.getMessage());
-      ioe.printStackTrace(System.out);
-    }
-  }
+    public Object readFromFile(File file) {
+        if (OIS == null || FIS == null) {
+            open_in(file);
+        }
 
-  private void open_in(File file) {
-    if (FIS != null || OIS != null) {
-      closeIn();
-    }
-
-    try {
-      FIS = new FileInputStream(file);
-      OIS = new ObjectInputStream(FIS);
-    } catch (IOException ioe) {
-      System.err.println(ioe.getMessage());
-      ioe.printStackTrace(System.out);
-    }
-  }
-
-  public void closeOut() {
-    if (OOS != null && FOS != null) {
-      try {
-        OOS.close();
-        OOS = null;
-        FOS.close();
-        FOS = null;
-      } catch (IOException ioe) {
-        System.err.println(ioe.getMessage());
-        ioe.printStackTrace(System.out);
-      }
+        try {
+            Object obj = (Object) OIS.readObject();
+            return obj;
+        } catch (IOException ioe) {
+            System.err.println("Error: Could not deserialize object.");
+            ioe.printStackTrace(System.err);
+        } catch (ClassNotFoundException cnfe) {
+            System.err.println("Error: Could not find class!");
+            cnfe.printStackTrace(System.err);
+        }
+        return null;
     }
 
-  }
+    private void open_out(File file) {
+        if (OOS != null || FOS != null) {
+            closeOut();
+        }
 
-  public void closeIn() {
-    if (OIS != null && FIS != null) {
-      try {
-        OIS.close();
-        OIS = null;
-        FIS.close();
-        FIS = null;
-      } catch (IOException ioe) {
-        System.err.println(ioe.getMessage());
-        ioe.printStackTrace(System.out);
-      }
+        try {
+            FOS = new FileOutputStream(file);
+            OOS = new ObjectOutputStream(FOS);
+        } catch (IOException ioe) {
+            System.err.println(ioe.getMessage());
+            ioe.printStackTrace(System.out);
+        }
     }
-  }
 
-  /**
-   * Deep copy of a serializable object.
-   * 
-   * @param o
-   * @return
-   * @throws Exception
-   */
-  public static <T> T deepCopy(T o) throws Exception {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    new ObjectOutputStream(baos).writeObject(o);
+    private void open_in(File file) {
+        if (FIS != null || OIS != null) {
+            closeIn();
+        }
 
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        try {
+            FIS = new FileInputStream(file);
+            OIS = new ObjectInputStream(FIS);
+        } catch (IOException ioe) {
+            System.err.println(ioe.getMessage());
+            ioe.printStackTrace(System.out);
+        }
+    }
 
-    return (T) new ObjectInputStream(bais).readObject();
-  }
+    public void closeOut() {
+        if (OOS != null && FOS != null) {
+            try {
+                OOS.close();
+                OOS = null;
+                FOS.close();
+                FOS = null;
+            } catch (IOException ioe) {
+                System.err.println(ioe.getMessage());
+                ioe.printStackTrace(System.out);
+            }
+        }
+
+    }
+
+    public void closeIn() {
+        if (OIS != null && FIS != null) {
+            try {
+                OIS.close();
+                OIS = null;
+                FIS.close();
+                FIS = null;
+            } catch (IOException ioe) {
+                System.err.println(ioe.getMessage());
+                ioe.printStackTrace(System.out);
+            }
+        }
+    }
+
+    /**
+     * Deep copy of a serializable object.
+     * 
+     * @param o
+     * @return
+     * @throws Exception
+     */
+    public static <T> T deepCopy(T o) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        new ObjectOutputStream(baos).writeObject(o);
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(
+                baos.toByteArray());
+
+        return (T) new ObjectInputStream(bais).readObject();
+    }
 }

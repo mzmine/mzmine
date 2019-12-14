@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,28 +33,32 @@ import io.github.mzmine.util.ExitCode;
 
 public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT =
-      new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
-          MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
+            "Min peak height",
+            "Minimum acceptable peak height (absolute intensity)",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+            "Peak duration range (min)", "Range of acceptable peak lengths",
+            MZmineCore.getConfiguration().getRTFormat(),
+            Range.closed(0.0, 10.0));
 
-  public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL =
-      new PercentParameter("Derivative threshold level",
-          "Minimum acceptable intensity in the 2nd derivative for peak recognition");
+    public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL = new PercentParameter(
+            "Derivative threshold level",
+            "Minimum acceptable intensity in the 2nd derivative for peak recognition");
 
-  public SavitzkyGolayPeakDetectorParameters() {
-    super(new Parameter[] {MIN_PEAK_HEIGHT, PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL});
-  }
+    public SavitzkyGolayPeakDetectorParameters() {
+        super(new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
+                DERIVATIVE_THRESHOLD_LEVEL });
+    }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(parent, valueCheckRequired,
-        this, SavitzkyGolayPeakDetector.class);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+                parent, valueCheckRequired, this,
+                SavitzkyGolayPeakDetector.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
 }

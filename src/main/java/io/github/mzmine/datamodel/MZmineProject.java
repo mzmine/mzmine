@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,16 +24,19 @@ import io.github.mzmine.parameters.UserParameter;
 
 /**
  * 
- * MZmineProject collects all items user has opened or created during an MZmine session. This
- * includes
+ * MZmineProject collects all items user has opened or created during an MZmine
+ * session. This includes
  * <ul>
- * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
- * available for defining any properties of the sample, for instance concentration or a class label.
+ * <li>Experimental parameters and their values for each RawDataFile.
+ * Experimental parameters are available for defining any properties of the
+ * sample, for instance concentration or a class label.
  * <li>Opened RawDataFiles
- * <li>PeakLists of each RawDataFile. A feature list represents results of feature detection on a single
- * RawDataFile or a processed version of a preceding PeakList.
- * <li>PeakLists of multiple aligned PeakLists. An aligned feature list represent results of aligning
- * multiple PeakLists of individual runs or a processed version of a preceding aligned PeakList.
+ * <li>PeakLists of each RawDataFile. A feature list represents results of
+ * feature detection on a single RawDataFile or a processed version of a
+ * preceding PeakList.
+ * <li>PeakLists of multiple aligned PeakLists. An aligned feature list
+ * represent results of aligning multiple PeakLists of individual runs or a
+ * processed version of a preceding aligned PeakList.
  * </ul>
  * 
  * @see UserParameter
@@ -44,92 +47,93 @@ import io.github.mzmine.parameters.UserParameter;
  */
 public interface MZmineProject {
 
-  /**
-   * Return the filename of the project file
-   */
-  public File getProjectFile();
+    /**
+     * Return the filename of the project file
+     */
+    public File getProjectFile();
 
-  /**
-   * Adds a new experimental parameter to the project
-   * 
-   * @param parameter
-   */
-  public void addParameter(UserParameter<?, ?> parameter);
+    /**
+     * Adds a new experimental parameter to the project
+     * 
+     * @param parameter
+     */
+    public void addParameter(UserParameter<?, ?> parameter);
 
-  /**
-   * Removes an experimental parameter from the project
-   * 
-   * @param parameter
-   */
-  public void removeParameter(UserParameter<?, ?> parameter);
+    /**
+     * Removes an experimental parameter from the project
+     * 
+     * @param parameter
+     */
+    public void removeParameter(UserParameter<?, ?> parameter);
 
-  /**
-   * Returns true if project contains the experimental parameter
-   */
-  public boolean hasParameter(UserParameter<?, ?> parameter);
+    /**
+     * Returns true if project contains the experimental parameter
+     */
+    public boolean hasParameter(UserParameter<?, ?> parameter);
 
-  /**
-   * Returns all experimental parameter of the project
-   */
-  public UserParameter<?, ?>[] getParameters();
+    /**
+     * Returns all experimental parameter of the project
+     */
+    public UserParameter<?, ?>[] getParameters();
 
-  /**
-   * Sets experimental parameter's value corresponding to a RawDataFile.
-   * <p>
-   * If the parameter does not exists in the project, it is added to the project. If parameter
-   * already has a value corresponding the given file, previous value is replaced.
-   * 
-   */
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value);
+    /**
+     * Sets experimental parameter's value corresponding to a RawDataFile.
+     * <p>
+     * If the parameter does not exists in the project, it is added to the
+     * project. If parameter already has a value corresponding the given file,
+     * previous value is replaced.
+     * 
+     */
+    public void setParameterValue(UserParameter<?, ?> parameter,
+            RawDataFile rawDataFile, Object value);
 
-  /**
-   * Returns experimental parameter's value corresponding to a RawDataFile.
-   * 
-   */
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
+    /**
+     * Returns experimental parameter's value corresponding to a RawDataFile.
+     * 
+     */
+    public Object getParameterValue(UserParameter<?, ?> parameter,
+            RawDataFile rawDataFile);
 
-  /**
-   * Adds a new RawDataFile to the project.
-   */
-  public void addFile(RawDataFile newFile);
+    /**
+     * Adds a new RawDataFile to the project.
+     */
+    public void addFile(RawDataFile newFile);
 
-  /**
-   * Removes a RawDataFile from the project.
-   */
-  public void removeFile(RawDataFile file);
+    /**
+     * Removes a RawDataFile from the project.
+     */
+    public void removeFile(RawDataFile file);
 
-  /**
-   * Returns all RawDataFiles of the project.
-   * 
-   */
-  public RawDataFile[] getDataFiles();
+    /**
+     * Returns all RawDataFiles of the project.
+     * 
+     */
+    public RawDataFile[] getDataFiles();
 
-  /**
-   * Adds a feature list to the project
-   */
-  public void addPeakList(PeakList peaklist);
+    /**
+     * Adds a feature list to the project
+     */
+    public void addPeakList(PeakList peaklist);
 
-  /**
-   * Removes a feature list from the project
-   */
-  public void removePeakList(PeakList peaklist);
+    /**
+     * Removes a feature list from the project
+     */
+    public void removePeakList(PeakList peaklist);
 
-  /**
-   * Returns all feature lists of the project
-   */
-  public PeakList[] getPeakLists();
+    /**
+     * Returns all feature lists of the project
+     */
+    public PeakList[] getPeakLists();
 
-  /**
-   * Returns all feature lists which contain given data file
-   */
-  public PeakList[] getPeakLists(RawDataFile file);
+    /**
+     * Returns all feature lists which contain given data file
+     */
+    public PeakList[] getPeakLists(RawDataFile file);
 
-  public void notifyObjectChanged(Object object, boolean structureChanged);
+    public void notifyObjectChanged(Object object, boolean structureChanged);
 
-  public void addProjectListener(MZmineProjectListener newListener);
+    public void addProjectListener(MZmineProjectListener newListener);
 
-  public void removeProjectListener(MZmineProjectListener listener);
-
+    public void removeProjectListener(MZmineProjectListener listener);
 
 }

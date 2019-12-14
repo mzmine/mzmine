@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,149 +43,154 @@ import io.github.mzmine.util.dialogs.AxesSetupDialog;
  */
 public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final long serialVersionUID = 1L;
-  private TwoDToolBar toolBar;
-  private TwoDPlot twoDPlot;
-  private TwoDBottomPanel bottomPanel;
-  private TwoDDataSet dataset;
-  private RawDataFile dataFile;
-  private boolean tooltipMode;
-  private boolean logScale;
+    private static final long serialVersionUID = 1L;
+    private TwoDToolBar toolBar;
+    private TwoDPlot twoDPlot;
+    private TwoDBottomPanel bottomPanel;
+    private TwoDDataSet dataset;
+    private RawDataFile dataFile;
+    private boolean tooltipMode;
+    private boolean logScale;
 
-  public TwoDVisualizerWindow(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
-      Range<Double> mzRange, ParameterSet parameters) {
+    public TwoDVisualizerWindow(RawDataFile dataFile, Scan scans[],
+            Range<Double> rtRange, Range<Double> mzRange,
+            ParameterSet parameters) {
 
-    super("2D view: [" + dataFile.getName() + "]");
+        super("2D view: [" + dataFile.getName() + "]");
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-    this.dataFile = dataFile;
+        this.dataFile = dataFile;
 
-    this.tooltipMode = true;
+        this.tooltipMode = true;
 
-    dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
-    if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue() == PlotType.FAST2D) {
-      twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange, "default");
-      add(twoDPlot, BorderLayout.CENTER);
+        dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
+        if (parameters.getParameter(TwoDVisualizerParameters.plotType)
+                .getValue() == PlotType.FAST2D) {
+            twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange,
+                    "default");
+            add(twoDPlot, BorderLayout.CENTER);
+        }
+
+        if (parameters.getParameter(TwoDVisualizerParameters.plotType)
+                .getValue() == PlotType.POINT2D) {
+            twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange,
+                    "point2D");
+            add(twoDPlot, BorderLayout.CENTER);
+        }
+
+        toolBar = new TwoDToolBar(this);
+        add(toolBar, BorderLayout.EAST);
+
+        bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        updateTitle();
+
+        // After we have constructed everything, load the feature lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector();
+
+        MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+
+        // Add the Windows menu
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new WindowsMenu());
+        setJMenuBar(menuBar);
+
+        pack();
+
+        // get the window settings parameter
+        ParameterSet paramSet = MZmineCore.getConfiguration()
+                .getModuleParameters(TwoDVisualizerModule.class);
+        WindowSettingsParameter settings = paramSet
+                .getParameter(TwoDVisualizerParameters.windowSettings);
+
+        // update the window and listen for changes
+        settings.applySettingsToWindow(this);
+        this.addComponentListener(settings);
+
     }
 
-    if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue() == PlotType.POINT2D) {
-      twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange, "point2D");
-      add(twoDPlot, BorderLayout.CENTER);
+    public void dispose() {
+        super.dispose();
+        MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
-
-    toolBar = new TwoDToolBar(this);
-    add(toolBar, BorderLayout.EAST);
-
-    bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
-    add(bottomPanel, BorderLayout.SOUTH);
-
-    updateTitle();
-
-    // After we have constructed everything, load the feature lists into the
-    // bottom panel
-    bottomPanel.rebuildPeakListSelector();
-
-    MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
-
-    // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
-
-    pack();
-
-    // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(TwoDVisualizerParameters.windowSettings);
-
-    // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
-
-  }
-
-  public void dispose() {
-    super.dispose();
-    MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
-  }
-
-  void updateTitle() {
-    StringBuffer title = new StringBuffer();
-    title.append("[");
-    title.append(dataFile.getName());
-    title.append("]: 2D view");
-    twoDPlot.setTitle(title.toString());
-  }
-
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SWITCH_PALETTE")) {
-      twoDPlot.getXYPlot().switchPalette();
+    void updateTitle() {
+        StringBuffer title = new StringBuffer();
+        title.append("[");
+        title.append(dataFile.getName());
+        title.append("]: 2D view");
+        twoDPlot.setTitle(title.toString());
     }
 
-    if (command.equals("SHOW_DATA_POINTS")) {
-      twoDPlot.switchDataPointsVisible();
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+
+        String command = event.getActionCommand();
+
+        if (command.equals("SWITCH_PALETTE")) {
+            twoDPlot.getXYPlot().switchPalette();
+        }
+
+        if (command.equals("SHOW_DATA_POINTS")) {
+            twoDPlot.switchDataPointsVisible();
+        }
+
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(this,
+                    twoDPlot.getXYPlot());
+            dialog.setVisible(true);
+        }
+
+        if (command.equals("SWITCH_PLOTMODE")) {
+
+            if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+                toolBar.setCentroidButton(true);
+                twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+            } else {
+                toolBar.setCentroidButton(false);
+                twoDPlot.setPlotMode(PlotMode.CENTROID);
+            }
+        }
+
+        if (command.equals("SWITCH_TOOLTIPS")) {
+            if (tooltipMode) {
+                twoDPlot.showPeaksTooltips(false);
+                toolBar.setTooltipButton(false);
+                tooltipMode = false;
+            } else {
+                twoDPlot.showPeaksTooltips(true);
+                toolBar.setTooltipButton(true);
+                tooltipMode = true;
+            }
+        }
+
+        if (command.equals("SWITCH_LOG_SCALE")) {
+            if (twoDPlot != null) {
+                logScale = !logScale;
+                twoDPlot.setLogScale(logScale);
+            }
+        }
+
+        if ("PEAKLIST_CHANGE".equals(command)) {
+            final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+            if (selectedPeakList != null) {
+                logger.finest("Loading a feature list " + selectedPeakList
+                        + " to a 2D view of " + dataFile);
+                twoDPlot.loadPeakList(selectedPeakList);
+            }
+        }
+
     }
 
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, twoDPlot.getXYPlot());
-      dialog.setVisible(true);
+    TwoDPlot getPlot() {
+        return twoDPlot;
     }
-
-    if (command.equals("SWITCH_PLOTMODE")) {
-
-      if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-        toolBar.setCentroidButton(true);
-        twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-      } else {
-        toolBar.setCentroidButton(false);
-        twoDPlot.setPlotMode(PlotMode.CENTROID);
-      }
-    }
-
-    if (command.equals("SWITCH_TOOLTIPS")) {
-      if (tooltipMode) {
-        twoDPlot.showPeaksTooltips(false);
-        toolBar.setTooltipButton(false);
-        tooltipMode = false;
-      } else {
-        twoDPlot.showPeaksTooltips(true);
-        toolBar.setTooltipButton(true);
-        tooltipMode = true;
-      }
-    }
-
-    if (command.equals("SWITCH_LOG_SCALE")) {
-      if (twoDPlot != null) {
-        logScale = !logScale;
-        twoDPlot.setLogScale(logScale);
-      }
-    }
-
-    if ("PEAKLIST_CHANGE".equals(command)) {
-      final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-      if (selectedPeakList != null) {
-        logger.finest("Loading a feature list " + selectedPeakList + " to a 2D view of " + dataFile);
-        twoDPlot.loadPeakList(selectedPeakList);
-      }
-    }
-
-
-  }
-
-  TwoDPlot getPlot() {
-    return twoDPlot;
-  }
 }

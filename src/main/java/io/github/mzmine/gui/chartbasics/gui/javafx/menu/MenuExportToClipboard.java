@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,21 +23,20 @@ import io.github.mzmine.gui.chartbasics.gui.swing.menu.MenuExport;
 import io.github.mzmine.util.io.ClipboardWriter;
 import javafx.scene.control.MenuItem;
 
-
 public class MenuExportToClipboard extends MenuItem implements MenuExport {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private EChartViewer chart;
+    private EChartViewer chart;
 
-  public MenuExportToClipboard(String menuTitle, EChartViewer chart) {
-    super(menuTitle);
-    this.chart = chart;
-    setOnAction(e -> exportDataToClipboard());
-  }
+    public MenuExportToClipboard(String menuTitle, EChartViewer chart) {
+        super(menuTitle);
+        this.chart = chart;
+        setOnAction(e -> exportDataToClipboard());
+    }
 
-  public void exportDataToClipboard() {
-    Object[][] model = chart.getDataArrayForExport();
-    if (model != null)
-      ClipboardWriter.writeToClipBoard(model, false);
-  }
+    public void exportDataToClipboard() {
+        Object[][] model = chart.getDataArrayForExport();
+        if (model != null)
+            ClipboardWriter.writeToClipBoard(model, false);
+    }
 }

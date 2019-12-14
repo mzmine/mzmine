@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,390 +42,417 @@ import io.github.mzmine.util.RangeUtils;
 
 public class CSVExportTask extends AbstractTask {
 
+    private PeakList[] peakLists;
+    private int processedRows = 0, totalRows = 0;
 
-  private PeakList[] peakLists;
-  private int processedRows = 0, totalRows = 0;
+    // parameter values
+    private File fileName;
+    private String plNamePattern = "{}";
+    private String fieldSeparator;
+    private ExportRowCommonElement[] commonElements;
+    private ExportRowDataFileElement[] dataFileElements;
+    private Boolean exportAllPeakInfo;
+    private String idSeparator;
+    private RowFilter filter;
 
-  // parameter values
-  private File fileName;
-  private String plNamePattern = "{}";
-  private String fieldSeparator;
-  private ExportRowCommonElement[] commonElements;
-  private ExportRowDataFileElement[] dataFileElements;
-  private Boolean exportAllPeakInfo;
-  private String idSeparator;
-  private RowFilter filter;
+    public CSVExportTask(ParameterSet parameters) {
+        this.peakLists = parameters.getParameter(CSVExportParameters.peakLists)
+                .getValue().getMatchingPeakLists();
+        fileName = parameters.getParameter(CSVExportParameters.filename)
+                .getValue();
+        fieldSeparator = parameters
+                .getParameter(CSVExportParameters.fieldSeparator).getValue();
+        commonElements = parameters
+                .getParameter(CSVExportParameters.exportCommonItems).getValue();
+        dataFileElements = parameters
+                .getParameter(CSVExportParameters.exportDataFileItems)
+                .getValue();
+        exportAllPeakInfo = parameters
+                .getParameter(CSVExportParameters.exportAllPeakInfo).getValue();
+        idSeparator = parameters.getParameter(CSVExportParameters.idSeparator)
+                .getValue();
+        this.filter = parameters.getParameter(CSVExportParameters.filter)
+                .getValue();
 
-  public CSVExportTask(ParameterSet parameters) {
-    this.peakLists =
-        parameters.getParameter(CSVExportParameters.peakLists).getValue().getMatchingPeakLists();
-    fileName = parameters.getParameter(CSVExportParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(CSVExportParameters.fieldSeparator).getValue();
-    commonElements = parameters.getParameter(CSVExportParameters.exportCommonItems).getValue();
-    dataFileElements = parameters.getParameter(CSVExportParameters.exportDataFileItems).getValue();
-    exportAllPeakInfo = parameters.getParameter(CSVExportParameters.exportAllPeakInfo).getValue();
-    idSeparator = parameters.getParameter(CSVExportParameters.idSeparator).getValue();
-    this.filter = parameters.getParameter(CSVExportParameters.filter).getValue();
-
-  }
-
-  /**
-   * 
-   * @param peakLists
-   * @param fileName
-   * @param fieldSeparator
-   * @param commonElements
-   * @param dataFileElements
-   * @param exportAllPeakInfo
-   * @param idSeparator
-   * @param filter Row filter
-   */
-  public CSVExportTask(PeakList[] peakLists, File fileName, String fieldSeparator,
-      ExportRowCommonElement[] commonElements, ExportRowDataFileElement[] dataFileElements,
-      Boolean exportAllPeakInfo, String idSeparator, RowFilter filter) {
-    super();
-    this.peakLists = peakLists;
-    this.fileName = fileName;
-    this.fieldSeparator = fieldSeparator;
-    this.commonElements = commonElements;
-    this.dataFileElements = dataFileElements;
-    this.exportAllPeakInfo = exportAllPeakInfo;
-    this.idSeparator = idSeparator;
-    this.filter = filter;
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    if (totalRows == 0) {
-      return 0;
-    }
-    return (double) processedRows / (double) totalRows;
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to CSV file(s)";
-  }
-
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    // Shall export several files?
-    boolean substitute = fileName.getPath().contains(plNamePattern);
-
-    // Total number of rows
-    for (PeakList peakList : peakLists) {
-      totalRows += peakList.getNumberOfRows();
     }
 
-    // Process feature lists
-    for (PeakList peakList : peakLists) {
-
-      // Filename
-      File curFile = fileName;
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-        // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
-      }
-
-      // Open file
-      FileWriter writer;
-      try {
-        writer = new FileWriter(curFile);
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not open file " + curFile + " for writing.");
-        return;
-      }
-
-      exportPeakList(peakList, writer, curFile);
-
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      // Close file
-      try {
-        writer.close();
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not close file " + curFile);
-        return;
-      }
-
-      // If feature list substitution pattern wasn't found,
-      // treat one feature list only
-      if (!substitute)
-        break;
+    /**
+     * 
+     * @param peakLists
+     * @param fileName
+     * @param fieldSeparator
+     * @param commonElements
+     * @param dataFileElements
+     * @param exportAllPeakInfo
+     * @param idSeparator
+     * @param filter
+     *            Row filter
+     */
+    public CSVExportTask(PeakList[] peakLists, File fileName,
+            String fieldSeparator, ExportRowCommonElement[] commonElements,
+            ExportRowDataFileElement[] dataFileElements,
+            Boolean exportAllPeakInfo, String idSeparator, RowFilter filter) {
+        super();
+        this.peakLists = peakLists;
+        this.fileName = fileName;
+        this.fieldSeparator = fieldSeparator;
+        this.commonElements = commonElements;
+        this.dataFileElements = dataFileElements;
+        this.exportAllPeakInfo = exportAllPeakInfo;
+        this.idSeparator = idSeparator;
+        this.filter = filter;
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
-      setStatus(TaskStatus.FINISHED);
-
-  }
-
-  private void exportPeakList(PeakList peakList, FileWriter writer, File fileName) {
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
-
-    // Buffer for writing
-    StringBuffer line = new StringBuffer();
-
-    // Write column headers
-
-    // Common elements
-    int length = commonElements.length;
-    String name;
-    for (int i = 0; i < length; i++) {
-      name = commonElements[i].toString();
-      name = name.replace("Export ", "");
-      name = escapeStringForCSV(name);
-      line.append(name + fieldSeparator);
-    }
-
-    // peak Information
-    Set<String> peakInformationFields = new HashSet<>();
-
-    for (PeakListRow row : peakList.getRows()) {
-      if (!filter.filter(row))
-        continue;
-      if (row.getPeakInformation() != null) {
-        for (String key : row.getPeakInformation().getAllProperties().keySet()) {
-          peakInformationFields.add(key);
+    @Override
+    public double getFinishedPercentage() {
+        if (totalRows == 0) {
+            return 0;
         }
-      }
+        return (double) processedRows / (double) totalRows;
     }
 
-    if (exportAllPeakInfo)
-      for (String field : peakInformationFields)
-        line.append(field + fieldSeparator);
-
-    // Data file elements
-    length = dataFileElements.length;
-    for (int df = 0; df < peakList.getNumberOfRawDataFiles(); df++) {
-      for (int i = 0; i < length; i++) {
-        name = rawDataFiles[df].getName();
-        name = name + " " + dataFileElements[i].toString();
-        name = escapeStringForCSV(name);
-        line.append(name + fieldSeparator);
-      }
+    @Override
+    public String getTaskDescription() {
+        return "Exporting feature list(s) " + Arrays.toString(peakLists)
+                + " to CSV file(s)";
     }
 
-    line.append("\n");
+    @Override
+    public void run() {
 
-    try {
-      writer.write(line.toString());
-    } catch (Exception e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not write to file " + fileName);
-      return;
-    }
+        setStatus(TaskStatus.PROCESSING);
 
-    // Write data rows
-    for (PeakListRow peakListRow : peakList.getRows()) {
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
 
-      if (!filter.filter(peakListRow)) {
-        processedRows++;
-        continue;
-      }
-
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      // Reset the buffer
-      line.setLength(0);
-
-      // Common elements
-      length = commonElements.length;
-      for (int i = 0; i < length; i++) {
-        switch (commonElements[i]) {
-          case ROW_ID:
-            line.append(peakListRow.getID() + fieldSeparator);
-            break;
-          case ROW_MZ:
-            line.append(peakListRow.getAverageMZ() + fieldSeparator);
-            break;
-          case ROW_RT:
-            line.append(peakListRow.getAverageRT() + fieldSeparator);
-            break;
-          case ROW_IDENTITY:
-            // Identity elements
-            PeakIdentity peakId = peakListRow.getPreferredPeakIdentity();
-            if (peakId == null) {
-              line.append(fieldSeparator);
-              break;
-            }
-            String propertyValue = peakId.toString();
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_IDENTITY_ALL:
-            // Identity elements
-            PeakIdentity[] peakIdentities = peakListRow.getPeakIdentities();
-            propertyValue = "";
-            for (int x = 0; x < peakIdentities.length; x++) {
-              if (x > 0)
-                propertyValue += idSeparator;
-              propertyValue += peakIdentities[x].toString();
-            }
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_IDENTITY_DETAILS:
-            peakId = peakListRow.getPreferredPeakIdentity();
-            if (peakId == null) {
-              line.append(fieldSeparator);
-              break;
-            }
-            propertyValue = peakId.getDescription();
-            if (propertyValue != null)
-              propertyValue = propertyValue.replaceAll("\\n", ";");
-            propertyValue = escapeStringForCSV(propertyValue);
-            line.append(propertyValue + fieldSeparator);
-            break;
-          case ROW_COMMENT:
-            String comment = escapeStringForCSV(peakListRow.getComment());
-            line.append(comment + fieldSeparator);
-            break;
-          case ROW_PEAK_NUMBER:
-            int numDetected = 0;
-            for (Feature p : peakListRow.getPeaks()) {
-              if (p.getFeatureStatus() == FeatureStatus.DETECTED) {
-                numDetected++;
-              }
-            }
-            line.append(numDetected + fieldSeparator);
-            break;
+        // Total number of rows
+        for (PeakList peakList : peakLists) {
+            totalRows += peakList.getNumberOfRows();
         }
-      }
 
-      // peak Information
-      if (exportAllPeakInfo) {
-        if (peakListRow.getPeakInformation() != null) {
-          Map<String, String> allPropertiesMap =
-              peakListRow.getPeakInformation().getAllProperties();
+        // Process feature lists
+        for (PeakList peakList : peakLists) {
 
-          for (String key : peakInformationFields) {
-            String value = allPropertiesMap.get(key);
-            if (value == null)
-              value = "";
-            line.append(value + fieldSeparator);
-          }
+            // Filename
+            File curFile = fileName;
+            if (substitute) {
+                // Cleanup from illegal filename characters
+                String cleanPlName = peakList.getName()
+                        .replaceAll("[^a-zA-Z0-9.-]", "_");
+                // Substitute
+                String newFilename = fileName.getPath()
+                        .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+                curFile = new File(newFilename);
+            }
+
+            // Open file
+            FileWriter writer;
+            try {
+                writer = new FileWriter(curFile);
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage(
+                        "Could not open file " + curFile + " for writing.");
+                return;
+            }
+
+            exportPeakList(peakList, writer, curFile);
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            // Close file
+            try {
+                writer.close();
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not close file " + curFile);
+                return;
+            }
+
+            // If feature list substitution pattern wasn't found,
+            // treat one feature list only
+            if (!substitute)
+                break;
         }
-      }
 
-      // Data file elements
-      length = dataFileElements.length;
-      for (RawDataFile dataFile : rawDataFiles) {
+        if (getStatus() == TaskStatus.PROCESSING)
+            setStatus(TaskStatus.FINISHED);
+
+    }
+
+    private void exportPeakList(PeakList peakList, FileWriter writer,
+            File fileName) {
+        NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+        RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+
+        // Buffer for writing
+        StringBuffer line = new StringBuffer();
+
+        // Write column headers
+
+        // Common elements
+        int length = commonElements.length;
+        String name;
         for (int i = 0; i < length; i++) {
-          Feature peak = peakListRow.getPeak(dataFile);
-          if (peak != null) {
-            switch (dataFileElements[i]) {
-              case PEAK_STATUS:
-                line.append(peak.getFeatureStatus() + fieldSeparator);
-                break;
-              case PEAK_NAME:
-                line.append(PeakUtils.peakToString(peak) + fieldSeparator);
-                break;
-              case PEAK_MZ:
-                line.append(peak.getMZ() + fieldSeparator);
-                break;
-              case PEAK_RT:
-                line.append(peak.getRT() + fieldSeparator);
-                break;
-              case PEAK_RT_START:
-                line.append(peak.getRawDataPointsRTRange().lowerEndpoint() + fieldSeparator);
-                break;
-              case PEAK_RT_END:
-                line.append(peak.getRawDataPointsRTRange().upperEndpoint() + fieldSeparator);
-                break;
-              case PEAK_DURATION:
-                line.append(
-                    RangeUtils.rangeLength(peak.getRawDataPointsRTRange()) + fieldSeparator);
-                break;
-              case PEAK_HEIGHT:
-                line.append(peak.getHeight() + fieldSeparator);
-                break;
-              case PEAK_AREA:
-                line.append(peak.getArea() + fieldSeparator);
-                break;
-              case PEAK_CHARGE:
-                line.append(peak.getCharge() + fieldSeparator);
-                break;
-              case PEAK_DATAPOINTS:
-                line.append(peak.getScanNumbers().length + fieldSeparator);
-                break;
-              case PEAK_FWHM:
-                line.append(peak.getFWHM() + fieldSeparator);
-                break;
-              case PEAK_TAILINGFACTOR:
-                line.append(peak.getTailingFactor() + fieldSeparator);
-                break;
-              case PEAK_ASYMMETRYFACTOR:
-                line.append(peak.getAsymmetryFactor() + fieldSeparator);
-                break;
-              case PEAK_MZMIN:
-                line.append(peak.getRawDataPointsMZRange().lowerEndpoint() + fieldSeparator);
-                break;
-              case PEAK_MZMAX:
-                line.append(peak.getRawDataPointsMZRange().upperEndpoint() + fieldSeparator);
-                break;
-            }
-          } else {
-            switch (dataFileElements[i]) {
-              case PEAK_STATUS:
-                line.append(FeatureStatus.UNKNOWN + fieldSeparator);
-                break;
-              default:
-                line.append("0" + fieldSeparator);
-                break;
-            }
-          }
+            name = commonElements[i].toString();
+            name = name.replace("Export ", "");
+            name = escapeStringForCSV(name);
+            line.append(name + fieldSeparator);
         }
-      }
 
-      line.append("\n");
+        // peak Information
+        Set<String> peakInformationFields = new HashSet<>();
 
-      try {
-        writer.write(line.toString());
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not write to file " + fileName);
-        return;
-      }
+        for (PeakListRow row : peakList.getRows()) {
+            if (!filter.filter(row))
+                continue;
+            if (row.getPeakInformation() != null) {
+                for (String key : row.getPeakInformation().getAllProperties()
+                        .keySet()) {
+                    peakInformationFields.add(key);
+                }
+            }
+        }
 
-      processedRows++;
+        if (exportAllPeakInfo)
+            for (String field : peakInformationFields)
+                line.append(field + fieldSeparator);
+
+        // Data file elements
+        length = dataFileElements.length;
+        for (int df = 0; df < peakList.getNumberOfRawDataFiles(); df++) {
+            for (int i = 0; i < length; i++) {
+                name = rawDataFiles[df].getName();
+                name = name + " " + dataFileElements[i].toString();
+                name = escapeStringForCSV(name);
+                line.append(name + fieldSeparator);
+            }
+        }
+
+        line.append("\n");
+
+        try {
+            writer.write(line.toString());
+        } catch (Exception e) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Could not write to file " + fileName);
+            return;
+        }
+
+        // Write data rows
+        for (PeakListRow peakListRow : peakList.getRows()) {
+
+            if (!filter.filter(peakListRow)) {
+                processedRows++;
+                continue;
+            }
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            // Reset the buffer
+            line.setLength(0);
+
+            // Common elements
+            length = commonElements.length;
+            for (int i = 0; i < length; i++) {
+                switch (commonElements[i]) {
+                case ROW_ID:
+                    line.append(peakListRow.getID() + fieldSeparator);
+                    break;
+                case ROW_MZ:
+                    line.append(peakListRow.getAverageMZ() + fieldSeparator);
+                    break;
+                case ROW_RT:
+                    line.append(peakListRow.getAverageRT() + fieldSeparator);
+                    break;
+                case ROW_IDENTITY:
+                    // Identity elements
+                    PeakIdentity peakId = peakListRow
+                            .getPreferredPeakIdentity();
+                    if (peakId == null) {
+                        line.append(fieldSeparator);
+                        break;
+                    }
+                    String propertyValue = peakId.toString();
+                    propertyValue = escapeStringForCSV(propertyValue);
+                    line.append(propertyValue + fieldSeparator);
+                    break;
+                case ROW_IDENTITY_ALL:
+                    // Identity elements
+                    PeakIdentity[] peakIdentities = peakListRow
+                            .getPeakIdentities();
+                    propertyValue = "";
+                    for (int x = 0; x < peakIdentities.length; x++) {
+                        if (x > 0)
+                            propertyValue += idSeparator;
+                        propertyValue += peakIdentities[x].toString();
+                    }
+                    propertyValue = escapeStringForCSV(propertyValue);
+                    line.append(propertyValue + fieldSeparator);
+                    break;
+                case ROW_IDENTITY_DETAILS:
+                    peakId = peakListRow.getPreferredPeakIdentity();
+                    if (peakId == null) {
+                        line.append(fieldSeparator);
+                        break;
+                    }
+                    propertyValue = peakId.getDescription();
+                    if (propertyValue != null)
+                        propertyValue = propertyValue.replaceAll("\\n", ";");
+                    propertyValue = escapeStringForCSV(propertyValue);
+                    line.append(propertyValue + fieldSeparator);
+                    break;
+                case ROW_COMMENT:
+                    String comment = escapeStringForCSV(
+                            peakListRow.getComment());
+                    line.append(comment + fieldSeparator);
+                    break;
+                case ROW_PEAK_NUMBER:
+                    int numDetected = 0;
+                    for (Feature p : peakListRow.getPeaks()) {
+                        if (p.getFeatureStatus() == FeatureStatus.DETECTED) {
+                            numDetected++;
+                        }
+                    }
+                    line.append(numDetected + fieldSeparator);
+                    break;
+                }
+            }
+
+            // peak Information
+            if (exportAllPeakInfo) {
+                if (peakListRow.getPeakInformation() != null) {
+                    Map<String, String> allPropertiesMap = peakListRow
+                            .getPeakInformation().getAllProperties();
+
+                    for (String key : peakInformationFields) {
+                        String value = allPropertiesMap.get(key);
+                        if (value == null)
+                            value = "";
+                        line.append(value + fieldSeparator);
+                    }
+                }
+            }
+
+            // Data file elements
+            length = dataFileElements.length;
+            for (RawDataFile dataFile : rawDataFiles) {
+                for (int i = 0; i < length; i++) {
+                    Feature peak = peakListRow.getPeak(dataFile);
+                    if (peak != null) {
+                        switch (dataFileElements[i]) {
+                        case PEAK_STATUS:
+                            line.append(
+                                    peak.getFeatureStatus() + fieldSeparator);
+                            break;
+                        case PEAK_NAME:
+                            line.append(PeakUtils.peakToString(peak)
+                                    + fieldSeparator);
+                            break;
+                        case PEAK_MZ:
+                            line.append(peak.getMZ() + fieldSeparator);
+                            break;
+                        case PEAK_RT:
+                            line.append(peak.getRT() + fieldSeparator);
+                            break;
+                        case PEAK_RT_START:
+                            line.append(peak.getRawDataPointsRTRange()
+                                    .lowerEndpoint() + fieldSeparator);
+                            break;
+                        case PEAK_RT_END:
+                            line.append(peak.getRawDataPointsRTRange()
+                                    .upperEndpoint() + fieldSeparator);
+                            break;
+                        case PEAK_DURATION:
+                            line.append(RangeUtils
+                                    .rangeLength(peak.getRawDataPointsRTRange())
+                                    + fieldSeparator);
+                            break;
+                        case PEAK_HEIGHT:
+                            line.append(peak.getHeight() + fieldSeparator);
+                            break;
+                        case PEAK_AREA:
+                            line.append(peak.getArea() + fieldSeparator);
+                            break;
+                        case PEAK_CHARGE:
+                            line.append(peak.getCharge() + fieldSeparator);
+                            break;
+                        case PEAK_DATAPOINTS:
+                            line.append(peak.getScanNumbers().length
+                                    + fieldSeparator);
+                            break;
+                        case PEAK_FWHM:
+                            line.append(peak.getFWHM() + fieldSeparator);
+                            break;
+                        case PEAK_TAILINGFACTOR:
+                            line.append(
+                                    peak.getTailingFactor() + fieldSeparator);
+                            break;
+                        case PEAK_ASYMMETRYFACTOR:
+                            line.append(
+                                    peak.getAsymmetryFactor() + fieldSeparator);
+                            break;
+                        case PEAK_MZMIN:
+                            line.append(peak.getRawDataPointsMZRange()
+                                    .lowerEndpoint() + fieldSeparator);
+                            break;
+                        case PEAK_MZMAX:
+                            line.append(peak.getRawDataPointsMZRange()
+                                    .upperEndpoint() + fieldSeparator);
+                            break;
+                        }
+                    } else {
+                        switch (dataFileElements[i]) {
+                        case PEAK_STATUS:
+                            line.append(FeatureStatus.UNKNOWN + fieldSeparator);
+                            break;
+                        default:
+                            line.append("0" + fieldSeparator);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            line.append("\n");
+
+            try {
+                writer.write(line.toString());
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not write to file " + fileName);
+                return;
+            }
+
+            processedRows++;
+        }
     }
-  }
 
-  private String escapeStringForCSV(final String inputString) {
+    private String escapeStringForCSV(final String inputString) {
 
-    if (inputString == null)
-      return "";
+        if (inputString == null)
+            return "";
 
-    // Remove all special characters (particularly \n would mess up our CSV
-    // format).
-    String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
+        // Remove all special characters (particularly \n would mess up our CSV
+        // format).
+        String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
 
-    // Skip too long strings (see Excel 2007 specifications)
-    if (result.length() >= 32766)
-      result = result.substring(0, 32765);
+        // Skip too long strings (see Excel 2007 specifications)
+        if (result.length() >= 32766)
+            result = result.substring(0, 32765);
 
-    // If the text contains fieldSeparator, we will add
-    // parenthesis
-    if (result.contains(fieldSeparator) || result.contains("\"")) {
-      result = "\"" + result.replaceAll("\"", "'") + "\"";
+        // If the text contains fieldSeparator, we will add
+        // parenthesis
+        if (result.contains(fieldSeparator) || result.contains("\"")) {
+            result = "\"" + result.replaceAll("\"", "'") + "\"";
+        }
+
+        return result;
     }
-
-    return result;
-  }
 }

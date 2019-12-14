@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,32 +21,36 @@ package io.github.mzmine.modules.visualization.featurelisttable;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 class PeakListTableToolBar extends JToolBar {
 
-  private static final long serialVersionUID = 1L;
-  private static final Icon propertiesIcon = new ImageIcon("icons/propertiesicon.png");
-  private static final Icon widthIcon = new ImageIcon("icons/widthicon.png");
-  private static final Icon printIcon = new ImageIcon("icons/printicon.png");
+    private static final long serialVersionUID = 1L;
+    private static final Icon propertiesIcon = IconUtil
+            .loadIconFromResources("icons/propertiesicon.png");
+    private static final Icon widthIcon = IconUtil
+            .loadIconFromResources("icons/widthicon.png");
+    private static final Icon printIcon = IconUtil
+            .loadIconFromResources("icons/printicon.png");
 
-  PeakListTableToolBar(PeakListTableWindow masterFrame) {
+    PeakListTableToolBar(PeakListTableWindow masterFrame) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setMargin(new Insets(5, 5, 5, 5));
+        setFloatable(false);
+        setMargin(new Insets(5, 5, 5, 5));
 
-    GUIUtils.addButton(this, null, propertiesIcon, masterFrame, "PROPERTIES",
-        "Set table properties");
-    GUIUtils.addButton(this, null, widthIcon, masterFrame, "AUTOCOLUMNWIDTH",
-        "Set auto column width");
-    addSeparator();
-    GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT", "Print");
+        GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
+                "PROPERTIES", "Set table properties");
+        GUIUtils.addButton(this, null, widthIcon, masterFrame,
+                "AUTOCOLUMNWIDTH", "Set auto column width");
+        addSeparator();
+        GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT",
+                "Print");
 
-  }
+    }
 
 }

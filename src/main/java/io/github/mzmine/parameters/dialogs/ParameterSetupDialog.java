@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -57,367 +57,389 @@ import io.github.mzmine.util.components.GridBagPanel;
 import javafx.application.Platform;
 
 /**
- * This class represents the parameter setup dialog to set the values of SimpleParameterSet. Each
- * Parameter is represented by a component. The component can be obtained by calling
- * getComponentForParameter(). Type of component depends on parameter type:
+ * This class represents the parameter setup dialog to set the values of
+ * SimpleParameterSet. Each Parameter is represented by a component. The
+ * component can be obtained by calling getComponentForParameter(). Type of
+ * component depends on parameter type:
  * 
  * TODO: parameter setup dialog should show the name of the module in the title
  * 
  */
-public class ParameterSetupDialog extends JDialog implements ActionListener, DocumentListener {
+public class ParameterSetupDialog extends JDialog
+        implements ActionListener, DocumentListener {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private ExitCode exitCode = ExitCode.UNKNOWN;
+    private ExitCode exitCode = ExitCode.UNKNOWN;
 
-  protected final URL helpURL;
+    protected final URL helpURL;
 
-  /**
-   * Help window for this setup dialog. Initially null, until the user clicks the Help button.
-   */
-  protected HelpWindow helpWindow = null;
-
-  // Parameters and their representation in the dialog
-  protected ParameterSet parameterSet;
-  protected Map<String, JComponent> parametersAndComponents;
-
-  // If true, the dialog won't allow the OK button to proceed, unless all
-  // parameters pass the value check. This is undesirable in the BatchMode
-  // setup dialog, where some parameters need to be set in advance according
-  // to values that are not yet imported etc.
-  private final boolean valueCheckRequired;
-
-  // Buttons
-  protected JButton btnOK;
-
-  protected JButton btnCancel;
-
-  protected JButton btnHelp;
-
-  // Button panel - added here so it is possible to move buttons as a whole, if needed.
-  protected JPanel pnlButtons;
-
-  // Footer message
-  protected String footerMessage;
-
-  /**
-   * This single panel contains a grid of all the components of this dialog (see GridBagPanel).
-   * First three columns of the grid are title (JLabel), parameter component (JFormattedTextField or
-   * other) and units (JLabel), one row for each parameter. Row number 100 contains all the buttons
-   * of the dialog. Derived classes may add their own components such as previews to the unused
-   * cells of the grid.
-   */
-  protected GridBagPanel mainPanel;
-
-  /**
-   * Constructor
-   */
-  public ParameterSetupDialog(Window parent, boolean valueCheckRequired, ParameterSet parameters) {
-
-    this(parent, valueCheckRequired, parameters, null);
-
-  }
-
-  /**
-   * Method to display setup dialog with a html-formatted footer message at the bottom.
-   * 
-   * @param message: html-formatted text
-   */
-  public ParameterSetupDialog(Window parent, boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
-
-    // 2015/12/15 Setting the parent to null, so the dialog always appears
-    // in front (Tomas)
-    super(null, "Please set the parameters", Dialog.ModalityType.DOCUMENT_MODAL);
-
-    this.valueCheckRequired = valueCheckRequired;
-    this.parameterSet = parameters;
-    this.helpURL = parameters.getClass().getResource("help/help.html");
-
-    parametersAndComponents = new Hashtable<String, JComponent>();
-
-    footerMessage = message;
-
-    addDialogComponents();
-
-    updateMinimumSize();
-    pack();
-
-    setLocationRelativeTo(parent);
-
-  }
-
-  /**
-   * This method must be called each time when a component is added to mainPanel. It will ensure the
-   * minimal size of the dialog is set to the minimum size of the mainPanel plus a little extra, so
-   * user cannot resize the dialog window smaller.
-   */
-  public void updateMinimumSize() {
-    Dimension panelSize = mainPanel.getMinimumSize();
-    Dimension minimumSize = new Dimension(panelSize.width + 50, panelSize.height + 50);
-    setMinimumSize(minimumSize);
-  }
-
-  /**
-   * Constructs all components of the dialog
-   */
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void addDialogComponents() {
-
-    // Main panel which holds all the components in a grid
-    mainPanel = new GridBagPanel();
-
-    int rowCounter = 0;
-    int vertWeightSum = 0;
-
-    // Create labels and components for each parameter
-    for (Parameter p : parameterSet.getParameters()) {
-
-      if (!(p instanceof UserParameter))
-        continue;
-      UserParameter up = (UserParameter) p;
-
-      JComponent comp = up.createEditingComponent();
-      comp.setToolTipText(up.getDescription());
-
-      // Set the initial value
-      Object value = up.getValue();
-      if (value != null)
-        up.setValueToComponent(comp, value);
-
-      // Add listeners so we are notified about any change in the values
-      addListenersToComponent(comp);
-
-      // By calling this we make sure the components will never be resized
-      // smaller than their optimal size
-      comp.setMinimumSize(comp.getPreferredSize());
-
-      comp.setToolTipText(up.getDescription());
-
-      JLabel label = new JLabel(p.getName());
-      mainPanel.add(label, 0, rowCounter);
-      label.setLabelFor(comp);
-
-      parametersAndComponents.put(p.getName(), comp);
-
-      JComboBox t = new JComboBox();
-      int comboh = t.getPreferredSize().height;
-      int comph = comp.getPreferredSize().height;
-
-      // Multiple selection will be expandable, other components not
-      int verticalWeight = comph > 2 * comboh ? 1 : 0;
-      vertWeightSum += verticalWeight;
-
-      mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight, GridBagConstraints.VERTICAL);
-
-      rowCounter++;
-
-    }
-
-    // Add a single empty cell to the 99th row. This cell is expandable
-    // (weightY is 1), therefore the other components will be
-    // aligned to the top, which is what we want
-    // JComponent emptySpace = (JComponent) Box.createVerticalStrut(1);
-    // mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
-
-    // Create a separate panel for the buttons
-    pnlButtons = new JPanel();
-
-    btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
-    btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-
-    if (helpURL != null) {
-      btnHelp = GUIUtils.addButton(pnlButtons, "Help", null, this);
-    }
-
-    /*
-     * Last row in the table will be occupied by the buttons. We set the row number to 100 and width
-     * to 3, spanning the 3 component columns defined above.
+    /**
+     * Help window for this setup dialog. Initially null, until the user clicks
+     * the Help button.
      */
-    if (vertWeightSum == 0) {
-      mainPanel.add(Box.createGlue(), 0, 99, 3, 1, 1, 1);
+    protected HelpWindow helpWindow = null;
+
+    // Parameters and their representation in the dialog
+    protected ParameterSet parameterSet;
+    protected Map<String, JComponent> parametersAndComponents;
+
+    // If true, the dialog won't allow the OK button to proceed, unless all
+    // parameters pass the value check. This is undesirable in the BatchMode
+    // setup dialog, where some parameters need to be set in advance according
+    // to values that are not yet imported etc.
+    private final boolean valueCheckRequired;
+
+    // Buttons
+    protected JButton btnOK;
+
+    protected JButton btnCancel;
+
+    protected JButton btnHelp;
+
+    // Button panel - added here so it is possible to move buttons as a whole,
+    // if needed.
+    protected JPanel pnlButtons;
+
+    // Footer message
+    protected String footerMessage;
+
+    /**
+     * This single panel contains a grid of all the components of this dialog
+     * (see GridBagPanel). First three columns of the grid are title (JLabel),
+     * parameter component (JFormattedTextField or other) and units (JLabel),
+     * one row for each parameter. Row number 100 contains all the buttons of
+     * the dialog. Derived classes may add their own components such as previews
+     * to the unused cells of the grid.
+     */
+    protected GridBagPanel mainPanel;
+
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
+            ParameterSet parameters) {
+
+        this(parent, valueCheckRequired, parameters, null);
+
     }
 
-    if (footerMessage == null) {
-      mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
-    } else {
-      // Footer
-      JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);
-      editorPane.addHyperlinkListener(new HyperlinkListener() {
-        @Override
-        public void hyperlinkUpdate(HyperlinkEvent e) {
-          if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
-            try {
-              Desktop.getDesktop().browse(e.getURL().toURI());
-            } catch (Exception ex) {
-              ex.printStackTrace();
-            }
-          }
+    /**
+     * Method to display setup dialog with a html-formatted footer message at
+     * the bottom.
+     * 
+     * @param message:
+     *            html-formatted text
+     */
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
+            ParameterSet parameters, String message) {
+
+        // 2015/12/15 Setting the parent to null, so the dialog always appears
+        // in front (Tomas)
+        super(null, "Please set the parameters",
+                Dialog.ModalityType.DOCUMENT_MODAL);
+
+        this.valueCheckRequired = valueCheckRequired;
+        this.parameterSet = parameters;
+        this.helpURL = parameters.getClass().getResource("help/help.html");
+
+        parametersAndComponents = new Hashtable<String, JComponent>();
+
+        footerMessage = message;
+
+        addDialogComponents();
+
+        updateMinimumSize();
+        pack();
+
+        setLocationRelativeTo(parent);
+
+    }
+
+    /**
+     * This method must be called each time when a component is added to
+     * mainPanel. It will ensure the minimal size of the dialog is set to the
+     * minimum size of the mainPanel plus a little extra, so user cannot resize
+     * the dialog window smaller.
+     */
+    public void updateMinimumSize() {
+        Dimension panelSize = mainPanel.getMinimumSize();
+        Dimension minimumSize = new Dimension(panelSize.width + 50,
+                panelSize.height + 50);
+        setMinimumSize(minimumSize);
+    }
+
+    /**
+     * Constructs all components of the dialog
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected void addDialogComponents() {
+
+        // Main panel which holds all the components in a grid
+        mainPanel = new GridBagPanel();
+
+        int rowCounter = 0;
+        int vertWeightSum = 0;
+
+        // Create labels and components for each parameter
+        for (Parameter p : parameterSet.getParameters()) {
+
+            if (!(p instanceof UserParameter))
+                continue;
+            UserParameter up = (UserParameter) p;
+
+            JComponent comp = up.createEditingComponent();
+            comp.setToolTipText(up.getDescription());
+
+            // Set the initial value
+            Object value = up.getValue();
+            if (value != null)
+                up.setValueToComponent(comp, value);
+
+            // Add listeners so we are notified about any change in the values
+            addListenersToComponent(comp);
+
+            // By calling this we make sure the components will never be resized
+            // smaller than their optimal size
+            comp.setMinimumSize(comp.getPreferredSize());
+
+            comp.setToolTipText(up.getDescription());
+
+            JLabel label = new JLabel(p.getName());
+            mainPanel.add(label, 0, rowCounter);
+            label.setLabelFor(comp);
+
+            parametersAndComponents.put(p.getName(), comp);
+
+            JComboBox t = new JComboBox();
+            int comboh = t.getPreferredSize().height;
+            int comph = comp.getPreferredSize().height;
+
+            // Multiple selection will be expandable, other components not
+            int verticalWeight = comph > 2 * comboh ? 1 : 0;
+            vertWeightSum += verticalWeight;
+
+            mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight,
+                    GridBagConstraints.VERTICAL);
+
+            rowCounter++;
+
         }
-      });
-      // This line is important on Windows, where resizing the dialog has unexpected consequences on
-      // some components
-      editorPane.setMinimumSize(editorPane.getPreferredSize());
-      mainPanel.add(editorPane, 0, 98, 3, 1);
 
-      mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
-    }
+        // Add a single empty cell to the 99th row. This cell is expandable
+        // (weightY is 1), therefore the other components will be
+        // aligned to the top, which is what we want
+        // JComponent emptySpace = (JComponent) Box.createVerticalStrut(1);
+        // mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
 
-    // Add some space around the widgets
-    GUIUtils.addMargin(mainPanel, 10);
+        // Create a separate panel for the buttons
+        pnlButtons = new JPanel();
 
-    // Add the main panel as the only component of this dialog
-    add(mainPanel);
+        btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
+        btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
 
-    pack();
-  }
+        if (helpURL != null) {
+            btnHelp = GUIUtils.addButton(pnlButtons, "Help", null, this);
+        }
 
-  /**
-   * Implementation for ActionListener interface
-   */
-  @Override
-  public void actionPerformed(ActionEvent ae) {
+        /*
+         * Last row in the table will be occupied by the buttons. We set the row
+         * number to 100 and width to 3, spanning the 3 component columns
+         * defined above.
+         */
+        if (vertWeightSum == 0) {
+            mainPanel.add(Box.createGlue(), 0, 99, 3, 1, 1, 1);
+        }
 
-    Object src = ae.getSource();
-
-    if (src == btnOK) {
-      closeDialog(ExitCode.OK);
-    }
-
-    if (src == btnCancel) {
-      closeDialog(ExitCode.CANCEL);
-    }
-
-    if (src == btnHelp) {
-      Platform.runLater(() -> {
-        if (helpWindow != null) {
-          helpWindow.show();
-          helpWindow.toFront();
+        if (footerMessage == null) {
+            mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
         } else {
-          helpWindow = new HelpWindow(helpURL.toString());
-          helpWindow.show();
+            // Footer
+            JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);
+            editorPane.addHyperlinkListener(new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent e) {
+                    if (HyperlinkEvent.EventType.ACTIVATED
+                            .equals(e.getEventType())) {
+                        try {
+                            Desktop.getDesktop().browse(e.getURL().toURI());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
+            // This line is important on Windows, where resizing the dialog has
+            // unexpected consequences on
+            // some components
+            editorPane.setMinimumSize(editorPane.getPreferredSize());
+            mainPanel.add(editorPane, 0, 98, 3, 1);
+
+            mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
         }
-      });
+
+        // Add some space around the widgets
+        GUIUtils.addMargin(mainPanel, 10);
+
+        // Add the main panel as the only component of this dialog
+        add(mainPanel);
+
+        pack();
     }
 
-    if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
-      parametersChanged();
-    }
+    /**
+     * Implementation for ActionListener interface
+     */
+    @Override
+    public void actionPerformed(ActionEvent ae) {
 
-  }
+        Object src = ae.getSource();
 
-  /**
-   * Method for reading exit code
-   */
-  public ExitCode getExitCode() {
-    return exitCode;
-  }
-
-  public JComponent getComponentForParameter(Parameter<?> p) {
-    return parametersAndComponents.get(p.getName());
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void updateParameterSetFromComponents() {
-    for (Parameter<?> p : parameterSet.getParameters()) {
-      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter))
-        continue;
-      UserParameter up;
-      if (p instanceof UserParameter)
-        up = (UserParameter) p;
-      else
-        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
-
-      JComponent component = parametersAndComponents.get(p.getName());
-
-      // if a parameter is a HiddenParameter it does not necessarily have component
-      if (component != null)
-        up.setValueFromComponent(component);
-    }
-  }
-
-  protected int getNumberOfParameters() {
-    return parameterSet.getParameters().length;
-  }
-
-  /**
-   * This method may be called by some of the dialog components, for example as a result of
-   * double-click by user
-   */
-  public void closeDialog(ExitCode exitCode) {
-    if (exitCode == ExitCode.OK) {
-      // commit the changes to the parameter set
-      updateParameterSetFromComponents();
-
-      if (valueCheckRequired) {
-        ArrayList<String> messages = new ArrayList<String>();
-        boolean allParametersOK = parameterSet.checkParameterValues(messages);
-
-        if (!allParametersOK) {
-          StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-          for (String m : messages) {
-            message.append(m);
-            message.append("\n");
-          }
-          MZmineCore.getDesktop().displayMessage(this, message.toString());
-          return;
+        if (src == btnOK) {
+            closeDialog(ExitCode.OK);
         }
-      }
+
+        if (src == btnCancel) {
+            closeDialog(ExitCode.CANCEL);
+        }
+
+        if (src == btnHelp) {
+            Platform.runLater(() -> {
+                if (helpWindow != null) {
+                    helpWindow.show();
+                    helpWindow.toFront();
+                } else {
+                    helpWindow = new HelpWindow(helpURL.toString());
+                    helpWindow.show();
+                }
+            });
+        }
+
+        if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
+            parametersChanged();
+        }
+
     }
-    this.exitCode = exitCode;
-    dispose();
 
-  }
-
-  /**
-   * This method does nothing, but it is called whenever user changes the parameters. It can be
-   * overridden in extending classes to update the preview components, for example.
-   */
-  protected void parametersChanged() {
-
-  }
-
-  protected void addListenersToComponent(JComponent comp) {
-    if (comp instanceof JTextComponent) {
-      JTextComponent textComp = (JTextComponent) comp;
-      textComp.getDocument().addDocumentListener(this);
+    /**
+     * Method for reading exit code
+     */
+    public ExitCode getExitCode() {
+        return exitCode;
     }
-    if (comp instanceof JComboBox) {
-      JComboBox<?> comboComp = (JComboBox<?>) comp;
-      comboComp.addActionListener(this);
+
+    public JComponent getComponentForParameter(Parameter<?> p) {
+        return parametersAndComponents.get(p.getName());
     }
-    if (comp instanceof JCheckBox) {
-      JCheckBox checkComp = (JCheckBox) comp;
-      checkComp.addActionListener(this);
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected void updateParameterSetFromComponents() {
+        for (Parameter<?> p : parameterSet.getParameters()) {
+            if (!(p instanceof UserParameter)
+                    && !(p instanceof HiddenParameter))
+                continue;
+            UserParameter up;
+            if (p instanceof UserParameter)
+                up = (UserParameter) p;
+            else
+                up = (UserParameter) ((HiddenParameter) p)
+                        .getEmbeddedParameter();
+
+            JComponent component = parametersAndComponents.get(p.getName());
+
+            // if a parameter is a HiddenParameter it does not necessarily have
+            // component
+            if (component != null)
+                up.setValueFromComponent(component);
+        }
     }
-    if (comp instanceof JPanel) {
-      JPanel panelComp = (JPanel) comp;
-      for (int i = 0; i < panelComp.getComponentCount(); i++) {
-        Component child = panelComp.getComponent(i);
-        if (!(child instanceof JComponent))
-          continue;
-        addListenersToComponent((JComponent) child);
-      }
+
+    protected int getNumberOfParameters() {
+        return parameterSet.getParameters().length;
     }
-  }
 
-  @Override
-  public void changedUpdate(DocumentEvent event) {
-    parametersChanged();
-  }
+    /**
+     * This method may be called by some of the dialog components, for example
+     * as a result of double-click by user
+     */
+    public void closeDialog(ExitCode exitCode) {
+        if (exitCode == ExitCode.OK) {
+            // commit the changes to the parameter set
+            updateParameterSetFromComponents();
 
-  @Override
-  public void insertUpdate(DocumentEvent event) {
-    parametersChanged();
-  }
+            if (valueCheckRequired) {
+                ArrayList<String> messages = new ArrayList<String>();
+                boolean allParametersOK = parameterSet
+                        .checkParameterValues(messages);
 
-  @Override
-  public void removeUpdate(DocumentEvent event) {
-    parametersChanged();
-  }
+                if (!allParametersOK) {
+                    StringBuilder message = new StringBuilder(
+                            "Please check the parameter settings:\n\n");
+                    for (String m : messages) {
+                        message.append(m);
+                        message.append("\n");
+                    }
+                    MZmineCore.getDesktop().displayMessage(this,
+                            message.toString());
+                    return;
+                }
+            }
+        }
+        this.exitCode = exitCode;
+        dispose();
 
-  public boolean isValueCheckRequired() {
-    return valueCheckRequired;
-  }
+    }
+
+    /**
+     * This method does nothing, but it is called whenever user changes the
+     * parameters. It can be overridden in extending classes to update the
+     * preview components, for example.
+     */
+    protected void parametersChanged() {
+
+    }
+
+    protected void addListenersToComponent(JComponent comp) {
+        if (comp instanceof JTextComponent) {
+            JTextComponent textComp = (JTextComponent) comp;
+            textComp.getDocument().addDocumentListener(this);
+        }
+        if (comp instanceof JComboBox) {
+            JComboBox<?> comboComp = (JComboBox<?>) comp;
+            comboComp.addActionListener(this);
+        }
+        if (comp instanceof JCheckBox) {
+            JCheckBox checkComp = (JCheckBox) comp;
+            checkComp.addActionListener(this);
+        }
+        if (comp instanceof JPanel) {
+            JPanel panelComp = (JPanel) comp;
+            for (int i = 0; i < panelComp.getComponentCount(); i++) {
+                Component child = panelComp.getComponent(i);
+                if (!(child instanceof JComponent))
+                    continue;
+                addListenersToComponent((JComponent) child);
+            }
+        }
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent event) {
+        parametersChanged();
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent event) {
+        parametersChanged();
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent event) {
+        parametersChanged();
+    }
+
+    public boolean isValueCheckRequired() {
+        return valueCheckRequired;
+    }
 
 }

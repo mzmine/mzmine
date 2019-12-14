@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,32 +19,32 @@
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
 class Probe implements Comparable<Probe> {
-  double mz;
-  int scan;
-  double mzCenter;
-  int scanCenter;
-  double intensityCenter = -1;
+    double mz;
+    int scan;
+    double mzCenter;
+    int scanCenter;
+    double intensityCenter = -1;
 
-  Probe(double mz, int scan) {
-    this.mz = this.mzCenter = mz;
-    this.scan = this.scanCenter = scan;
-  }
+    Probe(double mz, int scan) {
+        this.mz = this.mzCenter = mz;
+        this.scan = this.scanCenter = scan;
+    }
 
-  public int compareTo(Probe other) {
-    if (other == null)
-      return -1;
+    public int compareTo(Probe other) {
+        if (other == null)
+            return -1;
 
-    if (mzCenter < other.mzCenter)
-      return -1;
-    if (mzCenter > other.mzCenter)
-      return 1;
+        if (mzCenter < other.mzCenter)
+            return -1;
+        if (mzCenter > other.mzCenter)
+            return 1;
 
-    if (scanCenter < other.scanCenter)
-      return -1;
-    if (scanCenter > other.scanCenter)
-      return 1;
+        if (scanCenter < other.scanCenter)
+            return -1;
+        if (scanCenter > other.scanCenter)
+            return 1;
 
-    return 0;
-  }
+        return 0;
+    }
 
 }

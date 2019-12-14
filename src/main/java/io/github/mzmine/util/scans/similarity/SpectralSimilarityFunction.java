@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,63 +30,69 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 
 /**
- * Abstract class to implement differnt spactal similarity functions to match 2 spectra
+ * Abstract class to implement differnt spactal similarity functions to match 2
+ * spectra
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public abstract class SpectralSimilarityFunction implements MZmineModule {
 
-  /**
-   * The collection of SpectralSImilarityFunctions
-   */
-  public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[] {
-      new WeightedCosineSpectralSimilarity(), new CompositeCosineSpectralSimilarity()};
+    /**
+     * The collection of SpectralSImilarityFunctions
+     */
+    public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[] {
+            new WeightedCosineSpectralSimilarity(),
+            new CompositeCosineSpectralSimilarity() };
 
-  /**
-   * 
-   * @param parameters
-   * @param mzTol
-   * @param minMatch minimum overlap in signals
-   * @param a
-   * @param b
-   * @return A spectra similarity if all requirements were met - otherwise null
-   */
-  @Nullable
-  public abstract SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol,
-      int minMatch, DataPoint[] library, DataPoint[] query);
+    /**
+     * 
+     * @param parameters
+     * @param mzTol
+     * @param minMatch
+     *            minimum overlap in signals
+     * @param a
+     * @param b
+     * @return A spectra similarity if all requirements were met - otherwise
+     *         null
+     */
+    @Nullable
+    public abstract SpectralSimilarity getSimilarity(ParameterSet parameters,
+            MZTolerance mzTol, int minMatch, DataPoint[] library,
+            DataPoint[] query);
 
+    /**
+     * Align two mass lists. Override if alignement is changed in a specific
+     * spectral similarity function.
+     * 
+     * @param mzTol
+     * @param a
+     * @param b
+     * @return
+     */
+    public List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a,
+            DataPoint[] b) {
+        return ScanAlignment.align(mzTol, a, b);
+    }
 
-  /**
-   * Align two mass lists. Override if alignement is changed in a specific spectral similarity
-   * function.
-   * 
-   * @param mzTol
-   * @param a
-   * @param b
-   * @return
-   */
-  public List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
-    return ScanAlignment.align(mzTol, a, b);
-  }
+    /**
+     * Calculate overlap
+     * 
+     * @param aligned
+     * @return
+     */
+    protected int calcOverlap(List<DataPoint[]> aligned) {
+        return (int) aligned.stream()
+                .filter(dp -> dp[0] != null && dp[1] != null).count();
+    }
 
-  /**
-   * Calculate overlap
-   * 
-   * @param aligned
-   * @return
-   */
-  protected int calcOverlap(List<DataPoint[]> aligned) {
-    return (int) aligned.stream().filter(dp -> dp[0] != null && dp[1] != null).count();
-  }
-
-  /**
-   * Remove unaligned signals (not present in all masslists)
-   * 
-   * @param aligned
-   * @return
-   */
-  protected List<DataPoint[]> removeUnaligned(List<DataPoint[]> aligned) {
-    return ScanAlignment.removeUnaligned(aligned);
-  }
+    /**
+     * Remove unaligned signals (not present in all masslists)
+     * 
+     * @param aligned
+     * @return
+     */
+    protected List<DataPoint[]> removeUnaligned(List<DataPoint[]> aligned) {
+        return ScanAlignment.removeUnaligned(aligned);
+    }
 }

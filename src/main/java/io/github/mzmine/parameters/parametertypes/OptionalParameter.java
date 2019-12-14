@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,110 +28,116 @@ import io.github.mzmine.parameters.UserParameter;
  * Parameter represented by check box with an additional sub-parameter
  * 
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>>
-    implements UserParameter<Boolean, OptionalParameterComponent<?>> {
+        implements UserParameter<Boolean, OptionalParameterComponent<?>> {
 
-  private EmbeddedParameterType embeddedParameter;
+    private EmbeddedParameterType embeddedParameter;
 
-  // It is important to set default value here, otherwise the embedded value
-  // is not shown in the parameter setup dialog
-  private Boolean value = false;
+    // It is important to set default value here, otherwise the embedded value
+    // is not shown in the parameter setup dialog
+    private Boolean value = false;
 
-  public OptionalParameter(EmbeddedParameterType embeddedParameter) {
-    this.embeddedParameter = embeddedParameter;
-  }
-
-  public OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue) {
-    this.embeddedParameter = embeddedParameter;
-    value = defaultValue;
-  }
-
-  public EmbeddedParameterType getEmbeddedParameter() {
-    return embeddedParameter;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return embeddedParameter.getName();
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return embeddedParameter.getDescription();
-  }
-
-  @Override
-  public OptionalParameterComponent<?> createEditingComponent() {
-    return new OptionalParameterComponent(embeddedParameter);
-  }
-
-  @Override
-  public Boolean getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(Boolean value) {
-    this.value = value;
-  }
-
-  @Override
-  public OptionalParameter cloneParameter() {
-    final UserParameter<?, ?> embeddedParameterClone = embeddedParameter.cloneParameter();
-    final OptionalParameter copy = new OptionalParameter(embeddedParameterClone);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(OptionalParameterComponent component) {
-    this.value = component.isSelected();
-    if (value) {
-      JComponent embeddedComponent = component.getEmbeddedComponent();
-      ((UserParameter) this.embeddedParameter).setValueFromComponent(embeddedComponent);
+    public OptionalParameter(EmbeddedParameterType embeddedParameter) {
+        this.embeddedParameter = embeddedParameter;
     }
-  }
 
-  @Override
-  public void setValueToComponent(OptionalParameterComponent<?> component, Boolean newValue) {
-    component.setSelected(newValue);
-    if (embeddedParameter.getValue() != null) {
-      ((UserParameter) this.embeddedParameter).setValueToComponent(component.getEmbeddedComponent(),
-          embeddedParameter.getValue());
+    public OptionalParameter(EmbeddedParameterType embeddedParameter,
+            boolean defaultValue) {
+        this.embeddedParameter = embeddedParameter;
+        value = defaultValue;
     }
-  }
 
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    embeddedParameter.loadValueFromXML(xmlElement);
-    String selectedAttr = xmlElement.getAttribute("selected");
-    this.value = Boolean.valueOf(selectedAttr);
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value != null)
-      xmlElement.setAttribute("selected", value.toString());
-    embeddedParameter.saveValueToXML(xmlElement);
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(getName() + " is not set properly");
-      return false;
+    public EmbeddedParameterType getEmbeddedParameter() {
+        return embeddedParameter;
     }
-    if (value == true) {
-      return embeddedParameter.checkValue(errorMessages);
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return embeddedParameter.getName();
     }
-    return true;
-  }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return embeddedParameter.getDescription();
+    }
+
+    @Override
+    public OptionalParameterComponent<?> createEditingComponent() {
+        return new OptionalParameterComponent(embeddedParameter);
+    }
+
+    @Override
+    public Boolean getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(Boolean value) {
+        this.value = value;
+    }
+
+    @Override
+    public OptionalParameter cloneParameter() {
+        final UserParameter<?, ?> embeddedParameterClone = embeddedParameter
+                .cloneParameter();
+        final OptionalParameter copy = new OptionalParameter(
+                embeddedParameterClone);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(OptionalParameterComponent component) {
+        this.value = component.isSelected();
+        if (value) {
+            JComponent embeddedComponent = component.getEmbeddedComponent();
+            ((UserParameter) this.embeddedParameter)
+                    .setValueFromComponent(embeddedComponent);
+        }
+    }
+
+    @Override
+    public void setValueToComponent(OptionalParameterComponent<?> component,
+            Boolean newValue) {
+        component.setSelected(newValue);
+        if (embeddedParameter.getValue() != null) {
+            ((UserParameter) this.embeddedParameter).setValueToComponent(
+                    component.getEmbeddedComponent(),
+                    embeddedParameter.getValue());
+        }
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        embeddedParameter.loadValueFromXML(xmlElement);
+        String selectedAttr = xmlElement.getAttribute("selected");
+        this.value = Boolean.valueOf(selectedAttr);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value != null)
+            xmlElement.setAttribute("selected", value.toString());
+        embeddedParameter.saveValueToXML(xmlElement);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add(getName() + " is not set properly");
+            return false;
+        }
+        if (value == true) {
+            return embeddedParameter.checkValue(errorMessages);
+        }
+        return true;
+    }
 
 }

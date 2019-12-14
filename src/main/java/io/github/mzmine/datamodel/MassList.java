@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,18 +21,18 @@ package io.github.mzmine.datamodel;
 import javax.annotation.Nonnull;
 
 /**
- * This class represent detected masses (ions) in one mass spectrum. Each ion is represented by a
- * DataPoint
+ * This class represent detected masses (ions) in one mass spectrum. Each ion is
+ * represented by a DataPoint
  */
 public interface MassList {
 
-  @Nonnull
-  public String getName();
+    @Nonnull
+    public String getName();
 
-  @Nonnull
-  public Scan getScan();
+    @Nonnull
+    public Scan getScan();
 
-  @Nonnull
-  public DataPoint[] getDataPoints();
+    @Nonnull
+    public DataPoint[] getDataPoints();
 
 }

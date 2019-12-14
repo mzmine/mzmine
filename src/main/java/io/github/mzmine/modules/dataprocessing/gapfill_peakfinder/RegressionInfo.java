@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -29,42 +29,43 @@ import io.github.mzmine.modules.dataprocessing.align_ransac.RTs;
 
 public class RegressionInfo {
 
-  private List<RTs> data;
-  private PolynomialFunction function;
+    private List<RTs> data;
+    private PolynomialFunction function;
 
-  public RegressionInfo() {
-    this.data = new ArrayList<RTs>();
+    public RegressionInfo() {
+        this.data = new ArrayList<RTs>();
 
-  }
-
-  public void setFunction() {
-    function = getPolynomialFunction();
-  }
-
-  public double predict(double RT) {
-    try {
-      return function.value(RT);
-    } catch (Exception ex) {
-      return -1;
     }
-  }
 
-  public void addData(double RT, double RT2) {
-    this.data.add(new RTs(RT, RT2));
-  }
-
-  private PolynomialFunction getPolynomialFunction() {
-    Collections.sort(data, new RTs());
-    PolynomialFitter fitter = new PolynomialFitter(3, new GaussNewtonOptimizer(true));
-    for (RTs rt : data) {
-      fitter.addObservedPoint(1, rt.RT, rt.RT2);
+    public void setFunction() {
+        function = getPolynomialFunction();
     }
-    try {
-      return fitter.fit();
 
-    } catch (Exception ex) {
-      return null;
+    public double predict(double RT) {
+        try {
+            return function.value(RT);
+        } catch (Exception ex) {
+            return -1;
+        }
     }
-  }
+
+    public void addData(double RT, double RT2) {
+        this.data.add(new RTs(RT, RT2));
+    }
+
+    private PolynomialFunction getPolynomialFunction() {
+        Collections.sort(data, new RTs());
+        PolynomialFitter fitter = new PolynomialFitter(3,
+                new GaussNewtonOptimizer(true));
+        for (RTs rt : data) {
+            fitter.addObservedPoint(1, rt.RT, rt.RT2);
+        }
+        try {
+            return fitter.fit();
+
+        } catch (Exception ex) {
+            return null;
+        }
+    }
 
 }

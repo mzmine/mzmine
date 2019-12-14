@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,45 +32,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class CustomDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Custom database search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches a custom database (CSV file) using m/z and retention time values.";
+    public static final String MODULE_NAME = "Custom database search";
+    private static final String MODULE_DESCRIPTION = "This method searches a custom database (CSV file) using m/z and retention time values.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    PeakList peakLists[] = parameters.getParameter(CustomDBSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new CustomDBSearchTask(peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
+        PeakList peakLists[] = parameters
+                .getParameter(CustomDBSearchParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return CustomDBSearchParameters.class;
-  }
+        for (PeakList peakList : peakLists) {
+            Task newTask = new CustomDBSearchTask(peakList, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return CustomDBSearchParameters.class;
+    }
 
 }

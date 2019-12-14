@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,130 +43,141 @@ import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
  */
 public class VanKrevelenDiagramWindow extends JFrame implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
-  private VanKrevelenDiagramToolBar toolBar;
-  private JFreeChart chart;
+    private static final long serialVersionUID = 1L;
+    private VanKrevelenDiagramToolBar toolBar;
+    private JFreeChart chart;
 
-  public VanKrevelenDiagramWindow(JFreeChart chart, EChartPanel chartPanel, PeakListRow[] rows) {
+    public VanKrevelenDiagramWindow(JFreeChart chart, EChartPanel chartPanel,
+            PeakListRow[] rows) {
 
-    this.chart = chart;
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+        this.chart = chart;
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-    // Add toolbar
-    toolBar = new VanKrevelenDiagramToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+        // Add toolbar
+        toolBar = new VanKrevelenDiagramToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
-    // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+        // Add the Windows menu
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new WindowsMenu());
+        setJMenuBar(menuBar);
 
-    // mouse listener
-    chartPanel.addChartMouseListener(new ChartMouseListener() {
+        // mouse listener
+        chartPanel.addChartMouseListener(new ChartMouseListener() {
 
-      @Override
-      public void chartMouseClicked(ChartMouseEvent event) {
-        XYPlot plot = (XYPlot) chart.getPlot();
-        double xValue = plot.getDomainCrosshairValue();
-        double yValue = plot.getRangeCrosshairValue();
+            @Override
+            public void chartMouseClicked(ChartMouseEvent event) {
+                XYPlot plot = (XYPlot) chart.getPlot();
+                double xValue = plot.getDomainCrosshairValue();
+                double yValue = plot.getRangeCrosshairValue();
 
-        if (plot.getDataset() instanceof VanKrevelenDiagramXYZDataset) {
-          VanKrevelenDiagramXYZDataset dataset = (VanKrevelenDiagramXYZDataset) plot.getDataset();
-          double[] xValues = new double[dataset.getItemCount(0)];
-          for (int i = 0; i < xValues.length; i++) {
-            if ((event.getTrigger().getButton() == MouseEvent.BUTTON1)
-                && (event.getTrigger().getClickCount() == 2)) {
-              if (dataset.getX(0, i).doubleValue() == xValue
-                  && dataset.getY(0, i).doubleValue() == yValue) {
-                new FeatureOverviewWindow(rows[i]);
-              }
+                if (plot.getDataset() instanceof VanKrevelenDiagramXYZDataset) {
+                    VanKrevelenDiagramXYZDataset dataset = (VanKrevelenDiagramXYZDataset) plot
+                            .getDataset();
+                    double[] xValues = new double[dataset.getItemCount(0)];
+                    for (int i = 0; i < xValues.length; i++) {
+                        if ((event.getTrigger()
+                                .getButton() == MouseEvent.BUTTON1)
+                                && (event.getTrigger().getClickCount() == 2)) {
+                            if (dataset.getX(0, i).doubleValue() == xValue
+                                    && dataset.getY(0, i)
+                                            .doubleValue() == yValue) {
+                                new FeatureOverviewWindow(rows[i]);
+                            }
+                        }
+                    }
+                }
+                if (plot.getDataset() instanceof VanKrevelenDiagramXYDataset) {
+                    VanKrevelenDiagramXYDataset dataset = (VanKrevelenDiagramXYDataset) plot
+                            .getDataset();
+                    double[] xValues = new double[dataset.getItemCount(0)];
+                    for (int i = 0; i < xValues.length; i++) {
+                        if ((event.getTrigger()
+                                .getButton() == MouseEvent.BUTTON1)
+                                && (event.getTrigger().getClickCount() == 2)) {
+                            if (dataset.getX(0, i).doubleValue() == xValue
+                                    && dataset.getY(0, i)
+                                            .doubleValue() == yValue) {
+                                new FeatureOverviewWindow(rows[i]);
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
-        if (plot.getDataset() instanceof VanKrevelenDiagramXYDataset) {
-          VanKrevelenDiagramXYDataset dataset = (VanKrevelenDiagramXYDataset) plot.getDataset();
-          double[] xValues = new double[dataset.getItemCount(0)];
-          for (int i = 0; i < xValues.length; i++) {
-            if ((event.getTrigger().getButton() == MouseEvent.BUTTON1)
-                && (event.getTrigger().getClickCount() == 2)) {
-              if (dataset.getX(0, i).doubleValue() == xValue
-                  && dataset.getY(0, i).doubleValue() == yValue) {
-                new FeatureOverviewWindow(rows[i]);
-              }
+
+            @Override
+            public void chartMouseMoved(ChartMouseEvent event) {
             }
-          }
+        });
+        pack();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+
+        String command = event.getActionCommand();
+
+        if (command.equals("TOGGLE_BLOCK_SIZE")) {
+
+            XYPlot plot = chart.getXYPlot();
+            XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot
+                    .getRenderer();
+            int height = (int) renderer.getBlockHeightPixel();
+
+            if (height == 1) {
+                height++;
+            } else if (height == 5) {
+                height = 1;
+            } else if (height < 5 && height != 1) {
+                height++;
+            }
+            renderer.setBlockHeightPixel(height);
+            renderer.setBlockWidthPixel(height);
+
         }
-      }
 
-      @Override
-      public void chartMouseMoved(ChartMouseEvent event) {}
-    });
-    pack();
-  }
+        if (command.equals("TOGGLE_BACK_COLOR")) {
 
-  @Override
-  public void actionPerformed(ActionEvent event) {
+            XYPlot plot = chart.getXYPlot();
+            XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot
+                    .getRenderer();
+            if (plot.getBackgroundPaint() == Color.WHITE) {
+                plot.setBackgroundPaint(Color.BLACK);
+                renderer.setDefaultItemLabelPaint(Color.WHITE);
+            } else {
+                plot.setBackgroundPaint(Color.WHITE);
+                renderer.setDefaultItemLabelPaint(Color.BLACK);
+            }
 
-    String command = event.getActionCommand();
+        }
 
-    if (command.equals("TOGGLE_BLOCK_SIZE")) {
+        if (command.equals("TOGGLE_GRID")) {
 
-      XYPlot plot = chart.getXYPlot();
-      XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-      int height = (int) renderer.getBlockHeightPixel();
+            XYPlot plot = chart.getXYPlot();
+            if (plot.getDomainGridlinePaint() == Color.BLACK) {
+                plot.setDomainGridlinePaint(Color.WHITE);
+                plot.setRangeGridlinePaint(Color.WHITE);
+            } else {
+                plot.setDomainGridlinePaint(Color.BLACK);
+                plot.setRangeGridlinePaint(Color.BLACK);
+            }
 
-      if (height == 1) {
-        height++;
-      } else if (height == 5) {
-        height = 1;
-      } else if (height < 5 && height != 1) {
-        height++;
-      }
-      renderer.setBlockHeightPixel(height);
-      renderer.setBlockWidthPixel(height);
+        }
 
-    }
+        if (command.equals("TOGGLE_ANNOTATIONS")) {
 
-    if (command.equals("TOGGLE_BACK_COLOR")) {
-
-      XYPlot plot = chart.getXYPlot();
-      XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-      if (plot.getBackgroundPaint() == Color.WHITE) {
-        plot.setBackgroundPaint(Color.BLACK);
-        renderer.setDefaultItemLabelPaint(Color.WHITE);
-      } else {
-        plot.setBackgroundPaint(Color.WHITE);
-        renderer.setDefaultItemLabelPaint(Color.BLACK);
-      }
-
-    }
-
-    if (command.equals("TOGGLE_GRID")) {
-
-      XYPlot plot = chart.getXYPlot();
-      if (plot.getDomainGridlinePaint() == Color.BLACK) {
-        plot.setDomainGridlinePaint(Color.WHITE);
-        plot.setRangeGridlinePaint(Color.WHITE);
-      } else {
-        plot.setDomainGridlinePaint(Color.BLACK);
-        plot.setRangeGridlinePaint(Color.BLACK);
-      }
+            XYPlot plot = chart.getXYPlot();
+            XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot
+                    .getRenderer();
+            Boolean itemNameVisible = renderer.getDefaultItemLabelsVisible();
+            if (itemNameVisible == false) {
+                renderer.setDefaultItemLabelsVisible(true);
+            } else {
+                renderer.setDefaultItemLabelsVisible(false);
+            }
+        }
 
     }
-
-    if (command.equals("TOGGLE_ANNOTATIONS")) {
-
-      XYPlot plot = chart.getXYPlot();
-      XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-      Boolean itemNameVisible = renderer.getDefaultItemLabelsVisible();
-      if (itemNameVisible == false) {
-        renderer.setDefaultItemLabelsVisible(true);
-      } else {
-        renderer.setDefaultItemLabelsVisible(false);
-      }
-    }
-
-  }
 
 }

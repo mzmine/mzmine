@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,102 +37,103 @@ import io.github.mzmine.util.ExitCode;
 
 public class HeadLessDesktop implements Desktop {
 
-  private static final String MODULE_NAME = "Desktop";
+    private static final String MODULE_NAME = "Desktop";
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  @Override
-  public JFrame getMainWindow() {
-    return null;
-  }
+    @Override
+    public JFrame getMainWindow() {
+        return null;
+    }
 
-  @Override
-  public void setStatusBarText(String text) {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    public void setStatusBarText(String text) {
+        throw new UnsupportedOperationException();
+    }
 
-  @Override
-  public void setStatusBarText(String text, Color textColor) {}
+    @Override
+    public void setStatusBarText(String text, Color textColor) {
+    }
 
-  @Override
-  public void displayMessage(Window window, String msg) {
-    logger.info(msg);
-  }
+    @Override
+    public void displayMessage(Window window, String msg) {
+        logger.info(msg);
+    }
 
-  @Override
-  public void displayMessage(Window window, String title, String msg) {
-    logger.info(msg);
-  }
+    @Override
+    public void displayMessage(Window window, String title, String msg) {
+        logger.info(msg);
+    }
 
-  @Override
-  public void displayErrorMessage(Window window, String msg) {
-    logger.severe(msg);
-  }
+    @Override
+    public void displayErrorMessage(Window window, String msg) {
+        logger.severe(msg);
+    }
 
-  @Override
-  public void displayErrorMessage(Window window, String title, String msg) {
-    logger.severe(msg);
-  }
+    @Override
+    public void displayErrorMessage(Window window, String title, String msg) {
+        logger.severe(msg);
+    }
 
-  @Override
-  public void displayException(Window window, Exception e) {
-    e.printStackTrace();
-  }
+    @Override
+    public void displayException(Window window, Exception e) {
+        e.printStackTrace();
+    }
 
-  @Override
-  public RawDataFile[] getSelectedDataFiles() {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    public RawDataFile[] getSelectedDataFiles() {
+        throw new UnsupportedOperationException();
+    }
 
-  @Override
-  public PeakList[] getSelectedPeakLists() {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    public PeakList[] getSelectedPeakLists() {
+        throw new UnsupportedOperationException();
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SimpleParameterSet.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return SimpleParameterSet.class;
+    }
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull ExitCode exitMZmine() {
-    System.exit(0);
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull ExitCode exitMZmine() {
+        System.exit(0);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public void addRawDataTreeListener(TreeModelListener listener) {
-    // TODO Auto-generated method stub
+    @Override
+    public void addRawDataTreeListener(TreeModelListener listener) {
+        // TODO Auto-generated method stub
 
-  }
+    }
 
-  @Override
-  public void addPeakListTreeListener(TreeModelListener listener) {
-    // TODO Auto-generated method stub
+    @Override
+    public void addPeakListTreeListener(TreeModelListener listener) {
+        // TODO Auto-generated method stub
 
-  }
+    }
 
-  @Override
-  public void removeRawDataTreeListener(TreeModelListener listener) {
-    // TODO Auto-generated method stub
+    @Override
+    public void removeRawDataTreeListener(TreeModelListener listener) {
+        // TODO Auto-generated method stub
 
-  }
+    }
 
-  @Override
-  public void removePeakListTreeListener(TreeModelListener listener) {
-    // TODO Auto-generated method stub
+    @Override
+    public void removePeakListTreeListener(TreeModelListener listener) {
+        // TODO Auto-generated method stub
 
-  }
+    }
 
-  @Override
-  @Nullable
-  public Image getMZmineIcon() {
-    return null;
-  }
+    @Override
+    @Nullable
+    public Image getMZmineIcon() {
+        return null;
+    }
 
 }

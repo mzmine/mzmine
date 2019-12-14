@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,13 +23,13 @@ package io.github.mzmine.util.color;
  * 
  */
 public enum Vision {
-  NORMAL_VISION, //
-  DEUTERANOPIA, // green blindness, 6% male population
-  PROTANOPIA, // red blindness, 1% male population
-  TRITANOPIA; // blue blindness, very rare
+    NORMAL_VISION, //
+    DEUTERANOPIA, // green blindness, 6% male population
+    PROTANOPIA, // red blindness, 1% male population
+    TRITANOPIA; // blue blindness, very rare
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
+    @Override
+    public String toString() {
+        return super.toString().replaceAll("_", " ");
+    }
 }

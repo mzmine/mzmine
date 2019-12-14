@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,29 +32,36 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class KendrickMassDefectFilterParameters extends SimpleParameterSet {
 
-  public static final DoubleRangeParameter kendrickMassDefectRange = new DoubleRangeParameter(
-      "Kendrick mass defect", "Permissible range of Kendrick mass defect per row",
-      MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0));
+    public static final DoubleRangeParameter kendrickMassDefectRange = new DoubleRangeParameter(
+            "Kendrick mass defect",
+            "Permissible range of Kendrick mass defect per row",
+            MZmineCore.getConfiguration().getRTFormat(),
+            Range.closed(0.0, 1.0));
 
-  public static final StringParameter kendrickMassBase = new StringParameter("Kendrick mass base",
-      "Enter a sum formula for a Kendrick mass base, e.g. \"CH2\"");
+    public static final StringParameter kendrickMassBase = new StringParameter(
+            "Kendrick mass base",
+            "Enter a sum formula for a Kendrick mass base, e.g. \"CH2\"");
 
-  public static final DoubleParameter shift = new DoubleParameter("Shift",
-      "Enter a shift for shift dependent KMD filtering", new DecimalFormat("0.##"), 0.00);
+    public static final DoubleParameter shift = new DoubleParameter("Shift",
+            "Enter a shift for shift dependent KMD filtering",
+            new DecimalFormat("0.##"), 0.00);
 
-  public static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Enter a charge for charge dependent KMD filtering", 1);
+    public static final IntegerParameter charge = new IntegerParameter("Charge",
+            "Enter a charge for charge dependent KMD filtering", 1);
 
-  public static final IntegerParameter divisor = new IntegerParameter("Divisor",
-      "Enter a divisor for fractional base unit dependent KMD filtering", 1);
+    public static final IntegerParameter divisor = new IntegerParameter(
+            "Divisor",
+            "Enter a divisor for fractional base unit dependent KMD filtering",
+            1);
 
-  public static final BooleanParameter useRemainderOfKendrickMass =
-      new BooleanParameter("Use Remainder of Kendrick mass",
-          "Use Remainder of Kendrick mass (RKM) instead of Kendrick mass defect (KMD)", false);
+    public static final BooleanParameter useRemainderOfKendrickMass = new BooleanParameter(
+            "Use Remainder of Kendrick mass",
+            "Use Remainder of Kendrick mass (RKM) instead of Kendrick mass defect (KMD)",
+            false);
 
-  public KendrickMassDefectFilterParameters() {
-    super(new Parameter[] {kendrickMassDefectRange, kendrickMassBase, shift, charge, divisor,
-        useRemainderOfKendrickMass});
-  }
+    public KendrickMassDefectFilterParameters() {
+        super(new Parameter[] { kendrickMassDefectRange, kendrickMassBase,
+                shift, charge, divisor, useRemainderOfKendrickMass });
+    }
 
 }

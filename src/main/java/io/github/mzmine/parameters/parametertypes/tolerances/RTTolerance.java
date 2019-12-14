@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,40 +22,42 @@ import com.google.common.collect.Range;
 
 public class RTTolerance {
 
-  // Tolerance can be either absolute (in min) or relative (in %).
-  private final boolean isAbsolute;
-  private final double tolerance;
+    // Tolerance can be either absolute (in min) or relative (in %).
+    private final boolean isAbsolute;
+    private final double tolerance;
 
-  public RTTolerance(final boolean absolute, final double rtTolerance) {
+    public RTTolerance(final boolean absolute, final double rtTolerance) {
 
-    isAbsolute = absolute;
-    tolerance = rtTolerance;
-  }
+        isAbsolute = absolute;
+        tolerance = rtTolerance;
+    }
 
-  public boolean isAbsolute() {
+    public boolean isAbsolute() {
 
-    return isAbsolute;
-  }
+        return isAbsolute;
+    }
 
-  public double getTolerance() {
+    public double getTolerance() {
 
-    return tolerance;
-  }
+        return tolerance;
+    }
 
-  public Range<Double> getToleranceRange(final double rtValue) {
+    public Range<Double> getToleranceRange(final double rtValue) {
 
-    final double absoluteTolerance = isAbsolute ? tolerance : rtValue * tolerance;
-    return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
-  }
+        final double absoluteTolerance = isAbsolute ? tolerance
+                : rtValue * tolerance;
+        return Range.closed(rtValue - absoluteTolerance,
+                rtValue + absoluteTolerance);
+    }
 
-  public boolean checkWithinTolerance(final double rt1, final double rt2) {
+    public boolean checkWithinTolerance(final double rt1, final double rt2) {
 
-    return getToleranceRange(rt1).contains(rt2);
-  }
+        return getToleranceRange(rt1).contains(rt2);
+    }
 
-  @Override
-  public String toString() {
+    @Override
+    public String toString() {
 
-    return isAbsolute ? tolerance + " min" : 100.0 * tolerance + " %";
-  }
+        return isAbsolute ? tolerance + " min" : 100.0 * tolerance + " %";
+    }
 }

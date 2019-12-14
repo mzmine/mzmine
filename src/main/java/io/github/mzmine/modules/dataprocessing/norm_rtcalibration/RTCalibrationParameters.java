@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,25 +30,29 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class RTCalibrationParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(2);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+            2);
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
+    public static final StringParameter suffix = new StringParameter(
+            "Name suffix", "Suffix to be added to feature list name",
+            "normalized");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final DoubleParameter minHeight = new DoubleParameter("Minimum standard intensity",
-      "Minimum height of a peak to be selected as normalization standard",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter minHeight = new DoubleParameter(
+            "Minimum standard intensity",
+            "Minimum height of a peak to be selected as normalization standard",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original feature list",
-          "If checked, original feature list will be removed and only normalized version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove original feature list",
+            "If checked, original feature list will be removed and only normalized version remains");
 
-  public RTCalibrationParameters() {
-    super(new Parameter[] {peakLists, suffix, MZTolerance, RTTolerance, minHeight, autoRemove});
-  }
+    public RTCalibrationParameters() {
+        super(new Parameter[] { peakLists, suffix, MZTolerance, RTTolerance,
+                minHeight, autoRemove });
+    }
 
 }

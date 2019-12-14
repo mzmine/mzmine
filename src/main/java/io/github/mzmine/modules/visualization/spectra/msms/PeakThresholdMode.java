@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,21 +20,22 @@ package io.github.mzmine.modules.visualization.spectra.msms;
 
 public enum PeakThresholdMode {
 
-  NONE("None"), ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
-      "Peaks above user-defined intensity"), TOP_PEAKS(
-          "User-defined top peaks"), TOP_PEAKS_AREA("User-defined top peaks in the displayed area");
+    NONE("None"), ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
+            "Peaks above user-defined intensity"), TOP_PEAKS(
+                    "User-defined top peaks"), TOP_PEAKS_AREA(
+                            "User-defined top peaks in the displayed area");
 
-  private final String name;
+    private final String name;
 
-  PeakThresholdMode(String name) {
-    this.name = name;
-  }
+    PeakThresholdMode(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return this.name;
-  }
+    public String getName() {
+        return this.name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 }

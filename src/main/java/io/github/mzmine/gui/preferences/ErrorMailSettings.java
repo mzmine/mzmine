@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,22 +31,23 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ErrorMailSettings extends SimpleParameterSet {
 
-  // we use the same address to send and receive emails
-  public static final StringParameter eMailAddress =
-      new StringParameter("E-mail address", "Enter your e-Mail address", true);
+    // we use the same address to send and receive emails
+    public static final StringParameter eMailAddress = new StringParameter(
+            "E-mail address", "Enter your e-Mail address", true);
 
-  public static final PasswordParameter eMailPassword =
-      new PasswordParameter("E-mail password", "Enter your e-Mail password", true);
+    public static final PasswordParameter eMailPassword = new PasswordParameter(
+            "E-mail password", "Enter your e-Mail password", true);
 
-  public static final StringParameter smtpHost =
-      new StringParameter("Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com", true);
+    public static final StringParameter smtpHost = new StringParameter(
+            "Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com",
+            true);
 
-  public static final IntegerParameter smtpPort =
-      new IntegerParameter("smtp port", "Enter smtp port, for gmail 465",true);
+    public static final IntegerParameter smtpPort = new IntegerParameter(
+            "smtp port", "Enter smtp port, for gmail 465", true);
 
-
-  public ErrorMailSettings() {
-    super(new Parameter[] {eMailAddress, eMailPassword, smtpHost, smtpPort});
-  }
+    public ErrorMailSettings() {
+        super(new Parameter[] { eMailAddress, eMailPassword, smtpHost,
+                smtpPort });
+    }
 
 }

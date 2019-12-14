@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,38 +31,37 @@ import io.github.mzmine.util.ExitCode;
 
 public class RTCalibrationModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Retention time calibration";
-  private static final String MODULE_DESCRIPTION =
-      "The retention time calibration attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as calibration standards.";
+    private static final String MODULE_NAME = "Retention time calibration";
+    private static final String MODULE_DESCRIPTION = "The retention time calibration attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as calibration standards.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    RTCalibrationTask newTask = new RTCalibrationTask(project, parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        RTCalibrationTask newTask = new RTCalibrationTask(project, parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.NORMALIZATION;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.NORMALIZATION;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RTCalibrationParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return RTCalibrationParameters.class;
+    }
 
 }

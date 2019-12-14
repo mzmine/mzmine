@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -51,395 +51,464 @@ import io.github.mzmine.datamodel.impl.SimplePeakList;
 
 public class PeakListSaveHandler {
 
-  public static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    public static DateFormat dateFormat = new SimpleDateFormat(
+            "yyyy/MM/dd HH:mm:ss");
 
-  private Hashtable<RawDataFile, String> dataFilesIDMap;
+    private Hashtable<RawDataFile, String> dataFilesIDMap;
 
-  private int numberOfRows, finishedRows;
-  private boolean canceled = false;
+    private int numberOfRows, finishedRows;
+    private boolean canceled = false;
 
-  private OutputStream finalStream;
+    private OutputStream finalStream;
 
-  public PeakListSaveHandler(OutputStream finalStream,
-      Hashtable<RawDataFile, String> dataFilesIDMap) {
-    this.finalStream = finalStream;
-    this.dataFilesIDMap = dataFilesIDMap;
-  }
-
-  /**
-   * Create an XML document with the feature list information an save it into the project zip file
-   * 
-   * @param peakList
-   * @param peakListSavedName name of the feature list
-   * @throws java.io.IOException
-   */
-  public void savePeakList(PeakList peakList)
-      throws IOException, TransformerConfigurationException, SAXException {
-
-    numberOfRows = peakList.getNumberOfRows();
-    finishedRows = 0;
-
-    StreamResult streamResult = new StreamResult(finalStream);
-    SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-
-    TransformerHandler hd = tf.newTransformerHandler();
-
-    Transformer serializer = hd.getTransformer();
-    serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-    serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-    hd.setResult(streamResult);
-    hd.startDocument();
-    AttributesImpl atts = new AttributesImpl();
-
-    hd.startElement("", "", PeakListElementName.PEAKLIST.getElementName(), atts);
-    atts.clear();
-
-    // <NAME>
-    hd.startElement("", "", PeakListElementName.PEAKLIST_NAME.getElementName(), atts);
-    hd.characters(peakList.getName().toCharArray(), 0, peakList.getName().length());
-    hd.endElement("", "", PeakListElementName.PEAKLIST_NAME.getElementName());
-
-    // <PEAKLIST_DATE>
-    String dateText = "";
-    if (((SimplePeakList) peakList).getDateCreated() == null) {
-      dateText = ((SimplePeakList) peakList).getDateCreated();
-    } else {
-      Date date = new Date();
-      dateText = dateFormat.format(date);
-    }
-    hd.startElement("", "", PeakListElementName.PEAKLIST_DATE.getElementName(), atts);
-    hd.characters(dateText.toCharArray(), 0, dateText.length());
-    hd.endElement("", "", PeakListElementName.PEAKLIST_DATE.getElementName());
-
-    // <QUANTITY>
-    hd.startElement("", "", PeakListElementName.QUANTITY.getElementName(), atts);
-    hd.characters(String.valueOf(numberOfRows).toCharArray(), 0,
-        String.valueOf(numberOfRows).length());
-    hd.endElement("", "", PeakListElementName.QUANTITY.getElementName());
-
-    // <PROCESS>
-    PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
-    for (PeakListAppliedMethod proc : processes) {
-
-      hd.startElement("", "", PeakListElementName.METHOD.getElementName(), atts);
-
-      hd.startElement("", "", PeakListElementName.METHOD_NAME.getElementName(), atts);
-      String methodName = proc.getDescription();
-      hd.characters(methodName.toCharArray(), 0, methodName.length());
-      hd.endElement("", "", PeakListElementName.METHOD_NAME.getElementName());
-
-      hd.startElement("", "", PeakListElementName.METHOD_PARAMETERS.getElementName(), atts);
-      String methodParameters = proc.getParameters();
-      hd.characters(methodParameters.toCharArray(), 0, methodParameters.length());
-      hd.endElement("", "", PeakListElementName.METHOD_PARAMETERS.getElementName());
-
-      hd.endElement("", "", PeakListElementName.METHOD.getElementName());
-
-    }
-    atts.clear();
-
-    // <RAWFILE>
-    RawDataFile[] dataFiles = peakList.getRawDataFiles();
-
-    for (int i = 0; i < dataFiles.length; i++) {
-
-      String ID = dataFilesIDMap.get(dataFiles[i]);
-
-      hd.startElement("", "", PeakListElementName.RAWFILE.getElementName(), atts);
-      char idChars[] = ID.toCharArray();
-      hd.characters(idChars, 0, idChars.length);
-
-      hd.endElement("", "", PeakListElementName.RAWFILE.getElementName());
+    public PeakListSaveHandler(OutputStream finalStream,
+            Hashtable<RawDataFile, String> dataFilesIDMap) {
+        this.finalStream = finalStream;
+        this.dataFilesIDMap = dataFilesIDMap;
     }
 
-    // <ROW>
-    PeakListRow row;
-    for (int i = 0; i < numberOfRows; i++) {
+    /**
+     * Create an XML document with the feature list information an save it into
+     * the project zip file
+     * 
+     * @param peakList
+     * @param peakListSavedName
+     *            name of the feature list
+     * @throws java.io.IOException
+     */
+    public void savePeakList(PeakList peakList) throws IOException,
+            TransformerConfigurationException, SAXException {
 
-      if (canceled)
-        return;
+        numberOfRows = peakList.getNumberOfRows();
+        finishedRows = 0;
 
-      atts.clear();
-      row = peakList.getRow(i);
-      atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA",
-          String.valueOf(row.getID()));
-      if (row.getComment() != null) {
-        atts.addAttribute("", "", PeakListElementName.COMMENT.getElementName(), "CDATA",
-            row.getComment());
-      }
+        StreamResult streamResult = new StreamResult(finalStream);
+        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory
+                .newInstance();
 
-      hd.startElement("", "", PeakListElementName.ROW.getElementName(), atts);
-      fillRowElement(row, hd);
-      hd.endElement("", "", PeakListElementName.ROW.getElementName());
+        TransformerHandler hd = tf.newTransformerHandler();
 
-      finishedRows++;
+        Transformer serializer = hd.getTransformer();
+        serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+        serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+        hd.setResult(streamResult);
+        hd.startDocument();
+        AttributesImpl atts = new AttributesImpl();
+
+        hd.startElement("", "", PeakListElementName.PEAKLIST.getElementName(),
+                atts);
+        atts.clear();
+
+        // <NAME>
+        hd.startElement("", "",
+                PeakListElementName.PEAKLIST_NAME.getElementName(), atts);
+        hd.characters(peakList.getName().toCharArray(), 0,
+                peakList.getName().length());
+        hd.endElement("", "",
+                PeakListElementName.PEAKLIST_NAME.getElementName());
+
+        // <PEAKLIST_DATE>
+        String dateText = "";
+        if (((SimplePeakList) peakList).getDateCreated() == null) {
+            dateText = ((SimplePeakList) peakList).getDateCreated();
+        } else {
+            Date date = new Date();
+            dateText = dateFormat.format(date);
+        }
+        hd.startElement("", "",
+                PeakListElementName.PEAKLIST_DATE.getElementName(), atts);
+        hd.characters(dateText.toCharArray(), 0, dateText.length());
+        hd.endElement("", "",
+                PeakListElementName.PEAKLIST_DATE.getElementName());
+
+        // <QUANTITY>
+        hd.startElement("", "", PeakListElementName.QUANTITY.getElementName(),
+                atts);
+        hd.characters(String.valueOf(numberOfRows).toCharArray(), 0,
+                String.valueOf(numberOfRows).length());
+        hd.endElement("", "", PeakListElementName.QUANTITY.getElementName());
+
+        // <PROCESS>
+        PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
+        for (PeakListAppliedMethod proc : processes) {
+
+            hd.startElement("", "", PeakListElementName.METHOD.getElementName(),
+                    atts);
+
+            hd.startElement("", "",
+                    PeakListElementName.METHOD_NAME.getElementName(), atts);
+            String methodName = proc.getDescription();
+            hd.characters(methodName.toCharArray(), 0, methodName.length());
+            hd.endElement("", "",
+                    PeakListElementName.METHOD_NAME.getElementName());
+
+            hd.startElement("", "",
+                    PeakListElementName.METHOD_PARAMETERS.getElementName(),
+                    atts);
+            String methodParameters = proc.getParameters();
+            hd.characters(methodParameters.toCharArray(), 0,
+                    methodParameters.length());
+            hd.endElement("", "",
+                    PeakListElementName.METHOD_PARAMETERS.getElementName());
+
+            hd.endElement("", "", PeakListElementName.METHOD.getElementName());
+
+        }
+        atts.clear();
+
+        // <RAWFILE>
+        RawDataFile[] dataFiles = peakList.getRawDataFiles();
+
+        for (int i = 0; i < dataFiles.length; i++) {
+
+            String ID = dataFilesIDMap.get(dataFiles[i]);
+
+            hd.startElement("", "",
+                    PeakListElementName.RAWFILE.getElementName(), atts);
+            char idChars[] = ID.toCharArray();
+            hd.characters(idChars, 0, idChars.length);
+
+            hd.endElement("", "", PeakListElementName.RAWFILE.getElementName());
+        }
+
+        // <ROW>
+        PeakListRow row;
+        for (int i = 0; i < numberOfRows; i++) {
+
+            if (canceled)
+                return;
+
+            atts.clear();
+            row = peakList.getRow(i);
+            atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
+                    "CDATA", String.valueOf(row.getID()));
+            if (row.getComment() != null) {
+                atts.addAttribute("", "",
+                        PeakListElementName.COMMENT.getElementName(), "CDATA",
+                        row.getComment());
+            }
+
+            hd.startElement("", "", PeakListElementName.ROW.getElementName(),
+                    atts);
+            fillRowElement(row, hd);
+            hd.endElement("", "", PeakListElementName.ROW.getElementName());
+
+            finishedRows++;
+        }
+
+        hd.endElement("", "", PeakListElementName.PEAKLIST.getElementName());
+        hd.endDocument();
     }
 
-    hd.endElement("", "", PeakListElementName.PEAKLIST.getElementName());
-    hd.endDocument();
-  }
+    /**
+     * Add the row information into the XML document
+     * 
+     * @param row
+     * @param element
+     * @throws IOException
+     */
+    private void fillRowElement(PeakListRow row, TransformerHandler hd)
+            throws SAXException, IOException {
 
-  /**
-   * Add the row information into the XML document
-   * 
-   * @param row
-   * @param element
-   * @throws IOException
-   */
-  private void fillRowElement(PeakListRow row, TransformerHandler hd)
-      throws SAXException, IOException {
+        // <PEAK_IDENTITY>
+        PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
+        PeakIdentity[] identities = row.getPeakIdentities();
+        AttributesImpl atts = new AttributesImpl();
 
-    // <PEAK_IDENTITY>
-    PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
-    PeakIdentity[] identities = row.getPeakIdentities();
-    AttributesImpl atts = new AttributesImpl();
+        for (int i = 0; i < identities.length; i++) {
 
-    for (int i = 0; i < identities.length; i++) {
+            if (canceled)
+                return;
 
-      if (canceled)
-        return;
+            atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
+                    "CDATA", String.valueOf(i));
+            atts.addAttribute("", "",
+                    PeakListElementName.PREFERRED.getElementName(), "CDATA",
+                    String.valueOf(identities[i] == preferredIdentity));
+            hd.startElement("", "",
+                    PeakListElementName.PEAK_IDENTITY.getElementName(), atts);
+            fillIdentityElement(identities[i], hd);
+            hd.endElement("", "",
+                    PeakListElementName.PEAK_IDENTITY.getElementName());
+        }
 
-      atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA",
-          String.valueOf(i));
-      atts.addAttribute("", "", PeakListElementName.PREFERRED.getElementName(), "CDATA",
-          String.valueOf(identities[i] == preferredIdentity));
-      hd.startElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName(), atts);
-      fillIdentityElement(identities[i], hd);
-      hd.endElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName());
-    }
+        // <PEAK_INFORMATION>
 
-    // <PEAK_INFORMATION>
+        // atts.clear();
 
-    // atts.clear();
+        if (canceled)
+            return;
 
-    if (canceled)
-      return;
+        // atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
+        // "CDATA", "INFORMATION");
+        hd.startElement("", "",
+                PeakListElementName.PEAK_INFORMATION.getElementName(), atts);
+        fillInformationElement(row.getPeakInformation(), hd);
+        hd.endElement("", "",
+                PeakListElementName.PEAK_INFORMATION.getElementName());
 
-    // atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
-    // "CDATA", "INFORMATION");
-    hd.startElement("", "", PeakListElementName.PEAK_INFORMATION.getElementName(), atts);
-    fillInformationElement(row.getPeakInformation(), hd);
-    hd.endElement("", "", PeakListElementName.PEAK_INFORMATION.getElementName());
+        // <PEAK>
+        Feature[] peaks = row.getPeaks();
+        for (Feature p : peaks) {
+            if (canceled)
+                return;
 
-    // <PEAK>
-    Feature[] peaks = row.getPeaks();
-    for (Feature p : peaks) {
-      if (canceled)
-        return;
+            atts.clear();
+            String dataFileID = dataFilesIDMap.get(p.getDataFile());
+            atts.addAttribute("", "",
+                    PeakListElementName.COLUMN.getElementName(), "CDATA",
+                    dataFileID);
+            atts.addAttribute("", "", PeakListElementName.MZ.getElementName(),
+                    "CDATA", String.valueOf(p.getMZ()));
+            // In the project file, retention time is represented in seconds,
+            // for historical reasons
+            double rt = p.getRT() * 60d;
+            atts.addAttribute("", "", PeakListElementName.RT.getElementName(),
+                    "CDATA", String.valueOf(rt));
+            atts.addAttribute("", "",
+                    PeakListElementName.HEIGHT.getElementName(), "CDATA",
+                    String.valueOf(p.getHeight()));
+            atts.addAttribute("", "", PeakListElementName.AREA.getElementName(),
+                    "CDATA", String.valueOf(p.getArea()));
+            atts.addAttribute("", "",
+                    PeakListElementName.STATUS.getElementName(), "CDATA",
+                    p.getFeatureStatus().toString());
+            atts.addAttribute("", "",
+                    PeakListElementName.CHARGE.getElementName(), "CDATA",
+                    String.valueOf(p.getCharge()));
+            atts.addAttribute("", "",
+                    PeakListElementName.PARENT_CHROMATOGRAM_ROW_ID
+                            .getElementName(),
+                    "CDATA",
+                    p.getParentChromatogramRowID() != null
+                            ? String.valueOf(p.getParentChromatogramRowID())
+                            : "");
+            hd.startElement("", "", PeakListElementName.PEAK.getElementName(),
+                    atts);
 
-      atts.clear();
-      String dataFileID = dataFilesIDMap.get(p.getDataFile());
-      atts.addAttribute("", "", PeakListElementName.COLUMN.getElementName(), "CDATA", dataFileID);
-      atts.addAttribute("", "", PeakListElementName.MZ.getElementName(), "CDATA",
-          String.valueOf(p.getMZ()));
-      // In the project file, retention time is represented in seconds,
-      // for historical reasons
-      double rt = p.getRT() * 60d;
-      atts.addAttribute("", "", PeakListElementName.RT.getElementName(), "CDATA",
-          String.valueOf(rt));
-      atts.addAttribute("", "", PeakListElementName.HEIGHT.getElementName(), "CDATA",
-          String.valueOf(p.getHeight()));
-      atts.addAttribute("", "", PeakListElementName.AREA.getElementName(), "CDATA",
-          String.valueOf(p.getArea()));
-      atts.addAttribute("", "", PeakListElementName.STATUS.getElementName(), "CDATA",
-          p.getFeatureStatus().toString());
-      atts.addAttribute("", "", PeakListElementName.CHARGE.getElementName(), "CDATA",
-          String.valueOf(p.getCharge()));
-      atts.addAttribute("", "", PeakListElementName.PARENT_CHROMATOGRAM_ROW_ID.getElementName(), "CDATA",
-          p.getParentChromatogramRowID() != null ? String.valueOf(p.getParentChromatogramRowID()) : "");
-      hd.startElement("", "", PeakListElementName.PEAK.getElementName(), atts);
-
-      fillPeakElement(p, hd);
-      hd.endElement("", "", PeakListElementName.PEAK.getElementName());
-    }
-
-  }
-
-  /**
-   * Add the peak identity information into the XML document
-   * 
-   * @param identity
-   * @param element
-   */
-  private void fillIdentityElement(PeakIdentity identity, TransformerHandler hd)
-      throws SAXException {
-
-    AttributesImpl atts = new AttributesImpl();
-
-    Map<String, String> idProperties = identity.getAllProperties();
-
-    for (Entry<String, String> property : idProperties.entrySet()) {
-      String propertyValue = property.getValue();
-      atts.clear();
-      atts.addAttribute("", "", PeakListElementName.NAME.getElementName(), "CDATA",
-          property.getKey());
-
-      hd.startElement("", "", PeakListElementName.IDPROPERTY.getElementName(), atts);
-      hd.characters(propertyValue.toCharArray(), 0, propertyValue.length());
-      hd.endElement("", "", PeakListElementName.IDPROPERTY.getElementName());
-    }
-
-  }
-
-  private void fillInformationElement(PeakInformation information, TransformerHandler hd)
-      throws SAXException {
-    if (information == null)
-      return;
-
-    AttributesImpl atts = new AttributesImpl();
-
-    for (Entry<String, String> property : information.getAllProperties().entrySet()) {
-      String value = property.getValue();
-
-      atts.clear();
-      atts.addAttribute("", "", PeakListElementName.NAME.getElementName(), "CDATA",
-          property.getKey());
-
-      hd.startElement("", "", PeakListElementName.INFO_PROPERTY.getElementName(), atts);
-      hd.characters(property.getValue().toCharArray(), 0, value.length());
-      hd.endElement("", "", PeakListElementName.INFO_PROPERTY.getElementName());
-    }
-  }
-
-  /**
-   * Add the peaks information into the XML document
-   * 
-   * @param peak
-   * @param element
-   * @param dataFileID
-   * @throws IOException
-   */
-  private void fillPeakElement(Feature peak, TransformerHandler hd)
-      throws SAXException, IOException {
-    AttributesImpl atts = new AttributesImpl();
-
-    // <REPRESENTATIVE_SCAN>
-    hd.startElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(peak.getRepresentativeScanNumber()).toCharArray(), 0,
-        String.valueOf(peak.getRepresentativeScanNumber()).length());
-    hd.endElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName());
-
-    // <FRAGMENT_SCAN>
-    hd.startElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(peak.getMostIntenseFragmentScanNumber()).toCharArray(), 0,
-        String.valueOf(peak.getMostIntenseFragmentScanNumber()).length());
-    hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
-
-    // <ALL_MS2_FRAGMENT_SCANS>
-    fillAllMS2FragmentScanNumbers(peak.getAllMS2FragmentScanNumbers(), hd);
-
-    int scanNumbers[] = peak.getScanNumbers();
-
-    // <ISOTOPE_PATTERN>
-    IsotopePattern isotopePattern = peak.getIsotopePattern();
-    if (isotopePattern != null) {
-      atts.addAttribute("", "", PeakListElementName.STATUS.getElementName(), "CDATA",
-          String.valueOf(isotopePattern.getStatus()));
-      atts.addAttribute("", "", PeakListElementName.DESCRIPTION.getElementName(), "CDATA",
-          isotopePattern.getDescription());
-      hd.startElement("", "", PeakListElementName.ISOTOPE_PATTERN.getElementName(), atts);
-      atts.clear();
-
-      fillIsotopePatternElement(isotopePattern, hd);
-
-      hd.endElement("", "", PeakListElementName.ISOTOPE_PATTERN.getElementName());
+            fillPeakElement(p, hd);
+            hd.endElement("", "", PeakListElementName.PEAK.getElementName());
+        }
 
     }
 
-    // <MZPEAK>
-    atts.addAttribute("", "", PeakListElementName.QUANTITY.getElementName(), "CDATA",
-        String.valueOf(scanNumbers.length));
-    hd.startElement("", "", PeakListElementName.MZPEAKS.getElementName(), atts);
-    atts.clear();
+    /**
+     * Add the peak identity information into the XML document
+     * 
+     * @param identity
+     * @param element
+     */
+    private void fillIdentityElement(PeakIdentity identity,
+            TransformerHandler hd) throws SAXException {
 
-    // <SCAN_ID> <MASS> <HEIGHT>
-    ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
-    DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
+        AttributesImpl atts = new AttributesImpl();
 
-    ByteArrayOutputStream byteMassStream = new ByteArrayOutputStream();
-    DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
+        Map<String, String> idProperties = identity.getAllProperties();
 
-    ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
-    DataOutputStream dataHeightStream = new DataOutputStream(byteHeightStream);
+        for (Entry<String, String> property : idProperties.entrySet()) {
+            String propertyValue = property.getValue();
+            atts.clear();
+            atts.addAttribute("", "", PeakListElementName.NAME.getElementName(),
+                    "CDATA", property.getKey());
 
-    float mass, height;
-    for (int scan : scanNumbers) {
-      dataScanStream.writeInt(scan);
-      dataScanStream.flush();
-      DataPoint mzPeak = peak.getDataPoint(scan);
-      if (mzPeak != null) {
-        mass = (float) mzPeak.getMZ();
-        height = (float) mzPeak.getIntensity();
-      } else {
-        mass = 0f;
-        height = 0f;
-      }
-      dataMassStream.writeFloat(mass);
-      dataMassStream.flush();
-      dataHeightStream.writeFloat(height);
-      dataHeightStream.flush();
+            hd.startElement("", "",
+                    PeakListElementName.IDPROPERTY.getElementName(), atts);
+            hd.characters(propertyValue.toCharArray(), 0,
+                    propertyValue.length());
+            hd.endElement("", "",
+                    PeakListElementName.IDPROPERTY.getElementName());
+        }
+
     }
 
-    byte[] bytes = Base64.encode(byteScanStream.toByteArray());
-    hd.startElement("", "", PeakListElementName.SCAN_ID.getElementName(), atts);
-    String sbytes = new String(bytes);
-    hd.characters(sbytes.toCharArray(), 0, sbytes.length());
-    hd.endElement("", "", PeakListElementName.SCAN_ID.getElementName());
+    private void fillInformationElement(PeakInformation information,
+            TransformerHandler hd) throws SAXException {
+        if (information == null)
+            return;
 
-    bytes = Base64.encode(byteMassStream.toByteArray());
-    hd.startElement("", "", PeakListElementName.MZ.getElementName(), atts);
-    sbytes = new String(bytes);
-    hd.characters(sbytes.toCharArray(), 0, sbytes.length());
-    hd.endElement("", "", PeakListElementName.MZ.getElementName());
+        AttributesImpl atts = new AttributesImpl();
 
-    bytes = Base64.encode(byteHeightStream.toByteArray());
-    hd.startElement("", "", PeakListElementName.HEIGHT.getElementName(), atts);
-    sbytes = new String(bytes);
-    hd.characters(sbytes.toCharArray(), 0, sbytes.length());
-    hd.endElement("", "", PeakListElementName.HEIGHT.getElementName());
+        for (Entry<String, String> property : information.getAllProperties()
+                .entrySet()) {
+            String value = property.getValue();
 
-    hd.endElement("", "", PeakListElementName.MZPEAKS.getElementName());
-  }
+            atts.clear();
+            atts.addAttribute("", "", PeakListElementName.NAME.getElementName(),
+                    "CDATA", property.getKey());
 
-  private void fillIsotopePatternElement(IsotopePattern isotopePattern, TransformerHandler hd)
-      throws SAXException, IOException {
-
-    AttributesImpl atts = new AttributesImpl();
-
-    DataPoint isotopes[] = isotopePattern.getDataPoints();
-
-    for (DataPoint isotope : isotopes) {
-      hd.startElement("", "", PeakListElementName.ISOTOPE.getElementName(), atts);
-      String isotopeString = isotope.getMZ() + ":" + isotope.getIntensity();
-      hd.characters(isotopeString.toCharArray(), 0, isotopeString.length());
-      hd.endElement("", "", PeakListElementName.ISOTOPE.getElementName());
+            hd.startElement("", "",
+                    PeakListElementName.INFO_PROPERTY.getElementName(), atts);
+            hd.characters(property.getValue().toCharArray(), 0, value.length());
+            hd.endElement("", "",
+                    PeakListElementName.INFO_PROPERTY.getElementName());
+        }
     }
-  }
 
-  private void fillAllMS2FragmentScanNumbers(int[] scanNumbers, TransformerHandler hd)
-      throws SAXException, IOException {
-    AttributesImpl atts = new AttributesImpl();
-    if (scanNumbers != null) {
-      for (int scan : scanNumbers) {
-        hd.startElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName(), atts);
-        hd.characters(String.valueOf(scan).toCharArray(), 0, String.valueOf(scan).length());
-        hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName());
-      }
+    /**
+     * Add the peaks information into the XML document
+     * 
+     * @param peak
+     * @param element
+     * @param dataFileID
+     * @throws IOException
+     */
+    private void fillPeakElement(Feature peak, TransformerHandler hd)
+            throws SAXException, IOException {
+        AttributesImpl atts = new AttributesImpl();
+
+        // <REPRESENTATIVE_SCAN>
+        hd.startElement("", "",
+                PeakListElementName.REPRESENTATIVE_SCAN.getElementName(), atts);
+        hd.characters(
+                String.valueOf(peak.getRepresentativeScanNumber())
+                        .toCharArray(),
+                0, String.valueOf(peak.getRepresentativeScanNumber()).length());
+        hd.endElement("", "",
+                PeakListElementName.REPRESENTATIVE_SCAN.getElementName());
+
+        // <FRAGMENT_SCAN>
+        hd.startElement("", "",
+                PeakListElementName.FRAGMENT_SCAN.getElementName(), atts);
+        hd.characters(
+                String.valueOf(peak.getMostIntenseFragmentScanNumber())
+                        .toCharArray(),
+                0, String.valueOf(peak.getMostIntenseFragmentScanNumber())
+                        .length());
+        hd.endElement("", "",
+                PeakListElementName.FRAGMENT_SCAN.getElementName());
+
+        // <ALL_MS2_FRAGMENT_SCANS>
+        fillAllMS2FragmentScanNumbers(peak.getAllMS2FragmentScanNumbers(), hd);
+
+        int scanNumbers[] = peak.getScanNumbers();
+
+        // <ISOTOPE_PATTERN>
+        IsotopePattern isotopePattern = peak.getIsotopePattern();
+        if (isotopePattern != null) {
+            atts.addAttribute("", "",
+                    PeakListElementName.STATUS.getElementName(), "CDATA",
+                    String.valueOf(isotopePattern.getStatus()));
+            atts.addAttribute("", "",
+                    PeakListElementName.DESCRIPTION.getElementName(), "CDATA",
+                    isotopePattern.getDescription());
+            hd.startElement("", "",
+                    PeakListElementName.ISOTOPE_PATTERN.getElementName(), atts);
+            atts.clear();
+
+            fillIsotopePatternElement(isotopePattern, hd);
+
+            hd.endElement("", "",
+                    PeakListElementName.ISOTOPE_PATTERN.getElementName());
+
+        }
+
+        // <MZPEAK>
+        atts.addAttribute("", "", PeakListElementName.QUANTITY.getElementName(),
+                "CDATA", String.valueOf(scanNumbers.length));
+        hd.startElement("", "", PeakListElementName.MZPEAKS.getElementName(),
+                atts);
+        atts.clear();
+
+        // <SCAN_ID> <MASS> <HEIGHT>
+        ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
+        DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
+
+        ByteArrayOutputStream byteMassStream = new ByteArrayOutputStream();
+        DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
+
+        ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
+        DataOutputStream dataHeightStream = new DataOutputStream(
+                byteHeightStream);
+
+        float mass, height;
+        for (int scan : scanNumbers) {
+            dataScanStream.writeInt(scan);
+            dataScanStream.flush();
+            DataPoint mzPeak = peak.getDataPoint(scan);
+            if (mzPeak != null) {
+                mass = (float) mzPeak.getMZ();
+                height = (float) mzPeak.getIntensity();
+            } else {
+                mass = 0f;
+                height = 0f;
+            }
+            dataMassStream.writeFloat(mass);
+            dataMassStream.flush();
+            dataHeightStream.writeFloat(height);
+            dataHeightStream.flush();
+        }
+
+        byte[] bytes = Base64.encode(byteScanStream.toByteArray());
+        hd.startElement("", "", PeakListElementName.SCAN_ID.getElementName(),
+                atts);
+        String sbytes = new String(bytes);
+        hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+        hd.endElement("", "", PeakListElementName.SCAN_ID.getElementName());
+
+        bytes = Base64.encode(byteMassStream.toByteArray());
+        hd.startElement("", "", PeakListElementName.MZ.getElementName(), atts);
+        sbytes = new String(bytes);
+        hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+        hd.endElement("", "", PeakListElementName.MZ.getElementName());
+
+        bytes = Base64.encode(byteHeightStream.toByteArray());
+        hd.startElement("", "", PeakListElementName.HEIGHT.getElementName(),
+                atts);
+        sbytes = new String(bytes);
+        hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+        hd.endElement("", "", PeakListElementName.HEIGHT.getElementName());
+
+        hd.endElement("", "", PeakListElementName.MZPEAKS.getElementName());
     }
-  }
 
-  /**
-   * @return the progress of these functions saving the feature list to the zip file.
-   */
-  public double getProgress() {
-    if (numberOfRows == 0)
-      return 0;
-    return (double) finishedRows / numberOfRows;
-  }
+    private void fillIsotopePatternElement(IsotopePattern isotopePattern,
+            TransformerHandler hd) throws SAXException, IOException {
 
-  public void cancel() {
-    canceled = true;
-  }
+        AttributesImpl atts = new AttributesImpl();
+
+        DataPoint isotopes[] = isotopePattern.getDataPoints();
+
+        for (DataPoint isotope : isotopes) {
+            hd.startElement("", "",
+                    PeakListElementName.ISOTOPE.getElementName(), atts);
+            String isotopeString = isotope.getMZ() + ":"
+                    + isotope.getIntensity();
+            hd.characters(isotopeString.toCharArray(), 0,
+                    isotopeString.length());
+            hd.endElement("", "", PeakListElementName.ISOTOPE.getElementName());
+        }
+    }
+
+    private void fillAllMS2FragmentScanNumbers(int[] scanNumbers,
+            TransformerHandler hd) throws SAXException, IOException {
+        AttributesImpl atts = new AttributesImpl();
+        if (scanNumbers != null) {
+            for (int scan : scanNumbers) {
+                hd.startElement("", "",
+                        PeakListElementName.ALL_MS2_FRAGMENT_SCANS
+                                .getElementName(),
+                        atts);
+                hd.characters(String.valueOf(scan).toCharArray(), 0,
+                        String.valueOf(scan).length());
+                hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS
+                        .getElementName());
+            }
+        }
+    }
+
+    /**
+     * @return the progress of these functions saving the feature list to the
+     *         zip file.
+     */
+    public double getProgress() {
+        if (numberOfRows == 0)
+            return 0;
+        return (double) finishedRows / numberOfRows;
+    }
+
+    public void cancel() {
+        canceled = true;
+    }
 
 }

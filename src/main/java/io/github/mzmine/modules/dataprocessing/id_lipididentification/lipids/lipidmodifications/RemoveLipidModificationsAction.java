@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,28 +32,28 @@ import io.github.mzmine.parameters.parametertypes.LipidModificationChoiceCompone
  */
 public class RemoveLipidModificationsAction extends AbstractAction {
 
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Create the action.
-   */
-  public RemoveLipidModificationsAction() {
+    /**
+     * Create the action.
+     */
+    public RemoveLipidModificationsAction() {
 
-    super("Remove");
-    putValue(SHORT_DESCRIPTION, "Remove all lipid modification");
+        super("Remove");
+        putValue(SHORT_DESCRIPTION, "Remove all lipid modification");
 
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    // Parent component.
-    final LipidModificationChoiceComponent parent =
-        (LipidModificationChoiceComponent) SwingUtilities
-            .getAncestorOfClass(LipidModificationChoiceComponent.class, (Component) e.getSource());
-
-    if (parent != null) {
-      parent.setChoices(new LipidModification[0]);
     }
-  }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+
+        // Parent component.
+        final LipidModificationChoiceComponent parent = (LipidModificationChoiceComponent) SwingUtilities
+                .getAncestorOfClass(LipidModificationChoiceComponent.class,
+                        (Component) e.getSource());
+
+        if (parent != null) {
+            parent.setChoices(new LipidModification[0]);
+        }
+    }
 }

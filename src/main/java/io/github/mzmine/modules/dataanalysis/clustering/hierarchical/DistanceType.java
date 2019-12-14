@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,16 +20,17 @@ package io.github.mzmine.modules.dataanalysis.clustering.hierarchical;
 
 public enum DistanceType {
 
-  EUCLIDIAN("Euclidian"), CHEBYSHEV("Chebyshev"), MANHATTAN("Manhattan"), MINKOWSKI("Minkowski");
+    EUCLIDIAN("Euclidian"), CHEBYSHEV("Chebyshev"), MANHATTAN(
+            "Manhattan"), MINKOWSKI("Minkowski");
 
-  private final String name;
+    private final String name;
 
-  DistanceType(String name) {
-    this.name = name;
-  }
+    DistanceType(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return this.name;
-  }
+    public String getName() {
+        return this.name;
+    }
 
 }

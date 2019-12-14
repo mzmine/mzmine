@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,27 +25,28 @@ import javax.swing.text.DocumentFilter;
 
 public class DocumentSizeFilter extends DocumentFilter {
 
-  int maxCharacters;
+    int maxCharacters;
 
-  public DocumentSizeFilter(int maxChars) {
-    maxCharacters = maxChars;
-  }
+    public DocumentSizeFilter(int maxChars) {
+        maxCharacters = maxChars;
+    }
 
-  @Override
-  public void insertString(FilterBypass fb, int offs, String str, AttributeSet a)
-      throws BadLocationException {
-    if ((fb.getDocument().getLength() + str.length()) <= maxCharacters)
-      super.insertString(fb, offs, str, a);
-    else
-      Toolkit.getDefaultToolkit().beep();
-  }
+    @Override
+    public void insertString(FilterBypass fb, int offs, String str,
+            AttributeSet a) throws BadLocationException {
+        if ((fb.getDocument().getLength() + str.length()) <= maxCharacters)
+            super.insertString(fb, offs, str, a);
+        else
+            Toolkit.getDefaultToolkit().beep();
+    }
 
-  @Override
-  public void replace(FilterBypass fb, int offs, int length, String str, AttributeSet a)
-      throws BadLocationException {
-    if ((fb.getDocument().getLength() + str.length() - length) <= maxCharacters)
-      super.replace(fb, offs, length, str, a);
-    else
-      Toolkit.getDefaultToolkit().beep();
-  }
+    @Override
+    public void replace(FilterBypass fb, int offs, int length, String str,
+            AttributeSet a) throws BadLocationException {
+        if ((fb.getDocument().getLength() + str.length()
+                - length) <= maxCharacters)
+            super.replace(fb, offs, length, str, a);
+        else
+            Toolkit.getDefaultToolkit().beep();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -25,37 +25,38 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class SimplePeakListAppliedMethod implements PeakListAppliedMethod {
 
-  private String description;
-  private String parameters;
+    private String description;
+    private String parameters;
 
-  public SimplePeakListAppliedMethod(String description, ParameterSet parameters) {
-    this.description = description;
-    if (parameters != null) {
-      this.parameters = parameters.toString();
-    } else {
-      this.parameters = "";
+    public SimplePeakListAppliedMethod(String description,
+            ParameterSet parameters) {
+        this.description = description;
+        if (parameters != null) {
+            this.parameters = parameters.toString();
+        } else {
+            this.parameters = "";
+        }
     }
-  }
 
-  public SimplePeakListAppliedMethod(String description, String parameters) {
-    this.description = description;
-    this.parameters = parameters;
-  }
+    public SimplePeakListAppliedMethod(String description, String parameters) {
+        this.description = description;
+        this.parameters = parameters;
+    }
 
-  public SimplePeakListAppliedMethod(String description) {
-    this.description = description;
-  }
+    public SimplePeakListAppliedMethod(String description) {
+        this.description = description;
+    }
 
-  public @Nonnull String getDescription() {
-    return description;
-  }
+    public @Nonnull String getDescription() {
+        return description;
+    }
 
-  public String toString() {
-    return description;
-  }
+    public String toString() {
+        return description;
+    }
 
-  public @Nonnull String getParameters() {
-    return parameters;
-  }
+    public @Nonnull String getParameters() {
+        return parameters;
+    }
 
 }

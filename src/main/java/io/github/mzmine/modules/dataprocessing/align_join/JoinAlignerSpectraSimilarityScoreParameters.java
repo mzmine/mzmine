@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,26 +31,29 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class JoinAlignerSpectraSimilarityScoreParameters extends SimpleParameterSet {
+public class JoinAlignerSpectraSimilarityScoreParameters
+        extends SimpleParameterSet {
 
-  public static final MassListParameter massList = new MassListParameter();
+    public static final MassListParameter massList = new MassListParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-      "Spectral m/z tolerance",
-      "Spectral m/z tolerance is used to match all signals between spectra of two compared raw files",
-      0.001, 10);
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+            "Spectral m/z tolerance",
+            "Spectral m/z tolerance is used to match all signals between spectra of two compared raw files",
+            0.001, 10);
 
-  public static final IntegerParameter msLevel = new IntegerParameter("MS level",
-      "Choose the MS level of the scans that should be compared. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
-      2, 1, 1000);
+    public static final IntegerParameter msLevel = new IntegerParameter(
+            "MS level",
+            "Choose the MS level of the scans that should be compared. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
+            2, 1, 1000);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
-      new ModuleComboParameter<>("Compare spectra similarity",
-          "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS);
+    public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+            "Compare spectra similarity",
+            "Algorithm to calculate similarity and filter matches",
+            SpectralSimilarityFunction.FUNCTIONS);
 
-  public JoinAlignerSpectraSimilarityScoreParameters() {
-    super(new Parameter[] {massList, mzTolerance, msLevel, similarityFunction});
-  }
+    public JoinAlignerSpectraSimilarityScoreParameters() {
+        super(new Parameter[] { massList, mzTolerance, msLevel,
+                similarityFunction });
+    }
 
 }

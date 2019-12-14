@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,23 +20,23 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public enum ClusteringLinkageStrategyType {
 
-  AVERAGE("Average"), // Distance of a new cluster is the Average distance of
+    AVERAGE("Average"), // Distance of a new cluster is the Average distance of
+                        // children
+    COMPLETE("Complete"), // Distance of a new cluster is the Max distance over
+                          // all children
+    SINGLE("Single"); // Distance of a new cluster is the Min distance over all
                       // children
-  COMPLETE("Complete"), // Distance of a new cluster is the Max distance over
-                        // all children
-  SINGLE("Single"); // Distance of a new cluster is the Min distance over all
-                    // children
-  // WEIGHTED("Weighted"); // Distance of a new cluster is the Weighted
-  // distance over all children
+    // WEIGHTED("Weighted"); // Distance of a new cluster is the Weighted
+    // distance over all children
 
-  private final String name;
+    private final String name;
 
-  ClusteringLinkageStrategyType(String name) {
-    this.name = name;
-  }
+    ClusteringLinkageStrategyType(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return this.name;
-  }
+    public String toString() {
+        return this.name;
+    }
 
 }

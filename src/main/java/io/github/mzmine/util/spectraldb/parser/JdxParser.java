@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -41,81 +41,91 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
  */
 public class JdxParser extends SpectralDBParser {
 
-  public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
-  }
-
-  private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
-
-  @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
-    logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
-
-    boolean isData = false;
-    Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
-    List<DataPoint> dps = new ArrayList<>();
-    // create db
-    int sep = -1;
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
-        // main task was canceled?
-        if (mainTask.isCanceled()) {
-          return false;
-        }
-
-        try {
-          // meta data?
-          sep = isData ? -1 : l.indexOf("=");
-          if (sep != -1) {
-            DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
-            if (field != null) {
-              String content = l.substring(sep + 1, l.length());
-              if (content.length() > 0) {
-                try {
-                  Object value = field.convertValue(content);
-                  fields.put(field, value);
-                } catch (Exception e) {
-                  logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
-                      + field.getObjectClass().toString(), e);
-                }
-              }
-            }
-          } else {
-            // data?
-            String[] dataPairs = l.split(" ");
-            for (String dataPair : dataPairs) {
-              String[] data = dataPair.split(",");
-              if (data.length == 2) {
-                try {
-                  dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                      Double.parseDouble(data[1])));
-                  isData = true;
-                } catch (Exception e) {
-                }
-              }
-            }
-          }
-          if (l.contains("END")) {
-            // row with END
-            // add entry and reset
-            SpectralDBEntry entry =
-                new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
-            fields = new EnumMap<>(fields);
-            dps.clear();
-            addLibraryEntry(entry);
-            // reset
-            isData = false;
-          }
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error for entry", ex);
-        }
-      }
+    public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
+        super(bufferEntries, processor);
     }
 
-    // finish and push last entries
-    finish();
+    private static Logger logger = Logger
+            .getLogger(NistMspParser.class.getName());
 
-    return true;
-  }
+    @Override
+    public boolean parse(AbstractTask mainTask, File dataBaseFile)
+            throws IOException {
+        logger.info("Parsing jdx spectral library "
+                + dataBaseFile.getAbsolutePath());
+
+        boolean isData = false;
+        Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
+        List<DataPoint> dps = new ArrayList<>();
+        // create db
+        int sep = -1;
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(dataBaseFile))) {
+            for (String l; (l = br.readLine()) != null;) {
+                // main task was canceled?
+                if (mainTask.isCanceled()) {
+                    return false;
+                }
+
+                try {
+                    // meta data?
+                    sep = isData ? -1 : l.indexOf("=");
+                    if (sep != -1) {
+                        DBEntryField field = DBEntryField
+                                .forJdxID(l.substring(0, sep));
+                        if (field != null) {
+                            String content = l.substring(sep + 1, l.length());
+                            if (content.length() > 0) {
+                                try {
+                                    Object value = field.convertValue(content);
+                                    fields.put(field, value);
+                                } catch (Exception e) {
+                                    logger.log(Level.WARNING,
+                                            "Cannot convert value type of "
+                                                    + content + " to "
+                                                    + field.getObjectClass()
+                                                            .toString(),
+                                            e);
+                                }
+                            }
+                        }
+                    } else {
+                        // data?
+                        String[] dataPairs = l.split(" ");
+                        for (String dataPair : dataPairs) {
+                            String[] data = dataPair.split(",");
+                            if (data.length == 2) {
+                                try {
+                                    dps.add(new SimpleDataPoint(
+                                            Double.parseDouble(data[0]),
+                                            Double.parseDouble(data[1])));
+                                    isData = true;
+                                } catch (Exception e) {
+                                }
+                            }
+                        }
+                    }
+                    if (l.contains("END")) {
+                        // row with END
+                        // add entry and reset
+                        SpectralDBEntry entry = new SpectralDBEntry(fields,
+                                dps.toArray(new DataPoint[dps.size()]));
+                        fields = new EnumMap<>(fields);
+                        dps.clear();
+                        addLibraryEntry(entry);
+                        // reset
+                        isData = false;
+                    }
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Error for entry", ex);
+                }
+            }
+        }
+
+        // finish and push last entries
+        finish();
+
+        return true;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,23 +35,28 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 
 public class DPPMassDetectionParameters extends SimpleParameterSet {
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-        new RecursiveMassDetector(), new WaveletMassDetector()};
+    public static final MassDetector massDetectors[] = {
+            new CentroidMassDetector(), new ExactMassDetector(),
+            new LocalMaxMassDetector(), new RecursiveMassDetector(),
+            new WaveletMassDetector() };
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+    public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+            "Mass detector",
+            "Algorithm to use for mass detection and its parameters",
+            massDetectors);
 
-  public static final BooleanParameter displayResults = new BooleanParameter("Display results",
-      "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
-      false);
+    public static final BooleanParameter displayResults = new BooleanParameter(
+            "Display results",
+            "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
+            false);
 
-  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
-      "Set the color you want the detected isotope patterns to be displayed with.", Color.CYAN);
+    public static final ColorParameter datasetColor = new ColorParameter(
+            "Dataset color",
+            "Set the color you want the detected isotope patterns to be displayed with.",
+            Color.CYAN);
 
-  public DPPMassDetectionParameters() {
-    super(new Parameter[] {massDetector, displayResults, datasetColor});
-  }
+    public DPPMassDetectionParameters() {
+        super(new Parameter[] { massDetector, displayResults, datasetColor });
+    }
 
 }

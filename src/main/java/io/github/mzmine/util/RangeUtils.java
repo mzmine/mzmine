@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,72 +32,82 @@ import com.google.common.collect.Range;
 
 public class RangeUtils {
 
-  /**
-   * Parses a range from String where upper and lower bounds are delimited by a dash, e.g.
-   * "100.0-200.5". Note: we are dealing with doubles, so in an unfortunate case the range might
-   * look like this "3.402439E-36-1.310424E-2"
-   * 
-   */
-  public static Range<Double> parseRange(String text) {
-    Pattern p = Pattern.compile("([\\d\\.]+(?:E\\-?\\d+)?)\\-([\\d\\.]+(?:E\\-?\\d+)?)");
+    /**
+     * Parses a range from String where upper and lower bounds are delimited by
+     * a dash, e.g. "100.0-200.5". Note: we are dealing with doubles, so in an
+     * unfortunate case the range might look like this
+     * "3.402439E-36-1.310424E-2"
+     * 
+     */
+    public static Range<Double> parseRange(String text) {
+        Pattern p = Pattern.compile(
+                "([\\d\\.]+(?:E\\-?\\d+)?)\\-([\\d\\.]+(?:E\\-?\\d+)?)");
 
-    Matcher m = p.matcher(text);
-    if (!m.find()) {
-      throw new IllegalArgumentException("String '" + text + "' could not be parsed into a range");
+        Matcher m = p.matcher(text);
+        if (!m.find()) {
+            throw new IllegalArgumentException(
+                    "String '" + text + "' could not be parsed into a range");
+        }
+        double low = Double.parseDouble(m.group(1));
+        double high = Double.parseDouble(m.group(2));
+        Range<Double> result = Range.closed(low, high);
+        return result;
     }
-    double low = Double.parseDouble(m.group(1));
-    double high = Double.parseDouble(m.group(2));
-    Range<Double> result = Range.closed(low, high);
-    return result;
-  }
 
-  /**
-   * Splits the range in numOfBins bins and then returns the index of the bin which contains given
-   * value. Indexes are from 0 to (numOfBins - 1).
-   */
-  public static int binNumber(Range<Double> range, int numOfBins, double value) {
-    double rangeLength = range.upperEndpoint() - range.lowerEndpoint();
-    double valueDistanceFromStart = value - range.lowerEndpoint();
-    int index = (int) Math.round((valueDistanceFromStart / rangeLength) * (numOfBins - 1));
-    return index;
-  }
-
-  public static double rangeLength(Range<Double> range) {
-    return range.upperEndpoint() - range.lowerEndpoint();
-  }
-
-  public static double rangeCenter(Range<Double> range) {
-    return (range.upperEndpoint() + range.lowerEndpoint()) / 2.0;
-  }
-
-  public static Range<Double> fromArray(double array[]) {
-    if ((array == null) || (array.length == 0))
-      return Range.open(0.0, 0.0);
-    double min = array[0], max = array[0];
-    for (double d : array) {
-      if (d > max)
-        max = d;
-      if (d < min)
-        min = d;
+    /**
+     * Splits the range in numOfBins bins and then returns the index of the bin
+     * which contains given value. Indexes are from 0 to (numOfBins - 1).
+     */
+    public static int binNumber(Range<Double> range, int numOfBins,
+            double value) {
+        double rangeLength = range.upperEndpoint() - range.lowerEndpoint();
+        double valueDistanceFromStart = value - range.lowerEndpoint();
+        int index = (int) Math.round(
+                (valueDistanceFromStart / rangeLength) * (numOfBins - 1));
+        return index;
     }
-    return Range.closed(min, max);
-  }
-  
-  /**
-   * Returns a range that is contained in between the both ranges.
-   * 
-   * @param r1
-   * @param r2
-   * @return The connected range. Null if there is no connected range.
-   */
-  public static @Nullable Range<Double> getConnected(@Nonnull Range<Double> r1, @Nonnull Range<Double> r2){
-    
-    if(!r1.isConnected(r2))
-      return null;
-    
-    double lower = (r1.lowerEndpoint() > r2.lowerEndpoint()) ? r1.lowerEndpoint() : r2.lowerEndpoint();
-    double upper = (r1.upperEndpoint() > r2.upperEndpoint()) ? r2.upperEndpoint() : r1.upperEndpoint();
-    
-    return Range.closed(lower, upper);
-  }
+
+    public static double rangeLength(Range<Double> range) {
+        return range.upperEndpoint() - range.lowerEndpoint();
+    }
+
+    public static double rangeCenter(Range<Double> range) {
+        return (range.upperEndpoint() + range.lowerEndpoint()) / 2.0;
+    }
+
+    public static Range<Double> fromArray(double array[]) {
+        if ((array == null) || (array.length == 0))
+            return Range.open(0.0, 0.0);
+        double min = array[0], max = array[0];
+        for (double d : array) {
+            if (d > max)
+                max = d;
+            if (d < min)
+                min = d;
+        }
+        return Range.closed(min, max);
+    }
+
+    /**
+     * Returns a range that is contained in between the both ranges.
+     * 
+     * @param r1
+     * @param r2
+     * @return The connected range. Null if there is no connected range.
+     */
+    public static @Nullable Range<Double> getConnected(
+            @Nonnull Range<Double> r1, @Nonnull Range<Double> r2) {
+
+        if (!r1.isConnected(r2))
+            return null;
+
+        double lower = (r1.lowerEndpoint() > r2.lowerEndpoint())
+                ? r1.lowerEndpoint()
+                : r2.lowerEndpoint();
+        double upper = (r1.upperEndpoint() > r2.upperEndpoint())
+                ? r2.upperEndpoint()
+                : r1.upperEndpoint();
+
+        return Range.closed(lower, upper);
+    }
 }

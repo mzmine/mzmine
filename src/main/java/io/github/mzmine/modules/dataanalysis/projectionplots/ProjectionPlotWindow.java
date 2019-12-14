@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,54 +31,56 @@ import io.github.mzmine.util.dialogs.AxesSetupDialog;
 
 public class ProjectionPlotWindow extends JFrame implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private ProjectionPlotToolbar toolbar;
-  private ProjectionPlotPanel plot;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private ProjectionPlotToolbar toolbar;
+    private ProjectionPlotPanel plot;
 
-  public ProjectionPlotWindow(PeakList peakList, ProjectionPlotDataset dataset,
-      ParameterSet parameters) {
+    public ProjectionPlotWindow(PeakList peakList,
+            ProjectionPlotDataset dataset, ParameterSet parameters) {
 
-    toolbar = new ProjectionPlotToolbar(this);
-    add(toolbar, BorderLayout.EAST);
+        toolbar = new ProjectionPlotToolbar(this);
+        add(toolbar, BorderLayout.EAST);
 
-    plot = new ProjectionPlotPanel(this, dataset, parameters);
-    add(plot, BorderLayout.CENTER);
+        plot = new ProjectionPlotPanel(this, dataset, parameters);
+        add(plot, BorderLayout.CENTER);
 
-    String title = peakList.getName();
-    title = title.concat(" : ");
-    title = title.concat(dataset.toString());
-    if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT)
-      title = title.concat(" (using peak heights)");
-    else
-      title = title.concat(" (using peak areas)");
+        String title = peakList.getName();
+        title = title.concat(" : ");
+        title = title.concat(dataset.toString());
+        if (parameters
+                .getParameter(ProjectionPlotParameters.peakMeasurementType)
+                .getValue() == PeakMeasurementType.HEIGHT)
+            title = title.concat(" (using peak heights)");
+        else
+            title = title.concat(" (using peak areas)");
 
-    this.setTitle(title);
+        this.setTitle(title);
 
-    pack();
+        pack();
 
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
-      dialog.setVisible(true);
     }
 
-    if (command.equals("TOGGLE_LABELS")) {
-      /*
-       * XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
-       * rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
-       */
-      plot.cycleItemLabelMode();
-    }
+    public void actionPerformed(ActionEvent event) {
 
-  }
+        String command = event.getActionCommand();
+
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(this,
+                    plot.getChart().getXYPlot());
+            dialog.setVisible(true);
+        }
+
+        if (command.equals("TOGGLE_LABELS")) {
+            /*
+             * XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
+             * rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
+             */
+            plot.cycleItemLabelMode();
+        }
+
+    }
 
 }

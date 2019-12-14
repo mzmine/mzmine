@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,24 +25,24 @@ import io.github.mzmine.datamodel.DataPoint;
 
 public class SpectralDBEntry {
 
-  private final Map<DBEntryField, Object> fields;
-  private final DataPoint[] dps;
+    private final Map<DBEntryField, Object> fields;
+    private final DataPoint[] dps;
 
-  public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
-    this.fields = fields;
-    this.dps = dps;
-  }
+    public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
+        this.fields = fields;
+        this.dps = dps;
+    }
 
-  public Double getPrecursorMZ() {
-    return (Double) fields.get(DBEntryField.MZ);
-  }
+    public Double getPrecursorMZ() {
+        return (Double) fields.get(DBEntryField.MZ);
+    }
 
-  public Optional<Object> getField(DBEntryField f) {
-    return Optional.ofNullable(fields.get(f));
-  }
+    public Optional<Object> getField(DBEntryField f) {
+        return Optional.ofNullable(fields.get(f));
+    }
 
-  public DataPoint[] getDataPoints() {
-    return dps;
-  }
+    public DataPoint[] getDataPoints() {
+        return dps;
+    }
 
 }

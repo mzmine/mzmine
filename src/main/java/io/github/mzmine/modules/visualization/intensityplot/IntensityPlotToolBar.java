@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
@@ -36,93 +35,102 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Intensity plot toolbar class
  */
 class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  static final Icon pointsIcon = new ImageIcon("icons/pointsicon.png");
-  static final Icon linesIcon = new ImageIcon("icons/linesicon.png");
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    static final Icon pointsIcon = IconUtil
+            .loadIconFromResources("icons/pointsicon.png");
+    static final Icon linesIcon = IconUtil
+            .loadIconFromResources("icons/linesicon.png");
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
 
-  private IntensityPlotWindow window;
-  private JButton linesVisibleButton, setupAxesButton;
+    private IntensityPlotWindow window;
+    private JButton linesVisibleButton, setupAxesButton;
 
-  IntensityPlotToolBar(IntensityPlotWindow window) {
+    IntensityPlotToolBar(IntensityPlotWindow window) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+        setFloatable(false);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBackground(Color.white);
 
-    this.window = window;
+        this.window = window;
 
-    linesVisibleButton =
-        GUIUtils.addButton(this, null, linesIcon, this, null, "Switch lines on/off");
+        linesVisibleButton = GUIUtils.addButton(this, null, linesIcon, this,
+                null, "Switch lines on/off");
 
-    if (window.getChart().getPlot() instanceof XYPlot) {
-      addSeparator();
-      setupAxesButton =
-          GUIUtils.addButton(this, null, axesIcon, this, "SETUP_AXES", "Setup ranges for axes");
-    }
-
-  }
-
-  public void actionPerformed(ActionEvent e) {
-
-    Object src = e.getSource();
-
-    if (src == linesVisibleButton) {
-
-      Plot plot = window.getChart().getPlot();
-
-      Boolean linesVisible;
-
-      if (plot instanceof CategoryPlot) {
-        LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
-        linesVisible = renderer.getDefaultLinesVisible();
-      } else {
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
-        linesVisible = renderer.getDefaultLinesVisible();
-        renderer.setDrawSeriesLineAsPath(true);
-      }
-
-      // check for null value
-      if (linesVisible == null)
-        linesVisible = false;
-
-      // update the icon
-      if (linesVisible) {
-        linesVisibleButton.setIcon(linesIcon);
-      } else {
-        linesVisibleButton.setIcon(pointsIcon);
-      }
-
-      // switch the button
-      linesVisible = !linesVisible;
-
-      if (plot instanceof CategoryPlot) {
-        LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
-        renderer.setDefaultLinesVisible(linesVisible);
-      } else {
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
-        renderer.setDefaultLinesVisible(linesVisible);
-        renderer.setDrawSeriesLineAsPath(true);
-      }
+        if (window.getChart().getPlot() instanceof XYPlot) {
+            addSeparator();
+            setupAxesButton = GUIUtils.addButton(this, null, axesIcon, this,
+                    "SETUP_AXES", "Setup ranges for axes");
+        }
 
     }
 
-    if (src == setupAxesButton) {
-      AxesSetupDialog dialog = new AxesSetupDialog(window, window.getChart().getXYPlot());
-      dialog.setVisible(true);
-    }
+    public void actionPerformed(ActionEvent e) {
 
-  }
+        Object src = e.getSource();
+
+        if (src == linesVisibleButton) {
+
+            Plot plot = window.getChart().getPlot();
+
+            Boolean linesVisible;
+
+            if (plot instanceof CategoryPlot) {
+                LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot)
+                        .getRenderer();
+                linesVisible = renderer.getDefaultLinesVisible();
+            } else {
+                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
+                        .getRenderer();
+                linesVisible = renderer.getDefaultLinesVisible();
+                renderer.setDrawSeriesLineAsPath(true);
+            }
+
+            // check for null value
+            if (linesVisible == null)
+                linesVisible = false;
+
+            // update the icon
+            if (linesVisible) {
+                linesVisibleButton.setIcon(linesIcon);
+            } else {
+                linesVisibleButton.setIcon(pointsIcon);
+            }
+
+            // switch the button
+            linesVisible = !linesVisible;
+
+            if (plot instanceof CategoryPlot) {
+                LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot)
+                        .getRenderer();
+                renderer.setDefaultLinesVisible(linesVisible);
+            } else {
+                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
+                        .getRenderer();
+                renderer.setDefaultLinesVisible(linesVisible);
+                renderer.setDrawSeriesLineAsPath(true);
+            }
+
+        }
+
+        if (src == setupAxesButton) {
+            AxesSetupDialog dialog = new AxesSetupDialog(window,
+                    window.getChart().getXYPlot());
+            dialog.setVisible(true);
+        }
+
+    }
 
 }

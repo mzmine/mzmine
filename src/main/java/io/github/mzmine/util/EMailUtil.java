@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,53 +33,56 @@ import javax.mail.internet.MimeMessage;
  */
 public class EMailUtil implements Runnable {
 
-  private Session session;
-  private String toEmail;
-  private String subject;
-  private String body;
+    private Session session;
+    private String toEmail;
+    private String subject;
+    private String body;
 
-  public EMailUtil(Session session, String toEmail, String subject, String body) {
-    this.session = session;
-    this.toEmail = toEmail;
-    this.subject = subject;
-    this.body = body;
-  }
-
-  /**
-   * Method to send simple HTML email
-   */
-  private void sendEmail() {
-
-    Logger logger = Logger.getLogger("Mail Error");
-    try {
-      MimeMessage msg = new MimeMessage(session);
-      // set message headers
-      msg.addHeader("Content-type", "text/HTML; charset=UTF-8");
-      msg.addHeader("format", "flowed");
-      msg.addHeader("Content-Transfer-Encoding", "8bit");
-
-      msg.setFrom(new InternetAddress(toEmail, "MZmine"));
-
-      msg.setSubject(subject, "UTF-8");
-
-      msg.setText("MZmine 2 has detected an error :\n" + body, "UTF-8");
-
-      msg.setSentDate(new Date());
-
-      msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail, false));
-
-      Transport.send(msg);
-
-      logger.info("Successfully sended error mail: " + subject + "\n" + body);
-    } catch (Exception e) {
-      logger.info("Failed sending error mail:" + subject + "\n" + body);
-      e.printStackTrace();
+    public EMailUtil(Session session, String toEmail, String subject,
+            String body) {
+        this.session = session;
+        this.toEmail = toEmail;
+        this.subject = subject;
+        this.body = body;
     }
-  }
 
-  @Override
-  public void run() {
-    sendEmail();
-  }
+    /**
+     * Method to send simple HTML email
+     */
+    private void sendEmail() {
+
+        Logger logger = Logger.getLogger("Mail Error");
+        try {
+            MimeMessage msg = new MimeMessage(session);
+            // set message headers
+            msg.addHeader("Content-type", "text/HTML; charset=UTF-8");
+            msg.addHeader("format", "flowed");
+            msg.addHeader("Content-Transfer-Encoding", "8bit");
+
+            msg.setFrom(new InternetAddress(toEmail, "MZmine"));
+
+            msg.setSubject(subject, "UTF-8");
+
+            msg.setText("MZmine 2 has detected an error :\n" + body, "UTF-8");
+
+            msg.setSentDate(new Date());
+
+            msg.setRecipients(Message.RecipientType.TO,
+                    InternetAddress.parse(toEmail, false));
+
+            Transport.send(msg);
+
+            logger.info(
+                    "Successfully sended error mail: " + subject + "\n" + body);
+        } catch (Exception e) {
+            logger.info("Failed sending error mail:" + subject + "\n" + body);
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        sendEmail();
+    }
 
 }

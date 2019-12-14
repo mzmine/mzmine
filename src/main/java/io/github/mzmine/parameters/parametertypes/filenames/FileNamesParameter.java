@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,96 +35,100 @@ import javafx.stage.FileChooser.ExtensionFilter;
  * Simple Parameter implementation
  * 
  */
-public class FileNamesParameter implements UserParameter<File[], FileNamesComponent> {
+public class FileNamesParameter
+        implements UserParameter<File[], FileNamesComponent> {
 
-  private String name, description;
-  private File value[];
-  private List<ExtensionFilter> filters;
+    private String name, description;
+    private File value[];
+    private List<ExtensionFilter> filters;
 
-  public FileNamesParameter(String name, String description, List<ExtensionFilter> filters) {
-    this.name = name;
-    this.description = description;
-    this.filters = ImmutableList.copyOf(filters);
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(filters);
-  }
-
-  @Override
-  public File[] getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(File[] value) {
-    this.value = value;
-  }
-
-  @Override
-  public FileNamesParameter cloneParameter() {
-    FileNamesParameter copy = new FileNamesParameter(name, description, filters);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public void setValueFromComponent(FileNamesComponent component) {
-    this.value = component.getValue();
-  }
-
-  @Override
-  public void setValueToComponent(FileNamesComponent component, File[] newValue) {
-    component.setValue(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    NodeList list = xmlElement.getElementsByTagName("file");
-    File newFiles[] = new File[list.getLength()];
-    for (int i = 0; i < list.getLength(); i++) {
-      Element nextElement = (Element) list.item(i);
-      newFiles[i] = new File(nextElement.getTextContent());
+    public FileNamesParameter(String name, String description,
+            List<ExtensionFilter> filters) {
+        this.name = name;
+        this.description = description;
+        this.filters = ImmutableList.copyOf(filters);
     }
-    this.value = newFiles;
-  }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (File f : value) {
-      Element newElement = parentDocument.createElement("file");
-      newElement.setTextContent(f.getPath());
-      xmlElement.appendChild(newElement);
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
     }
-  }
 
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
     }
-    return true;
-  }
+
+    @Override
+    public FileNamesComponent createEditingComponent() {
+        return new FileNamesComponent(filters);
+    }
+
+    @Override
+    public File[] getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(File[] value) {
+        this.value = value;
+    }
+
+    @Override
+    public FileNamesParameter cloneParameter() {
+        FileNamesParameter copy = new FileNamesParameter(name, description,
+                filters);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(FileNamesComponent component) {
+        this.value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(FileNamesComponent component,
+            File[] newValue) {
+        component.setValue(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        NodeList list = xmlElement.getElementsByTagName("file");
+        File newFiles[] = new File[list.getLength()];
+        for (int i = 0; i < list.getLength(); i++) {
+            Element nextElement = (Element) list.item(i);
+            newFiles[i] = new File(nextElement.getTextContent());
+        }
+        this.value = newFiles;
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+        for (File f : value) {
+            Element newElement = parentDocument.createElement("file");
+            newElement.setTextContent(f.getPath());
+            xmlElement.appendChild(newElement);
+        }
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
 
 }

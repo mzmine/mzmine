@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,81 +24,86 @@ import org.jfree.data.xy.XYZDataset;
 
 import io.github.mzmine.parameters.ParameterSet;
 
-public class ProjectionPlotItemLabelGenerator extends StandardXYItemLabelGenerator {
+public class ProjectionPlotItemLabelGenerator
+        extends StandardXYItemLabelGenerator {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private enum LabelMode {
-    None, FileName, ParameterValue
-  }
-
-  private LabelMode[] labelModes;
-  private int labelModeIndex = 0;
-
-  ProjectionPlotItemLabelGenerator(ParameterSet parameters) {
-
-    labelModes = new LabelMode[] {LabelMode.None};
-    ColoringType coloringType = ColoringType.NOCOLORING;
-    try {
-      coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
-    } catch (IllegalArgumentException exeption) {
+    private enum LabelMode {
+        None, FileName, ParameterValue
     }
-    if (coloringType.equals(ColoringType.NOCOLORING))
-      labelModes = new LabelMode[] {LabelMode.None, LabelMode.FileName};
 
-    if (coloringType.equals(ColoringType.COLORBYFILE))
-      labelModes = new LabelMode[] {LabelMode.None, LabelMode.FileName};
+    private LabelMode[] labelModes;
+    private int labelModeIndex = 0;
 
-    if (coloringType.isByParameter())
-      labelModes = new LabelMode[] {LabelMode.None, LabelMode.FileName, LabelMode.ParameterValue};
+    ProjectionPlotItemLabelGenerator(ParameterSet parameters) {
 
-  }
+        labelModes = new LabelMode[] { LabelMode.None };
+        ColoringType coloringType = ColoringType.NOCOLORING;
+        try {
+            coloringType = parameters
+                    .getParameter(ProjectionPlotParameters.coloringType)
+                    .getValue();
+        } catch (IllegalArgumentException exeption) {
+        }
+        if (coloringType.equals(ColoringType.NOCOLORING))
+            labelModes = new LabelMode[] { LabelMode.None, LabelMode.FileName };
 
-  protected void cycleLabelMode() {
-    labelModeIndex++;
+        if (coloringType.equals(ColoringType.COLORBYFILE))
+            labelModes = new LabelMode[] { LabelMode.None, LabelMode.FileName };
 
-    if (labelModeIndex >= labelModes.length)
-      labelModeIndex = 0;
+        if (coloringType.isByParameter())
+            labelModes = new LabelMode[] { LabelMode.None, LabelMode.FileName,
+                    LabelMode.ParameterValue };
 
-  }
+    }
 
-  public String generateLabel(ProjectionPlotDataset dataset, int series, int item) {
+    protected void cycleLabelMode() {
+        labelModeIndex++;
 
-    switch (labelModes[labelModeIndex]) {
-      case None:
-      default:
-        return "";
+        if (labelModeIndex >= labelModes.length)
+            labelModeIndex = 0;
 
-      case FileName:
-        return dataset.getRawDataFile(item);
+    }
 
-      case ParameterValue:
-        int groupNumber = dataset.getGroupNumber(item);
-        Object paramValue = dataset.getGroupParameterValue(groupNumber);
-        if (paramValue != null)
-          return paramValue.toString();
+    public String generateLabel(ProjectionPlotDataset dataset, int series,
+            int item) {
+
+        switch (labelModes[labelModeIndex]) {
+        case None:
+        default:
+            return "";
+
+        case FileName:
+            return dataset.getRawDataFile(item);
+
+        case ParameterValue:
+            int groupNumber = dataset.getGroupNumber(item);
+            Object paramValue = dataset.getGroupParameterValue(groupNumber);
+            if (paramValue != null)
+                return paramValue.toString();
+            else
+                return "";
+
+        }
+
+    }
+
+    public String generateLabel(XYDataset dataset, int series, int item) {
+        if (dataset instanceof ProjectionPlotDataset)
+            return generateLabel((ProjectionPlotDataset) dataset, series, item);
         else
-          return "";
-
+            return null;
     }
 
-  }
-
-  public String generateLabel(XYDataset dataset, int series, int item) {
-    if (dataset instanceof ProjectionPlotDataset)
-      return generateLabel((ProjectionPlotDataset) dataset, series, item);
-    else
-      return null;
-  }
-
-  public String generateLabel(XYZDataset dataset, int series, int item) {
-    if (dataset instanceof ProjectionPlotDataset)
-      return generateLabel((ProjectionPlotDataset) dataset, series, item);
-    else
-      return null;
-  }
+    public String generateLabel(XYZDataset dataset, int series, int item) {
+        if (dataset instanceof ProjectionPlotDataset)
+            return generateLabel((ProjectionPlotDataset) dataset, series, item);
+        else
+            return null;
+    }
 
 }

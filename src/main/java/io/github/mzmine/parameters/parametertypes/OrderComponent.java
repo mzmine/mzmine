@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,87 +29,93 @@ import javax.swing.JList;
 import javax.swing.border.Border;
 
 /**
- * A modified JList that can reorder items in DefaultListModel by dragging with mouse
+ * A modified JList that can reorder items in DefaultListModel by dragging with
+ * mouse
  * 
  */
 public class OrderComponent<ValueType> extends JList<ValueType>
-    implements MouseListener, MouseMotionListener {
+        implements MouseListener, MouseMotionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private int dragFrom;
-  private final DefaultListModel<ValueType> listModel;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private int dragFrom;
+    private final DefaultListModel<ValueType> listModel;
 
-  public OrderComponent() {
+    public OrderComponent() {
 
-    // for some reason, plain JList does not have a border (at least on Mac)
-    Border border = BorderFactory.createEtchedBorder();
-    setBorder(border);
+        // for some reason, plain JList does not have a border (at least on Mac)
+        Border border = BorderFactory.createEtchedBorder();
+        setBorder(border);
 
-    listModel = new DefaultListModel<ValueType>();
-    setModel(listModel);
+        listModel = new DefaultListModel<ValueType>();
+        setModel(listModel);
 
-    // add mouse listeners
-    addMouseListener(this);
-    addMouseMotionListener(this);
+        // add mouse listeners
+        addMouseListener(this);
+        addMouseMotionListener(this);
 
-  }
+    }
 
-  public Object[] getValues() {
-    return listModel.toArray();
-  }
+    public Object[] getValues() {
+        return listModel.toArray();
+    }
 
-  public void setValues(ValueType newValues[]) {
-    listModel.removeAllElements();
-    for (ValueType value : newValues)
-      listModel.addElement(value);
+    public void setValues(ValueType newValues[]) {
+        listModel.removeAllElements();
+        for (ValueType value : newValues)
+            listModel.addElement(value);
 
-    // Adjust the size of the component
-    Dimension size = getPreferredSize();
-    if (size.width < 150)
-      size.width = 150;
-    setPreferredSize(size);
+        // Adjust the size of the component
+        Dimension size = getPreferredSize();
+        if (size.width < 150)
+            size.width = 150;
+        setPreferredSize(size);
 
-  }
+    }
 
-  @Override
-  public void mouseDragged(MouseEvent event) {
-    // get drag target
-    int dragTo = getSelectedIndex();
+    @Override
+    public void mouseDragged(MouseEvent event) {
+        // get drag target
+        int dragTo = getSelectedIndex();
 
-    // ignore event if order has not changed
-    if (dragTo == dragFrom)
-      return;
+        // ignore event if order has not changed
+        if (dragTo == dragFrom)
+            return;
 
-    // reorder the item
+        // reorder the item
 
-    ValueType item = listModel.elementAt(dragFrom);
-    listModel.removeElementAt(dragFrom);
-    listModel.add(dragTo, item);
+        ValueType item = listModel.elementAt(dragFrom);
+        listModel.removeElementAt(dragFrom);
+        listModel.add(dragTo, item);
 
-    // update drag source
-    dragFrom = dragTo;
-  }
+        // update drag source
+        dragFrom = dragTo;
+    }
 
-  @Override
-  public void mouseMoved(MouseEvent event) {}
+    @Override
+    public void mouseMoved(MouseEvent event) {
+    }
 
-  @Override
-  public void mouseClicked(MouseEvent event) {}
+    @Override
+    public void mouseClicked(MouseEvent event) {
+    }
 
-  @Override
-  public void mouseEntered(MouseEvent event) {}
+    @Override
+    public void mouseEntered(MouseEvent event) {
+    }
 
-  @Override
-  public void mouseExited(MouseEvent event) {}
+    @Override
+    public void mouseExited(MouseEvent event) {
+    }
 
-  @Override
-  public void mousePressed(MouseEvent event) {
-    dragFrom = getSelectedIndex();
-  }
+    @Override
+    public void mousePressed(MouseEvent event) {
+        dragFrom = getSelectedIndex();
+    }
 
-  @Override
-  public void mouseReleased(MouseEvent event) {}
+    @Override
+    public void mouseReleased(MouseEvent event) {
+    }
 }

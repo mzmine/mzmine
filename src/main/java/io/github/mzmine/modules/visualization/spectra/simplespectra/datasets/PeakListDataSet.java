@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,108 +31,110 @@ import io.github.mzmine.datamodel.RawDataFile;
 /**
  * Picked peaks data set;
  */
-public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class PeakListDataSet extends AbstractXYDataset
+        implements IntervalXYDataset {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private PeakList peakList;
+    private PeakList peakList;
 
-  private Feature displayedPeaks[];
-  private double mzValues[], intensityValues[];
-  private String label;
+    private Feature displayedPeaks[];
+    private double mzValues[], intensityValues[];
+    private String label;
 
-  public PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
+    public PeakListDataSet(RawDataFile dataFile, int scanNumber,
+            PeakList peakList) {
 
-    this.peakList = peakList;
+        this.peakList = peakList;
 
-    Feature peaks[] = peakList.getPeaks(dataFile);
+        Feature peaks[] = peakList.getPeaks(dataFile);
 
-    Vector<Feature> candidates = new Vector<Feature>();
-    for (Feature peak : peaks) {
-      DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
-      if (peakDataPoint != null)
-        candidates.add(peak);
+        Vector<Feature> candidates = new Vector<Feature>();
+        for (Feature peak : peaks) {
+            DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
+            if (peakDataPoint != null)
+                candidates.add(peak);
+        }
+        displayedPeaks = candidates.toArray(new Feature[0]);
+
+        mzValues = new double[displayedPeaks.length];
+        intensityValues = new double[displayedPeaks.length];
+
+        for (int i = 0; i < displayedPeaks.length; i++) {
+            DataPoint dp = displayedPeaks[i].getDataPoint(scanNumber);
+            if (dp == null)
+                continue;
+            mzValues[i] = dp.getMZ();
+            intensityValues[i] = dp.getIntensity();
+        }
+
+        label = "Peaks in " + peakList.getName();
+
     }
-    displayedPeaks = candidates.toArray(new Feature[0]);
 
-    mzValues = new double[displayedPeaks.length];
-    intensityValues = new double[displayedPeaks.length];
-
-    for (int i = 0; i < displayedPeaks.length; i++) {
-      DataPoint dp = displayedPeaks[i].getDataPoint(scanNumber);
-      if (dp == null)
-        continue;
-      mzValues[i] = dp.getMZ();
-      intensityValues[i] = dp.getIntensity();
+    @Override
+    public int getSeriesCount() {
+        return 1;
     }
 
-    label = "Peaks in " + peakList.getName();
+    @Override
+    public Comparable<?> getSeriesKey(int series) {
+        return label;
+    }
 
-  }
+    public PeakList getPeakList() {
+        return peakList;
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    public Feature getPeak(int series, int item) {
+        return displayedPeaks[item];
+    }
 
-  @Override
-  public Comparable<?> getSeriesKey(int series) {
-    return label;
-  }
+    public int getItemCount(int series) {
+        return mzValues.length;
+    }
 
-  public PeakList getPeakList() {
-    return peakList;
-  }
+    public Number getX(int series, int item) {
+        return mzValues[item];
+    }
 
-  public Feature getPeak(int series, int item) {
-    return displayedPeaks[item];
-  }
+    public Number getY(int series, int item) {
+        return intensityValues[item];
+    }
 
-  public int getItemCount(int series) {
-    return mzValues.length;
-  }
+    public Number getEndX(int series, int item) {
+        return getX(series, item).doubleValue();
+    }
 
-  public Number getX(int series, int item) {
-    return mzValues[item];
-  }
+    public double getEndXValue(int series, int item) {
+        return getX(series, item).doubleValue();
+    }
 
-  public Number getY(int series, int item) {
-    return intensityValues[item];
-  }
+    public Number getEndY(int series, int item) {
+        return getY(series, item);
+    }
 
-  public Number getEndX(int series, int item) {
-    return getX(series, item).doubleValue();
-  }
+    public double getEndYValue(int series, int item) {
+        return getYValue(series, item);
+    }
 
-  public double getEndXValue(int series, int item) {
-    return getX(series, item).doubleValue();
-  }
+    public Number getStartX(int series, int item) {
+        return getX(series, item).doubleValue();
+    }
 
-  public Number getEndY(int series, int item) {
-    return getY(series, item);
-  }
+    public double getStartXValue(int series, int item) {
+        return getX(series, item).doubleValue();
+    }
 
-  public double getEndYValue(int series, int item) {
-    return getYValue(series, item);
-  }
+    public Number getStartY(int series, int item) {
+        return getY(series, item);
+    }
 
-  public Number getStartX(int series, int item) {
-    return getX(series, item).doubleValue();
-  }
-
-  public double getStartXValue(int series, int item) {
-    return getX(series, item).doubleValue();
-  }
-
-  public Number getStartY(int series, int item) {
-    return getY(series, item);
-  }
-
-  public double getStartYValue(int series, int item) {
-    return getYValue(series, item);
-  }
+    public double getStartYValue(int series, int item) {
+        return getYValue(series, item);
+    }
 
 }

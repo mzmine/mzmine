@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,109 +35,112 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
- * Merge multiple raw data files into one. For example one positive, one negative and multiple with
- * MS2
+ * Merge multiple raw data files into one. For example one positive, one
+ * negative and multiple with MS2
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 class RawFileMergeTask extends AbstractTask {
 
-  private Logger LOG = Logger.getLogger(getClass().getName());
+    private Logger LOG = Logger.getLogger(getClass().getName());
 
-  private double perc = 0;
-  private RawDataFile[] raw;
-  private String suffix;
-  private boolean useMS2Marker;
-  private String ms2Marker;
-  private MZmineProject project;
+    private double perc = 0;
+    private RawDataFile[] raw;
+    private String suffix;
+    private boolean useMS2Marker;
+    private String ms2Marker;
+    private MZmineProject project;
 
-  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw) {
-    this.project = project;
-    this.raw = raw;
-    suffix = parameters.getParameter(RawFileMergeParameters.suffix).getValue();
-    useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
-    ms2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getEmbeddedParameter()
-        .getValue();
-    if (ms2Marker.isEmpty())
-      useMS2Marker = false;
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    return perc;
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Merging raw data files";
-  }
-
-
-  @Override
-  public void run() {
-    try {
-      setStatus(TaskStatus.PROCESSING);
-
-
-      // total number of scans
-      StringBuilder s = new StringBuilder();
-      s.append("Merge files: ");
-      for (RawDataFile r : raw) {
-        s.append(r.getName());
-        s.append(", ");
-      }
-
-      LOG.info(s.toString());
-
-      // put all in a list and sort by rt
-      List<Scan> scans = new ArrayList<>();
-      for (RawDataFile r : raw) {
-        // some files are only for MS2
-        boolean isMS2Only = useMS2Marker && r.getName().contains(ms2Marker);
-        int[] snarray = r.getScanNumbers();
-        for (int sn : snarray) {
-          if (isCanceled())
-            return;
-
-          Scan scan = r.getScan(sn);
-          if (!isMS2Only || scan.getMSLevel() > 1) {
-            scans.add(scan);
-          }
-        }
-      }
-
-      // sort by rt
-      scans.sort(new Comparator<Scan>() {
-        @Override
-        public int compare(Scan a, Scan b) {
-          return Double.compare(a.getRetentionTime(), b.getRetentionTime());
-        }
-      });
-
-      // create new file
-      RawDataFileWriter rawDataFileWriter =
-          MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
-
-      int i = 0;
-      for (Scan scan : scans) {
-        if (isCanceled())
-          return;
-        // copy, reset scan number
-        SimpleScan scanCopy = new SimpleScan(scan);
-        scanCopy.setScanNumber(i);
-        rawDataFileWriter.addScan(scanCopy);
-        i++;
-      }
-
-      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-      project.addFile(filteredRawDataFile);
-
-      if (getStatus() == TaskStatus.PROCESSING)
-        setStatus(TaskStatus.FINISHED);
-    } catch (IOException e) {
-      throw new MSDKRuntimeException(e);
+    RawFileMergeTask(MZmineProject project, ParameterSet parameters,
+            RawDataFile[] raw) {
+        this.project = project;
+        this.raw = raw;
+        suffix = parameters.getParameter(RawFileMergeParameters.suffix)
+                .getValue();
+        useMS2Marker = parameters
+                .getParameter(RawFileMergeParameters.MS2_marker).getValue();
+        ms2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker)
+                .getEmbeddedParameter().getValue();
+        if (ms2Marker.isEmpty())
+            useMS2Marker = false;
     }
-  }
+
+    @Override
+    public double getFinishedPercentage() {
+        return perc;
+    }
+
+    @Override
+    public String getTaskDescription() {
+        return "Merging raw data files";
+    }
+
+    @Override
+    public void run() {
+        try {
+            setStatus(TaskStatus.PROCESSING);
+
+            // total number of scans
+            StringBuilder s = new StringBuilder();
+            s.append("Merge files: ");
+            for (RawDataFile r : raw) {
+                s.append(r.getName());
+                s.append(", ");
+            }
+
+            LOG.info(s.toString());
+
+            // put all in a list and sort by rt
+            List<Scan> scans = new ArrayList<>();
+            for (RawDataFile r : raw) {
+                // some files are only for MS2
+                boolean isMS2Only = useMS2Marker
+                        && r.getName().contains(ms2Marker);
+                int[] snarray = r.getScanNumbers();
+                for (int sn : snarray) {
+                    if (isCanceled())
+                        return;
+
+                    Scan scan = r.getScan(sn);
+                    if (!isMS2Only || scan.getMSLevel() > 1) {
+                        scans.add(scan);
+                    }
+                }
+            }
+
+            // sort by rt
+            scans.sort(new Comparator<Scan>() {
+                @Override
+                public int compare(Scan a, Scan b) {
+                    return Double.compare(a.getRetentionTime(),
+                            b.getRetentionTime());
+                }
+            });
+
+            // create new file
+            RawDataFileWriter rawDataFileWriter = MZmineCore
+                    .createNewFile(raw[0].getName() + " " + suffix);
+
+            int i = 0;
+            for (Scan scan : scans) {
+                if (isCanceled())
+                    return;
+                // copy, reset scan number
+                SimpleScan scanCopy = new SimpleScan(scan);
+                scanCopy.setScanNumber(i);
+                rawDataFileWriter.addScan(scanCopy);
+                i++;
+            }
+
+            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            project.addFile(filteredRawDataFile);
+
+            if (getStatus() == TaskStatus.PROCESSING)
+                setStatus(TaskStatus.FINISHED);
+        } catch (IOException e) {
+            throw new MSDKRuntimeException(e);
+        }
+    }
 
 }

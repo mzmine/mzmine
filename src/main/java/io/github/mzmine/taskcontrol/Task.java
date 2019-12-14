@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -24,24 +24,24 @@ package io.github.mzmine.taskcontrol;
  */
 public interface Task extends Runnable {
 
-  public String getTaskDescription();
+    public String getTaskDescription();
 
-  public double getFinishedPercentage();
+    public double getFinishedPercentage();
 
-  public TaskStatus getStatus();
+    public TaskStatus getStatus();
 
-  public String getErrorMessage();
+    public String getErrorMessage();
 
-  /**
-   * The standard TaskPriority assign to this task
-   * 
-   * @return
-   */
-  public TaskPriority getTaskPriority();
+    /**
+     * The standard TaskPriority assign to this task
+     * 
+     * @return
+     */
+    public TaskPriority getTaskPriority();
 
-  /**
-   * Cancel a running task by user request.
-   */
-  public void cancel();
+    /**
+     * Cancel a running task by user request.
+     */
+    public void cancel();
 
 }

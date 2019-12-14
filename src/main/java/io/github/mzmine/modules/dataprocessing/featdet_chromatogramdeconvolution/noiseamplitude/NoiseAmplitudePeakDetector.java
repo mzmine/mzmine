@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -44,174 +44,191 @@ import io.github.mzmine.util.maths.CenterFunction;
  */
 public class NoiseAmplitudePeakDetector implements PeakResolver {
 
-  // The maximum noise level relative to the maximum intensity.
-  private static final double MAX_NOISE_LEVEL = 0.3;
+    // The maximum noise level relative to the maximum intensity.
+    private static final double MAX_NOISE_LEVEL = 0.3;
 
-  @Override
-  public @Nonnull String getName() {
-    return "Noise amplitude";
-  }
-
-  @Override
-  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      double rTRangeMSMS) {
-
-    int scanNumbers[] = chromatogram.getScanNumbers();
-    final int scanCount = scanNumbers.length;
-    double retentionTimes[] = new double[scanCount];
-    double intensities[] = new double[scanCount];
-    RawDataFile dataFile = chromatogram.getDataFile();
-    for (int i = 0; i < scanCount; i++) {
-      final int scanNum = scanNumbers[i];
-      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-      DataPoint dp = chromatogram.getDataPoint(scanNum);
-      if (dp != null)
-        intensities[i] = dp.getIntensity();
-      else
-        intensities[i] = 0.0;
+    @Override
+    public @Nonnull String getName() {
+        return "Noise amplitude";
     }
 
-    final double amplitudeOfNoise = parameters.getParameter(NOISE_AMPLITUDE).getValue();
+    @Override
+    public ResolvedPeak[] resolvePeaks(final Feature chromatogram,
+            ParameterSet parameters, RSessionWrapper rSession,
+            CenterFunction mzCenterFunction, double msmsRange,
+            double rTRangeMSMS) {
 
-    // This treeMap stores the score of frequency of intensity ranges
-    final TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
-    double maxIntensity = 0.0;
-    double avgIntensity = 0.0;
-    for (final double intensity : intensities) {
-
-      addNewIntensity(intensity, binsFrequency, amplitudeOfNoise);
-      maxIntensity = Math.max(maxIntensity, intensity);
-      avgIntensity += intensity;
-    }
-
-    avgIntensity /= scanCount;
-
-    final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
-
-    // If the current chromatogram has characteristics of background or just
-    // noise.
-    if (avgIntensity <= maxIntensity / 2.0) {
-
-      final double noiseThreshold =
-          getNoiseThreshold(binsFrequency, maxIntensity, amplitudeOfNoise);
-
-      boolean activePeak = false;
-
-      final Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
-      final double minimumPeakHeight = parameters.getParameter(MIN_PEAK_HEIGHT).getValue();
-
-      // Index of starting region of the current peak.
-      int currentPeakStart = 0;
-      for (int i = 0; i < scanCount; i++) {
-
-        if (intensities[i] > noiseThreshold && !activePeak) {
-
-          currentPeakStart = i;
-          activePeak = true;
+        int scanNumbers[] = chromatogram.getScanNumbers();
+        final int scanCount = scanNumbers.length;
+        double retentionTimes[] = new double[scanCount];
+        double intensities[] = new double[scanCount];
+        RawDataFile dataFile = chromatogram.getDataFile();
+        for (int i = 0; i < scanCount; i++) {
+            final int scanNum = scanNumbers[i];
+            retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
+            DataPoint dp = chromatogram.getDataPoint(scanNum);
+            if (dp != null)
+                intensities[i] = dp.getIntensity();
+            else
+                intensities[i] = 0.0;
         }
 
-        if (intensities[i] <= noiseThreshold && activePeak) {
+        final double amplitudeOfNoise = parameters.getParameter(NOISE_AMPLITUDE)
+                .getValue();
 
-          int currentPeakEnd = i;
+        // This treeMap stores the score of frequency of intensity ranges
+        final TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
+        double maxIntensity = 0.0;
+        double avgIntensity = 0.0;
+        for (final double intensity : intensities) {
 
-          // If the last data point is zero, ignore it.
-          if (intensities[currentPeakEnd] == 0.0) {
+            addNewIntensity(intensity, binsFrequency, amplitudeOfNoise);
+            maxIntensity = Math.max(maxIntensity, intensity);
+            avgIntensity += intensity;
+        }
 
-            currentPeakEnd--;
-          }
+        avgIntensity /= scanCount;
 
-          if (currentPeakEnd - currentPeakStart > 0) {
+        final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
 
-            final ResolvedPeak peak = new ResolvedPeak(chromatogram, currentPeakStart,
-                currentPeakEnd, mzCenterFunction, msmsRange, rTRangeMSMS);
-            if (peakDuration.contains(RangeUtils.rangeLength(peak.getRawDataPointsRTRange()))
-                && peak.getHeight() >= minimumPeakHeight) {
+        // If the current chromatogram has characteristics of background or just
+        // noise.
+        if (avgIntensity <= maxIntensity / 2.0) {
 
-              resolvedPeaks.add(peak);
+            final double noiseThreshold = getNoiseThreshold(binsFrequency,
+                    maxIntensity, amplitudeOfNoise);
+
+            boolean activePeak = false;
+
+            final Range<Double> peakDuration = parameters
+                    .getParameter(PEAK_DURATION).getValue();
+            final double minimumPeakHeight = parameters
+                    .getParameter(MIN_PEAK_HEIGHT).getValue();
+
+            // Index of starting region of the current peak.
+            int currentPeakStart = 0;
+            for (int i = 0; i < scanCount; i++) {
+
+                if (intensities[i] > noiseThreshold && !activePeak) {
+
+                    currentPeakStart = i;
+                    activePeak = true;
+                }
+
+                if (intensities[i] <= noiseThreshold && activePeak) {
+
+                    int currentPeakEnd = i;
+
+                    // If the last data point is zero, ignore it.
+                    if (intensities[currentPeakEnd] == 0.0) {
+
+                        currentPeakEnd--;
+                    }
+
+                    if (currentPeakEnd - currentPeakStart > 0) {
+
+                        final ResolvedPeak peak = new ResolvedPeak(chromatogram,
+                                currentPeakStart, currentPeakEnd,
+                                mzCenterFunction, msmsRange, rTRangeMSMS);
+                        if (peakDuration
+                                .contains(RangeUtils.rangeLength(
+                                        peak.getRawDataPointsRTRange()))
+                                && peak.getHeight() >= minimumPeakHeight) {
+
+                            resolvedPeaks.add(peak);
+                        }
+                    }
+
+                    activePeak = false;
+                }
             }
-          }
-
-          activePeak = false;
         }
-      }
+
+        return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
     }
 
-    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
-  }
+    /**
+     * This method put a new intensity into a treeMap and score the frequency
+     * (the number of times that is present this level of intensity).
+     * 
+     * @param intensity
+     *            intensity to add to map.
+     * @param binsFrequency
+     *            map of bins to add to.
+     * @param amplitudeOfNoise
+     *            noise amplitude.
+     */
+    private static void addNewIntensity(final double intensity,
+            final TreeMap<Integer, Integer> binsFrequency,
+            final double amplitudeOfNoise) {
 
-  /**
-   * This method put a new intensity into a treeMap and score the frequency (the number of times
-   * that is present this level of intensity).
-   * 
-   * @param intensity intensity to add to map.
-   * @param binsFrequency map of bins to add to.
-   * @param amplitudeOfNoise noise amplitude.
-   */
-  private static void addNewIntensity(final double intensity,
-      final TreeMap<Integer, Integer> binsFrequency, final double amplitudeOfNoise) {
-
-    final int bin =
-        intensity < amplitudeOfNoise ? 1 : (int) Math.floor(intensity / amplitudeOfNoise);
-    binsFrequency.put(bin, binsFrequency.containsKey(bin) ? binsFrequency.get(bin) + 1 : 1);
-  }
-
-  /**
-   * This method returns the noise threshold level. This level is calculated using the intensity
-   * with more data points.
-   * 
-   * @param binsFrequency bins holding intensity frequencies.
-   * @param maxIntensity maximum intensity.
-   * @param amplitudeOfNoise noise amplitude.
-   * @return the intensity level of the highest frequency bin.
-   */
-  private static double getNoiseThreshold(final TreeMap<Integer, Integer> binsFrequency,
-      final double maxIntensity, final double amplitudeOfNoise) {
-
-    int numberOfBin = 0;
-    int maxFrequency = 0;
-
-    for (final Integer bin : binsFrequency.keySet()) {
-
-      final int freq = binsFrequency.get(bin);
-      if (freq > maxFrequency) {
-
-        maxFrequency = freq;
-        numberOfBin = bin;
-      }
+        final int bin = intensity < amplitudeOfNoise ? 1
+                : (int) Math.floor(intensity / amplitudeOfNoise);
+        binsFrequency.put(bin,
+                binsFrequency.containsKey(bin) ? binsFrequency.get(bin) + 1
+                        : 1);
     }
 
-    double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
-    if (noiseThreshold / maxIntensity > MAX_NOISE_LEVEL) {
+    /**
+     * This method returns the noise threshold level. This level is calculated
+     * using the intensity with more data points.
+     * 
+     * @param binsFrequency
+     *            bins holding intensity frequencies.
+     * @param maxIntensity
+     *            maximum intensity.
+     * @param amplitudeOfNoise
+     *            noise amplitude.
+     * @return the intensity level of the highest frequency bin.
+     */
+    private static double getNoiseThreshold(
+            final TreeMap<Integer, Integer> binsFrequency,
+            final double maxIntensity, final double amplitudeOfNoise) {
 
-      noiseThreshold = amplitudeOfNoise;
+        int numberOfBin = 0;
+        int maxFrequency = 0;
+
+        for (final Integer bin : binsFrequency.keySet()) {
+
+            final int freq = binsFrequency.get(bin);
+            if (freq > maxFrequency) {
+
+                maxFrequency = freq;
+                numberOfBin = bin;
+            }
+        }
+
+        double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
+        if (noiseThreshold / maxIntensity > MAX_NOISE_LEVEL) {
+
+            noiseThreshold = amplitudeOfNoise;
+        }
+
+        return noiseThreshold;
     }
 
-    return noiseThreshold;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return NoiseAmplitudePeakDetectorParameters.class;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return NoiseAmplitudePeakDetectorParameters.class;
-  }
+    @Override
+    public boolean getRequiresR() {
+        return false;
+    }
 
-  @Override
-  public boolean getRequiresR() {
-    return false;
-  }
+    @Override
+    public String[] getRequiredRPackages() {
+        return null;
+    }
 
-  @Override
-  public String[] getRequiredRPackages() {
-    return null;
-  }
+    @Override
+    public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
 
-  @Override
-  public String[] getRequiredRPackagesVersions() {
-    return null;
-  }
-
-  @Override
-  public REngineType getREngineType(ParameterSet parameters) {
-    return null;
-  }
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
+        return null;
+    }
 }

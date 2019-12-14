@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,27 +32,33 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class TargetedPeakDetectionParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter rawDataFile = new RawDataFilesParameter();
-  public static final IntegerParameter msLevel =
-      new IntegerParameter("MS level", "MS level", 1, true);
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "detectedPeak");
-  public static final FileNameParameter peakListFile = new FileNameParameter("Feature list file",
-      "Name of the file that contains a list of peaks for targeted feature detection.");
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
-  public static final BooleanParameter ignoreFirstLine =
-      new BooleanParameter("Ignore first line", "Ignore the first line of database file");
-  public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
-      "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise",
-      MZmineCore.getConfiguration().getIntensityFormat());
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
-  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RawDataFilesParameter rawDataFile = new RawDataFilesParameter();
+    public static final IntegerParameter msLevel = new IntegerParameter(
+            "MS level", "MS level", 1, true);
+    public static final StringParameter suffix = new StringParameter(
+            "Name suffix", "Suffix to be added to feature list name",
+            "detectedPeak");
+    public static final FileNameParameter peakListFile = new FileNameParameter(
+            "Feature list file",
+            "Name of the file that contains a list of peaks for targeted feature detection.");
+    public static final StringParameter fieldSeparator = new StringParameter(
+            "Field separator",
+            "Character(s) used to separate fields in the database file", ",");
+    public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
+            "Ignore first line", "Ignore the first line of database file");
+    public static final PercentParameter intTolerance = new PercentParameter(
+            "Intensity tolerance",
+            "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level",
+            "Intensities less than this value are interpreted as noise",
+            MZmineCore.getConfiguration().getIntensityFormat());
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public TargetedPeakDetectionParameters() {
-    super(new Parameter[] {rawDataFile, msLevel, suffix, peakListFile, fieldSeparator,
-        ignoreFirstLine, intTolerance, noiseLevel, MZTolerance, RTTolerance});
-  }
+    public TargetedPeakDetectionParameters() {
+        super(new Parameter[] { rawDataFile, msLevel, suffix, peakListFile,
+                fieldSeparator, ignoreFirstLine, intTolerance, noiseLevel,
+                MZTolerance, RTTolerance });
+    }
 }

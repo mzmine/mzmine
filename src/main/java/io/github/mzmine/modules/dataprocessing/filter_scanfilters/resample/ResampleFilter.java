@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -33,53 +33,55 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 public class ResampleFilter implements ScanFilter {
 
-  public Scan filterScan(Scan scan, ParameterSet parameters) {
+    public Scan filterScan(Scan scan, ParameterSet parameters) {
 
-    double binSize = parameters.getParameter(ResampleFilterParameters.binSize).getValue();
+        double binSize = parameters
+                .getParameter(ResampleFilterParameters.binSize).getValue();
 
-    Range<Double> mzRange = scan.getDataPointMZRange();
-    int numberOfBins =
-        (int) Math.round((mzRange.upperEndpoint() - mzRange.lowerEndpoint()) / binSize);
-    if (numberOfBins == 0) {
-      numberOfBins++;
+        Range<Double> mzRange = scan.getDataPointMZRange();
+        int numberOfBins = (int) Math.round(
+                (mzRange.upperEndpoint() - mzRange.lowerEndpoint()) / binSize);
+        if (numberOfBins == 0) {
+            numberOfBins++;
+        }
+
+        // ScanUtils.binValues needs arrays
+        DataPoint dps[] = scan.getDataPoints();
+        double[] x = new double[dps.length];
+        double[] y = new double[dps.length];
+        for (int i = 0; i < dps.length; i++) {
+            x[i] = dps[i].getMZ();
+            y[i] = dps[i].getIntensity();
+        }
+        // the new intensity values
+        double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins,
+                scan.getSpectrumType() == MassSpectrumType.PROFILE,
+                ScanUtils.BinningType.AVG);
+        SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
+
+        // set the new m/z value in the middle of the bin
+        double newX = mzRange.lowerEndpoint() + binSize / 2.0;
+        // creates new DataPoints
+        for (int i = 0; i < newY.length; i++) {
+            newPoints[i] = new SimpleDataPoint(newX, newY[i]);
+            newX += binSize;
+        }
+
+        // Create updated scan
+        SimpleScan newScan = new SimpleScan(scan);
+        newScan.setDataPoints(newPoints);
+        newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+
+        return newScan;
     }
 
-    // ScanUtils.binValues needs arrays
-    DataPoint dps[] = scan.getDataPoints();
-    double[] x = new double[dps.length];
-    double[] y = new double[dps.length];
-    for (int i = 0; i < dps.length; i++) {
-      x[i] = dps[i].getMZ();
-      y[i] = dps[i].getIntensity();
-    }
-    // the new intensity values
-    double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins,
-        scan.getSpectrumType() == MassSpectrumType.PROFILE, ScanUtils.BinningType.AVG);
-    SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
-
-    // set the new m/z value in the middle of the bin
-    double newX = mzRange.lowerEndpoint() + binSize / 2.0;
-    // creates new DataPoints
-    for (int i = 0; i < newY.length; i++) {
-      newPoints[i] = new SimpleDataPoint(newX, newY[i]);
-      newX += binSize;
+    @Override
+    public @Nonnull String getName() {
+        return "Resampling filter";
     }
 
-    // Create updated scan
-    SimpleScan newScan = new SimpleScan(scan);
-    newScan.setDataPoints(newPoints);
-    newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
-
-    return newScan;
-  }
-
-  @Override
-  public @Nonnull String getName() {
-    return "Resampling filter";
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ResampleFilterParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ResampleFilterParameters.class;
+    }
 }

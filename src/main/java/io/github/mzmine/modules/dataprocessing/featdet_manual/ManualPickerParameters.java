@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,14 +25,16 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class ManualPickerParameters extends SimpleParameterSet {
 
-  public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
-      "Retention time", "Retention time range", MZmineCore.getConfiguration().getRTFormat());
+    public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
+            "Retention time", "Retention time range",
+            MZmineCore.getConfiguration().getRTFormat());
 
-  public static final DoubleRangeParameter mzRange = new DoubleRangeParameter("m/z range",
-      "m/z range", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleRangeParameter mzRange = new DoubleRangeParameter(
+            "m/z range", "m/z range",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public ManualPickerParameters() {
-    super(new UserParameter[] {retentionTimeRange, mzRange});
-  }
+    public ManualPickerParameters() {
+        super(new UserParameter[] { retentionTimeRange, mzRange });
+    }
 
 }

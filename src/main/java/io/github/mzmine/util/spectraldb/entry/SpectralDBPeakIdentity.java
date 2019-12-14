@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,82 +31,86 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 
 public class SpectralDBPeakIdentity extends SimplePeakIdentity {
-  private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
+    private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
-  private final SpectralDBEntry entry;
-  private final SpectralSimilarity similarity;
+    private final SpectralDBEntry entry;
+    private final SpectralSimilarity similarity;
 
-  private Scan queryScan;
-  private String massListName;
+    private Scan queryScan;
+    private String massListName;
 
-  public SpectralDBPeakIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
-      SpectralSimilarity similarity, String method) {
-    super(
-        MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
-            entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
-            entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
-            entry.getField(DBEntryField.FORMULA).orElse(""), // molecular formula
-            entry.getField(DBEntryField.ION_TYPE).orElse(""), // Ion type
-            COS_FORM.format(similarity.getScore())), // cosine similarity
-        entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
-    this.entry = entry;
-    this.similarity = similarity;
-    this.queryScan = queryScan;
-    this.massListName = massListName;
-  }
+    public SpectralDBPeakIdentity(Scan queryScan, String massListName,
+            SpectralDBEntry entry, SpectralSimilarity similarity,
+            String method) {
+        super(MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
+                entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
+                entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
+                entry.getField(DBEntryField.FORMULA).orElse(""), // molecular
+                                                                 // formula
+                entry.getField(DBEntryField.ION_TYPE).orElse(""), // Ion type
+                COS_FORM.format(similarity.getScore())), // cosine similarity
+                entry.getField(DBEntryField.FORMULA).orElse("").toString(),
+                method, "", "");
+        this.entry = entry;
+        this.similarity = similarity;
+        this.queryScan = queryScan;
+        this.massListName = massListName;
+    }
 
-  public SpectralDBEntry getEntry() {
-    return entry;
-  }
+    public SpectralDBEntry getEntry() {
+        return entry;
+    }
 
-  public SpectralSimilarity getSimilarity() {
-    return similarity;
-  }
+    public SpectralSimilarity getSimilarity() {
+        return similarity;
+    }
 
-  public Scan getQueryScan() {
-    return queryScan;
-  }
+    public Scan getQueryScan() {
+        return queryScan;
+    }
 
-  public String getMassListName() {
-    return massListName;
-  }
+    public String getMassListName() {
+        return massListName;
+    }
 
-  public DataPoint[] getQueryDataPoints() {
-    if (massListName == null || queryScan == null || queryScan.getMassList(massListName) == null)
-      return null;
-    return queryScan.getMassList(massListName).getDataPoints();
-  }
+    public DataPoint[] getQueryDataPoints() {
+        if (massListName == null || queryScan == null
+                || queryScan.getMassList(massListName) == null)
+            return null;
+        return queryScan.getMassList(massListName).getDataPoints();
+    }
 
-  public DataPoint[] getLibraryDataPoints(DataPointsTag tag) {
-    switch (tag) {
-      case ORIGINAL:
-        return entry.getDataPoints();
-      case FILTERED:
-        return similarity.getLibrary();
-      case ALIGNED:
-        return similarity.getAlignedDataPoints()[0];
-      case MERGED:
+    public DataPoint[] getLibraryDataPoints(DataPointsTag tag) {
+        switch (tag) {
+        case ORIGINAL:
+            return entry.getDataPoints();
+        case FILTERED:
+            return similarity.getLibrary();
+        case ALIGNED:
+            return similarity.getAlignedDataPoints()[0];
+        case MERGED:
+            return new DataPoint[0];
+        }
         return new DataPoint[0];
     }
-    return new DataPoint[0];
-  }
 
-  public DataPoint[] getQueryDataPoints(DataPointsTag tag) {
-    switch (tag) {
-      case ORIGINAL:
-        DataPoint[] dp = getQueryDataPoints();
-        if (dp == null)
-          return new DataPoint[0];
-        Arrays.sort(dp, new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-        return dp;
-      case FILTERED:
-        return similarity.getQuery();
-      case ALIGNED:
-        return similarity.getAlignedDataPoints()[1];
-      case MERGED:
+    public DataPoint[] getQueryDataPoints(DataPointsTag tag) {
+        switch (tag) {
+        case ORIGINAL:
+            DataPoint[] dp = getQueryDataPoints();
+            if (dp == null)
+                return new DataPoint[0];
+            Arrays.sort(dp, new DataPointSorter(SortingProperty.MZ,
+                    SortingDirection.Ascending));
+            return dp;
+        case FILTERED:
+            return similarity.getQuery();
+        case ALIGNED:
+            return similarity.getAlignedDataPoints()[1];
+        case MERGED:
+            return new DataPoint[0];
+        }
         return new DataPoint[0];
     }
-    return new DataPoint[0];
-  }
 
 }

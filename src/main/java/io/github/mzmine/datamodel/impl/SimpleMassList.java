@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,42 +29,42 @@ import io.github.mzmine.datamodel.Scan;
  */
 public class SimpleMassList implements MassList {
 
-  private String name;
-  private Scan scan;
-  private DataPoint mzPeaks[];
+    private String name;
+    private Scan scan;
+    private DataPoint mzPeaks[];
 
-  public SimpleMassList(String name, Scan scan, DataPoint mzPeaks[]) {
-    this.name = name;
-    this.scan = scan;
-    this.mzPeaks = mzPeaks;
-  }
+    public SimpleMassList(String name, Scan scan, DataPoint mzPeaks[]) {
+        this.name = name;
+        this.scan = scan;
+        this.mzPeaks = mzPeaks;
+    }
 
-  @Override
-  public @Nonnull String getName() {
-    return name;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return name;
+    }
 
-  @Override
-  public @Nonnull Scan getScan() {
-    return scan;
-  }
+    @Override
+    public @Nonnull Scan getScan() {
+        return scan;
+    }
 
-  public void setScan(Scan scan) {
-    this.scan = scan;
-  }
+    public void setScan(Scan scan) {
+        this.scan = scan;
+    }
 
-  @Override
-  public @Nonnull DataPoint[] getDataPoints() {
-    return mzPeaks;
-  }
+    @Override
+    public @Nonnull DataPoint[] getDataPoints() {
+        return mzPeaks;
+    }
 
-  public void setDataPoints(DataPoint mzPeaks[]) {
-    this.mzPeaks = mzPeaks;
-  }
+    public void setDataPoints(DataPoint mzPeaks[]) {
+        this.mzPeaks = mzPeaks;
+    }
 
-  @Override
-  public String toString() {
-    return name;
-  }
+    @Override
+    public String toString() {
+        return name;
+    }
 
 }

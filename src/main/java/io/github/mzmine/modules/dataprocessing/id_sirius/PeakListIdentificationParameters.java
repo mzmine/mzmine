@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -23,28 +23,30 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeakListIdentificationParameters extends SiriusParameters {
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter(
-      "Amount of Sirius candidates to return",
-      "Specify the amount of candidates to be saved after processing by Sirius Identification job",
-      1);
+    public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter(
+            "Amount of Sirius candidates to return",
+            "Specify the amount of candidates to be saved after processing by Sirius Identification job",
+            1);
 
-  public static final IntegerParameter CANDIDATES_FINGERID =
-      new IntegerParameter("Amount of FingerId results to return",
-          "Specify the amount of candidates to be returned from a single Sirius result", 1);
+    public static final IntegerParameter CANDIDATES_FINGERID = new IntegerParameter(
+            "Amount of FingerId results to return",
+            "Specify the amount of candidates to be returned from a single Sirius result",
+            1);
 
-  public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter(
-      "Amount of parallel jobs", "Specify the amount of parallel processing jobs", 8);
+    public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter(
+            "Amount of parallel jobs",
+            "Specify the amount of parallel processing jobs", 8);
 
-  public static final IntegerParameter SIRIUS_TIMEOUT = new IntegerParameter(
-      "Timer for Sirius Identification job (sec)",
-      "Specify the amount of seconds, during which Sirius Identification job should finish processing a row.",
-      30);
+    public static final IntegerParameter SIRIUS_TIMEOUT = new IntegerParameter(
+            "Timer for Sirius Identification job (sec)",
+            "Specify the amount of seconds, during which Sirius Identification job should finish processing a row.",
+            30);
 
-
-  public PeakListIdentificationParameters() {
-    super(new Parameter[] {peakLists, ionizationType, MZ_TOLERANCE, ELEMENTS, MASS_LIST,
-        CANDIDATES_AMOUNT, CANDIDATES_FINGERID, THREADS_AMOUNT, SIRIUS_TIMEOUT});
-  }
+    public PeakListIdentificationParameters() {
+        super(new Parameter[] { peakLists, ionizationType, MZ_TOLERANCE,
+                ELEMENTS, MASS_LIST, CANDIDATES_AMOUNT, CANDIDATES_FINGERID,
+                THREADS_AMOUNT, SIRIUS_TIMEOUT });
+    }
 }

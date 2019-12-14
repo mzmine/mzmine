@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,27 +25,32 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutil
  */
 public class LipidChainBuilder {
 
-  LipidChainBuilder() {
+    LipidChainBuilder() {
 
-  }
-
-  /**
-   * This method builds radyl chains for lipids based on the user set parameters chain length, chain
-   * double bonds, number of acyl chains and number of alky chains
-   */
-  public String calculateChainFormula(final int chainLength, final int chainDoubleBonds,
-      final int numberOfAcylChains, final int numberOfAlkylChains) {
-    String chainFormula = null;
-    if (chainLength > 0) { // +1 H for CH3 last CH3 group
-      final int numberOfHydrogens = (1 * numberOfAcylChains + 1 * numberOfAlkylChains)// +1H for las
-                                                                                      // CH3 group
-          + (chainLength * 2 - chainDoubleBonds * 2) // double bond correction
-          - 2 * numberOfAcylChains; // remove 2 H for C in acyl group
-      final int numberOfCarbons = chainLength - numberOfAcylChains;
-      // correctNumberOfCarbons(chainLength, numberOfAcylChains, numberOfAlkylChains);
-      chainFormula = "C" + numberOfCarbons + 'H' + numberOfHydrogens;
     }
-    return chainFormula;
-  }
+
+    /**
+     * This method builds radyl chains for lipids based on the user set
+     * parameters chain length, chain double bonds, number of acyl chains and
+     * number of alky chains
+     */
+    public String calculateChainFormula(final int chainLength,
+            final int chainDoubleBonds, final int numberOfAcylChains,
+            final int numberOfAlkylChains) {
+        String chainFormula = null;
+        if (chainLength > 0) { // +1 H for CH3 last CH3 group
+            final int numberOfHydrogens = (1 * numberOfAcylChains
+                    + 1 * numberOfAlkylChains)// +1H for las
+                                              // CH3 group
+                    + (chainLength * 2 - chainDoubleBonds * 2) // double bond
+                                                               // correction
+                    - 2 * numberOfAcylChains; // remove 2 H for C in acyl group
+            final int numberOfCarbons = chainLength - numberOfAcylChains;
+            // correctNumberOfCarbons(chainLength, numberOfAcylChains,
+            // numberOfAlkylChains);
+            chainFormula = "C" + numberOfCarbons + 'H' + numberOfHydrogens;
+        }
+        return chainFormula;
+    }
 
 }

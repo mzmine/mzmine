@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -44,40 +44,42 @@ import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
  * PreviewCell for chemical structure images
  */
 public class PreviewCell extends JComponent {
-  private final IAtomContainer molecule;
-  private static final AtomContainerRenderer renderer;
+    private final IAtomContainer molecule;
+    private static final AtomContainerRenderer renderer;
 
-  static {
-    // Generators make the image elements
-    Font font = new Font("Verdana", Font.PLAIN, 14);
-    List<IGenerator<IAtomContainer>> generators = new ArrayList<>();
-    generators.add(new BasicSceneGenerator());
-    generators.add(new StandardGenerator(font));
+    static {
+        // Generators make the image elements
+        Font font = new Font("Verdana", Font.PLAIN, 14);
+        List<IGenerator<IAtomContainer>> generators = new ArrayList<>();
+        generators.add(new BasicSceneGenerator());
+        generators.add(new StandardGenerator(font));
 
-    // Renderer needs to have a toolkit-specific font manager
-    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
-  }
+        // Renderer needs to have a toolkit-specific font manager
+        renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+    }
 
-  /**
-   * Define renderers and save molecule`s container
-   * @param molecule
-   */
-  public PreviewCell(IAtomContainer molecule) {
-    this.molecule = molecule;
-  }
+    /**
+     * Define renderers and save molecule`s container
+     * 
+     * @param molecule
+     */
+    public PreviewCell(IAtomContainer molecule) {
+        this.molecule = molecule;
+    }
 
-  @Override
-  protected void paintComponent(Graphics g) {
-    Graphics2D g2 = (Graphics2D) g;
-    g2.setColor(Color.WHITE);
-    g2.fillRect(0, 0, getWidth(), getHeight());
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.WHITE);
+        g2.fillRect(0, 0, getWidth(), getHeight());
 
-    final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
-    renderer.setup(molecule, drawArea);
-    renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
+        final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
+        renderer.setup(molecule, drawArea);
+        renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
 
-    // Set default atom colors for the renderer
-    RendererModel rendererModel = renderer.getRenderer2DModel();
-    rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
-  }
+        // Set default atom colors for the renderer
+        RendererModel rendererModel = renderer.getRenderer2DModel();
+        rendererModel.set(StandardGenerator.AtomColor.class,
+                new CDK2DAtomColors());
+    }
 }

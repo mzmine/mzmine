@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -43,60 +43,65 @@ import io.github.mzmine.util.ExitCode;
  */
 public class NistMsSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "NIST MS Search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches for spectra in the NIST library.";
+    private static final String MODULE_NAME = "NIST MS Search";
+    private static final String MODULE_DESCRIPTION = "This method searches for spectra in the NIST library.";
 
-  @Override
-  public @Nonnull String getName() {
+    @Override
+    public @Nonnull String getName() {
 
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return NistMsSearchParameters.class;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    for (final PeakList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists()) {
-
-      tasks.add(new NistMsSearchTask(peakList, parameters));
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
 
-  /**
-   * Search for a peak-list row's mass spectrum.
-   *
-   * @param peakList the peak-list.
-   * @param row the peak-list row.
-   */
-  public static void singleRowSearch(final PeakList peakList, final PeakListRow row) {
-
-    final ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
+        return MODULE_DESCRIPTION;
     }
-  }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+
+        return MZmineModuleCategory.IDENTIFICATION;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return NistMsSearchParameters.class;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        for (final PeakList peakList : parameters
+                .getParameter(NistMsSearchParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists()) {
+
+            tasks.add(new NistMsSearchTask(peakList, parameters));
+        }
+
+        return ExitCode.OK;
+    }
+
+    /**
+     * Search for a peak-list row's mass spectrum.
+     *
+     * @param peakList
+     *            the peak-list.
+     * @param row
+     *            the peak-list row.
+     */
+    public static void singleRowSearch(final PeakList peakList,
+            final PeakListRow row) {
+
+        final ParameterSet parameters = MZmineCore.getConfiguration()
+                .getModuleParameters(NistMsSearchModule.class);
+        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+                true) == ExitCode.OK) {
+
+            MZmineCore.getTaskController()
+                    .addTask(new NistMsSearchTask(row, peakList, parameters));
+        }
+    }
 }

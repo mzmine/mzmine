@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,104 +31,106 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 /**
  * Batch queue parameter.
  */
-public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetupComponent> {
+public class BatchQueueParameter
+        implements UserParameter<BatchQueue, BatchSetupComponent> {
 
-  private BatchQueue value;
+    private BatchQueue value;
 
-  /**
-   * Create the parameter.
-   */
-  public BatchQueueParameter() {
-    value = null;
-  }
+    /**
+     * Create the parameter.
+     */
+    public BatchQueueParameter() {
+        value = null;
+    }
 
-  @Override
-  public String getName() {
-    return "Batch queue";
-  }
+    @Override
+    public String getName() {
+        return "Batch queue";
+    }
 
-  @Override
-  public String getDescription() {
-    return "Please add and configure individual batch steps";
-  }
+    @Override
+    public String getDescription() {
+        return "Please add and configure individual batch steps";
+    }
 
-  @Override
-  public BatchSetupComponent createEditingComponent() {
-    return new BatchSetupComponent();
-  }
+    @Override
+    public BatchSetupComponent createEditingComponent() {
+        return new BatchSetupComponent();
+    }
 
-  @Override
-  public BatchQueue getValue() {
-    return value;
-  }
+    @Override
+    public BatchQueue getValue() {
+        return value;
+    }
 
-  @Override
-  public void setValue(final BatchQueue newValue) {
-    value = newValue;
-  }
+    @Override
+    public void setValue(final BatchQueue newValue) {
+        value = newValue;
+    }
 
-  @Override
-  public void setValueFromComponent(final BatchSetupComponent component) {
-    setValue(component.getValue());
-  }
+    @Override
+    public void setValueFromComponent(final BatchSetupComponent component) {
+        setValue(component.getValue());
+    }
 
-  @Override
-  public void setValueToComponent(final BatchSetupComponent component, final BatchQueue newValue) {
-    component.setValue(newValue);
-  }
+    @Override
+    public void setValueToComponent(final BatchSetupComponent component,
+            final BatchQueue newValue) {
+        component.setValue(newValue);
+    }
 
-  @Override
-  public BatchQueueParameter cloneParameter() {
-    final BatchQueueParameter copy = new BatchQueueParameter();
-    copy.setValue(value.clone());
-    return copy;
-  }
+    @Override
+    public BatchQueueParameter cloneParameter() {
+        final BatchQueueParameter copy = new BatchQueueParameter();
+        copy.setValue(value.clone());
+        return copy;
+    }
 
-  @Override
-  public boolean checkValue(final Collection<String> errorMessages) {
+    @Override
+    public boolean checkValue(final Collection<String> errorMessages) {
 
-    boolean allParamsOK = true;
-    if (value == null) {
+        boolean allParamsOK = true;
+        if (value == null) {
 
-      // Parameters not set.
-      errorMessages.add(getName() + " is not set");
-      allParamsOK = false;
-
-    } else {
-
-      // Check each step.
-      for (final MZmineProcessingStep<?> batchStep : value) {
-
-        // Check step's parameters.
-        final ParameterSet params = batchStep.getParameterSet();
-        if (params == null)
-          continue;
-
-        for (final Parameter<?> parameter : params.getParameters()) {
-
-          // Ignore the raw data files and feature lists parameters
-          if (!(parameter instanceof RawDataFilesParameter)
-              && !(parameter instanceof PeakListsParameter)
-              && !parameter.checkValue(errorMessages)) {
+            // Parameters not set.
+            errorMessages.add(getName() + " is not set");
             allParamsOK = false;
 
-          }
+        } else {
+
+            // Check each step.
+            for (final MZmineProcessingStep<?> batchStep : value) {
+
+                // Check step's parameters.
+                final ParameterSet params = batchStep.getParameterSet();
+                if (params == null)
+                    continue;
+
+                for (final Parameter<?> parameter : params.getParameters()) {
+
+                    // Ignore the raw data files and feature lists parameters
+                    if (!(parameter instanceof RawDataFilesParameter)
+                            && !(parameter instanceof PeakListsParameter)
+                            && !parameter.checkValue(errorMessages)) {
+                        allParamsOK = false;
+
+                    }
+                }
+            }
         }
-      }
+
+        return allParamsOK;
     }
 
-    return allParamsOK;
-  }
-
-  @Override
-  public void loadValueFromXML(final Element xmlElement) {
-    value = BatchQueue.loadFromXml(xmlElement);
-  }
-
-  @Override
-  public void saveValueToXML(final Element xmlElement) {
-    if (value != null) {
-      value.saveToXml(xmlElement);
+    @Override
+    public void loadValueFromXML(final Element xmlElement) {
+        value = BatchQueue.loadFromXml(xmlElement);
     }
-  }
+
+    @Override
+    public void saveValueToXML(final Element xmlElement) {
+        if (value != null) {
+            value.saveToXml(xmlElement);
+        }
+    }
 }

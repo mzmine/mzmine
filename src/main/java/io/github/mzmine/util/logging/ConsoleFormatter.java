@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,39 +29,39 @@ import java.util.logging.LogRecord;
  */
 public class ConsoleFormatter extends Formatter {
 
-  private static final DateFormat format = new SimpleDateFormat("H:mm:ss");
-  private static final String lineSep = System.getProperty("line.separator");
+    private static final DateFormat format = new SimpleDateFormat("H:mm:ss");
+    private static final String lineSep = System.getProperty("line.separator");
 
-  public String format(LogRecord record) {
+    public String format(LogRecord record) {
 
-    StringBuilder output = new StringBuilder(512);
-    Date eventTime = new Date(record.getMillis());
+        StringBuilder output = new StringBuilder(512);
+        Date eventTime = new Date(record.getMillis());
 
-    output.append("[");
-    output.append(format.format(eventTime));
-    output.append('|');
-    output.append(record.getLevel());
-    output.append('|');
-    output.append(record.getLoggerName());
-    output.append("]: ");
-    output.append(record.getMessage());
+        output.append("[");
+        output.append(format.format(eventTime));
+        output.append('|');
+        output.append(record.getLevel());
+        output.append('|');
+        output.append(record.getLoggerName());
+        output.append("]: ");
+        output.append(record.getMessage());
 
-    if (record.getThrown() != null) {
-      output.append("(");
-      output.append(record.getThrown().toString());
+        if (record.getThrown() != null) {
+            output.append("(");
+            output.append(record.getThrown().toString());
 
-      Object[] stackTrace = record.getThrown().getStackTrace();
-      if (stackTrace.length > 0) {
-        output.append("@");
-        output.append(stackTrace[0].toString());
-      }
+            Object[] stackTrace = record.getThrown().getStackTrace();
+            if (stackTrace.length > 0) {
+                output.append("@");
+                output.append(stackTrace[0].toString());
+            }
 
-      output.append(")");
+            output.append(")");
+        }
+
+        output.append(lineSep);
+
+        return output.toString();
     }
-
-    output.append(lineSep);
-
-    return output.toString();
-  }
 
 }

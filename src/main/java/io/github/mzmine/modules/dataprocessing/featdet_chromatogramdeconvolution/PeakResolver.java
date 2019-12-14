@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,45 +28,48 @@ import io.github.mzmine.util.maths.CenterFunction;
 
 public interface PeakResolver extends MZmineModule {
 
-  /**
-   * Gets if resolver requires R, if applicable
-   */
-  public boolean getRequiresR();
+    /**
+     * Gets if resolver requires R, if applicable
+     */
+    public boolean getRequiresR();
 
-  /**
-   * Gets R required packages for the resolver's method, if applicable
-   */
-  public String[] getRequiredRPackages();
+    /**
+     * Gets R required packages for the resolver's method, if applicable
+     */
+    public String[] getRequiredRPackages();
 
-  /**
-   * Gets R required packages versions for the resolver's method, if applicable
-   */
-  public String[] getRequiredRPackagesVersions();
+    /**
+     * Gets R required packages versions for the resolver's method, if
+     * applicable
+     */
+    public String[] getRequiredRPackagesVersions();
 
-  /**
-   * Gets R engine type, if applicable
-   */
-  public REngineType getREngineType(final ParameterSet parameters);
+    /**
+     * Gets R engine type, if applicable
+     */
+    public REngineType getREngineType(final ParameterSet parameters);
 
-  /**
-   * Resolve a peaks found within given chromatogram. For easy use, three arrays (scanNumbers,
-   * retentionTimes and intensities) are provided, although the contents of these arrays can also be
-   * obtained from the chromatogram itself. The size of these arrays must be same, and must be equal
-   * to the number of scans covered by given chromatogram.
-   * 
-   * @param mzCenterFunction
-   * 
-   * @param rTRangeMSMS
-   * @param msmsRange
-   * @param rTRangeMSMS
-   * @param msmsRange
-   * @param rTRangeMSMS
-   * @param msmsRange
-   * 
-   * @throws RSessionWrapperException
-   */
-  public ResolvedPeak[] resolvePeaks(Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      double rTRangeMSMS) throws RSessionWrapperException;
+    /**
+     * Resolve a peaks found within given chromatogram. For easy use, three
+     * arrays (scanNumbers, retentionTimes and intensities) are provided,
+     * although the contents of these arrays can also be obtained from the
+     * chromatogram itself. The size of these arrays must be same, and must be
+     * equal to the number of scans covered by given chromatogram.
+     * 
+     * @param mzCenterFunction
+     * 
+     * @param rTRangeMSMS
+     * @param msmsRange
+     * @param rTRangeMSMS
+     * @param msmsRange
+     * @param rTRangeMSMS
+     * @param msmsRange
+     * 
+     * @throws RSessionWrapperException
+     */
+    public ResolvedPeak[] resolvePeaks(Feature chromatogram,
+            ParameterSet parameters, RSessionWrapper rSession,
+            CenterFunction mzCenterFunction, double msmsRange,
+            double rTRangeMSMS) throws RSessionWrapperException;
 
 }

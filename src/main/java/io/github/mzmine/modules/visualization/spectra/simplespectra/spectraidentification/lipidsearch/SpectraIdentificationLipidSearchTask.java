@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -56,238 +56,287 @@ import io.github.mzmine.taskcontrol.TaskStatus;
  */
 public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private Object[] selectedObjects;
-  private LipidClasses[] selectedLipids;
-  private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
-  private MZTolerance mzTolerance;
-  private IonizationType ionizationType;
-  private Boolean searchForModifications;
-  private double noiseLevel;
-  private double[] lipidModificationMasses;
-  private LipidModification[] lipidModification;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Object[] selectedObjects;
+    private LipidClasses[] selectedLipids;
+    private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
+    private MZTolerance mzTolerance;
+    private IonizationType ionizationType;
+    private Boolean searchForModifications;
+    private double noiseLevel;
+    private double[] lipidModificationMasses;
+    private LipidModification[] lipidModification;
+    private Scan currentScan;
+    private SpectraPlot spectraPlot;
 
-  private int finishedSteps = 0, totalSteps;
-  private double searchedMass;
+    private int finishedSteps = 0, totalSteps;
+    private double searchedMass;
 
-  public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    public static final NumberFormat massFormater = MZmineCore
+            .getConfiguration().getMZFormat();
 
-  /**
-   * Create the task.
-   * 
-   * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
-   */
-  public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
+    /**
+     * Create the task.
+     * 
+     * @param parameters
+     *            task parameters.
+     * @param peakListRow
+     *            peak-list row to identify.
+     */
+    public SpectraIdentificationLipidSearchTask(ParameterSet parameters,
+            Scan currentScan, SpectraPlot spectraPlot) {
 
-    this.currentScan = currentScan;
-    this.spectraPlot = spectraPlot;
+        this.currentScan = currentScan;
+        this.spectraPlot = spectraPlot;
 
-    minChainLength = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.minChainLength).getValue();
-    maxChainLength = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.maxChainLength).getValue();
-    maxDoubleBonds = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.maxDoubleBonds).getValue();
-    minDoubleBonds = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.minDoubleBonds).getValue();
-    mzTolerance =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.mzTolerance).getValue();
-    selectedObjects =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.lipidClasses).getValue();
-    ionizationType = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.ionizationMethod).getValue();
-    searchForModifications = parameters
-        .getParameter(SpectraIdentificationLipidSearchParameters.useModification).getValue();
-    lipidModification =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.modification).getValue();
-    noiseLevel =
-        parameters.getParameter(SpectraIdentificationLipidSearchParameters.noiseLevel).getValue();
+        minChainLength = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.minChainLength)
+                .getValue();
+        maxChainLength = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.maxChainLength)
+                .getValue();
+        maxDoubleBonds = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.maxDoubleBonds)
+                .getValue();
+        minDoubleBonds = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.minDoubleBonds)
+                .getValue();
+        mzTolerance = parameters
+                .getParameter(
+                        SpectraIdentificationLipidSearchParameters.mzTolerance)
+                .getValue();
+        selectedObjects = parameters
+                .getParameter(
+                        SpectraIdentificationLipidSearchParameters.lipidClasses)
+                .getValue();
+        ionizationType = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.ionizationMethod)
+                .getValue();
+        searchForModifications = parameters.getParameter(
+                SpectraIdentificationLipidSearchParameters.useModification)
+                .getValue();
+        lipidModification = parameters
+                .getParameter(
+                        SpectraIdentificationLipidSearchParameters.modification)
+                .getValue();
+        noiseLevel = parameters
+                .getParameter(
+                        SpectraIdentificationLipidSearchParameters.noiseLevel)
+                .getValue();
 
-    // Convert Objects to LipidClasses
-    selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-        .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (totalSteps == 0)
-      return 0;
-    return ((double) finishedSteps) / totalSteps;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  @Override
-  public String getTaskDescription() {
-    return "Signal identification " + " using the Lipid Search module";
-  }
-
-  /**
-   * @see java.lang.Runnable#run()
-   */
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    // create mass list for scan
-    DataPoint[] massList = null;
-    ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
-    MassDetector massDetector = null;
-    ArrayList<String> allCompoundIDs = new ArrayList<>();
-
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
-    if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-      massDetector = new CentroidMassDetector();
-      CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
-      CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    } else {
-      massDetector = new ExactMassDetector();
-      ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
-      ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    }
-    totalSteps = massList.length;
-    // loop through every peak in mass list
-    if (getStatus() != TaskStatus.PROCESSING) {
-      return;
+        // Convert Objects to LipidClasses
+        selectedLipids = Arrays.stream(selectedObjects)
+                .filter(o -> o instanceof LipidClasses)
+                .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
     }
 
-    // Check if lipids should be modified
-    if (searchForModifications == true) {
-      lipidModificationMasses = getLipidModificationMasses(lipidModification);
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        if (totalSteps == 0)
+            return 0;
+        return ((double) finishedSteps) / totalSteps;
     }
-    // Calculate how many possible lipids we will try
-    totalSteps = (((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1))
-        * selectedLipids.length);
-    // Combine Strings
-    String annotation = "";
-    // Try all combinations of fatty acid lengths and double bonds
-    for (int j = 0; j < selectedLipids.length; j++) {
-      int numberOfAcylChains = selectedLipids[j].getNumberOfAcylChains();
-      int numberOfAlkylChains = selectedLipids[j].getNumberofAlkyChains();
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
-          for (int i = 0; i < massList.length; i++) {
-            searchedMass = massList[i].getMZ();
-            // Task canceled?
-            if (isCanceled())
-              return;
 
-            // If we have non-zero fatty acid, which is shorter
-            // than minimal length, skip this lipid
-            if (((chainLength > 0) && (chainLength < minChainLength))) {
-              continue;
-            }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    @Override
+    public String getTaskDescription() {
+        return "Signal identification " + " using the Lipid Search module";
+    }
 
-            // If we have more double bonds than carbons, it
-            // doesn't make sense, so let's skip such lipids
-            if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
-              continue;
-            }
-            // Prepare a lipid instance
-            LipidIdentity lipidChain = new LipidIdentity(selectedLipids[j], chainLength,
-                chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
-            annotation = findPossibleLipid(lipidChain, searchedMass);
-            if (annotation != "") {
-              allCompoundIDs.add(annotation);
-              massListAnnotated.add(massList[i]);
-            }
-            annotation = findPossibleLipidModification(lipidChain, searchedMass);
-            if (annotation != "") {
-              allCompoundIDs.add(annotation);
-              massListAnnotated.add(massList[i]);
-            }
-          }
-          finishedSteps++;
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+
+        setStatus(TaskStatus.PROCESSING);
+
+        // create mass list for scan
+        DataPoint[] massList = null;
+        ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
+        MassDetector massDetector = null;
+        ArrayList<String> allCompoundIDs = new ArrayList<>();
+
+        // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+        // or centroid mode
+        if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+            massDetector = new CentroidMassDetector();
+            CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
+            CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
+        } else {
+            massDetector = new ExactMassDetector();
+            ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
+            ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
         }
-      }
+        totalSteps = massList.length;
+        // loop through every peak in mass list
+        if (getStatus() != TaskStatus.PROCESSING) {
+            return;
+        }
+
+        // Check if lipids should be modified
+        if (searchForModifications == true) {
+            lipidModificationMasses = getLipidModificationMasses(
+                    lipidModification);
+        }
+        // Calculate how many possible lipids we will try
+        totalSteps = (((maxChainLength - minChainLength + 1)
+                * (maxDoubleBonds - minDoubleBonds + 1))
+                * selectedLipids.length);
+        // Combine Strings
+        String annotation = "";
+        // Try all combinations of fatty acid lengths and double bonds
+        for (int j = 0; j < selectedLipids.length; j++) {
+            int numberOfAcylChains = selectedLipids[j].getNumberOfAcylChains();
+            int numberOfAlkylChains = selectedLipids[j].getNumberofAlkyChains();
+            for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+                for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+                    for (int i = 0; i < massList.length; i++) {
+                        searchedMass = massList[i].getMZ();
+                        // Task canceled?
+                        if (isCanceled())
+                            return;
+
+                        // If we have non-zero fatty acid, which is shorter
+                        // than minimal length, skip this lipid
+                        if (((chainLength > 0)
+                                && (chainLength < minChainLength))) {
+                            continue;
+                        }
+
+                        // If we have more double bonds than carbons, it
+                        // doesn't make sense, so let's skip such lipids
+                        if (((chainDoubleBonds > 0)
+                                && (chainDoubleBonds > chainLength - 1))) {
+                            continue;
+                        }
+                        // Prepare a lipid instance
+                        LipidIdentity lipidChain = new LipidIdentity(
+                                selectedLipids[j], chainLength,
+                                chainDoubleBonds, numberOfAcylChains,
+                                numberOfAlkylChains);
+                        annotation = findPossibleLipid(lipidChain,
+                                searchedMass);
+                        if (annotation != "") {
+                            allCompoundIDs.add(annotation);
+                            massListAnnotated.add(massList[i]);
+                        }
+                        annotation = findPossibleLipidModification(lipidChain,
+                                searchedMass);
+                        if (annotation != "") {
+                            allCompoundIDs.add(annotation);
+                            massListAnnotated.add(massList[i]);
+                        }
+                    }
+                    finishedSteps++;
+                }
+            }
+        }
+
+        // new mass list
+        DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
+        massListAnnotated.toArray(annotatedMassList);
+        String[] annotations = new String[annotatedMassList.length];
+        allCompoundIDs.toArray(annotations);
+        DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
+                "Detected compounds", annotatedMassList);
+        // Add label generator for the dataset
+        SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+                annotations, spectraPlot);
+        spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true,
+                labelGenerator);
+        spectraPlot.getXYPlot().getRenderer().setSeriesItemLabelGenerator(
+                spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
+        spectraPlot.getXYPlot().getRenderer()
+                .setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
+                        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT,
+                        TextAnchor.BOTTOM_CENTER, 0.0), true);
+        setStatus(TaskStatus.FINISHED);
+
     }
 
-    // new mass list
-    DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
-    massListAnnotated.toArray(annotatedMassList);
-    String[] annotations = new String[annotatedMassList.length];
-    allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
-    // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
-    spectraPlot.getXYPlot().getRenderer()
-        .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
-    setStatus(TaskStatus.FINISHED);
-
-  }
-
-  private String findPossibleLipid(LipidIdentity lipid, double searchedMass) {
-    String lipidAnnoation = "";
-    double lipidIonMass = 0.0;
-    double lipidMass = lipid.getMass();
-    lipidIonMass = lipidMass + ionizationType.getAddedMass();
-    logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
-    Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(searchedMass);
-    if (mzTolRange12C.contains(lipidIonMass)) {
-      // Calc rel mass deviation;
-      double relMassDev = ((lipidIonMass - searchedMass) / lipidIonMass) * 1000000;
-      lipidAnnoation = lipid.getName() + ionizationType.getAdduct() + ", Δ "
-          + NumberFormat.getInstance().format(relMassDev) + " ppm"; // Format relativ mass
+    private String findPossibleLipid(LipidIdentity lipid, double searchedMass) {
+        String lipidAnnoation = "";
+        double lipidIonMass = 0.0;
+        double lipidMass = lipid.getMass();
+        lipidIonMass = lipidMass + ionizationType.getAddedMass();
+        logger.info("Searching for lipid " + lipid.getDescription() + ", "
+                + lipidIonMass + " m/z");
+        Range<Double> mzTolRange12C = mzTolerance
+                .getToleranceRange(searchedMass);
+        if (mzTolRange12C.contains(lipidIonMass)) {
+            // Calc rel mass deviation;
+            double relMassDev = ((lipidIonMass - searchedMass) / lipidIonMass)
+                    * 1000000;
+            lipidAnnoation = lipid.getName() + ionizationType.getAdduct()
+                    + ", Δ " + NumberFormat.getInstance().format(relMassDev)
+                    + " ppm"; // Format relativ mass
+        }
+        return lipidAnnoation;
     }
-    return lipidAnnoation;
-  }
 
-  private String findPossibleLipidModification(LipidIdentity lipid, double searchedMass) {
-    String lipidAnnoation = "";
-    double lipidIonMass = 0.0;
-    double lipidMass = lipid.getMass();
-    lipidIonMass = lipidMass + ionizationType.getAddedMass();
-    logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
-    Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(searchedMass);
-    // If search for modifications is selected search for modifications in MS1
-    if (searchForModifications == true) {
-      lipidAnnoation = searchModifications(searchedMass, lipidIonMass, lipid,
-          lipidModificationMasses, mzTolRange12C);
+    private String findPossibleLipidModification(LipidIdentity lipid,
+            double searchedMass) {
+        String lipidAnnoation = "";
+        double lipidIonMass = 0.0;
+        double lipidMass = lipid.getMass();
+        lipidIonMass = lipidMass + ionizationType.getAddedMass();
+        logger.info("Searching for lipid " + lipid.getDescription() + ", "
+                + lipidIonMass + " m/z");
+        Range<Double> mzTolRange12C = mzTolerance
+                .getToleranceRange(searchedMass);
+        // If search for modifications is selected search for modifications in
+        // MS1
+        if (searchForModifications == true) {
+            lipidAnnoation = searchModifications(searchedMass, lipidIonMass,
+                    lipid, lipidModificationMasses, mzTolRange12C);
+        }
+        return lipidAnnoation;
     }
-    return lipidAnnoation;
-  }
 
-  private String searchModifications(double searchedMass, double lipidIonMass, LipidIdentity lipid,
-      double[] lipidModificationMasses, Range<Double> mzTolModification) {
-    String lipidAnnoation = "";
-    for (int j = 0; j < lipidModificationMasses.length; j++) {
-      if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j]))) {
-        // Calc relativ mass deviation
-        double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - searchedMass)
-            / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
-        // Add row identity
-        lipidAnnoation = lipid + " " + ionizationType.getAdduct() + " " + lipidModification[j]
-            + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm";
-        logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
-            + NumberFormat.getInstance().format(relMassDev) + " ppm");
-      }
+    private String searchModifications(double searchedMass, double lipidIonMass,
+            LipidIdentity lipid, double[] lipidModificationMasses,
+            Range<Double> mzTolModification) {
+        String lipidAnnoation = "";
+        for (int j = 0; j < lipidModificationMasses.length; j++) {
+            if (mzTolModification
+                    .contains(lipidIonMass + (lipidModificationMasses[j]))) {
+                // Calc relativ mass deviation
+                double relMassDev = ((lipidIonMass
+                        + (lipidModificationMasses[j]) - searchedMass)
+                        / (lipidIonMass + lipidModificationMasses[j]))
+                        * 1000000;
+                // Add row identity
+                lipidAnnoation = lipid + " " + ionizationType.getAdduct() + " "
+                        + lipidModification[j] + ", Δ "
+                        + NumberFormat.getInstance().format(relMassDev)
+                        + " ppm";
+                logger.info("Found modified lipid: " + lipid.getName() + " "
+                        + lipidModification[j] + ", Δ "
+                        + NumberFormat.getInstance().format(relMassDev)
+                        + " ppm");
+            }
+        }
+        return lipidAnnoation;
     }
-    return lipidAnnoation;
-  }
 
-  private double[] getLipidModificationMasses(LipidModification[] lipidModification) {
-    double[] lipidModificationMasses = new double[lipidModification.length];
-    for (int i = 0; i < lipidModification.length; i++) {
-      lipidModificationMasses[i] = lipidModification[i].getModificationMass();
+    private double[] getLipidModificationMasses(
+            LipidModification[] lipidModification) {
+        double[] lipidModificationMasses = new double[lipidModification.length];
+        for (int i = 0; i < lipidModification.length; i++) {
+            lipidModificationMasses[i] = lipidModification[i]
+                    .getModificationMass();
+        }
+        return lipidModificationMasses;
     }
-    return lipidModificationMasses;
-  }
 
 }

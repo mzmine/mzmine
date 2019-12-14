@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,57 +25,59 @@ import javax.swing.JTextField;
 
 public class MZToleranceComponent extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private final JTextField mzToleranceField, ppmToleranceField;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private final JTextField mzToleranceField, ppmToleranceField;
 
-  public MZToleranceComponent() {
+    public MZToleranceComponent() {
 
-    setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 
-    mzToleranceField = new JTextField();
-    mzToleranceField.setColumns(6);
-    add(mzToleranceField);
+        mzToleranceField = new JTextField();
+        mzToleranceField.setColumns(6);
+        add(mzToleranceField);
 
-    add(new JLabel("m/z  or"));
+        add(new JLabel("m/z  or"));
 
-    ppmToleranceField = new JTextField();
-    ppmToleranceField.setColumns(6);
-    add(ppmToleranceField);
+        ppmToleranceField = new JTextField();
+        ppmToleranceField.setColumns(6);
+        add(ppmToleranceField);
 
-    add(new JLabel("ppm"));
-  }
-
-  public void setValue(MZTolerance value) {
-    mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-    ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
-  }
-
-  public MZTolerance getValue() {
-    try {
-      double mzTolerance = Double.parseDouble(mzToleranceField.getText().trim());
-      double ppmTolerance = Double.parseDouble(ppmToleranceField.getText().trim());
-      MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
-      return value;
-    } catch (NumberFormatException e) {
-      return null;
+        add(new JLabel("ppm"));
     }
 
-  }
+    public void setValue(MZTolerance value) {
+        mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+        ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    mzToleranceField.setToolTipText(toolTip);
-    ppmToleranceField.setToolTipText(toolTip);
-  }
+    public MZTolerance getValue() {
+        try {
+            double mzTolerance = Double
+                    .parseDouble(mzToleranceField.getText().trim());
+            double ppmTolerance = Double
+                    .parseDouble(ppmToleranceField.getText().trim());
+            MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
+            return value;
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    mzToleranceField.setEditable(enabled);
-    ppmToleranceField.setEditable(enabled);
-  }
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        mzToleranceField.setToolTipText(toolTip);
+        ppmToleranceField.setToolTipText(toolTip);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        mzToleranceField.setEditable(enabled);
+        ppmToleranceField.setEditable(enabled);
+    }
 
 }

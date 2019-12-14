@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -54,225 +54,226 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class MultiSpectraVisualizerWindow extends JFrame {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private RawDataFile[] rawFiles;
-  private PeakListRow row;
-  private RawDataFile activeRaw;
+    private RawDataFile[] rawFiles;
+    private PeakListRow row;
+    private RawDataFile activeRaw;
 
-  private static final long serialVersionUID = 1L;
-  private JPanel pnGrid;
-  private JLabel lbRaw;
+    private static final long serialVersionUID = 1L;
+    private JPanel pnGrid;
+    private JLabel lbRaw;
 
-  /**
-   * Shows best fragmentation scan raw data file first
-   * 
-   * @param row
-   */
-  public MultiSpectraVisualizerWindow(PeakListRow row) {
-    this(row, row.getBestFragmentation().getDataFile());
-  }
-
-  public MultiSpectraVisualizerWindow(PeakListRow row, RawDataFile raw) {
-    setBackground(Color.WHITE);
-    setExtendedState(JFrame.MAXIMIZED_BOTH);
-    setMinimumSize(new Dimension(800, 600));
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    getContentPane().setLayout(new BorderLayout());
-
-    pnGrid = new JPanel();
-    // any number of rows
-    pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
-    pnGrid.setAutoscrolls(true);
-
-    JScrollPane scrollPane = new JScrollPane(pnGrid);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-    getContentPane().add(scrollPane, BorderLayout.CENTER);
-
-    JPanel pnMenu = new JPanel();
-    FlowLayout fl_pnMenu = (FlowLayout) pnMenu.getLayout();
-    fl_pnMenu.setVgap(0);
-    fl_pnMenu.setAlignment(FlowLayout.LEFT);
-    getContentPane().add(pnMenu, BorderLayout.NORTH);
-
-    JButton nextRaw = new JButton("next");
-    nextRaw.addActionListener(e -> nextRaw());
-    JButton prevRaw = new JButton("prev");
-    prevRaw.addActionListener(e -> prevRaw());
-    pnMenu.add(prevRaw);
-    pnMenu.add(nextRaw);
-
-    lbRaw = new JLabel();
-    pnMenu.add(lbRaw);
-
-    JLabel lbRawTotalWithFragmentation = new JLabel();
-    pnMenu.add(lbRaw);
-
-    int n = 0;
-    for (Feature f : row.getPeaks()) {
-      if (f.getMostIntenseFragmentScanNumber() > 0)
-        n++;
-    }
-    lbRawTotalWithFragmentation.setText("(total raw:" + n + ")");
-
-    // add charts
-    setData(row, raw);
-
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setVisible(true);
-    validate();
-    repaint();
-    pack();
-  }
-
-
-  /**
-   * next raw file with peak and MSMS
-   */
-  private void nextRaw() {
-    logger.log(Level.INFO, "All MS/MS scans window: next raw file");
-    int n = indexOfRaw(activeRaw);
-    while (n + 1 < rawFiles.length) {
-      n++;
-      setRawFileAndShow(rawFiles[n]);
-    }
-  }
-
-  /**
-   * Previous raw file with peak and MSMS
-   */
-  private void prevRaw() {
-    logger.log(Level.INFO, "All MS/MS scans window: previous raw file");
-    int n = indexOfRaw(activeRaw) - 1;
-    while (n - 1 >= 0) {
-      n--;
-      setRawFileAndShow(rawFiles[n]);
-    }
-  }
-
-
-  /**
-   * Set data and create charts
-   * 
-   * @param row
-   * @param raw
-   */
-  public void setData(PeakListRow row, RawDataFile raw) {
-    rawFiles = row.getRawDataFiles();
-    this.row = row;
-    setRawFileAndShow(raw);
-  }
-
-
-  /**
-   * Set the raw data file and create all chromatograms and MS2 spectra
-   * 
-   * @param raw
-   * @return true if row has peak with MS2 spectrum in RawDataFile raw
-   */
-  public boolean setRawFileAndShow(RawDataFile raw) {
-    Feature peak = row.getPeak(raw);
-    // no peak / no ms2 - return false
-    if (peak == null || peak.getAllMS2FragmentScanNumbers() == null
-        || peak.getAllMS2FragmentScanNumbers().length == 0)
-      return false;
-
-    this.activeRaw = raw;
-    // clear
-    pnGrid.removeAll();
-
-    int[] numbers = peak.getAllMS2FragmentScanNumbers();
-    for (int scan : numbers) {
-      pnGrid.add(addSpectra(scan));
+    /**
+     * Shows best fragmentation scan raw data file first
+     * 
+     * @param row
+     */
+    public MultiSpectraVisualizerWindow(PeakListRow row) {
+        this(row, row.getBestFragmentation().getDataFile());
     }
 
-    int n = indexOfRaw(raw);
-    lbRaw.setText(n + ": " + raw.getName());
-    logger.log(Level.INFO, "All MS/MS scans window: Added " + numbers.length
-        + " spectra of raw file " + n + ": " + raw.getName());
-    // show
-    pnGrid.revalidate();
-    pnGrid.repaint();
-    return true;
-  }
+    public MultiSpectraVisualizerWindow(PeakListRow row, RawDataFile raw) {
+        setBackground(Color.WHITE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setMinimumSize(new Dimension(800, 600));
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        getContentPane().setLayout(new BorderLayout());
 
+        pnGrid = new JPanel();
+        // any number of rows
+        pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
+        pnGrid.setAutoscrolls(true);
 
-  private int indexOfRaw(RawDataFile raw) {
-    return Arrays.asList(rawFiles).indexOf(raw);
-  }
+        JScrollPane scrollPane = new JScrollPane(pnGrid);
+        scrollPane.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
 
+        JPanel pnMenu = new JPanel();
+        FlowLayout fl_pnMenu = (FlowLayout) pnMenu.getLayout();
+        fl_pnMenu.setVgap(0);
+        fl_pnMenu.setAlignment(FlowLayout.LEFT);
+        getContentPane().add(pnMenu, BorderLayout.NORTH);
 
-  private JPanel addSpectra(int scan) {
-    JPanel panel = new JPanel(new BorderLayout());
-    // Split pane for eic plot (top) and spectrum (bottom)
-    JSplitPane bottomPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        JButton nextRaw = new JButton("next");
+        nextRaw.addActionListener(e -> nextRaw());
+        JButton prevRaw = new JButton("prev");
+        prevRaw.addActionListener(e -> prevRaw());
+        pnMenu.add(prevRaw);
+        pnMenu.add(nextRaw);
 
-    // Create EIC plot
-    // labels for TIC visualizer
-    Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
+        lbRaw = new JLabel();
+        pnMenu.add(lbRaw);
 
-    Feature peak = row.getPeak(activeRaw);
+        JLabel lbRawTotalWithFragmentation = new JLabel();
+        pnMenu.add(lbRaw);
 
-    // scan selection
-    ScanSelection scanSelection = new ScanSelection(activeRaw.getDataRTRange(1), 1);
+        int n = 0;
+        for (Feature f : row.getPeaks()) {
+            if (f.getMostIntenseFragmentScanNumber() > 0)
+                n++;
+        }
+        lbRawTotalWithFragmentation.setText("(total raw:" + n + ")");
 
-    // mz range
-    Range<Double> mzRange = null;
-    mzRange = peak.getRawDataPointsMZRange();
-    // optimize output by extending the range
-    double upper = mzRange.upperEndpoint();
-    double lower = mzRange.lowerEndpoint();
-    double fiveppm = (upper * 5E-6);
-    mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
+        // add charts
+        setData(row, raw);
 
-    // labels
-    labelsMap.put(peak, peak.toString());
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setVisible(true);
+        validate();
+        repaint();
+        pack();
+    }
 
-    // get EIC window
-    TICVisualizerWindow window = new TICVisualizerWindow(new RawDataFile[] {activeRaw}, // raw
-        TICPlotType.BASEPEAK, // plot type
-        scanSelection, // scan selection
-        mzRange, // mz range
-        new Feature[] {peak}, // selected features
-        labelsMap); // labels
+    /**
+     * next raw file with peak and MSMS
+     */
+    private void nextRaw() {
+        logger.log(Level.INFO, "All MS/MS scans window: next raw file");
+        int n = indexOfRaw(activeRaw);
+        while (n + 1 < rawFiles.length) {
+            n++;
+            setRawFileAndShow(rawFiles[n]);
+        }
+    }
 
-    // get EIC Plot
-    TICPlot ticPlot = window.getTICPlot();
-    ticPlot.setPreferredSize(new Dimension(600, 200));
-    ticPlot.getChart().getLegend().setVisible(false);
+    /**
+     * Previous raw file with peak and MSMS
+     */
+    private void prevRaw() {
+        logger.log(Level.INFO, "All MS/MS scans window: previous raw file");
+        int n = indexOfRaw(activeRaw) - 1;
+        while (n - 1 >= 0) {
+            n--;
+            setRawFileAndShow(rawFiles[n]);
+        }
+    }
 
-    // add a retention time Marker to the EIC
-    ValueMarker marker = new ValueMarker(activeRaw.getScan(scan).getRetentionTime());
-    marker.setPaint(Color.RED);
-    marker.setStroke(new BasicStroke(3.0f));
+    /**
+     * Set data and create charts
+     * 
+     * @param row
+     * @param raw
+     */
+    public void setData(PeakListRow row, RawDataFile raw) {
+        rawFiles = row.getRawDataFiles();
+        this.row = row;
+        setRawFileAndShow(raw);
+    }
 
-    XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
-    plot.addDomainMarker(marker);
-    bottomPane.add(ticPlot);
-    bottomPane.setResizeWeight(0.5);
-    bottomPane.setEnabled(true);
-    bottomPane.setDividerSize(5);
-    bottomPane.setDividerLocation(200);
+    /**
+     * Set the raw data file and create all chromatograms and MS2 spectra
+     * 
+     * @param raw
+     * @return true if row has peak with MS2 spectrum in RawDataFile raw
+     */
+    public boolean setRawFileAndShow(RawDataFile raw) {
+        Feature peak = row.getPeak(raw);
+        // no peak / no ms2 - return false
+        if (peak == null || peak.getAllMS2FragmentScanNumbers() == null
+                || peak.getAllMS2FragmentScanNumbers().length == 0)
+            return false;
 
-    JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        this.activeRaw = raw;
+        // clear
+        pnGrid.removeAll();
 
-    // get MS/MS spectra window
-    SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(activeRaw);
-    spectraWindow.loadRawData(activeRaw.getScan(scan));
+        int[] numbers = peak.getAllMS2FragmentScanNumbers();
+        for (int scan : numbers) {
+            pnGrid.add(addSpectra(scan));
+        }
 
-    // get MS/MS spectra plot
-    SpectraPlot spectrumPlot = spectraWindow.getSpectrumPlot();
-    spectrumPlot.getChart().getLegend().setVisible(false);
-    spectrumPlot.setPreferredSize(new Dimension(600, 400));
-    spectrumPane.add(spectrumPlot);
-    spectrumPane.add(spectraWindow.getToolBar());
-    spectrumPane.setResizeWeight(1);
-    spectrumPane.setEnabled(false);
-    spectrumPane.setDividerSize(0);
-    bottomPane.add(spectrumPane);
-    panel.add(bottomPane);
-    panel.setBorder(BorderFactory.createLineBorder(Color.black));
-    return panel;
-  }
+        int n = indexOfRaw(raw);
+        lbRaw.setText(n + ": " + raw.getName());
+        logger.log(Level.INFO, "All MS/MS scans window: Added " + numbers.length
+                + " spectra of raw file " + n + ": " + raw.getName());
+        // show
+        pnGrid.revalidate();
+        pnGrid.repaint();
+        return true;
+    }
+
+    private int indexOfRaw(RawDataFile raw) {
+        return Arrays.asList(rawFiles).indexOf(raw);
+    }
+
+    private JPanel addSpectra(int scan) {
+        JPanel panel = new JPanel(new BorderLayout());
+        // Split pane for eic plot (top) and spectrum (bottom)
+        JSplitPane bottomPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+
+        // Create EIC plot
+        // labels for TIC visualizer
+        Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
+
+        Feature peak = row.getPeak(activeRaw);
+
+        // scan selection
+        ScanSelection scanSelection = new ScanSelection(
+                activeRaw.getDataRTRange(1), 1);
+
+        // mz range
+        Range<Double> mzRange = null;
+        mzRange = peak.getRawDataPointsMZRange();
+        // optimize output by extending the range
+        double upper = mzRange.upperEndpoint();
+        double lower = mzRange.lowerEndpoint();
+        double fiveppm = (upper * 5E-6);
+        mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
+
+        // labels
+        labelsMap.put(peak, peak.toString());
+
+        // get EIC window
+        TICVisualizerWindow window = new TICVisualizerWindow(
+                new RawDataFile[] { activeRaw }, // raw
+                TICPlotType.BASEPEAK, // plot type
+                scanSelection, // scan selection
+                mzRange, // mz range
+                new Feature[] { peak }, // selected features
+                labelsMap); // labels
+
+        // get EIC Plot
+        TICPlot ticPlot = window.getTICPlot();
+        ticPlot.setPreferredSize(new Dimension(600, 200));
+        ticPlot.getChart().getLegend().setVisible(false);
+
+        // add a retention time Marker to the EIC
+        ValueMarker marker = new ValueMarker(
+                activeRaw.getScan(scan).getRetentionTime());
+        marker.setPaint(Color.RED);
+        marker.setStroke(new BasicStroke(3.0f));
+
+        XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+        plot.addDomainMarker(marker);
+        bottomPane.add(ticPlot);
+        bottomPane.setResizeWeight(0.5);
+        bottomPane.setEnabled(true);
+        bottomPane.setDividerSize(5);
+        bottomPane.setDividerLocation(200);
+
+        JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+
+        // get MS/MS spectra window
+        SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(
+                activeRaw);
+        spectraWindow.loadRawData(activeRaw.getScan(scan));
+
+        // get MS/MS spectra plot
+        SpectraPlot spectrumPlot = spectraWindow.getSpectrumPlot();
+        spectrumPlot.getChart().getLegend().setVisible(false);
+        spectrumPlot.setPreferredSize(new Dimension(600, 400));
+        spectrumPane.add(spectrumPlot);
+        spectrumPane.add(spectraWindow.getToolBar());
+        spectrumPane.setResizeWeight(1);
+        spectrumPane.setEnabled(false);
+        spectrumPane.setDividerSize(0);
+        bottomPane.add(spectrumPane);
+        panel.add(bottomPane);
+        panel.setBorder(BorderFactory.createLineBorder(Color.black));
+        return panel;
+    }
 }

@@ -33,20 +33,20 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter CHROMATOGRAM_LISTS =
-            new PeakListsParameter("Chromatograms", 1, Integer.MAX_VALUE);
+    public static final PeakListsParameter CHROMATOGRAM_LISTS = new PeakListsParameter(
+            "Chromatograms", 1, Integer.MAX_VALUE);
 
-    public static final PeakListsParameter PEAK_LISTS =
-            new PeakListsParameter("Peaks", 1, Integer.MAX_VALUE);
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter(
+            "Peaks", 1, Integer.MAX_VALUE);
 
     // ------------------------------------------------------------------------
     // ----- First-phase parameters -------------------------------------------
     // ------------------------------------------------------------------------
 
-    public static final DoubleParameter PREF_WINDOW_WIDTH =
-            new DoubleParameter("Deconvolution window width (min)",
-                    "Preferred width of deconvolution windows (in minutes).",
-                    NumberFormat.getNumberInstance(), 0.2);
+    public static final DoubleParameter PREF_WINDOW_WIDTH = new DoubleParameter(
+            "Deconvolution window width (min)",
+            "Preferred width of deconvolution windows (in minutes).",
+            NumberFormat.getNumberInstance(), 0.2);
 
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
@@ -56,41 +56,48 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ----- Second-phase parameters ------------------------------------------
     // ------------------------------------------------------------------------
 
-    public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter("Retention time tolerance (min)",
-            "Retention time tolerance value (between 0 and 1) is used for determine the number of components" +
-                    " in a window. The larger tolerance, the smaller components are determined.",
+    public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter(
+            "Retention time tolerance (min)",
+            "Retention time tolerance value (between 0 and 1) is used for determine the number of components"
+                    + " in a window. The larger tolerance, the smaller components are determined.",
             NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
-    public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter("Minimum Number of Peaks",
+    public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter(
+            "Minimum Number of Peaks",
             "Minimum number of peaks that can form a component", 1);
 
-    public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter("Adjust Apex Ret Times",
-            "If this option is checked, the apex retention time is calculated by fitting a parabola into " +
-                    "the top half of an EIC peak", false);
+    public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter(
+            "Adjust Apex Ret Times",
+            "If this option is checked, the apex retention time is calculated by fitting a parabola into "
+                    + "the top half of an EIC peak",
+            false);
 
     // ------------------------------------------------------------------------
     // ----- End of Second-phase parameters -----------------------------------
     // ------------------------------------------------------------------------
 
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
-            "This string is added to feature list name as suffix", "Spectral Deconvolution");
+            "This string is added to feature list name as suffix",
+            "Spectral Deconvolution");
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove original feature lists",
             "If checked, original chromomatogram and feature lists will be removed");
 
     public ADAP3DecompositionV2Parameters() {
-        super(new Parameter[]{CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,
-                RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});
+        super(new Parameter[] { CHROMATOGRAM_LISTS, PEAK_LISTS,
+                PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE,
+                ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-        CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
+        CHROMATOGRAM_LISTS
+                .setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
         PEAK_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
 
-        final ADAP3DecompositionV2SetupDialog dialog =
-                new ADAP3DecompositionV2SetupDialog(parent, valueCheckRequired, this);
+        final ADAP3DecompositionV2SetupDialog dialog = new ADAP3DecompositionV2SetupDialog(
+                parent, valueCheckRequired, this);
 
         dialog.setVisible(true);
         return dialog.getExitCode();

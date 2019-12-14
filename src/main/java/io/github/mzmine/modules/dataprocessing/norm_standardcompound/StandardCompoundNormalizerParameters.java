@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,31 +30,37 @@ import io.github.mzmine.util.PeakMeasurementType;
 
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakList = new PeakListsParameter(1,
+            1);
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
+    public static final StringParameter suffix = new StringParameter(
+            "Name suffix", "Suffix to be added to feature list name",
+            "normalized");
 
-  public static final ComboParameter<StandardUsageType> standardUsageType =
-      new ComboParameter<StandardUsageType>("Normalization type", "Normalize intensities using ",
-          StandardUsageType.values());
+    public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<StandardUsageType>(
+            "Normalization type", "Normalize intensities using ",
+            StandardUsageType.values());
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using ",
-          PeakMeasurementType.values());
+    public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+            "Peak measurement type", "Measure peaks using ",
+            PeakMeasurementType.values());
 
-  public static final DoubleParameter MZvsRTBalance = new DoubleParameter("m/z vs RT balance",
-      "Used in distance measuring as multiplier of m/z difference");
+    public static final DoubleParameter MZvsRTBalance = new DoubleParameter(
+            "m/z vs RT balance",
+            "Used in distance measuring as multiplier of m/z difference");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove original feature list",
+            "If checked, the original feature list will be removed");
 
-  public static final PeakSelectionParameter standardCompounds = new PeakSelectionParameter(
-      "Standard compounds", "List of peaks for choosing the normalization standards", null);
+    public static final PeakSelectionParameter standardCompounds = new PeakSelectionParameter(
+            "Standard compounds",
+            "List of peaks for choosing the normalization standards", null);
 
-  public StandardCompoundNormalizerParameters() {
-    super(new Parameter[] {peakList, suffix, standardUsageType, peakMeasurementType, MZvsRTBalance,
-        standardCompounds, autoRemove});
-  }
+    public StandardCompoundNormalizerParameters() {
+        super(new Parameter[] { peakList, suffix, standardUsageType,
+                peakMeasurementType, MZvsRTBalance, standardCompounds,
+                autoRemove });
+    }
 
 }

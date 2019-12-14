@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,85 +42,93 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class TwoDVisualizerModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "2D visualizer";
-  private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
+    private static final String MODULE_NAME = "2D visualizer";
+    private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    RawDataFile dataFiles[] = parameters.getParameter(TwoDVisualizerParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-    ScanSelection scanSel =
-        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
-    Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
-    Range<Double> rtRange = ScanUtils.findRtRange(scans);
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        RawDataFile dataFiles[] = parameters
+                .getParameter(TwoDVisualizerParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+        ScanSelection scanSel = parameters
+                .getParameter(TwoDVisualizerParameters.scanSelection)
+                .getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
+        Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
-    Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
-    TwoDVisualizerWindow newWindow =
-        new TwoDVisualizerWindow(dataFiles[0], scans, rtRange, mzRange, parameters);
+        Range<Double> mzRange = parameters
+                .getParameter(TwoDVisualizerParameters.mzRange).getValue();
+        TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
+                scans, rtRange, mzRange, parameters);
 
-    newWindow.setVisible(true);
+        newWindow.setVisible(true);
 
-    return ExitCode.OK;
-  }
+        return ExitCode.OK;
+    }
 
-  public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
-    show2DVisualizerSetupDialog(dataFile, null, null);
-  }
+    public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
+        show2DVisualizerSetupDialog(dataFile, null, null);
+    }
 
-  public static void show2DVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
-      Range<Double> rtRange) {
+    public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
+            Range<Double> mzRange, Range<Double> rtRange) {
 
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
+        ParameterSet parameters = MZmineCore.getConfiguration()
+                .getModuleParameters(TwoDVisualizerModule.class);
 
-    parameters.getParameter(TwoDVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {dataFile});
+        parameters.getParameter(TwoDVisualizerParameters.dataFiles).setValue(
+                RawDataFilesSelectionType.SPECIFIC_FILES,
+                new RawDataFile[] { dataFile });
 
-    if (rtRange != null)
-      parameters.getParameter(TwoDVisualizerParameters.scanSelection)
-          .setValue(new ScanSelection(rtRange, 1));
-    if (mzRange != null)
-      parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
+        if (rtRange != null)
+            parameters.getParameter(TwoDVisualizerParameters.scanSelection)
+                    .setValue(new ScanSelection(rtRange, 1));
+        if (mzRange != null)
+            parameters.getParameter(TwoDVisualizerParameters.mzRange)
+                    .setValue(mzRange);
 
-    ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+        ExitCode exitCode = parameters
+                .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
 
-    if (exitCode != ExitCode.OK)
-      return;
+        if (exitCode != ExitCode.OK)
+            return;
 
-    ScanSelection scanSel =
-        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
-    Scan scans[] = scanSel.getMatchingScans(dataFile);
-    rtRange = ScanUtils.findRtRange(scans);
+        ScanSelection scanSel = parameters
+                .getParameter(TwoDVisualizerParameters.scanSelection)
+                .getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFile);
+        rtRange = ScanUtils.findRtRange(scans);
 
-    mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
+        mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange)
+                .getValue();
 
-    TwoDVisualizerWindow newWindow =
-        new TwoDVisualizerWindow(dataFile, scans, rtRange, mzRange, parameters);
+        TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
+                scans, rtRange, mzRange, parameters);
 
-    newWindow.setVisible(true);
+        newWindow.setVisible(true);
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return TwoDVisualizerParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return TwoDVisualizerParameters.class;
+    }
 
 }

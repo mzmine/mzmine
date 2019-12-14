@@ -25,32 +25,32 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.parameters.ParameterSet;
 
 public class IntensityWindowsSNEstimator implements SNEstimatorChoice {
-  @Override
-  public @Nonnull String getName() {
-    return "Intensity window SN";
-  }
+    @Override
+    public @Nonnull String getName() {
+        return "Intensity window SN";
+    }
 
-  public String getSNCode() {
-    return "Intensity Window Estimator";
-  }
+    public String getSNCode() {
+        return "Intensity Window Estimator";
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return IntensityWindowsSNParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return IntensityWindowsSNParameters.class;
+    }
 
-  @Override
-  public boolean getRequiresR() {
-    return false;
-  }
+    @Override
+    public boolean getRequiresR() {
+        return false;
+    }
 
-  @Override
-  public String[] getRequiredRPackages() {
-    return null;
-  }
+    @Override
+    public String[] getRequiredRPackages() {
+        return null;
+    }
 
-  @Override
-  public String[] getRequiredRPackagesVersions() {
-    return null;
-  }
+    @Override
+    public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
 }

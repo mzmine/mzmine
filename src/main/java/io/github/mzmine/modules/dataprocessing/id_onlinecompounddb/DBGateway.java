@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,15 +25,16 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public interface DBGateway {
 
-  /**
-   * Retrieves candidate compounds
-   */
-  public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
-      ParameterSet parameters) throws IOException;
+    /**
+     * Retrieves candidate compounds
+     */
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+            int numOfResults, ParameterSet parameters) throws IOException;
 
-  /**
-   * This method retrieves the details about a compound
-   */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException;
+    /**
+     * This method retrieves the details about a compound
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+            throws IOException;
 
 }

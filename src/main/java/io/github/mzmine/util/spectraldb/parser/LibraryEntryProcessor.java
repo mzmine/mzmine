@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,13 +29,15 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
  */
 public interface LibraryEntryProcessor {
 
-  /**
-   * Process next batch of spectral db entries. This should be done in a separate thread. To not
-   * interrupt the parser as this method is called from the parser thread.
-   * 
-   * @param list
-   * @param alreadyProcessed
-   */
-  public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed);
+    /**
+     * Process next batch of spectral db entries. This should be done in a
+     * separate thread. To not interrupt the parser as this method is called
+     * from the parser thread.
+     * 
+     * @param list
+     * @param alreadyProcessed
+     */
+    public void processNextEntries(List<SpectralDBEntry> list,
+            int alreadyProcessed);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,108 +27,109 @@ import io.github.mzmine.parameters.UserParameter;
 
 public class ColorParameter implements UserParameter<Color, ColorComponent> {
 
-  private String name, description;
-  private Color value = Color.BLACK;
+    private String name, description;
+    private Color value = Color.BLACK;
 
-  public ColorParameter(String name, String description) {
-    this(name, description, Color.black);
-  }
-
-  public ColorParameter(String name, String description, Color defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public ColorComponent createEditingComponent() {
-    ColorComponent colorComponent = new ColorComponent(value);
-    colorComponent.setBorder(BorderFactory.createCompoundBorder(colorComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
-    return colorComponent;
-  }
-
-  public Color getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(Color value) {
-    this.value = value;
-  }
-
-  @Override
-  public ColorParameter cloneParameter() {
-    ColorParameter copy = new ColorParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public void setValueFromComponent(ColorComponent component) {
-    value = component.getColor();
-  }
-
-  @Override
-  public void setValueToComponent(ColorComponent component, Color newValue) {
-    component.setColor(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    String t = xmlElement.getTextContent();
-    if (t != null) {
-      try {
-        String[] s = t.split(",");
-        int r = Integer.valueOf(s[0]);
-        int g = Integer.valueOf(s[1]);
-        int b = Integer.valueOf(s[2]);
-        int a = Integer.valueOf(s[3]);
-        value = new Color(r, g, b, a);
-      } catch (Exception e) {
-      }
+    public ColorParameter(String name, String description) {
+        this(name, description, Color.black);
     }
-  }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    StringBuilder s = new StringBuilder();
-    s.append(value.getRed());
-    s.append(",");
-    s.append(value.getGreen());
-    s.append(",");
-    s.append(value.getBlue());
-    s.append(",");
-    s.append(value.getAlpha());
-    xmlElement.setTextContent(s.toString());
-  }
+    public ColorParameter(String name, String description, Color defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+    }
 
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return true;
-  }
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public ColorComponent createEditingComponent() {
+        ColorComponent colorComponent = new ColorComponent(value);
+        colorComponent.setBorder(
+                BorderFactory.createCompoundBorder(colorComponent.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+        return colorComponent;
+    }
+
+    public Color getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(Color value) {
+        this.value = value;
+    }
+
+    @Override
+    public ColorParameter cloneParameter() {
+        ColorParameter copy = new ColorParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public void setValueFromComponent(ColorComponent component) {
+        value = component.getColor();
+    }
+
+    @Override
+    public void setValueToComponent(ColorComponent component, Color newValue) {
+        component.setColor(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        String t = xmlElement.getTextContent();
+        if (t != null) {
+            try {
+                String[] s = t.split(",");
+                int r = Integer.valueOf(s[0]);
+                int g = Integer.valueOf(s[1]);
+                int b = Integer.valueOf(s[2]);
+                int a = Integer.valueOf(s[3]);
+                value = new Color(r, g, b, a);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        StringBuilder s = new StringBuilder();
+        s.append(value.getRed());
+        s.append(",");
+        s.append(value.getGreen());
+        s.append(",");
+        s.append(value.getBlue());
+        s.append(",");
+        s.append(value.getAlpha());
+        xmlElement.setTextContent(s.toString());
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        return true;
+    }
 
 }

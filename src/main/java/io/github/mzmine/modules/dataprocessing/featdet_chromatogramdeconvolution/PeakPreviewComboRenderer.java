@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,60 +34,64 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.components.PeakXICComponent;
 
-public class PeakPreviewComboRenderer extends JPanel implements ListCellRenderer<PeakListRow> {
+public class PeakPreviewComboRenderer extends JPanel
+        implements ListCellRenderer<PeakListRow> {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
 
-  public Component getListCellRendererComponent(JList<? extends PeakListRow> combo,
-      PeakListRow value, int index, boolean isSelected, boolean cellHasFocus) {
+    public Component getListCellRendererComponent(
+            JList<? extends PeakListRow> combo, PeakListRow value, int index,
+            boolean isSelected, boolean cellHasFocus) {
 
-    PeakListRow row = (PeakListRow) value;
-    if (row == null)
-      return new JPanel();
-    Feature peak = row.getPeaks()[0];
+        PeakListRow row = (PeakListRow) value;
+        if (row == null)
+            return new JPanel();
+        Feature peak = row.getPeaks()[0];
 
-    String labelText = "#" + row.getID() + " "
-        + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()) + " m/z ";
-    JLabel textComponent = new JLabel(labelText);
-    textComponent.setFont(combo.getFont());
+        String labelText = "#" + row.getID() + " " + MZmineCore
+                .getConfiguration().getMZFormat().format(row.getAverageMZ())
+                + " m/z ";
+        JLabel textComponent = new JLabel(labelText);
+        textComponent.setFont(combo.getFont());
 
-    PeakXICComponent shapeComponent = new PeakXICComponent(peak);
-    shapeComponent.setBorder(null);
+        PeakXICComponent shapeComponent = new PeakXICComponent(peak);
+        shapeComponent.setBorder(null);
 
-    JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
 
-    panel.setOpaque(true);
-    if (isSelected) {
-      panel.setBackground(combo.getSelectionBackground());
-      panel.setForeground(combo.getSelectionForeground());
-    } else {
-      panel.setBackground(combo.getBackground());
-      panel.setForeground(combo.getForeground());
+        panel.setOpaque(true);
+        if (isSelected) {
+            panel.setBackground(combo.getSelectionBackground());
+            panel.setForeground(combo.getSelectionForeground());
+        } else {
+            panel.setBackground(combo.getBackground());
+            panel.setForeground(combo.getForeground());
+        }
+
+        panel.setEnabled(combo.isEnabled());
+
+        Border border = null;
+        if (cellHasFocus) {
+            if (isSelected) {
+                border = UIManager
+                        .getBorder("List.focusSelectedCellHighlightBorder");
+            }
+            if (border == null) {
+                border = UIManager.getBorder("List.focusCellHighlightBorder");
+            }
+        } else {
+            border = noFocusBorder;
+        }
+        panel.setBorder(border);
+
+        panel.add(textComponent, BorderLayout.WEST);
+        panel.add(shapeComponent, BorderLayout.CENTER);
+
+        return panel;
     }
-
-    panel.setEnabled(combo.isEnabled());
-
-    Border border = null;
-    if (cellHasFocus) {
-      if (isSelected) {
-        border = UIManager.getBorder("List.focusSelectedCellHighlightBorder");
-      }
-      if (border == null) {
-        border = UIManager.getBorder("List.focusCellHighlightBorder");
-      }
-    } else {
-      border = noFocusBorder;
-    }
-    panel.setBorder(border);
-
-    panel.add(textComponent, BorderLayout.WEST);
-    panel.add(shapeComponent, BorderLayout.CENTER);
-
-    return panel;
-  }
 
 }

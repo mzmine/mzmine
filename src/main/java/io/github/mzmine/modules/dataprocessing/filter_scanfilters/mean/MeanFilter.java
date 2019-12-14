@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -31,82 +31,85 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class MeanFilter implements ScanFilter {
 
-  @Override
-  public Scan filterScan(Scan sc, ParameterSet parameters) {
+    @Override
+    public Scan filterScan(Scan sc, ParameterSet parameters) {
 
-    double windowLength =
-        parameters.getParameter(MeanFilterParameters.oneSidedWindowLength).getValue();
+        double windowLength = parameters
+                .getParameter(MeanFilterParameters.oneSidedWindowLength)
+                .getValue();
 
+        // changed to also allow MS2 if selected in ScanSelection
 
-    // changed to also allow MS2 if selected in ScanSelection
+        Vector<Double> massWindow = new Vector<Double>();
+        Vector<Double> intensityWindow = new Vector<Double>();
 
-    Vector<Double> massWindow = new Vector<Double>();
-    Vector<Double> intensityWindow = new Vector<Double>();
+        double currentMass;
+        double lowLimit;
+        double hiLimit;
+        double mzVal;
 
-    double currentMass;
-    double lowLimit;
-    double hiLimit;
-    double mzVal;
+        double elSum;
 
-    double elSum;
+        DataPoint oldDataPoints[] = sc.getDataPoints();
+        DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
 
-    DataPoint oldDataPoints[] = sc.getDataPoints();
-    DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
+        int addi = 0;
+        for (int i = 0; i < oldDataPoints.length; i++) {
 
-    int addi = 0;
-    for (int i = 0; i < oldDataPoints.length; i++) {
+            currentMass = oldDataPoints[i].getMZ();
+            lowLimit = currentMass - windowLength;
+            hiLimit = currentMass + windowLength;
 
-      currentMass = oldDataPoints[i].getMZ();
-      lowLimit = currentMass - windowLength;
-      hiLimit = currentMass + windowLength;
+            // Remove all elements from window whose m/z value is less than the
+            // low limit
+            if (massWindow.size() > 0) {
+                mzVal = massWindow.get(0).doubleValue();
+                while ((massWindow.size() > 0) && (mzVal < lowLimit)) {
+                    massWindow.remove(0);
+                    intensityWindow.remove(0);
+                    if (massWindow.size() > 0) {
+                        mzVal = massWindow.get(0).doubleValue();
+                    }
+                }
+            }
 
-      // Remove all elements from window whose m/z value is less than the
-      // low limit
-      if (massWindow.size() > 0) {
-        mzVal = massWindow.get(0).doubleValue();
-        while ((massWindow.size() > 0) && (mzVal < lowLimit)) {
-          massWindow.remove(0);
-          intensityWindow.remove(0);
-          if (massWindow.size() > 0) {
-            mzVal = massWindow.get(0).doubleValue();
-          }
+            // Add new elements as long as their m/z values are less than the hi
+            // limit
+            while ((addi < oldDataPoints.length)
+                    && (oldDataPoints[addi].getMZ() <= hiLimit)) {
+                massWindow.add(oldDataPoints[addi].getMZ());
+                intensityWindow.add(oldDataPoints[addi].getIntensity());
+                addi++;
+            }
+
+            elSum = 0;
+            for (int j = 0; j < intensityWindow.size(); j++) {
+                elSum += (intensityWindow.get(j)).doubleValue();
+            }
+
+            newDataPoints[i] = new SimpleDataPoint(currentMass,
+                    elSum / intensityWindow.size());
+
         }
-      }
 
-      // Add new elements as long as their m/z values are less than the hi
-      // limit
-      while ((addi < oldDataPoints.length) && (oldDataPoints[addi].getMZ() <= hiLimit)) {
-        massWindow.add(oldDataPoints[addi].getMZ());
-        intensityWindow.add(oldDataPoints[addi].getIntensity());
-        addi++;
-      }
+        // Create filtered scan
+        Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
+                sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
+                sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
+                newDataPoints, MassSpectrumType.CENTROIDED, sc.getPolarity(),
+                sc.getScanDefinition(), sc.getScanningMZRange());
 
-      elSum = 0;
-      for (int j = 0; j < intensityWindow.size(); j++) {
-        elSum += (intensityWindow.get(j)).doubleValue();
-      }
-
-      newDataPoints[i] = new SimpleDataPoint(currentMass, elSum / intensityWindow.size());
+        return newScan;
 
     }
 
-    // Create filtered scan
-    Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(),
-        sc.getRetentionTime(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-        sc.getFragmentScanNumbers(), newDataPoints, MassSpectrumType.CENTROIDED, sc.getPolarity(),
-        sc.getScanDefinition(), sc.getScanningMZRange());
+    @Override
+    public @Nonnull String getName() {
+        return "Mean filter";
+    }
 
-    return newScan;
-
-  }
-
-  @Override
-  public @Nonnull String getName() {
-    return "Mean filter";
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MeanFilterParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MeanFilterParameters.class;
+    }
 }

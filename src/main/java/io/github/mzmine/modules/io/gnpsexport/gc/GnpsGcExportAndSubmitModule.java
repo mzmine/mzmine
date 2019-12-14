@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,55 +43,56 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * Exports all files needed for GNPS GC-MS (quant table (csv export)), mgf (ADAP mgf export)
+ * Exports all files needed for GNPS GC-MS (quant table (csv export)), mgf (ADAP
+ * mgf export)
  * 
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+    private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  private static final String MODULE_NAME = "Export to GNPS-GC-MS (with ADAP)";
-  private static final String MODULE_DESCRIPTION =
-      "GNPS GC-EI-MS workflow. Export the mgf, quant table and Kovats reference file (optionally).";
+    private static final String MODULE_NAME = "Export to GNPS-GC-MS (with ADAP)";
+    private static final String MODULE_DESCRIPTION = "GNPS GC-EI-MS workflow. Export the mgf, quant table and Kovats reference file (optionally).";
 
-  @Override
-  public String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-      Collection<Task> tasks) {
-    // add gnps export task
-    GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(parameters);
-    /*
-     * We do not add the task to the tasks collection, but instead directly submit to the task
-     * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
-     * maximum number of concurrent tasks is set to 1 in the MZmine preferences, then this BatchTask
-     * would block all other tasks.
-     */
-    tasks.add(task);
+    @Override
+    @Nonnull
+    public ExitCode runModule(MZmineProject project, ParameterSet parameters,
+            Collection<Task> tasks) {
+        // add gnps export task
+        GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(
+                parameters);
+        /*
+         * We do not add the task to the tasks collection, but instead directly
+         * submit to the task controller, because we need to set the priority to
+         * HIGH. If the priority is not HIGH and the maximum number of
+         * concurrent tasks is set to 1 in the MZmine preferences, then this
+         * BatchTask would block all other tasks.
+         */
+        tasks.add(task);
 
-    return ExitCode.OK;
-  }
+        return ExitCode.OK;
+    }
 
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return GnpsGcExportAndSubmitParameters.class;
-  }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+        return GnpsGcExportAndSubmitParameters.class;
+    }
 
 }
-

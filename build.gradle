@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.mzmine"
-version = "2.90"
+version = "2.53"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
@@ -62,7 +62,7 @@ ext {
     slf4jVersion = "1.7.28"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
-    controlsfxVersion = "11.0.0"
+    controlsfxVersion = "11.0.1"
 }
 
 dependencies {
@@ -250,17 +250,13 @@ runtime {
 }
 
 /*
- * Copy the resources like icons and logging properties
+ * Copy the resources and logging properties
  */
 tasks.runtime.doLast {
 
     // Remove the "release" file produced by jlink
     delete file(relativePath(imageDir) + "/release")
 
-    copy {
-        from("src/main/icons")
-        into(relativePath(imageDir) + "/icons")
-    }
     copy {
         from("src/main/log")
         into(relativePath(imageDir) + "/log")

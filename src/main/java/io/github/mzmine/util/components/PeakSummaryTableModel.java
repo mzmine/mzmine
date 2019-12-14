@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,87 +29,92 @@ import io.github.mzmine.main.MZmineCore;
 
 public class PeakSummaryTableModel extends AbstractTableModel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private static NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private static NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private static NumberFormat mzFormat = MZmineCore.getConfiguration()
+            .getMZFormat();
+    private static NumberFormat rtFormat = MZmineCore.getConfiguration()
+            .getRTFormat();
+    private static NumberFormat intensityFormat = MZmineCore.getConfiguration()
+            .getIntensityFormat();
 
-  private Vector<Feature> peaks = new Vector<Feature>();
-  private Vector<Color> peakColors = new Vector<Color>();
+    private Vector<Feature> peaks = new Vector<Feature>();
+    private Vector<Color> peakColors = new Vector<Color>();
 
-  private static String[] columnNames = {"File Name", "Mass", "RT", "Height", "Area"};
+    private static String[] columnNames = { "File Name", "Mass", "RT", "Height",
+            "Area" };
 
-  public String getColumnName(int col) {
-    return columnNames[col].toString();
-  }
-
-  public int getRowCount() {
-    return peaks.size();
-  }
-
-  public int getColumnCount() {
-    return columnNames.length;
-  }
-
-  public Object getValueAt(int row, int col) {
-    Object value = null;
-    Feature peak = peaks.get(row);
-    switch (col) {
-      case (0):
-        value = peak.getDataFile().getName();
-        break;
-      case (1):
-        value = mzFormat.format(peak.getMZ());
-        break;
-      case (2):
-        value = rtFormat.format(peak.getRT());
-        break;
-      case (3):
-        value = intensityFormat.format(peak.getHeight());
-        break;
-      case (4):
-        value = intensityFormat.format(peak.getArea());
-        break;
+    public String getColumnName(int col) {
+        return columnNames[col].toString();
     }
 
-    return value;
-  }
-
-  public Feature getElementAt(int row) {
-    return peaks.get(row);
-  }
-
-  public boolean isCellEditable(int row, int col) {
-    return false;
-  }
-
-  public Color getPeakColor(int row) {
-    return peakColors.get(row);
-  }
-
-  public void addElement(Feature peak, Color peakColor) {
-    peaks.add(peak);
-    peakColors.add(peakColor);
-    fireTableRowsInserted(0, peaks.size() - 1);
-  }
-
-  public void setValueAt(Object value, int row, int col) {}
-
-  public int getIndexRow(String fileName) {
-
-    String localFileName;
-    int index = -1;
-    for (int i = 0; i < peaks.size(); i++) {
-      localFileName = peaks.get(i).getDataFile().getName();
-      if (localFileName.equals(fileName)) {
-        index = i;
-      }
+    public int getRowCount() {
+        return peaks.size();
     }
 
-    return index;
-  }
+    public int getColumnCount() {
+        return columnNames.length;
+    }
+
+    public Object getValueAt(int row, int col) {
+        Object value = null;
+        Feature peak = peaks.get(row);
+        switch (col) {
+        case (0):
+            value = peak.getDataFile().getName();
+            break;
+        case (1):
+            value = mzFormat.format(peak.getMZ());
+            break;
+        case (2):
+            value = rtFormat.format(peak.getRT());
+            break;
+        case (3):
+            value = intensityFormat.format(peak.getHeight());
+            break;
+        case (4):
+            value = intensityFormat.format(peak.getArea());
+            break;
+        }
+
+        return value;
+    }
+
+    public Feature getElementAt(int row) {
+        return peaks.get(row);
+    }
+
+    public boolean isCellEditable(int row, int col) {
+        return false;
+    }
+
+    public Color getPeakColor(int row) {
+        return peakColors.get(row);
+    }
+
+    public void addElement(Feature peak, Color peakColor) {
+        peaks.add(peak);
+        peakColors.add(peakColor);
+        fireTableRowsInserted(0, peaks.size() - 1);
+    }
+
+    public void setValueAt(Object value, int row, int col) {
+    }
+
+    public int getIndexRow(String fileName) {
+
+        String localFileName;
+        int index = -1;
+        for (int i = 0; i < peaks.size(); i++) {
+            localFileName = peaks.get(i).getDataFile().getName();
+            if (localFileName.equals(fileName)) {
+                index = i;
+            }
+        }
+
+        return index;
+    }
 
 }

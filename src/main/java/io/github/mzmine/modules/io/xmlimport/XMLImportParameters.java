@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,11 +24,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class XMLImportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter filename =
-      new FileNameParameter("Filename", "Name of imported feature list file name", "mpl");
+    public static final FileNameParameter filename = new FileNameParameter(
+            "Filename", "Name of imported feature list file name", "mpl");
 
-  public XMLImportParameters() {
-    super(new Parameter[] {filename});
-  }
+    public XMLImportParameters() {
+        super(new Parameter[] { filename });
+    }
 
 }

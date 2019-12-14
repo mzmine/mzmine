@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -20,7 +20,6 @@
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
  */
-
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
@@ -70,11 +69,13 @@ class FragmentScan {
      */
     protected final Integer ms1SucceedingScanNumber;
     /**
-     * all consecutive(!) MS/MS scans. There should ne no other MS1 scan between them
+     * all consecutive(!) MS/MS scans. There should ne no other MS1 scan between
+     * them
      */
     protected final int[] ms2ScanNumbers;
     /**
-     * the intensity of the precursor peak in MS (left or right from MS/MS scans)
+     * the intensity of the precursor peak in MS (left or right from MS/MS
+     * scans)
      */
     protected double precursorIntensityLeft, precursorIntensityRight;
     /**
@@ -88,40 +89,42 @@ class FragmentScan {
     protected int precursorCharge;
     private PolarityType polarity;
 
-
-    static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList, Range<Double> isolationWindow, MZTolerance massAccuracy) {
+    static FragmentScan[] getAllFragmentScansFor(Feature feature,
+            String massList, Range<Double> isolationWindow,
+            MZTolerance massAccuracy) {
         final RawDataFile file = feature.getDataFile();
         final int[] ms2 = feature.getAllMS2FragmentScanNumbers().clone();
         Arrays.sort(ms2);
         final List<FragmentScan> fragmentScans = new ArrayList<>();
         // search for ms1 scans
-        int i=0;
+        int i = 0;
         while (i < ms2.length) {
             int scanNumber = ms2[i];
             Scan scan = file.getScan(scanNumber);
             Scan precursorScan = ScanUtils.findPrecursorScan(scan);
             Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
-            int j = precursorScan2 == null ? ms2.length : Arrays.binarySearch(ms2, precursorScan2.getScanNumber());
-            if (j < 0) j = -j - 1;
+            int j = precursorScan2 == null ? ms2.length
+                    : Arrays.binarySearch(ms2, precursorScan2.getScanNumber());
+            if (j < 0)
+                j = -j - 1;
             final int[] subms2 = new int[j - i];
-            for (int k = i; k < j; ++k) subms2[k - i] = ms2[k];
+            for (int k = i; k < j; ++k)
+                subms2[k - i] = ms2[k];
 
-            fragmentScans.add(new FragmentScan(
-                    file,
-                    feature,
-                    massList,
-                    precursorScan != null ? precursorScan.getScanNumber() : null,
-                    precursorScan2 != null ? precursorScan2.getScanNumber() : null,
-                    subms2,
-                    isolationWindow,
-                    massAccuracy
-            ));
+            fragmentScans.add(new FragmentScan(file, feature, massList,
+                    precursorScan != null ? precursorScan.getScanNumber()
+                            : null,
+                    precursorScan2 != null ? precursorScan2.getScanNumber()
+                            : null,
+                    subms2, isolationWindow, massAccuracy));
             i = j;
         }
         return fragmentScans.toArray(new FragmentScan[0]);
     }
 
-    FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow, MZTolerance massAccuracy) {
+    FragmentScan(RawDataFile origin, Feature feature, String massList,
+            Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers,
+            Range<Double> isolationWindow, MZTolerance massAccuracy) {
         this.origin = origin;
         this.feature = feature;
         this.massList = massList;
@@ -129,50 +132,62 @@ class FragmentScan {
         this.ms1SucceedingScanNumber = ms1ScanNumber2;
         this.ms2ScanNumbers = ms2ScanNumbers;
         double[] precInfo = new double[2];
-        if (ms1ScanNumber!=null) {
-            detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
+        if (ms1ScanNumber != null) {
+            detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow,
+                    massAccuracy, precInfo);
             this.precursorIntensityLeft = precInfo[0];
             this.chimericIntensityLeft = precInfo[1];
         } else {
             this.precursorIntensityLeft = 0d;
             this.chimericIntensityLeft = 0d;
         }
-        if (ms1SucceedingScanNumber!=null) {
-            detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
+        if (ms1SucceedingScanNumber != null) {
+            detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(),
+                    isolationWindow, massAccuracy, precInfo);
             this.precursorIntensityRight = precInfo[0];
             this.chimericIntensityRight = precInfo[1];
         } else {
-            this.precursorIntensityRight=0d;
-            this.chimericIntensityRight=0d;
+            this.precursorIntensityRight = 0d;
+            this.chimericIntensityRight = 0d;
         }
     }
 
     /**
-     * interpolate the precursor intensity and chimeric intensity of the MS1 scans linearly by retention time to
-     * estimate this values for the MS2 scans
-     * @return two arrays, one for precursor intensities, one for chimeric intensities, for all MS2 scans
+     * interpolate the precursor intensity and chimeric intensity of the MS1
+     * scans linearly by retention time to estimate this values for the MS2
+     * scans
+     * 
+     * @return two arrays, one for precursor intensities, one for chimeric
+     *         intensities, for all MS2 scans
      */
     protected double[][] getInterpolatedPrecursorAndChimericIntensities() {
         final double[][] values = new double[2][ms2ScanNumbers.length];
-        if (ms1ScanNumber==null) {
+        if (ms1ScanNumber == null) {
             Arrays.fill(values[0], precursorIntensityRight);
             Arrays.fill(values[1], chimericIntensityRight);
-        } else if (ms1SucceedingScanNumber==null) {
+        } else if (ms1SucceedingScanNumber == null) {
             Arrays.fill(values[0], precursorIntensityLeft);
             Arrays.fill(values[1], chimericIntensityLeft);
         } else {
             Scan left = origin.getScan(ms1ScanNumber);
             Scan right = origin.getScan(ms1SucceedingScanNumber);
-            for (int k=0; k < ms2ScanNumbers.length; ++k) {
+            for (int k = 0; k < ms2ScanNumbers.length; ++k) {
                 Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
-                double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())/(right.getRetentionTime()-left.getRetentionTime());
+                double rtRange = (ms2.getRetentionTime()
+                        - left.getRetentionTime())
+                        / (right.getRetentionTime() - left.getRetentionTime());
                 if (rtRange >= 0 && rtRange <= 1) {
-                    values[0][k] = (1d-rtRange) * precursorIntensityLeft + (rtRange)*precursorIntensityRight;
-                    values[1][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
+                    values[0][k] = (1d - rtRange) * precursorIntensityLeft
+                            + (rtRange) * precursorIntensityRight;
+                    values[1][k] = (1d - rtRange) * chimericIntensityLeft
+                            + (rtRange) * chimericIntensityRight;
                 } else {
-                    LoggerFactory.getLogger(FragmentScan.class).warn("Retention time is non-monotonic within scan numbers.");
-                    values[0][k] = precursorIntensityLeft+precursorIntensityRight;
-                    values[1][k] = chimericIntensityLeft+chimericIntensityRight;
+                    LoggerFactory.getLogger(FragmentScan.class).warn(
+                            "Retention time is non-monotonic within scan numbers.");
+                    values[0][k] = precursorIntensityLeft
+                            + precursorIntensityRight;
+                    values[1][k] = chimericIntensityLeft
+                            + chimericIntensityRight;
                 }
             }
         }
@@ -182,16 +197,22 @@ class FragmentScan {
     /**
      * search for precursor peak in MS1
      */
-    private void detectPrecursor(int ms1Scan, double precursorMass, Range<Double> isolationWindow, MZTolerance massAccuracy, double[] precInfo) {
+    private void detectPrecursor(int ms1Scan, double precursorMass,
+            Range<Double> isolationWindow, MZTolerance massAccuracy,
+            double[] precInfo) {
         Scan spectrum = origin.getScan(ms1Scan);
         this.precursorCharge = spectrum.getPrecursorCharge();
         this.polarity = spectrum.getPolarity();
-        DataPoint[] dps = spectrum.getDataPointsByMass(Range.closed(precursorMass+isolationWindow.lowerEndpoint(), precursorMass+isolationWindow.upperEndpoint()));
-        // for simplicity, just use the most intense peak within massAccuracy range
+        DataPoint[] dps = spectrum.getDataPointsByMass(
+                Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
+                        precursorMass + isolationWindow.upperEndpoint()));
+        // for simplicity, just use the most intense peak within massAccuracy
+        // range
         int bestPeak = -1;
         double highestIntensity = 0d;
         for (int mppm = 1; mppm < 3; ++mppm) {
-            final double maxDiff = massAccuracy.getMzToleranceForMass(precursorMass)*mppm;
+            final double maxDiff = massAccuracy
+                    .getMzToleranceForMass(precursorMass) * mppm;
             for (int i = 0; i < dps.length; ++i) {
                 final DataPoint p = dps[i];
                 if (p.getIntensity() <= highestIntensity)
@@ -205,16 +226,18 @@ class FragmentScan {
             if (bestPeak >= 0)
                 break;
         }
-        // now sum up all remaining intensities. Leave out isotopes. leave out peaks with intensity below 10%
+        // now sum up all remaining intensities. Leave out isotopes. leave out
+        // peaks with intensity below 10%
         // of the precursor. They won't contaminate fragment scans anyways
         precInfo[0] = highestIntensity;
         precInfo[1] = 0d;
-        final double threshold = highestIntensity* CHIMERIC_INTENSITY_THRESHOLD;
-        foreachpeak:
-        for (int i = 0; i < dps.length; ++i) {
-            if (i != bestPeak && dps[i].getIntensity()>threshold) {
+        final double threshold = highestIntensity
+                * CHIMERIC_INTENSITY_THRESHOLD;
+        foreachpeak: for (int i = 0; i < dps.length; ++i) {
+            if (i != bestPeak && dps[i].getIntensity() > threshold) {
                 // check for isotope peak
-                final double maxDiff = massAccuracy.getMzToleranceForMass(precursorMass) + 0.03;
+                final double maxDiff = massAccuracy
+                        .getMzToleranceForMass(precursorMass) + 0.03;
                 for (int k = 1; k < 5; ++k) {
                     final double isoMz = precursorMass + k * 1.0015;
                     final double diff = isoMz - dps[i].getMZ();

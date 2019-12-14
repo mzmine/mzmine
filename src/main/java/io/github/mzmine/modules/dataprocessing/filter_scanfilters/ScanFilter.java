@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,9 +24,9 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public interface ScanFilter extends MZmineModule {
 
-  /**
-   * Returns a modified scan after being processed by the filter
-   */
-  public Scan filterScan(Scan scan, ParameterSet parameters);
+    /**
+     * Returns a modified scan after being processed by the filter
+     */
+    public Scan filterScan(Scan scan, ParameterSet parameters);
 
 }

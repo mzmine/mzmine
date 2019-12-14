@@ -10,17 +10,17 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lip
 
 public class LipidModificationChoiceComponent extends MultiChoiceComponent {
 
-  public LipidModificationChoiceComponent(LipidModification[] theChoices) {
-    super(theChoices);
-    addButton(new JButton(new AddLipidModificationAction()));
-    addButton(new JButton(new ImportLipidModificationsAction()));
-    addButton(new JButton(new ExportLipidModificationsAction()));
-    addButton(new JButton(new RemoveLipidModificationsAction()));
-  }
+    public LipidModificationChoiceComponent(LipidModification[] theChoices) {
+        super(theChoices);
+        addButton(new JButton(new AddLipidModificationAction()));
+        addButton(new JButton(new ImportLipidModificationsAction()));
+        addButton(new JButton(new ExportLipidModificationsAction()));
+        addButton(new JButton(new RemoveLipidModificationsAction()));
+    }
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
 }

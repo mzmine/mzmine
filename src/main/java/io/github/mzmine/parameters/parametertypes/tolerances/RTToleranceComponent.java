@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,69 +30,70 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class RTToleranceComponent extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private static final String toleranceTypes[] = {"absolute (min)", "relative (%)"};
-  private JTextField toleranceField;
-  private JComboBox<String> toleranceType;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private static final String toleranceTypes[] = { "absolute (min)",
+            "relative (%)" };
+    private JTextField toleranceField;
+    private JComboBox<String> toleranceType;
 
-  public RTToleranceComponent() {
+    public RTToleranceComponent() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    toleranceField = new JTextField();
-    toleranceField.setColumns(6);
-    add(toleranceField, BorderLayout.CENTER);
+        toleranceField = new JTextField();
+        toleranceField.setColumns(6);
+        add(toleranceField, BorderLayout.CENTER);
 
-    toleranceType = new JComboBox<String>(toleranceTypes);
-    add(toleranceType, BorderLayout.EAST);
+        toleranceType = new JComboBox<String>(toleranceTypes);
+        add(toleranceType, BorderLayout.EAST);
 
-  }
-
-  public void setValue(RTTolerance value) {
-    double tolerance = value.getTolerance();
-    if (value.isAbsolute()) {
-      toleranceType.setSelectedIndex(0);
-      String valueString = String.valueOf(tolerance);
-      toleranceField.setText(valueString);
-    } else {
-      toleranceType.setSelectedIndex(1);
-      String valueString = String.valueOf(tolerance * 100);
-      toleranceField.setText(valueString);
-    }
-  }
-
-  public RTTolerance getValue() {
-
-    int index = toleranceType.getSelectedIndex();
-
-    String valueString = toleranceField.getText();
-
-    double toleranceDouble;
-    try {
-      if (index == 0) {
-        toleranceDouble =
-            MZmineCore.getConfiguration().getRTFormat().parse(valueString).doubleValue();
-      } else {
-        Number toleranceValue = Double.parseDouble(valueString);
-        toleranceDouble = toleranceValue.doubleValue() / 100;
-      }
-    } catch (Exception e) {
-      return null;
     }
 
-    RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
+    public void setValue(RTTolerance value) {
+        double tolerance = value.getTolerance();
+        if (value.isAbsolute()) {
+            toleranceType.setSelectedIndex(0);
+            String valueString = String.valueOf(tolerance);
+            toleranceField.setText(valueString);
+        } else {
+            toleranceType.setSelectedIndex(1);
+            String valueString = String.valueOf(tolerance * 100);
+            toleranceField.setText(valueString);
+        }
+    }
 
-    return value;
+    public RTTolerance getValue() {
 
-  }
+        int index = toleranceType.getSelectedIndex();
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    toleranceField.setToolTipText(toolTip);
-  }
+        String valueString = toleranceField.getText();
+
+        double toleranceDouble;
+        try {
+            if (index == 0) {
+                toleranceDouble = MZmineCore.getConfiguration().getRTFormat()
+                        .parse(valueString).doubleValue();
+            } else {
+                Number toleranceValue = Double.parseDouble(valueString);
+                toleranceDouble = toleranceValue.doubleValue() / 100;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
+
+        return value;
+
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        toleranceField.setToolTipText(toolTip);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,29 +28,29 @@ import javax.swing.JPasswordField;
  */
 public class PasswordComponent extends JPanel {
 
-  /*
-   * Parameter component to enter a password for e-Mail error messages
-   */
-  private static final long serialVersionUID = 1L;
+    /*
+     * Parameter component to enter a password for e-Mail error messages
+     */
+    private static final long serialVersionUID = 1L;
 
-  private final JPasswordField passwordField;
+    private final JPasswordField passwordField;
 
-  public PasswordComponent(int inputsize) {
-    passwordField = new JPasswordField(inputsize);
-    add(passwordField);
-  }
+    public PasswordComponent(int inputsize) {
+        passwordField = new JPasswordField(inputsize);
+        add(passwordField);
+    }
 
-  public void setText(String text) {
-    passwordField.setText(text);
-  }
+    public void setText(String text) {
+        passwordField.setText(text);
+    }
 
-  public String getText() {
-    String passText = new String(passwordField.getPassword());
-    return passText;
-  }
+    public String getText() {
+        String passText = new String(passwordField.getPassword());
+        return passText;
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    passwordField.setToolTipText(toolTip);
-  }
+    @Override
+    public void setToolTipText(String toolTip) {
+        passwordField.setToolTipText(toolTip);
+    }
 }

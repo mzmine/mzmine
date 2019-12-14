@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,35 +27,38 @@ import java.util.Collection;
  */
 public interface Parameter<ValueType> {
 
-  /**
-   * Returns this parameter's name. The name must be unique within one ParameterSet.
-   * 
-   * @return Parameter name
-   */
-  public String getName();
+    /**
+     * Returns this parameter's name. The name must be unique within one
+     * ParameterSet.
+     * 
+     * @return Parameter name
+     */
+    public String getName();
 
-  public ValueType getValue();
+    public ValueType getValue();
 
-  public void setValue(ValueType newValue);
+    public void setValue(ValueType newValue);
 
-  public boolean checkValue(Collection<String> errorMessages);
+    public boolean checkValue(Collection<String> errorMessages);
 
-  public void loadValueFromXML(Element xmlElement);
+    public void loadValueFromXML(Element xmlElement);
 
-  public void saveValueToXML(Element xmlElement);
+    public void saveValueToXML(Element xmlElement);
 
-  /**
-   * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).
-   * Further, sensitive parameters are not written to project level configs
-   */
-  public default boolean isSensitive() {
-    return false;
-  }
+    /**
+     * We use isSensitive() to decide whether a parameter has to be encrypted
+     * (e.g. passwords). Further, sensitive parameters are not written to
+     * project level configs
+     */
+    public default boolean isSensitive() {
+        return false;
+    }
 
-  /**
-   * We use cloneParameter() instead of clone() to force the implementing classes to implement this
-   * method. Plain clone() is automatically implemented by the Object class.
-   */
-  public Parameter<ValueType> cloneParameter();
+    /**
+     * We use cloneParameter() instead of clone() to force the implementing
+     * classes to implement this method. Plain clone() is automatically
+     * implemented by the Object class.
+     */
+    public Parameter<ValueType> cloneParameter();
 
 }

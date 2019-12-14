@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,36 +22,36 @@ import java.util.logging.Logger;
 
 public class TriangularMatrixFloat extends TriangularMatrix {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  // private final float[] list;
-  private final LargeArrayFloat list;
+    // private final float[] list;
+    private final LargeArrayFloat list;
 
-  public TriangularMatrixFloat(int dimension) {
+    public TriangularMatrixFloat(int dimension) {
 
-    list = new LargeArrayFloat(sumFormula(dimension));
-    this.setDimension(dimension);
-  }
+        list = new LargeArrayFloat(sumFormula(dimension));
+        this.setDimension(dimension);
+    }
 
-  @Override
-  public double set(int row, int column, double value) {
+    @Override
+    public double set(int row, int column, double value) {
 
-    long listIndex = getListIndex(row, column);
-    float oldValue = list.get(listIndex);
-    list.set(listIndex, (float) value);
+        long listIndex = getListIndex(row, column);
+        float oldValue = list.get(listIndex);
+        list.set(listIndex, (float) value);
 
-    return oldValue;
-  }
+        return oldValue;
+    }
 
-  @Override
-  public double get(int row, int column) {
+    @Override
+    public double get(int row, int column) {
 
-    return list.get(getListIndex(row, column));
-  }
+        return list.get(getListIndex(row, column));
+    }
 
-  @Override
-  public void printVector() {
-    logger.info(list.toString());
-  }
+    @Override
+    public void printVector() {
+        logger.info(list.toString());
+    }
 
 }

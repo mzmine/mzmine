@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,36 +20,36 @@ package io.github.mzmine.modules;
 
 public enum MZmineModuleCategory {
 
-  PROJECTIO("Project I/O"), //
-  PROJECT("Project"), //
-  RAWDATA("Raw data methods"), //
-  RAWDATAFILTERING("Raw data filtering"), //
-  PEAKPICKING("Peak picking"), //
-  GAPFILLING("Gap filling"), //
-  ISOTOPES("Isotopes"), //
-  PEAKLIST("Feature list methods"), //
-  PEAKLISTPICKING("Feature list processing"), //
-  SPECTRALDECONVOLUTION("Spectral deconvolution"), //
-  PEAKLISTFILTERING("Feature list filtering"), //
-  ALIGNMENT("Alignment"), //
-  NORMALIZATION("Normalization"), //
-  IDENTIFICATION("Identification"), //
-  PEAKLISTEXPORT("Feature list export"), //
-  PEAKLISTIMPORT("Feature list import"), //
-  VISUALIZATIONRAWDATA("Visualization"), //
-  VISUALIZATIONPEAKLIST("Visualization feature list"), //
-  DATAANALYSIS("Data analysis"), //
-  HELPSYSTEM("Help"), //
-  TOOLS("Tools"); //
+    PROJECTIO("Project I/O"), //
+    PROJECT("Project"), //
+    RAWDATA("Raw data methods"), //
+    RAWDATAFILTERING("Raw data filtering"), //
+    PEAKPICKING("Peak picking"), //
+    GAPFILLING("Gap filling"), //
+    ISOTOPES("Isotopes"), //
+    PEAKLIST("Feature list methods"), //
+    PEAKLISTPICKING("Feature list processing"), //
+    SPECTRALDECONVOLUTION("Spectral deconvolution"), //
+    PEAKLISTFILTERING("Feature list filtering"), //
+    ALIGNMENT("Alignment"), //
+    NORMALIZATION("Normalization"), //
+    IDENTIFICATION("Identification"), //
+    PEAKLISTEXPORT("Feature list export"), //
+    PEAKLISTIMPORT("Feature list import"), //
+    VISUALIZATIONRAWDATA("Visualization"), //
+    VISUALIZATIONPEAKLIST("Visualization feature list"), //
+    DATAANALYSIS("Data analysis"), //
+    HELPSYSTEM("Help"), //
+    TOOLS("Tools"); //
 
-  private final String name;
+    private final String name;
 
-  MZmineModuleCategory(String name) {
-    this.name = name;
-  }
+    MZmineModuleCategory(String name) {
+        this.name = name;
+    }
 
-  public String toString() {
-    return name;
-  }
+    public String toString() {
+        return name;
+    }
 
 }

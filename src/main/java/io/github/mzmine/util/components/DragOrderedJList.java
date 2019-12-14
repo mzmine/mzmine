@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,86 +29,88 @@ import javax.swing.JList;
 import javax.swing.ListModel;
 
 /**
- * A modified JList that can reorder items in the DefaultListModel by dragging with the mouse.
+ * A modified JList that can reorder items in the DefaultListModel by dragging
+ * with the mouse.
  */
 public class DragOrderedJList extends JList<Object> {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private Component referent;
-  private int dragFrom;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private Component referent;
+    private int dragFrom;
 
-  /**
-   * Create the list.
-   */
-  public DragOrderedJList(Component ref) {
+    /**
+     * Create the list.
+     */
+    public DragOrderedJList(Component ref) {
 
-    // Initialize.
-    super(new DefaultListModel<Object>());
-    dragFrom = -1;
+        // Initialize.
+        super(new DefaultListModel<Object>());
+        dragFrom = -1;
 
-    referent = ref;
+        referent = ref;
 
-    // Add mouse button pressed listener.
-    addMouseListener(new MouseAdapter() {
+        // Add mouse button pressed listener.
+        addMouseListener(new MouseAdapter() {
 
-      @Override
-      public void mousePressed(final MouseEvent e) {
-        dragFrom = getSelectedIndex();
-        // Dispatch event to "referent" component
-        referent.dispatchEvent(e);
-      }
+            @Override
+            public void mousePressed(final MouseEvent e) {
+                dragFrom = getSelectedIndex();
+                // Dispatch event to "referent" component
+                referent.dispatchEvent(e);
+            }
 
-      @Override
-      public void mouseReleased(final MouseEvent e) {
-        // Dispatch event to "referent" component
-        referent.dispatchEvent(e);
-      }
-    });
+            @Override
+            public void mouseReleased(final MouseEvent e) {
+                // Dispatch event to "referent" component
+                referent.dispatchEvent(e);
+            }
+        });
 
-    // Add mouse drag listener.
-    addMouseMotionListener(new MouseMotionAdapter() {
+        // Add mouse drag listener.
+        addMouseMotionListener(new MouseMotionAdapter() {
 
-      @Override
-      public void mouseDragged(final MouseEvent e) {
+            @Override
+            public void mouseDragged(final MouseEvent e) {
 
-        // Get drag target
-        final int dragTo = getSelectedIndex();
+                // Get drag target
+                final int dragTo = getSelectedIndex();
 
-        // ignore event if order has not changed
-        if (dragTo != dragFrom && dragFrom >= 0 && dragTo >= 0) {
+                // ignore event if order has not changed
+                if (dragTo != dragFrom && dragFrom >= 0 && dragTo >= 0) {
 
-          // Reorder the items.
-          final DefaultListModel<Object> listModel = (DefaultListModel<Object>) getModel();
-          final Object item = listModel.getElementAt(dragFrom);
-          listModel.removeElementAt(dragFrom);
-          listModel.add(dragTo, item);
+                    // Reorder the items.
+                    final DefaultListModel<Object> listModel = (DefaultListModel<Object>) getModel();
+                    final Object item = listModel.getElementAt(dragFrom);
+                    listModel.removeElementAt(dragFrom);
+                    listModel.add(dragTo, item);
 
-          // Update drag source.
-          dragFrom = dragTo;
+                    // Update drag source.
+                    dragFrom = dragTo;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void setModel(final ListModel<Object> model) {
+
+        // Ensure only DefaultListModels are used.
+        if (!(model instanceof DefaultListModel)) {
+            throw new IllegalArgumentException(
+                    "Only DefaultListModels can be used with this component");
         }
-      }
-    });
-  }
-
-  @Override
-  public void setModel(final ListModel<Object> model) {
-
-    // Ensure only DefaultListModels are used.
-    if (!(model instanceof DefaultListModel)) {
-      throw new IllegalArgumentException("Only DefaultListModels can be used with this component");
+        super.setModel(model);
     }
-    super.setModel(model);
-  }
 
-  @Override
-  public void setListData(final Vector<?> listData) {
-    final DefaultListModel<Object> model = new DefaultListModel<Object>();
-    for (final Object element : listData) {
-      model.addElement(element);
+    @Override
+    public void setListData(final Vector<?> listData) {
+        final DefaultListModel<Object> model = new DefaultListModel<Object>();
+        for (final Object element : listData) {
+            model.addElement(element);
+        }
+        setModel(model);
     }
-    setModel(model);
-  }
 }

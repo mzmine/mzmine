@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -40,31 +40,32 @@ import io.github.mzmine.parameters.parametertypes.AdductsComponent;
  */
 public class DefaultAdductsAction extends AbstractAction {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Create the action.
-   */
-  public DefaultAdductsAction() {
+    /**
+     * Create the action.
+     */
+    public DefaultAdductsAction() {
 
-    super("Reset");
-    putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    // Parent component.
-    final AdductsComponent parent = (AdductsComponent) SwingUtilities
-        .getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
-
-    if (parent != null) {
-
-      // Reset default choices.
-      parent.setChoices(AdductType.getDefaultValues());
+        super("Reset");
+        putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
     }
-  }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+
+        // Parent component.
+        final AdductsComponent parent = (AdductsComponent) SwingUtilities
+                .getAncestorOfClass(AdductsComponent.class,
+                        (Component) e.getSource());
+
+        if (parent != null) {
+
+            // Reset default choices.
+            parent.setChoices(AdductType.getDefaultValues());
+        }
+    }
 }

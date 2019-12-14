@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,44 +33,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class ScanSmoothingModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Scan smoothing (LC/MS or MS level 1)";
-  private static final String MODULE_DESCRIPTION =
-      "This module averages intensity values within a time-scan frame.";
+    private static final String MODULE_NAME = "Scan smoothing (LC/MS or MS level 1)";
+    private static final String MODULE_DESCRIPTION = "This module averages intensity values within a time-scan frame.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    RawDataFile[] dataFiles =
-        parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
-
-    for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters.cloneParameterSet());
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATAFILTERING;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ScanSmoothingParameters.class;
-  }
+        RawDataFile[] dataFiles = parameters
+                .getParameter(new RawDataFilesParameter()).getValue()
+                .getMatchingRawDataFiles();
+
+        for (int i = 0; i < dataFiles.length; i++) {
+            Task newTask = new ScanSmoothingTask(project, dataFiles[i],
+                    parameters.cloneParameterSet());
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.RAWDATAFILTERING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ScanSmoothingParameters.class;
+    }
 
 }

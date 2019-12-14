@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -31,63 +31,66 @@ import io.github.mzmine.parameters.parametertypes.ComboComponent;
 
 public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-  private static final long serialVersionUID = 1L;
-  private ComboComponent<?> selDataCombo, refGroupCombo;
-  private UserParameter<?, ?> previousParameterSelection;
+    private static final long serialVersionUID = 1L;
+    private ComboComponent<?> selDataCombo, refGroupCombo;
+    private UserParameter<?, ?> previousParameterSelection;
 
-  public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
-      HeatMapParameters parameters) {
-    super(parent, valueCheckRequired, parameters);
+    public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
+            HeatMapParameters parameters) {
+        super(parent, valueCheckRequired, parameters);
 
-    // Get a reference to the combo boxes
-    selDataCombo =
-        (ComboComponent<?>) this.getComponentForParameter(HeatMapParameters.selectionData);
-    refGroupCombo =
-        (ComboComponent<?>) this.getComponentForParameter(HeatMapParameters.referenceGroup);
+        // Get a reference to the combo boxes
+        selDataCombo = (ComboComponent<?>) this
+                .getComponentForParameter(HeatMapParameters.selectionData);
+        refGroupCombo = (ComboComponent<?>) this
+                .getComponentForParameter(HeatMapParameters.referenceGroup);
 
-    // Save a reference to current "Sample parameter" value
-    previousParameterSelection = (UserParameter<?, ?>) selDataCombo.getSelectedItem();
+        // Save a reference to current "Sample parameter" value
+        previousParameterSelection = (UserParameter<?, ?>) selDataCombo
+                .getSelectedItem();
 
-    // Call parametersChanged() to rebuild the reference group combo
-    parametersChanged();
+        // Call parametersChanged() to rebuild the reference group combo
+        parametersChanged();
 
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  @Override
-  public void parametersChanged() {
-
-    // Get the current value of the "Sample parameter" combo
-    UserParameter<?, ?> currentParameterSelection =
-        (UserParameter<?, ?>) selDataCombo.getSelectedItem();
-    if (currentParameterSelection == null)
-      return;
-
-    // If the value has changed, update the "Reference group" combo
-    if (currentParameterSelection != previousParameterSelection) {
-      ArrayList<Object> values = new ArrayList<Object>();
-
-      // Obtain all possible values
-      for (RawDataFile dataFile : MZmineCore.getProjectManager().getCurrentProject()
-          .getDataFiles()) {
-        Object paramValue = MZmineCore.getProjectManager().getCurrentProject()
-            .getParameterValue(currentParameterSelection, dataFile);
-        if (paramValue == null)
-          continue;
-        if (!values.contains(paramValue))
-          values.add(paramValue);
-      }
-
-      // Update the parameter and combo model
-      Object newValues[] = values.toArray();
-      super.parameterSet.getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
-      refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
-
-      previousParameterSelection = currentParameterSelection;
     }
 
-    this.updateParameterSetFromComponents();
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public void parametersChanged() {
 
-  }
+        // Get the current value of the "Sample parameter" combo
+        UserParameter<?, ?> currentParameterSelection = (UserParameter<?, ?>) selDataCombo
+                .getSelectedItem();
+        if (currentParameterSelection == null)
+            return;
+
+        // If the value has changed, update the "Reference group" combo
+        if (currentParameterSelection != previousParameterSelection) {
+            ArrayList<Object> values = new ArrayList<Object>();
+
+            // Obtain all possible values
+            for (RawDataFile dataFile : MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles()) {
+                Object paramValue = MZmineCore.getProjectManager()
+                        .getCurrentProject()
+                        .getParameterValue(currentParameterSelection, dataFile);
+                if (paramValue == null)
+                    continue;
+                if (!values.contains(paramValue))
+                    values.add(paramValue);
+            }
+
+            // Update the parameter and combo model
+            Object newValues[] = values.toArray();
+            super.parameterSet.getParameter(HeatMapParameters.referenceGroup)
+                    .setChoices(newValues);
+            refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
+
+            previousParameterSelection = currentParameterSelection;
+        }
+
+        this.updateParameterSetFromComponents();
+
+    }
 
 }

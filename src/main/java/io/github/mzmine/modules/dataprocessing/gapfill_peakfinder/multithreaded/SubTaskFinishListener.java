@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,48 +28,49 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 
 public class SubTaskFinishListener implements Consumer<PeakList> {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final MZmineProject project;
-  private ParameterSet parameters;
-  private PeakList peakList;
-  private int tasks;
-  private int finished = 0;
-  private boolean removeOriginal;
+    private final MZmineProject project;
+    private ParameterSet parameters;
+    private PeakList peakList;
+    private int tasks;
+    private int finished = 0;
+    private boolean removeOriginal;
 
-
-  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, PeakList peakList,
-      boolean removeOriginal, int tasks) {
-    super();
-    this.project = project;
-    this.parameters = parameters;
-    this.peakList = peakList;
-    this.tasks = tasks;
-    this.removeOriginal = removeOriginal;
-  }
-
-  @Override
-  public synchronized void accept(PeakList processedPeakList) {
-    finished++;
-    if (finished == tasks) {
-      logger.info("All sub tasks of multithreaded gap-filling have finished. Finalising results.");
-      // add pkl to project
-      // Append processed feature list to the project
-      project.addPeakList(processedPeakList);
-
-      // Add quality parameters to peaks
-      QualityParameters.calculateQualityParameters(processedPeakList);
-
-      // Add task description to peakList
-      processedPeakList
-          .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
-
-      // Remove the original peaklist if requested
-      if (removeOriginal)
-        project.removePeakList(peakList);
-
-      logger.info("Completed: Multithreaded gap-filling successfull");
+    public SubTaskFinishListener(MZmineProject project, ParameterSet parameters,
+            PeakList peakList, boolean removeOriginal, int tasks) {
+        super();
+        this.project = project;
+        this.parameters = parameters;
+        this.peakList = peakList;
+        this.tasks = tasks;
+        this.removeOriginal = removeOriginal;
     }
-  }
+
+    @Override
+    public synchronized void accept(PeakList processedPeakList) {
+        finished++;
+        if (finished == tasks) {
+            logger.info(
+                    "All sub tasks of multithreaded gap-filling have finished. Finalising results.");
+            // add pkl to project
+            // Append processed feature list to the project
+            project.addPeakList(processedPeakList);
+
+            // Add quality parameters to peaks
+            QualityParameters.calculateQualityParameters(processedPeakList);
+
+            // Add task description to peakList
+            processedPeakList.addDescriptionOfAppliedTask(
+                    new SimplePeakListAppliedMethod("Gap filling ",
+                            parameters));
+
+            // Remove the original peaklist if requested
+            if (removeOriginal)
+                project.removePeakList(peakList);
+
+            logger.info("Completed: Multithreaded gap-filling successfull");
+        }
+    }
 
 }

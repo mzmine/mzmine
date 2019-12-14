@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,21 +20,21 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 public enum PeakListsSelectionType {
 
-  GUI_SELECTED_PEAKLISTS("As selected in main window"), //
-  ALL_PEAKLISTS("All feature lists"), //
-  SPECIFIC_PEAKLISTS("Specific feature lists"), //
-  NAME_PATTERN("Feature list name pattern"), //
-  BATCH_LAST_PEAKLISTS("Those created by previous batch step");
+    GUI_SELECTED_PEAKLISTS("As selected in main window"), //
+    ALL_PEAKLISTS("All feature lists"), //
+    SPECIFIC_PEAKLISTS("Specific feature lists"), //
+    NAME_PATTERN("Feature list name pattern"), //
+    BATCH_LAST_PEAKLISTS("Those created by previous batch step");
 
-  private final String stringValue;
+    private final String stringValue;
 
-  PeakListsSelectionType(String stringValue) {
-    this.stringValue = stringValue;
-  }
+    PeakListsSelectionType(String stringValue) {
+        this.stringValue = stringValue;
+    }
 
-  @Override
-  public String toString() {
-    return stringValue;
-  }
+    @Override
+    public String toString() {
+        return stringValue;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,18 +20,18 @@ package io.github.mzmine.modules.dataanalysis.clustering.hierarchical;
 
 public enum LinkType {
 
-  SINGLE("Single"), COMPLETE("Complete"), AVERAGE("Average"), MEAN("Mean"), CENTROID(
-      "Centroid"), WARD(
-          "Ward"), ADJUSTEDCOMPLETE("Adjusted complete"), NEIGHBOT("Neighbor Joining");
+    SINGLE("Single"), COMPLETE("Complete"), AVERAGE("Average"), MEAN(
+            "Mean"), CENTROID("Centroid"), WARD("Ward"), ADJUSTEDCOMPLETE(
+                    "Adjusted complete"), NEIGHBOT("Neighbor Joining");
 
-  private final String name;
+    private final String name;
 
-  LinkType(String name) {
-    this.name = name;
-  }
+    LinkType(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return this.name;
-  }
+    public String getName() {
+        return this.name;
+    }
 
 }

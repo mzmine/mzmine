@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -14,37 +14,37 @@
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.datamodel.identities.ms2.interf;
+ */
+package io.github.mzmine.datamodel.identities.ms2.interf;
 
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public abstract class AbstractMSMSIdentity {
 
-  // the mz tolerance that was used to find identity
-  protected MZTolerance mzTolerance;
+    // the mz tolerance that was used to find identity
+    protected MZTolerance mzTolerance;
 
+    public AbstractMSMSIdentity(MZTolerance mzTolerance) {
+        this.mzTolerance = mzTolerance;
+    }
 
-  public AbstractMSMSIdentity(MZTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
-  }
+    public abstract String getName();
 
-  public abstract String getName();
+    /**
+     * the mz tolerance that was used to find identity
+     * 
+     * @return
+     */
+    public MZTolerance getMzTolerance() {
+        return mzTolerance;
+    }
 
-  /**
-   * the mz tolerance that was used to find identity
-   * 
-   * @return
-   */
-  public MZTolerance getMzTolerance() {
-    return mzTolerance;
-  }
-
-  /**
-   * the mz tolerance that was used to find identity
-   * 
-   * @param mzTolerance
-   */
-  public void setMzTolerance(MZTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
-  }
+    /**
+     * the mz tolerance that was used to find identity
+     * 
+     * @param mzTolerance
+     */
+    public void setMzTolerance(MZTolerance mzTolerance) {
+        this.mzTolerance = mzTolerance;
+    }
 }

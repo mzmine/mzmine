@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,26 +28,26 @@ import io.github.mzmine.util.GUIUtils;
  */
 public class MultiLineLabel extends JScrollPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  public MultiLineLabel(String text) {
-    this(text, 0);
-  }
+    public MultiLineLabel(String text) {
+        this(text, 0);
+    }
 
-  public MultiLineLabel(String text, int margin) {
+    public MultiLineLabel(String text, int margin) {
 
-    JTextArea label = new JTextArea(text);
-    label.setLineWrap(true);
-    label.setWrapStyleWord(true);
-    label.setEditable(false);
-    if (margin > 0)
-      GUIUtils.addMargin(label, margin);
+        JTextArea label = new JTextArea(text);
+        label.setLineWrap(true);
+        label.setWrapStyleWord(true);
+        label.setEditable(false);
+        if (margin > 0)
+            GUIUtils.addMargin(label, margin);
 
-    setViewportView(label);
+        setViewportView(label);
 
-  }
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,16 +26,15 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class SpectraIdentificationResultsModule implements MZmineModule {
 
-  public static final String MODULE_NAME = "Local spectral database search results";
+    public static final String MODULE_NAME = "Local spectral database search results";
 
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return SpectraIdentificationResultsParameters.class;
-  }
+    @Override
+    public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+        return SpectraIdentificationResultsParameters.class;
+    }
 }

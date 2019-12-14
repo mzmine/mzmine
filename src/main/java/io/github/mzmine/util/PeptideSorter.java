@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,22 +24,22 @@ import io.github.mzmine.modules.dataprocessing.id_mascot.data.Peptide;
 
 public class PeptideSorter implements Comparator<Peptide> {
 
-  private SortingDirection direction;
+    private SortingDirection direction;
 
-  public PeptideSorter(SortingDirection direction) {
-    this.direction = direction;
-  }
+    public PeptideSorter(SortingDirection direction) {
+        this.direction = direction;
+    }
 
-  public int compare(Peptide pep1, Peptide pep2) {
+    public int compare(Peptide pep1, Peptide pep2) {
 
-    Double pep1Value = pep1.getIonScore();
-    Double pep2Value = pep2.getIonScore();
+        Double pep1Value = pep1.getIonScore();
+        Double pep2Value = pep2.getIonScore();
 
-    if (direction == SortingDirection.Ascending)
-      return pep1Value.compareTo(pep2Value);
-    else
-      return pep2Value.compareTo(pep1Value);
+        if (direction == SortingDirection.Ascending)
+            return pep1Value.compareTo(pep2Value);
+        else
+            return pep2Value.compareTo(pep1Value);
 
-  }
+    }
 
 }

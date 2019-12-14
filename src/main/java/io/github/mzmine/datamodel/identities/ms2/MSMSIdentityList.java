@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -14,16 +14,14 @@
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
- */package io.github.mzmine.datamodel.identities.ms2;
+ */
+package io.github.mzmine.datamodel.identities.ms2;
 
 import java.util.ArrayList;
 
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 
-
 public class MSMSIdentityList extends ArrayList<AbstractMSMSIdentity> {
-  private static final long serialVersionUID = 1L;
-
-
+    private static final long serialVersionUID = 1L;
 
 }

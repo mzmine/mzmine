@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -45,188 +45,209 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
 /**
- * Search for possible precursor m/z . All rows average m/z against local spectral database
+ * Search for possible precursor m/z . All rows average m/z against local
+ * spectral database
  * 
  * @author
  *
  */
 class PrecursorDBSearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakList peakList;
-  private final File dataBaseFile;
-  private ParameterSet parameters;
+    private final PeakList peakList;
+    private final File dataBaseFile;
+    private ParameterSet parameters;
 
-  private MZTolerance mzTol;
-  private boolean useRT;
-  private RTTolerance rtTol;
+    private MZTolerance mzTol;
+    private boolean useRT;
+    private RTTolerance rtTol;
 
-  private List<AbstractTask> tasks;
-  private int totalTasks;
-  private AtomicInteger matches = new AtomicInteger(0);
+    private List<AbstractTask> tasks;
+    private int totalTasks;
+    private AtomicInteger matches = new AtomicInteger(0);
 
-
-  public PrecursorDBSearchTask(PeakList peakList, ParameterSet parameters) {
-    this.peakList = peakList;
-    this.parameters = parameters;
-    dataBaseFile = parameters.getParameter(PrecursorDBSearchParameters.dataBaseFile).getValue();
-    mzTol = parameters.getParameter(PrecursorDBSearchParameters.mzTolerancePrecursor).getValue();
-    useRT = parameters.getParameter(PrecursorDBSearchParameters.rtTolerance).getValue();
-    rtTol = !useRT ? null
-        : parameters.getParameter(PrecursorDBSearchParameters.rtTolerance).getEmbeddedParameter()
-            .getValue();
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (totalTasks == 0 || tasks == null)
-      return 0;
-    return ((double) totalTasks - tasks.size()) / totalTasks;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  @Override
-  public String getTaskDescription() {
-    return "Identifiy possible precursor  m/z in " + peakList + " using database "
-        + dataBaseFile.getAbsolutePath();
-  }
-
-  /**
-   * @see java.lang.Runnable#run()
-   */
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    int count = 0;
-    try {
-      tasks = parseFile(dataBaseFile);
-      totalTasks = tasks.size();
-      if (!tasks.isEmpty()) {
-        // wait for the tasks to finish
-        while (!isCanceled() && !tasks.isEmpty()) {
-          for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
-              tasks.remove(i);
-              i--;
-            }
-          }
-          // wait for all sub tasks to finish
-          try {
-            Thread.sleep(100);
-          } catch (Exception e) {
-            cancel();
-          }
-        }
-        // cancelled
-        if (isCanceled()) {
-          tasks.stream().forEach(AbstractTask::cancel);
-        }
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-      }
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
+    public PrecursorDBSearchTask(PeakList peakList, ParameterSet parameters) {
+        this.peakList = peakList;
+        this.parameters = parameters;
+        dataBaseFile = parameters
+                .getParameter(PrecursorDBSearchParameters.dataBaseFile)
+                .getValue();
+        mzTol = parameters
+                .getParameter(PrecursorDBSearchParameters.mzTolerancePrecursor)
+                .getValue();
+        useRT = parameters.getParameter(PrecursorDBSearchParameters.rtTolerance)
+                .getValue();
+        rtTol = !useRT ? null
+                : parameters
+                        .getParameter(PrecursorDBSearchParameters.rtTolerance)
+                        .getEmbeddedParameter().getValue();
     }
-    logger.info("Added " + matches.get() + " matches to possible precursors in library: "
-        + dataBaseFile.getAbsolutePath());
 
-    // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-        "Possible precursor identification using MS/MS spectral database " + dataBaseFile,
-        parameters));
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        if (totalTasks == 0 || tasks == null)
+            return 0;
+        return ((double) totalTasks - tasks.size()) / totalTasks;
+    }
 
-    // Repaint the window to reflect the change in the feature list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    @Override
+    public String getTaskDescription() {
+        return "Identifiy possible precursor  m/z in " + peakList
+                + " using database " + dataBaseFile.getAbsolutePath();
+    }
 
-    setStatus(TaskStatus.FINISHED);
-  }
-
-  /**
-   * Load all library entries from data base file
-   * 
-   * @param dataBaseFile
-   * @return
-   */
-  private List<AbstractTask> parseFile(File dataBaseFile)
-      throws UnsupportedFormatException, IOException {
-    //
-    List<AbstractTask> tasks = new ArrayList<>();
-    AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
-      @Override
-      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
-
-        AbstractTask task = new AbstractTask() {
-          private int total = peakList.getNumberOfRows();
-          private int done = 0;
-
-
-          @Override
-          public void run() {
-            for (PeakListRow row : peakList.getRows()) {
-              if (this.isCanceled())
-                break;
-              for (SpectralDBEntry db : list) {
-                if (this.isCanceled())
-                  break;
-
-                if (checkRT(row, (Double) db.getField(DBEntryField.RT).orElse(null))
-                    && checkMZ(row, db.getPrecursorMZ())) {
-                  // add identity
-                  row.addPeakIdentity(
-                      new PrecursorDBPeakIdentity(db, PrecursorDBSearchModule.MODULE_NAME), false);
-                  matches.getAndIncrement();
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+        setStatus(TaskStatus.PROCESSING);
+        int count = 0;
+        try {
+            tasks = parseFile(dataBaseFile);
+            totalTasks = tasks.size();
+            if (!tasks.isEmpty()) {
+                // wait for the tasks to finish
+                while (!isCanceled() && !tasks.isEmpty()) {
+                    for (int i = 0; i < tasks.size(); i++) {
+                        if (tasks.get(i).isFinished()
+                                || tasks.get(i).isCanceled()) {
+                            tasks.remove(i);
+                            i--;
+                        }
+                    }
+                    // wait for all sub tasks to finish
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                        cancel();
+                    }
                 }
-              }
-              done++;
+                // cancelled
+                if (isCanceled()) {
+                    tasks.stream().forEach(AbstractTask::cancel);
+                }
+            } else {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("DB file was empty - or error while parsing "
+                        + dataBaseFile);
             }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(e.toString());
+        }
+        logger.info("Added " + matches.get()
+                + " matches to possible precursors in library: "
+                + dataBaseFile.getAbsolutePath());
 
-            if (!this.isCanceled())
-              setStatus(TaskStatus.FINISHED);
-          }
+        // Add task description to peakList
+        peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                "Possible precursor identification using MS/MS spectral database "
+                        + dataBaseFile,
+                parameters));
 
-          @Override
-          public String getTaskDescription() {
-            return "Checking for precursors: " + alreadyProcessed + 1 + " - " + alreadyProcessed
-                + list.size();
-          }
+        // Repaint the window to reflect the change in the feature list
+        Desktop desktop = MZmineCore.getDesktop();
+        if (!(desktop instanceof HeadLessDesktop))
+            desktop.getMainWindow().repaint();
 
-          @Override
-          public double getFinishedPercentage() {
-            if (total == 0)
-              return 0;
-            return done / (double) total;
-          }
-        };
+        setStatus(TaskStatus.FINISHED);
+    }
 
-        // start last task
-        MZmineCore.getTaskController().addTask(task);
-        tasks.add(task);
-      }
-    });
+    /**
+     * Load all library entries from data base file
+     * 
+     * @param dataBaseFile
+     * @return
+     */
+    private List<AbstractTask> parseFile(File dataBaseFile)
+            throws UnsupportedFormatException, IOException {
+        //
+        List<AbstractTask> tasks = new ArrayList<>();
+        AutoLibraryParser parser = new AutoLibraryParser(100,
+                new LibraryEntryProcessor() {
+                    @Override
+                    public void processNextEntries(List<SpectralDBEntry> list,
+                            int alreadyProcessed) {
 
-    // return tasks
-    parser.parse(this, dataBaseFile);
-    return tasks;
-  }
+                        AbstractTask task = new AbstractTask() {
+                            private int total = peakList.getNumberOfRows();
+                            private int done = 0;
 
-  protected boolean checkMZ(PeakListRow row, Double mz) {
-    return mz != null && mzTol.checkWithinTolerance(row.getAverageMZ(), mz);
-  }
+                            @Override
+                            public void run() {
+                                for (PeakListRow row : peakList.getRows()) {
+                                    if (this.isCanceled())
+                                        break;
+                                    for (SpectralDBEntry db : list) {
+                                        if (this.isCanceled())
+                                            break;
 
-  protected boolean checkRT(PeakListRow row, Double rt) {
-    // if no rt is in the library still use
-    return !useRT || rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
-  }
+                                        if (checkRT(row,
+                                                (Double) db
+                                                        .getField(
+                                                                DBEntryField.RT)
+                                                        .orElse(null))
+                                                && checkMZ(row,
+                                                        db.getPrecursorMZ())) {
+                                            // add identity
+                                            row.addPeakIdentity(
+                                                    new PrecursorDBPeakIdentity(
+                                                            db,
+                                                            PrecursorDBSearchModule.MODULE_NAME),
+                                                    false);
+                                            matches.getAndIncrement();
+                                        }
+                                    }
+                                    done++;
+                                }
+
+                                if (!this.isCanceled())
+                                    setStatus(TaskStatus.FINISHED);
+                            }
+
+                            @Override
+                            public String getTaskDescription() {
+                                return "Checking for precursors: "
+                                        + alreadyProcessed + 1 + " - "
+                                        + alreadyProcessed + list.size();
+                            }
+
+                            @Override
+                            public double getFinishedPercentage() {
+                                if (total == 0)
+                                    return 0;
+                                return done / (double) total;
+                            }
+                        };
+
+                        // start last task
+                        MZmineCore.getTaskController().addTask(task);
+                        tasks.add(task);
+                    }
+                });
+
+        // return tasks
+        parser.parse(this, dataBaseFile);
+        return tasks;
+    }
+
+    protected boolean checkMZ(PeakListRow row, Double mz) {
+        return mz != null && mzTol.checkWithinTolerance(row.getAverageMZ(), mz);
+    }
+
+    protected boolean checkRT(PeakListRow row, Double rt) {
+        // if no rt is in the library still use
+        return !useRT || rtTol == null
+                || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
+    }
 
 }

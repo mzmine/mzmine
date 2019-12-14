@@ -54,8 +54,8 @@ import javax.annotation.Nullable;
  */
 public class ADAP3AlignerTask extends AbstractTask {
 
-    private static final Logger LOG = Logger.getLogger(
-            ADAP3AlignerTask.class.getName());
+    private static final Logger LOG = Logger
+            .getLogger(ADAP3AlignerTask.class.getName());
 
     private final MZmineProject project;
     private final ParameterSet parameters;
@@ -71,12 +71,13 @@ public class ADAP3AlignerTask extends AbstractTask {
         this.project = project;
         this.parameters = parameters;
 
-        this.peakLists = parameters.getParameter(
-                ADAP3AlignerParameters.PEAK_LISTS)
-                .getValue().getMatchingPeakLists();
+        this.peakLists = parameters
+                .getParameter(ADAP3AlignerParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
 
-        this.peakListName = parameters.getParameter(
-                ADAP3AlignerParameters.NEW_PEAK_LIST_NAME).getValue();
+        this.peakListName = parameters
+                .getParameter(ADAP3AlignerParameters.NEW_PEAK_LIST_NAME)
+                .getValue();
 
         this.alignment = new Project();
     }
@@ -102,7 +103,8 @@ public class ADAP3AlignerTask extends AbstractTask {
     @Override
     public void run() {
 
-        if (isCanceled()) return;
+        if (isCanceled())
+            return;
 
         String errorMsg = null;
 
@@ -123,8 +125,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         } catch (IllegalArgumentException e) {
             errorMsg = "Incorrect Feature Lists:\n" + e.getMessage();
         } catch (Exception e) {
-            errorMsg = "'Unknown error' during alignment. \n"
-                    + e.getMessage();
+            errorMsg = "'Unknown error' during alignment. \n" + e.getMessage();
         } catch (Throwable t) {
             setStatus(TaskStatus.ERROR);
             setErrorMessage(t.getMessage());
@@ -198,7 +199,8 @@ public class ADAP3AlignerTask extends AbstractTask {
                 if (row == null)
                     throw new IllegalStateException(String.format(
                             "Cannot find a feature list row for fileId = %d and peakId = %d",
-                            referenceComponent.getSampleID(), peak.getInfo().peakID));
+                            referenceComponent.getSampleID(),
+                            peak.getInfo().peakID));
 
                 RawDataFile file = row.getRawDataFiles()[0];
 
@@ -206,23 +208,25 @@ public class ADAP3AlignerTask extends AbstractTask {
                 Feature feature = ADAPInterface.peakToFeature(file, peak);
 
                 // Add spectrum as an isotopic pattern
-                DataPoint[] spectrum = component.getSpectrum()
-                        .entrySet()
+                DataPoint[] spectrum = component.getSpectrum().entrySet()
                         .stream()
                         .map(e -> new SimpleDataPoint(e.getKey(), e.getValue()))
                         .toArray(DataPoint[]::new);
 
-                feature.setIsotopePattern(new SimpleIsotopePattern(
-                        spectrum, IsotopePattern.IsotopePatternStatus.PREDICTED,"Spectrum"));
+                feature.setIsotopePattern(new SimpleIsotopePattern(spectrum,
+                        IsotopePattern.IsotopePatternStatus.PREDICTED,
+                        "Spectrum"));
 
                 newRow.addPeak(file, feature);
             }
 
             // Save alignment score
-            SimplePeakInformation peakInformation = (SimplePeakInformation) newRow.getPeakInformation();
+            SimplePeakInformation peakInformation = (SimplePeakInformation) newRow
+                    .getPeakInformation();
             if (peakInformation == null)
                 peakInformation = new SimplePeakInformation();
-            peakInformation.addProperty("Alignment score", Double.toString(referenceComponent.getScore()));
+            peakInformation.addProperty("Alignment score",
+                    Double.toString(referenceComponent.getScore()));
             newRow.setPeakInformation(peakInformation);
 
             alignedPeakList.addRow(newRow);
@@ -232,10 +236,14 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     /**
-     * Convert a {@link PeakListRow} with one {@link Feature} into {@link Component}.
+     * Convert a {@link PeakListRow} with one {@link Feature} into
+     * {@link Component}.
      *
-     * @param row an instance of {@link PeakListRow}. This parameter cannot be null.
-     * @return an instance of {@link Component} or null if the row doesn't contain any peaks or isotope patterns.
+     * @param row
+     *            an instance of {@link PeakListRow}. This parameter cannot be
+     *            null.
+     * @return an instance of {@link Component} or null if the row doesn't
+     *         contain any peaks or isotope patterns.
      */
     @Nullable
     private Component getComponent(final PeakListRow row) {
@@ -243,7 +251,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         if (row.getNumberOfPeaks() == 0)
             return null;
 
-        // Read Spectrum information        
+        // Read Spectrum information
         NavigableMap<Double, Double> spectrum = new TreeMap<>();
 
         IsotopePattern pattern = row.getBestIsotopePattern();
@@ -268,50 +276,62 @@ public class ADAP3AlignerTask extends AbstractTask {
                         dataPoint.getIntensity());
         }
 
-        return new Component(null,
-                new Peak(chromatogram, new PeakInfo()
-                        .mzValue(peak.getMZ())
-                        .peakID(row.getID())),
+        return new Component(
+                null, new Peak(chromatogram, new PeakInfo()
+                        .mzValue(peak.getMZ()).peakID(row.getID())),
                 spectrum, null);
     }
 
     /**
      * Call the alignment from the ADAP package.
      *
-     * @param alignment an instance of {@link Project} containing all samples and peaks to be aligned.
+     * @param alignment
+     *            an instance of {@link Project} containing all samples and
+     *            peaks to be aligned.
      */
     private void process() {
         AlignmentParameters params = new AlignmentParameters()
-                .sampleCountRatio(parameters.getParameter(
-                        ADAP3AlignerParameters.SAMPLE_COUNT_RATIO).getValue())
-                .retTimeRange(parameters.getParameter(
-                        ADAP3AlignerParameters.RET_TIME_RANGE).getValue().getTolerance())
-                .scoreTolerance(parameters.getParameter(
-                        ADAP3AlignerParameters.SCORE_TOLERANCE).getValue())
-                .scoreWeight(parameters.getParameter(
-                        ADAP3AlignerParameters.SCORE_WEIGHT).getValue())
-                .maxShift(2 * parameters.getParameter(
-                        ADAP3AlignerParameters.RET_TIME_RANGE).getValue().getTolerance())
-                .eicScore(parameters.getParameter(
-                        ADAP3AlignerParameters.EIC_SCORE).getValue())
-                .mzRange(parameters.getParameter(
-                        ADAP3AlignerParameters.MZ_RANGE).getValue().getMzTolerance());
+                .sampleCountRatio(parameters
+                        .getParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO)
+                        .getValue())
+                .retTimeRange(parameters
+                        .getParameter(ADAP3AlignerParameters.RET_TIME_RANGE)
+                        .getValue().getTolerance())
+                .scoreTolerance(parameters
+                        .getParameter(ADAP3AlignerParameters.SCORE_TOLERANCE)
+                        .getValue())
+                .scoreWeight(parameters
+                        .getParameter(ADAP3AlignerParameters.SCORE_WEIGHT)
+                        .getValue())
+                .maxShift(2 * parameters
+                        .getParameter(ADAP3AlignerParameters.RET_TIME_RANGE)
+                        .getValue().getTolerance())
+                .eicScore(parameters
+                        .getParameter(ADAP3AlignerParameters.EIC_SCORE)
+                        .getValue())
+                .mzRange(
+                        parameters.getParameter(ADAP3AlignerParameters.MZ_RANGE)
+                                .getValue().getMzTolerance());
 
         params.optimizationParameters = new OptimizationParameters()
-                .gradientTolerance(1e-6)
-                .alpha(1e-4)
-                .maxIterationCount(4000)
+                .gradientTolerance(1e-6).alpha(1e-4).maxIterationCount(4000)
                 .verbose(false);
 
         alignment.alignSamples(params);
     }
 
     /**
-     * Find the existing {@link PeakListRow} for a given feature list ID and row ID.
+     * Find the existing {@link PeakListRow} for a given feature list ID and row
+     * ID.
      *
-     * @param peakListID number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
-     * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
-     * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns null.
+     * @param peakListID
+     *            number of a feature list in the array of {@link PeakList}. The
+     *            numeration starts with 0.
+     * @param rowID
+     *            integer that is returned by method getId() of
+     *            {@link PeakListRow}.
+     * @return an instance of {@link PeakListRow} if an existing row is found.
+     *         Otherwise it returns null.
      */
     @Nullable
     private PeakListRow findPeakListRow(final int peakListID, final int rowID) {
@@ -334,8 +354,12 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     /**
      * Find the existing {@link PeakList} for a given feature list ID.
-     * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
-     * @return an instance of {@link PeakList} if a feature list is found, or null.
+     * 
+     * @param peakListId
+     *            number of a feature list in the array of {@link PeakList}. The
+     *            numeration starts with 0.
+     * @return an instance of {@link PeakList} if a feature list is found, or
+     *         null.
      */
     @Nullable
     private PeakList findPeakList(int peakListId) {

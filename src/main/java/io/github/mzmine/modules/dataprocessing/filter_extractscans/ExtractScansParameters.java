@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,34 +33,40 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 
 public class ExtractScansParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
-  public static final IntegerParameter scans = new IntegerParameter("Scan count to be exported",
-      "Total scan count to be exported centered around the center time", 30, true);
-  public static final BooleanParameter useCenterTime = new BooleanParameter("Use center time",
-      "If checked the center time and scan count are used for export. Otherwise all scans in the given time range are exported.",
-      true);
-  public static final DoubleParameter centerTime =
-      new DoubleParameter("Center time", "Center time", new DecimalFormat("#.##"), 0.0);
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final IntegerParameter scans = new IntegerParameter(
+            "Scan count to be exported",
+            "Total scan count to be exported centered around the center time",
+            30, true);
+    public static final BooleanParameter useCenterTime = new BooleanParameter(
+            "Use center time",
+            "If checked the center time and scan count are used for export. Otherwise all scans in the given time range are exported.",
+            true);
+    public static final DoubleParameter centerTime = new DoubleParameter(
+            "Center time", "Center time", new DecimalFormat("#.##"), 0.0);
 
-  public static final RTRangeParameter rangeTime = new RTRangeParameter("Time range",
-      "If \"use center time\" is unchecked all scans between the minimum and maximum time are exported (inclusive).",
-      false, null);
+    public static final RTRangeParameter rangeTime = new RTRangeParameter(
+            "Time range",
+            "If \"use center time\" is unchecked all scans between the minimum and maximum time are exported (inclusive).",
+            false, null);
 
-  public static final DirectoryParameter file =
-      new DirectoryParameter("Output directory", "Directory to write scans to");
-  public static final BooleanParameter autoMax = new BooleanParameter("Auto search max",
-      "Automatically search for maximum TIC intensity as center scan", true);
-  public static final BooleanParameter exportHeader =
-      new BooleanParameter("Export header", "Exports a header for each scan file", true);
-  public static final BooleanParameter exportSummary =
-      new BooleanParameter("Export summary", "Exports a summary Microsoft Excel file", true);
+    public static final DirectoryParameter file = new DirectoryParameter(
+            "Output directory", "Directory to write scans to");
+    public static final BooleanParameter autoMax = new BooleanParameter(
+            "Auto search max",
+            "Automatically search for maximum TIC intensity as center scan",
+            true);
+    public static final BooleanParameter exportHeader = new BooleanParameter(
+            "Export header", "Exports a header for each scan file", true);
+    public static final BooleanParameter exportSummary = new BooleanParameter(
+            "Export summary", "Exports a summary Microsoft Excel file", true);
 
-  public static final OptionalParameter<MassListParameter> useMassList =
-      new OptionalParameter<>(new MassListParameter());
+    public static final OptionalParameter<MassListParameter> useMassList = new OptionalParameter<>(
+            new MassListParameter());
 
-  public ExtractScansParameters() {
-    super(new Parameter[] {useMassList, dataFiles, file, useCenterTime, scans, centerTime,
-        rangeTime, autoMax, exportHeader});
-  }
+    public ExtractScansParameters() {
+        super(new Parameter[] { useMassList, dataFiles, file, useCenterTime,
+                scans, centerTime, rangeTime, autoMax, exportHeader });
+    }
 
 }

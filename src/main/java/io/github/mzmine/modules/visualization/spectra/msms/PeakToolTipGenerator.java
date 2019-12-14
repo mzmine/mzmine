@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,32 +33,36 @@ import io.github.mzmine.main.MZmineCore;
  */
 class PeakToolTipGenerator implements XYToolTipGenerator {
 
-  private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getConfiguration()
+            .getIntensityFormat();
 
-  /**
-   * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-   *      int, int)
-   */
-  public String generateToolTip(XYDataset dataset, int series, int item) {
+    /**
+     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
+     *      int, int)
+     */
+    public String generateToolTip(XYDataset dataset, int series, int item) {
 
-    PeakDataSet peakDataSet = (PeakDataSet) dataset;
-    PeakDataPoint dataPoint = peakDataSet.getDataPoint(series, item);
+        PeakDataSet peakDataSet = (PeakDataSet) dataset;
+        PeakDataPoint dataPoint = peakDataSet.getDataPoint(series, item);
 
-    PeakList peakList = peakDataSet.getPeakList();
-    Feature peak = peakDataSet.getPeak(series);
-    PeakListRow row = peakList.getPeakRow(peak);
-    double rtValue = dataPoint.getRT();
-    double intValue = dataPoint.getIntensity();
-    double mzValue = dataPoint.getMZ();
-    int scanNumber = dataPoint.getScanNumber();
+        PeakList peakList = peakDataSet.getPeakList();
+        Feature peak = peakDataSet.getPeak(series);
+        PeakListRow row = peakList.getPeakRow(peak);
+        double rtValue = dataPoint.getRT();
+        double intValue = dataPoint.getIntensity();
+        double mzValue = dataPoint.getMZ();
+        int scanNumber = dataPoint.getScanNumber();
 
-    String toolTip = "Peak: " + peak + "\nStatus: " + peak.getFeatureStatus() + "\nFeature list row: "
-        + row + "\nScan #" + scanNumber + "\nRetention time: " + rtFormat.format(rtValue)
-        + "\nm/z: " + mzFormat.format(mzValue) + "\nIntensity: " + intensityFormat.format(intValue);
+        String toolTip = "Peak: " + peak + "\nStatus: "
+                + peak.getFeatureStatus() + "\nFeature list row: " + row
+                + "\nScan #" + scanNumber + "\nRetention time: "
+                + rtFormat.format(rtValue) + "\nm/z: "
+                + mzFormat.format(mzValue) + "\nIntensity: "
+                + intensityFormat.format(intValue);
 
-    return toolTip;
-  }
+        return toolTip;
+    }
 
 }

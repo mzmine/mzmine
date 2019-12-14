@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,26 +33,29 @@ import io.github.mzmine.util.EMailUtil;
  */
 public class ErrorMail {
 
-  public void sendErrorEmail(String emailTo, String emailFrom, String smtpServer, String subject,
-      String msg, String password, Integer port) throws IOException {
+    public void sendErrorEmail(String emailTo, String emailFrom,
+            String smtpServer, String subject, String msg, String password,
+            Integer port) throws IOException {
 
-    Properties props = new Properties();
-    props.put("mail.smtp.host", smtpServer); // SMTP Host
-    props.put("mail.smtp.socketFactory.port", port); // SSL Port
-    props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); // SSL Factory
-                                                                                  // Class
-    props.put("mail.smtp.auth", "true"); // Enabling SMTP Authentication
-    props.put("mail.smtp.port", port); // SMTP Port, gmail 465
+        Properties props = new Properties();
+        props.put("mail.smtp.host", smtpServer); // SMTP Host
+        props.put("mail.smtp.socketFactory.port", port); // SSL Port
+        props.put("mail.smtp.socketFactory.class",
+                "javax.net.ssl.SSLSocketFactory"); // SSL Factory
+                                                   // Class
+        props.put("mail.smtp.auth", "true"); // Enabling SMTP Authentication
+        props.put("mail.smtp.port", port); // SMTP Port, gmail 465
 
-    Authenticator auth = new Authenticator() {
+        Authenticator auth = new Authenticator() {
 
-      // override the getPasswordAuthentication method
-      protected PasswordAuthentication getPasswordAuthentication() {
-        return new PasswordAuthentication(emailFrom, password);
-      }
-    };
-    Session session = Session.getDefaultInstance(props, auth);
-    Thread eMailThread = new Thread(new EMailUtil(session, emailTo, subject, msg));
-	eMailThread.start();
-  }
+            // override the getPasswordAuthentication method
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(emailFrom, password);
+            }
+        };
+        Session session = Session.getDefaultInstance(props, auth);
+        Thread eMailThread = new Thread(
+                new EMailUtil(session, emailTo, subject, msg));
+        eMailThread.start();
+    }
 }

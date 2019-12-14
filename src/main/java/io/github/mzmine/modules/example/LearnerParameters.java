@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,32 +28,38 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class LearnerParameters extends SimpleParameterSet {
-  /*
-   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
-   */
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
-
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
-
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
-
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-
-  public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns");
-
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original peaklist",
-      "If checked, original peaklist will be removed and only deisotoped version remains");
-
-  /**
-   * Create a new parameterset
-   */
-  public LearnerParameters() {
     /*
-     * The order of the parameters is used to construct the parameter dialog automatically
+     * Define any parameters here (see io.github.mzmine.parameters for parameter
+     * types)
      */
-    super(new Parameter[] {peakLists, suffix, mzTolerance, rtTolerance, maximumCharge, autoRemove});
-  }
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
+
+    public static final StringParameter suffix = new StringParameter(
+            "Name suffix", "Suffix to be added to feature list name",
+            "deisotoped");
+
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
+    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+
+    public static final IntegerParameter maximumCharge = new IntegerParameter(
+            "Maximum charge",
+            "Maximum charge to consider for detecting the isotope patterns");
+
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove original peaklist",
+            "If checked, original peaklist will be removed and only deisotoped version remains");
+
+    /**
+     * Create a new parameterset
+     */
+    public LearnerParameters() {
+        /*
+         * The order of the parameters is used to construct the parameter dialog
+         * automatically
+         */
+        super(new Parameter[] { peakLists, suffix, mzTolerance, rtTolerance,
+                maximumCharge, autoRemove });
+    }
 
 }

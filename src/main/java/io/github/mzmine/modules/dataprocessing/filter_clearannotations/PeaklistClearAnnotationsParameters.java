@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,22 +33,25 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeaklistClearAnnotationsParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  public static final BooleanParameter CLEAR_IDENTITY = new BooleanParameter("Clear identities?",
-      "If checked, the identities will be removed from the selected peaklists");
+    public static final BooleanParameter CLEAR_IDENTITY = new BooleanParameter(
+            "Clear identities?",
+            "If checked, the identities will be removed from the selected peaklists");
 
-  public static final BooleanParameter CLEAR_COMMENT = new BooleanParameter("Clear comments?",
-      "If checked, the comments will be removed from the selected peaklists");
+    public static final BooleanParameter CLEAR_COMMENT = new BooleanParameter(
+            "Clear comments?",
+            "If checked, the comments will be removed from the selected peaklists");
 
-  /*
-   * public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-   * "Remove source feature list after filtering",
-   * "If checked, the original feature list will be removed leaving only the filtered version");
-   */
+    /*
+     * public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
+     * "Remove source feature list after filtering",
+     * "If checked, the original feature list will be removed leaving only the filtered version"
+     * );
+     */
 
-  public PeaklistClearAnnotationsParameters() {
-    super(new Parameter[] {PEAK_LISTS, CLEAR_IDENTITY, CLEAR_COMMENT});
-  }
+    public PeaklistClearAnnotationsParameters() {
+        super(new Parameter[] { PEAK_LISTS, CLEAR_IDENTITY, CLEAR_COMMENT });
+    }
 
 }

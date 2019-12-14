@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,158 +32,167 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.XMLUtils;
 
 public class ScanSelectionParameter
-    implements UserParameter<ScanSelection, ScanSelectionComponent> {
-  private final String name, description;
-  private ScanSelection value;
+        implements UserParameter<ScanSelection, ScanSelectionComponent> {
+    private final String name, description;
+    private ScanSelection value;
 
-  public ScanSelectionParameter() {
-    this("Scans", "Select scans that should be included.", null);
-  }
-
-  public ScanSelectionParameter(ScanSelection defaultValue) {
-    this("Scans", "Select scans that should be included.", defaultValue);
-  }
-
-  public ScanSelectionParameter(String name, String description, ScanSelection defaultValue) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-  }
-
-  @Override
-  public ScanSelection getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(ScanSelection newValue) {
-    this.value = newValue;
-  }
-
-  @Override
-  public ScanSelectionParameter cloneParameter() {
-    ScanSelectionParameter copy = new ScanSelectionParameter(name, description, value);
-    return copy;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    return true;
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-
-    Range<Integer> scanNumberRange = null;
-    Integer baseFilteringInteger = null;
-    Range<Double> scanRTRange = null;
-    PolarityType polarity = null;
-    MassSpectrumType spectrumType = null;
-    Integer msLevel = null;
-    String scanDefinition = null;
-
-    scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
-    scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
-
-    NodeList items = xmlElement.getElementsByTagName("ms_level");
-    for (int i = 0; i < items.getLength(); i++) {
-      msLevel = Integer.valueOf(items.item(i).getTextContent());
+    public ScanSelectionParameter() {
+        this("Scans", "Select scans that should be included.", null);
     }
 
-    items = xmlElement.getElementsByTagName("polarity");
-    for (int i = 0; i < items.getLength(); i++) {
-      try {
-        polarity = PolarityType.valueOf(items.item(i).getTextContent());
-      } catch (Exception e) {
-        polarity = PolarityType.fromSingleChar(items.item(i).getTextContent());
-      }
+    public ScanSelectionParameter(ScanSelection defaultValue) {
+        this("Scans", "Select scans that should be included.", defaultValue);
     }
 
-    items = xmlElement.getElementsByTagName("spectrum_type");
-    for (int i = 0; i < items.getLength(); i++) {
-      spectrumType = MassSpectrumType.valueOf(items.item(i).getTextContent());
+    public ScanSelectionParameter(String name, String description,
+            ScanSelection defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
     }
 
-    items = xmlElement.getElementsByTagName("scan_definition");
-    for (int i = 0; i < items.getLength(); i++) {
-      scanDefinition = items.item(i).getTextContent();
+    @Override
+    public ScanSelection getValue() {
+        return value;
     }
 
-    this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    Document parentDocument = xmlElement.getOwnerDocument();
-
-    final Range<Integer> scanNumberRange = value.getScanNumberRange();
-    final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
-    final Integer baseFilteringInteger = value.getBaseFilteringInteger();
-    final PolarityType polarity = value.getPolarity();
-    final MassSpectrumType spectrumType = value.getSpectrumType();
-    final Integer msLevel = value.getMsLevel();
-    final String scanDefinition = value.getScanDefinition();
-
-    XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
-    XMLUtils.appendRange(xmlElement, "retention_time", scanRetentionTimeRange);
-
-    if (baseFilteringInteger != null) {
-      Element newElement = parentDocument.createElement("baseFilteringInteger");
-      newElement.setTextContent(baseFilteringInteger.toString());
-      xmlElement.appendChild(newElement);
-    }
-    if (polarity != null) {
-      Element newElement = parentDocument.createElement("polarity");
-      newElement.setTextContent(polarity.toString());
-      xmlElement.appendChild(newElement);
+    @Override
+    public void setValue(ScanSelection newValue) {
+        this.value = newValue;
     }
 
-    if (spectrumType != null) {
-      Element newElement = parentDocument.createElement("spectrum_type");
-      newElement.setTextContent(spectrumType.toString());
-      xmlElement.appendChild(newElement);
+    @Override
+    public ScanSelectionParameter cloneParameter() {
+        ScanSelectionParameter copy = new ScanSelectionParameter(name,
+                description, value);
+        return copy;
     }
 
-    if (msLevel != null) {
-      Element newElement = parentDocument.createElement("ms_level");
-      newElement.setTextContent(String.valueOf(msLevel));
-      xmlElement.appendChild(newElement);
+    @Override
+    public String getName() {
+        return name;
     }
 
-    if (scanDefinition != null) {
-      Element newElement = parentDocument.createElement("scan_definition");
-      newElement.setTextContent(scanDefinition);
-      xmlElement.appendChild(newElement);
+    @Override
+    public String getDescription() {
+        return description;
     }
 
-  }
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        return true;
+    }
 
-  @Override
-  public ScanSelectionComponent createEditingComponent() {
-    return new ScanSelectionComponent();
-  }
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
 
-  @Override
-  public void setValueFromComponent(ScanSelectionComponent component) {
-    value = component.getValue();
-  }
+        Range<Integer> scanNumberRange = null;
+        Integer baseFilteringInteger = null;
+        Range<Double> scanRTRange = null;
+        PolarityType polarity = null;
+        MassSpectrumType spectrumType = null;
+        Integer msLevel = null;
+        String scanDefinition = null;
 
-  @Override
-  public void setValueToComponent(ScanSelectionComponent component, ScanSelection newValue) {
-    component.setValue(newValue);
-  }
+        scanNumberRange = XMLUtils.parseIntegerRange(xmlElement,
+                "scan_numbers");
+        scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
+
+        NodeList items = xmlElement.getElementsByTagName("ms_level");
+        for (int i = 0; i < items.getLength(); i++) {
+            msLevel = Integer.valueOf(items.item(i).getTextContent());
+        }
+
+        items = xmlElement.getElementsByTagName("polarity");
+        for (int i = 0; i < items.getLength(); i++) {
+            try {
+                polarity = PolarityType.valueOf(items.item(i).getTextContent());
+            } catch (Exception e) {
+                polarity = PolarityType
+                        .fromSingleChar(items.item(i).getTextContent());
+            }
+        }
+
+        items = xmlElement.getElementsByTagName("spectrum_type");
+        for (int i = 0; i < items.getLength(); i++) {
+            spectrumType = MassSpectrumType
+                    .valueOf(items.item(i).getTextContent());
+        }
+
+        items = xmlElement.getElementsByTagName("scan_definition");
+        for (int i = 0; i < items.getLength(); i++) {
+            scanDefinition = items.item(i).getTextContent();
+        }
+
+        this.value = new ScanSelection(scanNumberRange, baseFilteringInteger,
+                scanRTRange, polarity, spectrumType, msLevel, scanDefinition);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+
+        final Range<Integer> scanNumberRange = value.getScanNumberRange();
+        final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
+        final Integer baseFilteringInteger = value.getBaseFilteringInteger();
+        final PolarityType polarity = value.getPolarity();
+        final MassSpectrumType spectrumType = value.getSpectrumType();
+        final Integer msLevel = value.getMsLevel();
+        final String scanDefinition = value.getScanDefinition();
+
+        XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
+        XMLUtils.appendRange(xmlElement, "retention_time",
+                scanRetentionTimeRange);
+
+        if (baseFilteringInteger != null) {
+            Element newElement = parentDocument
+                    .createElement("baseFilteringInteger");
+            newElement.setTextContent(baseFilteringInteger.toString());
+            xmlElement.appendChild(newElement);
+        }
+        if (polarity != null) {
+            Element newElement = parentDocument.createElement("polarity");
+            newElement.setTextContent(polarity.toString());
+            xmlElement.appendChild(newElement);
+        }
+
+        if (spectrumType != null) {
+            Element newElement = parentDocument.createElement("spectrum_type");
+            newElement.setTextContent(spectrumType.toString());
+            xmlElement.appendChild(newElement);
+        }
+
+        if (msLevel != null) {
+            Element newElement = parentDocument.createElement("ms_level");
+            newElement.setTextContent(String.valueOf(msLevel));
+            xmlElement.appendChild(newElement);
+        }
+
+        if (scanDefinition != null) {
+            Element newElement = parentDocument
+                    .createElement("scan_definition");
+            newElement.setTextContent(scanDefinition);
+            xmlElement.appendChild(newElement);
+        }
+
+    }
+
+    @Override
+    public ScanSelectionComponent createEditingComponent() {
+        return new ScanSelectionComponent();
+    }
+
+    @Override
+    public void setValueFromComponent(ScanSelectionComponent component) {
+        value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(ScanSelectionComponent component,
+            ScanSelection newValue) {
+        component.setValue(newValue);
+    }
 
 }

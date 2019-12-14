@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -31,36 +31,36 @@ import io.github.mzmine.util.ExitCode;
 
 public class ProjectSaveAsModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Save project as";
-  private static final String MODULE_DESCRIPTION = "This module saves the current MZmine project.";
+    private static final String MODULE_NAME = "Save project as";
+    private static final String MODULE_DESCRIPTION = "This module saves the current MZmine project.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    ProjectSavingTask newTask = new ProjectSavingTask(project, parameters);
-    tasks.add(newTask);
-    return ExitCode.OK;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        ProjectSavingTask newTask = new ProjectSavingTask(project, parameters);
+        tasks.add(newTask);
+        return ExitCode.OK;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PROJECTIO;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PROJECTIO;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ProjectSaveAsParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ProjectSaveAsParameters.class;
+    }
 
 }

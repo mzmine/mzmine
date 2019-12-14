@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,64 +22,72 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * MS/MS visualizer's toolbar class
  */
 class MsMsToolBar extends JToolBar {
 
-  private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-  static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-  static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
-  static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
-  static final Icon findIcon = new ImageIcon("icons/search.png");
+    private static final long serialVersionUID = 1L;
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
+    static final Icon dataPointsIcon = IconUtil
+            .loadIconFromResources("icons/datapointsicon.png");
+    static final Icon tooltipsIcon = IconUtil
+            .loadIconFromResources("icons/tooltips2dploticon.png");
+    static final Icon notooltipsIcon = IconUtil
+            .loadIconFromResources("icons/notooltips2dploticon.png");
+    static final Icon findIcon = IconUtil
+            .loadIconFromResources("icons/search.png");
 
-  private JButton toggleContinuousModeButton, toggleTooltipButton;
+    private JButton toggleContinuousModeButton, toggleTooltipButton;
 
-  MsMsToolBar(MsMsVisualizerWindow masterFrame) {
+    MsMsToolBar(MsMsVisualizerWindow masterFrame) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+        setFloatable(false);
+        setFocusable(false);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBackground(Color.white);
 
-    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
+        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+                "Setup ranges for axes");
 
-    addSeparator();
+        addSeparator();
 
-    toggleContinuousModeButton = GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-        "SHOW_DATA_POINTS", "Toggle displaying of data points for the peaks");
+        toggleContinuousModeButton = GUIUtils.addButton(this, null,
+                dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
+                "Toggle displaying of data points for the peaks");
 
-    addSeparator();
+        addSeparator();
 
-    toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon, masterFrame,
-        "SWITCH_TOOLTIPS", "Toggle displaying of tool tips on the peaks");
+        toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
+                masterFrame, "SWITCH_TOOLTIPS",
+                "Toggle displaying of tool tips on the peaks");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, findIcon, masterFrame, "FIND_SPECTRA",
-        "Search for MS/MS spectra with specific ions");
+        GUIUtils.addButton(this, null, findIcon, masterFrame, "FIND_SPECTRA",
+                "Search for MS/MS spectra with specific ions");
 
-  }
-
-  void toggleContinuousModeButtonSetEnable(boolean enable) {
-    toggleContinuousModeButton.setEnabled(enable);
-  }
-
-  void setTooltipButton(boolean tooltip) {
-    if (tooltip) {
-      toggleTooltipButton.setIcon(tooltipsIcon);
-    } else {
-      toggleTooltipButton.setIcon(notooltipsIcon);
     }
-  }
+
+    void toggleContinuousModeButtonSetEnable(boolean enable) {
+        toggleContinuousModeButton.setEnabled(enable);
+    }
+
+    void setTooltipButton(boolean tooltip) {
+        if (tooltip) {
+            toggleTooltipButton.setIcon(tooltipsIcon);
+        } else {
+            toggleTooltipButton.setIcon(notooltipsIcon);
+        }
+    }
 
 }

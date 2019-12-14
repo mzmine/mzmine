@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,17 +29,18 @@ import io.github.mzmine.util.R.RSessionWrapperException;
  */
 public interface BaselineProvider {
 
-  /**
-   * Gets R required packages for the corrector's method, if applicable
-   */
-  public String[] getRequiredRPackages();
+    /**
+     * Gets R required packages for the corrector's method, if applicable
+     */
+    public String[] getRequiredRPackages();
 
-  /**
-   * Returns a baseline for correcting the given chromatogram using R
-   * 
-   * @throws RSessionWrapperException
-   */
-  public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile,
-      final double[] chromatogram, ParameterSet parameters) throws RSessionWrapperException;
+    /**
+     * Returns a baseline for correcting the given chromatogram using R
+     * 
+     * @throws RSessionWrapperException
+     */
+    public double[] computeBaseline(final RSessionWrapper rSession,
+            final RawDataFile origDataFile, final double[] chromatogram,
+            ParameterSet parameters) throws RSessionWrapperException;
 
 }

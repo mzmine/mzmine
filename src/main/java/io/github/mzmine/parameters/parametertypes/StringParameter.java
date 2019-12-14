@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,124 +27,128 @@ import java.util.Collection;
 
 public class StringParameter implements UserParameter<String, StringComponent> {
 
-  private String name, description, value;
-  private int inputsize = 20;
-  private boolean valueRequired = true;
-  private final boolean sensitive;
+    private String name, description, value;
+    private int inputsize = 20;
+    private boolean valueRequired = true;
+    private final boolean sensitive;
 
-  public StringParameter(String name, String description) {
-    this(name, description, null);
-  }
-
-  public StringParameter(String name, String description, boolean isSensitive) {
-    this(name, description, null, true, isSensitive);
-  }
-
-  public StringParameter(String name, String description, int inputsize) {
-    this.name = name;
-    this.description = description;
-    this.inputsize = inputsize;
-    this.sensitive = false;
-  }
-
-  public StringParameter(String name, String description, String defaultValue) {
-    this(name, description, defaultValue, true, false);
-  }
-
-  public StringParameter(String name, String description, String defaultValue,
-      boolean valueRequired) {
-    this(name, description, defaultValue, valueRequired, false);
-  }
-
-  public StringParameter(String name, String description, String defaultValue,
-                         boolean valueRequired, boolean isSensitive) {
-    this.name = name;
-    this.description = description;
-    this.value = defaultValue;
-    this.valueRequired = valueRequired;
-    this.sensitive = isSensitive;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public StringComponent createEditingComponent() {
-    StringComponent stringComponent = new StringComponent(inputsize);
-    stringComponent.setBorder(BorderFactory.createCompoundBorder(stringComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
-    return stringComponent;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  @Override
-  public StringParameter cloneParameter() {
-    StringParameter copy = new StringParameter(name, description);
-    copy.setValue(this.getValue());
-    return copy;
-  }
-
-  @Override
-  public String toString() {
-    return name;
-  }
-
-  @Override
-  public void setValueFromComponent(StringComponent component) {
-    value = component.getText();
-  }
-
-  @Override
-  public void setValueToComponent(StringComponent component, String newValue) {
-    component.setText(newValue);
-  }
-
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
-  }
-
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
-    xmlElement.setTextContent(value);
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (!valueRequired)
-      return true;
-    if ((value == null) || (value.trim().length() == 0)) {
-      errorMessages.add(name + " is not set properly");
-      return false;
+    public StringParameter(String name, String description) {
+        this(name, description, null);
     }
-    return true;
-  }
 
-  @Override
-  public boolean isSensitive() {
-    return sensitive;
-  }
+    public StringParameter(String name, String description,
+            boolean isSensitive) {
+        this(name, description, null, true, isSensitive);
+    }
+
+    public StringParameter(String name, String description, int inputsize) {
+        this.name = name;
+        this.description = description;
+        this.inputsize = inputsize;
+        this.sensitive = false;
+    }
+
+    public StringParameter(String name, String description,
+            String defaultValue) {
+        this(name, description, defaultValue, true, false);
+    }
+
+    public StringParameter(String name, String description, String defaultValue,
+            boolean valueRequired) {
+        this(name, description, defaultValue, valueRequired, false);
+    }
+
+    public StringParameter(String name, String description, String defaultValue,
+            boolean valueRequired, boolean isSensitive) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+        this.valueRequired = valueRequired;
+        this.sensitive = isSensitive;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @see io.github.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public StringComponent createEditingComponent() {
+        StringComponent stringComponent = new StringComponent(inputsize);
+        stringComponent.setBorder(
+                BorderFactory.createCompoundBorder(stringComponent.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+        return stringComponent;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public StringParameter cloneParameter() {
+        StringParameter copy = new StringParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public void setValueFromComponent(StringComponent component) {
+        value = component.getText();
+    }
+
+    @Override
+    public void setValueToComponent(StringComponent component,
+            String newValue) {
+        component.setText(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (!valueRequired)
+            return true;
+        if ((value == null) || (value.trim().length() == 0)) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isSensitive() {
+        return sensitive;
+    }
 }

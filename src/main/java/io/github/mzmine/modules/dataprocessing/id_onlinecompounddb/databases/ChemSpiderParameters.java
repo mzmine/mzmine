@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -34,16 +34,17 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ChemSpiderParameters extends SimpleParameterSet {
 
-  /**
-   * Search API security token.
-   */
-  public static final StringParameter SECURITY_TOKEN = new StringParameter("ChemSpider API key",
-      "Security key from your ChemSpider API account - register at https://developer.rsc.org");
+    /**
+     * Search API security token.
+     */
+    public static final StringParameter SECURITY_TOKEN = new StringParameter(
+            "ChemSpider API key",
+            "Security key from your ChemSpider API account - register at https://developer.rsc.org");
 
-  /**
-   * Create the parameter set.
-   */
-  public ChemSpiderParameters() {
-    super(new Parameter[] {SECURITY_TOKEN});
-  }
+    /**
+     * Create the parameter set.
+     */
+    public ChemSpiderParameters() {
+        super(new Parameter[] { SECURITY_TOKEN });
+    }
 }

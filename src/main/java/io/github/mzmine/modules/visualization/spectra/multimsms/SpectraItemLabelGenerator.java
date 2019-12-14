@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,45 +26,48 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 
 /**
- * Label generator for spectra visualizer. Only used to generate labels for the raw data
- * (ScanDataSet)
+ * Label generator for spectra visualizer. Only used to generate labels for the
+ * raw data (ScanDataSet)
  */
 public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
-  /*
-   * Number of screen pixels to reserve for each label, so that the labels do not overlap
-   */
-  public static final int POINTS_RESERVE_X = 100;
+    /*
+     * Number of screen pixels to reserve for each label, so that the labels do
+     * not overlap
+     */
+    public static final int POINTS_RESERVE_X = 100;
 
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  public SpectraItemLabelGenerator() {}
-
-  /**
-   * Labels for mz signals
-   * 
-   * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-   *      int, int)
-   */
-  @Override
-  public String generateLabel(XYDataset dataset, int series, int item) {
-    // Create label
-    String label = null;
-    if (dataset instanceof PseudoSpectrumDataSet) {
-      double mzValue = dataset.getXValue(series, item);
-      label = mzFormat.format(mzValue);
-      String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series, item);
-      if (ann != null)
-        label = label + "\n" + ann;
-      return label;
-    }
-    if (label == null) {
-      double mzValue = dataset.getXValue(series, item);
-      label = mzFormat.format(mzValue);
+    public SpectraItemLabelGenerator() {
     }
 
-    return label;
+    /**
+     * Labels for mz signals
+     * 
+     * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
+     *      int, int)
+     */
+    @Override
+    public String generateLabel(XYDataset dataset, int series, int item) {
+        // Create label
+        String label = null;
+        if (dataset instanceof PseudoSpectrumDataSet) {
+            double mzValue = dataset.getXValue(series, item);
+            label = mzFormat.format(mzValue);
+            String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series,
+                    item);
+            if (ann != null)
+                label = label + "\n" + ann;
+            return label;
+        }
+        if (label == null) {
+            double mzValue = dataset.getXValue(series, item);
+            label = mzFormat.format(mzValue);
+        }
 
-  }
+        return label;
+
+    }
 
 }

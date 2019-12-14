@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,53 +38,55 @@ import io.github.mzmine.util.ExitCode;
 
 public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
-  public static final MassListParameter massList = new MassListParameter();
+    public static final MassListParameter massList = new MassListParameter();
 
-  public static final IntegerParameter minimumScanSpan = new IntegerParameter(
-      "Min group size in # of scans",
-      "Minimum scan span over which some peak in the chromatogram must have (continuous) points above the noise level\n"
-          + "to be recognized as a chromatogram.\n"
-          + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
-          + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
-      5, true, 2, null);
+    public static final IntegerParameter minimumScanSpan = new IntegerParameter(
+            "Min group size in # of scans",
+            "Minimum scan span over which some peak in the chromatogram must have (continuous) points above the noise level\n"
+                    + "to be recognized as a chromatogram.\n"
+                    + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
+                    + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
+            5, true, 2, null);
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "chromatograms");
 
-  // Owen Edit
-  public static final DoubleParameter IntensityThresh2 = new DoubleParameter(
-      "Group intensity threshold",
-      "This parameter is the intensity value for wich intensities greater than this value can contribute to the minimumScanSpan count.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    // Owen Edit
+    public static final DoubleParameter IntensityThresh2 = new DoubleParameter(
+            "Group intensity threshold",
+            "This parameter is the intensity value for wich intensities greater than this value can contribute to the minimumScanSpan count.",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter startIntensity = new DoubleParameter("Min highest intensity",
-      "Points below this intensity will not be considered in starting a new chromatogram",
-      MZmineCore.getConfiguration().getIntensityFormat());
-  // End Owen Edit
+    public static final DoubleParameter startIntensity = new DoubleParameter(
+            "Min highest intensity",
+            "Points below this intensity will not be considered in starting a new chromatogram",
+            MZmineCore.getConfiguration().getIntensityFormat());
+    // End Owen Edit
 
-  public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, massList, minimumScanSpan, IntensityThresh2,
-        startIntensity, mzTolerance, suffix});
-  }
+    public ADAPChromatogramBuilderParameters() {
+        super(new Parameter[] { dataFiles, scanSelection, massList,
+                minimumScanSpan, IntensityThresh2, startIntensity, mzTolerance,
+                suffix });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    String message = "<html>ADAP Module Disclaimer:"
-        + "<br> If you use the ADAP Chromatogram Builder Module, please cite the "
-        + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
-        + "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative "
-        + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
-        + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
-        + "</html>";
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        String message = "<html>ADAP Module Disclaimer:"
+                + "<br> If you use the ADAP Chromatogram Builder Module, please cite the "
+                + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
+                + "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative "
+                + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
+                + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
+                + "</html>";
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+                valueCheckRequired, this, message);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

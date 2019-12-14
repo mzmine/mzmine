@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,31 +21,33 @@ package io.github.mzmine.modules.visualization.scatterplot;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 public class ScatterPlotToolBar extends JToolBar {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
 
-  public ScatterPlotToolBar(ScatterPlotChart chart) {
+    public ScatterPlotToolBar(ScatterPlotChart chart) {
 
-    super(JToolBar.VERTICAL);
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setOpaque(true);
-    setMargin(new Insets(5, 5, 5, 5));
+        setFloatable(false);
+        setFocusable(false);
+        setOpaque(true);
+        setMargin(new Insets(5, 5, 5, 5));
 
-    GUIUtils.addButton(this, null, axesIcon, chart, "SETUP_AXES", "Setup ranges for axes");
+        GUIUtils.addButton(this, null, axesIcon, chart, "SETUP_AXES",
+                "Setup ranges for axes");
 
-  }
+    }
 
 }

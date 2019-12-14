@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -37,45 +37,47 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export scans into one file";
-  private static final String MODULE_DESCRIPTION = "Export scans or mass lists into one file ";
+    private static final String MODULE_NAME = "Export scans into one file";
+    private static final String MODULE_DESCRIPTION = "Export scans or mass lists into one file ";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    ScanSelection select =
-        parameters.getParameter(ExportScansFromRawFilesParameters.scanSelect).getValue();
-    Scan[] scans = new Scan[0];
-    for (RawDataFile raw : parameters.getParameter(ExportScansFromRawFilesParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles()) {
-      scans = ArrayUtils.addAll(scans, select.getMatchingScans(raw));
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
 
-    ExportScansTask task = new ExportScansTask(scans, parameters);
-    tasks.add(task);
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.RAWDATA;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ExportScansFromRawFilesParameters.class;
-  }
+        ScanSelection select = parameters
+                .getParameter(ExportScansFromRawFilesParameters.scanSelect)
+                .getValue();
+        Scan[] scans = new Scan[0];
+        for (RawDataFile raw : parameters
+                .getParameter(ExportScansFromRawFilesParameters.dataFiles)
+                .getValue().getMatchingRawDataFiles()) {
+            scans = ArrayUtils.addAll(scans, select.getMatchingScans(raw));
+        }
+
+        ExportScansTask task = new ExportScansTask(scans, parameters);
+        tasks.add(task);
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.RAWDATA;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return ExportScansFromRawFilesParameters.class;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -59,150 +59,166 @@ import io.github.mzmine.util.ExceptionUtils;
  */
 public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    public static final NumberFormat massFormater = MZmineCore
+            .getConfiguration().getMZFormat();
 
-  private int finishedItems = 0, numItems;
+    private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabases> db;
-  private double searchedMass;
-  private double noiseLevel;
-  private MZTolerance mzTolerance;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-  private IonizationType ionType;
-  private DBGateway gateway;
+    private MZmineProcessingStep<OnlineDatabases> db;
+    private double searchedMass;
+    private double noiseLevel;
+    private MZTolerance mzTolerance;
+    private Scan currentScan;
+    private SpectraPlot spectraPlot;
+    private IonizationType ionType;
+    private DBGateway gateway;
 
-  /**
-   * Create the task.
-   * 
-   * @param parameters task parameters.
-   * @param peakListRow peak-list row to identify.
-   */
-  public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
+    /**
+     * Create the task.
+     * 
+     * @param parameters
+     *            task parameters.
+     * @param peakListRow
+     *            peak-list row to identify.
+     */
+    public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters,
+            Scan currentScan, SpectraPlot spectraPlot) {
 
-    this.currentScan = currentScan;
-    this.spectraPlot = spectraPlot;
+        this.currentScan = currentScan;
+        this.spectraPlot = spectraPlot;
 
-    db = parameters.getParameter(DATABASE).getValue();
-    try {
-      gateway = db.getModule().getGatewayClass().newInstance();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    mzTolerance = parameters.getParameter(SpectraIdentificationOnlineDatabaseParameters.mzTolerance)
-        .getValue();
-    ionType = parameters.getParameter(SpectraIdentificationOnlineDatabaseParameters.ionizationType)
-        .getValue();
-    noiseLevel = parameters.getParameter(SpectraIdentificationOnlineDatabaseParameters.noiseLevel)
-        .getValue();
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (numItems == 0)
-      return 0;
-    return ((double) finishedItems) / numItems;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  @Override
-  public String getTaskDescription() {
-    return "Peak identification of " + massFormater.format(searchedMass) + " using " + db;
-  }
-
-  /**
-   * @see java.lang.Runnable#run()
-   */
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    // create mass list for scan
-    DataPoint[] massList = null;
-    ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
-    MassDetector massDetector = null;
-    ArrayList<String> allCompoundIDs = new ArrayList<>();
-
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
-    if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-      massDetector = new CentroidMassDetector();
-      CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
-      CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    } else {
-      massDetector = new ExactMassDetector();
-      ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
-      ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    }
-    numItems = massList.length;
-    for (int i = 0; i < massList.length; i++) {
-      // loop through every peak in mass list
-      if (getStatus() != TaskStatus.PROCESSING) {
-        return;
-      }
-      searchedMass = massList[i].getMZ() - ionType.getAddedMass();
-      try {
-        // find candidate compounds
-        String compoundIDs[] =
-            gateway.findCompounds(searchedMass, mzTolerance, 1, db.getParameterSet());
-        // Combine strings
-        String annotation = "";
-        // max number of compounds to top three for visualization
-        int counter = 0;
-        for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
-          final DBCompound compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
-
-          // In case we failed to retrieve data, skip this compound
-          if (compound == null)
-            continue;
-          if (counter < 3) {
-            int number = counter + 1;
-            annotation = annotation + " " + number + ". " + compound.getName();
-            counter++;
-          }
+        db = parameters.getParameter(DATABASE).getValue();
+        try {
+            gateway = db.getModule().getGatewayClass().newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (annotation != "") {
-          allCompoundIDs.add(annotation);
-          massListAnnotated.add(massList[i]);
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        logger.log(Level.WARNING, "Could not connect to " + db, e);
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not connect to " + db + ": " + ExceptionUtils.exceptionToString(e));
-        return;
-      }
-      finishedItems++;
+
+        mzTolerance = parameters.getParameter(
+                SpectraIdentificationOnlineDatabaseParameters.mzTolerance)
+                .getValue();
+        ionType = parameters.getParameter(
+                SpectraIdentificationOnlineDatabaseParameters.ionizationType)
+                .getValue();
+        noiseLevel = parameters.getParameter(
+                SpectraIdentificationOnlineDatabaseParameters.noiseLevel)
+                .getValue();
     }
 
-    // new mass list
-    DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
-    massListAnnotated.toArray(annotatedMassList);
-    String[] annotations = new String[annotatedMassList.length];
-    allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
-    // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
-    spectraPlot.getXYPlot().getRenderer()
-        .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
-    setStatus(TaskStatus.FINISHED);
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        if (numItems == 0)
+            return 0;
+        return ((double) finishedItems) / numItems;
+    }
 
-  }
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    @Override
+    public String getTaskDescription() {
+        return "Peak identification of " + massFormater.format(searchedMass)
+                + " using " + db;
+    }
+
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
+
+        setStatus(TaskStatus.PROCESSING);
+
+        // create mass list for scan
+        DataPoint[] massList = null;
+        ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
+        MassDetector massDetector = null;
+        ArrayList<String> allCompoundIDs = new ArrayList<>();
+
+        // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+        // or centroid mode
+        if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+            massDetector = new CentroidMassDetector();
+            CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
+            CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
+        } else {
+            massDetector = new ExactMassDetector();
+            ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
+            ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
+        }
+        numItems = massList.length;
+        for (int i = 0; i < massList.length; i++) {
+            // loop through every peak in mass list
+            if (getStatus() != TaskStatus.PROCESSING) {
+                return;
+            }
+            searchedMass = massList[i].getMZ() - ionType.getAddedMass();
+            try {
+                // find candidate compounds
+                String compoundIDs[] = gateway.findCompounds(searchedMass,
+                        mzTolerance, 1, db.getParameterSet());
+                // Combine strings
+                String annotation = "";
+                // max number of compounds to top three for visualization
+                int counter = 0;
+                for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
+                    final DBCompound compound = gateway
+                            .getCompound(compoundIDs[j], db.getParameterSet());
+
+                    // In case we failed to retrieve data, skip this compound
+                    if (compound == null)
+                        continue;
+                    if (counter < 3) {
+                        int number = counter + 1;
+                        annotation = annotation + " " + number + ". "
+                                + compound.getName();
+                        counter++;
+                    }
+                }
+                if (annotation != "") {
+                    allCompoundIDs.add(annotation);
+                    massListAnnotated.add(massList[i]);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.log(Level.WARNING, "Could not connect to " + db, e);
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not connect to " + db + ": "
+                        + ExceptionUtils.exceptionToString(e));
+                return;
+            }
+            finishedItems++;
+        }
+
+        // new mass list
+        DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
+        massListAnnotated.toArray(annotatedMassList);
+        String[] annotations = new String[annotatedMassList.length];
+        allCompoundIDs.toArray(annotations);
+        DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
+                "Detected compounds", annotatedMassList);
+        // Add label generator for the dataset
+        SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+                annotations, spectraPlot);
+        spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true,
+                labelGenerator);
+        spectraPlot.getXYPlot().getRenderer().setSeriesItemLabelGenerator(
+                spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
+        spectraPlot.getXYPlot().getRenderer()
+                .setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
+                        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT,
+                        TextAnchor.BOTTOM_CENTER, 0.0), true);
+        setStatus(TaskStatus.FINISHED);
+
+    }
 
 }

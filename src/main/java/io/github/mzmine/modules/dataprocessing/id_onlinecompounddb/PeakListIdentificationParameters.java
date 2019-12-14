@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,17 +26,17 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeakListIdentificationParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final ComboParameter<IonizationType> ionizationType =
-      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
-          IonizationType.values());
+    public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+            "Ionization type", "Ionization type", IonizationType.values());
 
-  public PeakListIdentificationParameters() {
-    super(new Parameter[] {peakLists, SingleRowIdentificationParameters.DATABASE, ionizationType,
-        SingleRowIdentificationParameters.MAX_RESULTS,
-        SingleRowIdentificationParameters.MZ_TOLERANCE,
-        SingleRowIdentificationParameters.ISOTOPE_FILTER});
-  }
+    public PeakListIdentificationParameters() {
+        super(new Parameter[] { peakLists,
+                SingleRowIdentificationParameters.DATABASE, ionizationType,
+                SingleRowIdentificationParameters.MAX_RESULTS,
+                SingleRowIdentificationParameters.MZ_TOLERANCE,
+                SingleRowIdentificationParameters.ISOTOPE_FILTER });
+    }
 
 }

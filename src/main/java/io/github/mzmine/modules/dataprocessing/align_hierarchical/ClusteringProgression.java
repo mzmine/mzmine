@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,13 +20,13 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public class ClusteringProgression {
 
-  private double progress = 0d;
+    private double progress = 0d;
 
-  public void setProgress(double value) {
-    progress = value;
-  }
+    public void setProgress(double value) {
+        progress = value;
+    }
 
-  public double getProgress() {
-    return progress;
-  }
+    public double getProgress() {
+        return progress;
+    }
 }

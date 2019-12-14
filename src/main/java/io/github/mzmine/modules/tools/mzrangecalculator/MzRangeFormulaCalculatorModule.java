@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,67 +31,75 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
 
 /**
- * m/z range calculator module. Calculates m/z range from a given chemical formula and m/z
- * tolerance.
+ * m/z range calculator module. Calculates m/z range from a given chemical
+ * formula and m/z tolerance.
  */
 public class MzRangeFormulaCalculatorModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "m/z range calculator from formula";
+    private static final String MODULE_NAME = "m/z range calculator from formula";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MzRangeFormulaCalculatorParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return MzRangeFormulaCalculatorParameters.class;
+    }
 
-  /**
-   * Shows the calculation dialog and returns the calculated m/z range. May return null in case user
-   * clicked Cancel.
-   */
-  @Nullable
-  public static Range<Double> showRangeCalculationDialog() {
+    /**
+     * Shows the calculation dialog and returns the calculated m/z range. May
+     * return null in case user clicked Cancel.
+     */
+    @Nullable
+    public static Range<Double> showRangeCalculationDialog() {
 
-    ParameterSet myParameters =
-        MZmineCore.getConfiguration().getModuleParameters(MzRangeFormulaCalculatorModule.class);
+        ParameterSet myParameters = MZmineCore.getConfiguration()
+                .getModuleParameters(MzRangeFormulaCalculatorModule.class);
 
-    if (myParameters == null)
-      return null;
+        if (myParameters == null)
+            return null;
 
-    ExitCode exitCode = myParameters.showSetupDialog(null, true);
-    if (exitCode != ExitCode.OK)
-      return null;
+        ExitCode exitCode = myParameters.showSetupDialog(null, true);
+        if (exitCode != ExitCode.OK)
+            return null;
 
-    return getMzRangeFromFormula(myParameters);
-  }
+        return getMzRangeFromFormula(myParameters);
+    }
 
-  @Nullable
-  public static Range<Double> getMzRangeFromFormula(ParameterSet myParameters) {
-    String formula =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.formula).getValue().trim();
-    IonizationType ionType =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.ionType).getValue();
-    MZTolerance mzTolerance =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.mzTolerance).getValue();
-    Integer charge =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.charge).getValue();
+    @Nullable
+    public static Range<Double> getMzRangeFromFormula(
+            ParameterSet myParameters) {
+        String formula = myParameters
+                .getParameter(MzRangeFormulaCalculatorParameters.formula)
+                .getValue().trim();
+        IonizationType ionType = myParameters
+                .getParameter(MzRangeFormulaCalculatorParameters.ionType)
+                .getValue();
+        MZTolerance mzTolerance = myParameters
+                .getParameter(MzRangeFormulaCalculatorParameters.mzTolerance)
+                .getValue();
+        Integer charge = myParameters
+                .getParameter(MzRangeFormulaCalculatorParameters.charge)
+                .getValue();
 
-    return getMzRangeFromFormula(formula, ionType, mzTolerance, charge);
-  }
+        return getMzRangeFromFormula(formula, ionType, mzTolerance, charge);
+    }
 
-  @Nullable
-  public static Range<Double> getMzRangeFromFormula(String formula, IonizationType ionType,
-      MZTolerance mzTolerance, Integer charge) {
-    if ((formula == null) || (ionType == null) || (mzTolerance == null) || (charge == null))
-      return null;
+    @Nullable
+    public static Range<Double> getMzRangeFromFormula(String formula,
+            IonizationType ionType, MZTolerance mzTolerance, Integer charge) {
+        if ((formula == null) || (ionType == null) || (mzTolerance == null)
+                || (charge == null))
+            return null;
 
-    String ionizedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
-    double calculatedMZ = FormulaUtils.calculateExactMass(ionizedFormula, charge) / charge;
+        String ionizedFormula = FormulaUtils.ionizeFormula(formula, ionType,
+                charge);
+        double calculatedMZ = FormulaUtils.calculateExactMass(ionizedFormula,
+                charge) / charge;
 
-    return mzTolerance.getToleranceRange(calculatedMZ);
-  }
+        return mzTolerance.getToleranceRange(calculatedMZ);
+    }
 
 }

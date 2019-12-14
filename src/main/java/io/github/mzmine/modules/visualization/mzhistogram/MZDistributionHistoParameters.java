@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,25 +31,27 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 public class MZDistributionHistoParameters extends SimpleParameterSet {
-  public static enum Weight {
-    None, Linear, log10;
-  }
+    public static enum Weight {
+        None, Linear, log10;
+    }
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
-  public static final MassListParameter massList = new MassListParameter();
-  public static final MZRangeParameter mzRange = new MZRangeParameter(true);
-  public static final OptionalParameter<RTRangeParameter> rtRange =
-      new OptionalParameter<>(new RTRangeParameter(false));
+    public static final MassListParameter massList = new MassListParameter();
+    public static final MZRangeParameter mzRange = new MZRangeParameter(true);
+    public static final OptionalParameter<RTRangeParameter> rtRange = new OptionalParameter<>(
+            new RTRangeParameter(false));
 
-  public static final DoubleParameter binWidth = new DoubleParameter("m/z bin width",
-      "Binning of m/z values for peak picking ", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleParameter binWidth = new DoubleParameter(
+            "m/z bin width", "Binning of m/z values for peak picking ",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public MZDistributionHistoParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, massList, mzRange, rtRange, binWidth});
-  }
+    public MZDistributionHistoParameters() {
+        super(new Parameter[] { dataFiles, scanSelection, massList, mzRange,
+                rtRange, binWidth });
+    }
 
 }

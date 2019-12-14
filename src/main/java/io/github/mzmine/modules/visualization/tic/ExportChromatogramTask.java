@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -42,92 +42,99 @@ import io.github.mzmine.taskcontrol.TaskStatus;
  */
 public class ExportChromatogramTask extends AbstractTask {
 
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(ExportChromatogramTask.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+            .getLogger(ExportChromatogramTask.class.getName());
 
-  private final File exportFile;
-  private final TICDataSet dataSet;
+    private final File exportFile;
+    private final TICDataSet dataSet;
 
-  private int progress;
-  private int progressMax;
+    private int progress;
+    private int progressMax;
 
-  /**
-   * Create the task.
-   *
-   * @param data data set to export.
-   * @param file file to write to.
-   */
-  public ExportChromatogramTask(final TICDataSet data, final File file) {
+    /**
+     * Create the task.
+     *
+     * @param data
+     *            data set to export.
+     * @param file
+     *            file to write to.
+     */
+    public ExportChromatogramTask(final TICDataSet data, final File file) {
 
-    dataSet = data;
-    exportFile = file;
-    progress = 0;
-    progressMax = 0;
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Exporting chromatogram for " + dataSet.getDataFile().getName();
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
-  }
-
-  @Override
-  public void run() {
-
-    // Update the status of this task
-    setStatus(TaskStatus.PROCESSING);
-
-    try {
-
-      // Do the export.
-      export();
-
-      // Success.
-      LOG.info("Exported chromatogram for " + dataSet.getDataFile().getName());
-      setStatus(TaskStatus.FINISHED);
-
-    } catch (Throwable t) {
-
-      LOG.log(Level.SEVERE, "Chromatogram export error", t);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.getMessage());
+        dataSet = data;
+        exportFile = file;
+        progress = 0;
+        progressMax = 0;
     }
-  }
 
-  /**
-   * Export the chromatogram.
-   *
-   * @throws IOException if there are i/o problems.
-   */
-  public void export() throws IOException {
-
-    // Open the writer.
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile));
-    try {
-
-      // Write the header row.
-      writer.write("RT,I");
-      writer.newLine();
-
-      // Write the data points.
-      final int itemCount = dataSet.getItemCount(0);
-      progressMax = itemCount;
-      for (int i = 0; i < itemCount; i++) {
-
-        // Write (x, y) data point row.
-        writer.write(dataSet.getX(0, i) + "," + dataSet.getY(0, i));
-        writer.newLine();
-
-        progress = i + 1;
-      }
-    } finally {
-
-      // Close.
-      writer.close();
+    @Override
+    public String getTaskDescription() {
+        return "Exporting chromatogram for " + dataSet.getDataFile().getName();
     }
-  }
+
+    @Override
+    public double getFinishedPercentage() {
+        return progressMax == 0 ? 0.0
+                : (double) progress / (double) progressMax;
+    }
+
+    @Override
+    public void run() {
+
+        // Update the status of this task
+        setStatus(TaskStatus.PROCESSING);
+
+        try {
+
+            // Do the export.
+            export();
+
+            // Success.
+            LOG.info("Exported chromatogram for "
+                    + dataSet.getDataFile().getName());
+            setStatus(TaskStatus.FINISHED);
+
+        } catch (Throwable t) {
+
+            LOG.log(Level.SEVERE, "Chromatogram export error", t);
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(t.getMessage());
+        }
+    }
+
+    /**
+     * Export the chromatogram.
+     *
+     * @throws IOException
+     *             if there are i/o problems.
+     */
+    public void export() throws IOException {
+
+        // Open the writer.
+        final BufferedWriter writer = new BufferedWriter(
+                new FileWriter(exportFile));
+        try {
+
+            // Write the header row.
+            writer.write("RT,I");
+            writer.newLine();
+
+            // Write the data points.
+            final int itemCount = dataSet.getItemCount(0);
+            progressMax = itemCount;
+            for (int i = 0; i < itemCount; i++) {
+
+                // Write (x, y) data point row.
+                writer.write(dataSet.getX(0, i) + "," + dataSet.getY(0, i));
+                writer.newLine();
+
+                progress = i + 1;
+            }
+        } finally {
+
+            // Close.
+            writer.close();
+        }
+    }
 }

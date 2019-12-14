@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,86 +25,87 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import io.github.mzmine.parameters.UserParameter;
 
-public class ProcessingParameter
-    implements UserParameter<DPPParameterValueWrapper, ProcessingComponent> {
+public class ProcessingParameter implements
+        UserParameter<DPPParameterValueWrapper, ProcessingComponent> {
 
-  private String name;
-  private String description;
-  private DPPParameterValueWrapper value;
+    private String name;
+    private String description;
+    private DPPParameterValueWrapper value;
 
-  public ProcessingParameter(String name, String description) {
-    this.name = name;
-    this.description = description;
-    this.value = new DPPParameterValueWrapper();
-    // if(queue == null)
-    // this.value = DataPointProcessingManager.getInst().getProcessingQueue();
-    // else
-    // this.value = queue;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public DPPParameterValueWrapper getValue() {
-    return value;
-  }
-
-  @Override
-  public void setValue(DPPParameterValueWrapper newValue) {
-    this.value = newValue;
-  }
-
-  @Override
-  public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
-      errorMessages.add("Queue has not been set up. (null)");
-      return false;
+    public ProcessingParameter(String name, String description) {
+        this.name = name;
+        this.description = description;
+        this.value = new DPPParameterValueWrapper();
+        // if(queue == null)
+        // this.value =
+        // DataPointProcessingManager.getInst().getProcessingQueue();
+        // else
+        // this.value = queue;
     }
-    return true;
-  }
 
-  @Override
-  public void loadValueFromXML(Element xmlElement) {
-    this.value.loadfromXML(xmlElement);
-  }
+    @Override
+    public String getName() {
+        return name;
+    }
 
-  @Override
-  public void saveValueToXML(Element xmlElement) {
-    if (value != null) 
-      value.saveValueToXML(xmlElement);
-  }
+    @Override
+    public DPPParameterValueWrapper getValue() {
+        return value;
+    }
 
-  @Override
-  public String getDescription() {
-    return description;
-  }
+    @Override
+    public void setValue(DPPParameterValueWrapper newValue) {
+        this.value = newValue;
+    }
 
-  @Override
-  public ProcessingComponent createEditingComponent() {
-    ProcessingComponent comp = new ProcessingComponent();
-    return comp;
-  }
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+        if (value == null) {
+            errorMessages.add("Queue has not been set up. (null)");
+            return false;
+        }
+        return true;
+    }
 
-  @Override
-  public void setValueFromComponent(ProcessingComponent component) {
-    this.value = component.getValueFromComponent();
-    DataPointProcessingManager.getInst().updateParameters();
-  }
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+        this.value.loadfromXML(xmlElement);
+    }
 
-  @Override
-  public void setValueToComponent(ProcessingComponent component,
-      DPPParameterValueWrapper newValue) {
-    component.setValueFromValueWrapper(newValue);
-  }
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+        if (value != null)
+            value.saveValueToXML(xmlElement);
+    }
 
-  @Override
-  public UserParameter<DPPParameterValueWrapper, ProcessingComponent> cloneParameter() {
-    ProcessingParameter copy = new ProcessingParameter(name, description);
-    copy.setValue(this.value.clone());
-    return copy;
-  }
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public ProcessingComponent createEditingComponent() {
+        ProcessingComponent comp = new ProcessingComponent();
+        return comp;
+    }
+
+    @Override
+    public void setValueFromComponent(ProcessingComponent component) {
+        this.value = component.getValueFromComponent();
+        DataPointProcessingManager.getInst().updateParameters();
+    }
+
+    @Override
+    public void setValueToComponent(ProcessingComponent component,
+            DPPParameterValueWrapper newValue) {
+        component.setValueFromValueWrapper(newValue);
+    }
+
+    @Override
+    public UserParameter<DPPParameterValueWrapper, ProcessingComponent> cloneParameter() {
+        ProcessingParameter copy = new ProcessingParameter(name, description);
+        copy.setValue(this.value.clone());
+        return copy;
+    }
 
 }

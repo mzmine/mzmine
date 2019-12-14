@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,15 +25,18 @@ import io.github.mzmine.main.MZmineCore;
 
 public class Ms2Identity extends SimplePeakIdentity {
 
-  public Ms2Identity(final Feature featureA, final Feature featureB, Ms2SearchResult searchResult) {
+    public Ms2Identity(final Feature featureA, final Feature featureB,
+            Ms2SearchResult searchResult) {
 
-    super("MS2similarity" + " m/z:"
-        + MZmineCore.getConfiguration().getMZFormat().format(featureB.getMZ()) + " RT:"
-        + MZmineCore.getConfiguration().getRTFormat().format(featureB.getRT()) + " Score:"
-        + String.format("%3.1e", searchResult.getScore()) + " NumIonsMatched:"
-        + searchResult.getNumIonsMatched() + " MatchedIons:"
-        + searchResult.getMatchedIonsAsString());
+        super("MS2similarity" + " m/z:" + MZmineCore
+                .getConfiguration().getMZFormat().format(featureB.getMZ())
+                + " RT:"
+                + MZmineCore.getConfiguration().getRTFormat()
+                        .format(featureB.getRT())
+                + " Score:" + String.format("%3.1e", searchResult.getScore())
+                + " NumIonsMatched:" + searchResult.getNumIonsMatched()
+                + " MatchedIons:" + searchResult.getMatchedIonsAsString());
 
-    setPropertyValue(PROPERTY_METHOD, "MS2 search");
-  }
+        setPropertyValue(PROPERTY_METHOD, "MS2 search");
+    }
 }

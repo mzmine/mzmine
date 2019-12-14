@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,39 +31,40 @@ import io.github.mzmine.util.ExitCode;
 
 public class NeutralLossFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Neutral loss filter";
-  private static final String MODULE_DESCRIPTION =
-      "Searches for neutral losses within a feature list.";
+    private static final String MODULE_NAME = "Neutral loss filter";
+    private static final String MODULE_DESCRIPTION = "Searches for neutral losses within a feature list.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return NeutralLossFilterParameters.class;
-  }
-
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    PeakList peakLists[] = parameters.getParameter(NeutralLossFilterParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new NeutralLossFilterTask(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-    return ExitCode.OK;
-  }
+
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return NeutralLossFilterParameters.class;
+    }
+
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        PeakList peakLists[] = parameters
+                .getParameter(NeutralLossFilterParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new NeutralLossFilterTask(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+        return ExitCode.OK;
+    }
 
 }

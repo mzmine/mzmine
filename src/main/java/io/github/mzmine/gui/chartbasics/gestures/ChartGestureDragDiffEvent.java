@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,86 +31,87 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
  */
 public class ChartGestureDragDiffEvent {
 
-  private ChartGestureEvent firstEvent, lastEvent, latestEvent;
-  private Orientation orient;
-  // drag start and difference between last and latestEvent
-  private double start, diff;
+    private ChartGestureEvent firstEvent, lastEvent, latestEvent;
+    private Orientation orient;
+    // drag start and difference between last and latestEvent
+    private double start, diff;
 
-  public ChartGestureDragDiffEvent(ChartGestureEvent firstEvent, ChartGestureEvent lastEvent,
-      ChartGestureEvent latestEvent, double start, double diff, Orientation orient) {
-    super();
-    this.firstEvent = firstEvent;
-    this.latestEvent = latestEvent;
-    this.lastEvent = lastEvent;
-    this.start = start;
-    this.diff = diff;
-    this.orient = orient;
-  }
+    public ChartGestureDragDiffEvent(ChartGestureEvent firstEvent,
+            ChartGestureEvent lastEvent, ChartGestureEvent latestEvent,
+            double start, double diff, Orientation orient) {
+        super();
+        this.firstEvent = firstEvent;
+        this.latestEvent = latestEvent;
+        this.lastEvent = lastEvent;
+        this.start = start;
+        this.diff = diff;
+        this.orient = orient;
+    }
 
-  public void setLatestEvent(ChartGestureEvent latestEvent) {
-    lastEvent = this.latestEvent;
-    this.latestEvent = latestEvent;
-  }
+    public void setLatestEvent(ChartGestureEvent latestEvent) {
+        lastEvent = this.latestEvent;
+        this.latestEvent = latestEvent;
+    }
 
-  /**
-   * First event (usually Event.PRESSED)
-   * 
-   * @return
-   */
-  public ChartGestureEvent getFirstEvent() {
-    return firstEvent;
-  }
+    /**
+     * First event (usually Event.PRESSED)
+     * 
+     * @return
+     */
+    public ChartGestureEvent getFirstEvent() {
+        return firstEvent;
+    }
 
-  /**
-   * Event previous to latest event
-   * 
-   * @return
-   */
-  public ChartGestureEvent getLastEvent() {
-    return lastEvent;
-  }
+    /**
+     * Event previous to latest event
+     * 
+     * @return
+     */
+    public ChartGestureEvent getLastEvent() {
+        return lastEvent;
+    }
 
-  public ChartGestureEvent getLatestEvent() {
-    return latestEvent;
-  }
+    public ChartGestureEvent getLatestEvent() {
+        return latestEvent;
+    }
 
-  /**
-   * Start value of first event in data space
-   * 
-   * @return
-   */
-  public double getStart() {
-    return start;
-  }
+    /**
+     * Start value of first event in data space
+     * 
+     * @return
+     */
+    public double getStart() {
+        return start;
+    }
 
-  /**
-   * Difference value of the last two eventsin data space
-   * 
-   * @return
-   */
-  public double getDiff() {
-    return diff;
-  }
+    /**
+     * Difference value of the last two eventsin data space
+     * 
+     * @return
+     */
+    public double getDiff() {
+        return diff;
+    }
 
-  public Entity getEntity() {
-    return firstEvent.getGesture().getEntity();
-  }
+    public Entity getEntity() {
+        return firstEvent.getGesture().getEntity();
+    }
 
-  public ChartViewWrapper getChartWrapper() {
-    return firstEvent.getChartWrapper();
-  }
+    public ChartViewWrapper getChartWrapper() {
+        return firstEvent.getChartWrapper();
+    }
 
-  /**
-   * The ValueAxis of this event's entity or null if the entity is different to an AxisEntity or if
-   * the axis is not a ValueAxis
-   * 
-   * @return
-   */
-  public ValueAxis getAxis() {
-    return firstEvent.getAxis();
-  }
+    /**
+     * The ValueAxis of this event's entity or null if the entity is different
+     * to an AxisEntity or if the axis is not a ValueAxis
+     * 
+     * @return
+     */
+    public ValueAxis getAxis() {
+        return firstEvent.getAxis();
+    }
 
-  public Orientation getOrient() {
-    return orient;
-  }
+    public Orientation getOrient() {
+        return orient;
+    }
 }

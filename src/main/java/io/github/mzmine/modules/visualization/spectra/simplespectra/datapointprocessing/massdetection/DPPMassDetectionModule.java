@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,31 +30,34 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 
 public class DPPMassDetectionModule implements DataPointProcessingModule {
 
-  @Override
-  public String getName() {
-    return "Mass detection";
-  }
+    @Override
+    public String getName() {
+        return "Mass detection";
+    }
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
 
-    return DPPMassDetectionParameters.class;
-  }
+        return DPPMassDetectionParameters.class;
+    }
 
-  @Override
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
+    @Override
+    public DataPointProcessingTask createTask(DataPoint[] dataPoints,
+            ParameterSet parameterSet, SpectraPlot plot,
+            DataPointProcessingController controller,
+            TaskStatusListener listener) {
 
-    return new DPPMassDetectionTask(dataPoints, plot,  parameterSet, controller, listener);
-  }
+        return new DPPMassDetectionTask(dataPoints, plot, parameterSet,
+                controller, listener);
+    }
 
-  @Override
-  public ModuleSubCategory getModuleSubCategory() {
-    return ModuleSubCategory.MASSDETECTION;
-  }
+    @Override
+    public ModuleSubCategory getModuleSubCategory() {
+        return ModuleSubCategory.MASSDETECTION;
+    }
 
-  @Override
-  public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSANY;
-  }
+    @Override
+    public MSLevel getApplicableMSLevel() {
+        return MSLevel.MSANY;
+    }
 }

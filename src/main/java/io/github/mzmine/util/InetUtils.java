@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,62 +32,66 @@ import java.util.logging.Logger;
  */
 public class InetUtils {
 
-  private static final Logger logger = Logger.getLogger(InetUtils.class.getName());
+    private static final Logger logger = Logger
+            .getLogger(InetUtils.class.getName());
 
-  /**
-   * Opens a connection to the given URL (typically HTTP) and retrieves the data from server. Data
-   * is assumed to be in UTF-8 encoding.
-   */
-  public static String retrieveData(URL url) throws IOException {
+    /**
+     * Opens a connection to the given URL (typically HTTP) and retrieves the
+     * data from server. Data is assumed to be in UTF-8 encoding.
+     */
+    public static String retrieveData(URL url) throws IOException {
 
-    logger.finest("Retrieving data from URL " + url);
-    
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setRequestProperty("User-agent", "MZmine 2");
+        logger.finest("Retrieving data from URL " + url);
 
-    // We need to deal with redirects from HTTP to HTTPS manually, this happens for MassBank Europe
-    // Based on https://stackoverflow.com/questions/1884230/urlconnection-doesnt-follow-redirect
-    switch (connection.getResponseCode()) {
-      case HttpURLConnection.HTTP_MOVED_PERM:
-      case HttpURLConnection.HTTP_MOVED_TEMP:
-        String location = connection.getHeaderField("Location");
-        location = URLDecoder.decode(location, "UTF-8");
-        URL next = new URL(url, location); // Deal with relative URLs
-        connection.disconnect();
-        connection = (HttpURLConnection) next.openConnection();
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("User-agent", "MZmine 2");
+
+        // We need to deal with redirects from HTTP to HTTPS manually, this
+        // happens for MassBank Europe
+        // Based on
+        // https://stackoverflow.com/questions/1884230/urlconnection-doesnt-follow-redirect
+        switch (connection.getResponseCode()) {
+        case HttpURLConnection.HTTP_MOVED_PERM:
+        case HttpURLConnection.HTTP_MOVED_TEMP:
+            String location = connection.getHeaderField("Location");
+            location = URLDecoder.decode(location, "UTF-8");
+            URL next = new URL(url, location); // Deal with relative URLs
+            connection.disconnect();
+            connection = (HttpURLConnection) next.openConnection();
+            connection.setRequestProperty("User-agent", "MZmine 2");
+        }
+
+        InputStream is = connection.getInputStream();
+
+        if (is == null) {
+            throw new IOException("Could not establish a connection to " + url);
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        try {
+            InputStreamReader reader = new InputStreamReader(is, "UTF-8");
+
+            char[] cb = new char[1024];
+
+            int amtRead = reader.read(cb);
+            while (amtRead > 0) {
+                buffer.append(cb, 0, amtRead);
+                amtRead = reader.read(cb);
+            }
+
+        } catch (UnsupportedEncodingException e) {
+            // This should never happen, because UTF-8 is supported
+            e.printStackTrace();
+        }
+
+        is.close();
+
+        logger.finest(
+                "Retrieved " + buffer.length() + " characters from " + url);
+
+        return buffer.toString();
+
     }
-
-    InputStream is = connection.getInputStream();
-
-    if (is == null) {
-      throw new IOException("Could not establish a connection to " + url);
-    }
-
-    StringBuffer buffer = new StringBuffer();
-
-    try {
-      InputStreamReader reader = new InputStreamReader(is, "UTF-8");
-
-      char[] cb = new char[1024];
-
-      int amtRead = reader.read(cb);
-      while (amtRead > 0) {
-        buffer.append(cb, 0, amtRead);
-        amtRead = reader.read(cb);
-      }
-
-    } catch (UnsupportedEncodingException e) {
-      // This should never happen, because UTF-8 is supported
-      e.printStackTrace();
-    }
-
-    is.close();
-
-    logger.finest("Retrieved " + buffer.length() + " characters from " + url);
-    
-    return buffer.toString();
-
-  }
 
 }

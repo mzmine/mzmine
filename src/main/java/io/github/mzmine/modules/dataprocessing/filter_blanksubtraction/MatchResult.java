@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,21 +21,21 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 import io.github.mzmine.datamodel.PeakListRow;
 
 public class MatchResult {
-  
-  private final PeakListRow bestRow;
-  private final double score;
-  
-  public MatchResult(PeakListRow bestRow, double score) {
-    this.bestRow = bestRow;
-    this.score = score;
-  }
 
-  public PeakListRow getBestRow() {
-    return bestRow;
-  }
+    private final PeakListRow bestRow;
+    private final double score;
 
-  public double getScore() {
-    return score;
-  }
-  
+    public MatchResult(PeakListRow bestRow, double score) {
+        this.bestRow = bestRow;
+        this.score = score;
+    }
+
+    public PeakListRow getBestRow() {
+        return bestRow;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
 }

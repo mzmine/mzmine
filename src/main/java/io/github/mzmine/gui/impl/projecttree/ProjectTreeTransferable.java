@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,18 +30,20 @@ import javax.swing.tree.TreePath;
  */
 class ProjectTreeTransferable implements Transferable {
 
-  public static final DataFlavor transerFlavor = new DataFlavor(TreePath[].class, "TreePath[]");
+    public static final DataFlavor transerFlavor = new DataFlavor(
+            TreePath[].class, "TreePath[]");
 
-  public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-    return null;
-  }
+    public Object getTransferData(DataFlavor flavor)
+            throws UnsupportedFlavorException, IOException {
+        return null;
+    }
 
-  public DataFlavor[] getTransferDataFlavors() {
-    return new DataFlavor[] {transerFlavor};
-  }
+    public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[] { transerFlavor };
+    }
 
-  public boolean isDataFlavorSupported(DataFlavor flavor) {
-    return (flavor.equals(transerFlavor));
-  }
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return (flavor.equals(transerFlavor));
+    }
 
 }

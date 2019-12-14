@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,18 +27,21 @@ import io.github.mzmine.main.MZmineCore;
 
 public class MsMsPlotToolTipGenerator implements XYToolTipGenerator {
 
-  private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getConfiguration()
+            .getIntensityFormat();
 
-  @Override
-  public String generateToolTip(XYDataset dataset, int series, int item) {
+    @Override
+    public String generateToolTip(XYDataset dataset, int series, int item) {
 
-    MsMsDataSet IDADataSet = (MsMsDataSet) dataset;
+        MsMsDataSet IDADataSet = (MsMsDataSet) dataset;
 
-    return String.valueOf("RT: " + rtFormat.format(IDADataSet.getX(series, item)) + "\nm/z: "
-        + mzFormat.format(IDADataSet.getY(series, item)) + "\nIntensity: "
-        + intensityFormat.format(IDADataSet.getZ(series, item)));
-  }
+        return String.valueOf("RT: "
+                + rtFormat.format(IDADataSet.getX(series, item)) + "\nm/z: "
+                + mzFormat.format(IDADataSet.getY(series, item))
+                + "\nIntensity: "
+                + intensityFormat.format(IDADataSet.getZ(series, item)));
+    }
 
 }

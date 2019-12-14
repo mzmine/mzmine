@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,146 +38,155 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakList peakList, processedPeakList;
-  private double intTolerance;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private int processedScans, totalScans;
+    private PeakList peakList, processedPeakList;
+    private double intTolerance;
+    private MZTolerance mzTolerance;
+    private RTTolerance rtTolerance;
+    private int processedScans, totalScans;
 
-  // start and end (exclusive) for raw data file processing
-  private int start;
-  private int endexcl;
+    // start and end (exclusive) for raw data file processing
+    private int start;
+    private int endexcl;
 
-  // takes care of adding the final result
-  private SubTaskFinishListener listener;
+    // takes care of adding the final result
+    private SubTaskFinishListener listener;
 
-  private int taskIndex;
+    private int taskIndex;
 
-  MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList, PeakList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
-      int taskIndex) {
+    MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList,
+            PeakList processedPeakList, ParameterSet parameters, int start,
+            int endexcl, SubTaskFinishListener listener, int taskIndex) {
 
-    this.listener = listener;
-    this.taskIndex = taskIndex;
+        this.listener = listener;
+        this.taskIndex = taskIndex;
 
-    this.peakList = peakList;
-    this.processedPeakList = processedPeakList;
+        this.peakList = peakList;
+        this.processedPeakList = processedPeakList;
 
-    intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
-    mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
+        intTolerance = parameters
+                .getParameter(MultiThreadPeakFinderParameters.intTolerance)
+                .getValue();
+        mzTolerance = parameters
+                .getParameter(MultiThreadPeakFinderParameters.MZTolerance)
+                .getValue();
+        rtTolerance = parameters
+                .getParameter(MultiThreadPeakFinderParameters.RTTolerance)
+                .getValue();
 
-    this.start = start;
-    this.endexcl = endexcl;
-  }
-
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multithreaded gap filler " + taskIndex + " on raw files " + (start + 1)
-        + "-" + endexcl + " of pkl:" + peakList);
-
-    // Calculate total number of scans in all files
-    for (int i = start; i < endexcl; i++) {
-      RawDataFile dataFile = peakList.getRawDataFile(i);
-      totalScans += dataFile.getNumOfScans(1);
+        this.start = start;
+        this.endexcl = endexcl;
     }
 
-    // Process all raw data files
-    for (int i = start; i < endexcl; i++) {
-      RawDataFile dataFile = peakList.getRawDataFile(i);
+    public void run() {
 
-      // Canceled?
-      if (isCanceled()) {
-        return;
-      }
+        setStatus(TaskStatus.PROCESSING);
+        logger.info("Running multithreaded gap filler " + taskIndex
+                + " on raw files " + (start + 1) + "-" + endexcl + " of pkl:"
+                + peakList);
 
-      List<Gap> gaps = new ArrayList<Gap>();
-
-      // Fill each row of this raw data file column, create new empty
-      // gaps
-      // if necessary
-      for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-        PeakListRow sourceRow = peakList.getRow(row);
-        PeakListRow newRow = processedPeakList.getRow(row);
-
-        Feature sourcePeak = sourceRow.getPeak(dataFile);
-
-        if (sourcePeak == null) {
-
-          // Create a new gap
-
-          Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
-          Range<Double> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
-
-          Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-
-          gaps.add(newGap);
-
-        } else {
-          newRow.addPeak(dataFile, sourcePeak);
-        }
-      }
-
-      // Stop processing this file if there are no gaps
-      if (gaps.isEmpty()) {
-        processedScans += dataFile.getNumOfScans();
-        continue;
-      }
-
-      // Get all scans of this data file
-      int scanNumbers[] = dataFile.getScanNumbers(1);
-
-      // Process each scan
-      for (int scanNumber : scanNumbers) {
-        // Canceled?
-        if (isCanceled()) {
-          return;
+        // Calculate total number of scans in all files
+        for (int i = start; i < endexcl; i++) {
+            RawDataFile dataFile = peakList.getRawDataFile(i);
+            totalScans += dataFile.getNumOfScans(1);
         }
 
-        // Get the scan
-        Scan scan = dataFile.getScan(scanNumber);
+        // Process all raw data files
+        for (int i = start; i < endexcl; i++) {
+            RawDataFile dataFile = peakList.getRawDataFile(i);
 
-        // Feed this scan to all gaps
-        for (Gap gap : gaps) {
-          gap.offerNextScan(scan);
+            // Canceled?
+            if (isCanceled()) {
+                return;
+            }
+
+            List<Gap> gaps = new ArrayList<Gap>();
+
+            // Fill each row of this raw data file column, create new empty
+            // gaps
+            // if necessary
+            for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                PeakListRow sourceRow = peakList.getRow(row);
+                PeakListRow newRow = processedPeakList.getRow(row);
+
+                Feature sourcePeak = sourceRow.getPeak(dataFile);
+
+                if (sourcePeak == null) {
+
+                    // Create a new gap
+
+                    Range<Double> mzRange = mzTolerance
+                            .getToleranceRange(sourceRow.getAverageMZ());
+                    Range<Double> rtRange = rtTolerance
+                            .getToleranceRange(sourceRow.getAverageRT());
+
+                    Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange,
+                            intTolerance);
+
+                    gaps.add(newGap);
+
+                } else {
+                    newRow.addPeak(dataFile, sourcePeak);
+                }
+            }
+
+            // Stop processing this file if there are no gaps
+            if (gaps.isEmpty()) {
+                processedScans += dataFile.getNumOfScans();
+                continue;
+            }
+
+            // Get all scans of this data file
+            int scanNumbers[] = dataFile.getScanNumbers(1);
+
+            // Process each scan
+            for (int scanNumber : scanNumbers) {
+                // Canceled?
+                if (isCanceled()) {
+                    return;
+                }
+
+                // Get the scan
+                Scan scan = dataFile.getScan(scanNumber);
+
+                // Feed this scan to all gaps
+                for (Gap gap : gaps) {
+                    gap.offerNextScan(scan);
+                }
+
+                processedScans++;
+            }
+
+            // Finalize gaps
+            for (Gap gap : gaps) {
+                gap.noMoreOffers();
+            }
         }
 
-        processedScans++;
-      }
+        // first notify listener
+        listener.accept(processedPeakList);
 
-      // Finalize gaps
-      for (Gap gap : gaps) {
-        gap.noMoreOffers();
-      }
+        logger.info("Finished sub task: Multithreaded gap filler " + taskIndex
+                + " on raw files " + (start + 1) + "-" + endexcl + " of pkl:"
+                + peakList);
+        setStatus(TaskStatus.FINISHED);
     }
 
-    // first notify listener
-    listener.accept(processedPeakList);
-
-    logger.info("Finished sub task: Multithreaded gap filler " + taskIndex + " on raw files "
-        + (start + 1) + "-" + endexcl + " of pkl:" + peakList);
-    setStatus(TaskStatus.FINISHED);
-  }
-
-
-
-  public double getFinishedPercentage() {
-    if (totalScans == 0) {
-      return 0;
+    public double getFinishedPercentage() {
+        if (totalScans == 0) {
+            return 0;
+        }
+        return (double) processedScans / (double) totalScans;
     }
-    return (double) processedScans / (double) totalScans;
-  }
 
-  public String getTaskDescription() {
-    return "Sub task " + taskIndex + ": Gap filling on raw files " + (start + 1) + "-" + endexcl
-        + " of pkl:" + peakList;
-  }
+    public String getTaskDescription() {
+        return "Sub task " + taskIndex + ": Gap filling on raw files "
+                + (start + 1) + "-" + endexcl + " of pkl:" + peakList;
+    }
 
-  PeakList getPeakList() {
-    return peakList;
-  }
+    PeakList getPeakList() {
+        return peakList;
+    }
 
 }

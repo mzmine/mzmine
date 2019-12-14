@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,16 +20,16 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public enum ClustererType {
 
-  CLASSIC("Classic (Base)"), CACHED("Classic (Cached)"), HYBRID("Hybrid");
+    CLASSIC("Classic (Base)"), CACHED("Classic (Cached)"), HYBRID("Hybrid");
 
-  private final String name;
+    private final String name;
 
-  ClustererType(String name) {
-    this.name = name;
-  }
+    ClustererType(String name) {
+        this.name = name;
+    }
 
-  public String getName() {
-    return this.name;
-  }
+    public String getName() {
+        return this.name;
+    }
 
 }

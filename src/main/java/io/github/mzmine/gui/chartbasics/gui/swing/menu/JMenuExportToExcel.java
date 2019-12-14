@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,38 +31,39 @@ import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 
-
 public class JMenuExportToExcel extends JMenuItem implements MenuExport {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  private XSSFExcelWriterReader excelWriter;
-  private EChartPanel chart;
+    private XSSFExcelWriterReader excelWriter;
+    private EChartPanel chart;
 
-  public JMenuExportToExcel(XSSFExcelWriterReader excelWriter, String menuTitle, EChartPanel chart) {
-    super(menuTitle);
-    this.excelWriter = excelWriter;
-    this.chart = chart;
-    addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JFileChooser c = XSSFExcelWriterReader.getChooser();
-        if (c.showSaveDialog(chart) == JFileChooser.APPROVE_OPTION) {
-          exportDataToExcel(c.getSelectedFile());
-        }
-      }
-    });
-  }
-
-  public void exportDataToExcel(File f) {
-    try {
-      Object[][] data = chart.getDataArrayForExport();
-      if (data != null) {
-        f = FileAndPathUtil.getRealFilePath(f, "xlsx");
-        XSSFWorkbook wb = excelWriter.exportDataArrayToFile(f, "xydata", data, false);
-        excelWriter.closeWorkbook(wb);
-      }
-    } catch (InvalidFormatException | IOException e1) {
-      e1.printStackTrace();
+    public JMenuExportToExcel(XSSFExcelWriterReader excelWriter,
+            String menuTitle, EChartPanel chart) {
+        super(menuTitle);
+        this.excelWriter = excelWriter;
+        this.chart = chart;
+        addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser c = XSSFExcelWriterReader.getChooser();
+                if (c.showSaveDialog(chart) == JFileChooser.APPROVE_OPTION) {
+                    exportDataToExcel(c.getSelectedFile());
+                }
+            }
+        });
     }
-  }
+
+    public void exportDataToExcel(File f) {
+        try {
+            Object[][] data = chart.getDataArrayForExport();
+            if (data != null) {
+                f = FileAndPathUtil.getRealFilePath(f, "xlsx");
+                XSSFWorkbook wb = excelWriter.exportDataArrayToFile(f, "xydata",
+                        data, false);
+                excelWriter.closeWorkbook(wb);
+            }
+        } catch (InvalidFormatException | IOException e1) {
+            e1.printStackTrace();
+        }
+    }
 }

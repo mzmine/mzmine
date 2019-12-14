@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -46,49 +46,57 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
  */
 public class GnpsFbmnSubmitParameters extends SimpleParameterSet {
 
-  public enum Preset {
-    HIGHRES, LOWRES;
-  }
+    public enum Preset {
+        HIGHRES, LOWRES;
+    }
 
-  /**
-   * Optional: Select meta data file
-   */
-  public static final OptionalParameter<FileNameParameter> META_FILE =
-      new OptionalParameter<FileNameParameter>(
-          new FileNameParameter("Meta data file", "Optional meta file for GNPS"), false);
+    /**
+     * Optional: Select meta data file
+     */
+    public static final OptionalParameter<FileNameParameter> META_FILE = new OptionalParameter<FileNameParameter>(
+            new FileNameParameter("Meta data file",
+                    "Optional meta file for GNPS"),
+            false);
 
-  public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
-      "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
-      Preset.HIGHRES);
+    public static final ComboParameter<Preset> PRESETS = new ComboParameter<>(
+            "Presets",
+            "GNPS parameter presets for high or low resolution mass spectrometry data",
+            Preset.values(), Preset.HIGHRES);
 
-  public static final StringParameter JOB_TITLE = new StringParameter("Job title",
-      "The title of the new GNPS feature-based molecular networking job", "", false);
-  /**
-   * Email to be notified on job status
-   */
-  public static final StringParameter EMAIL =
-      new StringParameter("Email", "Email address for notifications about the job", "", false, true);
-  public static final StringParameter USER =
-      new StringParameter("Username", "Username for login", "", false,true);
-  public static final PasswordParameter PASSWORD = new PasswordParameter("Password",
-      "The password is sent without encryption, until the server has has moved to its final destination.",
-      "", false);
+    public static final StringParameter JOB_TITLE = new StringParameter(
+            "Job title",
+            "The title of the new GNPS feature-based molecular networking job",
+            "", false);
+    /**
+     * Email to be notified on job status
+     */
+    public static final StringParameter EMAIL = new StringParameter("Email",
+            "Email address for notifications about the job", "", false, true);
+    public static final StringParameter USER = new StringParameter("Username",
+            "Username for login", "", false, true);
+    public static final PasswordParameter PASSWORD = new PasswordParameter(
+            "Password",
+            "The password is sent without encryption, until the server has has moved to its final destination.",
+            "", false);
 
-  /**
-   * Export ion identity network edges (if available)
-   */
-  // public static final BooleanParameter ANN_EDGES =
-  // new BooleanParameter("Annotation edges", "Add annotation edges to GNPS job", true);
-  // public static final BooleanParameter CORR_EDGES =
-  // new BooleanParameter("Correlation edges", "Add correlation edges to GNPS job", false);
+    /**
+     * Export ion identity network edges (if available)
+     */
+    // public static final BooleanParameter ANN_EDGES =
+    // new BooleanParameter("Annotation edges", "Add annotation edges to GNPS
+    // job", true);
+    // public static final BooleanParameter CORR_EDGES =
+    // new BooleanParameter("Correlation edges", "Add correlation edges to GNPS
+    // job", false);
 
-  /**
-   * Show GNPS job website
-   */
-  public static final BooleanParameter OPEN_WEBSITE =
-      new BooleanParameter("Open website", "Website of GNPS job", true);
+    /**
+     * Show GNPS job website
+     */
+    public static final BooleanParameter OPEN_WEBSITE = new BooleanParameter(
+            "Open website", "Website of GNPS job", true);
 
-  public GnpsFbmnSubmitParameters() {
-    super(new Parameter[] {META_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
-  }
+    public GnpsFbmnSubmitParameters() {
+        super(new Parameter[] { META_FILE, PRESETS, JOB_TITLE, EMAIL, USER,
+                PASSWORD, OPEN_WEBSITE });
+    }
 }

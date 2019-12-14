@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,47 +20,48 @@ package io.github.mzmine.modules.dataprocessing.id_mascot.data;
 
 public class ProteinSection {
 
-  private int startRegion;
-  private int stopRegion;
-  private int multiplicity;
+    private int startRegion;
+    private int stopRegion;
+    private int multiplicity;
 
-  /**
-   * This class represents the region of a protein's sequence that a peptide covers.
-   * 
-   * @param startRegion
-   * @param stopRegion
-   * @param multiplicity
-   */
-  public ProteinSection(int startRegion, int stopRegion, int multiplicity) {
-    this.startRegion = startRegion;
-    this.stopRegion = stopRegion;
-    this.multiplicity = multiplicity;
-  }
+    /**
+     * This class represents the region of a protein's sequence that a peptide
+     * covers.
+     * 
+     * @param startRegion
+     * @param stopRegion
+     * @param multiplicity
+     */
+    public ProteinSection(int startRegion, int stopRegion, int multiplicity) {
+        this.startRegion = startRegion;
+        this.stopRegion = stopRegion;
+        this.multiplicity = multiplicity;
+    }
 
-  /**
-   * Returns the initial position of the peptide coverage for this protein
-   * 
-   * @return
-   */
-  public int getStartRegion() {
-    return startRegion;
-  }
+    /**
+     * Returns the initial position of the peptide coverage for this protein
+     * 
+     * @return
+     */
+    public int getStartRegion() {
+        return startRegion;
+    }
 
-  /**
-   * Returns the last position of the peptide coverage for this protein
-   * 
-   * @return
-   */
-  public int getStopRegion() {
-    return stopRegion;
-  }
+    /**
+     * Returns the last position of the peptide coverage for this protein
+     * 
+     * @return
+     */
+    public int getStopRegion() {
+        return stopRegion;
+    }
 
-  public int getMultiplicity() {
-    return multiplicity;
-  }
+    public int getMultiplicity() {
+        return multiplicity;
+    }
 
-  public String getName() {
-    return this.startRegion + " - " + this.stopRegion;
-  }
+    public String getName() {
+        return this.startRegion + " - " + this.stopRegion;
+    }
 
 }

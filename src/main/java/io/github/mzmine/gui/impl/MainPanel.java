@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,50 +33,50 @@ import io.github.mzmine.gui.impl.projecttree.ProjectTree;
  */
 public class MainPanel extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private ProjectTree rawDataTree, peakListTree;
-  private TaskProgressTable taskTable;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private ProjectTree rawDataTree, peakListTree;
+    private TaskProgressTable taskTable;
 
-  /**
-   */
-  public MainPanel() {
+    /**
+     */
+    public MainPanel() {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    // Initialize item selector
-    rawDataTree = new ProjectTree();
-    peakListTree = new ProjectTree();
+        // Initialize item selector
+        rawDataTree = new ProjectTree();
+        peakListTree = new ProjectTree();
 
-    JScrollPane rawDataTreeScroll = new JScrollPane(rawDataTree);
-    JScrollPane peakListTreeScroll = new JScrollPane(peakListTree);
+        JScrollPane rawDataTreeScroll = new JScrollPane(rawDataTree);
+        JScrollPane peakListTreeScroll = new JScrollPane(peakListTree);
 
-    JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-    split.add(rawDataTreeScroll);
-    split.add(peakListTreeScroll);
-    split.setResizeWeight(0.5);
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        split.add(rawDataTreeScroll);
+        split.add(peakListTreeScroll);
+        split.setResizeWeight(0.5);
 
-    split.setMinimumSize(new Dimension(200, 200));
+        split.setMinimumSize(new Dimension(200, 200));
 
-    add(split, BorderLayout.CENTER);
+        add(split, BorderLayout.CENTER);
 
-    taskTable = new TaskProgressTable();
-    add(taskTable, BorderLayout.SOUTH);
+        taskTable = new TaskProgressTable();
+        add(taskTable, BorderLayout.SOUTH);
 
-  }
+    }
 
-  public ProjectTree getRawDataTree() {
-    return rawDataTree;
-  }
+    public ProjectTree getRawDataTree() {
+        return rawDataTree;
+    }
 
-  public ProjectTree getPeakListTree() {
-    return peakListTree;
-  }
+    public ProjectTree getPeakListTree() {
+        return peakListTree;
+    }
 
-  public TaskProgressTable getTaskTable() {
-    return taskTable;
-  }
+    public TaskProgressTable getTaskTable() {
+        return taskTable;
+    }
 
 }

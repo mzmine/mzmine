@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,15 +31,15 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  */
 public class SortSpectralDBIdentitiesParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
+    public static final OptionalParameter<DoubleParameter> minScore = new OptionalParameter<>(
+            new DoubleParameter("Minimum similarity score",
+                    "Minimum similarity score", new DecimalFormat("0.00##"),
+                    0.75d));
 
-  public static final OptionalParameter<DoubleParameter> minScore =
-      new OptionalParameter<>(new DoubleParameter("Minimum similarity score",
-          "Minimum similarity score", new DecimalFormat("0.00##"), 0.75d));
-
-  public SortSpectralDBIdentitiesParameters() {
-    super(new Parameter[] {peakLists, minScore});
-  }
+    public SortSpectralDBIdentitiesParameters() {
+        super(new Parameter[] { peakLists, minScore });
+    }
 
 }

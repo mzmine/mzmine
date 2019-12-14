@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,105 +32,106 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class ExtendedIsotopePattern implements IsotopePattern {
 
-  private DataPoint dataPoints[], highestIsotope;
-  private int highestIsotopeIndex;
-  private IsotopePatternStatus status;
-  private String description;
-  private Range<Double> mzRange;
-  
-  private String[] isotopeCompostion;
-  
-  public ExtendedIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
-      String description, String[] isotopeCompostion) {
+    private DataPoint dataPoints[], highestIsotope;
+    private int highestIsotopeIndex;
+    private IsotopePatternStatus status;
+    private String description;
+    private Range<Double> mzRange;
 
-    assert dataPoints.length > 0;
+    private String[] isotopeCompostion;
 
-    highestIsotope = dataPoints[0];
-    for(int i = 0; i < dataPoints.length; i++) {
-      if(highestIsotope.getIntensity() < dataPoints[i].getIntensity()) {
-        highestIsotopeIndex = i;
+    public ExtendedIsotopePattern(DataPoint dataPoints[],
+            IsotopePatternStatus status, String description,
+            String[] isotopeCompostion) {
+
+        assert dataPoints.length > 0;
+
         highestIsotope = dataPoints[0];
-      }
+        for (int i = 0; i < dataPoints.length; i++) {
+            if (highestIsotope.getIntensity() < dataPoints[i].getIntensity()) {
+                highestIsotopeIndex = i;
+                highestIsotope = dataPoints[0];
+            }
+        }
+        this.dataPoints = dataPoints;
+        this.status = status;
+        this.description = description;
+        this.mzRange = ScanUtils.findMzRange(dataPoints);
+        this.isotopeCompostion = isotopeCompostion;
+
     }
-    this.dataPoints = dataPoints;
-    this.status = status;
-    this.description = description;
-    this.mzRange = ScanUtils.findMzRange(dataPoints); 
-    this.isotopeCompostion = isotopeCompostion;
-    
-  }
 
-  @Override
-  public @Nonnull DataPoint[] getDataPoints() {
-    return dataPoints;
-  }
+    @Override
+    public @Nonnull DataPoint[] getDataPoints() {
+        return dataPoints;
+    }
 
-  @Override
-  public int getNumberOfDataPoints() {
-    return dataPoints.length;
-  }
+    @Override
+    public int getNumberOfDataPoints() {
+        return dataPoints.length;
+    }
 
-  @Override
-  public @Nonnull IsotopePatternStatus getStatus() {
-    return status;
-  }
+    @Override
+    public @Nonnull IsotopePatternStatus getStatus() {
+        return status;
+    }
 
-  @Override
-  public @Nonnull DataPoint getHighestDataPoint() {
-    return highestIsotope;
-  }
+    @Override
+    public @Nonnull DataPoint getHighestDataPoint() {
+        return highestIsotope;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return description;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return description;
+    }
 
-  @Override
-  public String toString() {
-    return "Isotope pattern: " + description;
-  }
+    @Override
+    public String toString() {
+        return "Isotope pattern: " + description;
+    }
 
-  @Override
-  @Nonnull
-  public Range<Double> getDataPointMZRange() {
-    return mzRange;
-  }
+    @Override
+    @Nonnull
+    public Range<Double> getDataPointMZRange() {
+        return mzRange;
+    }
 
-  @Override
-  public double getTIC() {
-    return 0;
-  }
+    @Override
+    public double getTIC() {
+        return 0;
+    }
 
-  @Override
-  public MassSpectrumType getSpectrumType() {
-    return MassSpectrumType.CENTROIDED;
-  }
+    @Override
+    public MassSpectrumType getSpectrumType() {
+        return MassSpectrumType.CENTROIDED;
+    }
 
-  @Override
-  @Nonnull
-  public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    @Nonnull
+    public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
+        throw new UnsupportedOperationException();
+    }
 
-  @Override
-  @Nonnull
-  public DataPoint[] getDataPointsOverIntensity(double intensity) {
-    throw new UnsupportedOperationException();
-  }
+    @Override
+    @Nonnull
+    public DataPoint[] getDataPointsOverIntensity(double intensity) {
+        throw new UnsupportedOperationException();
+    }
 
-  public String getIsotopeComposition(int num) {
-    if(isotopeCompostion != null && num < isotopeCompostion.length)
-      return isotopeCompostion[num];
-    return "";
-  }
-  
-  public String[] getIsotopeCompositions() {
-    if(isotopeCompostion != null)
-      return isotopeCompostion;
-    return null;
-  }
-  
-  public int getHighestDataPointIndex() {
-    return highestIsotopeIndex;
-  }
+    public String getIsotopeComposition(int num) {
+        if (isotopeCompostion != null && num < isotopeCompostion.length)
+            return isotopeCompostion[num];
+        return "";
+    }
+
+    public String[] getIsotopeCompositions() {
+        if (isotopeCompostion != null)
+            return isotopeCompostion;
+        return null;
+    }
+
+    public int getHighestDataPointIndex() {
+        return highestIsotopeIndex;
+    }
 }

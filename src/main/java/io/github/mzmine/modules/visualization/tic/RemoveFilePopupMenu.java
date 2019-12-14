@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,76 +35,79 @@ import io.github.mzmine.main.MZmineCore;
 /**
  * 
  */
-class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+class RemoveFilePopupMenu extends JMenu
+        implements MenuListener, ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
-  private TICVisualizerWindow visualizer;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
+    private TICVisualizerWindow visualizer;
 
-  RemoveFilePopupMenu(TICVisualizerWindow visualizer) {
-    super("Remove plot of file...");
-    addMenuListener(this);
-    this.visualizer = visualizer;
-  }
-
-  /**
-   * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
-   */
-  public void menuSelected(MenuEvent event) {
-
-    // Clear the menu
-    removeAll();
-
-    // get all project files
-    RawDataFile[] openFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    List<RawDataFile> visualizedFiles = Arrays.asList(visualizer.getRawDataFiles());
-
-    menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
-    for (RawDataFile file : openFiles) {
-
-      // if file is not part of plot, skip it
-      if (!visualizedFiles.contains(file))
-        continue;
-
-      // add a menu item for file
-      JMenuItem newItem = new JMenuItem(file.getName());
-      newItem.addActionListener(this);
-      menuItemFiles.put(newItem, file);
-      add(newItem);
+    RemoveFilePopupMenu(TICVisualizerWindow visualizer) {
+        super("Remove plot of file...");
+        addMenuListener(this);
+        this.visualizer = visualizer;
     }
 
-  }
+    /**
+     * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
+     */
+    public void menuSelected(MenuEvent event) {
 
-  /**
-   * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
-   */
-  public void menuDeselected(MenuEvent arg0) {
-    // do nothing
-  }
+        // Clear the menu
+        removeAll();
 
-  /**
-   * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
-   */
-  public void menuCanceled(MenuEvent arg0) {
-    // do nothing
-  }
+        // get all project files
+        RawDataFile[] openFiles = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+        List<RawDataFile> visualizedFiles = Arrays
+                .asList(visualizer.getRawDataFiles());
 
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  public void actionPerformed(ActionEvent event) {
-    Object src = event.getSource();
-    RawDataFile file = menuItemFiles.get(src);
-    if (file != null)
-      visualizer.removeRawDataFile(file);
+        menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+        for (RawDataFile file : openFiles) {
 
-    // Disable menu?
-    RawDataFile[] files = visualizer.getRawDataFiles();
-    if (files.length == 1) {
-      this.setEnabled(false);
+            // if file is not part of plot, skip it
+            if (!visualizedFiles.contains(file))
+                continue;
+
+            // add a menu item for file
+            JMenuItem newItem = new JMenuItem(file.getName());
+            newItem.addActionListener(this);
+            menuItemFiles.put(newItem, file);
+            add(newItem);
+        }
+
     }
-  }
+
+    /**
+     * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
+     */
+    public void menuDeselected(MenuEvent arg0) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
+     */
+    public void menuCanceled(MenuEvent arg0) {
+        // do nothing
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+        Object src = event.getSource();
+        RawDataFile file = menuItemFiles.get(src);
+        if (file != null)
+            visualizer.removeRawDataFile(file);
+
+        // Disable menu?
+        RawDataFile[] files = visualizer.getRawDataFiles();
+        if (files.length == 1) {
+            this.setEnabled(false);
+        }
+    }
 }

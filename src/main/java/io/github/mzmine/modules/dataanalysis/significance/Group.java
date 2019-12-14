@@ -29,7 +29,8 @@ public class Group {
     public Group(Set<RawDataFile> files) throws IllegalArgumentException {
 
         if (files == null || files.isEmpty())
-            throw new IllegalArgumentException("List of files is empty or does not exist.");
+            throw new IllegalArgumentException(
+                    "List of files is empty or does not exist.");
 
         this.files = files;
     }

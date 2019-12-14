@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,42 +34,42 @@ import io.github.mzmine.util.ExitCode;
  */
 public class GroupMS2Module implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Group MS2 scans with features";
-  private static final String MODULE_DESCRIPTION =
-      "This method assings all MS2 scans within range to all features in this feature list";
+    private static final String MODULE_NAME = "Group MS2 scans with features";
+    private static final String MODULE_DESCRIPTION = "This method assings all MS2 scans within range to all features in this feature list";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    final PeakList[] peakLists =
-        parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new GroupMS2Task(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-    return ExitCode.OK;
-  }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return GroupMS2Parameters.class;
-  }
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        final PeakList[] peakLists = parameters
+                .getParameter(GroupMS2Parameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new GroupMS2Task(project, peakList, parameters);
+            tasks.add(newTask);
+        }
+        return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return GroupMS2Parameters.class;
+    }
 }

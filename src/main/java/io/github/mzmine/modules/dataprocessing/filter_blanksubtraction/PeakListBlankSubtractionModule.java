@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,36 +34,38 @@ import io.github.mzmine.util.ExitCode;
  */
 public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
 
-  public static final String MODULE_NAME = "Peak list blank subtraction";
-  @Override
-  public String getName() {
-    return MODULE_NAME;
-  }
+    public static final String MODULE_NAME = "Peak list blank subtraction";
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return PeakListBlankSubtractionParameters.class;
-  }
+    @Override
+    public String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public String getDescription() {
-    return "Subtracts a blank measurements peak list from another peak list.";
-  }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+        return PeakListBlankSubtractionParameters.class;
+    }
 
-  @Override
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-      Collection<Task> tasks) {
-    
-    Task task = new PeakListBlankSubtractionMasterTask(project,  (PeakListBlankSubtractionParameters) parameters);
-    
-    tasks.add(task);
-    
-    return ExitCode.OK;
-  }
+    @Override
+    public String getDescription() {
+        return "Subtracts a blank measurements peak list from another peak list.";
+    }
 
-  @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTFILTERING;
-  }
+    @Override
+    public ExitCode runModule(MZmineProject project, ParameterSet parameters,
+            Collection<Task> tasks) {
+
+        Task task = new PeakListBlankSubtractionMasterTask(project,
+                (PeakListBlankSubtractionParameters) parameters);
+
+        tasks.add(task);
+
+        return ExitCode.OK;
+    }
+
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
 
 }

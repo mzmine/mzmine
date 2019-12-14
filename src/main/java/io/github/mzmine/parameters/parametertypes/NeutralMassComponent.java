@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,137 +32,141 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.components.GridBagPanel;
 
-public class NeutralMassComponent extends GridBagPanel implements DocumentListener, ActionListener {
+public class NeutralMassComponent extends GridBagPanel
+        implements DocumentListener, ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
+    private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
 
-  private JComboBox<IonizationType> ionTypeCombo;
-  private JTextField ionMassField, chargeField, neutralMassField;
+    private JComboBox<IonizationType> ionTypeCombo;
+    private JTextField ionMassField, chargeField, neutralMassField;
 
-  public NeutralMassComponent() {
+    public NeutralMassComponent() {
 
-    add(new JLabel("m/z:"), 0, 0);
+        add(new JLabel("m/z:"), 0, 0);
 
-    ionMassField = new JTextField();
-    ionMassField.getDocument().addDocumentListener(this);
-    ionMassField.setColumns(8);
-    add(ionMassField, 1, 0);
+        ionMassField = new JTextField();
+        ionMassField.getDocument().addDocumentListener(this);
+        ionMassField.setColumns(8);
+        add(ionMassField, 1, 0);
 
-    add(new JLabel("Charge:"), 2, 0);
+        add(new JLabel("Charge:"), 2, 0);
 
-    chargeField = new JTextField();
-    chargeField.getDocument().addDocumentListener(this);
-    chargeField.setColumns(2);
-    add(chargeField, 3, 0);
+        chargeField = new JTextField();
+        chargeField.getDocument().addDocumentListener(this);
+        chargeField.setColumns(2);
+        add(chargeField, 3, 0);
 
-    add(new JLabel("Ionization type:"), 0, 1, 2, 1);
-    ionTypeCombo = new JComboBox<IonizationType>(IonizationType.values());
-    ionTypeCombo.addActionListener(this);
-    add(ionTypeCombo, 2, 1, 2, 1);
+        add(new JLabel("Ionization type:"), 0, 1, 2, 1);
+        ionTypeCombo = new JComboBox<IonizationType>(IonizationType.values());
+        ionTypeCombo.addActionListener(this);
+        add(ionTypeCombo, 2, 1, 2, 1);
 
-    add(new JLabel("Calculated mass:"), 0, 2, 2, 1);
+        add(new JLabel("Calculated mass:"), 0, 2, 2, 1);
 
-    neutralMassField = new JTextField();
-    neutralMassField.setColumns(8);
-    neutralMassField.setBackground(BACKGROUND_COLOR);
-    neutralMassField.setEditable(false);
-    add(neutralMassField, 2, 2, 2, 1);
+        neutralMassField = new JTextField();
+        neutralMassField.setColumns(8);
+        neutralMassField.setBackground(BACKGROUND_COLOR);
+        neutralMassField.setEditable(false);
+        add(neutralMassField, 2, 2, 2, 1);
 
-  }
-
-  public void setIonMass(double ionMass) {
-    ionMassField.setText(MZmineCore.getConfiguration().getMZFormat().format(ionMass));
-    updateNeutralMass();
-  }
-
-  public void setCharge(int charge) {
-    chargeField.setText(String.valueOf(charge));
-    updateNeutralMass();
-  }
-
-  public void setIonType(IonizationType ionType) {
-    ionTypeCombo.setSelectedItem(ionType);
-    updateNeutralMass();
-  }
-
-  public Double getValue() {
-    String stringValue = neutralMassField.getText();
-    try {
-      double doubleValue = Double.parseDouble(stringValue);
-      return doubleValue;
-    } catch (NumberFormatException e) {
-      return null;
     }
-  }
 
-  public Double getIonMass() {
-    String stringValue = ionMassField.getText();
-    try {
-      double doubleValue = Double.parseDouble(stringValue);
-      return doubleValue;
-    } catch (NumberFormatException e) {
-      return null;
+    public void setIonMass(double ionMass) {
+        ionMassField.setText(
+                MZmineCore.getConfiguration().getMZFormat().format(ionMass));
+        updateNeutralMass();
     }
-  }
 
-  public Integer getCharge() {
-    String stringValue = chargeField.getText();
-    try {
-      int intValue = Integer.parseInt(stringValue);
-      return intValue;
-    } catch (NumberFormatException e) {
-      return null;
+    public void setCharge(int charge) {
+        chargeField.setText(String.valueOf(charge));
+        updateNeutralMass();
     }
-  }
 
-  public IonizationType getIonType() {
-    return (IonizationType) ionTypeCombo.getSelectedItem();
-  }
+    public void setIonType(IonizationType ionType) {
+        ionTypeCombo.setSelectedItem(ionType);
+        updateNeutralMass();
+    }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    updateNeutralMass();
-  }
+    public Double getValue() {
+        String stringValue = neutralMassField.getText();
+        try {
+            double doubleValue = Double.parseDouble(stringValue);
+            return doubleValue;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
-  private void updateNeutralMass() {
+    public Double getIonMass() {
+        String stringValue = ionMassField.getText();
+        try {
+            double doubleValue = Double.parseDouble(stringValue);
+            return doubleValue;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
-    Integer charge = getCharge();
-    if (charge == null)
-      return;
+    public Integer getCharge() {
+        String stringValue = chargeField.getText();
+        try {
+            int intValue = Integer.parseInt(stringValue);
+            return intValue;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
-    Double ionMass = getIonMass();
-    if (ionMass == null)
-      return;
+    public IonizationType getIonType() {
+        return (IonizationType) ionTypeCombo.getSelectedItem();
+    }
 
-    IonizationType ionType = getIonType();
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        updateNeutralMass();
+    }
 
-    double neutral = (ionMass.doubleValue() - ionType.getAddedMass()) * charge.intValue();
+    private void updateNeutralMass() {
 
-    neutralMassField.setText(MZmineCore.getConfiguration().getMZFormat().format(neutral));
-  }
+        Integer charge = getCharge();
+        if (charge == null)
+            return;
 
-  @Override
-  public void changedUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
+        Double ionMass = getIonMass();
+        if (ionMass == null)
+            return;
 
-  @Override
-  public void insertUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
+        IonizationType ionType = getIonType();
 
-  @Override
-  public void removeUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
+        double neutral = (ionMass.doubleValue() - ionType.getAddedMass())
+                * charge.intValue();
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    ionMassField.setToolTipText(toolTip);
-  }
+        neutralMassField.setText(
+                MZmineCore.getConfiguration().getMZFormat().format(neutral));
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        updateNeutralMass();
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        updateNeutralMass();
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        updateNeutralMass();
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        ionMassField.setToolTipText(toolTip);
+    }
 }

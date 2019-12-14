@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,97 +28,100 @@ import io.github.mzmine.util.TextUtils;
 
 public class PeakListsSelection implements Cloneable {
 
-  private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
-  private PeakList specificPeakLists[];
-  private String namePattern;
-  private PeakList batchLastPeakLists[];
+    private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
+    private PeakList specificPeakLists[];
+    private String namePattern;
+    private PeakList batchLastPeakLists[];
 
-  public PeakList[] getMatchingPeakLists() {
+    public PeakList[] getMatchingPeakLists() {
 
-    switch (selectionType) {
+        switch (selectionType) {
 
-      case GUI_SELECTED_PEAKLISTS:
-        return MZmineCore.getDesktop().getSelectedPeakLists();
-      case ALL_PEAKLISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
-      case SPECIFIC_PEAKLISTS:
-        if (specificPeakLists == null)
-          return new PeakList[0];
-        return specificPeakLists;
-      case NAME_PATTERN:
-        if (Strings.isNullOrEmpty(namePattern))
-          return new PeakList[0];
-        ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
-        PeakList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+        case GUI_SELECTED_PEAKLISTS:
+            return MZmineCore.getDesktop().getSelectedPeakLists();
+        case ALL_PEAKLISTS:
+            return MZmineCore.getProjectManager().getCurrentProject()
+                    .getPeakLists();
+        case SPECIFIC_PEAKLISTS:
+            if (specificPeakLists == null)
+                return new PeakList[0];
+            return specificPeakLists;
+        case NAME_PATTERN:
+            if (Strings.isNullOrEmpty(namePattern))
+                return new PeakList[0];
+            ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
+            PeakList allPeakLists[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getPeakLists();
 
-        plCheck: for (PeakList pl : allPeakLists) {
+            plCheck: for (PeakList pl : allPeakLists) {
 
-          final String plName = pl.getName();
+                final String plName = pl.getName();
 
-          final String regex = TextUtils.createRegexFromWildcards(namePattern);
+                final String regex = TextUtils
+                        .createRegexFromWildcards(namePattern);
 
-          if (plName.matches(regex)) {
-            if (matchingPeakLists.contains(pl))
-              continue;
-            matchingPeakLists.add(pl);
-            continue plCheck;
-          }
+                if (plName.matches(regex)) {
+                    if (matchingPeakLists.contains(pl))
+                        continue;
+                    matchingPeakLists.add(pl);
+                    continue plCheck;
+                }
+            }
+            return matchingPeakLists.toArray(new PeakList[0]);
+        case BATCH_LAST_PEAKLISTS:
+            if (batchLastPeakLists == null)
+                return new PeakList[0];
+            return batchLastPeakLists;
         }
-        return matchingPeakLists.toArray(new PeakList[0]);
-      case BATCH_LAST_PEAKLISTS:
-        if (batchLastPeakLists == null)
-          return new PeakList[0];
-        return batchLastPeakLists;
+
+        throw new IllegalStateException("This code should be unreachable");
+
     }
 
-    throw new IllegalStateException("This code should be unreachable");
-
-  }
-
-  public PeakListsSelectionType getSelectionType() {
-    return selectionType;
-  }
-
-  public void setSelectionType(PeakListsSelectionType selectionType) {
-    this.selectionType = selectionType;
-  }
-
-  public PeakList[] getSpecificPeakLists() {
-    return specificPeakLists;
-  }
-
-  public void setSpecificPeakLists(PeakList[] specificPeakLists) {
-    this.specificPeakLists = specificPeakLists;
-  }
-
-  public String getNamePattern() {
-    return namePattern;
-  }
-
-  public void setNamePattern(String namePattern) {
-    this.namePattern = namePattern;
-  }
-
-  public void setBatchLastPeakLists(PeakList[] batchLastPeakLists) {
-    this.batchLastPeakLists = batchLastPeakLists;
-  }
-
-  public PeakListsSelection clone() {
-    PeakListsSelection newSelection = new PeakListsSelection();
-    newSelection.selectionType = selectionType;
-    newSelection.specificPeakLists = specificPeakLists;
-    newSelection.namePattern = namePattern;
-    return newSelection;
-  }
-
-  public String toString() {
-    StringBuilder str = new StringBuilder();
-    PeakList pls[] = getMatchingPeakLists();
-    for (int i = 0; i < pls.length; i++) {
-      if (i > 0)
-        str.append("\n");
-      str.append(pls[i].getName());
+    public PeakListsSelectionType getSelectionType() {
+        return selectionType;
     }
-    return str.toString();
-  }
+
+    public void setSelectionType(PeakListsSelectionType selectionType) {
+        this.selectionType = selectionType;
+    }
+
+    public PeakList[] getSpecificPeakLists() {
+        return specificPeakLists;
+    }
+
+    public void setSpecificPeakLists(PeakList[] specificPeakLists) {
+        this.specificPeakLists = specificPeakLists;
+    }
+
+    public String getNamePattern() {
+        return namePattern;
+    }
+
+    public void setNamePattern(String namePattern) {
+        this.namePattern = namePattern;
+    }
+
+    public void setBatchLastPeakLists(PeakList[] batchLastPeakLists) {
+        this.batchLastPeakLists = batchLastPeakLists;
+    }
+
+    public PeakListsSelection clone() {
+        PeakListsSelection newSelection = new PeakListsSelection();
+        newSelection.selectionType = selectionType;
+        newSelection.specificPeakLists = specificPeakLists;
+        newSelection.namePattern = namePattern;
+        return newSelection;
+    }
+
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        PeakList pls[] = getMatchingPeakLists();
+        for (int i = 0; i < pls.length; i++) {
+            if (i > 0)
+                str.append("\n");
+            str.append(pls[i].getName());
+        }
+        return str.toString();
+    }
 }

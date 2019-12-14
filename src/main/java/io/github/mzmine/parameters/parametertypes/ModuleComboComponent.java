@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,73 +34,74 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 
 public class ModuleComboComponent extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JComboBox<MZmineProcessingStep<?>> comboBox;
-  private JButton setButton;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JComboBox<MZmineProcessingStep<?>> comboBox;
+    private JButton setButton;
 
-  public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
+    public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
 
-    super(new BorderLayout());
+        super(new BorderLayout());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    assert modules != null;
-    assert modules.length > 0;
+        assert modules != null;
+        assert modules.length > 0;
 
-    comboBox = new JComboBox<MZmineProcessingStep<?>>(modules);
-    comboBox.addActionListener(this);
-    add(comboBox, BorderLayout.CENTER);
+        comboBox = new JComboBox<MZmineProcessingStep<?>>(modules);
+        comboBox.addActionListener(this);
+        add(comboBox, BorderLayout.CENTER);
 
-    setButton = new JButton("...");
-    setButton.addActionListener(this);
-    boolean buttonEnabled = (modules[0].getParameterSet() != null);
-    setButton.setEnabled(buttonEnabled);
-    add(setButton, BorderLayout.EAST);
+        setButton = new JButton("...");
+        setButton.addActionListener(this);
+        boolean buttonEnabled = (modules[0].getParameterSet() != null);
+        setButton.setEnabled(buttonEnabled);
+        add(setButton, BorderLayout.EAST);
 
-  }
-
-  public int getSelectedIndex() {
-    return comboBox.getSelectedIndex();
-  }
-
-  public void setSelectedItem(Object selected) {
-    comboBox.setSelectedItem(selected);
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    MZmineProcessingStep<?> selected = (MZmineProcessingStep<?>) comboBox.getSelectedItem();
-
-    if (src == comboBox) {
-      if (selected == null) {
-        setButton.setEnabled(false);
-        return;
-      }
-      ParameterSet parameterSet = selected.getParameterSet();
-      int numOfParameters = parameterSet.getParameters().length;
-      setButton.setEnabled(numOfParameters > 0);
     }
 
-    if (src == setButton) {
-      if (selected == null)
-        return;
-      ParameterSetupDialog dialog = (ParameterSetupDialog) SwingUtilities
-          .getAncestorOfClass(ParameterSetupDialog.class, this);
-      if (dialog == null)
-        return;
-      ParameterSet parameterSet = selected.getParameterSet();
-      parameterSet.showSetupDialog(dialog, dialog.isValueCheckRequired());
+    public int getSelectedIndex() {
+        return comboBox.getSelectedIndex();
     }
 
-  }
+    public void setSelectedItem(Object selected) {
+        comboBox.setSelectedItem(selected);
+    }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    comboBox.setToolTipText(toolTip);
-  }
+    public void actionPerformed(ActionEvent event) {
+
+        Object src = event.getSource();
+
+        MZmineProcessingStep<?> selected = (MZmineProcessingStep<?>) comboBox
+                .getSelectedItem();
+
+        if (src == comboBox) {
+            if (selected == null) {
+                setButton.setEnabled(false);
+                return;
+            }
+            ParameterSet parameterSet = selected.getParameterSet();
+            int numOfParameters = parameterSet.getParameters().length;
+            setButton.setEnabled(numOfParameters > 0);
+        }
+
+        if (src == setButton) {
+            if (selected == null)
+                return;
+            ParameterSetupDialog dialog = (ParameterSetupDialog) SwingUtilities
+                    .getAncestorOfClass(ParameterSetupDialog.class, this);
+            if (dialog == null)
+                return;
+            ParameterSet parameterSet = selected.getParameterSet();
+            parameterSet.showSetupDialog(dialog, dialog.isValueCheckRequired());
+        }
+
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        comboBox.setToolTipText(toolTip);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,36 +22,37 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 
 /**
- * This class serves as a replacement for Task within the task controller queue, after the Task is
- * finished. This allows the garbage collector to remove the memory occupied by the actual Task
- * while keeping the task description in the Tasks in progress window, until all tasks are finished.
+ * This class serves as a replacement for Task within the task controller queue,
+ * after the Task is finished. This allows the garbage collector to remove the
+ * memory occupied by the actual Task while keeping the task description in the
+ * Tasks in progress window, until all tasks are finished.
  */
 public class FinishedTask extends AbstractTask {
 
-  private String description;
-  private double finishedPercentage;
+    private String description;
+    private double finishedPercentage;
 
-  public FinishedTask(Task task) {
-    setStatus(task.getStatus());
-    setErrorMessage(task.getErrorMessage());
-    description = task.getTaskDescription();
-    finishedPercentage = task.getFinishedPercentage();
-  }
+    public FinishedTask(Task task) {
+        setStatus(task.getStatus());
+        setErrorMessage(task.getErrorMessage());
+        description = task.getTaskDescription();
+        finishedPercentage = task.getFinishedPercentage();
+    }
 
-  public String getTaskDescription() {
-    return description;
-  }
+    public String getTaskDescription() {
+        return description;
+    }
 
-  public void run() {
-    // ignore any attempt to run this task, because it is finished
-  }
+    public void run() {
+        // ignore any attempt to run this task, because it is finished
+    }
 
-  public void cancel() {
-    // ignore any attempt to cancel this task, because it is finished
-  }
+    public void cancel() {
+        // ignore any attempt to cancel this task, because it is finished
+    }
 
-  public double getFinishedPercentage() {
-    return finishedPercentage;
-  }
+    public double getFinishedPercentage() {
+        return finishedPercentage;
+    }
 
 }

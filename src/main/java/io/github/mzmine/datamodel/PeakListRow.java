@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,187 +22,191 @@ import javax.annotation.Nonnull;
 
 public interface PeakListRow {
 
-  /**
-   * Return raw data with peaks on this row
-   */
-  public RawDataFile[] getRawDataFiles();
+    /**
+     * Return raw data with peaks on this row
+     */
+    public RawDataFile[] getRawDataFiles();
 
-  /**
-   * Returns ID of this row
-   */
-  public int getID();
+    /**
+     * Returns ID of this row
+     */
+    public int getID();
 
-  /**
-   * Returns number of peaks assigned to this row
-   */
-  public int getNumberOfPeaks();
+    /**
+     * Returns number of peaks assigned to this row
+     */
+    public int getNumberOfPeaks();
 
-  /**
-   * Return peaks assigned to this row
-   */
-  public Feature[] getPeaks();
+    /**
+     * Return peaks assigned to this row
+     */
+    public Feature[] getPeaks();
 
-  /**
-   * Returns peak for given raw data file
-   */
-  public Feature getPeak(RawDataFile rawData);
+    /**
+     * Returns peak for given raw data file
+     */
+    public Feature getPeak(RawDataFile rawData);
 
-  /**
-   * Add a peak
-   */
-  public void addPeak(RawDataFile rawData, Feature peak);
+    /**
+     * Add a peak
+     */
+    public void addPeak(RawDataFile rawData, Feature peak);
 
-  /**
-   * D Remove a peak
-   */
-  public void removePeak(RawDataFile file);
+    /**
+     * D Remove a peak
+     */
+    public void removePeak(RawDataFile file);
 
-  /**
-   * Has a peak?
-   */
-  public boolean hasPeak(Feature peak);
+    /**
+     * Has a peak?
+     */
+    public boolean hasPeak(Feature peak);
 
-  /**
-   * Has a peak?
-   */
-  public boolean hasPeak(RawDataFile rawData);
+    /**
+     * Has a peak?
+     */
+    public boolean hasPeak(RawDataFile rawData);
 
-  /**
-   * Returns average M/Z for peaks on this row
-   */
-  public double getAverageMZ();
+    /**
+     * Returns average M/Z for peaks on this row
+     */
+    public double getAverageMZ();
 
-  /**
-   * Returns average RT for peaks on this row
-   */
-  public double getAverageRT();
+    /**
+     * Returns average RT for peaks on this row
+     */
+    public double getAverageRT();
 
-  /**
-   * Returns average height for peaks on this row
-   */
-  public double getAverageHeight();
+    /**
+     * Returns average height for peaks on this row
+     */
+    public double getAverageHeight();
 
-  /**
-   * Returns the charge for peak on this row. If more charges are found 0 is returned
-   */
-  public int getRowCharge();
+    /**
+     * Returns the charge for peak on this row. If more charges are found 0 is
+     * returned
+     */
+    public int getRowCharge();
 
-  /**
-   * Returns average area for peaks on this row
-   */
-  public double getAverageArea();
+    /**
+     * Returns average area for peaks on this row
+     */
+    public double getAverageArea();
 
-  /**
-   * Returns comment for this row
-   */
-  public String getComment();
+    /**
+     * Returns comment for this row
+     */
+    public String getComment();
 
-  /**
-   * Sets comment for this row
-   */
-  public void setComment(String comment);
+    /**
+     * Sets comment for this row
+     */
+    public void setComment(String comment);
 
-  /**
-   * Sets average mz for this row
-   */
-  public void setAverageMZ(double mz);
+    /**
+     * Sets average mz for this row
+     */
+    public void setAverageMZ(double mz);
 
-  /**
-   * Sets average rt for this row
-   */
-  public void setAverageRT(double rt);
+    /**
+     * Sets average rt for this row
+     */
+    public void setAverageRT(double rt);
 
-  /**
-   * Add a new identity candidate (result of identification method)
-   * 
-   * @param identity New peak identity
-   * @param preffered boolean value to define this identity as preferred identity
-   */
-  public void addPeakIdentity(PeakIdentity identity, boolean preffered);
+    /**
+     * Add a new identity candidate (result of identification method)
+     * 
+     * @param identity
+     *            New peak identity
+     * @param preffered
+     *            boolean value to define this identity as preferred identity
+     */
+    public void addPeakIdentity(PeakIdentity identity, boolean preffered);
 
-  /**
-   * Remove identity candidate
-   * 
-   * @param identity Peak identity
-   */
-  public void removePeakIdentity(PeakIdentity identity);
+    /**
+     * Remove identity candidate
+     * 
+     * @param identity
+     *            Peak identity
+     */
+    public void removePeakIdentity(PeakIdentity identity);
 
-  /**
-   * Returns all candidates for this peak's identity
-   * 
-   * @return Identity candidates
-   */
-  public PeakIdentity[] getPeakIdentities();
+    /**
+     * Returns all candidates for this peak's identity
+     * 
+     * @return Identity candidates
+     */
+    public PeakIdentity[] getPeakIdentities();
 
-  /**
-   * Returns preferred peak identity among candidates
-   * 
-   * @return Preferred identity
-   */
-  public PeakIdentity getPreferredPeakIdentity();
+    /**
+     * Returns preferred peak identity among candidates
+     * 
+     * @return Preferred identity
+     */
+    public PeakIdentity getPreferredPeakIdentity();
 
-  /**
-   * Sets a preferred peak identity among candidates
-   * 
-   * @param identity Preferred identity
-   */
-  public void setPreferredPeakIdentity(PeakIdentity identity);
+    /**
+     * Sets a preferred peak identity among candidates
+     * 
+     * @param identity
+     *            Preferred identity
+     */
+    public void setPreferredPeakIdentity(PeakIdentity identity);
 
+    /**
+     * Adds a new PeakInformation object.
+     * 
+     * PeakInformation is used to keep extra information about peaks in the form
+     * of a map <propertyName, propertyValue>
+     * 
+     * @param information
+     *            object
+     */
 
-  /**
-   * Adds a new PeakInformation object.
-   * 
-   * PeakInformation is used to keep extra information about peaks in the form of a map
-   * <propertyName, propertyValue>
-   * 
-   * @param information object
-   */
+    public void setPeakInformation(PeakInformation information);
 
-  public void setPeakInformation(PeakInformation information);
+    /**
+     * Returns PeakInformation
+     * 
+     * @return
+     */
 
+    public PeakInformation getPeakInformation();
 
-  /**
-   * Returns PeakInformation
-   * 
-   * @return
-   */
+    /**
+     * Returns maximum raw data point intensity among all peaks in this row
+     * 
+     * @return Maximum intensity
+     */
+    public double getDataPointMaxIntensity();
 
-  public PeakInformation getPeakInformation();
+    /**
+     * Returns the most intense peak in this row
+     */
+    public Feature getBestPeak();
 
-  /**
-   * Returns maximum raw data point intensity among all peaks in this row
-   * 
-   * @return Maximum intensity
-   */
-  public double getDataPointMaxIntensity();
+    /**
+     * Returns the most intense fragmentation scan in this row
+     */
+    public Scan getBestFragmentation();
 
-  /**
-   * Returns the most intense peak in this row
-   */
-  public Feature getBestPeak();
+    /**
+     * Returns all fragmentation scans of this row
+     */
+    @Nonnull
+    public Scan[] getAllMS2Fragmentations();
 
-  /**
-   * Returns the most intense fragmentation scan in this row
-   */
-  public Scan getBestFragmentation();
+    /**
+     * Returns the most intense isotope pattern in this row. If there are no
+     * isotope patterns present in the row, returns null.
+     */
+    public IsotopePattern getBestIsotopePattern();
 
-  /**
-   * Returns all fragmentation scans of this row
-   */
-  @Nonnull
-  public Scan[] getAllMS2Fragmentations();
+    // DorresteinLaB edit
+    /**
+     * reset the rowID
+     */
+    public void setID(int id);
 
-  /**
-   * Returns the most intense isotope pattern in this row. If there are no isotope patterns present
-   * in the row, returns null.
-   */
-  public IsotopePattern getBestIsotopePattern();
-
-  // DorresteinLaB edit
-  /**
-   * reset the rowID
-   */
-  public void setID(int id);
-
-  // End DorresteinLab edit
+    // End DorresteinLab edit
 }

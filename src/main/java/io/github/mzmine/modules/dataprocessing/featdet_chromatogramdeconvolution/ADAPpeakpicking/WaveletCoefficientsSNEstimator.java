@@ -25,32 +25,32 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.parameters.ParameterSet;
 
 public class WaveletCoefficientsSNEstimator implements SNEstimatorChoice {
-  @Override
-  public @Nonnull String getName() {
-    return "Wavelet Coeff. SN";
-  }
+    @Override
+    public @Nonnull String getName() {
+        return "Wavelet Coeff. SN";
+    }
 
-  public String getSNCode() {
-    return "Wavelet Coefficient Estimator";
-  }
+    public String getSNCode() {
+        return "Wavelet Coefficient Estimator";
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return WaveletCoefficientsSNParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return WaveletCoefficientsSNParameters.class;
+    }
 
-  @Override
-  public boolean getRequiresR() {
-    return false;
-  }
+    @Override
+    public boolean getRequiresR() {
+        return false;
+    }
 
-  @Override
-  public String[] getRequiredRPackages() {
-    return null;
-  }
+    @Override
+    public String[] getRequiredRPackages() {
+        return null;
+    }
 
-  @Override
-  public String[] getRequiredRPackagesVersions() {
-    return null;
-  }
+    @Override
+    public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
 }

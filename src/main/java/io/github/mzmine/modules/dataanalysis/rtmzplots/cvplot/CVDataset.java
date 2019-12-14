@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -36,135 +36,137 @@ import io.github.mzmine.util.PeakMeasurementType;
 
 public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private double[] xCoords = new double[0];
-  private double[] yCoords = new double[0];
-  private double[] colorCoords = new double[0];
-  private PeakListRow[] peakListRows = new PeakListRow[0];
+    private double[] xCoords = new double[0];
+    private double[] yCoords = new double[0];
+    private double[] colorCoords = new double[0];
+    private PeakListRow[] peakListRows = new PeakListRow[0];
 
-  private String datasetTitle;
+    private String datasetTitle;
 
-  public CVDataset(PeakList alignedPeakList, ParameterSet parameters) {
+    public CVDataset(PeakList alignedPeakList, ParameterSet parameters) {
 
-    int numOfRows = alignedPeakList.getNumberOfRows();
+        int numOfRows = alignedPeakList.getNumberOfRows();
 
-    RawDataFile selectedFiles[] = parameters.getParameter(CVParameters.dataFiles).getValue();
-    PeakMeasurementType measurementType =
-        parameters.getParameter(CVParameters.measurementType).getValue();
+        RawDataFile selectedFiles[] = parameters
+                .getParameter(CVParameters.dataFiles).getValue();
+        PeakMeasurementType measurementType = parameters
+                .getParameter(CVParameters.measurementType).getValue();
 
-    // Generate title for the dataset
-    datasetTitle = "Correlation of variation analysis";
-    datasetTitle = datasetTitle.concat(" (");
-    if (measurementType == PeakMeasurementType.AREA)
-      datasetTitle = datasetTitle.concat("CV of peak areas");
-    else
-      datasetTitle = datasetTitle.concat("CV of peak heights");
-    datasetTitle = datasetTitle.concat(" in " + selectedFiles.length + " files");
-    datasetTitle = datasetTitle.concat(")");
+        // Generate title for the dataset
+        datasetTitle = "Correlation of variation analysis";
+        datasetTitle = datasetTitle.concat(" (");
+        if (measurementType == PeakMeasurementType.AREA)
+            datasetTitle = datasetTitle.concat("CV of peak areas");
+        else
+            datasetTitle = datasetTitle.concat("CV of peak heights");
+        datasetTitle = datasetTitle
+                .concat(" in " + selectedFiles.length + " files");
+        datasetTitle = datasetTitle.concat(")");
 
-    logger.finest("Computing: " + datasetTitle);
+        logger.finest("Computing: " + datasetTitle);
 
-    // Loop through rows of aligned feature list
-    Vector<Double> xCoordsV = new Vector<Double>();
-    Vector<Double> yCoordsV = new Vector<Double>();
-    Vector<Double> colorCoordsV = new Vector<Double>();
-    Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
+        // Loop through rows of aligned feature list
+        Vector<Double> xCoordsV = new Vector<Double>();
+        Vector<Double> yCoordsV = new Vector<Double>();
+        Vector<Double> colorCoordsV = new Vector<Double>();
+        Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
 
-    for (int rowIndex = 0; rowIndex < numOfRows; rowIndex++) {
+        for (int rowIndex = 0; rowIndex < numOfRows; rowIndex++) {
 
-      PeakListRow row = alignedPeakList.getRow(rowIndex);
+            PeakListRow row = alignedPeakList.getRow(rowIndex);
 
-      // Collect available peak intensities for selected files
-      Vector<Double> peakIntensities = new Vector<Double>();
-      for (int fileIndex = 0; fileIndex < selectedFiles.length; fileIndex++) {
-        Feature p = row.getPeak(selectedFiles[fileIndex]);
-        if (p != null) {
-          if (measurementType == PeakMeasurementType.AREA)
-            peakIntensities.add(p.getArea());
-          else
-            peakIntensities.add(p.getHeight());
+            // Collect available peak intensities for selected files
+            Vector<Double> peakIntensities = new Vector<Double>();
+            for (int fileIndex = 0; fileIndex < selectedFiles.length; fileIndex++) {
+                Feature p = row.getPeak(selectedFiles[fileIndex]);
+                if (p != null) {
+                    if (measurementType == PeakMeasurementType.AREA)
+                        peakIntensities.add(p.getArea());
+                    else
+                        peakIntensities.add(p.getHeight());
+                }
+            }
+
+            // If there are at least two measurements available for this peak
+            // then calc CV and include this peak in the plot
+            if (peakIntensities.size() > 1) {
+                double[] ints = Doubles.toArray(peakIntensities);
+                Double cv = MathUtils.calcCV(ints);
+
+                Double rt = row.getAverageRT();
+                Double mz = row.getAverageMZ();
+
+                xCoordsV.add(rt);
+                yCoordsV.add(mz);
+                colorCoordsV.add(cv);
+                peakListRowsV.add(row);
+
+            }
+
         }
-      }
 
-      // If there are at least two measurements available for this peak
-      // then calc CV and include this peak in the plot
-      if (peakIntensities.size() > 1) {
-        double[] ints = Doubles.toArray(peakIntensities);
-        Double cv = MathUtils.calcCV(ints);
-
-        Double rt = row.getAverageRT();
-        Double mz = row.getAverageMZ();
-
-        xCoordsV.add(rt);
-        yCoordsV.add(mz);
-        colorCoordsV.add(cv);
-        peakListRowsV.add(row);
-
-      }
+        // Finally store all collected values in arrays
+        xCoords = Doubles.toArray(xCoordsV);
+        yCoords = Doubles.toArray(yCoordsV);
+        colorCoords = Doubles.toArray(colorCoordsV);
+        peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
 
     }
 
-    // Finally store all collected values in arrays
-    xCoords = Doubles.toArray(xCoordsV);
-    yCoords = Doubles.toArray(yCoordsV);
-    colorCoords = Doubles.toArray(colorCoordsV);
-    peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
+    public String toString() {
+        return datasetTitle;
+    }
 
-  }
+    @Override
+    public int getSeriesCount() {
+        return 1;
+    }
 
-  public String toString() {
-    return datasetTitle;
-  }
+    @Override
+    public Comparable<?> getSeriesKey(int series) {
+        if (series == 0)
+            return new Integer(1);
+        else
+            return null;
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    public Number getZ(int series, int item) {
+        if (series != 0)
+            return null;
+        if ((colorCoords.length - 1) < item)
+            return null;
+        return colorCoords[item];
+    }
 
-  @Override
-  public Comparable<?> getSeriesKey(int series) {
-    if (series == 0)
-      return new Integer(1);
-    else
-      return null;
-  }
+    public int getItemCount(int series) {
+        return xCoords.length;
+    }
 
-  public Number getZ(int series, int item) {
-    if (series != 0)
-      return null;
-    if ((colorCoords.length - 1) < item)
-      return null;
-    return colorCoords[item];
-  }
+    public Number getX(int series, int item) {
+        if (series != 0)
+            return null;
+        if ((xCoords.length - 1) < item)
+            return null;
+        return xCoords[item];
+    }
 
-  public int getItemCount(int series) {
-    return xCoords.length;
-  }
+    public Number getY(int series, int item) {
+        if (series != 0)
+            return null;
+        if ((yCoords.length - 1) < item)
+            return null;
+        return yCoords[item];
+    }
 
-  public Number getX(int series, int item) {
-    if (series != 0)
-      return null;
-    if ((xCoords.length - 1) < item)
-      return null;
-    return xCoords[item];
-  }
-
-  public Number getY(int series, int item) {
-    if (series != 0)
-      return null;
-    if ((yCoords.length - 1) < item)
-      return null;
-    return yCoords[item];
-  }
-
-  public PeakListRow getPeakListRow(int item) {
-    return peakListRows[item];
-  }
+    public PeakListRow getPeakListRow(int item) {
+        return peakListRows[item];
+    }
 
 }

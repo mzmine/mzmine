@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,155 +38,163 @@ import io.github.mzmine.datamodel.Scan;
  */
 public class PeakListTreeModel extends DefaultTreeModel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  public static final String peakListsNodeName = "Feature lists";
+    public static final String peakListsNodeName = "Feature lists";
 
-  private Hashtable<Object, DefaultMutableTreeNode> treeObjects =
-      new Hashtable<Object, DefaultMutableTreeNode>();
+    private Hashtable<Object, DefaultMutableTreeNode> treeObjects = new Hashtable<Object, DefaultMutableTreeNode>();
 
-  private DefaultMutableTreeNode rootNode;
+    private DefaultMutableTreeNode rootNode;
 
-  public PeakListTreeModel(MZmineProject project) {
+    public PeakListTreeModel(MZmineProject project) {
 
-    super(new ProjectTreeNode(peakListsNodeName));
+        super(new ProjectTreeNode(peakListsNodeName));
 
-    rootNode = (DefaultMutableTreeNode) super.getRoot();
+        rootNode = (DefaultMutableTreeNode) super.getRoot();
 
-  }
-
-  /**
-   * This method must be called from Swing thread
-   */
-  public void addObject(final Object object) {
-
-    assert object != null;
-
-    if (!SwingUtilities.isEventDispatchThread()) {
-      throw new IllegalStateException("This method must be called from Swing thread");
     }
 
-    // Create new node
-    final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(object);
+    /**
+     * This method must be called from Swing thread
+     */
+    public void addObject(final Object object) {
 
-    treeObjects.put(object, newNode);
+        assert object != null;
 
-    if (object instanceof PeakList) {
-      int childCount = getChildCount(rootNode);
-      insertNodeInto(newNode, rootNode, childCount);
-      final PeakList peakList = (PeakList) object;
-      PeakListRow rows[] = peakList.getRows();
-      for (int i = 0; i < rows.length; i++) {
-        DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode(rows[i]);
-        treeObjects.put(rows[i], rowNode);
-        insertNodeInto(rowNode, newNode, i);
-      }
-    }
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException(
+                    "This method must be called from Swing thread");
+        }
 
-    if (object instanceof MassList) {
-      Scan scan = ((MassList) object).getScan();
+        // Create new node
+        final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+                object);
 
-      final DefaultMutableTreeNode scNode = treeObjects.get(scan);
-      assert scNode != null;
+        treeObjects.put(object, newNode);
 
-      int index = scNode.getChildCount();
-      insertNodeInto(newNode, scNode, index);
-    }
-
-  }
-
-  /**
-   * This method must be called from Swing thread
-   */
-  public void removeObject(final Object object) {
-
-    if (!SwingUtilities.isEventDispatchThread()) {
-      throw new IllegalStateException("This method must be called from Swing thread");
-    }
-
-    final DefaultMutableTreeNode node = treeObjects.get(object);
-
-    assert node != null;
-
-    // Remove all children from treeObjects
-    Enumeration<?> e = node.depthFirstEnumeration();
-    while (e.hasMoreElements()) {
-      DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) e.nextElement();
-      Object nodeObject = childNode.getUserObject();
-      treeObjects.remove(nodeObject);
-    }
-
-    // Remove the node from the tree, that also remove child
-    // nodes
-    removeNodeFromParent(node);
-
-    // Remove the node object from treeObjects
-    treeObjects.remove(object);
-
-  }
-
-  public synchronized PeakList[] getPeakLists() {
-    int childrenCount = getChildCount(rootNode);
-    PeakList result[] = new PeakList[childrenCount];
-    for (int j = 0; j < childrenCount; j++) {
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(rootNode, j);
-      result[j] = (PeakList) child.getUserObject();
-    }
-    return result;
-  }
-
-  public void valueForPathChanged(TreePath path, Object value) {
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-    Object object = node.getUserObject();
-    String newName = (String) value;
-    if (object instanceof RawDataFile) {
-      RawDataFile df = (RawDataFile) object;
-      df.setName(newName);
-    }
-    if (object instanceof PeakList) {
-      PeakList pl = (PeakList) object;
-      pl.setName(newName);
-    }
-  }
-
-  public void notifyObjectChanged(Object object, boolean structureChanged) {
-    if (rootNode.getUserObject() == object) {
-      if (structureChanged)
-        nodeStructureChanged(rootNode);
-      else
-        nodeChanged(rootNode);
-      return;
-    }
-    Enumeration<?> nodes = rootNode.breadthFirstEnumeration();
-    while (nodes.hasMoreElements()) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes.nextElement();
-
-      if (node.getUserObject() == object) {
-        if (structureChanged) {
-          if (object instanceof PeakList) {
-            node.removeAllChildren();
-            PeakList peakList = (PeakList) object;
+        if (object instanceof PeakList) {
+            int childCount = getChildCount(rootNode);
+            insertNodeInto(newNode, rootNode, childCount);
+            final PeakList peakList = (PeakList) object;
             PeakListRow rows[] = peakList.getRows();
             for (int i = 0; i < rows.length; i++) {
-              DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode(rows[i]);
-              treeObjects.put(rows[i], rowNode);
-              insertNodeInto(rowNode, node, i);
+                DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode(
+                        rows[i]);
+                treeObjects.put(rows[i], rowNode);
+                insertNodeInto(rowNode, newNode, i);
             }
-          }
-          nodeStructureChanged(node);
-        } else
-          nodeChanged(node);
-        return;
-      }
+        }
+
+        if (object instanceof MassList) {
+            Scan scan = ((MassList) object).getScan();
+
+            final DefaultMutableTreeNode scNode = treeObjects.get(scan);
+            assert scNode != null;
+
+            int index = scNode.getChildCount();
+            insertNodeInto(newNode, scNode, index);
+        }
+
     }
 
-  }
+    /**
+     * This method must be called from Swing thread
+     */
+    public void removeObject(final Object object) {
 
-  public DefaultMutableTreeNode getRoot() {
-    return rootNode;
-  }
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException(
+                    "This method must be called from Swing thread");
+        }
+
+        final DefaultMutableTreeNode node = treeObjects.get(object);
+
+        assert node != null;
+
+        // Remove all children from treeObjects
+        Enumeration<?> e = node.depthFirstEnumeration();
+        while (e.hasMoreElements()) {
+            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) e
+                    .nextElement();
+            Object nodeObject = childNode.getUserObject();
+            treeObjects.remove(nodeObject);
+        }
+
+        // Remove the node from the tree, that also remove child
+        // nodes
+        removeNodeFromParent(node);
+
+        // Remove the node object from treeObjects
+        treeObjects.remove(object);
+
+    }
+
+    public synchronized PeakList[] getPeakLists() {
+        int childrenCount = getChildCount(rootNode);
+        PeakList result[] = new PeakList[childrenCount];
+        for (int j = 0; j < childrenCount; j++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(
+                    rootNode, j);
+            result[j] = (PeakList) child.getUserObject();
+        }
+        return result;
+    }
+
+    public void valueForPathChanged(TreePath path, Object value) {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+                .getLastPathComponent();
+        Object object = node.getUserObject();
+        String newName = (String) value;
+        if (object instanceof RawDataFile) {
+            RawDataFile df = (RawDataFile) object;
+            df.setName(newName);
+        }
+        if (object instanceof PeakList) {
+            PeakList pl = (PeakList) object;
+            pl.setName(newName);
+        }
+    }
+
+    public void notifyObjectChanged(Object object, boolean structureChanged) {
+        if (rootNode.getUserObject() == object) {
+            if (structureChanged)
+                nodeStructureChanged(rootNode);
+            else
+                nodeChanged(rootNode);
+            return;
+        }
+        Enumeration<?> nodes = rootNode.breadthFirstEnumeration();
+        while (nodes.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+                    .nextElement();
+
+            if (node.getUserObject() == object) {
+                if (structureChanged) {
+                    if (object instanceof PeakList) {
+                        node.removeAllChildren();
+                        PeakList peakList = (PeakList) object;
+                        PeakListRow rows[] = peakList.getRows();
+                        for (int i = 0; i < rows.length; i++) {
+                            DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode(
+                                    rows[i]);
+                            treeObjects.put(rows[i], rowNode);
+                            insertNodeInto(rowNode, node, i);
+                        }
+                    }
+                    nodeStructureChanged(node);
+                } else
+                    nodeChanged(node);
+                return;
+            }
+        }
+
+    }
+
+    public DefaultMutableTreeNode getRoot() {
+        return rootNode;
+    }
 
 }

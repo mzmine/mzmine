@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,81 +35,80 @@ import javax.swing.JPopupMenu;
  *
  */
 public class JLastFilesButton extends JButton implements LastFilesComponent {
-  private static final long serialVersionUID = 1L;
-  private JPopupMenu menu;
-  private List<File> lastFiles;
-  // listens for click on one of the last files
-  // consumer decides what to do
-  private Consumer<File> changeListener;
+    private static final long serialVersionUID = 1L;
+    private JPopupMenu menu;
+    private List<File> lastFiles;
+    // listens for click on one of the last files
+    // consumer decides what to do
+    private Consumer<File> changeListener;
 
-
-
-  public JLastFilesButton(Consumer<File> changeListener) {
-    this("Last", changeListener);
-  }
-
-  public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
-    this("", icon, changeListener);
-  }
-
-  public JLastFilesButton(String text, Icon icon, Consumer<File> changeListener) {
-    super(text, icon);
-    this.changeListener = changeListener;
-    init();
-  }
-
-  public JLastFilesButton(String text, Consumer<File> changeListener) {
-    super(text);
-    this.changeListener = changeListener;
-    init();
-  }
-
-  private void init() {
-    setToolTipText("Load last files");
-    menu = new JPopupMenu();
-    lastFiles = new ArrayList<>();
-    setLastFiles(lastFiles);
-    // show menu on click
-    this.addActionListener(e -> menu.show(this, 0, 0));
-  }
-
-  @Override
-  public void setLastFiles(List<File> lastFiles) {
-    this.lastFiles = lastFiles;
-
-    menu.removeAll();
-    if (lastFiles == null || lastFiles.isEmpty()) {
-      setEnabled(false);
-      return;
+    public JLastFilesButton(Consumer<File> changeListener) {
+        this("Last", changeListener);
     }
-    setEnabled(true);
 
-    lastFiles.stream().map(this::fileToString).forEach(name -> {
-      JMenuItem item = new JMenuItem(name);
-      item.addActionListener(e -> {
-        JMenuItem c = (JMenuItem) e.getSource();
-        if (c != null) {
-          int i = menu.getComponentIndex(c);
-          if (i != -1 && i < lastFiles.size())
-            changeListener.accept(lastFiles.get(i));
+    public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
+        this("", icon, changeListener);
+    }
+
+    public JLastFilesButton(String text, Icon icon,
+            Consumer<File> changeListener) {
+        super(text, icon);
+        this.changeListener = changeListener;
+        init();
+    }
+
+    public JLastFilesButton(String text, Consumer<File> changeListener) {
+        super(text);
+        this.changeListener = changeListener;
+        init();
+    }
+
+    private void init() {
+        setToolTipText("Load last files");
+        menu = new JPopupMenu();
+        lastFiles = new ArrayList<>();
+        setLastFiles(lastFiles);
+        // show menu on click
+        this.addActionListener(e -> menu.show(this, 0, 0));
+    }
+
+    @Override
+    public void setLastFiles(List<File> lastFiles) {
+        this.lastFiles = lastFiles;
+
+        menu.removeAll();
+        if (lastFiles == null || lastFiles.isEmpty()) {
+            setEnabled(false);
+            return;
         }
-      });
-      menu.add(item);
-    });
-  }
+        setEnabled(true);
 
-  private String fileToString(File f) {
-    return MessageFormat.format("{0} ({1})", f.getName(), f.getParent());
-  }
+        lastFiles.stream().map(this::fileToString).forEach(name -> {
+            JMenuItem item = new JMenuItem(name);
+            item.addActionListener(e -> {
+                JMenuItem c = (JMenuItem) e.getSource();
+                if (c != null) {
+                    int i = menu.getComponentIndex(c);
+                    if (i != -1 && i < lastFiles.size())
+                        changeListener.accept(lastFiles.get(i));
+                }
+            });
+            menu.add(item);
+        });
+    }
 
-  public void addFile(File f) {
-    if (f == null)
-      return;
+    private String fileToString(File f) {
+        return MessageFormat.format("{0} ({1})", f.getName(), f.getParent());
+    }
 
-    // add to last files if not already inserted
-    lastFiles.remove(f);
-    lastFiles.add(0, f);
-    setLastFiles(lastFiles);
-  }
+    public void addFile(File f) {
+        if (f == null)
+            return;
+
+        // add to last files if not already inserted
+        lastFiles.remove(f);
+        lastFiles.add(0, f);
+        setLastFiles(lastFiles);
+    }
 
 }

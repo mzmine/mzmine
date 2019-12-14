@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,26 +23,26 @@ package io.github.mzmine.util;
  */
 public class ExceptionUtils {
 
-  /**
-   * Converts given exception to String, including file name and line number
-   * 
-   */
-  public static String exceptionToString(Throwable exception) {
+    /**
+     * Converts given exception to String, including file name and line number
+     * 
+     */
+    public static String exceptionToString(Throwable exception) {
 
-    StringBuffer str = new StringBuffer();
-    str.append(exception.toString());
+        StringBuffer str = new StringBuffer();
+        str.append(exception.toString());
 
-    if (exception.getStackTrace().length > 0) {
-      StackTraceElement location = exception.getStackTrace()[0];
-      str.append(" (");
-      str.append(location.getFileName());
-      str.append(":");
-      str.append(location.getLineNumber());
-      str.append(")");
+        if (exception.getStackTrace().length > 0) {
+            StackTraceElement location = exception.getStackTrace()[0];
+            str.append(" (");
+            str.append(location.getFileName());
+            str.append(":");
+            str.append(location.getLineNumber());
+            str.append(")");
+        }
+
+        return str.toString();
+
     }
-
-    return str.toString();
-
-  }
 
 }

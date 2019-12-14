@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,32 +29,38 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 
 public class AlignScansParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final IntegerParameter scanSpan = new IntegerParameter("Horizontal Scans",
-      "Number of scans to be considered in the correlation (to the left and to the right of the scan being aligned).",
-      5);
+    public static final IntegerParameter scanSpan = new IntegerParameter(
+            "Horizontal Scans",
+            "Number of scans to be considered in the correlation (to the left and to the right of the scan being aligned).",
+            5);
 
-  public static final IntegerParameter mzSpan = new IntegerParameter("Max Vertical Alignment",
-      "Maximum number of shifts to be compared. This depends on equipment, normally this should be 1.",
-      1);
+    public static final IntegerParameter mzSpan = new IntegerParameter(
+            "Max Vertical Alignment",
+            "Maximum number of shifts to be compared. This depends on equipment, normally this should be 1.",
+            1);
 
-  public static final DoubleParameter minimumHeight = new DoubleParameter("Minimum height",
-      "Minimum intensity to be considered for the align correlation.\nIf chromatogram height is below this level, it is not used in the correlation calculation.",
-      MZmineCore.getConfiguration().getIntensityFormat(), 1000.0);
+    public static final DoubleParameter minimumHeight = new DoubleParameter(
+            "Minimum height",
+            "Minimum intensity to be considered for the align correlation.\nIf chromatogram height is below this level, it is not used in the correlation calculation.",
+            MZmineCore.getConfiguration().getIntensityFormat(), 1000.0);
 
-  public static final BooleanParameter logTransform = new BooleanParameter("Correlation in Log",
-      "Transform intensities to Log scale before comparing correlation.", false);
+    public static final BooleanParameter logTransform = new BooleanParameter(
+            "Correlation in Log",
+            "Transform intensities to Log scale before comparing correlation.",
+            false);
 
-  public static final BooleanParameter removeOld =
-      new BooleanParameter("Remove prev files", "Remove processed files to save memory.", false);
+    public static final BooleanParameter removeOld = new BooleanParameter(
+            "Remove prev files", "Remove processed files to save memory.",
+            false);
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "align");
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "align");
 
-  public AlignScansParameters() {
-    super(new Parameter[] {dataFiles, suffix, scanSpan, mzSpan, minimumHeight, logTransform,
-        removeOld});
-  }
+    public AlignScansParameters() {
+        super(new Parameter[] { dataFiles, suffix, scanSpan, mzSpan,
+                minimumHeight, logTransform, removeOld });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,25 +29,26 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> DATABASE =
-      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values());
+    public static final ModuleComboParameter<OnlineDatabases> DATABASE = new ModuleComboParameter<OnlineDatabases>(
+            "Database", "Database to search", OnlineDatabases.values());
 
-  public static final NeutralMassParameter NEUTRAL_MASS =
-      new NeutralMassParameter("Neutral mass", "Value to use in the search query");
+    public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
+            "Neutral mass", "Value to use in the search query");
 
-  // Max count of 10,000 is enforced by ChemSpider API
-  public static final IntegerParameter MAX_RESULTS =
-      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, 10000);
+    // Max count of 10,000 is enforced by ChemSpider API
+    public static final IntegerParameter MAX_RESULTS = new IntegerParameter(
+            "Number of results", "Maximum number of results to display", 20, 1,
+            10000);
 
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
+    public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
-  public static final OptionalModuleParameter<IsotopePatternScoreParameters> ISOTOPE_FILTER =
-      new OptionalModuleParameter<>("Isotope pattern filter",
-          "Search only for compounds with a isotope pattern similar",
-          new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter<IsotopePatternScoreParameters> ISOTOPE_FILTER = new OptionalModuleParameter<>(
+            "Isotope pattern filter",
+            "Search only for compounds with a isotope pattern similar",
+            new IsotopePatternScoreParameters());
 
-  public SingleRowIdentificationParameters() {
-    super(new Parameter[] {DATABASE, NEUTRAL_MASS, MAX_RESULTS, MZ_TOLERANCE, ISOTOPE_FILTER});
-  }
+    public SingleRowIdentificationParameters() {
+        super(new Parameter[] { DATABASE, NEUTRAL_MASS, MAX_RESULTS,
+                MZ_TOLERANCE, ISOTOPE_FILTER });
+    }
 }

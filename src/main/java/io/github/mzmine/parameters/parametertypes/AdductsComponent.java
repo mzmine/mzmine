@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -38,22 +38,23 @@ import io.github.mzmine.modules.dataprocessing.id_adductsearch.ImportAdductsActi
  */
 public class AdductsComponent extends MultiChoiceComponent {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  /**
-   * Create the component.
-   *
-   * @param choices the adduct choices.
-   */
-  public AdductsComponent(AdductType[] choices) {
+    /**
+     * Create the component.
+     *
+     * @param choices
+     *            the adduct choices.
+     */
+    public AdductsComponent(AdductType[] choices) {
 
-    super(choices);
-    addButton(new JButton(new AddAdductsAction()));
-    addButton(new JButton(new ImportAdductsAction()));
-    addButton(new JButton(new ExportAdductsAction()));
-    addButton(new JButton(new DefaultAdductsAction()));
-  }
+        super(choices);
+        addButton(new JButton(new AddAdductsAction()));
+        addButton(new JButton(new ImportAdductsAction()));
+        addButton(new JButton(new ExportAdductsAction()));
+        addButton(new JButton(new DefaultAdductsAction()));
+    }
 }

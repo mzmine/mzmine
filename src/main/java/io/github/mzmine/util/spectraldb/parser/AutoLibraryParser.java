@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,63 +33,64 @@ import io.github.mzmine.util.files.FileTypeFilter;
  */
 public class AutoLibraryParser extends SpectralDBParser {
 
-  public AutoLibraryParser(int bufferEntries, LibraryEntryProcessor processor) {
-    super(bufferEntries, processor);
-  }
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile)
-      throws UnsupportedFormatException, IOException {
-    FileTypeFilter json = new FileTypeFilter("json", "");
-    FileTypeFilter msp = new FileTypeFilter("msp", "");
-    FileTypeFilter mgf = new FileTypeFilter("mgf", "");
-    FileTypeFilter jdx = new FileTypeFilter("jdx", "");
-    if (json.accept(dataBaseFile)) {
-      // test Gnps and MONA json parser
-      SpectralDBParser[] parser =
-          new SpectralDBParser[] {new MonaJsonParser(bufferEntries, processor),
-              new GnpsJsonParser(bufferEntries, processor)};
-      for (SpectralDBParser p : parser) {
-        if (mainTask.isCanceled())
-          return false;
-        try {
-          boolean state = p.parse(mainTask, dataBaseFile);
-          if (state)
-            return state;
-          else
-            continue;
-        } catch (Exception ex) {
-          // do nothing and try next json format
-        }
-      }
-    } else {
-      final SpectralDBParser parser;
-      // msp, jdx or mgf
-      if (msp.accept(dataBaseFile)) {
-        // load NIST msp format
-        parser = new NistMspParser(bufferEntries, processor);
-      } else if (jdx.accept(dataBaseFile)) {
-        // load jdx format
-        parser = new JdxParser(bufferEntries, processor);
-      } else if (mgf.accept(dataBaseFile)) {
-        parser = new GnpsMgfParser(bufferEntries, processor);
-      } else {
-        throw (new UnsupportedFormatException(
-            "Format not supported: " + dataBaseFile.getAbsolutePath()));
-      }
-
-      // parse the file
-      boolean state = parser.parse(mainTask, dataBaseFile);
-      if (state)
-        return state;
+    public AutoLibraryParser(int bufferEntries,
+            LibraryEntryProcessor processor) {
+        super(bufferEntries, processor);
     }
-    if (mainTask.isCanceled())
-      return false;
-    else
-      throw (new UnsupportedFormatException(
-          "Format not supported: " + dataBaseFile.getAbsolutePath()));
-  }
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    @Override
+    public boolean parse(AbstractTask mainTask, File dataBaseFile)
+            throws UnsupportedFormatException, IOException {
+        FileTypeFilter json = new FileTypeFilter("json", "");
+        FileTypeFilter msp = new FileTypeFilter("msp", "");
+        FileTypeFilter mgf = new FileTypeFilter("mgf", "");
+        FileTypeFilter jdx = new FileTypeFilter("jdx", "");
+        if (json.accept(dataBaseFile)) {
+            // test Gnps and MONA json parser
+            SpectralDBParser[] parser = new SpectralDBParser[] {
+                    new MonaJsonParser(bufferEntries, processor),
+                    new GnpsJsonParser(bufferEntries, processor) };
+            for (SpectralDBParser p : parser) {
+                if (mainTask.isCanceled())
+                    return false;
+                try {
+                    boolean state = p.parse(mainTask, dataBaseFile);
+                    if (state)
+                        return state;
+                    else
+                        continue;
+                } catch (Exception ex) {
+                    // do nothing and try next json format
+                }
+            }
+        } else {
+            final SpectralDBParser parser;
+            // msp, jdx or mgf
+            if (msp.accept(dataBaseFile)) {
+                // load NIST msp format
+                parser = new NistMspParser(bufferEntries, processor);
+            } else if (jdx.accept(dataBaseFile)) {
+                // load jdx format
+                parser = new JdxParser(bufferEntries, processor);
+            } else if (mgf.accept(dataBaseFile)) {
+                parser = new GnpsMgfParser(bufferEntries, processor);
+            } else {
+                throw (new UnsupportedFormatException("Format not supported: "
+                        + dataBaseFile.getAbsolutePath()));
+            }
+
+            // parse the file
+            boolean state = parser.parse(mainTask, dataBaseFile);
+            if (state)
+                return state;
+        }
+        if (mainTask.isCanceled())
+            return false;
+        else
+            throw (new UnsupportedFormatException(
+                    "Format not supported: " + dataBaseFile.getAbsolutePath()));
+    }
 
 }

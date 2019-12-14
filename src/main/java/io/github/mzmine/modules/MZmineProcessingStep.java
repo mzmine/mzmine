@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,15 +24,16 @@ import javax.annotation.Nullable;
 import io.github.mzmine.parameters.ParameterSet;
 
 /**
- * Interface for a processing step. Processing step means a reference to MZmine module and its
- * parameters. This interface can be parameterized to a particular ModuleType, such as MassDetector.
+ * Interface for a processing step. Processing step means a reference to MZmine
+ * module and its parameters. This interface can be parameterized to a
+ * particular ModuleType, such as MassDetector.
  */
 public interface MZmineProcessingStep<ModuleType extends MZmineModule> {
 
-  @Nonnull
-  public ModuleType getModule();
+    @Nonnull
+    public ModuleType getModule();
 
-  @Nullable
-  public ParameterSet getParameterSet();
+    @Nullable
+    public ParameterSet getParameterSet();
 
 }

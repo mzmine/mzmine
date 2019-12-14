@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,36 +22,40 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.swing.IconUtil;
 
 public class ProjectionPlotToolbar extends JToolBar {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon axesIcon = IconUtil
+            .loadIconFromResources("icons/axesicon.png");
 
-  static final Icon labelsIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon labelsIcon = IconUtil
+            .loadIconFromResources("icons/annotationsicon.png");
 
-  public ProjectionPlotToolbar(ProjectionPlotWindow masterFrame) {
-    super(JToolBar.VERTICAL);
+    public ProjectionPlotToolbar(ProjectionPlotWindow masterFrame) {
+        super(JToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+        setFloatable(false);
+        setFocusable(false);
+        setMargin(new Insets(5, 5, 5, 5));
+        setBackground(Color.white);
 
-    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
+        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+                "Setup ranges for axes");
 
-    addSeparator();
+        addSeparator();
 
-    GUIUtils.addButton(this, null, labelsIcon, masterFrame, "TOGGLE_LABELS", "Toggle sample names");
+        GUIUtils.addButton(this, null, labelsIcon, masterFrame, "TOGGLE_LABELS",
+                "Toggle sample names");
 
-  }
+    }
 
 }

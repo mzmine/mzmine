@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,28 +20,29 @@ package io.github.mzmine.parameters.parametertypes.ranges;
 
 public class MZRangeParameter extends DoubleRangeParameter {
 
-  public MZRangeParameter() {
-    super("m/z", "m/z range", null, true, null);
-  }
+    public MZRangeParameter() {
+        super("m/z", "m/z range", null, true, null);
+    }
 
-  public MZRangeParameter(boolean valueRequired) {
-    super("m/z", "m/z range", null, valueRequired, null);
-  }
+    public MZRangeParameter(boolean valueRequired) {
+        super("m/z", "m/z range", null, valueRequired, null);
+    }
 
-  public MZRangeParameter(String name, String description) {
-    super(name, description, null, true, null);
-  }
+    public MZRangeParameter(String name, String description) {
+        super(name, description, null, true, null);
+    }
 
-  @Override
-  public MZRangeComponent createEditingComponent() {
-    return new MZRangeComponent();
-  }
+    @Override
+    public MZRangeComponent createEditingComponent() {
+        return new MZRangeComponent();
+    }
 
-  @Override
-  public MZRangeParameter cloneParameter() {
-    MZRangeParameter copy = new MZRangeParameter(getName(), getDescription());
-    copy.setValue(this.getValue());
-    return copy;
-  }
+    @Override
+    public MZRangeParameter cloneParameter() {
+        MZRangeParameter copy = new MZRangeParameter(getName(),
+                getDescription());
+        copy.setValue(this.getValue());
+        return copy;
+    }
 
 }

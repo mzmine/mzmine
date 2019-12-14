@@ -31,38 +31,37 @@ import io.github.mzmine.util.ExitCode;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportModule implements MZmineProcessingModule {
-  private static final String MODULE_NAME = "Export to MGF file (ADAP)";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports all ADAP clustered spectra in a feature lists to an MGF file. Used in the GNPS GC-MS workflow.";
+    private static final String MODULE_NAME = "Export to MGF file (ADAP)";
+    private static final String MODULE_DESCRIPTION = "This method exports all ADAP clustered spectra in a feature lists to an MGF file. Used in the GNPS GC-MS workflow.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
+    }
 
-  @Override
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+    @Override
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
 
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    AdapMgfExportTask task = new AdapMgfExportTask(parameters);
-    tasks.add(task);
-    return ExitCode.OK;
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        AdapMgfExportTask task = new AdapMgfExportTask(parameters);
+        tasks.add(task);
+        return ExitCode.OK;
 
-  }
+    }
 
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTEXPORT;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return AdapMgfExportParameters.class;
-  }
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return AdapMgfExportParameters.class;
+    }
 
 }

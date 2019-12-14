@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,29 +37,36 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  */
 public class DPPAnyElementIsotopeGrouperParameters extends SimpleParameterSet {
 
-  public static final DoubleRangeParameter mzRange = new DoubleRangeParameter("m/z range",
-      "The range of m/z to scan for isotope peaks", MZmineCore.getConfiguration().getMZFormat());
+    public static final DoubleRangeParameter mzRange = new DoubleRangeParameter(
+            "m/z range", "The range of m/z to scan for isotope peaks",
+            MZmineCore.getConfiguration().getMZFormat());
 
-  public static final StringParameter element =
-      new StringParameter("Element", "Element symbol of the element to deisotope for.");
+    public static final StringParameter element = new StringParameter("Element",
+            "Element symbol of the element to deisotope for.");
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns");
+    public static final IntegerParameter maximumCharge = new IntegerParameter(
+            "Maximum charge",
+            "Maximum charge to consider for detecting the isotope patterns");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove non-isotopes",
-      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
-  
-  public static final BooleanParameter displayResults = new BooleanParameter("Display results",
-      "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
-  
-  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
-      "Set the color you want the detected isotope patterns to be displayed with.", Color.GREEN);
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove non-isotopes",
+            "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
 
-  public DPPAnyElementIsotopeGrouperParameters() {
-    super(new Parameter[] {element, mzTolerance, mzRange, maximumCharge,
-        autoRemove, displayResults, datasetColor});
-   }
+    public static final BooleanParameter displayResults = new BooleanParameter(
+            "Display results",
+            "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.",
+            false);
+
+    public static final ColorParameter datasetColor = new ColorParameter(
+            "Dataset color",
+            "Set the color you want the detected isotope patterns to be displayed with.",
+            Color.GREEN);
+
+    public DPPAnyElementIsotopeGrouperParameters() {
+        super(new Parameter[] { element, mzTolerance, mzRange, maximumCharge,
+                autoRemove, displayResults, datasetColor });
+    }
 
 }

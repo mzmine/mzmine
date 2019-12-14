@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,25 +34,27 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 
 /**
- * This is an example class for a new DataPointProcessingModule. Every parameter set should contain
- * the parameters "Display results" and "Dataset color", so the user can specify, if and how the
- * results should be displayed in the plot. 
+ * This is an example class for a new DataPointProcessingModule. Every parameter
+ * set should contain the parameters "Display results" and "Dataset color", so
+ * the user can specify, if and how the results should be displayed in the plot.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class DPPLearnerModuleParameters extends SimpleParameterSet {
 
+    public static final BooleanParameter displayResults = new BooleanParameter(
+            "Display results",
+            "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
+            false);
 
-  public static final BooleanParameter displayResults = new BooleanParameter("Display results",
-      "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
-      false);
+    public static final ColorParameter datasetColor = new ColorParameter(
+            "Dataset color",
+            "Set the color you want the detected isotope patterns to be displayed with.",
+            Color.CYAN);
 
-  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
-      "Set the color you want the detected isotope patterns to be displayed with.", Color.CYAN);
-
-  public DPPLearnerModuleParameters() {
-    super(new Parameter[] {displayResults, datasetColor});
-  }
+    public DPPLearnerModuleParameters() {
+        super(new Parameter[] { displayResults, datasetColor });
+    }
 
 }

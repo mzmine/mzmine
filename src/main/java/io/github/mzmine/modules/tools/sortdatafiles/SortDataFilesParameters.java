@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,10 +24,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 
 public class SortDataFilesParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public SortDataFilesParameters() {
-    super(new Parameter[] {dataFiles});
-  }
+    public SortDataFilesParameters() {
+        super(new Parameter[] { dataFiles });
+    }
 
 }

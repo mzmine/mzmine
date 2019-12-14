@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -41,114 +41,116 @@ import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPa
 
 public class RTMZPlot extends EChartPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private static final Color gridColor = Color.lightGray;
-  private static final Color crossHairColor = Color.gray;
-  private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
-  // crosshair stroke
-  private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private static final Color gridColor = Color.lightGray;
+    private static final Color crossHairColor = Color.gray;
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
+    // crosshair stroke
+    private static final BasicStroke crossHairStroke = new BasicStroke(1,
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f,
+            new float[] { 5, 3 }, 0);
 
-  private JFreeChart chart;
-  private XYPlot plot;
-  private ValueAxis paintScaleAxis;
-  private PaintScaleLegend paintScaleLegend;
+    private JFreeChart chart;
+    private XYPlot plot;
+    private ValueAxis paintScaleAxis;
+    private PaintScaleLegend paintScaleLegend;
 
-  private XYItemRenderer spotRenderer;
+    private XYItemRenderer spotRenderer;
 
-  private InterpolatingLookupPaintScale paintScale;
+    private InterpolatingLookupPaintScale paintScale;
 
-  public RTMZPlot(RTMZAnalyzerWindow masterFrame, AbstractXYZDataset dataset,
-      InterpolatingLookupPaintScale paintScale) {
-    super(null);
+    public RTMZPlot(RTMZAnalyzerWindow masterFrame, AbstractXYZDataset dataset,
+            InterpolatingLookupPaintScale paintScale) {
+        super(null);
 
-    this.paintScale = paintScale;
+        this.paintScale = paintScale;
 
-    chart = ChartFactory.createXYAreaChart("", "Retention time", "m/z", dataset,
-        PlotOrientation.VERTICAL, false, false, false);
-    chart.setBackgroundPaint(Color.white);
-    setChart(chart);
+        chart = ChartFactory.createXYAreaChart("", "Retention time", "m/z",
+                dataset, PlotOrientation.VERTICAL, false, false, false);
+        chart.setBackgroundPaint(Color.white);
+        setChart(chart);
 
-    // title
+        // title
 
-    TextTitle chartTitle = chart.getTitle();
-    chartTitle.setMargin(5, 0, 0, 0);
-    chartTitle.setFont(titleFont);
-    chart.removeSubtitle(chartTitle);
+        TextTitle chartTitle = chart.getTitle();
+        chartTitle.setMargin(5, 0, 0, 0);
+        chartTitle.setFont(titleFont);
+        chart.removeSubtitle(chartTitle);
 
-    // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+        // disable maximum size (we don't want scaling)
+        setMaximumDrawWidth(Integer.MAX_VALUE);
+        setMaximumDrawHeight(Integer.MAX_VALUE);
 
-    // set the plot properties
-    plot = chart.getXYPlot();
-    plot.setBackgroundPaint(Color.white);
-    plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        // set the plot properties
+        plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.white);
+        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
-    // set grid properties
-    plot.setDomainGridlinePaint(gridColor);
-    plot.setRangeGridlinePaint(gridColor);
+        // set grid properties
+        plot.setDomainGridlinePaint(gridColor);
+        plot.setRangeGridlinePaint(gridColor);
 
-    // set crosshair (selection) properties
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-    plot.setDomainCrosshairPaint(crossHairColor);
-    plot.setRangeCrosshairPaint(crossHairColor);
-    plot.setDomainCrosshairStroke(crossHairStroke);
-    plot.setRangeCrosshairStroke(crossHairStroke);
+        // set crosshair (selection) properties
+        plot.setDomainCrosshairVisible(true);
+        plot.setRangeCrosshairVisible(true);
+        plot.setDomainCrosshairPaint(crossHairColor);
+        plot.setRangeCrosshairPaint(crossHairColor);
+        plot.setDomainCrosshairStroke(crossHairStroke);
+        plot.setRangeCrosshairStroke(crossHairStroke);
 
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    // set the X axis (retention time) properties
-    NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
-    xAxis.setNumberFormatOverride(rtFormat);
-    xAxis.setUpperMargin(0.001);
-    xAxis.setLowerMargin(0.001);
+        // set the X axis (retention time) properties
+        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+        xAxis.setNumberFormatOverride(rtFormat);
+        xAxis.setUpperMargin(0.001);
+        xAxis.setLowerMargin(0.001);
 
-    // set the Y axis (intensity) properties
-    NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-    yAxis.setAutoRangeIncludesZero(false);
-    yAxis.setNumberFormatOverride(mzFormat);
+        // set the Y axis (intensity) properties
+        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setAutoRangeIncludesZero(false);
+        yAxis.setNumberFormatOverride(mzFormat);
 
-    plot.setDataset(dataset);
-    spotRenderer = new RTMZRenderer(dataset, paintScale);
-    plot.setRenderer(spotRenderer);
-    spotRenderer.setDefaultToolTipGenerator(new RTMZToolTipGenerator());
+        plot.setDataset(dataset);
+        spotRenderer = new RTMZRenderer(dataset, paintScale);
+        plot.setRenderer(spotRenderer);
+        spotRenderer.setDefaultToolTipGenerator(new RTMZToolTipGenerator());
 
-    // Add a paintScaleLegend to chart
+        // Add a paintScaleLegend to chart
 
-    paintScaleAxis = new NumberAxis("Logratio");
-    paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
+        paintScaleAxis = new NumberAxis("Logratio");
+        paintScaleAxis.setRange(paintScale.getLowerBound(),
+                paintScale.getUpperBound());
 
-    paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
-    paintScaleLegend.setPosition(plot.getDomainAxisEdge());
-    paintScaleLegend.setMargin(5, 25, 5, 25);
+        paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
+        paintScaleLegend.setPosition(plot.getDomainAxisEdge());
+        paintScaleLegend.setMargin(5, 25, 5, 25);
 
-    chart.addSubtitle(paintScaleLegend);
+        chart.addSubtitle(paintScaleLegend);
 
+        // reset zoom history
+        ZoomHistory history = getZoomHistory();
+        if (history != null)
+            history.clear();
+    }
 
-    // reset zoom history
-    ZoomHistory history = getZoomHistory();
-    if (history != null)
-      history.clear();
-  }
+    public InterpolatingLookupPaintScale getPaintScale() {
+        return paintScale;
+    }
 
-  public InterpolatingLookupPaintScale getPaintScale() {
-    return paintScale;
-  }
+    public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
 
-  public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+        RTMZRenderer renderer = (RTMZRenderer) plot.getRenderer();
+        renderer.setPaintScale(paintScale);
 
-    RTMZRenderer renderer = (RTMZRenderer) plot.getRenderer();
-    renderer.setPaintScale(paintScale);
-
-    this.paintScale = paintScale;
-    paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
-    paintScaleLegend.setScale(paintScale);
-  }
+        this.paintScale = paintScale;
+        paintScaleAxis.setRange(paintScale.getLowerBound(),
+                paintScale.getUpperBound());
+        paintScaleLegend.setScale(paintScale);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,65 +32,71 @@ import io.github.mzmine.util.ExitCode;
 
 public class RawFileMergeParameters extends SimpleParameterSet {
 
-  public enum MODE {
-    MERGE_SELECTED, MERGE_PATTERN;
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
+    public enum MODE {
+        MERGE_SELECTED, MERGE_PATTERN;
+
+        @Override
+        public String toString() {
+            return super.toString().replaceAll("_", " ");
+        }
     }
-  }
 
-  public enum POSITION {
-    BEFORE_FIRST, AFTER_LAST;
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
+    public enum POSITION {
+        BEFORE_FIRST, AFTER_LAST;
+
+        @Override
+        public String toString() {
+            return super.toString().replaceAll("_", " ");
+        }
     }
-  }
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ComboParameter<MODE> mode = new ComboParameter<MODE>("Mode",
-      "Merge all selected to one or all file that have a matching suffix or prefixs", MODE.values(),
-      MODE.MERGE_PATTERN);
+    public static final ComboParameter<MODE> mode = new ComboParameter<MODE>(
+            "Mode",
+            "Merge all selected to one or all file that have a matching suffix or prefixs",
+            MODE.values(), MODE.MERGE_PATTERN);
 
-  public static final ComboParameter<POSITION> position =
-      new ComboParameter<POSITION>("Grouping identifier position",
-          "Define position of the identifier to use for grouping (e.g., a number after the last _)",
-          POSITION.values(), POSITION.AFTER_LAST);
+    public static final ComboParameter<POSITION> position = new ComboParameter<POSITION>(
+            "Grouping identifier position",
+            "Define position of the identifier to use for grouping (e.g., a number after the last _)",
+            POSITION.values(), POSITION.AFTER_LAST);
 
-  public static final StringParameter posMarker =
-      new StringParameter("Position marker", "e.g., the last _ or any string", "_");
+    public static final StringParameter posMarker = new StringParameter(
+            "Position marker", "e.g., the last _ or any string", "_");
 
+    public static final OptionalParameter<StringParameter> MS2_marker = new OptionalParameter<>(
+            new StringParameter("MS2 marker",
+                    "Raw data files that contain this marker in their name will only be used as a source for MS2 scans.",
+                    ""));
 
-  public static final OptionalParameter<StringParameter> MS2_marker =
-      new OptionalParameter<>(new StringParameter("MS2 marker",
-          "Raw data files that contain this marker in their name will only be used as a source for MS2 scans.",
-          ""));
+    public static final StringParameter suffix = new StringParameter(
+            "Suffix to new name", "The suffix to describe the new file",
+            "_merged");
 
+    public RawFileMergeParameters() {
+        super(new Parameter[] { dataFiles, mode, position, posMarker,
+                MS2_marker, suffix });
+    }
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix to new name", "The suffix to describe the new file", "_merged");
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        if ((getParameters() == null) || (getParameters().length == 0))
+            return ExitCode.OK;
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+                valueCheckRequired, this);
+        //
+        ((ComboComponent) dialog.getComponentForParameter(mode))
+                .addItemListener(e -> {
+                    boolean pattern = (e.getItem().equals(MODE.MERGE_PATTERN));
+                    dialog.getComponentForParameter(position)
+                            .setVisible(pattern);
+                    dialog.getComponentForParameter(posMarker)
+                            .setVisible(pattern);
+                });
 
-  public RawFileMergeParameters() {
-    super(new Parameter[] {dataFiles, mode, position, posMarker, MS2_marker, suffix});
-  }
-
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
-      return ExitCode.OK;
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    //
-    ((ComboComponent) dialog.getComponentForParameter(mode)).addItemListener(e -> {
-      boolean pattern = (e.getItem().equals(MODE.MERGE_PATTERN));
-      dialog.getComponentForParameter(position).setVisible(pattern);
-      dialog.getComponentForParameter(posMarker).setVisible(pattern);
-    });
-
-
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
 }

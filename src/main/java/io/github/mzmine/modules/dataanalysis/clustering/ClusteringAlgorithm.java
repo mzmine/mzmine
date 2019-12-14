@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -24,6 +24,7 @@ import weka.core.Instances;
 
 public interface ClusteringAlgorithm extends MZmineModule {
 
-  public ClusteringResult performClustering(Instances dataset, ParameterSet parameters);
+    public ClusteringResult performClustering(Instances dataset,
+            ParameterSet parameters);
 
 }

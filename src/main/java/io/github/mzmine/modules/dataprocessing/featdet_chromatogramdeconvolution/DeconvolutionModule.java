@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,67 +35,76 @@ import io.github.mzmine.util.maths.Weighting;
 
 public class DeconvolutionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Chromatogram deconvolution";
-  private static final String MODULE_DESCRIPTION =
-      "This module separates each detected chromatogram into individual peaks.";
+    private static final String MODULE_NAME = "Chromatogram deconvolution";
+    private static final String MODULE_DESCRIPTION = "This module separates each detected chromatogram into individual peaks.";
 
-  @Override
-  public @Nonnull String getName() {
+    @Override
+    public @Nonnull String getName() {
 
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @Nonnull String getDescription() {
-
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-
-    return MZmineModuleCategory.PEAKLISTPICKING;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-
-    return DeconvolutionParameters.class;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
-    PeakList[] peakLists = parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists();
-
-    // function to calculate center mz
-    CenterFunction mzCenterFunction =
-        parameters.getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION).getValue();
-
-    // use a LOG weighted, noise corrected, maximum weight capped function
-    if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
-      // data point with lowest intensity
-      // weight = LOG(value) - LOG(noise) (maxed to maxWeight)
-      double noise = Arrays.stream(peakLists).flatMap(pkl -> Arrays.stream(pkl.getRows()))
-          .map(r -> r.getPeaks()[0])
-          .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
-          .filter(v -> v != 0).min().orElse(0);
-
-      // maxWeight 4 corresponds to a linear range of 4 orders of magnitude
-      // everything higher than this will be capped to this weight
-      // do not overestimate influence of very high data points on mass accuracy
-      double maxWeight = 4;
-
-      // use a LOG weighted, noise corrected, maximum weight capped function
-      mzCenterFunction = new CenterFunction(CenterMeasure.AVG, Weighting.LOG10, noise, maxWeight);
+        return MODULE_NAME;
     }
 
-    for (final PeakList peakList : peakLists) {
-      tasks.add(new DeconvolutionTask(project, peakList, parameters, mzCenterFunction));
+    @Override
+    public @Nonnull String getDescription() {
+
+        return MODULE_DESCRIPTION;
     }
 
-    return ExitCode.OK;
-  }
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+
+        return MZmineModuleCategory.PEAKLISTPICKING;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+
+        return DeconvolutionParameters.class;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull final ParameterSet parameters,
+            @Nonnull final Collection<Task> tasks) {
+        PeakList[] peakLists = parameters
+                .getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
+
+        // function to calculate center mz
+        CenterFunction mzCenterFunction = parameters
+                .getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION)
+                .getValue();
+
+        // use a LOG weighted, noise corrected, maximum weight capped function
+        if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
+            // data point with lowest intensity
+            // weight = LOG(value) - LOG(noise) (maxed to maxWeight)
+            double noise = Arrays.stream(peakLists)
+                    .flatMap(pkl -> Arrays.stream(pkl.getRows()))
+                    .map(r -> r.getPeaks()[0])
+                    .mapToDouble(peak -> peak.getRawDataPointsIntensityRange()
+                            .lowerEndpoint())
+                    .filter(v -> v != 0).min().orElse(0);
+
+            // maxWeight 4 corresponds to a linear range of 4 orders of
+            // magnitude
+            // everything higher than this will be capped to this weight
+            // do not overestimate influence of very high data points on mass
+            // accuracy
+            double maxWeight = 4;
+
+            // use a LOG weighted, noise corrected, maximum weight capped
+            // function
+            mzCenterFunction = new CenterFunction(CenterMeasure.AVG,
+                    Weighting.LOG10, noise, maxWeight);
+        }
+
+        for (final PeakList peakList : peakLists) {
+            tasks.add(new DeconvolutionTask(project, peakList, parameters,
+                    mzCenterFunction));
+        }
+
+        return ExitCode.OK;
+    }
 }

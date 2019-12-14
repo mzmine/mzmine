@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,41 +27,41 @@ import javax.swing.JTextField;
  */
 public class PercentComponent extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JTextField percentField;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JTextField percentField;
 
-  public PercentComponent() {
+    public PercentComponent() {
 
-    setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-    percentField = new JTextField();
-    percentField.setColumns(4);
-    add(percentField);
+        setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+        percentField = new JTextField();
+        percentField.setColumns(4);
+        add(percentField);
 
-    add(new JLabel("%"));
+        add(new JLabel("%"));
 
-  }
-
-  public void setValue(double value) {
-    String stringValue = String.valueOf(value * 100);
-    percentField.setText(stringValue);
-  }
-
-  public Double getValue() {
-    String stringValue = percentField.getText();
-    try {
-      double doubleValue = Double.parseDouble(stringValue) / 100;
-      return doubleValue;
-    } catch (NumberFormatException e) {
-      return null;
     }
-  }
 
-  @Override
-  public void setToolTipText(String toolTip) {
-    percentField.setToolTipText(toolTip);
-  }
+    public void setValue(double value) {
+        String stringValue = String.valueOf(value * 100);
+        percentField.setText(stringValue);
+    }
+
+    public Double getValue() {
+        String stringValue = percentField.getText();
+        try {
+            double doubleValue = Double.parseDouble(stringValue) / 100;
+            return doubleValue;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+        percentField.setToolTipText(toolTip);
+    }
 
 }

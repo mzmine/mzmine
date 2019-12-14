@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -136,9 +136,8 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     /*
      * Sets the peak color
      * 
-     * @see
-     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
-     * (javafx.scene.paint.Color)
+     * @see io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#
+     * setNodeColor (javafx.scene.paint.Color)
      */
     public void setNodeColor(Color peakColor) {
         int width = rtResolution;
@@ -196,9 +195,8 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     /*
      * Normalizes each data plot when the maxIntensity of the 3D plot changes.
      * 
-     * @see
-     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
-     * double)
+     * @see io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#
+     * normalize( double)
      */
     public void normalize(double maxOfAllBinnedIntensities) {
         float factorX = (float) SIZE / rtResolution;

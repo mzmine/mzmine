@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,123 +39,124 @@ import io.github.mzmine.datamodel.Scan;
  */
 public class MZmineToMSDKMsScan implements MsScan {
 
-  private final Scan mzmineScan;
-  private final List<IsolationInfo> isolations = new ArrayList<>();
+    private final Scan mzmineScan;
+    private final List<IsolationInfo> isolations = new ArrayList<>();
 
-  /**
-   * Clone constructor
-   */
-  public MZmineToMSDKMsScan(Scan mzmineScan) {
-    this.mzmineScan = mzmineScan;
-    if (mzmineScan.getPrecursorMZ() != 0) {
-      Range<Double> isolationMzRange = Range.singleton(mzmineScan.getPrecursorMZ());
-      double precursorMz = mzmineScan.getPrecursorMZ();
-      int precursorCharge = mzmineScan.getPrecursorCharge();
-      ActivationInfo activationInfo = null;
-      isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f, precursorMz, precursorCharge,
-          activationInfo, null));
+    /**
+     * Clone constructor
+     */
+    public MZmineToMSDKMsScan(Scan mzmineScan) {
+        this.mzmineScan = mzmineScan;
+        if (mzmineScan.getPrecursorMZ() != 0) {
+            Range<Double> isolationMzRange = Range
+                    .singleton(mzmineScan.getPrecursorMZ());
+            double precursorMz = mzmineScan.getPrecursorMZ();
+            int precursorCharge = mzmineScan.getPrecursorCharge();
+            ActivationInfo activationInfo = null;
+            isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f,
+                    precursorMz, precursorCharge, activationInfo, null));
+        }
     }
-  }
 
-  @Override
-  public MsSpectrumType getSpectrumType() {
-    return MsSpectrumType.valueOf(mzmineScan.getSpectrumType().name());
-  }
-
-  @Override
-  public Integer getNumberOfDataPoints() {
-    return mzmineScan.getNumberOfDataPoints();
-  }
-
-  @Override
-  public double[] getMzValues(double[] array) {
-    if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
-      array = new double[mzmineScan.getNumberOfDataPoints()];
-    DataPoint dp[] = mzmineScan.getDataPoints();
-    for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
-      array[i] = dp[i].getMZ();
+    @Override
+    public MsSpectrumType getSpectrumType() {
+        return MsSpectrumType.valueOf(mzmineScan.getSpectrumType().name());
     }
-    return array;
-  }
 
-  @Override
-  public float[] getIntensityValues(float[] array) {
-    if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
-      array = new float[mzmineScan.getNumberOfDataPoints()];
-    DataPoint dp[] = mzmineScan.getDataPoints();
-    for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
-      array[i] = (float) dp[i].getIntensity();
+    @Override
+    public Integer getNumberOfDataPoints() {
+        return mzmineScan.getNumberOfDataPoints();
     }
-    return array;
-  }
 
-  @Override
-  public Float getTIC() {
-    return (float) mzmineScan.getTIC();
-  }
+    @Override
+    public double[] getMzValues(double[] array) {
+        if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
+            array = new double[mzmineScan.getNumberOfDataPoints()];
+        DataPoint dp[] = mzmineScan.getDataPoints();
+        for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
+            array[i] = dp[i].getMZ();
+        }
+        return array;
+    }
 
-  @Override
-  public Range<Double> getMzRange() {
-    return mzmineScan.getDataPointMZRange();
-  }
+    @Override
+    public float[] getIntensityValues(float[] array) {
+        if (array == null || array.length < mzmineScan.getNumberOfDataPoints())
+            array = new float[mzmineScan.getNumberOfDataPoints()];
+        DataPoint dp[] = mzmineScan.getDataPoints();
+        for (int i = 0; i < mzmineScan.getNumberOfDataPoints(); i++) {
+            array[i] = (float) dp[i].getIntensity();
+        }
+        return array;
+    }
 
-  @Override
-  public MzTolerance getMzTolerance() {
-    return null;
-  }
+    @Override
+    public Float getTIC() {
+        return (float) mzmineScan.getTIC();
+    }
 
-  @Override
-  public RawDataFile getRawDataFile() {
-    return null;
-  }
+    @Override
+    public Range<Double> getMzRange() {
+        return mzmineScan.getDataPointMZRange();
+    }
 
-  @Override
-  public Integer getScanNumber() {
-    return mzmineScan.getScanNumber();
-  }
+    @Override
+    public MzTolerance getMzTolerance() {
+        return null;
+    }
 
-  @Override
-  public String getScanDefinition() {
-    return mzmineScan.getScanDefinition();
-  }
+    @Override
+    public RawDataFile getRawDataFile() {
+        return null;
+    }
 
-  @Override
-  public String getMsFunction() {
-    return "ms";
-  }
+    @Override
+    public Integer getScanNumber() {
+        return mzmineScan.getScanNumber();
+    }
 
-  @Override
-  public Integer getMsLevel() {
-    return mzmineScan.getMSLevel();
-  }
+    @Override
+    public String getScanDefinition() {
+        return mzmineScan.getScanDefinition();
+    }
 
-  @Override
-  public Float getRetentionTime() {
-    return (float) (mzmineScan.getRetentionTime() * 60d);
-  }
+    @Override
+    public String getMsFunction() {
+        return "ms";
+    }
 
-  @Override
-  public Range<Double> getScanningRange() {
-    return mzmineScan.getScanningMZRange();
-  }
+    @Override
+    public Integer getMsLevel() {
+        return mzmineScan.getMSLevel();
+    }
 
-  @Override
-  public ActivationInfo getSourceInducedFragmentation() {
-    return null;
-  }
+    @Override
+    public Float getRetentionTime() {
+        return (float) (mzmineScan.getRetentionTime() * 60d);
+    }
 
-  @Override
-  public List<IsolationInfo> getIsolations() {
-    return isolations;
-  }
+    @Override
+    public Range<Double> getScanningRange() {
+        return mzmineScan.getScanningMZRange();
+    }
 
-  @Override
-  public PolarityType getPolarity() {
-    return PolarityType.valueOf(mzmineScan.getPolarity().name());
-  }
+    @Override
+    public ActivationInfo getSourceInducedFragmentation() {
+        return null;
+    }
 
-  public Scan getMzmineScan() {
-    return mzmineScan;
-  }
+    @Override
+    public List<IsolationInfo> getIsolations() {
+        return isolations;
+    }
+
+    @Override
+    public PolarityType getPolarity() {
+        return PolarityType.valueOf(mzmineScan.getPolarity().name());
+    }
+
+    public Scan getMzmineScan() {
+        return mzmineScan;
+    }
 
 }

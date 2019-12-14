@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,64 +27,68 @@ import io.github.mzmine.util.InetUtils;
 
 public class NewVersionCheck implements Runnable {
 
-  private static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
+    private static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
 
-  public enum CheckType {
-    DESKTOP, MENU
-  };
+    public enum CheckType {
+        DESKTOP, MENU
+    };
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final CheckType checkType;
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
+    private final CheckType checkType;
 
-  public NewVersionCheck(CheckType type) {
-    checkType = type;
-  }
-
-  public void run() {
-
-    // Check for updated version
-    String currentVersion, newestVersion;
-    currentVersion = MZmineCore.getMZmineVersion();
-
-    if (checkType.equals(CheckType.MENU)) {
-      logger.info("Checking for updates...");
+    public NewVersionCheck(CheckType type) {
+        checkType = type;
     }
 
-    final Desktop desktop = MZmineCore.getDesktop();
+    public void run() {
 
-    try {
-      final URL newestVersionURL = new URL(newestVersionAddress);
-      newestVersion = InetUtils.retrieveData(newestVersionURL);
-      newestVersion = newestVersion.trim();
-    } catch (Exception e) {
-      if (checkType.equals(CheckType.MENU)) {
-        e.printStackTrace();
-      }
-      newestVersion = null;
-    }
+        // Check for updated version
+        String currentVersion, newestVersion;
+        currentVersion = MZmineCore.getMZmineVersion();
 
-    if (newestVersion == null) {
-      if (checkType.equals(CheckType.MENU)) {
-        final String msg =
-            "An error occured. Please make sure that you are connected to the internet or try again later.";
-        logger.info(msg);
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg);
-      }
-    } else if (currentVersion.equals(newestVersion) || currentVersion.equals("0.0")) {
-      if (checkType.equals(CheckType.MENU)) {
-        final String msg = "No updated version of MZmine is available.";
-        logger.info(msg);
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg);
-      }
-    } else {
-      final String msg = "An updated version is available: MZmine " + newestVersion;
-      final String msg2 = "Please download the newest version from: http://mzmine.github.io";
-      logger.info(msg);
-      if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg + "\n" + msg2);
-      } else if (checkType.equals(CheckType.DESKTOP)) {
-        desktop.setStatusBarText(msg + ". " + msg2, Color.red);
-      }
+        if (checkType.equals(CheckType.MENU)) {
+            logger.info("Checking for updates...");
+        }
+
+        final Desktop desktop = MZmineCore.getDesktop();
+
+        try {
+            final URL newestVersionURL = new URL(newestVersionAddress);
+            newestVersion = InetUtils.retrieveData(newestVersionURL);
+            newestVersion = newestVersion.trim();
+        } catch (Exception e) {
+            if (checkType.equals(CheckType.MENU)) {
+                e.printStackTrace();
+            }
+            newestVersion = null;
+        }
+
+        if (newestVersion == null) {
+            if (checkType.equals(CheckType.MENU)) {
+                final String msg = "An error occured. Please make sure that you are connected to the internet or try again later.";
+                logger.info(msg);
+                desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+                        msg);
+            }
+        } else if (currentVersion.equals(newestVersion)
+                || currentVersion.equals("0.0")) {
+            if (checkType.equals(CheckType.MENU)) {
+                final String msg = "No updated version of MZmine is available.";
+                logger.info(msg);
+                desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+                        msg);
+            }
+        } else {
+            final String msg = "An updated version is available: MZmine "
+                    + newestVersion;
+            final String msg2 = "Please download the newest version from: http://mzmine.github.io";
+            logger.info(msg);
+            if (checkType.equals(CheckType.MENU)) {
+                desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+                        msg + "\n" + msg2);
+            } else if (checkType.equals(CheckType.DESKTOP)) {
+                desktop.setStatusBarText(msg + ". " + msg2, Color.red);
+            }
+        }
     }
-  }
 }

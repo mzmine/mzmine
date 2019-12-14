@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,6 +19,10 @@
 package io.github.mzmine.util.swing;
 
 import java.awt.Image;
+import java.net.URL;
+
+import javax.annotation.Nonnull;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 /**
@@ -28,11 +32,32 @@ import javax.swing.ImageIcon;
  */
 public class IconUtil {
 
-  public static ImageIcon scaled(ImageIcon icon, int width) {
-    int height = Math.round(icon.getIconHeight() / (float) icon.getIconWidth() * width);
-    Image image = icon.getImage();
-    Image newimg = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
-    return new ImageIcon(newimg);
-  }
+    public static @Nonnull ImageIcon loadIconFromResources(
+            final @Nonnull String resourcePath) {
+        final URL iconResourcePath = IconUtil.class.getClassLoader()
+                .getResource(resourcePath);
+        if (iconResourcePath == null)
+            throw new IllegalArgumentException(
+                    "Could not find an icon file at path " + resourcePath);
+        final ImageIcon icon = new ImageIcon(iconResourcePath);
+        return icon;
+    }
+
+    public static @Nonnull Icon loadIconFromResources(
+            final @Nonnull String resourcePath, final int width) {
+        final ImageIcon icon = loadIconFromResources(resourcePath);
+        final ImageIcon scaledIcon = scaled(icon, width);
+        return scaledIcon;
+    }
+
+    public static @Nonnull ImageIcon scaled(final ImageIcon icon,
+            final int width) {
+        int height = Math.round(
+                icon.getIconHeight() / (float) icon.getIconWidth() * width);
+        Image image = icon.getImage();
+        Image newimg = image.getScaledInstance(width, height,
+                java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(newimg);
+    }
 
 }

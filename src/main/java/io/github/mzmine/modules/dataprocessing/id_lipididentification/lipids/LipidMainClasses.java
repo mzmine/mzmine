@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,76 +19,84 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
 /**
- * Enum that contains all lipid main classes. Each enum contains information on the name and
- * lipidCoreClass
+ * Enum that contains all lipid main classes. Each enum contains information on
+ * the name and lipidCoreClass
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidMainClasses {
 
-  // Fattyacyls
-  FATTYACIDS("Fatty acids", LipidCoreClasses.FATTYACYLS), //
-  FATTYALCOHOLS("Fatty alcohols", LipidCoreClasses.FATTYACYLS), //
-  FATTYALDEHYDES("Fatty aldehydes", LipidCoreClasses.FATTYACYLS), //
-  FATTYESTERS("Fatty esters", LipidCoreClasses.FATTYACYLS), //
-  FATTYAMIDS("Fatty amids", LipidCoreClasses.FATTYACYLS), //
-  FATTYNITRILES("Fatty esters", LipidCoreClasses.FATTYACYLS), //
-  FATTYETHERS("Fatty ehters", LipidCoreClasses.FATTYACYLS), //
-  HYDROCARBONS("Hydrocarbons", LipidCoreClasses.FATTYACYLS), //
-  RHAMNOLIPIDS("Rhamnolipids", LipidCoreClasses.FATTYACYLS), //
-  SOPHOROLIPIDS("Sophorolipds", LipidCoreClasses.FATTYACYLS), //
-  MANNOSYLERYTHRITOL("Mannosylerythritol", LipidCoreClasses.FATTYACYLS), //
+    // Fattyacyls
+    FATTYACIDS("Fatty acids", LipidCoreClasses.FATTYACYLS), //
+    FATTYALCOHOLS("Fatty alcohols", LipidCoreClasses.FATTYACYLS), //
+    FATTYALDEHYDES("Fatty aldehydes", LipidCoreClasses.FATTYACYLS), //
+    FATTYESTERS("Fatty esters", LipidCoreClasses.FATTYACYLS), //
+    FATTYAMIDS("Fatty amids", LipidCoreClasses.FATTYACYLS), //
+    FATTYNITRILES("Fatty esters", LipidCoreClasses.FATTYACYLS), //
+    FATTYETHERS("Fatty ehters", LipidCoreClasses.FATTYACYLS), //
+    HYDROCARBONS("Hydrocarbons", LipidCoreClasses.FATTYACYLS), //
+    RHAMNOLIPIDS("Rhamnolipids", LipidCoreClasses.FATTYACYLS), //
+    SOPHOROLIPIDS("Sophorolipds", LipidCoreClasses.FATTYACYLS), //
+    MANNOSYLERYTHRITOL("Mannosylerythritol", LipidCoreClasses.FATTYACYLS), //
 
-  // Glycerolipids
-  MONORADYLGLYCEROLS("Monoradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  DIRADYLGLYCEROLS("Diradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  TRIRADYLGLYCEROLS("Triradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  GLYCOSYLDIACYLGLYCEROLS("Glycosyldiacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  GLYCOSYLMONOACYLGLYCEROLS("Glycosylmonoacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  OTHERGLYCEROLIPIDS("Other glycerolipids", LipidCoreClasses.GLYCEROLIPIDS), //
+    // Glycerolipids
+    MONORADYLGLYCEROLS("Monoradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
+    DIRADYLGLYCEROLS("Diradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
+    TRIRADYLGLYCEROLS("Triradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
+    GLYCOSYLDIACYLGLYCEROLS("Glycosyldiacylglycerols",
+            LipidCoreClasses.GLYCEROLIPIDS), //
+    GLYCOSYLMONOACYLGLYCEROLS("Glycosylmonoacylglycerols",
+            LipidCoreClasses.GLYCEROLIPIDS), //
+    OTHERGLYCEROLIPIDS("Other glycerolipids", LipidCoreClasses.GLYCEROLIPIDS), //
 
-  // Glycerophospholipids
-  PHOSPHATIDYLCHOLINE("Phosphatidylcholine", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOSERINES("Glycerophosphoserines", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOGLYCEROLS("Glycerophosphoglycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOGLYCEROPHOSPHATES("Glycerophosphoglycerophosphates",
-      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOINOSITOLGLYCANS("Glycerophosphoinositolglycans",
-      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHATES("Glycerophosphates", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  CARDIOLIPIN("Cardiolipin", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    // Glycerophospholipids
+    PHOSPHATIDYLCHOLINE("Phosphatidylcholine",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOSERINES("Glycerophosphoserines",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOGLYCEROLS("Glycerophosphoglycerols",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOGLYCEROPHOSPHATES("Glycerophosphoglycerophosphates",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHOINOSITOLGLYCANS("Glycerophosphoinositolglycans",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    GLYCEROPHOSPHATES("Glycerophosphates",
+            LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    CARDIOLIPIN("Cardiolipin", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+    CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
 
-  // Sphingolipids
-  CERAMIDES("Ceramides", LipidCoreClasses.SPHINGOLIPIDS), //
-  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCoreClasses.SPHINGOLIPIDS);//
+    // Sphingolipids
+    CERAMIDES("Ceramides", LipidCoreClasses.SPHINGOLIPIDS), //
+    PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids",
+            LipidCoreClasses.SPHINGOLIPIDS);//
 
+    private String name;
+    private LipidCoreClasses coreClass;
 
-  private String name;
-  private LipidCoreClasses coreClass;
+    LipidMainClasses(String name, LipidCoreClasses coreClass) {
+        this.name = name;
+        this.coreClass = coreClass;
+    }
 
-  LipidMainClasses(String name, LipidCoreClasses coreClass) {
-    this.name = name;
-    this.coreClass = coreClass;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public LipidCoreClasses getCoreClass() {
+        return coreClass;
+    }
 
-  public LipidCoreClasses getCoreClass() {
-    return coreClass;
-  }
-
-  @Override
-  public String toString() {
-    return this.name;
-  }
+    @Override
+    public String toString() {
+        return this.name;
+    }
 
 }

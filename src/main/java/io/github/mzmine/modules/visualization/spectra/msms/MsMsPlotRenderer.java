@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,35 +27,36 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 public class MsMsPlotRenderer extends XYLineAndShapeRenderer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-  private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f, -2.5f, 5, 5);
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
+            -2.5f, 5, 5);
 
-  public static final Color pointColor = Color.black;
+    public static final Color pointColor = Color.black;
 
-  public MsMsPlotRenderer() {
+    public MsMsPlotRenderer() {
 
-    super(false, true);
+        super(false, true);
 
-    MsMsPlotToolTipGenerator toolTipGenerator = new MsMsPlotToolTipGenerator();
-    setDefaultToolTipGenerator(toolTipGenerator);
+        MsMsPlotToolTipGenerator toolTipGenerator = new MsMsPlotToolTipGenerator();
+        setDefaultToolTipGenerator(toolTipGenerator);
 
-    setDefaultItemLabelsVisible(false);
+        setDefaultItemLabelsVisible(false);
 
-    setSeriesVisibleInLegend(0, false);
-    setSeriesItemLabelsVisible(0, false);
-    setSeriesPaint(0, pointColor);
-    setSeriesShape(0, dataPointsShape);
+        setSeriesVisibleInLegend(0, false);
+        setSeriesItemLabelsVisible(0, false);
+        setSeriesPaint(0, pointColor);
+        setSeriesShape(0, dataPointsShape);
 
-    setDrawSeriesLineAsPath(true);
-  }
+        setDrawSeriesLineAsPath(true);
+    }
 
-  @Override
-  public Paint getItemPaint(int row, int col) {
-    MsMsDataSet IDADataSet = (MsMsDataSet) getPlot().getDataset();
-    return IDADataSet.getColor(row, col);
-  }
+    @Override
+    public Paint getItemPaint(int row, int col) {
+        MsMsDataSet IDADataSet = (MsMsDataSet) getPlot().getDataset();
+        return IDADataSet.getColor(row, col);
+    }
 }

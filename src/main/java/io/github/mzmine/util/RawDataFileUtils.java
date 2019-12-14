@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,68 +31,68 @@ import io.github.mzmine.datamodel.Scan;
  */
 public class RawDataFileUtils {
 
-  public static @Nonnull Range<Double> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
-    Range<Double> rtRange = null;
-    for (RawDataFile file : dataFiles) {
-      Range<Double> dfRange = file.getDataRTRange(msLevel);
-      if (dfRange == null)
-        continue;
-      if (rtRange == null)
-        rtRange = dfRange;
-      else
-        rtRange = rtRange.span(dfRange);
+    public static @Nonnull Range<Double> findTotalRTRange(
+            RawDataFile dataFiles[], int msLevel) {
+        Range<Double> rtRange = null;
+        for (RawDataFile file : dataFiles) {
+            Range<Double> dfRange = file.getDataRTRange(msLevel);
+            if (dfRange == null)
+                continue;
+            if (rtRange == null)
+                rtRange = dfRange;
+            else
+                rtRange = rtRange.span(dfRange);
+        }
+        if (rtRange == null)
+            rtRange = Range.singleton(0.0);
+        return rtRange;
     }
-    if (rtRange == null)
-      rtRange = Range.singleton(0.0);
-    return rtRange;
-  }
 
-  public static @Nonnull Range<Double> findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
-    Range<Double> mzRange = null;
-    for (RawDataFile file : dataFiles) {
-      Range<Double> dfRange = file.getDataMZRange(msLevel);
-      if (dfRange == null)
-        continue;
-      if (mzRange == null)
-        mzRange = dfRange;
-      else
-        mzRange = mzRange.span(dfRange);
+    public static @Nonnull Range<Double> findTotalMZRange(
+            RawDataFile dataFiles[], int msLevel) {
+        Range<Double> mzRange = null;
+        for (RawDataFile file : dataFiles) {
+            Range<Double> dfRange = file.getDataMZRange(msLevel);
+            if (dfRange == null)
+                continue;
+            if (mzRange == null)
+                mzRange = dfRange;
+            else
+                mzRange = mzRange.span(dfRange);
+        }
+        if (mzRange == null)
+            mzRange = Range.singleton(0.0);
+        return mzRange;
     }
-    if (mzRange == null)
-      mzRange = Range.singleton(0.0);
-    return mzRange;
-  }
 
-  /**
-   * Returns true if the given data file has mass lists for all MS1 scans
-   * 
-   */
-  public static boolean hasMassLists(RawDataFile dataFile) {
-    for (int scanNum : dataFile.getScanNumbers(1)) {
-      Scan scan = dataFile.getScan(scanNum);
-      if (scan.getMassLists().length == 0)
-        return false;
+    /**
+     * Returns true if the given data file has mass lists for all MS1 scans
+     * 
+     */
+    public static boolean hasMassLists(RawDataFile dataFile) {
+        for (int scanNum : dataFile.getScanNumbers(1)) {
+            Scan scan = dataFile.getScan(scanNum);
+            if (scan.getMassLists().length == 0)
+                return false;
+        }
+        return true;
     }
-    return true;
-  }
 
-  public static int getClosestScanNumber(RawDataFile dataFile, double rt) {
+    public static int getClosestScanNumber(RawDataFile dataFile, double rt) {
 
-    int scanNums[] = dataFile.getScanNumbers();
-    if (scanNums.length == 0)
-      return -1;
-    int best = 0;
-    double bestRt = dataFile.getScan(scanNums[0]).getRetentionTime();
+        int scanNums[] = dataFile.getScanNumbers();
+        if (scanNums.length == 0)
+            return -1;
+        int best = 0;
+        double bestRt = dataFile.getScan(scanNums[0]).getRetentionTime();
 
-    for (int i = 1; i < scanNums.length; i++) {
-      double thisRt = dataFile.getScan(scanNums[i]).getRetentionTime();
-      if (Math.abs(bestRt - rt) > Math.abs(thisRt - rt)) {
-        best = i;
-        bestRt = thisRt;
-      }
+        for (int i = 1; i < scanNums.length; i++) {
+            double thisRt = dataFile.getScan(scanNums[i]).getRetentionTime();
+            if (Math.abs(bestRt - rt) > Math.abs(thisRt - rt)) {
+                best = i;
+                bestRt = thisRt;
+            }
+        }
+        return scanNums[best];
     }
-    return scanNums[best];
-  }
 }
-
-

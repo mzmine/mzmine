@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,46 +28,49 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+
 /**
  * 
- * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de /
+ *         s_heuc03@uni-muenster.de
  *
  */
 public class IsotopePeakScannerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Isotope peak scanner";
-  private static final String MODULE_DESCRIPTION =
-      "Searches for m/z and intensity distribution of a calculated isotope pattern within a feature list.";
+    private static final String MODULE_NAME = "Isotope peak scanner";
+    private static final String MODULE_DESCRIPTION = "Searches for m/z and intensity distribution of a calculated isotope pattern within a feature list.";
 
-  @Override
-  public @Nonnull String getName() {
-    return MODULE_NAME;
-  }
-
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ISOTOPES;
-  }
-
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return IsotopePeakScannerParameters.class;
-  }
-
-  public @Nonnull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    PeakList peakLists[] = parameters.getParameter(IsotopePeakScannerParameters.PEAK_LISTS)
-        .getValue().getMatchingPeakLists();
-
-    for (PeakList peakList : peakLists) {
-      Task newTask = new IsotopePeakScannerTask(project, peakList, parameters);
-      tasks.add(newTask);
+    @Override
+    public @Nonnull String getName() {
+        return MODULE_NAME;
     }
-    return ExitCode.OK;
-  }
+
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.ISOTOPES;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+        return IsotopePeakScannerParameters.class;
+    }
+
+    public @Nonnull String getDescription() {
+        return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        PeakList peakLists[] = parameters
+                .getParameter(IsotopePeakScannerParameters.PEAK_LISTS)
+                .getValue().getMatchingPeakLists();
+
+        for (PeakList peakList : peakLists) {
+            Task newTask = new IsotopePeakScannerTask(project, peakList,
+                    parameters);
+            tasks.add(newTask);
+        }
+        return ExitCode.OK;
+    }
 
 }

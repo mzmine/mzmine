@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -40,141 +40,158 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 
 class UserParameterSaveHandler {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private MZmineProjectImpl project;
-  private Hashtable<RawDataFile, String> dataFilesIDMap;
-  private int numOfParameters, completedParameters;
-  private OutputStream finalStream;
-  private boolean canceled = false;
+    private MZmineProjectImpl project;
+    private Hashtable<RawDataFile, String> dataFilesIDMap;
+    private int numOfParameters, completedParameters;
+    private OutputStream finalStream;
+    private boolean canceled = false;
 
-  UserParameterSaveHandler(OutputStream finalStream, MZmineProjectImpl project,
-      Hashtable<RawDataFile, String> dataFilesIDMap) {
-    this.finalStream = finalStream;
-    this.project = project;
-    this.dataFilesIDMap = dataFilesIDMap;
-  }
-
-  /**
-   * Function which creates an XML file with user parameters
-   */
-  void saveParameters() throws SAXException, IOException, TransformerConfigurationException {
-
-    logger.info("Saving user parameters");
-
-    StreamResult streamResult = new StreamResult(finalStream);
-    SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-
-    TransformerHandler hd = tf.newTransformerHandler();
-
-    Transformer serializer = hd.getTransformer();
-    serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-    serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-    hd.setResult(streamResult);
-    hd.startDocument();
-
-    UserParameter<?, ?> projectParameters[] = project.getParameters();
-
-    AttributesImpl atts = new AttributesImpl();
-
-    atts.addAttribute("", "", UserParameterElementName.COUNT.getElementName(), "CDATA",
-        String.valueOf(projectParameters.length));
-
-    hd.startElement("", "", UserParameterElementName.PARAMETERS.getElementName(), atts);
-
-    atts.clear();
-
-    // <PARAMETER>
-    for (UserParameter<?, ?> parameter : project.getParameters()) {
-
-      if (canceled)
-        return;
-
-      logger.finest("Saving user parameter " + parameter.getName());
-
-      atts.addAttribute("", "", UserParameterElementName.NAME.getElementName(), "CDATA",
-          parameter.getName());
-
-      atts.addAttribute("", "", UserParameterElementName.TYPE.getElementName(), "CDATA",
-          parameter.getClass().getSimpleName());
-
-      hd.startElement("", "", UserParameterElementName.PARAMETER.getElementName(), atts);
-
-      atts.clear();
-
-      fillParameterElement(parameter, hd);
-
-      hd.endElement("", "", UserParameterElementName.PARAMETER.getElementName());
-      completedParameters++;
+    UserParameterSaveHandler(OutputStream finalStream,
+            MZmineProjectImpl project,
+            Hashtable<RawDataFile, String> dataFilesIDMap) {
+        this.finalStream = finalStream;
+        this.project = project;
+        this.dataFilesIDMap = dataFilesIDMap;
     }
 
-    hd.endElement("", "", UserParameterElementName.PARAMETERS.getElementName());
+    /**
+     * Function which creates an XML file with user parameters
+     */
+    void saveParameters() throws SAXException, IOException,
+            TransformerConfigurationException {
 
-    hd.endDocument();
+        logger.info("Saving user parameters");
 
-  }
+        StreamResult streamResult = new StreamResult(finalStream);
+        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory
+                .newInstance();
 
-  /**
-   * Create the part of the XML document related to the scans
-   * 
-   * @param scan
-   * @param element
-   */
-  private void fillParameterElement(UserParameter<?, ?> parameter, TransformerHandler hd)
-      throws SAXException, IOException {
+        TransformerHandler hd = tf.newTransformerHandler();
 
-    AttributesImpl atts = new AttributesImpl();
+        Transformer serializer = hd.getTransformer();
+        serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+        serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
-    RawDataFile dataFiles[] = project.getDataFiles();
+        hd.setResult(streamResult);
+        hd.startDocument();
 
-    if (parameter instanceof ComboParameter) {
-      Object choices[] = ((ComboParameter<?>) parameter).getChoices();
+        UserParameter<?, ?> projectParameters[] = project.getParameters();
 
-      for (Object choice : choices) {
-        hd.startElement("", "", UserParameterElementName.OPTION.getElementName(), atts);
+        AttributesImpl atts = new AttributesImpl();
 
-        hd.characters(choice.toString().toCharArray(), 0, choice.toString().length());
-        hd.endElement("", "", UserParameterElementName.OPTION.getElementName());
-      }
+        atts.addAttribute("", "",
+                UserParameterElementName.COUNT.getElementName(), "CDATA",
+                String.valueOf(projectParameters.length));
+
+        hd.startElement("", "",
+                UserParameterElementName.PARAMETERS.getElementName(), atts);
+
+        atts.clear();
+
+        // <PARAMETER>
+        for (UserParameter<?, ?> parameter : project.getParameters()) {
+
+            if (canceled)
+                return;
+
+            logger.finest("Saving user parameter " + parameter.getName());
+
+            atts.addAttribute("", "",
+                    UserParameterElementName.NAME.getElementName(), "CDATA",
+                    parameter.getName());
+
+            atts.addAttribute("", "",
+                    UserParameterElementName.TYPE.getElementName(), "CDATA",
+                    parameter.getClass().getSimpleName());
+
+            hd.startElement("", "",
+                    UserParameterElementName.PARAMETER.getElementName(), atts);
+
+            atts.clear();
+
+            fillParameterElement(parameter, hd);
+
+            hd.endElement("", "",
+                    UserParameterElementName.PARAMETER.getElementName());
+            completedParameters++;
+        }
+
+        hd.endElement("", "",
+                UserParameterElementName.PARAMETERS.getElementName());
+
+        hd.endDocument();
 
     }
 
-    for (RawDataFile dataFile : dataFiles) {
+    /**
+     * Create the part of the XML document related to the scans
+     * 
+     * @param scan
+     * @param element
+     */
+    private void fillParameterElement(UserParameter<?, ?> parameter,
+            TransformerHandler hd) throws SAXException, IOException {
 
-      Object value = project.getParameterValue(parameter, dataFile);
+        AttributesImpl atts = new AttributesImpl();
 
-      if (value == null)
-        continue;
+        RawDataFile dataFiles[] = project.getDataFiles();
 
-      String valueString = String.valueOf(value);
-      String dataFileID = dataFilesIDMap.get(dataFile);
+        if (parameter instanceof ComboParameter) {
+            Object choices[] = ((ComboParameter<?>) parameter).getChoices();
 
-      atts.addAttribute("", "", UserParameterElementName.DATA_FILE.getElementName(), "CDATA",
-          dataFileID);
+            for (Object choice : choices) {
+                hd.startElement("", "",
+                        UserParameterElementName.OPTION.getElementName(), atts);
 
-      hd.startElement("", "", UserParameterElementName.VALUE.getElementName(), atts);
+                hd.characters(choice.toString().toCharArray(), 0,
+                        choice.toString().length());
+                hd.endElement("", "",
+                        UserParameterElementName.OPTION.getElementName());
+            }
 
-      atts.clear();
+        }
 
-      hd.characters(valueString.toCharArray(), 0, valueString.length());
-      hd.endElement("", "", UserParameterElementName.VALUE.getElementName());
+        for (RawDataFile dataFile : dataFiles) {
+
+            Object value = project.getParameterValue(parameter, dataFile);
+
+            if (value == null)
+                continue;
+
+            String valueString = String.valueOf(value);
+            String dataFileID = dataFilesIDMap.get(dataFile);
+
+            atts.addAttribute("", "",
+                    UserParameterElementName.DATA_FILE.getElementName(),
+                    "CDATA", dataFileID);
+
+            hd.startElement("", "",
+                    UserParameterElementName.VALUE.getElementName(), atts);
+
+            atts.clear();
+
+            hd.characters(valueString.toCharArray(), 0, valueString.length());
+            hd.endElement("", "",
+                    UserParameterElementName.VALUE.getElementName());
+
+        }
 
     }
 
-  }
+    /**
+     * 
+     * @return the progress of these functions saving the raw data information
+     *         to the zip file.
+     */
+    double getProgress() {
+        if (numOfParameters == 0)
+            return 0;
+        return (double) completedParameters / numOfParameters;
+    }
 
-  /**
-   * 
-   * @return the progress of these functions saving the raw data information to the zip file.
-   */
-  double getProgress() {
-    if (numOfParameters == 0)
-      return 0;
-    return (double) completedParameters / numOfParameters;
-  }
-
-  void cancel() {
-    canceled = true;
-  }
+    void cancel() {
+        canceled = true;
+    }
 }

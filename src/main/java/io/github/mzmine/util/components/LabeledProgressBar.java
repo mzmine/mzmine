@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,43 +28,43 @@ import javax.swing.OverlayLayout;
  */
 public class LabeledProgressBar extends JPanel {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JLabel label;
-  private JProgressBar progressBar;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JLabel label;
+    private JProgressBar progressBar;
 
-  public LabeledProgressBar() {
+    public LabeledProgressBar() {
 
-    setLayout(new OverlayLayout(this));
+        setLayout(new OverlayLayout(this));
 
-    label = new JLabel();
-    label.setAlignmentX(0.5f);
-    label.setFont(label.getFont().deriveFont(11f));
-    add(label);
+        label = new JLabel();
+        label.setAlignmentX(0.5f);
+        label.setFont(label.getFont().deriveFont(11f));
+        add(label);
 
-    progressBar = new JProgressBar(0, 100);
-    progressBar.setBorderPainted(false);
-    add(progressBar);
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setBorderPainted(false);
+        add(progressBar);
 
-  }
+    }
 
-  public LabeledProgressBar(double value) {
-    this();
-    setValue(value);
-  }
+    public LabeledProgressBar(double value) {
+        this();
+        setValue(value);
+    }
 
-  public void setValue(double value) {
-    int percent = (int) (value * 100);
-    progressBar.setValue(percent);
-    label.setText(percent + "%");
-  }
+    public void setValue(double value) {
+        int percent = (int) (value * 100);
+        progressBar.setValue(percent);
+        label.setText(percent + "%");
+    }
 
-  public void setValue(double value, String text) {
-    int percent = (int) (value * 100);
-    progressBar.setValue(percent);
-    label.setText(text);
-  }
+    public void setValue(double value, String text) {
+        int percent = (int) (value * 100);
+        progressBar.setValue(percent);
+        label.setText(text);
+    }
 
 }

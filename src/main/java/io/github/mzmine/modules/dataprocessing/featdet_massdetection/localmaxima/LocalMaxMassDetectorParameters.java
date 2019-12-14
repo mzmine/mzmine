@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,18 +29,19 @@ import io.github.mzmine.util.ExitCode;
 
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Intensities less than this value are interpreted as noise.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+            "Noise level",
+            "Intensities less than this value are interpreted as noise.",
+            MZmineCore.getConfiguration().getIntensityFormat());
 
-  public LocalMaxMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel});
-  }
+    public LocalMaxMassDetectorParameters() {
+        super(new UserParameter[] { noiseLevel });
+    }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(parent, valueCheckRequired, LocalMaxMassDetector.class, this);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(parent,
+                valueCheckRequired, LocalMaxMassDetector.class, this);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

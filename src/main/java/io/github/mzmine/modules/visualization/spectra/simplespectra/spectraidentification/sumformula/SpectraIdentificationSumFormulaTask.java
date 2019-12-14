@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -64,224 +64,253 @@ import io.github.mzmine.util.FormulaUtils;
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    public static final NumberFormat massFormater = MZmineCore
+            .getConfiguration().getMZFormat();
 
-  private int finishedItems = 0, numItems;
+    private int finishedItems = 0, numItems;
 
-  private MZTolerance mzTolerance;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-  private double noiseLevel;
-  private int foundFormulas = 0;
-  private IonizationType ionType;
-  private int charge;
-  private boolean checkRatios;
-  private boolean checkRDBE;
-  private ParameterSet ratiosParameters;
-  private ParameterSet rdbeParameters;
+    private MZTolerance mzTolerance;
+    private Scan currentScan;
+    private SpectraPlot spectraPlot;
+    private double noiseLevel;
+    private int foundFormulas = 0;
+    private IonizationType ionType;
+    private int charge;
+    private boolean checkRatios;
+    private boolean checkRDBE;
+    private ParameterSet ratiosParameters;
+    private ParameterSet rdbeParameters;
 
-  private Range<Double> massRange;
-  private MolecularFormulaRange elementCounts;
-  private MolecularFormulaGenerator generator;
+    private Range<Double> massRange;
+    private MolecularFormulaRange elementCounts;
+    private MolecularFormulaGenerator generator;
 
+    /**
+     * Create the task.
+     * 
+     * @param parameters
+     *            task parameters.
+     */
+    public SpectraIdentificationSumFormulaTask(ParameterSet parameters,
+            Scan currentScan, SpectraPlot spectraPlot) {
 
-  /**
-   * Create the task.
-   * 
-   * @param parameters task parameters.
-   */
-  public SpectraIdentificationSumFormulaTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
+        this.currentScan = currentScan;
+        this.spectraPlot = spectraPlot;
 
-    this.currentScan = currentScan;
-    this.spectraPlot = spectraPlot;
+        charge = parameters
+                .getParameter(SpectraIdentificationSumFormulaParameters.charge)
+                .getValue();
+        ionType = parameters
+                .getParameter(
+                        SpectraIdentificationSumFormulaParameters.ionization)
+                .getValue();
 
-    charge = parameters.getParameter(SpectraIdentificationSumFormulaParameters.charge).getValue();
-    ionType =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.ionization).getValue();
+        checkRDBE = parameters.getParameter(
+                SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
+                .getValue();
+        rdbeParameters = parameters.getParameter(
+                SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
+                .getEmbeddedParameters();
 
-    checkRDBE = parameters.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
-        .getValue();
-    rdbeParameters =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
-            .getEmbeddedParameters();
+        checkRatios = parameters.getParameter(
+                SpectraIdentificationSumFormulaParameters.elementalRatios)
+                .getValue();
+        ratiosParameters = parameters.getParameter(
+                SpectraIdentificationSumFormulaParameters.elementalRatios)
+                .getEmbeddedParameters();
 
-    checkRatios = parameters.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
-        .getValue();
-    ratiosParameters =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
-            .getEmbeddedParameters();
+        elementCounts = parameters
+                .getParameter(
+                        SpectraIdentificationSumFormulaParameters.elements)
+                .getValue();
 
-    elementCounts =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.elements).getValue();
+        mzTolerance = parameters
+                .getParameter(
+                        SpectraIdentificationSumFormulaParameters.mzTolerance)
+                .getValue();
 
-    mzTolerance =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.mzTolerance).getValue();
-
-    noiseLevel =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.noiseLevel).getValue();
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (numItems == 0)
-      return 0;
-    return ((double) finishedItems) / numItems;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
-  @Override
-  public String getTaskDescription() {
-    return "Sum formula prediction for scan " + currentScan.getScanNumber();
-  }
-
-  /**
-   * @see java.lang.Runnable#run()
-   */
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-
-    logger.finest("Starting search for formulas for " + massRange + " Da");
-
-    // create mass list for scan
-    DataPoint[] massList = null;
-    ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
-    MassDetector massDetector = null;
-    ArrayList<String> allCompoundIDs = new ArrayList<>();
-
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
-    if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-      massDetector = new CentroidMassDetector();
-      CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
-      CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    } else {
-      massDetector = new ExactMassDetector();
-      ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
-      ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
-    }
-    numItems = massList.length;
-    // loop through every peak in mass list
-    if (getStatus() != TaskStatus.PROCESSING) {
-      return;
+        noiseLevel = parameters
+                .getParameter(
+                        SpectraIdentificationSumFormulaParameters.noiseLevel)
+                .getValue();
     }
 
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    @Override
+    public double getFinishedPercentage() {
+        if (numItems == 0)
+            return 0;
+        return ((double) finishedItems) / numItems;
+    }
 
-    for (int i = 0; i < massList.length; i++) {
-      massRange =
-          mzTolerance.getToleranceRange((massList[i].getMZ() - ionType.getAddedMass()) / charge);
-      generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
-          massRange.upperEndpoint(), elementCounts);
+    /**
+     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    @Override
+    public String getTaskDescription() {
+        return "Sum formula prediction for scan " + currentScan.getScanNumber();
+    }
 
-      IMolecularFormula cdkFormula;
-      String annotation = "";
-      // create a map to store ResultFormula and relative mass deviation for sorting
-      Map<Double, String> possibleFormulas = new TreeMap<>();
-      while ((cdkFormula = generator.getNextFormula()) != null) {
-        if (isCanceled())
-          return;
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
 
-        // Mass is ok, so test other constraints
-        if (checkConstraints(cdkFormula) == true) {
-          String formula = MolecularFormulaManipulator.getString(cdkFormula);
+        setStatus(TaskStatus.PROCESSING);
 
-          // calc rel mass deviation
-          Double relMassDev = ((((massList[i].getMZ() - //
-              ionType.getAddedMass()) / charge)//
-              - (FormulaUtils.calculateExactMass(//
-                  MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-              / ((massList[i].getMZ() //
-                  - ionType.getAddedMass()) / charge))
-              * 1000000;
+        logger.finest("Starting search for formulas for " + massRange + " Da");
 
-          // write to map
-          possibleFormulas.put(relMassDev, formula);
+        // create mass list for scan
+        DataPoint[] massList = null;
+        ArrayList<DataPoint> massListAnnotated = new ArrayList<>();
+        MassDetector massDetector = null;
+        ArrayList<String> allCompoundIDs = new ArrayList<>();
+
+        // Create a new mass list for MS/MS scan. Check if sprectrum is profile
+        // or centroid mode
+        if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+            massDetector = new CentroidMassDetector();
+            CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
+            CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
+        } else {
+            massDetector = new ExactMassDetector();
+            ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
+            ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
+            massList = massDetector.getMassValues(currentScan.getDataPoints(),
+                    parameters);
         }
-      }
+        numItems = massList.length;
+        // loop through every peak in mass list
+        if (getStatus() != TaskStatus.PROCESSING) {
+            return;
+        }
 
-      Map<Double, String> treeMap = new TreeMap<>(
-          (Comparator<Double>) (o1, o2) -> Double.compare(Math.abs(o1), Math.abs(o2)));
-      treeMap.putAll(possibleFormulas);
+        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-      // get top 3
-      int ctr = 0;
-      for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
-        int number = ctr + 1;
-        if (ctr > 2)
-          break;
-        annotation = annotation + number + ". " + entry.getValue() + " Δ "
-            + NumberFormat.getInstance().format(entry.getKey()) + " ppm; ";
-        ctr++;
-        if (isCanceled())
-          return;
-      }
-      if (annotation != "") {
-        allCompoundIDs.add(annotation);
-        massListAnnotated.add(massList[i]);
-      }
-      logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
-          + " formulas");
+        for (int i = 0; i < massList.length; i++) {
+            massRange = mzTolerance.getToleranceRange(
+                    (massList[i].getMZ() - ionType.getAddedMass()) / charge);
+            generator = new MolecularFormulaGenerator(builder,
+                    massRange.lowerEndpoint(), massRange.upperEndpoint(),
+                    elementCounts);
+
+            IMolecularFormula cdkFormula;
+            String annotation = "";
+            // create a map to store ResultFormula and relative mass deviation
+            // for sorting
+            Map<Double, String> possibleFormulas = new TreeMap<>();
+            while ((cdkFormula = generator.getNextFormula()) != null) {
+                if (isCanceled())
+                    return;
+
+                // Mass is ok, so test other constraints
+                if (checkConstraints(cdkFormula) == true) {
+                    String formula = MolecularFormulaManipulator
+                            .getString(cdkFormula);
+
+                    // calc rel mass deviation
+                    Double relMassDev = ((((massList[i].getMZ() - //
+                            ionType.getAddedMass()) / charge)//
+                            - (FormulaUtils.calculateExactMass(//
+                                    MolecularFormulaManipulator
+                                            .getString(cdkFormula)))
+                                    / charge)
+                            / ((massList[i].getMZ() //
+                                    - ionType.getAddedMass()) / charge))
+                            * 1000000;
+
+                    // write to map
+                    possibleFormulas.put(relMassDev, formula);
+                }
+            }
+
+            Map<Double, String> treeMap = new TreeMap<>(
+                    (Comparator<Double>) (o1, o2) -> Double
+                            .compare(Math.abs(o1), Math.abs(o2)));
+            treeMap.putAll(possibleFormulas);
+
+            // get top 3
+            int ctr = 0;
+            for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
+                int number = ctr + 1;
+                if (ctr > 2)
+                    break;
+                annotation = annotation + number + ". " + entry.getValue()
+                        + " Δ "
+                        + NumberFormat.getInstance().format(entry.getKey())
+                        + " ppm; ";
+                ctr++;
+                if (isCanceled())
+                    return;
+            }
+            if (annotation != "") {
+                allCompoundIDs.add(annotation);
+                massListAnnotated.add(massList[i]);
+            }
+            logger.finest("Finished formula search for " + massRange
+                    + " m/z, found " + foundFormulas + " formulas");
+        }
+
+        // new mass list
+        DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
+        massListAnnotated.toArray(annotatedMassList);
+        String[] annotations = new String[annotatedMassList.length];
+        allCompoundIDs.toArray(annotations);
+        DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
+                "Detected compounds", annotatedMassList);
+        // Add label generator for the dataset
+        SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+                annotations, spectraPlot);
+        spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true,
+                labelGenerator);
+        spectraPlot.getXYPlot().getRenderer().setSeriesItemLabelGenerator(
+                spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
+        spectraPlot.getXYPlot().getRenderer()
+                .setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
+                        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT,
+                        TextAnchor.BOTTOM_CENTER, 0.0), true);
+        setStatus(TaskStatus.FINISHED);
     }
 
-    // new mass list
-    DataPoint[] annotatedMassList = new DataPoint[massListAnnotated.size()];
-    massListAnnotated.toArray(annotatedMassList);
-    String[] annotations = new String[annotatedMassList.length];
-    allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
-    // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
-    spectraPlot.getXYPlot().getRenderer()
-        .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
-    setStatus(TaskStatus.FINISHED);
-  }
+    private boolean checkConstraints(IMolecularFormula cdkFormula) {
 
-  private boolean checkConstraints(IMolecularFormula cdkFormula) {
+        // Check elemental ratios
+        if (checkRatios) {
+            boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula,
+                    ratiosParameters);
+            if (!check)
+                return false;
+        }
 
-    // Check elemental ratios
-    if (checkRatios) {
-      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
-      if (!check)
-        return false;
+        Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+
+        // Check RDBE condition
+        if (checkRDBE && (rdbeValue != null)) {
+            boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue,
+                    rdbeParameters);
+            if (!check)
+                return false;
+        }
+
+        return true;
     }
 
-    Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+    @Override
+    public void cancel() {
+        super.cancel();
 
-    // Check RDBE condition
-    if (checkRDBE && (rdbeValue != null)) {
-      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
-      if (!check)
-        return false;
+        // We need to cancel the formula generator, because searching for next
+        // candidate formula may take a looong time
+        if (generator != null)
+            generator.cancel();
+
     }
-
-    return true;
-  }
-
-  @Override
-  public void cancel() {
-    super.cancel();
-
-    // We need to cancel the formula generator, because searching for next
-    // candidate formula may take a looong time
-    if (generator != null)
-      generator.cancel();
-
-  }
 
 }
