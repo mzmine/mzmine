@@ -239,9 +239,8 @@ public class SingleRowPredictionTask extends AbstractTask {
         final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula,
                 ionType, charge);
 
-        final double isotopeNoiseLevel = isotopeParameters
-                .getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel)
-                .getValue();
+        // final double isotopeNoiseLevel =
+        // isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
         // Fixed min abundance
         final double minPredictedAbundance = 0.00001;
