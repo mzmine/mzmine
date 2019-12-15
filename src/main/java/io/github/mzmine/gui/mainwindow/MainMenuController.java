@@ -35,6 +35,7 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -115,13 +116,15 @@ public class MainMenuController {
         MZmineGUI.showAboutWindow();
     }
 
-    public void fillWindowsMenu(ActionEvent event) {
-        windowsMenu.getItems().clear();
+    public void fillWindowsMenu(Event event) {
+        final var windowsMenuItems = windowsMenu.getItems();
+        while (windowsMenuItems.size() > 2)
+            windowsMenuItems.remove(2);
         for (Window win : Window.getWindows()) {
             if (win instanceof Stage) {
                 Stage stage = (Stage) win;
-                MenuItem item = new MenuItem(stage.getTitle());
-                windowsMenu.getItems().add(item);
+                final MenuItem item = new MenuItem(stage.getTitle());
+                windowsMenuItems.add(item);
             }
         }
     }

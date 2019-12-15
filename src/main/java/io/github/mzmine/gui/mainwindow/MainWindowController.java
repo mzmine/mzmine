@@ -244,7 +244,7 @@ public class MainWindowController {
     }
 
     @FXML
-    public void memoryBarClicked(MouseEvent e) {
+    public void handleMemoryBarClick(MouseEvent e) {
         // Run garbage collector on a new thread, so it does not block the GUI
         new Thread(() -> {
             logger.info("Running garbage collector...");
@@ -345,7 +345,17 @@ public class MainWindowController {
         }
     }
 
+    public void handleCancelTask(ActionEvent event) {
+    }
 
+    public void handleCancelAllTasks(ActionEvent event) {
+    }
+
+    public void handleSetHighPriority(ActionEvent event) {
+    }
+
+    public void handleSetNormalPriority(ActionEvent event) {
+    }
 
     public void updateTabName(Tab tab) {
         /*

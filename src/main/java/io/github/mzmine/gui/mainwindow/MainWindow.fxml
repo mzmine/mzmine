@@ -45,13 +45,30 @@
 										<contextMenu>
 											<ContextMenu>
 												<items>
-													<MenuItem text="Show TIC"
+													<MenuItem text="Show chromatogram"
 														onAction="#handleShowTIC" />
-													<MenuItem text="Show MS spectrum"
+													<MenuItem text="Show mass spectrum"
 														onAction="#handleShowMsSpectrum" />
-													<MenuItem text="Export" />
-													<MenuItem text="Report" />
-													<MenuItem text="Remove" onAction="#removeRawData" />
+													<MenuItem text="Show 2D plot"
+														onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Show 3D plot"
+														onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Show MS/MS plot"
+														onAction="#handleShowMsSpectrum" />
+
+													<SeparatorMenuItem />
+													<MenuItem text="Sort alphabetically"
+														onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Remove file extension"
+														onAction="#handleShowMsSpectrum" />
+
+													<SeparatorMenuItem />
+													<MenuItem text="Export file"
+														onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Rename file"
+														onAction="#handleShowMsSpectrum" />
+													<MenuItem text="Remove file"
+														onAction="#removeRawData" />
 												</items>
 											</ContextMenu>
 										</contextMenu>
@@ -76,7 +93,19 @@
 										<contextMenu>
 											<ContextMenu>
 												<items>
-													<MenuItem text="Remove"
+													<MenuItem text="Open feature list"
+														onAction="#removeFeatureTable" />
+													<MenuItem text="Show feature list summary"
+														onAction="#removeFeatureTable" />
+													<MenuItem text="Show scatter plot"
+														onAction="#removeFeatureTable" />
+
+													<SeparatorMenuItem />
+													<MenuItem text="Sort alphabetically"
+														onAction="#removeFeatureTable" />
+													<MenuItem text="Rename feature list"
+														onAction="#removeFeatureTable" />
+													<MenuItem text="Remove feature list"
 														onAction="#removeFeatureTable" />
 												</items>
 											</ContextMenu>
@@ -109,12 +138,16 @@
 						<contextMenu>
 							<ContextMenu>
 								<items>
-									<MenuItem text="Show TIC" onAction="#handleShowTIC" />
-									<MenuItem text="Show MS spectrum"
-										onAction="#handleShowMsSpectrum" />
-									<MenuItem text="Export" />
-									<MenuItem text="Report" />
-									<MenuItem text="Remove" onAction="#removeRawData" />
+									<Menu text="Set priority">
+										<MenuItem text="High"
+											onAction="#handleSetHighPriority" />
+										<MenuItem text="Normal"
+											onAction="#handleSetNormalPriority" />
+									</Menu>
+									<MenuItem text="Cancel task"
+										onAction="#handleCancelTask" />
+									<MenuItem text="Cancel all tasks"
+										onAction="#handleCancelAllTasks" />
 								</items>
 							</ContextMenu>
 						</contextMenu>
@@ -125,11 +158,12 @@
 		<bottom>
 			<StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
 				<rightItems>
-					<StackPane minWidth="1" minHeight="1" scaleShape="true">
-						<ProgressBar fx:id="memoryBar" maxWidth="1000"
-							opacity="0.3" />
-						<Label fx:id="memoryBarLabel" maxWidth="1000"
-							onMouseClicked="#memoryBarClicked">
+					<StackPane scaleShape="true">
+						<ProgressBar fx:id="memoryBar" opacity="0.3"
+							prefWidth="150" />
+						<Label fx:id="memoryBarLabel"
+							onMouseClicked="#handleMemoryBarClick" prefWidth="150"
+							alignment="CENTER">
 							<tooltip>
 								<Tooltip text="Free/total Java heap size" />
 							</tooltip>
