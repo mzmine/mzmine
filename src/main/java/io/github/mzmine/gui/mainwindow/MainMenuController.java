@@ -22,14 +22,18 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.swing.SwingUtilities;
 
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ExitCode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
@@ -43,7 +47,7 @@ import javafx.stage.Window;
  */
 public class MainMenuController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     @FXML
     private Menu windowsMenu;
@@ -128,6 +132,49 @@ public class MainMenuController {
                 continue;
             win.hide();
         }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    public void runModule(ActionEvent event) {
+        assert event.getSource() instanceof MenuItem;
+        final MenuItem menuItem = (MenuItem) event.getSource();
+        assert menuItem.getUserData() instanceof String;
+        final String moduleClass = (String) menuItem.getUserData();
+
+        logger.info("Menu item activated for module " + moduleClass);
+        Class<? extends MZmineRunnableModule> moduleJavaClass;
+        try {
+            moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class
+                    .forName(moduleClass);
+        } catch (Exception e) {
+            MZmineGUI.displayMessage("Cannot load module class " + moduleClass);
+            return;
+        }
+
+        MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
+
+        if (module == null) {
+            MZmineGUI.displayMessage(
+                    "Cannot find module of class " + moduleClass);
+            return;
+        }
+
+        ParameterSet moduleParameters = MZmineCore.getConfiguration()
+                .getModuleParameters(moduleJavaClass);
+
+        logger.info("Setting parameters for module " + module.getName());
+
+        SwingUtilities.invokeLater(() -> {
+            ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
+            if (exitCode != ExitCode.OK)
+                return;
+
+            ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+            logger.finest("Starting module " + module.getName()
+                    + " with parameters " + parametersCopy);
+            MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+        });
 
     }
 }

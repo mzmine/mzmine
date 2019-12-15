@@ -11,27 +11,27 @@
 	<Menu text="Project">
 		<Menu text="Open recent project...">
 		</Menu>
-		<ModuleMenuItem text="Open project"
-			moduleClass="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
+		<MenuItem onAction="#runModule" text="Open project"
+			userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
 			<accelerator>
 				<KeyCodeCombination alt="UP" code="O"
 					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
-		</ModuleMenuItem>
-		<ModuleMenuItem text="Save project"
-			moduleClass="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
+		</MenuItem>
+		<MenuItem onAction="#runModule" text="Save project"
+			userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
 			<accelerator>
 				<KeyCodeCombination alt="UP" code="S"
 					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
-		</ModuleMenuItem>
-		<ModuleMenuItem text="Save project as"
-			moduleClass="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
+		</MenuItem>
+		<MenuItem onAction="#runModule" text="Save project as"
+			userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
 			<accelerator>
 				<KeyCodeCombination alt="DOWN" code="S"
 					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
-		</ModuleMenuItem>
+		</MenuItem>
 		<MenuItem text="Close Project" onAction="#closeProject">
 			<accelerator>
 				<KeyCodeCombination alt="UP" code="W"
@@ -41,39 +41,39 @@
 
 
 		<SeparatorMenuItem />
-		<ModuleMenuItem text="Batch mode"
-			moduleClass="io.github.mzmine.modules.batchmode.BatchModeModule" />
+		<MenuItem onAction="#runModule" text="Batch mode"
+			userData="io.github.mzmine.modules.batchmode.BatchModeModule" />
 
 		<SeparatorMenuItem />
-		<ModuleMenuItem text="Set sample parameters"
-			moduleClass="" />
+		<MenuItem onAction="#runModule" text="Set sample parameters"
+			userData="" />
 
 		<SeparatorMenuItem />
 		<MenuItem text="Set preferences" onAction="#setPreferences" />
 
 		<SeparatorMenuItem />
-		<ModuleMenuItem text="Save MZmine parameters"
-			moduleClass="" />
-		<ModuleMenuItem text="Load MZmine parameters"
-			moduleClass="" />
+		<MenuItem onAction="#runModule" text="Save MZmine parameters"
+			userData="" />
+		<MenuItem onAction="#runModule" text="Load MZmine parameters"
+			userData="" />
 
 		<SeparatorMenuItem />
-		<ModuleMenuItem text="Export Audit Log"
-			moduleClass="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
+		<MenuItem onAction="#runModule" text="Export Audit Log"
+			userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
 		<SeparatorMenuItem />
 		<MenuItem text="Exit" onAction="#exitApplication" />
 	</Menu>
 
 
 	<Menu text="Raw data methods">
-		<ModuleMenuItem text="Raw data import"
-			moduleClass="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
+		<MenuItem onAction="#runModule" text="Raw data import"
+			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
 		<Menu text="Raw data export">
 			<MenuItem text="CSV" />
 			<MenuItem text="MGF" />
 			<MenuItem text="MSP" />
-			<ModuleMenuItem text="mzML"
-				moduleClass="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
+			<MenuItem onAction="#runModule" text="mzML"
+				userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
 			<MenuItem text="TXT" />
 		</Menu>
 
@@ -87,16 +87,16 @@
 			<MenuItem text="Baseline correction" />
 		</Menu>
 		<Menu text="Centroiding">
-			<ModuleMenuItem text="Binning"
-				moduleClass="io.github.mzmine.modules.rawdata.centroiding.binning.BinningCentroidingModule" />
-			<ModuleMenuItem text="Local Maxima"
-				moduleClass="io.github.mzmine.modules.rawdata.centroiding.localmaxima.LocalMaxCentroidingModule" />
-			<ModuleMenuItem text="Exact Mass"
-				moduleClass="io.github.mzmine.modules.rawdata.centroiding.exactmass.ExactMassCentroidingModule" />
-			<ModuleMenuItem text="Recursive"
-				moduleClass="io.github.mzmine.modules.rawdata.centroiding.recursive.RecursiveCentroidingModule" />
-			<ModuleMenuItem text="Wavelet"
-				moduleClass="io.github.mzmine.modules.rawdata.centroiding.wavelet.WaveletCentroidingModule" />
+			<MenuItem onAction="#runModule" text="Binning"
+				userData="io.github.mzmine.modules.rawdata.centroiding.binning.BinningCentroidingModule" />
+			<MenuItem onAction="#runModule" text="Local Maxima"
+				userData="io.github.mzmine.modules.rawdata.centroiding.localmaxima.LocalMaxCentroidingModule" />
+			<MenuItem onAction="#runModule" text="Exact Mass"
+				userData="io.github.mzmine.modules.rawdata.centroiding.exactmass.ExactMassCentroidingModule" />
+			<MenuItem onAction="#runModule" text="Recursive"
+				userData="io.github.mzmine.modules.rawdata.centroiding.recursive.RecursiveCentroidingModule" />
+			<MenuItem onAction="#runModule" text="Wavelet"
+				userData="io.github.mzmine.modules.rawdata.centroiding.wavelet.WaveletCentroidingModule" />
 		</Menu>
 
 
@@ -107,31 +107,34 @@
 			<SeparatorMenuItem />
 
 			<Menu text="MS">
-				<ModuleMenuItem text="Chromatogram Builder"
-					moduleClass="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
+				<MenuItem onAction="#runModule" text="Chromatogram Builder"
+					userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
 				<MenuItem text="GridMass - 2D Feature Detection" />
-				<ModuleMenuItem text="Targeted Feature Detection"
-					moduleClass="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />
+				<MenuItem onAction="#runModule"
+					text="Targeted Feature Detection"
+					userData="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />
 			</Menu>
 			<Menu text="MS/MS">
-				<ModuleMenuItem text="MS/MS Feature List Builder"
-					moduleClass="io.github.mzmine.modules.featuredetection.msmsdetection.MsMsDetectionModule" />
+				<MenuItem onAction="#runModule"
+					text="MS/MS Feature List Builder"
+					userData="io.github.mzmine.modules.featuredetection.msmsdetection.MsMsDetectionModule" />
 			</Menu>
 			<Menu text="SRM">
-				<ModuleMenuItem text="SRM Feature List Builder"
-					moduleClass="io.github.mzmine.modules.featuredetection.srmdetection.SrmDetectionModule" />
+				<MenuItem onAction="#runModule"
+					text="SRM Feature List Builder"
+					userData="io.github.mzmine.modules.featuredetection.srmdetection.SrmDetectionModule" />
 			</Menu>
 		</Menu>
 	</Menu>
 
 	<Menu text="Feature list methods">
-		<ModuleMenuItem text="Import feature list"
-			moduleClass="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
+		<MenuItem onAction="#runModule" text="Import feature list"
+			userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
 		<Menu text="Export feature list">
-			<ModuleMenuItem text="CSV"
-				moduleClass="io.github.mzmine.modules.io.csvexport.CsvExportModule" />
-			<ModuleMenuItem text="mzTab"
-				moduleClass="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+			<MenuItem onAction="#runModule" text="CSV"
+				userData="io.github.mzmine.modules.io.csvexport.CsvExportModule" />
+			<MenuItem onAction="#runModule" text="mzTab"
+				userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
 			<MenuItem text="XML" />
 			<MenuItem text="SQL Database" />
 		</Menu>
@@ -140,23 +143,23 @@
 			<MenuItem text="Smoothing" />
 		</Menu>
 		<Menu text="Isotopes">
-			<ModuleMenuItem text="Isotope grouper"
-				moduleClass="io.github.mzmine.modules.isotopes.isotopegrouper.IsotopeGrouperModule" />
+			<MenuItem onAction="#runModule" text="Isotope grouper"
+				userData="io.github.mzmine.modules.isotopes.isotopegrouper.IsotopeGrouperModule" />
 		</Menu>
 		<Menu text="Filtering">
-			<ModuleMenuItem text="Feature Filter"
-				moduleClass="io.github.mzmine.modules.filtering.featurefilter.FeatureFilterModule" />
-			<ModuleMenuItem text="Row Filter"
-				moduleClass="io.github.mzmine.modules.filtering.rowfilter.RowFilterModule" />
+			<MenuItem onAction="#runModule" text="Feature Filter"
+				userData="io.github.mzmine.modules.filtering.featurefilter.FeatureFilterModule" />
+			<MenuItem onAction="#runModule" text="Row Filter"
+				userData="io.github.mzmine.modules.filtering.rowfilter.RowFilterModule" />
 		</Menu>
 		<Menu text="Alignment">
-			<ModuleMenuItem text="Join aligner"
-				moduleClass="io.github.mzmine.modules.alignment.joinaligner.JoinAlignerModule" />
+			<MenuItem onAction="#runModule" text="Join aligner"
+				userData="io.github.mzmine.modules.alignment.joinaligner.JoinAlignerModule" />
 			<MenuItem text="RANSAC Aligner" />
 		</Menu>
 		<Menu text="Gap Filling">
-			<ModuleMenuItem text="Peak Finder"
-				moduleClass="io.github.mzmine.modules.gapfilling.peakfinder.PeakFinderModule" />
+			<MenuItem onAction="#runModule" text="Peak Finder"
+				userData="io.github.mzmine.modules.gapfilling.peakfinder.PeakFinderModule" />
 		</Menu>
 		<Menu text="Normalization">
 			<MenuItem text="Linear Normalizer" />
@@ -166,8 +169,9 @@
 		<Menu text="Identification">
 			<Menu text="MS">
 				<Menu text="Search using m/z and RT">
-					<ModuleMenuItem text="Local Database Search"
-						moduleClass="io.github.mzmine.modules.identification.ms.localdatabasesearch.LocalDatabaseSearchModule" />
+					<MenuItem onAction="#runModule"
+						text="Local Database Search"
+						userData="io.github.mzmine.modules.identification.ms.localdatabasesearch.LocalDatabaseSearchModule" />
 				</Menu>
 				<Menu text="Search using m/z">
 					<MenuItem text="Online Database Search" />
@@ -202,15 +206,15 @@
 
 	<Menu text="Visualization">
 		<Menu text="Raw Data">
-			<ModuleMenuItem text="MS Spectrum"
-				moduleClass="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
-			<ModuleMenuItem text="Isotope Pattern"
-				moduleClass="io.github.mzmine.modules.plots.isotopepattern.IsotopePatternPlotModule" />
-			<ModuleMenuItem text="Chromatogram Plot"
-				moduleClass="io.github.mzmine.modules.plots.chromatogram.ChromatogramPlotModule" />
+			<MenuItem onAction="#runModule" text="MS Spectrum"
+				userData="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
+			<MenuItem onAction="#runModule" text="Isotope Pattern"
+				userData="io.github.mzmine.modules.plots.isotopepattern.IsotopePatternPlotModule" />
+			<MenuItem onAction="#runModule" text="Chromatogram Plot"
+				userData="io.github.mzmine.modules.plots.chromatogram.ChromatogramPlotModule" />
 			<MenuItem text="2D Plot" />
-			<ModuleMenuItem text="3D Plot"
-				moduleClass="io.github.mzmine.modules.plots.threed.ThreeDPlotModule" />
+			<MenuItem onAction="#runModule" text="3D Plot"
+				userData="io.github.mzmine.modules.plots.threed.ThreeDPlotModule" />
 			<MenuItem text="MS/MS Plot" />
 			<MenuItem text="Neutral Loss Plot" />
 		</Menu>
@@ -227,7 +231,8 @@
 
 	<Menu fx:id="windowsMenu" text="Windows"
 		onAction="#fillWindowsMenu">
-		<MenuItem text="Close all windows" onAction="#closeAllWindows" />
+		<MenuItem text="Close all windows"
+			onAction="#closeAllWindows" />
 	</Menu>
 
 
@@ -240,5 +245,5 @@
 		<SeparatorMenuItem />
 		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
-	
+
 </MenuBar>
