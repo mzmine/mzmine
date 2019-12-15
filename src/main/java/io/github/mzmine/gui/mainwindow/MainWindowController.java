@@ -152,6 +152,7 @@ public class MainWindowController {
                         if (empty)
                             return;
                         ProgressBar progressBar = new ProgressBar(value);
+                        progressBar.setOpacity(0.3);
                         progressBar.prefWidthProperty().bind(taskProgressColumn
                                 .widthProperty().subtract(20));
                         String labelText = percentFormat.format(value);

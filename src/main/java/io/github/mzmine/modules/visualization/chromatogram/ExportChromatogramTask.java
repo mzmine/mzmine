@@ -22,7 +22,7 @@
  * pre-existing work.
  */
 
-package io.github.mzmine.modules.visualization.tic;
+package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -8,9 +8,12 @@
 <MenuBar useSystemMenuBar="true"
 	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
 	fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
+
+
+	<!-- PROJECT -->
 	<Menu text="Project">
-		<Menu text="Open recent project...">
-		</Menu>
+		<Menu onAction="#fillRecentProjects"
+			text="Open recent project..." />
 		<MenuItem onAction="#runModule" text="Open project"
 			userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
 			<accelerator>
@@ -39,7 +42,6 @@
 			</accelerator>
 		</MenuItem>
 
-
 		<SeparatorMenuItem />
 		<MenuItem onAction="#runModule" text="Batch mode"
 			userData="io.github.mzmine.modules.batchmode.BatchModeModule" />
@@ -58,75 +60,49 @@
 			userData="" />
 
 		<SeparatorMenuItem />
-		<MenuItem onAction="#runModule" text="Export Audit Log"
+		<MenuItem onAction="#runModule" text="Export audit log"
 			userData="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
+
 		<SeparatorMenuItem />
 		<MenuItem text="Exit" onAction="#exitApplication" />
 	</Menu>
 
 
+	<!-- RAW DATA METHODS -->
 	<Menu text="Raw data methods">
 		<MenuItem onAction="#runModule" text="Raw data import"
 			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
 		<Menu text="Raw data export">
-			<MenuItem text="CSV" />
-			<MenuItem text="MGF" />
-			<MenuItem text="MSP" />
 			<MenuItem onAction="#runModule" text="mzML"
 				userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
-			<MenuItem text="TXT" />
+			<MenuItem text="CSV" />
+			<MenuItem text="MGF" />
 		</Menu>
+
+		<MenuItem text="Merge raw data files" />
 
 		<Menu text="Raw data filtering">
-			<MenuItem text="Crop Filter" />
-			<MenuItem text="Scan by Scan Filter" />
-			<MenuItem text="FTMS Shoulder peak Filter" />
-		</Menu>
-
-		<Menu text="Smoothing">
+			<MenuItem text="Scan by scan filtering" />
+			<MenuItem text="Crop filter" />
 			<MenuItem text="Baseline correction" />
+			<MenuItem text="Align scans (MS1)" />
+			<MenuItem text="Scan smoothing (MS1)" />
 		</Menu>
-		<Menu text="Centroiding">
-			<MenuItem onAction="#runModule" text="Binning"
+
+
+		<Menu text="Mass detection">
+			<MenuItem onAction="#runModule" text="Mass detection"
 				userData="io.github.mzmine.modules.rawdata.centroiding.binning.BinningCentroidingModule" />
-			<MenuItem onAction="#runModule" text="Local Maxima"
-				userData="io.github.mzmine.modules.rawdata.centroiding.localmaxima.LocalMaxCentroidingModule" />
-			<MenuItem onAction="#runModule" text="Exact Mass"
-				userData="io.github.mzmine.modules.rawdata.centroiding.exactmass.ExactMassCentroidingModule" />
-			<MenuItem onAction="#runModule" text="Recursive"
-				userData="io.github.mzmine.modules.rawdata.centroiding.recursive.RecursiveCentroidingModule" />
-			<MenuItem onAction="#runModule" text="Wavelet"
-				userData="io.github.mzmine.modules.rawdata.centroiding.wavelet.WaveletCentroidingModule" />
+			<MenuItem onAction="#runModule"
+				text="FTMS shoulder peak filter"
+				userData="io.github.mzmine.modules.rawdata.centroiding.binning.BinningCentroidingModule" />
 		</Menu>
 
 
-		<Menu text="Feature Detection">
-
-
-
-			<SeparatorMenuItem />
-
-			<Menu text="MS">
-				<MenuItem onAction="#runModule" text="Chromatogram Builder"
-					userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
-				<MenuItem text="GridMass - 2D Feature Detection" />
-				<MenuItem onAction="#runModule"
-					text="Targeted Feature Detection"
-					userData="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />
-			</Menu>
-			<Menu text="MS/MS">
-				<MenuItem onAction="#runModule"
-					text="MS/MS Feature List Builder"
-					userData="io.github.mzmine.modules.featuredetection.msmsdetection.MsMsDetectionModule" />
-			</Menu>
-			<Menu text="SRM">
-				<MenuItem onAction="#runModule"
-					text="SRM Feature List Builder"
-					userData="io.github.mzmine.modules.featuredetection.srmdetection.SrmDetectionModule" />
-			</Menu>
-		</Menu>
 	</Menu>
 
+
+	<!-- FEATURE LIST METHODS -->
 	<Menu text="Feature list methods">
 		<MenuItem onAction="#runModule" text="Import feature list"
 			userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
@@ -138,34 +114,60 @@
 			<MenuItem text="XML" />
 			<MenuItem text="SQL Database" />
 		</Menu>
-		<Menu text="Feature Detection">
-			<MenuItem text="Chromatogram deconvolution" />
-			<MenuItem text="Smoothing" />
+		<Menu text="Feature detection">
+
+			<Menu text="MS1">
+				<MenuItem onAction="#runModule"
+					text="ADAP chromatogram builder"
+					userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
+				<MenuItem text="Chromatogram deconvolution" />
+				<MenuItem text="Chromatogram smoothing" />
+				<MenuItem text="GridMass - 2D feature detection" />
+				<MenuItem onAction="#runModule"
+					text="Targeted feature detection"
+					userData="io.github.mzmine.modules.featuredetection.targeteddetection.TargetedDetectionModule" />
+			</Menu>
+			<Menu text="MS/MS">
+				<MenuItem onAction="#runModule"
+					text="MS/MS feature list builder"
+					userData="io.github.mzmine.modules.featuredetection.msmsdetection.MsMsDetectionModule" />
+			</Menu>
+			<Menu text="SRM">
+				<MenuItem onAction="#runModule"
+					text="SRM feature list builder"
+					userData="io.github.mzmine.modules.featuredetection.srmdetection.SrmDetectionModule" />
+			</Menu>
 		</Menu>
+
 		<Menu text="Isotopes">
 			<MenuItem onAction="#runModule" text="Isotope grouper"
 				userData="io.github.mzmine.modules.isotopes.isotopegrouper.IsotopeGrouperModule" />
 		</Menu>
-		<Menu text="Filtering">
-			<MenuItem onAction="#runModule" text="Feature Filter"
+
+		<Menu text="Featire list filtering">
+			<MenuItem onAction="#runModule" text="Feature filter"
 				userData="io.github.mzmine.modules.filtering.featurefilter.FeatureFilterModule" />
-			<MenuItem onAction="#runModule" text="Row Filter"
+			<MenuItem onAction="#runModule" text="Row filter"
 				userData="io.github.mzmine.modules.filtering.rowfilter.RowFilterModule" />
 		</Menu>
+
 		<Menu text="Alignment">
 			<MenuItem onAction="#runModule" text="Join aligner"
 				userData="io.github.mzmine.modules.alignment.joinaligner.JoinAlignerModule" />
-			<MenuItem text="RANSAC Aligner" />
+			<MenuItem text="RANSAC aligner" />
 		</Menu>
-		<Menu text="Gap Filling">
-			<MenuItem onAction="#runModule" text="Peak Finder"
+
+		<Menu text="Gap filling">
+			<MenuItem onAction="#runModule" text="Peak finder"
 				userData="io.github.mzmine.modules.gapfilling.peakfinder.PeakFinderModule" />
 		</Menu>
+
 		<Menu text="Normalization">
-			<MenuItem text="Linear Normalizer" />
+			<MenuItem text="Linear normalizer" />
 			<MenuItem text="Retention Time Normalizer" />
 			<MenuItem text="Standard Compound Normalizer" />
 		</Menu>
+
 		<Menu text="Identification">
 			<Menu text="MS">
 				<Menu text="Search using m/z and RT">
@@ -204,42 +206,51 @@
 		</Menu>
 	</Menu>
 
+	<!-- VISUALIZATION -->
 	<Menu text="Visualization">
-		<Menu text="Raw Data">
-			<MenuItem onAction="#runModule" text="MS Spectrum"
-				userData="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
-			<MenuItem onAction="#runModule" text="Isotope Pattern"
-				userData="io.github.mzmine.modules.plots.isotopepattern.IsotopePatternPlotModule" />
-			<MenuItem onAction="#runModule" text="Chromatogram Plot"
-				userData="io.github.mzmine.modules.plots.chromatogram.ChromatogramPlotModule" />
-			<MenuItem text="2D Plot" />
-			<MenuItem onAction="#runModule" text="3D Plot"
-				userData="io.github.mzmine.modules.plots.threed.ThreeDPlotModule" />
-			<MenuItem text="MS/MS Plot" />
-			<MenuItem text="Neutral Loss Plot" />
-		</Menu>
-		<Menu text="Feature Data">
-			<MenuItem text="Scatter Plot" />
-			<MenuItem text="Histogram Plot" />
-			<MenuItem text="Feature Plot" />
-			<MenuItem text="Heat Map Plot" />
-		</Menu>
+		<MenuItem onAction="#runModule" text="MS spectrum"
+			userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule" />
+		<MenuItem onAction="#runModule" text="Chromatogram plot"
+			userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule" />
+		<MenuItem onAction="#runModule" text="2D Plot"
+			userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule" />
+		<MenuItem onAction="#runModule" text="3D Plot"
+			userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule" />
+
+		<MenuItem text="MS/MS plot" />
+		<MenuItem text="Neutral loss plot" />
+		<SeparatorMenuItem />
+		<MenuItem text="Scatter Plot" />
+		<MenuItem text="Histogram Plot" />
+		<MenuItem text="Feature Plot" />
+		<MenuItem text="Heat Map Plot" />
 	</Menu>
 
+	<!-- TOOLS -->
 	<Menu text="Tools">
+		<MenuItem onAction="#runModule"
+			text="Isotope pattern preview"
+			userData="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
+		<MenuItem onAction="#runModule"
+			text="Kovats index extraction"
+			userData="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
 	</Menu>
 
+
+	<!-- WINDOWS -->
 	<Menu fx:id="windowsMenu" text="Windows"
 		onAction="#fillWindowsMenu">
 		<MenuItem text="Close all windows"
 			onAction="#closeAllWindows" />
+		<SeparatorMenuItem />
 	</Menu>
 
 
+	<!-- HELP -->
 	<Menu text="Help">
 		<MenuItem text="Tutorials" onAction="#openLink" />
 		<MenuItem text="Support" onAction="#openLink" />
-		<MenuItem text="Report problem" onAction="#openLink" />
+		<MenuItem text="Report a problem" onAction="#openLink" />
 		<SeparatorMenuItem />
 		<MenuItem text="Check for updates" onAction="#versionCheck" />
 		<SeparatorMenuItem />

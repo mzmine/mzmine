@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.tic;
+package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;

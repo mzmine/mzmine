@@ -62,10 +62,10 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeakPickerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.tic.TICPlotType;
-import io.github.mzmine.modules.visualization.tic.TICVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
@@ -403,7 +403,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
                 ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-                TICVisualizerModule.showNewTICVisualizerWindow(dataFiles,
+                ChromatogramVisualizerModule.showNewTICVisualizerWindow(dataFiles,
                         selectedPeaks, labelMap, scanSelection,
                         TICPlotType.BASEPEAK, mzRange);
                 return;

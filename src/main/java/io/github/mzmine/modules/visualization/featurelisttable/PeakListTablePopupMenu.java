@@ -59,6 +59,8 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.io.siriusexport.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.featurelisttable.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable.table.CommonColumnType;
@@ -73,8 +75,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectra
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
-import io.github.mzmine.modules.visualization.tic.TICPlotType;
-import io.github.mzmine.modules.visualization.tic.TICVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.GUIUtils;
@@ -488,7 +488,7 @@ public class PeakListTablePopupMenu extends JPopupMenu
             ScanSelection scanSelection = new ScanSelection(
                     selectedDataFile.getDataRTRange(1), 1);
 
-            TICVisualizerModule.showNewTICVisualizerWindow(
+            ChromatogramVisualizerModule.showNewTICVisualizerWindow(
                     new RawDataFile[] { selectedDataFile },
                     selectedPeaks.toArray(new Feature[selectedPeaks.size()]),
                     labelsMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
@@ -537,7 +537,7 @@ public class PeakListTablePopupMenu extends JPopupMenu
             ScanSelection scanSelection = new ScanSelection(
                     selectedDataFiles[0].getDataRTRange(1), 1);
 
-            TICVisualizerModule.setupNewTICVisualizer(MZmineCore
+            ChromatogramVisualizerModule.setupNewTICVisualizer(MZmineCore
                     .getProjectManager().getCurrentProject().getDataFiles(),
                     selectedDataFiles,
                     allClickedPeaks

@@ -47,11 +47,11 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
-import io.github.mzmine.modules.visualization.tic.TICPlotType;
-import io.github.mzmine.modules.visualization.tic.TICVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.PeakUtils;
@@ -275,7 +275,7 @@ public class ScatterPlotChart extends EChartPanel
 
             ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-            TICVisualizerModule.showNewTICVisualizerWindow(
+            ChromatogramVisualizerModule.showNewTICVisualizerWindow(
                     peakList.getRawDataFiles(), peaks, labelMap, scanSelection,
                     TICPlotType.BASEPEAK, mzRange);
         }

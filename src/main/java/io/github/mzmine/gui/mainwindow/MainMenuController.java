@@ -175,6 +175,10 @@ public class MainMenuController {
                     + " with parameters " + parametersCopy);
             MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    public void fillRecentProjects(ActionEvent event) {
 
     }
 }

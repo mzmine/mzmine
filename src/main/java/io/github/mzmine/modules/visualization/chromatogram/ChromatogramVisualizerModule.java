@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.tic;
+package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +41,7 @@ import io.github.mzmine.util.ExitCode;
 /**
  * TIC/XIC visualizer using JFreeChart library
  */
-public class TICVisualizerModule implements MZmineRunnableModule {
+public class ChromatogramVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "TIC/XIC visualizer";
     private static final String MODULE_DESCRIPTION = "TIC/XIC visualizer."; // TODO
@@ -116,11 +116,11 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 
         assert allFiles != null;
 
-        final TICVisualizerModule myInstance = MZmineCore
-                .getModuleInstance(TICVisualizerModule.class);
+        final ChromatogramVisualizerModule myInstance = MZmineCore
+                .getModuleInstance(ChromatogramVisualizerModule.class);
         final TICVisualizerParameters myParameters = (TICVisualizerParameters) MZmineCore
                 .getConfiguration()
-                .getModuleParameters(TICVisualizerModule.class);
+                .getModuleParameters(ChromatogramVisualizerModule.class);
         myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE)
                 .setValue(TICPlotType.BASEPEAK);
 

@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.tic;
+package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -147,7 +147,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
         // get the window settings parameter
         ParameterSet paramSet = MZmineCore.getConfiguration()
-                .getModuleParameters(TICVisualizerModule.class);
+                .getModuleParameters(ChromatogramVisualizerModule.class);
         WindowSettingsParameter settings = paramSet
                 .getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
