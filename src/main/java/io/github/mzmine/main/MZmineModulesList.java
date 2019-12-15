@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModul
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_customdbsearch.CustomDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionpeaklist.FormulaPredictionPeakListModule;
 import io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule;
@@ -146,170 +147,171 @@ import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiag
  */
 public class MZmineModulesList {
 
-    public static final Class<?> MODULES[] = new Class<?>[] {
+  public static final Class<?> MODULES[] = new Class<?>[] {
 
-            // Project methods
-            ProjectLoadModule.class, //
-            ProjectSaveModule.class, //
-            ProjectSaveAsModule.class, //
-            ProjectCloseModule.class, //
+      // Project methods
+      ProjectLoadModule.class, //
+      ProjectSaveModule.class, //
+      ProjectSaveAsModule.class, //
+      ProjectCloseModule.class, //
 
-            // Batch mode
-            BatchModeModule.class, //
+      // Batch mode
+      BatchModeModule.class, //
 
-            // Raw data methods
-            RawDataImportModule.class, //
-            RawDataExportModule.class, //
-            ExportScansFromRawFilesModule.class, //
-            RawFileMergeModule.class, //
-            ExtractScansModule.class, //
-            MassDetectionModule.class, //
-            ShoulderPeaksFilterModule.class, //
-            ChromatogramBuilderModule.class, //
-            ADAPChromatogramBuilderModule.class, //
-            // Not ready for prime time: ADAP3DModule.class,
-            GridMassModule.class, //
-            ManualPeakPickerModule.class, //
-            MsMsPeakPickerModule.class, //
-            ScanFiltersModule.class, //
-            CropFilterModule.class, //
-            BaselineCorrectionModule.class, //
-            AlignScansModule.class, //
-            ScanSmoothingModule.class, //
-            SortDataFilesModule.class, //
-            XICManualPickerModule.class, //
+      // Raw data methods
+      RawDataImportModule.class, //
+      RawDataExportModule.class, //
+      ExportScansFromRawFilesModule.class, //
+      RawFileMergeModule.class, //
+      ExtractScansModule.class, //
+      MassDetectionModule.class, //
+      ShoulderPeaksFilterModule.class, //
+      ChromatogramBuilderModule.class, //
+      ADAPChromatogramBuilderModule.class, //
+      // Not ready for prime time: ADAP3DModule.class,
+      GridMassModule.class, //
+      ManualPeakPickerModule.class, //
+      MsMsPeakPickerModule.class, //
+      ScanFiltersModule.class, //
+      CropFilterModule.class, //
+      BaselineCorrectionModule.class, //
+      AlignScansModule.class, //
+      ScanSmoothingModule.class, //
+      SortDataFilesModule.class, //
+      XICManualPickerModule.class, //
 
-            // Alignment
-            SortPeakListsModule.class, //
-            JoinAlignerModule.class, //
-            HierarAlignerGcModule.class, //
+      // Alignment
+      SortPeakListsModule.class, //
+      JoinAlignerModule.class, //
+      HierarAlignerGcModule.class, //
 
-            RansacAlignerModule.class, //
-            ADAP3AlignerModule.class, //
-            // PathAlignerModule.class, //
+      RansacAlignerModule.class, //
+      ADAP3AlignerModule.class, //
+      // PathAlignerModule.class, //
 
-            // I/O
-            CSVExportModule.class, //
-            MetaboAnalystExportModule.class, //
-            MzTabExportModule.class, //
-            SQLExportModule.class, //
-            XMLExportModule.class, //
-            MzTabImportModule.class, //
-            XMLImportModule.class, //
-            AdapMspExportModule.class, //
-            AdapMgfExportModule.class, //
-            GnpsFbmnExportAndSubmitModule.class, //
-            GnpsGcExportAndSubmitModule.class, //
-            SiriusExportModule.class, //
+      // I/O
+      CSVExportModule.class, //
+      MetaboAnalystExportModule.class, //
+      MzTabExportModule.class, //
+      SQLExportModule.class, //
+      XMLExportModule.class, //
+      MzTabImportModule.class, //
+      XMLImportModule.class, //
+      AdapMspExportModule.class, //
+      AdapMgfExportModule.class, //
+      GnpsFbmnExportAndSubmitModule.class, //
+      GnpsGcExportAndSubmitModule.class, //
+      SiriusExportModule.class, //
 
-            // Gap filling
-            PeakFinderModule.class, //
-            MultiThreadPeakFinderModule.class, //
-            SameRangeGapFillerModule.class, //
+      // Gap filling
+      PeakFinderModule.class, //
+      MultiThreadPeakFinderModule.class, //
+      SameRangeGapFillerModule.class, //
 
-            // Isotopes
-            IsotopeGrouperModule.class, //
-            IsotopePatternCalculator.class, //
-            IsotopePeakScannerModule.class, //
+      // Isotopes
+      IsotopeGrouperModule.class, //
+      IsotopePatternCalculator.class, //
+      IsotopePeakScannerModule.class, //
 
-            // Feature detection
-            SmoothingModule.class, //
-            DeconvolutionModule.class, //
-            ShapeModelerModule.class, //
-            PeakExtenderModule.class, //
-            TargetedPeakDetectionModule.class, //
-            ADAP3DecompositionV1_5Module.class, //
-            ADAP3DecompositionV2Module.class, //
+      // Feature detection
+      SmoothingModule.class, //
+      DeconvolutionModule.class, //
+      ShapeModelerModule.class, //
+      PeakExtenderModule.class, //
+      TargetedPeakDetectionModule.class, //
+      ADAP3DecompositionV1_5Module.class, //
+      ADAP3DecompositionV2Module.class, //
 
-            // Feature list filtering
-            GroupMS2Module.class, //
-            DuplicateFilterModule.class, //
-            RowsFilterModule.class, //
-            PeakComparisonRowFilterModule.class, //
-            PeakFilterModule.class, //
-            PeaklistClearAnnotationsModule.class, //
-            NeutralLossFilterModule.class, //
+      // Feature list filtering
+      GroupMS2Module.class, //
+      DuplicateFilterModule.class, //
+      RowsFilterModule.class, //
+      PeakComparisonRowFilterModule.class, //
+      PeakFilterModule.class, //
+      PeaklistClearAnnotationsModule.class, //
+      NeutralLossFilterModule.class, //
 
-            // Normalization
-            RTCalibrationModule.class, //
-            LinearNormalizerModule.class, //
-            StandardCompoundNormalizerModule.class, //
+      // Normalization
+      RTCalibrationModule.class, //
+      LinearNormalizerModule.class, //
+      StandardCompoundNormalizerModule.class, //
 
-            // Data analysis
-            CVPlotModule.class, //
-            LogratioPlotModule.class, //
-            PCAPlotModule.class, //
-            CDAPlotModule.class, //
-            SammonsPlotModule.class, //
-            ClusteringModule.class, //
-            HeatMapModule.class, //
-            SignificanceModule.class, //
+      // Data analysis
+      CVPlotModule.class, //
+      LogratioPlotModule.class, //
+      PCAPlotModule.class, //
+      CDAPlotModule.class, //
+      SammonsPlotModule.class, //
+      ClusteringModule.class, //
+      HeatMapModule.class, //
+      SignificanceModule.class, //
 
-            // Identification
-            LocalSpectralDBSearchModule.class, //
-            PrecursorDBSearchModule.class, //
-            SortSpectralDBIdentitiesModule.class, //
-            CustomDBSearchModule.class, //
-            FormulaPredictionModule.class, //
-            FragmentSearchModule.class, //
-            AdductSearchModule.class, //
-            ComplexSearchModule.class, //
-            OnlineDBSearchModule.class, //
-            LipidSearchModule.class, //
-            CameraSearchModule.class, //
-            NistMsSearchModule.class, //
-            FormulaPredictionPeakListModule.class, //
-            Ms2SearchModule.class, //
-            SiriusProcessingModule.class, //
-            GNPSResultsImportModule.class, //
+      // Identification
+      LocalSpectralDBSearchModule.class, //
+      PrecursorDBSearchModule.class, //
+      SortSpectralDBIdentitiesModule.class, //
+      CustomDBSearchModule.class, //
+      FormulaPredictionModule.class, //
+      FragmentSearchModule.class, //
+      AdductSearchModule.class, //
+      ComplexSearchModule.class, //
+      OnlineDBSearchModule.class, //
+      LipidSearchModule.class, //
+      CameraSearchModule.class, //
+      NistMsSearchModule.class, //
+      FormulaPredictionPeakListModule.class, //
+      FormulaSortModule.class, // sort formulas
+      Ms2SearchModule.class, //
+      SiriusProcessingModule.class, //
+      GNPSResultsImportModule.class, //
 
-            // Visualizers
-            TICVisualizerModule.class, //
-            SpectraVisualizerModule.class, //
-            TwoDVisualizerModule.class, //
-            Fx3DVisualizerModule.class, //
-            MsMsVisualizerModule.class, //
-            NeutralLossVisualizerModule.class, //
-            MZDistributionHistoModule.class, //
-            PeakListTableModule.class, //
-            IsotopePatternExportModule.class, //
-            MSMSExportModule.class, //
-            ScatterPlotVisualizerModule.class, //
-            HistogramVisualizerModule.class, //
-            InfoVisualizerModule.class, //
-            IntensityPlotModule.class, //
-            KendrickMassPlotModule.class, //
-            VanKrevelenDiagramModule.class, //
-            ProductIonFilterVisualizerModule.class, //
+      // Visualizers
+      TICVisualizerModule.class, //
+      SpectraVisualizerModule.class, //
+      TwoDVisualizerModule.class, //
+      Fx3DVisualizerModule.class, //
+      MsMsVisualizerModule.class, //
+      NeutralLossVisualizerModule.class, //
+      MZDistributionHistoModule.class, //
+      PeakListTableModule.class, //
+      IsotopePatternExportModule.class, //
+      MSMSExportModule.class, //
+      ScatterPlotVisualizerModule.class, //
+      HistogramVisualizerModule.class, //
+      InfoVisualizerModule.class, //
+      IntensityPlotModule.class, //
+      KendrickMassPlotModule.class, //
+      VanKrevelenDiagramModule.class, //
+      ProductIonFilterVisualizerModule.class, //
 
-            // Tools
-            MzRangeMassCalculatorModule.class, //
-            MzRangeFormulaCalculatorModule.class, //
-            IsotopePatternPreviewModule.class, //
-            KovatsIndexExtractionModule.class, //
+      // Tools
+      MzRangeMassCalculatorModule.class, //
+      MzRangeFormulaCalculatorModule.class, //
+      IsotopePatternPreviewModule.class, //
+      KovatsIndexExtractionModule.class, //
 
-            // all other regular MZmineModule (not MZmineRunnableModule) NOT
-            // LISTED IN MENU
-            SpectraIdentificationSpectralDatabaseModule.class, //
-            LibrarySubmitModule.class, //
-            CustomDBSpectraSearchModule.class, //
-            LipidSpectraSearchModule.class, //
-            OnlineDBSpectraSearchModule.class, //
-            SumFormulaSpectraSearchModule.class, //
-            ExportScansModule.class, //
-            SpectraIdentificationResultsModule.class, //
-            MsMsSpectraMergeModule.class, //
+      // all other regular MZmineModule (not MZmineRunnableModule) NOT
+      // LISTED IN MENU
+      SpectraIdentificationSpectralDatabaseModule.class, //
+      LibrarySubmitModule.class, //
+      CustomDBSpectraSearchModule.class, //
+      LipidSpectraSearchModule.class, //
+      OnlineDBSpectraSearchModule.class, //
+      SumFormulaSpectraSearchModule.class, //
+      ExportScansModule.class, //
+      SpectraIdentificationResultsModule.class, //
+      MsMsSpectraMergeModule.class, //
 
-            // Data point processing, implement DataPointProcessingModule
-            DataPointProcessingManager.class, //
-            DPPMassDetectionModule.class, //
-            DPPSumFormulaPredictionModule.class, //
-            DPPIsotopeGrouperModule.class,//
+      // Data point processing, implement DataPointProcessingModule
+      DataPointProcessingManager.class, //
+      DPPMassDetectionModule.class, //
+      DPPSumFormulaPredictionModule.class, //
+      DPPIsotopeGrouperModule.class,//
 
-            // not ready for prime time:
-            // DPPAnyElementIsotopeGrouperModule.class basically working, but
-            // only for specific elements
-            // at the moment
-            // PeakListBlankSubtractionModule.class
-    };
+      // not ready for prime time:
+      // DPPAnyElementIsotopeGrouperModule.class basically working, but
+      // only for specific elements
+      // at the moment
+      // PeakListBlankSubtractionModule.class
+  };
 }
