@@ -29,8 +29,13 @@ import org.slf4j.LoggerFactory;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.main.MZmineCore;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * The controller class for MainMenu.fxml
@@ -39,6 +44,9 @@ import javafx.scene.control.MenuItem;
 public class MainMenuController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @FXML
+    private Menu windowsMenu;
 
     public void closeProject(ActionEvent event) {
         MZmineGUI.requestCloseProject();
@@ -103,4 +111,23 @@ public class MainMenuController {
         MZmineGUI.showAboutWindow();
     }
 
+    public void fillWindowsMenu(ActionEvent event) {
+        windowsMenu.getItems().clear();
+        for (Window win : Window.getWindows()) {
+            if (win instanceof Stage) {
+                Stage stage = (Stage) win;
+                MenuItem item = new MenuItem(stage.getTitle());
+                windowsMenu.getItems().add(item);
+            }
+        }
+    }
+
+    public void closeAllWindows(ActionEvent event) {
+        for (Window win : Window.getWindows()) {
+            if (win == MZmineCore.getDesktop().getMainWindow())
+                continue;
+            win.hide();
+        }
+
+    }
 }

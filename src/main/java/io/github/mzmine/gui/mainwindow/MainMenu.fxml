@@ -5,51 +5,70 @@
 <?import javafx.scene.text.*?>
 <?import io.github.mzmine.gui.mainwindow.*?>
 
-<MenuBar useSystemMenuBar="true" xmlns="http://javafx.com/javafx/8"
-	xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
-	<Menu text="File">
-		<ModuleMenuItem text="Open Project" 
-		        moduleClass="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
+<MenuBar useSystemMenuBar="true"
+	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
+	<Menu text="Project">
+		<Menu text="Open recent project...">
+		</Menu>
+		<ModuleMenuItem text="Open project"
+			moduleClass="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
 			<accelerator>
-				<KeyCodeCombination alt="UP" code="O" control="DOWN"
-					meta="UP" shift="UP" shortcut="UP" />
+				<KeyCodeCombination alt="UP" code="O"
+					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
 		</ModuleMenuItem>
-		<MenuItem text="Save Project">
+		<ModuleMenuItem text="Save project"
+			moduleClass="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
 			<accelerator>
-				<KeyCodeCombination alt="UP" code="S" control="DOWN"
-					meta="UP" shift="UP" shortcut="UP" />
+				<KeyCodeCombination alt="UP" code="S"
+					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
-		</MenuItem>
-		<MenuItem text="Save Project As">
+		</ModuleMenuItem>
+		<ModuleMenuItem text="Save project as"
+			moduleClass="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
 			<accelerator>
-				<KeyCodeCombination alt="DOWN" code="S" control="DOWN"
-					meta="UP" shift="UP" shortcut="UP" />
+				<KeyCodeCombination alt="DOWN" code="S"
+					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
-		</MenuItem>
+		</ModuleMenuItem>
 		<MenuItem text="Close Project" onAction="#closeProject">
 			<accelerator>
-				<KeyCodeCombination alt="UP" code="W" control="DOWN"
-					meta="UP" shift="UP" shortcut="UP" />
+				<KeyCodeCombination alt="UP" code="W"
+					control="DOWN" meta="UP" shift="UP" shortcut="UP" />
 			</accelerator>
 		</MenuItem>
+
+
 		<SeparatorMenuItem />
-		<Menu text="Import...">
-			<ModuleMenuItem text="Raw Data"
-				moduleClass="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
-			<ModuleMenuItem text="mzTab"
-				moduleClass="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
-		</Menu>
+		<ModuleMenuItem text="Batch mode"
+			moduleClass="io.github.mzmine.modules.batchmode.BatchModeModule" />
+
 		<SeparatorMenuItem />
-		<Menu text="Export Feature Tables...">
-			<ModuleMenuItem text="CSV"
-				moduleClass="io.github.mzmine.modules.io.csvexport.CsvExportModule" />
-			<ModuleMenuItem text="mzTab"
-				moduleClass="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
-			<MenuItem text="XML" />
-			<MenuItem text="SQL Database" />
-		</Menu>
-		<Menu text="Export Raw Data...">
+		<ModuleMenuItem text="Set sample parameters"
+			moduleClass="" />
+
+		<SeparatorMenuItem />
+		<MenuItem text="Set preferences" onAction="#setPreferences" />
+
+		<SeparatorMenuItem />
+		<ModuleMenuItem text="Save MZmine parameters"
+			moduleClass="" />
+		<ModuleMenuItem text="Load MZmine parameters"
+			moduleClass="" />
+
+		<SeparatorMenuItem />
+		<ModuleMenuItem text="Export Audit Log"
+			moduleClass="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
+		<SeparatorMenuItem />
+		<MenuItem text="Exit" onAction="#exitApplication" />
+	</Menu>
+
+
+	<Menu text="Raw data methods">
+		<ModuleMenuItem text="Raw data import"
+			moduleClass="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
+		<Menu text="Raw data export">
 			<MenuItem text="CSV" />
 			<MenuItem text="MGF" />
 			<MenuItem text="MSP" />
@@ -57,24 +76,15 @@
 				moduleClass="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
 			<MenuItem text="TXT" />
 		</Menu>
-		<SeparatorMenuItem />
-		<ModuleMenuItem text="Export Audit Log"
-			moduleClass="io.github.mzmine.modules.auditlogexport.AuditLogExportModule" />
-		<SeparatorMenuItem />
-		<MenuItem text="Exit" onAction="#exitApplication" />
-	</Menu>
-	<Menu text="Batch Processing">
-		<MenuItem text="Batch Processing with GUI" />
-		<MenuItem text="Batch Processing without GUI" />
-	</Menu>
-	<Menu text="Raw Data Methods">
-		<Menu text="Filtering">
+
+		<Menu text="Raw data filtering">
 			<MenuItem text="Crop Filter" />
 			<MenuItem text="Scan by Scan Filter" />
-			<MenuItem text="FTMS Shoulder Feature Filter" />
+			<MenuItem text="FTMS Shoulder peak Filter" />
 		</Menu>
+
 		<Menu text="Smoothing">
-			<MenuItem text="Baseline Correction" />
+			<MenuItem text="Baseline correction" />
 		</Menu>
 		<Menu text="Centroiding">
 			<ModuleMenuItem text="Binning"
@@ -88,7 +98,14 @@
 			<ModuleMenuItem text="Wavelet"
 				moduleClass="io.github.mzmine.modules.rawdata.centroiding.wavelet.WaveletCentroidingModule" />
 		</Menu>
+
+
 		<Menu text="Feature Detection">
+
+
+
+			<SeparatorMenuItem />
+
 			<Menu text="MS">
 				<ModuleMenuItem text="Chromatogram Builder"
 					moduleClass="io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule" />
@@ -106,13 +123,24 @@
 			</Menu>
 		</Menu>
 	</Menu>
-	<Menu text="Feature Table Methods">
+
+	<Menu text="Feature list methods">
+		<ModuleMenuItem text="Import feature list"
+			moduleClass="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
+		<Menu text="Export feature list">
+			<ModuleMenuItem text="CSV"
+				moduleClass="io.github.mzmine.modules.io.csvexport.CsvExportModule" />
+			<ModuleMenuItem text="mzTab"
+				moduleClass="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+			<MenuItem text="XML" />
+			<MenuItem text="SQL Database" />
+		</Menu>
 		<Menu text="Feature Detection">
-			<MenuItem text="Chromatogram Deconvolution" />
+			<MenuItem text="Chromatogram deconvolution" />
 			<MenuItem text="Smoothing" />
 		</Menu>
 		<Menu text="Isotopes">
-			<ModuleMenuItem text="Isotope Grouper"
+			<ModuleMenuItem text="Isotope grouper"
 				moduleClass="io.github.mzmine.modules.isotopes.isotopegrouper.IsotopeGrouperModule" />
 		</Menu>
 		<Menu text="Filtering">
@@ -157,8 +185,22 @@
 			<Menu text="MS/MS" />
 
 		</Menu>
+
+		<Menu text="Data analysis">
+			<Menu text="Bubble Plots">
+				<MenuItem text="Coefficient of Variation Plot" />
+				<MenuItem text="Logratio Analysis" />
+			</Menu>
+			<Menu text="Dimensionality Reduction">
+				<MenuItem text="Principal Component Analysis (PCA)" />
+				<MenuItem text="Curvilinear Distance Analysis (CDA)" />
+				<MenuItem text="Sammon's Projection" />
+			</Menu>
+			<MenuItem text="Clustering" />
+		</Menu>
 	</Menu>
-	<Menu text="Plots">
+
+	<Menu text="Visualization">
 		<Menu text="Raw Data">
 			<ModuleMenuItem text="MS Spectrum"
 				moduleClass="io.github.mzmine.modules.plots.msspectrum.MsSpectrumPlotModule" />
@@ -179,30 +221,24 @@
 			<MenuItem text="Heat Map Plot" />
 		</Menu>
 	</Menu>
-	<Menu text="Data Analysis">
-		<Menu text="Bubble Plots">
-			<MenuItem text="Coefficient of Variation Plot" />
-			<MenuItem text="Logratio Analysis" />
-		</Menu>
-		<Menu text="Dimensionality Reduction">
-			<MenuItem text="Principal Component Analysis (PCA)" />
-			<MenuItem text="Curvilinear Distance Analysis (CDA)" />
-			<MenuItem text="Sammon's Projection" />
-		</Menu>
-		<MenuItem text="Clustering" />
+
+	<Menu text="Tools">
 	</Menu>
-	<Menu text="Settings">
-		<MenuItem text="Set Preferences" onAction="#setPreferences" />
+
+	<Menu fx:id="windowsMenu" text="Windows"
+		onAction="#fillWindowsMenu">
+		<MenuItem text="Close all windows" onAction="#closeAllWindows" />
 	</Menu>
-	<Menu text="Windows">
-	</Menu>
+
+
 	<Menu text="Help">
 		<MenuItem text="Tutorials" onAction="#openLink" />
 		<MenuItem text="Support" onAction="#openLink" />
-		<MenuItem text="Report Problem" onAction="#openLink" />
+		<MenuItem text="Report problem" onAction="#openLink" />
 		<SeparatorMenuItem />
-		<MenuItem text="Check for Updates" onAction="#versionCheck" />
+		<MenuItem text="Check for updates" onAction="#versionCheck" />
 		<SeparatorMenuItem />
 		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
+	
 </MenuBar>

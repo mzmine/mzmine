@@ -40,8 +40,11 @@ import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -190,10 +193,20 @@ public class MZmineGUI extends Application implements Desktop {
             Optional<ButtonType> result = alert.showAndWait();
 
             if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
-                /*
-                 * MZmineProject newProject = new MZmineProject();
-                 * activateProject(newProject); setStatusBarMessage("");
-                 */
+                // Close all windows related to previous project
+                GUIUtils.closeAllWindows();
+
+                // Create a new, empty project
+                MZmineProject newProject = new MZmineProjectImpl();
+
+                // Replace the current project with the new one
+                ProjectManager projectManager = MZmineCore.getProjectManager();
+                projectManager.setCurrentProject(newProject);
+
+                MZmineGUI.setStatusBarMessage("Project space cleaned");
+                
+                // Ask the garbage collector to free the previously used memory
+                System.gc();
             }
         });
     }
