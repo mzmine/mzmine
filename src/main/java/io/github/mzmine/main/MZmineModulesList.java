@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -68,6 +68,7 @@ import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModul
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_customdbsearch.CustomDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionpeaklist.FormulaPredictionPeakListModule;
 import io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule;
@@ -263,6 +264,7 @@ public class MZmineModulesList {
       CameraSearchModule.class, //
       NistMsSearchModule.class, //
       FormulaPredictionPeakListModule.class, //
+      FormulaSortModule.class, // sort formulas
       Ms2SearchModule.class, //
       SiriusProcessingModule.class, //
       GNPSResultsImportModule.class, //
