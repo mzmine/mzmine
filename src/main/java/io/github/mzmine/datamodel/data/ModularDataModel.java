@@ -165,7 +165,9 @@ public interface ModularDataModel {
   }
 
   /**
-   * Feature list adds the properties
+   * setProperty should only be called after adding a new DataType column (e.g., by the
+   * FeatureList). To set the value of wrapping Property<?> call
+   * {@link ModularDataModel#set(Class, Object)}
    * 
    * @param <T>
    * @param type
@@ -216,12 +218,24 @@ public interface ModularDataModel {
       property.setValue(value);
   }
 
-  default void remove(Class<? extends DataType<?>> tclass) {
+  /**
+   * Should only be called whenever a DataType column is removed from this model. To remove the
+   * value of the underlying Property<?> call {@link ModularDataModel#set(DataType, Object)}
+   * 
+   * @param <T>
+   * @param tclass
+   */
+  default <T extends Property<?>> void removeProperty(Class<? extends DataType<T>> tclass) {
     DataType type = getTypeColumn(tclass);
     if (type != null)
       getMap().remove(type);
   }
 
+  /**
+   * Stream all map.entries
+   * 
+   * @return
+   */
   default Stream<Entry<DataType, Property<?>>> stream() {
     return getMap().entrySet().stream();
   }
