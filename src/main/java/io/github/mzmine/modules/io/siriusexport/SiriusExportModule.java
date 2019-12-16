@@ -102,7 +102,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 }
 
 /*
- * "If you use the SIRIUS export module, cite MZmine 2 and the following article: Duhrkop, M.
+ * "If you use the SIRIUS export module, cite MZmine and the following article: Duhrkop, M.
  * Fleischauer, M. Ludwig, A. A. Aksenov, A. V. Melnik, M. Meusel, P. C. Dorrestein, J. Rousu, and
  * S. Boecker, Sirius 4: a rapid tool for turning tandem mass spectra into metabolite structure
  * information, Nat methods, 2019. 8:5

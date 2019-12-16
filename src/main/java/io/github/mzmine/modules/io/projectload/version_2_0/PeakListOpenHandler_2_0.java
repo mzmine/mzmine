@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -175,7 +175,7 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements PeakListO
 
       peakColumnID = attrs.getValue(PeakListElementName_2_0.COLUMN.getElementName());
       mass = Double.parseDouble(attrs.getValue(PeakListElementName_2_0.MZ.getElementName()));
-      // Before MZmine 2.6 retention time was saved in seconds, but now we
+      // Before MZmine.6 retention time was saved in seconds, but now we
       // use minutes, so we need to divide by 60
       rt = Double.parseDouble(attrs.getValue(PeakListElementName_2_0.RT.getElementName())) / 60d;
       height = Double.parseDouble(attrs.getValue(PeakListElementName_2_0.HEIGHT.getElementName()));
