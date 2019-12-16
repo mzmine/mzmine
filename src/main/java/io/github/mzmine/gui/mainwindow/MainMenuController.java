@@ -19,22 +19,21 @@
 package io.github.mzmine.gui.mainwindow;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
-
 import javax.swing.SwingUtilities;
-
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
@@ -51,17 +50,17 @@ public class MainMenuController {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @FXML
-  private Menu windowsMenu;
+  private Menu windowsMenu, recentProjectsMenu;
 
-  public void closeProject(ActionEvent event) {
+  public void closeProject(Event event) {
     MZmineGUI.requestCloseProject();
   }
 
-  public void exitApplication(ActionEvent event) {
+  public void exitApplication(Event event) {
     MZmineGUI.requestQuit();
   }
 
-  public void openLink(ActionEvent event) {
+  public void openLink(Event event) {
 
     assert event.getSource() instanceof MenuItem;
     final MenuItem menuItem = (MenuItem) event.getSource();
@@ -84,7 +83,7 @@ public class MainMenuController {
 
   }
 
-  public void versionCheck(ActionEvent event) {
+  public void versionCheck(Event event) {
     // Check for new version of MZmine
     logger.info("Checking for new MZmine version");
     NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
@@ -93,13 +92,13 @@ public class MainMenuController {
     nvcThread.start();
   }
 
-  public void setPreferences(ActionEvent event) {
+  public void setPreferences(Event event) {
     // Show the Preferences dialog
     logger.info("Showing the Preferences dialog");
     // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
   }
 
-  public void showAbout(ActionEvent event) {
+  public void showAbout(Event event) {
     MZmineGUI.showAboutWindow();
   }
 
@@ -116,7 +115,7 @@ public class MainMenuController {
     }
   }
 
-  public void closeAllWindows(ActionEvent event) {
+  public void closeAllWindows(Event event) {
     for (Window win : Window.getWindows()) {
       if (win == MZmineCore.getDesktop().getMainWindow())
         continue;
@@ -126,7 +125,7 @@ public class MainMenuController {
   }
 
   @SuppressWarnings("unchecked")
-  public void runModule(ActionEvent event) {
+  public void runModule(Event event) {
     assert event.getSource() instanceof MenuItem;
     final MenuItem menuItem = (MenuItem) event.getSource();
     assert menuItem.getUserData() instanceof String;
@@ -165,8 +164,35 @@ public class MainMenuController {
     });
   }
 
-  @SuppressWarnings("unchecked")
-  public void fillRecentProjects(ActionEvent event) {
+  public void fillRecentProjects(Event event) {
 
+    recentProjectsMenu.getItems().clear();
+
+    var recentProjects = MZmineCore.getConfiguration().getLastProjectsParameter().getValue();
+
+    if ((recentProjects == null) || (recentProjects.isEmpty())) {
+      recentProjectsMenu.setDisable(true);
+      return;
+    }
+
+    recentProjectsMenu.setDisable(false);
+
+    // add items to load last used projects directly
+    recentProjects.stream().map(File::getAbsolutePath).forEach(name -> {
+      MenuItem item = new MenuItem(name);
+
+      item.setOnAction(e -> {
+        MenuItem c = (MenuItem) e.getSource();
+        if (c == null)
+          return;
+        File f = new File(c.getText());
+        if (f.exists()) {
+          // load file
+          ProjectOpeningTask newTask = new ProjectOpeningTask(f);
+          MZmineCore.getTaskController().addTask(newTask);
+        }
+      });
+      recentProjectsMenu.getItems().add(item);
+    });
   }
 }

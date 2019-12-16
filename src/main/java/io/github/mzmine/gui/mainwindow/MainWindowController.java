@@ -21,6 +21,7 @@ package io.github.mzmine.gui.mainwindow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.controlsfx.control.StatusBar;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
@@ -44,7 +45,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
@@ -53,13 +54,11 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -143,7 +142,7 @@ public class MainWindowController {
     // Add mouse clicked event handler
     rawDataTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleShowTIC(null);
+        handleShowChromatogram(event);
       }
     });
 
@@ -169,9 +168,7 @@ public class MainWindowController {
     // Add mouse clicked event handler
     featureTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        var selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
-        for (PeakList fl : selectedFeatureLists)
-          PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+        handleOpenFeatureList(event);
       }
     });
 
@@ -249,17 +246,6 @@ public class MainWindowController {
      */
   }
 
-  @FXML
-  public void handleMemoryBarClick(MouseEvent e) {
-    // Run garbage collector on a new thread, so it does not block the GUI
-    new Thread(() -> {
-      logger.info("Running garbage collector...");
-      System.gc();
-      logger.info("Running garbage collector... done.");
-    }).start();
-
-  }
-
   public ListView<RawDataFile> getRawDataTree() {
     return rawDataTree;
   }
@@ -280,28 +266,49 @@ public class MainWindowController {
     return tasksView;
   }
 
-  public void handleShowTIC(ActionEvent event) {
+  public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ChromatogramVisualizerModule.setupNewTICVisualizer(selectedFiles.toArray(new RawDataFile[0]));
-
+    SwingUtilities.invokeLater(() -> {
+      var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+      ChromatogramVisualizerModule.setupNewTICVisualizer(selectedFiles.toArray(new RawDataFile[0]));
+    });
   }
 
-  public void handleShowMsSpectrum(ActionEvent event) {
+  public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    SpectraVisualizerModule module = MZmineCore.getModuleInstance(SpectraVisualizerModule.class);
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
-    parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
-    ExitCode exitCode = parameters.showSetupDialog(null, true);
-    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-    if (exitCode == ExitCode.OK)
-      module.runModule(project, parameters, new ArrayList<Task>());
+    SwingUtilities.invokeLater(() -> {
+      var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+      SpectraVisualizerModule module = MZmineCore.getModuleInstance(SpectraVisualizerModule.class);
+      ParameterSet parameters =
+          MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+      parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
+          RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+      ExitCode exitCode = parameters.showSetupDialog(null, true);
+      MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+      if (exitCode == ExitCode.OK)
+        module.runModule(project, parameters, new ArrayList<Task>());
+    });
   }
 
-  public void removeRawData(ActionEvent event) {
+  public void handleShow2DPlot(Event event) {
+    logger.finest("Activated Show 2D plot menu item");
+  }
+
+  public void handleShow3DPlot(Event event) {
+    logger.finest("Activated Show 3D plot menu item");
+  }
+
+  public void handleShowMsMsPlot(Event event) {}
+
+  public void handleSortRawDataFiles(Event event) {}
+
+  public void handleRemoveFileExtension(Event event) {}
+
+  public void handleExportFile(Event event) {}
+
+  public void handleRenameFile(Event event) {}
+
+  public void handleRemoveRawData(Event event) {
 
     if (rawDataTree.getSelectionModel() == null)
       return;
@@ -314,50 +321,46 @@ public class MainWindowController {
       for (int i = rows.size() - 1; i >= 0; i--) {
         RawDataFile row = rows.get(i);
         MZmineCore.getProjectManager().getCurrentProject().removeFile(row);
-
       }
       // rawDataTree.getSelectionModel().clearSelection();
     }
   }
 
-  public void removeFeatureTable(ActionEvent event) {
-    // Get selected tree items
-    ObservableList<PeakList> rows = null;
-    if (featureTree.getSelectionModel() != null) {
-      rows = featureTree.getSelectionModel().getSelectedItems();
-    }
-
-    // Loop through all selected tree items
-    if (rows != null) {
-      for (int i = rows.size() - 1; i >= 0; i--) {
-        PeakList row = rows.get(i);
-
-        // Remove feature table from current project
-
-        MZmineCore.getProjectManager().getCurrentProject().removePeakList(row);
-
-      }
-      featureTree.getSelectionModel().clearSelection();
-    }
+  public void handleOpenFeatureList(Event event) {
+    var selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (PeakList fl : selectedFeatureLists)
+      PeakListTableModule.showNewPeakListVisualizerWindow(fl);
   }
 
-  public void handleCancelTask(ActionEvent event) {}
+  public void handleShowFeatureListSummary(Event event) {}
 
-  public void handleCancelAllTasks(ActionEvent event) {}
+  public void handleShowScatterPlot(Event event) {}
 
-  public void handleSetHighPriority(ActionEvent event) {}
+  public void handleSortFeatureLists(Event event) {}
 
-  public void handleSetNormalPriority(ActionEvent event) {}
+  public void handleRenameFeatureList(Event event) {}
 
-  public void updateTabName(Tab tab) {
-    /*
-     * String title = ""; if (tab.equals(rawDataFilesTab)) { title = "Raw Data"; int rawDataFiles =
-     * MZmineCore.getCurrentProject().getRawDataFiles() .size(); if (rawDataFiles > 0) title += " ("
-     * + rawDataFiles + ")"; rawDataFilesTab.setText(title); return; } if
-     * (tab.equals(featureTablesTab)) { title = "Feature Tables"; int featureTables =
-     * MZmineCore.getCurrentProject() .getFeatureTables().size(); if (featureTables > 0) title +=
-     * " (" + featureTables + ")"; featureTablesTab.setText(title); return; }
-     */
+  public void handleRemoveFeatureList(Event event) {
+    PeakList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    for (PeakList fl : selectedFeatureLists)
+      MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
+  }
+
+  public void handleCancelTask(Event event) {}
+
+  public void handleCancelAllTasks(Event event) {}
+
+  public void handleSetHighPriority(Event event) {}
+
+  public void handleSetNormalPriority(Event event) {}
+
+  @FXML
+  public void handleMemoryBarClick(Event e) {
+    // Run garbage collector on a new thread, so it does not block the GUI
+    new Thread(() -> {
+      logger.info("Running garbage collector...");
+      System.gc();
+    }).start();
   }
 
 }

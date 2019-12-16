@@ -12,8 +12,8 @@
 
 	<!-- PROJECT -->
 	<Menu text="Project">
-		<Menu onAction="#fillRecentProjects"
-			text="Open recent project..." />
+		<Menu fx:id="recentProjectsMenu" text="Open recent project..."
+			onShowing="#fillRecentProjects" />
 		<MenuItem text="Open project" onAction="#runModule"
 			userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
 			<accelerator>

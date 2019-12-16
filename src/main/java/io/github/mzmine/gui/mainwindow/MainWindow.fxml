@@ -41,34 +41,35 @@
 									</Label>
 								</top>
 								<center>
-									<ListView fx:id="rawDataTree" prefHeight="120">
+									<ListView fx:id="rawDataTree" prefHeight="120"
+										editable="true">
 										<contextMenu>
 											<ContextMenu>
 												<items>
 													<MenuItem text="Show chromatogram"
-														onAction="#handleShowTIC" />
+														onAction="#handleShowChromatogram" />
 													<MenuItem text="Show mass spectrum"
 														onAction="#handleShowMsSpectrum" />
 													<MenuItem text="Show 2D plot"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleShow2DPlot" />
 													<MenuItem text="Show 3D plot"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleShow3DPlot" />
 													<MenuItem text="Show MS/MS plot"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleShowMsMsPlot" />
 
 													<SeparatorMenuItem />
 													<MenuItem text="Sort alphabetically"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleSortRawDataFiles" />
 													<MenuItem text="Remove file extension"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleRemoveFileExtension" />
 
 													<SeparatorMenuItem />
 													<MenuItem text="Export file"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleExportFile" />
 													<MenuItem text="Rename file"
-														onAction="#handleShowMsSpectrum" />
+														onAction="#handleRenameFile" />
 													<MenuItem text="Remove file"
-														onAction="#removeRawData" />
+														onAction="#handleRemoveRawData" />
 												</items>
 											</ContextMenu>
 										</contextMenu>
@@ -88,25 +89,25 @@
 									</Label>
 								</top>
 								<center>
-
-									<ListView fx:id="featureTree" prefHeight="120">
+									<ListView fx:id="featureTree" prefHeight="120"
+										editable="true">
 										<contextMenu>
 											<ContextMenu>
 												<items>
 													<MenuItem text="Open feature list"
-														onAction="#removeFeatureTable" />
+														onAction="#handleOpenFeatureList" />
 													<MenuItem text="Show feature list summary"
-														onAction="#removeFeatureTable" />
+														onAction="#handleShowFeatureListSummary" />
 													<MenuItem text="Show scatter plot"
-														onAction="#removeFeatureTable" />
+														onAction="#handleShowScatterPlot" />
 
 													<SeparatorMenuItem />
 													<MenuItem text="Sort alphabetically"
-														onAction="#removeFeatureTable" />
+														onAction="#handleSortFeatureLists" />
 													<MenuItem text="Rename feature list"
-														onAction="#removeFeatureTable" />
+														onAction="#handleRenameFeatureList" />
 													<MenuItem text="Remove feature list"
-														onAction="#removeFeatureTable" />
+														onAction="#handleRemoveFeatureList" />
 												</items>
 											</ContextMenu>
 										</contextMenu>
@@ -160,10 +161,10 @@
 				<rightItems>
 					<StackPane scaleShape="true">
 						<ProgressBar fx:id="memoryBar" opacity="0.3"
-							prefWidth="150" />
+							prefWidth="150" minWidth="150" />
 						<Label fx:id="memoryBarLabel"
 							onMouseClicked="#handleMemoryBarClick" prefWidth="150"
-							alignment="CENTER">
+							minWidth="150" alignment="CENTER">
 							<tooltip>
 								<Tooltip text="Free/total Java heap size" />
 							</tooltip>
