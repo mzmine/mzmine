@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -74,6 +75,12 @@ public class MainWindowController {
 
   private static final Image rawDataFileIcon =
       FxIconUtil.loadImageFromResources("icons/fileicon.png");
+
+  private static final Image featureListSingleIcon =
+      FxIconUtil.loadImageFromResources("icons/peaklisticon_single.png");
+
+  private static final Image featureListAlignedIcon =
+      FxIconUtil.loadImageFromResources("icons/peaklisticon_aligned.png");
 
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -133,6 +140,45 @@ public class MainWindowController {
       }
     });
 
+    // Add mouse clicked event handler
+    rawDataTree.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        handleShowTIC(null);
+      }
+    });
+
+    featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    // featureTree.setShowRoot(true);
+
+    featureTree.setCellFactory(featureListView -> new ListCell<>() {
+      @Override
+      protected void updateItem(PeakList item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || (item == null)) {
+          setText("");
+          setGraphic(null);
+          return;
+        }
+        setText(item.getName());
+        if (item.getNumberOfRawDataFiles() > 1)
+          setGraphic(new ImageView(featureListAlignedIcon));
+        else
+          setGraphic(new ImageView(featureListSingleIcon));
+      }
+    });
+    // Add mouse clicked event handler
+    featureTree.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        var selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+        for (PeakList fl : selectedFeatureLists)
+          PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      }
+    });
+
+    // taskNameColumn.setPrefWidth(800.0);
+    // taskNameColumn.setMinWidth(600.0);
+    // taskNameColumn.setMinWidth(100.0);
+
     ObservableList<WrappedTask> tasksQueue =
         MZmineCore.getTaskController().getTaskQueue().getTasks();
     tasksView.setItems(tasksQueue);
@@ -166,34 +212,6 @@ public class MainWindowController {
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
       }
     });
-
-    // Add mouse clicked event handler
-    rawDataTree.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2) {
-        handleShowTIC(null);
-      }
-    });
-
-    featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    // featureTree.setShowRoot(true);
-
-    // Add mouse clicked event handler
-    featureTree.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2) {
-        // Show feature table for selected row
-        /*
-         * ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(
-         * FeatureTableModule.class); FeatureTablesParameter inputTablesParam =
-         * moduleParameters.getParameter(FeatureTableModuleParameters. featureTables);
-         * inputTablesParam.switchType(FeatureTablesSelectionType. GUI_SELECTED_FEATURE_TABLES);
-         * MZmineCore.runMZmineModule(FeatureTableModule.class, moduleParameters);
-         */
-      }
-    });
-
-    // taskNameColumn.setPrefWidth(800.0);
-    // taskNameColumn.setMinWidth(600.0);
-    // taskNameColumn.setMinWidth(100.0);
 
     statusBar.setText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
 

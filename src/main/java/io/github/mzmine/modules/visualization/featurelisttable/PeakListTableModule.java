@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable;
 
 import javax.annotation.Nonnull;
-
+import javax.swing.SwingUtilities;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -27,24 +27,25 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class PeakListTableModule implements MZmineModule {
 
-    private static final String MODULE_NAME = "Feature list table";
+  private static final String MODULE_NAME = "Feature list table";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
 
-    public static void showNewPeakListVisualizerWindow(PeakList peakList) {
-        ParameterSet parameters = MZmineCore.getConfiguration()
-                .getModuleParameters(PeakListTableModule.class);
-        final PeakListTableWindow window = new PeakListTableWindow(peakList,
-                parameters);
-        window.setVisible(true);
-    }
+  public static void showNewPeakListVisualizerWindow(PeakList peakList) {
+    SwingUtilities.invokeLater(() -> {
+      ParameterSet parameters =
+          MZmineCore.getConfiguration().getModuleParameters(PeakListTableModule.class);
+      final PeakListTableWindow window = new PeakListTableWindow(peakList, parameters);
+      window.setVisible(true);
+    });
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return PeakListTableParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return PeakListTableParameters.class;
+  }
 
 }
