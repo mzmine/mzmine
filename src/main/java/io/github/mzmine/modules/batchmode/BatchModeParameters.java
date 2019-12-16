@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -28,30 +28,28 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentPa
 import io.github.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
-    // Logger.
-    private static final Logger LOG = Logger
-            .getLogger(BatchModeParameters.class.getName());
+  // Logger.
+  private static final Logger LOG = Logger.getLogger(BatchModeParameters.class.getName());
 
-    public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter(
-            "Last used files");
-    public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
+  public static final FileNameListSilentParameter lastFiles =
+      new FileNameListSilentParameter("Last used files");
+  public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
 
-    public BatchModeParameters() {
-        super(new Parameter[] { batchQueue, lastFiles });
-    }
+  public BatchModeParameters() {
+    super(new Parameter[] {batchQueue, lastFiles});
+  }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
-                valueCheckRequired, this);
-        // set lastUsed files list
-        final BatchSetupComponent batchComponent = ((BatchSetupComponent) dialog
-                .getComponentForParameter(batchQueue));
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+    // set lastUsed files list
+    final BatchSetupComponent batchComponent =
+        ((BatchSetupComponent) dialog.getComponentForParameter(batchQueue));
 
-        // new last used files are inserted to this list in the component
-        batchComponent.setLastFiles(lastFiles.getValue());
+    // new last used files are inserted to this list in the component
+    batchComponent.setLastFiles(lastFiles.getValue());
 
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
 }

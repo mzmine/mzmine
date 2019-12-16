@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -29,71 +29,69 @@ import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public class PseudoSpectrumDataSet extends XYSeriesCollection {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private Map<XYDataItem, String> annotation;
+  private Map<XYDataItem, String> annotation;
 
-    public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
-        super();
-        for (Comparable key : keys)
-            addSeries(new XYSeries(key, autoSort));
+  public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
+    super();
+    for (Comparable key : keys)
+      addSeries(new XYSeries(key, autoSort));
+  }
+
+  public void addDP(double x, double y, String ann) {
+    addDP(0, x, y, ann);
+  }
+
+  public void addDP(int series, double x, double y, String ann) {
+    if (series >= getSeriesCount())
+      throw new OutOfRangeException(series, 0, getSeriesCount());
+
+    XYDataItem dp = new XYDataItem(x, y);
+    getSeries(series).add(dp);
+    if (ann != null) {
+      addAnnotation(dp, ann);
     }
+  }
 
-    public void addDP(double x, double y, String ann) {
-        addDP(0, x, y, ann);
+  /**
+   * Add annotation
+   * 
+   * @param dp
+   * @param ann
+   */
+  public void addAnnotation(XYDataItem dp, String ann) {
+    if (annotation == null)
+      this.annotation = new HashMap<>();
+    annotation.put(dp, ann);
+  }
+
+  public String getAnnotation(int series, int item) {
+    if (annotation == null)
+      return null;
+    XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
+    for (XYDataItem key : annotation.keySet()) {
+      if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
+        return annotation.get(key);
     }
+    return null;
+  }
 
-    public void addDP(int series, double x, double y, String ann) {
-        if (series >= getSeriesCount())
-            throw new OutOfRangeException(series, 0, getSeriesCount());
+  public void addIdentity(MZTolerance mzTolerance, AbstractMSMSIdentity ann) {
+    if (ann instanceof AbstractMSMSDataPointIdentity)
+      addDPIdentity(mzTolerance, (AbstractMSMSDataPointIdentity) ann);
+    // TODO add diff identity
+  }
 
-        XYDataItem dp = new XYDataItem(x, y);
-        getSeries(series).add(dp);
-        if (ann != null) {
-            addAnnotation(dp, ann);
+  private void addDPIdentity(MZTolerance mzTolerance, AbstractMSMSDataPointIdentity ann) {
+    for (int s = 0; s < getSeriesCount(); s++) {
+      XYSeries series = getSeries(s);
+      for (int i = 0; i < series.getItemCount(); i++) {
+        XYDataItem dp = series.getDataItem(i);
+        if (mzTolerance.checkWithinTolerance(dp.getXValue(), ann.getMZ())) {
+          addAnnotation(dp, ann.getName());
         }
+      }
     }
-
-    /**
-     * Add annotation
-     * 
-     * @param dp
-     * @param ann
-     */
-    public void addAnnotation(XYDataItem dp, String ann) {
-        if (annotation == null)
-            this.annotation = new HashMap<>();
-        annotation.put(dp, ann);
-    }
-
-    public String getAnnotation(int series, int item) {
-        if (annotation == null)
-            return null;
-        XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
-        for (XYDataItem key : annotation.keySet()) {
-            if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
-                return annotation.get(key);
-        }
-        return null;
-    }
-
-    public void addIdentity(MZTolerance mzTolerance, AbstractMSMSIdentity ann) {
-        if (ann instanceof AbstractMSMSDataPointIdentity)
-            addDPIdentity(mzTolerance, (AbstractMSMSDataPointIdentity) ann);
-        // TODO add diff identity
-    }
-
-    private void addDPIdentity(MZTolerance mzTolerance,
-            AbstractMSMSDataPointIdentity ann) {
-        for (int s = 0; s < getSeriesCount(); s++) {
-            XYSeries series = getSeries(s);
-            for (int i = 0; i < series.getItemCount(); i++) {
-                XYDataItem dp = series.getDataItem(i);
-                if (mzTolerance.checkWithinTolerance(dp.getXValue(),
-                        ann.getMZ())) {
-                    addAnnotation(dp, ann.getName());
-                }
-            }
-        }
-    }
+  }
 }

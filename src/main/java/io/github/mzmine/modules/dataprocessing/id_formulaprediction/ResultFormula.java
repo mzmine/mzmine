@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -28,59 +28,58 @@ import io.github.mzmine.datamodel.IsotopePattern;
 
 public class ResultFormula {
 
-    private final IMolecularFormula cdkFormula;
-    private Double rdbeValue, isotopeScore, msmsScore;
-    private IsotopePattern predictedIsotopePattern;
-    private Map<DataPoint, String> msmsAnnotation;
+  private final IMolecularFormula cdkFormula;
+  private Double rdbeValue, isotopeScore, msmsScore;
+  private IsotopePattern predictedIsotopePattern;
+  private Map<DataPoint, String> msmsAnnotation;
 
-    public ResultFormula(IMolecularFormula cdkFormula,
-            IsotopePattern predictedIsotopePattern, Double rdbeValue,
-            Double isotopeScore, Double msmsScore,
-            Map<DataPoint, String> msmsAnnotation) {
+  public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
+      Double rdbeValue, Double isotopeScore, Double msmsScore,
+      Map<DataPoint, String> msmsAnnotation) {
 
-        this.cdkFormula = cdkFormula;
-        this.predictedIsotopePattern = predictedIsotopePattern;
-        this.isotopeScore = isotopeScore;
-        this.msmsScore = msmsScore;
-        this.msmsAnnotation = msmsAnnotation;
-        this.rdbeValue = rdbeValue;
+    this.cdkFormula = cdkFormula;
+    this.predictedIsotopePattern = predictedIsotopePattern;
+    this.isotopeScore = isotopeScore;
+    this.msmsScore = msmsScore;
+    this.msmsAnnotation = msmsAnnotation;
+    this.rdbeValue = rdbeValue;
 
-    }
+  }
 
-    public Double getRDBE() {
-        return rdbeValue;
-    }
+  public Double getRDBE() {
+    return rdbeValue;
+  }
 
-    public Map<DataPoint, String> getMSMSannotation() {
-        return msmsAnnotation;
-    }
+  public Map<DataPoint, String> getMSMSannotation() {
+    return msmsAnnotation;
+  }
 
-    public String getFormulaAsString() {
-        return MolecularFormulaManipulator.getString(cdkFormula);
-    }
+  public String getFormulaAsString() {
+    return MolecularFormulaManipulator.getString(cdkFormula);
+  }
 
-    public String getFormulaAsHTML() {
-        return MolecularFormulaManipulator.getHTML(cdkFormula);
-    }
+  public String getFormulaAsHTML() {
+    return MolecularFormulaManipulator.getHTML(cdkFormula);
+  }
 
-    public IMolecularFormula getFormulaAsObject() {
-        return cdkFormula;
-    }
+  public IMolecularFormula getFormulaAsObject() {
+    return cdkFormula;
+  }
 
-    public IsotopePattern getPredictedIsotopes() {
-        return predictedIsotopePattern;
-    }
+  public IsotopePattern getPredictedIsotopes() {
+    return predictedIsotopePattern;
+  }
 
-    public Double getIsotopeScore() {
-        return isotopeScore;
-    }
+  public Double getIsotopeScore() {
+    return isotopeScore;
+  }
 
-    public Double getMSMSScore() {
-        return msmsScore;
-    }
+  public Double getMSMSScore() {
+    return msmsScore;
+  }
 
-    public double getExactMass() {
-        return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
-    }
+  public double getExactMass() {
+    return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
+  }
 
 }

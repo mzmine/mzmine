@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -32,64 +32,54 @@ import io.github.mzmine.main.MZmineCore;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class ScatterPlotToolTipGenerator
-        implements XYZToolTipGenerator, PublicCloneable {
+public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
 
-    private String xAxisLabel, yAxisLabel, zAxisLabel;
-    private NumberFormat numberFormat = MZmineCore.getConfiguration()
-            .getMZFormat();
-    private PeakListRow rows[];
-    private String featureIdentity;
+  private String xAxisLabel, yAxisLabel, zAxisLabel;
+  private NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
+  private PeakListRow rows[];
+  private String featureIdentity;
 
-    public ScatterPlotToolTipGenerator(String xAxisLabel, String yAxisLabel,
-            String zAxisLabel, PeakListRow rows[]) {
-        super();
-        this.xAxisLabel = xAxisLabel;
-        this.yAxisLabel = yAxisLabel;
-        this.zAxisLabel = zAxisLabel;
-        this.rows = rows;
+  public ScatterPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
+      PeakListRow rows[]) {
+    super();
+    this.xAxisLabel = xAxisLabel;
+    this.yAxisLabel = yAxisLabel;
+    this.zAxisLabel = zAxisLabel;
+    this.rows = rows;
 
+  }
+
+  @Override
+  public String generateToolTip(XYZDataset dataset, int series, int item) {
+    if (rows[item].getPreferredPeakIdentity() != null) {
+      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+          + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
+          + numberFormat.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
+          + numberFormat.format(dataset.getZValue(series, item)));
+    } else {
+      return String.valueOf(xAxisLabel + ": " + numberFormat.format(dataset.getXValue(series, item))
+          + " " + yAxisLabel + ": " + numberFormat.format(dataset.getYValue(series, item)) + " "
+          + zAxisLabel + ": " + numberFormat.format(dataset.getZValue(series, item)));
     }
+  }
 
-    @Override
-    public String generateToolTip(XYZDataset dataset, int series, int item) {
-        if (rows[item].getPreferredPeakIdentity() != null) {
-            featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-            return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-                    + numberFormat.format(dataset.getXValue(series, item)) + " "
-                    + yAxisLabel + ": "
-                    + numberFormat.format(dataset.getYValue(series, item)) + " "
-                    + zAxisLabel + ": "
-                    + numberFormat.format(dataset.getZValue(series, item)));
-        } else {
-            return String.valueOf(xAxisLabel + ": "
-                    + numberFormat.format(dataset.getXValue(series, item)) + " "
-                    + yAxisLabel + ": "
-                    + numberFormat.format(dataset.getYValue(series, item)) + " "
-                    + zAxisLabel + ": "
-                    + numberFormat.format(dataset.getZValue(series, item)));
-        }
+  @Override
+  public String generateToolTip(XYDataset dataset, int series, int item) {
+    if (rows[item].getPreferredPeakIdentity() != null) {
+      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+          + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
+          + numberFormat.format(dataset.getYValue(series, item)));
+    } else {
+      return String.valueOf(xAxisLabel + ": " + numberFormat.format(dataset.getXValue(series, item))
+          + " " + yAxisLabel + ": " + numberFormat.format(dataset.getYValue(series, item)));
     }
+  }
 
-    @Override
-    public String generateToolTip(XYDataset dataset, int series, int item) {
-        if (rows[item].getPreferredPeakIdentity() != null) {
-            featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-            return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-                    + numberFormat.format(dataset.getXValue(series, item)) + " "
-                    + yAxisLabel + ": "
-                    + numberFormat.format(dataset.getYValue(series, item)));
-        } else {
-            return String.valueOf(xAxisLabel + ": "
-                    + numberFormat.format(dataset.getXValue(series, item)) + " "
-                    + yAxisLabel + ": "
-                    + numberFormat.format(dataset.getYValue(series, item)));
-        }
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
+  }
 
 }

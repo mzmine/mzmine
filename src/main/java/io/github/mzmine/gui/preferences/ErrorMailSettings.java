@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -31,23 +31,21 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ErrorMailSettings extends SimpleParameterSet {
 
-    // we use the same address to send and receive emails
-    public static final StringParameter eMailAddress = new StringParameter(
-            "E-mail address", "Enter your e-Mail address", true);
+  // we use the same address to send and receive emails
+  public static final StringParameter eMailAddress =
+      new StringParameter("E-mail address", "Enter your e-Mail address", true);
 
-    public static final PasswordParameter eMailPassword = new PasswordParameter(
-            "E-mail password", "Enter your e-Mail password", true);
+  public static final PasswordParameter eMailPassword =
+      new PasswordParameter("E-mail password", "Enter your e-Mail password", true);
 
-    public static final StringParameter smtpHost = new StringParameter(
-            "Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com",
-            true);
+  public static final StringParameter smtpHost =
+      new StringParameter("Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com", true);
 
-    public static final IntegerParameter smtpPort = new IntegerParameter(
-            "smtp port", "Enter smtp port, for gmail 465", true);
+  public static final IntegerParameter smtpPort =
+      new IntegerParameter("smtp port", "Enter smtp port, for gmail 465", true);
 
-    public ErrorMailSettings() {
-        super(new Parameter[] { eMailAddress, eMailPassword, smtpHost,
-                smtpPort });
-    }
+  public ErrorMailSettings() {
+    super(new Parameter[] {eMailAddress, eMailPassword, smtpHost, smtpPort});
+  }
 
 }

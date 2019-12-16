@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -21,24 +21,23 @@ package io.github.mzmine.modules.impl;
 import io.github.mzmine.modules.MZmineModule;
 
 /**
- * A simple wrapper providing the toString() method for adding modules to combo
- * boxes etc.
+ * A simple wrapper providing the toString() method for adding modules to combo boxes etc.
  */
 public class MZmineModuleWrapper {
 
-    private MZmineModule module;
+  private MZmineModule module;
 
-    public MZmineModuleWrapper(MZmineModule module) {
-        this.module = module;
-    }
+  public MZmineModuleWrapper(MZmineModule module) {
+    this.module = module;
+  }
 
-    public MZmineModule getModule() {
-        return module;
-    }
+  public MZmineModule getModule() {
+    return module;
+  }
 
-    @Override
-    public String toString() {
-        return module.getName();
-    }
+  @Override
+  public String toString() {
+    return module.getName();
+  }
 
 }

@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -35,80 +35,79 @@ import javax.swing.JPopupMenu;
  *
  */
 public class JLastFilesButton extends JButton implements LastFilesComponent {
-    private static final long serialVersionUID = 1L;
-    private JPopupMenu menu;
-    private List<File> lastFiles;
-    // listens for click on one of the last files
-    // consumer decides what to do
-    private Consumer<File> changeListener;
+  private static final long serialVersionUID = 1L;
+  private JPopupMenu menu;
+  private List<File> lastFiles;
+  // listens for click on one of the last files
+  // consumer decides what to do
+  private Consumer<File> changeListener;
 
-    public JLastFilesButton(Consumer<File> changeListener) {
-        this("Last", changeListener);
+  public JLastFilesButton(Consumer<File> changeListener) {
+    this("Last", changeListener);
+  }
+
+  public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
+    this("", icon, changeListener);
+  }
+
+  public JLastFilesButton(String text, Icon icon, Consumer<File> changeListener) {
+    super(text, icon);
+    this.changeListener = changeListener;
+    init();
+  }
+
+  public JLastFilesButton(String text, Consumer<File> changeListener) {
+    super(text);
+    this.changeListener = changeListener;
+    init();
+  }
+
+  private void init() {
+    setToolTipText("Load last files");
+    menu = new JPopupMenu();
+    lastFiles = new ArrayList<>();
+    setLastFiles(lastFiles);
+    // show menu on click
+    this.addActionListener(e -> menu.show(this, 0, 0));
+  }
+
+  @Override
+  public void setLastFiles(List<File> lastFiles) {
+    this.lastFiles = lastFiles;
+
+    menu.removeAll();
+    if (lastFiles == null || lastFiles.isEmpty()) {
+      setEnabled(false);
+      return;
     }
+    setEnabled(true);
 
-    public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
-        this("", icon, changeListener);
-    }
-
-    public JLastFilesButton(String text, Icon icon,
-            Consumer<File> changeListener) {
-        super(text, icon);
-        this.changeListener = changeListener;
-        init();
-    }
-
-    public JLastFilesButton(String text, Consumer<File> changeListener) {
-        super(text);
-        this.changeListener = changeListener;
-        init();
-    }
-
-    private void init() {
-        setToolTipText("Load last files");
-        menu = new JPopupMenu();
-        lastFiles = new ArrayList<>();
-        setLastFiles(lastFiles);
-        // show menu on click
-        this.addActionListener(e -> menu.show(this, 0, 0));
-    }
-
-    @Override
-    public void setLastFiles(List<File> lastFiles) {
-        this.lastFiles = lastFiles;
-
-        menu.removeAll();
-        if (lastFiles == null || lastFiles.isEmpty()) {
-            setEnabled(false);
-            return;
+    lastFiles.stream().map(this::fileToString).forEach(name -> {
+      JMenuItem item = new JMenuItem(name);
+      item.addActionListener(e -> {
+        JMenuItem c = (JMenuItem) e.getSource();
+        if (c != null) {
+          int i = menu.getComponentIndex(c);
+          if (i != -1 && i < lastFiles.size())
+            changeListener.accept(lastFiles.get(i));
         }
-        setEnabled(true);
+      });
+      menu.add(item);
+    });
+  }
 
-        lastFiles.stream().map(this::fileToString).forEach(name -> {
-            JMenuItem item = new JMenuItem(name);
-            item.addActionListener(e -> {
-                JMenuItem c = (JMenuItem) e.getSource();
-                if (c != null) {
-                    int i = menu.getComponentIndex(c);
-                    if (i != -1 && i < lastFiles.size())
-                        changeListener.accept(lastFiles.get(i));
-                }
-            });
-            menu.add(item);
-        });
-    }
+  private String fileToString(File f) {
+    return MessageFormat.format("{0} ({1})", f.getName(), f.getParent());
+  }
 
-    private String fileToString(File f) {
-        return MessageFormat.format("{0} ({1})", f.getName(), f.getParent());
-    }
+  public void addFile(File f) {
+    if (f == null)
+      return;
 
-    public void addFile(File f) {
-        if (f == null)
-            return;
-
-        // add to last files if not already inserted
-        lastFiles.remove(f);
-        lastFiles.add(0, f);
-        setLastFiles(lastFiles);
-    }
+    // add to last files if not already inserted
+    lastFiles.remove(f);
+    lastFiles.add(0, f);
+    setLastFiles(lastFiles);
+  }
 
 }

@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -27,38 +27,35 @@ import java.util.Collection;
  */
 public interface Parameter<ValueType> {
 
-    /**
-     * Returns this parameter's name. The name must be unique within one
-     * ParameterSet.
-     * 
-     * @return Parameter name
-     */
-    public String getName();
+  /**
+   * Returns this parameter's name. The name must be unique within one ParameterSet.
+   * 
+   * @return Parameter name
+   */
+  public String getName();
 
-    public ValueType getValue();
+  public ValueType getValue();
 
-    public void setValue(ValueType newValue);
+  public void setValue(ValueType newValue);
 
-    public boolean checkValue(Collection<String> errorMessages);
+  public boolean checkValue(Collection<String> errorMessages);
 
-    public void loadValueFromXML(Element xmlElement);
+  public void loadValueFromXML(Element xmlElement);
 
-    public void saveValueToXML(Element xmlElement);
+  public void saveValueToXML(Element xmlElement);
 
-    /**
-     * We use isSensitive() to decide whether a parameter has to be encrypted
-     * (e.g. passwords). Further, sensitive parameters are not written to
-     * project level configs
-     */
-    public default boolean isSensitive() {
-        return false;
-    }
+  /**
+   * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).
+   * Further, sensitive parameters are not written to project level configs
+   */
+  public default boolean isSensitive() {
+    return false;
+  }
 
-    /**
-     * We use cloneParameter() instead of clone() to force the implementing
-     * classes to implement this method. Plain clone() is automatically
-     * implemented by the Object class.
-     */
-    public Parameter<ValueType> cloneParameter();
+  /**
+   * We use cloneParameter() instead of clone() to force the implementing classes to implement this
+   * method. Plain clone() is automatically implemented by the Object class.
+   */
+  public Parameter<ValueType> cloneParameter();
 
 }

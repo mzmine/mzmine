@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -26,48 +26,45 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 
 /**
- * Label generator for spectra visualizer. Only used to generate labels for the
- * raw data (ScanDataSet)
+ * Label generator for spectra visualizer. Only used to generate labels for the raw data
+ * (ScanDataSet)
  */
 public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
-    /*
-     * Number of screen pixels to reserve for each label, so that the labels do
-     * not overlap
-     */
-    public static final int POINTS_RESERVE_X = 100;
+  /*
+   * Number of screen pixels to reserve for each label, so that the labels do not overlap
+   */
+  public static final int POINTS_RESERVE_X = 100;
 
-    private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    public SpectraItemLabelGenerator() {
+  public SpectraItemLabelGenerator() {}
+
+  /**
+   * Labels for mz signals
+   * 
+   * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
+   *      int, int)
+   */
+  @Override
+  public String generateLabel(XYDataset dataset, int series, int item) {
+    // Create label
+    String label = null;
+    if (dataset instanceof PseudoSpectrumDataSet) {
+      double mzValue = dataset.getXValue(series, item);
+      label = mzFormat.format(mzValue);
+      String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series, item);
+      if (ann != null)
+        label = label + "\n" + ann;
+      return label;
+    }
+    if (label == null) {
+      double mzValue = dataset.getXValue(series, item);
+      label = mzFormat.format(mzValue);
     }
 
-    /**
-     * Labels for mz signals
-     * 
-     * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-     *      int, int)
-     */
-    @Override
-    public String generateLabel(XYDataset dataset, int series, int item) {
-        // Create label
-        String label = null;
-        if (dataset instanceof PseudoSpectrumDataSet) {
-            double mzValue = dataset.getXValue(series, item);
-            label = mzFormat.format(mzValue);
-            String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series,
-                    item);
-            if (ann != null)
-                label = label + "\n" + ann;
-            return label;
-        }
-        if (label == null) {
-            double mzValue = dataset.getXValue(series, item);
-            label = mzFormat.format(mzValue);
-        }
+    return label;
 
-        return label;
-
-    }
+  }
 
 }

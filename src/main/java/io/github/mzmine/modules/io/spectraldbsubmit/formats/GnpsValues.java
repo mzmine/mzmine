@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -38,49 +38,49 @@ package io.github.mzmine.modules.io.spectraldbsubmit.formats;
  */
 public class GnpsValues {
 
-    public enum CompoundSource {
-        Lysate, Isolated, Commercial, Crude, Other;
+  public enum CompoundSource {
+    Lysate, Isolated, Commercial, Crude, Other;
+  }
+
+  public enum Polarity {
+    Positive, Negative;
+  }
+
+  public enum Instrument {
+    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+
+    private final String value;
+
+    private Instrument() {
+      this.value = null;
     }
 
-    public enum Polarity {
-        Positive, Negative;
+    private Instrument(String value) {
+      this.value = value;
     }
 
-    public enum Instrument {
-        qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
+  }
 
-        private final String value;
+  public enum IonSource {
+    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
 
-        private Instrument() {
-            this.value = null;
-        }
+    private final String value;
 
-        private Instrument(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value != null ? value : super.toString();
-        }
+    private IonSource() {
+      this.value = null;
     }
 
-    public enum IonSource {
-        LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
-
-        private final String value;
-
-        private IonSource() {
-            this.value = null;
-        }
-
-        private IonSource(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value != null ? value : super.toString();
-        }
+    private IonSource(String value) {
+      this.value = value;
     }
+
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
+  }
 }

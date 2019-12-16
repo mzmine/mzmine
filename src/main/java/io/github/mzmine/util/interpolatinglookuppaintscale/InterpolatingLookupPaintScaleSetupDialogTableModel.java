@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -23,39 +23,37 @@ import java.util.TreeMap;
 
 import javax.swing.table.AbstractTableModel;
 
-public class InterpolatingLookupPaintScaleSetupDialogTableModel
-        extends AbstractTableModel {
+public class InterpolatingLookupPaintScaleSetupDialogTableModel extends AbstractTableModel {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    private static String[] columnNames = { "Value", "Color" };
+  private static String[] columnNames = {"Value", "Color"};
 
-    private TreeMap<Double, Color> lookupTable;
+  private TreeMap<Double, Color> lookupTable;
 
-    public InterpolatingLookupPaintScaleSetupDialogTableModel(
-            TreeMap<Double, Color> lookupTable) {
-        this.lookupTable = lookupTable;
-    }
+  public InterpolatingLookupPaintScaleSetupDialogTableModel(TreeMap<Double, Color> lookupTable) {
+    this.lookupTable = lookupTable;
+  }
 
-    public int getColumnCount() {
-        return 2;
-    }
+  public int getColumnCount() {
+    return 2;
+  }
 
-    public int getRowCount() {
-        return lookupTable.size();
-    }
+  public int getRowCount() {
+    return lookupTable.size();
+  }
 
-    public String getColumnName(int column) {
-        return columnNames[column];
-    }
+  public String getColumnName(int column) {
+    return columnNames[column];
+  }
 
-    public Object getValueAt(int row, int column) {
-        if (column == 0)
-            return lookupTable.keySet().toArray(new Double[0])[row];
-        return null;
-    }
+  public Object getValueAt(int row, int column) {
+    if (column == 0)
+      return lookupTable.keySet().toArray(new Double[0])[row];
+    return null;
+  }
 
 }

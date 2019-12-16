@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -33,29 +33,26 @@ import io.github.mzmine.util.EMailUtil;
  */
 public class ErrorMail {
 
-    public void sendErrorEmail(String emailTo, String emailFrom,
-            String smtpServer, String subject, String msg, String password,
-            Integer port) throws IOException {
+  public void sendErrorEmail(String emailTo, String emailFrom, String smtpServer, String subject,
+      String msg, String password, Integer port) throws IOException {
 
-        Properties props = new Properties();
-        props.put("mail.smtp.host", smtpServer); // SMTP Host
-        props.put("mail.smtp.socketFactory.port", port); // SSL Port
-        props.put("mail.smtp.socketFactory.class",
-                "javax.net.ssl.SSLSocketFactory"); // SSL Factory
-                                                   // Class
-        props.put("mail.smtp.auth", "true"); // Enabling SMTP Authentication
-        props.put("mail.smtp.port", port); // SMTP Port, gmail 465
+    Properties props = new Properties();
+    props.put("mail.smtp.host", smtpServer); // SMTP Host
+    props.put("mail.smtp.socketFactory.port", port); // SSL Port
+    props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); // SSL Factory
+                                                                                  // Class
+    props.put("mail.smtp.auth", "true"); // Enabling SMTP Authentication
+    props.put("mail.smtp.port", port); // SMTP Port, gmail 465
 
-        Authenticator auth = new Authenticator() {
+    Authenticator auth = new Authenticator() {
 
-            // override the getPasswordAuthentication method
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(emailFrom, password);
-            }
-        };
-        Session session = Session.getDefaultInstance(props, auth);
-        Thread eMailThread = new Thread(
-                new EMailUtil(session, emailTo, subject, msg));
-        eMailThread.start();
-    }
+      // override the getPasswordAuthentication method
+      protected PasswordAuthentication getPasswordAuthentication() {
+        return new PasswordAuthentication(emailFrom, password);
+      }
+    };
+    Session session = Session.getDefaultInstance(props, auth);
+    Thread eMailThread = new Thread(new EMailUtil(session, emailTo, subject, msg));
+    eMailThread.start();
+  }
 }

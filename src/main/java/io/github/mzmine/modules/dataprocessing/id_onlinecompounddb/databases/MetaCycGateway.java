@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -46,99 +46,94 @@ import io.github.mzmine.util.InetUtils;
 
 public class MetaCycGateway implements DBGateway {
 
-    private static final String metaCycSearchAddress = "https://websvc.biocyc.org/META/monoisotopicwt?wts=";
-    private static final String metaCycObjectAddress = "https://websvc.biocyc.org/getxml?META:";
-    private static final String metaCycEntryAddress = "https://websvc.biocyc.org/compound?orgid=META&id=";
+  private static final String metaCycSearchAddress =
+      "https://websvc.biocyc.org/META/monoisotopicwt?wts=";
+  private static final String metaCycObjectAddress = "https://websvc.biocyc.org/getxml?META:";
+  private static final String metaCycEntryAddress =
+      "https://websvc.biocyc.org/compound?orgid=META&id=";
 
-    public String[] findCompounds(double mass, MZTolerance mzTolerance,
-            int numOfResults, ParameterSet parameters) throws IOException {
+  public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
+      ParameterSet parameters) throws IOException {
 
-        final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
+    final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
 
-        final String queryAddress = metaCycSearchAddress + mass + "&tol="
-                + ppmTolerance;
+    final String queryAddress = metaCycSearchAddress + mass + "&tol=" + ppmTolerance;
 
-        final URL queryURL = new URL(queryAddress);
+    final URL queryURL = new URL(queryAddress);
 
-        final Logger logger = Logger.getLogger(this.getClass().getName());
+    final Logger logger = Logger.getLogger(this.getClass().getName());
 
-        // Submit the query
-        logger.finest("Retrieving " + queryAddress);
-        final String queryResult = InetUtils.retrieveData(queryURL);
+    // Submit the query
+    logger.finest("Retrieving " + queryAddress);
+    final String queryResult = InetUtils.retrieveData(queryURL);
 
-        final List<String> results = new ArrayList<String>();
-        BufferedReader lineReader = new BufferedReader(
-                new StringReader(queryResult));
-        String line;
-        while ((line = lineReader.readLine()) != null) {
-            String split[] = line.split("\\t");
-            if (split.length < 5)
-                continue;
-            String id = split[4];
-            results.add(id);
-            if (results.size() == numOfResults)
-                break;
-        }
-
-        return results.toArray(new String[0]);
-
+    final List<String> results = new ArrayList<String>();
+    BufferedReader lineReader = new BufferedReader(new StringReader(queryResult));
+    String line;
+    while ((line = lineReader.readLine()) != null) {
+      String split[] = line.split("\\t");
+      if (split.length < 5)
+        continue;
+      String id = split[4];
+      results.add(id);
+      if (results.size() == numOfResults)
+        break;
     }
 
-    /**
-     * This method retrieves the details about PlantCyc compound
-     * 
-     */
-    public DBCompound getCompound(String ID, ParameterSet parameters)
-            throws IOException {
+    return results.toArray(new String[0]);
 
-        final String dataURL = metaCycObjectAddress + ID;
+  }
 
-        try {
+  /**
+   * This method retrieves the details about PlantCyc compound
+   * 
+   */
+  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
 
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = dbf.newDocumentBuilder();
-            Document parsedResult = builder.parse(dataURL);
+    final String dataURL = metaCycObjectAddress + ID;
 
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = factory.newXPath();
+    try {
 
-            XPathExpression expr = xpath
-                    .compile("//ptools-xml/Compound/common-name");
-            NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult,
-                    XPathConstants.NODESET);
-            Element nameElement = (Element) nameElementNL.item(0);
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      DocumentBuilder builder = dbf.newDocumentBuilder();
+      Document parsedResult = builder.parse(dataURL);
 
-            if (nameElement == null)
-                throw new IOException("Could not parse compound name");
+      XPathFactory factory = XPathFactory.newInstance();
+      XPath xpath = factory.newXPath();
 
-            String compoundName = nameElement.getTextContent();
+      XPathExpression expr = xpath.compile("//ptools-xml/Compound/common-name");
+      NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult, XPathConstants.NODESET);
+      Element nameElement = (Element) nameElementNL.item(0);
 
-            expr = xpath.compile("//ptools-xml/Compound/cml/molecule/formula");
-            NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult,
-                    XPathConstants.NODESET);
-            Element formulaElement = (Element) formulaElementNL.item(0);
-            String compoundFormula = formulaElement.getAttribute("concise");
-            compoundFormula = compoundFormula.replaceAll(" ", "");
+      if (nameElement == null)
+        throw new IOException("Could not parse compound name");
 
-            final URL entryURL = new URL(metaCycEntryAddress + ID);
+      String compoundName = nameElement.getTextContent();
 
-            // Unfortunately MetaCyc does not contain structures in MOL format
-            URL structure2DURL = null;
-            URL structure3DURL = null;
+      expr = xpath.compile("//ptools-xml/Compound/cml/molecule/formula");
+      NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult, XPathConstants.NODESET);
+      Element formulaElement = (Element) formulaElementNL.item(0);
+      String compoundFormula = formulaElement.getAttribute("concise");
+      compoundFormula = compoundFormula.replaceAll(" ", "");
 
-            if (compoundName == null) {
-                throw (new IOException("Invalid compound ID " + ID));
-            }
+      final URL entryURL = new URL(metaCycEntryAddress + ID);
 
-            DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID,
-                    compoundName, compoundFormula, entryURL, structure2DURL,
-                    structure3DURL);
+      // Unfortunately MetaCyc does not contain structures in MOL format
+      URL structure2DURL = null;
+      URL structure3DURL = null;
 
-            return newCompound;
+      if (compoundName == null) {
+        throw (new IOException("Invalid compound ID " + ID));
+      }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new IOException(e);
-        }
+      DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID, compoundName,
+          compoundFormula, entryURL, structure2DURL, structure3DURL);
+
+      return newCompound;
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new IOException(e);
     }
+  }
 }

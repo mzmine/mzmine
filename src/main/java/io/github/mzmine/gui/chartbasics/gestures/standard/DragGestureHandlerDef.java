@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -32,83 +32,82 @@ import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 /**
- * Definition of {@link ChartGestureDragDiffHandler}s Used to store the
- * definition of a drag difference handler and to generate GestureHandlers
+ * Definition of {@link ChartGestureDragDiffHandler}s Used to store the definition of a drag
+ * difference handler and to generate GestureHandlers
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class DragGestureHandlerDef implements GestureHandlerFactory {
 
-    protected DragHandler[] handler;
-    protected Key[] key;
-    protected Entity entity;
-    protected Button button;
-    protected Orientation orient;
-    protected Object[] param;
+  protected DragHandler[] handler;
+  protected Key[] key;
+  protected Entity entity;
+  protected Button button;
+  protected Orientation orient;
+  protected Object[] param;
 
-    public DragGestureHandlerDef(DragHandler[] handler, Key[] key,
-            Entity entity, Button button, Orientation orient, Object[] param) {
-        super();
-        this.handler = handler;
-        this.key = key;
-        this.entity = entity;
-        this.button = button;
-        this.orient = orient;
-        this.param = param;
-    }
+  public DragGestureHandlerDef(DragHandler[] handler, Key[] key, Entity entity, Button button,
+      Orientation orient, Object[] param) {
+    super();
+    this.handler = handler;
+    this.key = key;
+    this.entity = entity;
+    this.button = button;
+    this.orient = orient;
+    this.param = param;
+  }
 
-    @Override
-    public ChartGestureHandler createHandler() {
-        return ChartGestureHandler.createDragDiffHandler(handler, key, entity,
-                button, orient, param);
-    }
+  @Override
+  public ChartGestureHandler createHandler() {
+    return ChartGestureHandler.createDragDiffHandler(handler, key, entity, button, orient, param);
+  }
 
-    public DragHandler[] getHandler() {
-        return handler;
-    }
+  public DragHandler[] getHandler() {
+    return handler;
+  }
 
-    public Key[] getKey() {
-        return key;
-    }
+  public Key[] getKey() {
+    return key;
+  }
 
-    public Entity getEntity() {
-        return entity;
-    }
+  public Entity getEntity() {
+    return entity;
+  }
 
-    public Button getButton() {
-        return button;
-    }
+  public Button getButton() {
+    return button;
+  }
 
-    public Orientation getOrient() {
-        return orient;
-    }
+  public Orientation getOrient() {
+    return orient;
+  }
 
-    public Object[] getParam() {
-        return param;
-    }
+  public Object[] getParam() {
+    return param;
+  }
 
-    public void setHandler(DragHandler[] handler) {
-        this.handler = handler;
-    }
+  public void setHandler(DragHandler[] handler) {
+    this.handler = handler;
+  }
 
-    public void setKey(Key[] key) {
-        this.key = key;
-    }
+  public void setKey(Key[] key) {
+    this.key = key;
+  }
 
-    public void setEntity(Entity entity) {
-        this.entity = entity;
-    }
+  public void setEntity(Entity entity) {
+    this.entity = entity;
+  }
 
-    public void setButton(Button button) {
-        this.button = button;
-    }
+  public void setButton(Button button) {
+    this.button = button;
+  }
 
-    public void setOrient(Orientation orient) {
-        this.orient = orient;
-    }
+  public void setOrient(Orientation orient) {
+    this.orient = orient;
+  }
 
-    public void setParam(Object[] param) {
-        this.param = param;
-    }
+  public void setParam(Object[] param) {
+    this.param = param;
+  }
 
 }

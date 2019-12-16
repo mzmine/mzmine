@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -32,33 +32,29 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class SpectraIdentificationCustomDatabaseParameters
-        extends SimpleParameterSet {
+public class SpectraIdentificationCustomDatabaseParameters extends SimpleParameterSet {
 
-    public static final FileNameParameter dataBaseFile = new FileNameParameter(
-            "Database file",
-            "Name of file that contains information for peak identification");
+  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
+      "Name of file that contains information for peak identification");
 
-    public static final StringParameter fieldSeparator = new StringParameter(
-            "Field separator",
-            "Character(s) used to separate fields in the database file", ",");
+  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
+      "Character(s) used to separate fields in the database file", ",");
 
-    public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
-            "Field order",
-            "Order of items in which they are read from database file",
-            FieldItem.values());
+  public static final OrderParameter<FieldItem> fieldOrder =
+      new OrderParameter<FieldItem>("Field order",
+          "Order of items in which they are read from database file", FieldItem.values());
 
-    public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
-            "Ignore first line", "Ignore the first line of database file");
+  public static final BooleanParameter ignoreFirstLine =
+      new BooleanParameter("Ignore first line", "Ignore the first line of database file");
 
-    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-    public static final DoubleParameter noiseLevel = new DoubleParameter(
-            "Noise level", "Set a noise level");
+  public static final DoubleParameter noiseLevel =
+      new DoubleParameter("Noise level", "Set a noise level");
 
-    public SpectraIdentificationCustomDatabaseParameters() {
-        super(new Parameter[] { dataBaseFile, fieldSeparator, fieldOrder,
-                ignoreFirstLine, mzTolerance, noiseLevel });
-    }
+  public SpectraIdentificationCustomDatabaseParameters() {
+    super(new Parameter[] {dataBaseFile, fieldSeparator, fieldOrder, ignoreFirstLine, mzTolerance,
+        noiseLevel});
+  }
 
 }

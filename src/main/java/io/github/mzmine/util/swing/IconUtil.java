@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -32,32 +32,26 @@ import javax.swing.ImageIcon;
  */
 public class IconUtil {
 
-    public static @Nonnull ImageIcon loadIconFromResources(
-            final @Nonnull String resourcePath) {
-        final URL iconResourcePath = IconUtil.class.getClassLoader()
-                .getResource(resourcePath);
-        if (iconResourcePath == null)
-            throw new IllegalArgumentException(
-                    "Could not find an icon file at path " + resourcePath);
-        final ImageIcon icon = new ImageIcon(iconResourcePath);
-        return icon;
-    }
+  public static @Nonnull ImageIcon loadIconFromResources(final @Nonnull String resourcePath) {
+    final URL iconResourcePath = IconUtil.class.getClassLoader().getResource(resourcePath);
+    if (iconResourcePath == null)
+      throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
+    final ImageIcon icon = new ImageIcon(iconResourcePath);
+    return icon;
+  }
 
-    public static @Nonnull Icon loadIconFromResources(
-            final @Nonnull String resourcePath, final int width) {
-        final ImageIcon icon = loadIconFromResources(resourcePath);
-        final ImageIcon scaledIcon = scaled(icon, width);
-        return scaledIcon;
-    }
+  public static @Nonnull Icon loadIconFromResources(final @Nonnull String resourcePath,
+      final int width) {
+    final ImageIcon icon = loadIconFromResources(resourcePath);
+    final ImageIcon scaledIcon = scaled(icon, width);
+    return scaledIcon;
+  }
 
-    public static @Nonnull ImageIcon scaled(final ImageIcon icon,
-            final int width) {
-        int height = Math.round(
-                icon.getIconHeight() / (float) icon.getIconWidth() * width);
-        Image image = icon.getImage();
-        Image newimg = image.getScaledInstance(width, height,
-                java.awt.Image.SCALE_SMOOTH);
-        return new ImageIcon(newimg);
-    }
+  public static @Nonnull ImageIcon scaled(final ImageIcon icon, final int width) {
+    int height = Math.round(icon.getIconHeight() / (float) icon.getIconWidth() * width);
+    Image image = icon.getImage();
+    Image newimg = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+    return new ImageIcon(newimg);
+  }
 
 }

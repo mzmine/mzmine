@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -31,87 +31,86 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
  */
 public class ChartGestureDragDiffEvent {
 
-    private ChartGestureEvent firstEvent, lastEvent, latestEvent;
-    private Orientation orient;
-    // drag start and difference between last and latestEvent
-    private double start, diff;
+  private ChartGestureEvent firstEvent, lastEvent, latestEvent;
+  private Orientation orient;
+  // drag start and difference between last and latestEvent
+  private double start, diff;
 
-    public ChartGestureDragDiffEvent(ChartGestureEvent firstEvent,
-            ChartGestureEvent lastEvent, ChartGestureEvent latestEvent,
-            double start, double diff, Orientation orient) {
-        super();
-        this.firstEvent = firstEvent;
-        this.latestEvent = latestEvent;
-        this.lastEvent = lastEvent;
-        this.start = start;
-        this.diff = diff;
-        this.orient = orient;
-    }
+  public ChartGestureDragDiffEvent(ChartGestureEvent firstEvent, ChartGestureEvent lastEvent,
+      ChartGestureEvent latestEvent, double start, double diff, Orientation orient) {
+    super();
+    this.firstEvent = firstEvent;
+    this.latestEvent = latestEvent;
+    this.lastEvent = lastEvent;
+    this.start = start;
+    this.diff = diff;
+    this.orient = orient;
+  }
 
-    public void setLatestEvent(ChartGestureEvent latestEvent) {
-        lastEvent = this.latestEvent;
-        this.latestEvent = latestEvent;
-    }
+  public void setLatestEvent(ChartGestureEvent latestEvent) {
+    lastEvent = this.latestEvent;
+    this.latestEvent = latestEvent;
+  }
 
-    /**
-     * First event (usually Event.PRESSED)
-     * 
-     * @return
-     */
-    public ChartGestureEvent getFirstEvent() {
-        return firstEvent;
-    }
+  /**
+   * First event (usually Event.PRESSED)
+   * 
+   * @return
+   */
+  public ChartGestureEvent getFirstEvent() {
+    return firstEvent;
+  }
 
-    /**
-     * Event previous to latest event
-     * 
-     * @return
-     */
-    public ChartGestureEvent getLastEvent() {
-        return lastEvent;
-    }
+  /**
+   * Event previous to latest event
+   * 
+   * @return
+   */
+  public ChartGestureEvent getLastEvent() {
+    return lastEvent;
+  }
 
-    public ChartGestureEvent getLatestEvent() {
-        return latestEvent;
-    }
+  public ChartGestureEvent getLatestEvent() {
+    return latestEvent;
+  }
 
-    /**
-     * Start value of first event in data space
-     * 
-     * @return
-     */
-    public double getStart() {
-        return start;
-    }
+  /**
+   * Start value of first event in data space
+   * 
+   * @return
+   */
+  public double getStart() {
+    return start;
+  }
 
-    /**
-     * Difference value of the last two eventsin data space
-     * 
-     * @return
-     */
-    public double getDiff() {
-        return diff;
-    }
+  /**
+   * Difference value of the last two eventsin data space
+   * 
+   * @return
+   */
+  public double getDiff() {
+    return diff;
+  }
 
-    public Entity getEntity() {
-        return firstEvent.getGesture().getEntity();
-    }
+  public Entity getEntity() {
+    return firstEvent.getGesture().getEntity();
+  }
 
-    public ChartViewWrapper getChartWrapper() {
-        return firstEvent.getChartWrapper();
-    }
+  public ChartViewWrapper getChartWrapper() {
+    return firstEvent.getChartWrapper();
+  }
 
-    /**
-     * The ValueAxis of this event's entity or null if the entity is different
-     * to an AxisEntity or if the axis is not a ValueAxis
-     * 
-     * @return
-     */
-    public ValueAxis getAxis() {
-        return firstEvent.getAxis();
-    }
+  /**
+   * The ValueAxis of this event's entity or null if the entity is different to an AxisEntity or if
+   * the axis is not a ValueAxis
+   * 
+   * @return
+   */
+  public ValueAxis getAxis() {
+    return firstEvent.getAxis();
+  }
 
-    public Orientation getOrient() {
-        return orient;
-    }
+  public Orientation getOrient() {
+    return orient;
+  }
 }

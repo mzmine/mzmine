@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.mzmine"
-version = "2.53"
+version = "2.54"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
@@ -197,8 +197,8 @@ application {
                                  "-XX:MinRAMPercentage=80",
                                  "-XX:MaxRAMPercentage=80",
                                  "-Djava.library.path=lib",
-                                 "-Dapple.awt.application.name=MZmine ${version}", 
-                                 "-Dapple.laf.useScreenMenuBar=true"
+                                 "-enableassertions",
+                                 "-Dapple.awt.application.name=MZmine ${version}" 
                                 ]
 }
 
@@ -258,12 +258,8 @@ tasks.runtime.doLast {
     delete file(relativePath(imageDir) + "/release")
 
     copy {
-        from("src/main/log")
+        from("log")
         into(relativePath(imageDir) + "/log")
-    }
-    copy {
-        from("src/main/conf/logging.properties")
-        into(relativePath(imageDir) + "/conf/")
     }
     copy {
         from("manual.pdf")
@@ -277,6 +273,7 @@ tasks.runtime.doLast {
         from("src/main/lib/vendor_lib")
         into(relativePath(imageDir) + "/lib/vendor_lib")
     }
+
 }
 
 /*

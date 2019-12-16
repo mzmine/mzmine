@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -45,149 +45,142 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 public class ADAP3DTask extends AbstractTask {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private final MZmineProject project;
-    private final RawDataFile dataFile;
-    private final ScanSelection scanSelection;
-    private final String suffix;
-    private ADAP3DFeatureDetectionMethod msdkADAP3DMethod;
+  private final MZmineProject project;
+  private final RawDataFile dataFile;
+  private final ScanSelection scanSelection;
+  private final String suffix;
+  private ADAP3DFeatureDetectionMethod msdkADAP3DMethod;
 
-    /**
-     * @param dataFile
-     * @param parameters
-     */
-    public ADAP3DTask(MZmineProject project, RawDataFile dataFile,
-            ParameterSet parameters) {
+  /**
+   * @param dataFile
+   * @param parameters
+   */
+  public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
 
-        this.project = project;
-        this.dataFile = dataFile;
-        this.scanSelection = parameters
-                .getParameter(ADAP3DParameters.scanSelection).getValue();
-        this.suffix = parameters.getParameter(ADAP3DParameters.suffix)
-                .getValue();
+    this.project = project;
+    this.dataFile = dataFile;
+    this.scanSelection = parameters.getParameter(ADAP3DParameters.scanSelection).getValue();
+    this.suffix = parameters.getParameter(ADAP3DParameters.suffix).getValue();
 
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+   */
+  @Override
+  public String getTaskDescription() {
+    return "Running ADAP3D on file " + dataFile;
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+   */
+  @Override
+  public double getFinishedPercentage() {
+    if (msdkADAP3DMethod == null)
+      return 0.0;
+    Float msdkProgress = msdkADAP3DMethod.getFinishedPercentage();
+    if (msdkProgress == null)
+      return 0.0;
+    return msdkProgress.doubleValue();
+  }
+
+  public RawDataFile getDataFile() {
+    return dataFile;
+  }
+
+  /**
+   * @see Runnable#run()
+   */
+  @Override
+  public void run() {
+
+    setStatus(TaskStatus.PROCESSING);
+    logger.info("Started ADAP3D on " + dataFile);
+
+    List<Scan> selectedScans = Arrays.asList(scanSelection.getMatchingScans(dataFile));
+
+    // Check if we have any scans
+    if (selectedScans.size() == 0) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("No scans match the selected criteria");
+      return;
     }
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    @Override
-    public String getTaskDescription() {
-        return "Running ADAP3D on file " + dataFile;
+    // Check if the scans are properly ordered by RT
+    double prevRT = Double.NEGATIVE_INFINITY;
+    for (Scan s : selectedScans) {
+      if (s.getRetentionTime() < prevRT) {
+        setStatus(TaskStatus.ERROR);
+        final String msg = "Retention time of scan #" + s.getScanNumber()
+            + " is smaller then the retention time of the previous scan."
+            + " Please make sure you only use scans with increasing retention times."
+            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+        setErrorMessage(msg);
+        return;
+      }
+      prevRT = s.getRetentionTime();
     }
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    @Override
-    public double getFinishedPercentage() {
-        if (msdkADAP3DMethod == null)
-            return 0.0;
-        Float msdkProgress = msdkADAP3DMethod.getFinishedPercentage();
-        if (msdkProgress == null)
-            return 0.0;
-        return msdkProgress.doubleValue();
+    // Run MSDK module
+    MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(dataFile);
+    Predicate<MsScan> scanSelectionPredicate =
+        scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
+    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate,
+        new ADAP3DFeatureDetectionParameters());
+    List<Feature> features = null;
+    try {
+      if (isCanceled())
+        return;
+      features = msdkADAP3DMethod.execute();
+      if (isCanceled())
+        return;
+    } catch (Exception e) {
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Error in ADAP3D: " + e.getMessage());
     }
 
-    public RawDataFile getDataFile() {
-        return dataFile;
+    if (features == null)
+      features = new ArrayList<>(0);
+
+    logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
+        + ", converting to MZmine peaklist");
+
+    // Create new MZmine feature list
+    SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
+
+    int rowId = 1;
+    for (Feature msdkFeature : features) {
+      if (isCanceled())
+        return;
+      SimpleFeature mzmineFeature =
+          new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
+      PeakListRow row = new SimplePeakListRow(rowId);
+      row.addPeak(dataFile, mzmineFeature);
+      newPeakList.addRow(row);
+      rowId++;
     }
 
-    /**
-     * @see Runnable#run()
-     */
-    @Override
-    public void run() {
+    // Add new peaklist to the project
+    project.addPeakList(newPeakList);
 
-        setStatus(TaskStatus.PROCESSING);
-        logger.info("Started ADAP3D on " + dataFile);
+    // Add quality parameters to peaks
+    QualityParameters.calculateQualityParameters(newPeakList);
 
-        List<Scan> selectedScans = Arrays
-                .asList(scanSelection.getMatchingScans(dataFile));
+    setStatus(TaskStatus.FINISHED);
 
-        // Check if we have any scans
-        if (selectedScans.size() == 0) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("No scans match the selected criteria");
-            return;
-        }
+    logger.info("Finished ADAP3D feature detection on " + dataFile);
 
-        // Check if the scans are properly ordered by RT
-        double prevRT = Double.NEGATIVE_INFINITY;
-        for (Scan s : selectedScans) {
-            if (s.getRetentionTime() < prevRT) {
-                setStatus(TaskStatus.ERROR);
-                final String msg = "Retention time of scan #"
-                        + s.getScanNumber()
-                        + " is smaller then the retention time of the previous scan."
-                        + " Please make sure you only use scans with increasing retention times."
-                        + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
-                setErrorMessage(msg);
-                return;
-            }
-            prevRT = s.getRetentionTime();
-        }
+  }
 
-        // Run MSDK module
-        MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(
-                dataFile);
-        Predicate<MsScan> scanSelectionPredicate = scan -> selectedScans
-                .contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
-        msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile,
-                scanSelectionPredicate, new ADAP3DFeatureDetectionParameters());
-        List<Feature> features = null;
-        try {
-            if (isCanceled())
-                return;
-            features = msdkADAP3DMethod.execute();
-            if (isCanceled())
-                return;
-        } catch (Exception e) {
-            e.printStackTrace();
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Error in ADAP3D: " + e.getMessage());
-        }
-
-        if (features == null)
-            features = new ArrayList<>(0);
-
-        logger.info("ADAP3D detected " + features.size() + " features in "
-                + dataFile + ", converting to MZmine peaklist");
-
-        // Create new MZmine 2 feature list
-        SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix,
-                dataFile);
-
-        int rowId = 1;
-        for (Feature msdkFeature : features) {
-            if (isCanceled())
-                return;
-            SimpleFeature mzmineFeature = new SimpleFeature(dataFile,
-                    FeatureStatus.DETECTED, msdkFeature);
-            PeakListRow row = new SimplePeakListRow(rowId);
-            row.addPeak(dataFile, mzmineFeature);
-            newPeakList.addRow(row);
-            rowId++;
-        }
-
-        // Add new peaklist to the project
-        project.addPeakList(newPeakList);
-
-        // Add quality parameters to peaks
-        QualityParameters.calculateQualityParameters(newPeakList);
-
-        setStatus(TaskStatus.FINISHED);
-
-        logger.info("Finished ADAP3D feature detection on " + dataFile);
-
-    }
-
-    @Override
-    public void cancel() {
-        super.cancel();
-        if (msdkADAP3DMethod != null)
-            msdkADAP3DMethod.cancel();
-    }
+  @Override
+  public void cancel() {
+    super.cancel();
+    if (msdkADAP3DMethod != null)
+      msdkADAP3DMethod.cancel();
+  }
 
 }

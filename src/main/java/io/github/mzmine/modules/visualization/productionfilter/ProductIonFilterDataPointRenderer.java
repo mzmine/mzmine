@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.productionfilter;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -34,39 +35,38 @@ import org.jfree.data.xy.XYDataset;
  */
 class ProductIonFilterDataPointRenderer extends XYLineAndShapeRenderer {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private AlphaComposite alphaComp, alphaCompOriginal;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private AlphaComposite alphaComp, alphaCompOriginal;
 
-    public ProductIonFilterDataPointRenderer(boolean lines, boolean shapes) {
-        super(lines, shapes);
-        setDrawSeriesLineAsPath(true);
+  public ProductIonFilterDataPointRenderer(boolean lines, boolean shapes) {
+    super(lines, shapes);
+    setDrawSeriesLineAsPath(true);
+  }
+
+  public void setTransparency(float transparency) {
+    if ((transparency > 1.0) || (transparency < 0))
+      transparency = 1.0f;
+    int type = AlphaComposite.SRC_OVER;
+    alphaComp = (AlphaComposite.getInstance(type, transparency));
+    alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
+  }
+
+  public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
+      PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
+      XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+
+    if (series > 0) {
+      g2.setComposite(alphaComp);
+    } else if (series == 0) {
+      g2.setComposite(alphaCompOriginal);
     }
 
-    public void setTransparency(float transparency) {
-        if ((transparency > 1.0) || (transparency < 0))
-            transparency = 1.0f;
-        int type = AlphaComposite.SRC_OVER;
-        alphaComp = (AlphaComposite.getInstance(type, transparency));
-        alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
-    }
+    super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item,
+        crosshairState, pass);
 
-    public void drawItem(Graphics2D g2, XYItemRendererState state,
-            Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-            ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-            int series, int item, CrosshairState crosshairState, int pass) {
-
-        if (series > 0) {
-            g2.setComposite(alphaComp);
-        } else if (series == 0) {
-            g2.setComposite(alphaCompOriginal);
-        }
-
-        super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-                dataset, series, item, crosshairState, pass);
-
-    }
+  }
 
 }

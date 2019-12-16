@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -24,115 +24,111 @@ import io.github.mzmine.datamodel.PeakListRow;
 
 public class AlignmentSorterFactory {
 
-    public static enum SORT_MODE {
+  public static enum SORT_MODE {
 
-        name {
+    name {
 
-            public String toString() {
-                return "name";
-            }
-        },
-        peaks {
+      public String toString() {
+        return "name";
+      }
+    },
+    peaks {
 
-            public String toString() {
-                return "number of peaks";
-            }
-        },
-        rt {
+      public String toString() {
+        return "number of peaks";
+      }
+    },
+    rt {
 
-            public String toString() {
-                return "RT";
-            }
-        },
-        none {
+      public String toString() {
+        return "RT";
+      }
+    },
+    none {
 
-            public String toString() {
-                return "nothing";
-            }
-        };
+      public String toString() {
+        return "nothing";
+      }
+    };
 
-        public abstract String toString();
+    public abstract String toString();
+  }
+
+  public static Comparator<PeakListRow> getComparator(final SORT_MODE mode) {
+    return getComparator(mode, true);
+  }
+
+  /**
+   * Return a comparator that <b>is</b> inconsistent with equals.
+   * 
+   * @param mode
+   * @param ascending
+   * @return
+   */
+  public static Comparator<PeakListRow> getComparator(final SORT_MODE mode,
+      final boolean ascending) {
+    switch (mode) {
+      case name:
+        return getNameComparator(ascending);
+      case peaks:
+        return getPeakCountComparator(ascending);
+      case rt:
+        return getDoubleValComparator(ascending, mode);
+      default:
+        return nullComparator();
     }
+  }
 
-    public static Comparator<PeakListRow> getComparator(final SORT_MODE mode) {
-        return getComparator(mode, true);
-    }
+  private static Comparator<PeakListRow> getNameComparator(final boolean ascending) {
+    return new Comparator<PeakListRow>() {
 
-    /**
-     * Return a comparator that <b>is</b> inconsistent with equals.
-     * 
-     * @param mode
-     * @param ascending
-     * @return
-     */
-    public static Comparator<PeakListRow> getComparator(final SORT_MODE mode,
-            final boolean ascending) {
-        switch (mode) {
-        case name:
-            return getNameComparator(ascending);
-        case peaks:
-            return getPeakCountComparator(ascending);
-        case rt:
-            return getDoubleValComparator(ascending, mode);
-        default:
-            return nullComparator();
+      public int compare(PeakListRow o1, PeakListRow o2) {
+        int comparison = 0;
+        comparison = o1.getPreferredPeakIdentity().getName()
+            .compareToIgnoreCase(o2.getPreferredPeakIdentity().getName());
+
+        return ascending ? comparison : -comparison;
+      }
+    };
+  }
+
+  private static Comparator<PeakListRow> getPeakCountComparator(final boolean ascending) {
+    return new Comparator<PeakListRow>() {
+
+      public int compare(PeakListRow o1, PeakListRow o2) {
+        int comp = (Integer) o1.getNumberOfPeaks() - (Integer) o2.getNumberOfPeaks();
+        return ascending ? comp : -comp;
+      }
+    };
+  }
+
+  private static Comparator<PeakListRow> getDoubleValComparator(final boolean ascending,
+      final SORT_MODE mode) {
+    return new Comparator<PeakListRow>() {
+
+      public int compare(PeakListRow o1, PeakListRow o2) {
+        int comparison = 0;
+        double val1 = 0.0;
+        double val2 = 0.0;
+        if (mode == SORT_MODE.rt)
+          val1 = (Double) o1.getAverageRT();
+        if (val1 < val2) {
+          comparison = -1;
         }
-    }
+        if (val1 > val2) {
+          comparison = 1;
+        }
+        return ascending ? comparison : -comparison;
+      }
+    };
+  }
 
-    private static Comparator<PeakListRow> getNameComparator(
-            final boolean ascending) {
-        return new Comparator<PeakListRow>() {
+  private static Comparator<PeakListRow> nullComparator() {
+    return new Comparator<PeakListRow>() {
 
-            public int compare(PeakListRow o1, PeakListRow o2) {
-                int comparison = 0;
-                comparison = o1.getPreferredPeakIdentity().getName()
-                        .compareToIgnoreCase(
-                                o2.getPreferredPeakIdentity().getName());
-
-                return ascending ? comparison : -comparison;
-            }
-        };
-    }
-
-    private static Comparator<PeakListRow> getPeakCountComparator(
-            final boolean ascending) {
-        return new Comparator<PeakListRow>() {
-
-            public int compare(PeakListRow o1, PeakListRow o2) {
-                int comp = (Integer) o1.getNumberOfPeaks()
-                        - (Integer) o2.getNumberOfPeaks();
-                return ascending ? comp : -comp;
-            }
-        };
-    }
-
-    private static Comparator<PeakListRow> getDoubleValComparator(
-            final boolean ascending, final SORT_MODE mode) {
-        return new Comparator<PeakListRow>() {
-
-            public int compare(PeakListRow o1, PeakListRow o2) {
-                int comparison = 0;
-                double val1 = 0.0;
-                double val2 = 0.0;
-                if (mode == SORT_MODE.rt)
-                    val1 = (Double) o1.getAverageRT();
-                if (val1 < val2) {
-                    comparison = -1;
-                }
-                if (val1 > val2) {
-                    comparison = 1;
-                }
-                return ascending ? comparison : -comparison;
-            }
-        };
-    }
-
-    private static Comparator<PeakListRow> nullComparator() {
-        return new Comparator<PeakListRow>() {
-
-            public int compare(PeakListRow o1, PeakListRow o2) {
-                return 0;
-            }
-        };
-    }
+      public int compare(PeakListRow o1, PeakListRow o2) {
+        return 0;
+      }
+    };
+  }
 }

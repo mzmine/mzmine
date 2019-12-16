@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -32,44 +32,42 @@ import javafx.scene.layout.StackPane;
 
 public class SwingChartGestureDemo extends JFrame {
 
-    /**
-     * @param args
-     *            the command line arguments
-     */
-    public static void main(String[] args) {
-        new SwingChartGestureDemo().setVisible(true);
+  /**
+   * @param args the command line arguments
+   */
+  public static void main(String[] args) {
+    new SwingChartGestureDemo().setVisible(true);
+  }
+
+  public SwingChartGestureDemo() {
+    setSize(800, 600);
+    setTitle("Chart gesture test");
+    XYDataset dataset = createDataset();
+    JFreeChart chart = ChartFactory.createXYLineChart("Random", "i", "r", createDataset());
+    EChartPanel canvas = new EChartPanel(chart);
+    StackPane stackPane = new StackPane();
+    getContentPane().add(canvas, BorderLayout.CENTER);
+  }
+
+  /**
+   * Creates a dataset, consisting of two series of monthly data.
+   *
+   * @return the dataset.
+   */
+  private static XYDataset createDataset() {
+    XYSeriesCollection data = new XYSeriesCollection();
+
+    Random r = new Random(System.currentTimeMillis());
+
+    for (int i = 0; i < 3; i++) {
+      XYSeries s = new XYSeries("Series" + i);
+      for (int x = 0; x < 100; x++) {
+        double v = r.nextGaussian() * (i + 1);
+        s.add(x, v);
+      }
+      data.addSeries(s);
     }
-
-    public SwingChartGestureDemo() {
-        setSize(800, 600);
-        setTitle("Chart gesture test");
-        XYDataset dataset = createDataset();
-        JFreeChart chart = ChartFactory.createXYLineChart("Random", "i", "r",
-                createDataset());
-        EChartPanel canvas = new EChartPanel(chart);
-        StackPane stackPane = new StackPane();
-        getContentPane().add(canvas, BorderLayout.CENTER);
-    }
-
-    /**
-     * Creates a dataset, consisting of two series of monthly data.
-     *
-     * @return the dataset.
-     */
-    private static XYDataset createDataset() {
-        XYSeriesCollection data = new XYSeriesCollection();
-
-        Random r = new Random(System.currentTimeMillis());
-
-        for (int i = 0; i < 3; i++) {
-            XYSeries s = new XYSeries("Series" + i);
-            for (int x = 0; x < 100; x++) {
-                double v = r.nextGaussian() * (i + 1);
-                s.add(x, v);
-            }
-            data.addSeries(s);
-        }
-        return data;
-    }
+    return data;
+  }
 
 }

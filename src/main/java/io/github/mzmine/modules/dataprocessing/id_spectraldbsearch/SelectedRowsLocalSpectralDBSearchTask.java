@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
@@ -42,159 +42,146 @@ import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
 public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private final PeakListRow[] peakListRows;
-    private final @Nonnull String massListName;
-    private final File dataBaseFile;
+  private final PeakListRow[] peakListRows;
+  private final @Nonnull String massListName;
+  private final File dataBaseFile;
 
-    private ParameterSet parameters;
+  private ParameterSet parameters;
 
-    private List<RowsSpectralMatchTask> tasks;
+  private List<RowsSpectralMatchTask> tasks;
 
-    private SpectraIdentificationResultsWindow resultWindow;
+  private SpectraIdentificationResultsWindow resultWindow;
 
-    private PeakListTable table;
+  private PeakListTable table;
 
-    private int totalTasks;
+  private int totalTasks;
 
-    public SelectedRowsLocalSpectralDBSearchTask(PeakListRow[] peakListRows,
-            PeakListTable table, ParameterSet parameters) {
-        this.peakListRows = peakListRows;
-        this.parameters = parameters;
-        this.table = table;
-        dataBaseFile = parameters
-                .getParameter(LocalSpectralDBSearchParameters.dataBaseFile)
-                .getValue();
-        massListName = parameters
-                .getParameter(LocalSpectralDBSearchParameters.massList)
-                .getValue();
+  public SelectedRowsLocalSpectralDBSearchTask(PeakListRow[] peakListRows, PeakListTable table,
+      ParameterSet parameters) {
+    this.peakListRows = peakListRows;
+    this.parameters = parameters;
+    this.table = table;
+    dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
+    massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+   */
+  @Override
+  public double getFinishedPercentage() {
+    if (totalTasks == 0 || tasks == null)
+      return 0;
+    return ((double) totalTasks - tasks.size()) / totalTasks;
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+   */
+  @Override
+  public String getTaskDescription() {
+    return "Spectral database identification of " + peakListRows.length
+        + " feature lists using database " + dataBaseFile;
+  }
+
+  /**
+   * @see java.lang.Runnable#run()
+   */
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+    int count = 0;
+
+    if (peakListRows.length == 1) {
+      // add result frame
+      resultWindow = new SpectraIdentificationResultsWindow();
+      resultWindow.setVisible(true);
+    } else {
+      resultWindow = null;
     }
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    @Override
-    public double getFinishedPercentage() {
-        if (totalTasks == 0 || tasks == null)
-            return 0;
-        return ((double) totalTasks - tasks.size()) / totalTasks;
-    }
-
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    @Override
-    public String getTaskDescription() {
-        return "Spectral database identification of " + peakListRows.length
-                + " feature lists using database " + dataBaseFile;
-    }
-
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    @Override
-    public void run() {
-        setStatus(TaskStatus.PROCESSING);
-        int count = 0;
-
-        if (peakListRows.length == 1) {
-            // add result frame
-            resultWindow = new SpectraIdentificationResultsWindow();
-            resultWindow.setVisible(true);
-        } else {
-            resultWindow = null;
-        }
-
-        try {
-            tasks = parseFile(dataBaseFile);
-            totalTasks = tasks.size();
-            if (!tasks.isEmpty()) {
-                // wait for the tasks to finish
-                while (!isCanceled() && !tasks.isEmpty()) {
-                    for (int i = 0; i < tasks.size(); i++) {
-                        if (tasks.get(i).isFinished()
-                                || tasks.get(i).isCanceled()) {
-                            count += tasks.get(i).getCount();
-                            tasks.remove(i);
-                            i--;
-                        }
-                    }
-                    // wait for all sub tasks to finish
-                    try {
-                        Thread.sleep(100);
-                    } catch (Exception e) {
-                        cancel();
-                    }
-                }
-                // cancelled
-                if (isCanceled()) {
-                    tasks.stream().forEach(AbstractTask::cancel);
-                }
-            } else {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage("DB file was empty - or error while parsing "
-                        + dataBaseFile);
+    try {
+      tasks = parseFile(dataBaseFile);
+      totalTasks = tasks.size();
+      if (!tasks.isEmpty()) {
+        // wait for the tasks to finish
+        while (!isCanceled() && !tasks.isEmpty()) {
+          for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
+              count += tasks.get(i).getCount();
+              tasks.remove(i);
+              i--;
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage(e.toString());
+          }
+          // wait for all sub tasks to finish
+          try {
+            Thread.sleep(100);
+          } catch (Exception e) {
+            cancel();
+          }
         }
-        logger.info("Added " + count + " spectral library matches");
-        if (resultWindow != null) {
-            resultWindow.setTitle("Matched " + count
-                    + " compounds for feature list row: " + peakListRows[0]);
-            resultWindow.setMatchingFinished();
-            resultWindow.revalidate();
-            resultWindow.repaint();
+        // cancelled
+        if (isCanceled()) {
+          tasks.stream().forEach(AbstractTask::cancel);
         }
-        // Repaint the window to reflect the change in the feature list
-        Desktop desktop = MZmineCore.getDesktop();
-        if (!(desktop instanceof HeadLessDesktop))
-            desktop.getMainWindow().repaint();
-        // work around to update feature list identities
-        if (table.getRowCount() > 0)
-            table.setRowSelectionInterval(0, 0);
-        setStatus(TaskStatus.FINISHED);
-
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(e.toString());
+    }
+    logger.info("Added " + count + " spectral library matches");
+    if (resultWindow != null) {
+      resultWindow
+          .setTitle("Matched " + count + " compounds for feature list row: " + peakListRows[0]);
+      resultWindow.setMatchingFinished();
+      resultWindow.revalidate();
+      resultWindow.repaint();
     }
 
-    /**
-     * Load all library entries from data base file
-     * 
-     * @param dataBaseFile
-     * @return
-     */
-    private List<RowsSpectralMatchTask> parseFile(File dataBaseFile)
-            throws UnsupportedFormatException, IOException {
-        //
-        List<RowsSpectralMatchTask> tasks = new ArrayList<>();
-        AutoLibraryParser parser = new AutoLibraryParser(100,
-                new LibraryEntryProcessor() {
-                    @Override
-                    public void processNextEntries(List<SpectralDBEntry> list,
-                            int alreadyProcessed) {
-                        // start last task
-                        RowsSpectralMatchTask task = new RowsSpectralMatchTask(
-                                peakListRows.length + " rows", peakListRows,
-                                parameters, alreadyProcessed + 1, list,
-                                (match) -> {
-                                    // one selected row -> show in dialog
-                                    if (resultWindow != null) {
-                                        resultWindow.addMatches(match);
-                                        resultWindow.revalidate();
-                                        resultWindow.repaint();
-                                    }
-                                });
-                        MZmineCore.getTaskController().addTask(task);
-                        tasks.add(task);
-                    }
-                });
+    // work around to update feature list identities
+    if (table.getRowCount() > 0)
+      table.setRowSelectionInterval(0, 0);
+    setStatus(TaskStatus.FINISHED);
 
-        // return tasks
-        parser.parse(this, dataBaseFile);
-        return tasks;
-    }
+  }
+
+  /**
+   * Load all library entries from data base file
+   * 
+   * @param dataBaseFile
+   * @return
+   */
+  private List<RowsSpectralMatchTask> parseFile(File dataBaseFile)
+      throws UnsupportedFormatException, IOException {
+    //
+    List<RowsSpectralMatchTask> tasks = new ArrayList<>();
+    AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
+      @Override
+      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
+        // start last task
+        RowsSpectralMatchTask task = new RowsSpectralMatchTask(peakListRows.length + " rows",
+            peakListRows, parameters, alreadyProcessed + 1, list, (match) -> {
+              // one selected row -> show in dialog
+              if (resultWindow != null) {
+                resultWindow.addMatches(match);
+                resultWindow.revalidate();
+                resultWindow.repaint();
+              }
+            });
+        MZmineCore.getTaskController().addTask(task);
+        tasks.add(task);
+      }
+    });
+
+    // return tasks
+    parser.parse(this, dataBaseFile);
+    return tasks;
+  }
 
 }

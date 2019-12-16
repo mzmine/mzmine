@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.JComponent;
+
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -47,96 +49,91 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class Structure2DComponent extends JComponent {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Font FONT = new Font("Verdana", Font.PLAIN, 14);
+  public static final Font FONT = new Font("Verdana", Font.PLAIN, 14);
 
-    private AtomContainerRenderer renderer;
-    private IAtomContainer molecule;
+  private AtomContainerRenderer renderer;
+  private IAtomContainer molecule;
 
-    public Structure2DComponent(String structure)
-            throws CDKException, IOException {
+  public Structure2DComponent(String structure) throws CDKException, IOException {
 
-        // Create a silend CDK builder
-        IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    // Create a silend CDK builder
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-        // Create a new molecule instance
-        molecule = builder.newInstance(IAtomContainer.class);
+    // Create a new molecule instance
+    molecule = builder.newInstance(IAtomContainer.class);
 
-        // Load the structure into the molecule
-        MDLV2000Reader molReader = new MDLV2000Reader(
-                new StringReader(structure));
-        molReader.read(molecule);
-        molReader.close();
+    // Load the structure into the molecule
+    MDLV2000Reader molReader = new MDLV2000Reader(new StringReader(structure));
+    molReader.read(molecule);
+    molReader.close();
 
-        // Suppress the hydrogens
-        AtomContainerManipulator.suppressHydrogens(molecule);
+    // Suppress the hydrogens
+    AtomContainerManipulator.suppressHydrogens(molecule);
 
-        // If the model has no coordinates, let's generate them
-        if (!GeometryUtil.has2DCoordinates(molecule)) {
-            StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-            sdg.setMolecule(molecule, false);
-            sdg.generateCoordinates();
-        }
-
-        // Generators make the image elements
-        Font font = new Font("Verdana", Font.PLAIN, 14);
-        List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
-        generators.add(new BasicSceneGenerator());
-        generators.add(new StandardGenerator(font));
-
-        // Renderer needs to have a toolkit-specific font manager
-        renderer = new AtomContainerRenderer(generators, new AWTFontManager());
-
-        // Set default atom colors for the renderer
-        RendererModel rendererModel = renderer.getRenderer2DModel();
-        rendererModel.set(StandardGenerator.AtomColor.class,
-                new CDK2DAtomColors());
-
+    // If the model has no coordinates, let's generate them
+    if (!GeometryUtil.has2DCoordinates(molecule)) {
+      StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+      sdg.setMolecule(molecule, false);
+      sdg.generateCoordinates();
     }
 
-    public Structure2DComponent(IAtomContainer container) throws CDKException {
-        this(container, FONT);
+    // Generators make the image elements
+    Font font = new Font("Verdana", Font.PLAIN, 14);
+    List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
+    generators.add(new BasicSceneGenerator());
+    generators.add(new StandardGenerator(font));
+
+    // Renderer needs to have a toolkit-specific font manager
+    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+
+    // Set default atom colors for the renderer
+    RendererModel rendererModel = renderer.getRenderer2DModel();
+    rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
+
+  }
+
+  public Structure2DComponent(IAtomContainer container) throws CDKException {
+    this(container, FONT);
+  }
+
+  public Structure2DComponent(IAtomContainer container, Font font) throws CDKException {
+    molecule = container;
+
+    // Suppress the hydrogens
+    AtomContainerManipulator.suppressHydrogens(molecule);
+
+    // If the model has no coordinates, let's generate them
+    if (!GeometryUtil.has2DCoordinates(molecule)) {
+      StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+      sdg.setMolecule(molecule, false);
+      sdg.generateCoordinates();
     }
 
-    public Structure2DComponent(IAtomContainer container, Font font)
-            throws CDKException {
-        molecule = container;
+    // Generators make the image elements
+    List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
+    generators.add(new BasicSceneGenerator());
+    generators.add(new StandardGenerator(font));
 
-        // Suppress the hydrogens
-        AtomContainerManipulator.suppressHydrogens(molecule);
+    // Renderer needs to have a toolkit-specific font manager
+    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
 
-        // If the model has no coordinates, let's generate them
-        if (!GeometryUtil.has2DCoordinates(molecule)) {
-            StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-            sdg.setMolecule(molecule, false);
-            sdg.generateCoordinates();
-        }
+    // Set default atom colors for the renderer
+    RendererModel rendererModel = renderer.getRenderer2DModel();
+    rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
+  }
 
-        // Generators make the image elements
-        List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
-        generators.add(new BasicSceneGenerator());
-        generators.add(new StandardGenerator(font));
+  @Override
+  protected void paintComponent(Graphics g) {
 
-        // Renderer needs to have a toolkit-specific font manager
-        renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+    Graphics2D g2 = (Graphics2D) g;
+    g2.setColor(Color.WHITE);
+    g2.fillRect(0, 0, getWidth(), getHeight());
 
-        // Set default atom colors for the renderer
-        RendererModel rendererModel = renderer.getRenderer2DModel();
-        rendererModel.set(StandardGenerator.AtomColor.class,
-                new CDK2DAtomColors());
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(Color.WHITE);
-        g2.fillRect(0, 0, getWidth(), getHeight());
-
-        final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
-        renderer.setup(molecule, drawArea);
-        renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
-    }
+    final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
+    renderer.setup(molecule, drawArea);
+    renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
+  }
 
 }

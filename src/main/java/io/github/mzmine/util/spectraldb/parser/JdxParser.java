@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -41,91 +41,81 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
  */
 public class JdxParser extends SpectralDBParser {
 
-    public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
-        super(bufferEntries, processor);
-    }
+  public JdxParser(int bufferEntries, LibraryEntryProcessor processor) {
+    super(bufferEntries, processor);
+  }
 
-    private static Logger logger = Logger
-            .getLogger(NistMspParser.class.getName());
+  private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
-    @Override
-    public boolean parse(AbstractTask mainTask, File dataBaseFile)
-            throws IOException {
-        logger.info("Parsing jdx spectral library "
-                + dataBaseFile.getAbsolutePath());
+  @Override
+  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    logger.info("Parsing jdx spectral library " + dataBaseFile.getAbsolutePath());
 
-        boolean isData = false;
-        Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
-        List<DataPoint> dps = new ArrayList<>();
-        // create db
-        int sep = -1;
-        try (BufferedReader br = new BufferedReader(
-                new FileReader(dataBaseFile))) {
-            for (String l; (l = br.readLine()) != null;) {
-                // main task was canceled?
-                if (mainTask.isCanceled()) {
-                    return false;
-                }
-
-                try {
-                    // meta data?
-                    sep = isData ? -1 : l.indexOf("=");
-                    if (sep != -1) {
-                        DBEntryField field = DBEntryField
-                                .forJdxID(l.substring(0, sep));
-                        if (field != null) {
-                            String content = l.substring(sep + 1, l.length());
-                            if (content.length() > 0) {
-                                try {
-                                    Object value = field.convertValue(content);
-                                    fields.put(field, value);
-                                } catch (Exception e) {
-                                    logger.log(Level.WARNING,
-                                            "Cannot convert value type of "
-                                                    + content + " to "
-                                                    + field.getObjectClass()
-                                                            .toString(),
-                                            e);
-                                }
-                            }
-                        }
-                    } else {
-                        // data?
-                        String[] dataPairs = l.split(" ");
-                        for (String dataPair : dataPairs) {
-                            String[] data = dataPair.split(",");
-                            if (data.length == 2) {
-                                try {
-                                    dps.add(new SimpleDataPoint(
-                                            Double.parseDouble(data[0]),
-                                            Double.parseDouble(data[1])));
-                                    isData = true;
-                                } catch (Exception e) {
-                                }
-                            }
-                        }
-                    }
-                    if (l.contains("END")) {
-                        // row with END
-                        // add entry and reset
-                        SpectralDBEntry entry = new SpectralDBEntry(fields,
-                                dps.toArray(new DataPoint[dps.size()]));
-                        fields = new EnumMap<>(fields);
-                        dps.clear();
-                        addLibraryEntry(entry);
-                        // reset
-                        isData = false;
-                    }
-                } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Error for entry", ex);
-                }
-            }
+    boolean isData = false;
+    Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
+    List<DataPoint> dps = new ArrayList<>();
+    // create db
+    int sep = -1;
+    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+      for (String l; (l = br.readLine()) != null;) {
+        // main task was canceled?
+        if (mainTask.isCanceled()) {
+          return false;
         }
 
-        // finish and push last entries
-        finish();
-
-        return true;
+        try {
+          // meta data?
+          sep = isData ? -1 : l.indexOf("=");
+          if (sep != -1) {
+            DBEntryField field = DBEntryField.forJdxID(l.substring(0, sep));
+            if (field != null) {
+              String content = l.substring(sep + 1, l.length());
+              if (content.length() > 0) {
+                try {
+                  Object value = field.convertValue(content);
+                  fields.put(field, value);
+                } catch (Exception e) {
+                  logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
+                      + field.getObjectClass().toString(), e);
+                }
+              }
+            }
+          } else {
+            // data?
+            String[] dataPairs = l.split(" ");
+            for (String dataPair : dataPairs) {
+              String[] data = dataPair.split(",");
+              if (data.length == 2) {
+                try {
+                  dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
+                      Double.parseDouble(data[1])));
+                  isData = true;
+                } catch (Exception e) {
+                }
+              }
+            }
+          }
+          if (l.contains("END")) {
+            // row with END
+            // add entry and reset
+            SpectralDBEntry entry =
+                new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+            fields = new EnumMap<>(fields);
+            dps.clear();
+            addLibraryEntry(entry);
+            // reset
+            isData = false;
+          }
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Error for entry", ex);
+        }
+      }
     }
+
+    // finish and push last entries
+    finish();
+
+    return true;
+  }
 
 }

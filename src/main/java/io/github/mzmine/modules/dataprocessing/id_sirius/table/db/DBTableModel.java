@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -26,75 +26,72 @@ import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 
 public class DBTableModel extends AbstractTableModel {
-    private static final String[] columnNames = { "Database", "Index" };
-    public static final int DB_NAME = 0;
-    public static final int DB_INDEX = 1;
+  private static final String[] columnNames = {"Database", "Index"};
+  public static final int DB_NAME = 0;
+  public static final int DB_INDEX = 1;
 
-    private Vector<SiriusDBCompound> compounds = new Vector<SiriusDBCompound>();
+  private Vector<SiriusDBCompound> compounds = new Vector<SiriusDBCompound>();
 
-    public String getColumnName(int col) {
-        return columnNames[col];
+  public String getColumnName(int col) {
+    return columnNames[col];
+  }
+
+  public int getRowCount() {
+    return compounds.size();
+  }
+
+  public int getColumnCount() {
+    return columnNames.length;
+  }
+
+  /**
+   * Returns an object from a row by column
+   * 
+   * @param row index
+   * @param col index
+   * @return Object from a SiriusCompound
+   */
+  @Override
+  public Object getValueAt(int row, int col) {
+    Object value = null;
+    SiriusDBCompound compound = compounds.get(row);
+    switch (col) {
+      case DB_NAME:
+        value = compound.getDB();
+        break;
+      case DB_INDEX:
+        value = compound.getID();
+        break;
     }
 
-    public int getRowCount() {
-        return compounds.size();
+    return value;
+  }
+
+  /**
+   * Method unwraps SiriusCompound and retrieves all the DB links Adds DB links one by one into the
+   * table
+   * 
+   * @param compound
+   */
+  public void addElement(SiriusCompound compound) {
+    SiriusIonAnnotation annotation = compound.getIonAnnotation();
+    DBLink[] links = annotation.getDBLinks();
+    if (links == null)
+      return;
+
+    for (DBLink link : links) {
+      compounds.add(new SiriusDBCompound(link.name, link.id));
+      fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
     }
+  }
 
-    public int getColumnCount() {
-        return columnNames.length;
-    }
+  public boolean isCellEditable(int row, int col) {
+    return false;
+  }
 
-    /**
-     * Returns an object from a row by column
-     * 
-     * @param row
-     *            index
-     * @param col
-     *            index
-     * @return Object from a SiriusCompound
-     */
-    @Override
-    public Object getValueAt(int row, int col) {
-        Object value = null;
-        SiriusDBCompound compound = compounds.get(row);
-        switch (col) {
-        case DB_NAME:
-            value = compound.getDB();
-            break;
-        case DB_INDEX:
-            value = compound.getID();
-            break;
-        }
+  public void setValueAt(Object value, int row, int col) {}
 
-        return value;
-    }
-
-    /**
-     * Method unwraps SiriusCompound and retrieves all the DB links Adds DB
-     * links one by one into the table
-     * 
-     * @param compound
-     */
-    public void addElement(SiriusCompound compound) {
-        SiriusIonAnnotation annotation = compound.getIonAnnotation();
-        DBLink[] links = annotation.getDBLinks();
-        if (links == null)
-            return;
-
-        for (DBLink link : links) {
-            compounds.add(new SiriusDBCompound(link.name, link.id));
-            fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
-        }
-    }
-
-    public boolean isCellEditable(int row, int col) {
-        return false;
-    }
-
-    public void setValueAt(Object value, int row, int col) {
-    }
-
-    public SiriusDBCompound getCompoundAt(int row) {
-        return compounds.get(row);
-    }
+  public SiriusDBCompound getCompoundAt(int row) {
+    return compounds.get(row);
+  }
 }

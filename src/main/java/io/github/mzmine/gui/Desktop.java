@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
  * 
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
@@ -19,18 +19,16 @@
 package io.github.mzmine.gui;
 
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.Window;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.JFrame;
-import javax.swing.event.TreeModelListener;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.TableView;
+import javafx.stage.Stage;
 
 /**
  * This interface represents the application GUI
@@ -38,100 +36,82 @@ import io.github.mzmine.util.ExitCode;
  */
 public interface Desktop extends MZmineModule {
 
-    /**
-     * Returns a reference to main application window. May return null if MZmine
-     * is running in headless (batch) mode.
-     * 
-     * @return Main window frame
-     */
-    public JFrame getMainWindow();
+  /**
+   * Returns a reference to main application window. May return null if MZmine is running in
+   * headless (batch) mode.
+   * 
+   * @return Main window
+   */
+  public Stage getMainWindow();
 
-    /**
-     * Displays a given text on the application status bar in black color
-     * 
-     * @param text
-     *            Text to show
-     */
-    public void setStatusBarText(String text);
+  /**
+   * Displays a given text on the application status bar in black color
+   * 
+   * @param text Text to show
+   */
+  public void setStatusBarText(String text);
 
-    /**
-     * Displays a given text on the application status bar in a given color
-     * 
-     * @param text
-     *            Text to show
-     * @param textColor
-     *            Text color
-     */
-    public void setStatusBarText(String text, Color textColor);
+  /**
+   * Displays a given text on the application status bar in a given color
+   * 
+   * @param text Text to show
+   * @param textColor Text color
+   */
+  public void setStatusBarText(String text, Color textColor);
 
-    /**
-     * Displays a message box with a given text
-     * 
-     * @param msg
-     *            Text to show
-     */
-    public void displayMessage(Window window, String msg);
+  /**
+   * Displays a message box with a given text
+   * 
+   * @param msg Text to show
+   */
+  public void displayMessage(Stage window, String msg);
 
-    /**
-     * Displays a message box with a given text
-     * 
-     * @param title
-     *            Message box title
-     * @param msg
-     *            Text to show
-     */
-    public void displayMessage(Window window, String title, String msg);
+  /**
+   * Displays a message box with a given text
+   * 
+   * @param title Message box title
+   * @param msg Text to show
+   */
+  public void displayMessage(Stage window, String title, String msg);
 
-    /**
-     * Displays an error message box with a given text
-     * 
-     * @param msg
-     *            Text to show
-     */
-    public void displayErrorMessage(Window window, String msg);
+  /**
+   * Displays an error message box with a given text
+   * 
+   * @param msg Text to show
+   */
+  public void displayErrorMessage(Stage window, String msg);
 
-    /**
-     * Displays an error message box with a given text
-     * 
-     * @param title
-     *            Message box title
-     * @param msg
-     *            Text to show
-     */
-    public void displayErrorMessage(Window window, String title, String msg);
+  /**
+   * Displays an error message box with a given text
+   * 
+   * @param title Message box title
+   * @param msg Text to show
+   */
+  public void displayErrorMessage(Stage window, String title, String msg);
 
-    /**
-     * Displays an error message
-     *
-     */
-    public void displayException(Window window, Exception e);
+  /**
+   * Displays an error message
+   *
+   */
+  public void displayException(Stage window, Exception e);
 
-    /**
-     * Returns array of currently selected raw data files in GUI
-     * 
-     * @return Array of selected raw data files
-     */
-    public RawDataFile[] getSelectedDataFiles();
+  /**
+   * Returns array of currently selected raw data files in GUI
+   * 
+   * @return Array of selected raw data files
+   */
+  public RawDataFile[] getSelectedDataFiles();
 
-    /**
-     * Returns array of currently selected feature lists in GUI
-     * 
-     * @return Array of selected feature lists
-     */
-    public PeakList[] getSelectedPeakLists();
+  /**
+   * Returns array of currently selected feature lists in GUI
+   * 
+   * @return Array of selected feature lists
+   */
+  public PeakList[] getSelectedPeakLists();
 
-    public void addRawDataTreeListener(TreeModelListener listener);
+  @Nonnull
+  public ExitCode exitMZmine();
 
-    public void addPeakListTreeListener(TreeModelListener listener);
-
-    public void removeRawDataTreeListener(TreeModelListener listener);
-
-    public void removePeakListTreeListener(TreeModelListener listener);
-
-    @Nonnull
-    public ExitCode exitMZmine();
-
-    @Nullable
-    public Image getMZmineIcon();
+  public TableView<WrappedTask> getTasksView();
 
 }
