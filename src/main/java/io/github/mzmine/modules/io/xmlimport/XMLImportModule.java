@@ -19,9 +19,7 @@
 package io.github.mzmine.modules.io.xmlimport;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -29,39 +27,41 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+@Deprecated
 public class XMLImportModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Import from XML file";
-    private static final String MODULE_DESCRIPTION = "This method imports a feature list from an XML file.";
+  private static final String MODULE_NAME = "Import from XML file";
+  private static final String MODULE_DESCRIPTION =
+      "This method imports a feature list from an XML file.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        XMLImportTask newTask = new XMLImportTask(project, parameters);
-        tasks.add(newTask);
-        return ExitCode.OK;
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+    XMLImportTask newTask = new XMLImportTask(project, parameters);
+    tasks.add(newTask);
+    return ExitCode.OK;
 
-    }
+  }
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTIMPORT;
-    }
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTIMPORT;
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return XMLImportParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return XMLImportParameters.class;
+  }
 
 }

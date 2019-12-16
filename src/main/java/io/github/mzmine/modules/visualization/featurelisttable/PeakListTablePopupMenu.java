@@ -55,7 +55,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerMod
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusProcessingModule;
+import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.io.siriusexport.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -725,7 +725,7 @@ public class PeakListTablePopupMenu extends JPopupMenu
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    SiriusProcessingModule.showSingleRowIdentificationDialog(
+                    SiriusIdentificationModule.showSingleRowIdentificationDialog(
                             clickedPeakListRow);
                 }
             });

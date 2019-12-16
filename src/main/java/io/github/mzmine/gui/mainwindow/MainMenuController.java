@@ -48,140 +48,125 @@ import javafx.stage.Window;
  */
 public class MainMenuController {
 
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    @FXML
-    private Menu windowsMenu;
+  @FXML
+  private Menu windowsMenu;
 
-    public void closeProject(ActionEvent event) {
-        MZmineGUI.requestCloseProject();
+  public void closeProject(ActionEvent event) {
+    MZmineGUI.requestCloseProject();
+  }
+
+  public void exitApplication(ActionEvent event) {
+    MZmineGUI.requestQuit();
+  }
+
+  public void openLink(ActionEvent event) {
+
+    assert event.getSource() instanceof MenuItem;
+    final MenuItem menuItem = (MenuItem) event.getSource();
+    assert menuItem.getUserData() instanceof String;
+    final String linkURL = (String) menuItem.getUserData();
+    assert linkURL != null;
+
+    // Open link in browser
+    if (!Desktop.isDesktopSupported()) {
+      logger.severe("Could not open browser, Desktop support is not available");
+      return;
     }
 
-    public void exitApplication(ActionEvent event) {
-        MZmineGUI.requestQuit();
+    try {
+      Desktop desktop = Desktop.getDesktop();
+      desktop.browse(new URI(linkURL));
+    } catch (IOException | URISyntaxException e) {
+      e.printStackTrace();
     }
 
-    public void openLink(ActionEvent event) {
-        String url = "";
+  }
 
-        // Link for menu item
-        MenuItem item = (MenuItem) event.getSource();
-        switch (item.getText()) {
-        case "Tutorials":
-            url = "http://mzmine.github.io/documentation.html";
-            break;
-        case "Support":
-            url = "http://mzmine.github.io/support.html";
-            break;
-        case "Report Problem":
-            url = "https://github.com/mzmine/mzmine3/issues";
-            break;
-        }
+  public void versionCheck(ActionEvent event) {
+    // Check for new version of MZmine
+    logger.info("Checking for new MZmine version");
+    NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
+    Thread nvcThread = new Thread(NVC);
+    nvcThread.setPriority(Thread.MIN_PRIORITY);
+    nvcThread.start();
+  }
 
-        // Open link in browser
-        if (Desktop.isDesktopSupported()) {
-            Desktop desktop = Desktop.getDesktop();
-            try {
-                desktop.browse(new URI(url));
-            } catch (IOException | URISyntaxException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } else {
-            Runtime runtime = Runtime.getRuntime();
-            try {
-                runtime.exec("xdg-open " + url);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+  public void setPreferences(ActionEvent event) {
+    // Show the Preferences dialog
+    logger.info("Showing the Preferences dialog");
+    // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
+  }
+
+  public void showAbout(ActionEvent event) {
+    MZmineGUI.showAboutWindow();
+  }
+
+  public void fillWindowsMenu(Event event) {
+    final var windowsMenuItems = windowsMenu.getItems();
+    while (windowsMenuItems.size() > 2)
+      windowsMenuItems.remove(2);
+    for (Window win : Window.getWindows()) {
+      if (win instanceof Stage) {
+        Stage stage = (Stage) win;
+        final MenuItem item = new MenuItem(stage.getTitle());
+        windowsMenuItems.add(item);
+      }
+    }
+  }
+
+  public void closeAllWindows(ActionEvent event) {
+    for (Window win : Window.getWindows()) {
+      if (win == MZmineCore.getDesktop().getMainWindow())
+        continue;
+      win.hide();
     }
 
-    public void versionCheck(ActionEvent event) {
-        // Check for new version of MZmine
-        logger.info("Checking for new MZmine version");
-        NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
-        Thread nvcThread = new Thread(NVC);
-        nvcThread.setPriority(Thread.MIN_PRIORITY);
-        nvcThread.start();
+  }
+
+  @SuppressWarnings("unchecked")
+  public void runModule(ActionEvent event) {
+    assert event.getSource() instanceof MenuItem;
+    final MenuItem menuItem = (MenuItem) event.getSource();
+    assert menuItem.getUserData() instanceof String;
+    final String moduleClass = (String) menuItem.getUserData();
+    assert moduleClass != null;
+
+    logger.info("Menu item activated for module " + moduleClass);
+    Class<? extends MZmineRunnableModule> moduleJavaClass;
+    try {
+      moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
+    } catch (Exception e) {
+      MZmineGUI.displayMessage("Cannot load module class " + moduleClass);
+      return;
     }
 
-    public void setPreferences(ActionEvent event) {
-        // Show the Preferences dialog
-        logger.info("Showing the Preferences dialog");
-        // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
+    MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
+
+    if (module == null) {
+      MZmineGUI.displayMessage("Cannot find module of class " + moduleClass);
+      return;
     }
 
-    public void showAbout(ActionEvent event) {
-        MZmineGUI.showAboutWindow();
-    }
+    ParameterSet moduleParameters =
+        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
 
-    public void fillWindowsMenu(Event event) {
-        final var windowsMenuItems = windowsMenu.getItems();
-        while (windowsMenuItems.size() > 2)
-            windowsMenuItems.remove(2);
-        for (Window win : Window.getWindows()) {
-            if (win instanceof Stage) {
-                Stage stage = (Stage) win;
-                final MenuItem item = new MenuItem(stage.getTitle());
-                windowsMenuItems.add(item);
-            }
-        }
-    }
+    logger.info("Setting parameters for module " + module.getName());
 
-    public void closeAllWindows(ActionEvent event) {
-        for (Window win : Window.getWindows()) {
-            if (win == MZmineCore.getDesktop().getMainWindow())
-                continue;
-            win.hide();
-        }
+    SwingUtilities.invokeLater(() -> {
+      ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
+      if (exitCode != ExitCode.OK)
+        return;
 
-    }
+      ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+      logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+      MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+    });
+  }
 
-    @SuppressWarnings("unchecked")
-    public void runModule(ActionEvent event) {
-        assert event.getSource() instanceof MenuItem;
-        final MenuItem menuItem = (MenuItem) event.getSource();
-        assert menuItem.getUserData() instanceof String;
-        final String moduleClass = (String) menuItem.getUserData();
+  @SuppressWarnings("unchecked")
+  public void fillRecentProjects(ActionEvent event) {
 
-        logger.info("Menu item activated for module " + moduleClass);
-        Class<? extends MZmineRunnableModule> moduleJavaClass;
-        try {
-            moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class
-                    .forName(moduleClass);
-        } catch (Exception e) {
-            MZmineGUI.displayMessage("Cannot load module class " + moduleClass);
-            return;
-        }
-
-        MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
-
-        if (module == null) {
-            MZmineGUI.displayMessage(
-                    "Cannot find module of class " + moduleClass);
-            return;
-        }
-
-        ParameterSet moduleParameters = MZmineCore.getConfiguration()
-                .getModuleParameters(moduleJavaClass);
-
-        logger.info("Setting parameters for module " + module.getName());
-
-        SwingUtilities.invokeLater(() -> {
-            ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
-            if (exitCode != ExitCode.OK)
-                return;
-
-            ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-            logger.finest("Starting module " + module.getName()
-                    + " with parameters " + parametersCopy);
-            MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    public void fillRecentProjects(ActionEvent event) {
-
-    }
+  }
 }
