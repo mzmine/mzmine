@@ -26,42 +26,39 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 
 /**
- * @author akshaj This class represents the eye button in the table of
- *         Fx3DVisualizer.
+ * @author akshaj This class represents the eye button in the table of Fx3DVisualizer.
  * @param <T>
  */
 public class ButtonCell<T> extends TableCell<T, Boolean> {
-    ToggleButton button;
+  ToggleButton button;
 
-    public ButtonCell(TableColumn<T, Boolean> column, Glyph onGraphic,
-            Glyph offGraphic) {
-        button = new ToggleButton();
+  public ButtonCell(TableColumn<T, Boolean> column, Glyph onGraphic, Glyph offGraphic) {
+    button = new ToggleButton();
+    button.setGraphic(onGraphic);
+    button.setSelected(true);
+    button.setOnMouseClicked(event -> {
+      final TableView<T> tableView = getTableView();
+      tableView.getSelectionModel().select(getTableRow().getIndex());
+      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
+      if (button.isSelected()) {
+        commitEdit(true);
         button.setGraphic(onGraphic);
-        button.setSelected(true);
-        button.setOnMouseClicked(event -> {
-            final TableView<T> tableView = getTableView();
-            tableView.getSelectionModel().select(getTableRow().getIndex());
-            tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
-                    column);
-            if (button.isSelected()) {
-                commitEdit(true);
-                button.setGraphic(onGraphic);
-            } else {
-                commitEdit(false);
-                button.setGraphic(offGraphic);
-            }
-        });
+      } else {
+        commitEdit(false);
+        button.setGraphic(offGraphic);
+      }
+    });
 
-    }
+  }
 
-    @Override
-    protected void updateItem(Boolean item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty) {
-            setGraphic(null);
-        } else {
-            setGraphic(button);
-        }
+  @Override
+  protected void updateItem(Boolean item, boolean empty) {
+    super.updateItem(item, empty);
+    if (empty) {
+      setGraphic(null);
+    } else {
+      setGraphic(button);
     }
+  }
 
 }

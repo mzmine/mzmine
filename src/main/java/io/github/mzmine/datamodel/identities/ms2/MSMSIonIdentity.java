@@ -29,19 +29,19 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class MSMSIonIdentity extends AbstractMSMSDataPointIdentity {
 
-    protected IonType type;
+  protected IonType type;
 
-    public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
-        super(mzTolerance, dp);
-        this.type = b;
-    }
+  public MSMSIonIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
+    super(mzTolerance, dp);
+    this.type = b;
+  }
 
-    @Override
-    public String getName() {
-        return type.toString(false);
-    }
+  @Override
+  public String getName() {
+    return type.toString(false);
+  }
 
-    public IonType getType() {
-        return type;
-    }
+  public IonType getType() {
+    return type;
+  }
 }

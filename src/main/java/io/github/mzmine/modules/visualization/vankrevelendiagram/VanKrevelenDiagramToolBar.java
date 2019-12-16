@@ -35,44 +35,39 @@ import io.github.mzmine.util.swing.IconUtil;
  */
 public class VanKrevelenDiagramToolBar extends JToolBar {
 
-    private static final long serialVersionUID = 1L;
-    static final Icon blockSizeIcon = IconUtil
-            .loadIconFromResources("icons/blocksizeicon.png");
-    static final Icon backColorIcon = IconUtil
-            .loadIconFromResources("icons/bgicon.png");
-    static final Icon gridIcon = IconUtil
-            .loadIconFromResources("icons/gridicon.png");
-    static final Icon annotationsIcon = IconUtil
-            .loadIconFromResources("icons/annotationsicon.png");
+  private static final long serialVersionUID = 1L;
+  static final Icon blockSizeIcon = IconUtil.loadIconFromResources("icons/blocksizeicon.png");
+  static final Icon backColorIcon = IconUtil.loadIconFromResources("icons/bgicon.png");
+  static final Icon gridIcon = IconUtil.loadIconFromResources("icons/gridicon.png");
+  static final Icon annotationsIcon = IconUtil.loadIconFromResources("icons/annotationsicon.png");
 
-    public VanKrevelenDiagramToolBar(ActionListener masterFrame) {
+  public VanKrevelenDiagramToolBar(ActionListener masterFrame) {
 
-        super(JToolBar.VERTICAL);
+    super(JToolBar.VERTICAL);
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+    setFloatable(false);
+    setFocusable(false);
+    setMargin(new Insets(5, 5, 5, 5));
+    setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, blockSizeIcon, masterFrame,
-                "TOGGLE_BLOCK_SIZE", "Toggle block size");
+    GUIUtils.addButton(this, null, blockSizeIcon, masterFrame, "TOGGLE_BLOCK_SIZE",
+        "Toggle block size");
 
-        addSeparator();
+    addSeparator();
 
-        GUIUtils.addButton(this, null, backColorIcon, masterFrame,
-                "TOGGLE_BACK_COLOR", "Toggle background color white/black");
+    GUIUtils.addButton(this, null, backColorIcon, masterFrame, "TOGGLE_BACK_COLOR",
+        "Toggle background color white/black");
 
-        addSeparator();
+    addSeparator();
 
-        GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID",
-                "Toggle grid");
+    GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID", "Toggle grid");
 
-        addSeparator();
+    addSeparator();
 
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "TOGGLE_ANNOTATIONS", "Toggle annotations");
+    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "TOGGLE_ANNOTATIONS",
+        "Toggle annotations");
 
-        addSeparator();
+    addSeparator();
 
-    }
+  }
 }

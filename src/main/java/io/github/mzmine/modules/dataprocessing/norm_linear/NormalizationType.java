@@ -20,19 +20,18 @@ package io.github.mzmine.modules.dataprocessing.norm_linear;
 
 public enum NormalizationType {
 
-    AverageIntensity("Average intensity"), AverageSquaredIntensity(
-            "Average squared intensity"), MaximumPeakHeight(
-                    "Maximum peak intensity"), TotalRawSignal(
-                            "Total raw signal");
+  AverageIntensity("Average intensity"), AverageSquaredIntensity(
+      "Average squared intensity"), MaximumPeakHeight(
+          "Maximum peak intensity"), TotalRawSignal("Total raw signal");
 
-    private final String name;
+  private final String name;
 
-    NormalizationType(String name) {
-        this.name = name;
-    }
+  NormalizationType(String name) {
+    this.name = name;
+  }
 
-    public String toString() {
-        return this.name;
-    }
+  public String toString() {
+    return this.name;
+  }
 
 }

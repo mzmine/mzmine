@@ -60,230 +60,219 @@ import javafx.application.Application;
  */
 public final class MZmineCore {
 
-    private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-    private static TaskControllerImpl taskController;
-    private static MZmineConfiguration configuration;
-    private static Desktop desktop;
-    private static ProjectManagerImpl projectManager;
+  private static TaskControllerImpl taskController;
+  private static MZmineConfiguration configuration;
+  private static Desktop desktop;
+  private static ProjectManagerImpl projectManager;
 
-    private static Map<Class<?>, MZmineModule> initializedModules = new Hashtable<Class<?>, MZmineModule>();
+  private static Map<Class<?>, MZmineModule> initializedModules =
+      new Hashtable<Class<?>, MZmineModule>();
 
-    /**
-     * Main method
+  /**
+   * Main method
+   */
+  public static void main(String args[]) {
+
+    // In the beginning, set the default locale to English, to avoid
+    // problems with conversion of numbers etc. (e.g. decimal separator may
+    // be . or , depending on the locale)
+    Locale.setDefault(new Locale("en", "US"));
+
+    /*
+     * Configure the logging properties before we start logging
      */
-    public static void main(String args[]) {
+    MZmineLogging.configureLogging();
 
-        // In the beginning, set the default locale to English, to avoid
-        // problems with conversion of numbers etc. (e.g. decimal separator may
-        // be . or , depending on the locale)
-        Locale.setDefault(new Locale("en", "US"));
+    logger.info("Starting MZmine " + getMZmineVersion());
 
-        /*
-         * Configure the logging properties before we start logging
-         */
-        MZmineLogging.configureLogging();
-
-        logger.info("Starting MZmine " + getMZmineVersion());
-
-        /*
-         * Report current working directory
-         */
-        final String cwd = Paths.get(".").toAbsolutePath().normalize()
-                .toString();
-        logger.finest("Working directory is " + cwd);
-
-        // Remove old temporary files on a new thread
-        Thread cleanupThread = new Thread(new TmpFileCleanup());
-        cleanupThread.setPriority(Thread.MIN_PRIORITY);
-        cleanupThread.start();
-
-        logger.fine("Loading core classes..");
-
-        // create instance of configuration
-        configuration = new MZmineConfigurationImpl();
-
-        // create instances of core modules
-        projectManager = new ProjectManagerImpl();
-        taskController = new TaskControllerImpl();
-
-        logger.fine("Initializing core classes..");
-
-        projectManager.initModule();
-        taskController.initModule();
-
-        // Load configuration
-        if (MZmineConfiguration.CONFIG_FILE.exists()
-                && MZmineConfiguration.CONFIG_FILE.canRead()) {
-            try {
-                configuration
-                        .loadConfiguration(MZmineConfiguration.CONFIG_FILE);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Activate project - bind it to the desktop's project tree
-        MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
-                .getCurrentProject();
-        currentProject.activateProject();
-
-        // If we have no arguments, run in GUI mode, otherwise run in batch mode
-        if (args.length == 0) {
-            try {
-                logger.info("Starting MZmine GUI");
-                Application.launch(MZmineGUI.class, args);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                logger.log(Level.SEVERE, "Could not initialize GUI", e);
-                System.exit(1);
-            }
-
-        } else {
-            desktop = new HeadLessDesktop();
-
-            // Tracker
-            GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(
-                    "MZmine Loaded (Headless mode)", "/JAVA/Main/GUI");
-            Thread gatThread = new Thread(GAT);
-            gatThread.setPriority(Thread.MIN_PRIORITY);
-            gatThread.start();
-
-            File batchFile = new File(args[0]);
-            if ((!batchFile.exists()) || (!batchFile.canRead())) {
-                logger.severe("Cannot read batch file " + batchFile);
-                System.exit(1);
-            }
-            ExitCode exitCode = BatchModeModule
-                    .runBatch(projectManager.getCurrentProject(), batchFile);
-            if (exitCode == ExitCode.OK)
-                System.exit(0);
-            else
-                System.exit(1);
-
-        }
-
-    }
-
-    @Nonnull
-    public static TaskController getTaskController() {
-        return taskController;
-    }
-
-    /**
-     * May return null during application startup when desktop is not ready yet.
+    /*
+     * Report current working directory
      */
-    @Nullable
-    public static Desktop getDesktop() {
-        return desktop;
+    final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
+    logger.finest("Working directory is " + cwd);
+
+    // Remove old temporary files on a new thread
+    Thread cleanupThread = new Thread(new TmpFileCleanup());
+    cleanupThread.setPriority(Thread.MIN_PRIORITY);
+    cleanupThread.start();
+
+    logger.fine("Loading core classes..");
+
+    // create instance of configuration
+    configuration = new MZmineConfigurationImpl();
+
+    // create instances of core modules
+    projectManager = new ProjectManagerImpl();
+    taskController = new TaskControllerImpl();
+
+    logger.fine("Initializing core classes..");
+
+    projectManager.initModule();
+    taskController.initModule();
+
+    // Load configuration
+    if (MZmineConfiguration.CONFIG_FILE.exists() && MZmineConfiguration.CONFIG_FILE.canRead()) {
+      try {
+        configuration.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
-    @Nonnull
-    public static void setDesktop(Desktop desktop) {
-        assert desktop != null;
-        MZmineCore.desktop = desktop;
-    }
+    // Activate project - bind it to the desktop's project tree
+    MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager.getCurrentProject();
+    currentProject.activateProject();
 
-    @Nonnull
-    public static ProjectManager getProjectManager() {
-        assert projectManager != null;
-        return projectManager;
-    }
+    // If we have no arguments, run in GUI mode, otherwise run in batch mode
+    if (args.length == 0) {
+      try {
+        logger.info("Starting MZmine GUI");
+        Application.launch(MZmineGUI.class, args);
+      } catch (Throwable e) {
+        e.printStackTrace();
+        logger.log(Level.SEVERE, "Could not initialize GUI", e);
+        System.exit(1);
+      }
 
-    @Nonnull
-    public static MZmineConfiguration getConfiguration() {
-        assert configuration != null;
-        return configuration;
-    }
+    } else {
+      desktop = new HeadLessDesktop();
 
-    /**
-     * Returns the instance of a module of given class
-     */
-    @SuppressWarnings("unchecked")
-    public synchronized static <ModuleType extends MZmineModule> ModuleType getModuleInstance(
-            Class<ModuleType> moduleClass) {
+      // Tracker
+      GoogleAnalyticsTracker GAT =
+          new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)", "/JAVA/Main/GUI");
+      Thread gatThread = new Thread(GAT);
+      gatThread.setPriority(Thread.MIN_PRIORITY);
+      gatThread.start();
 
-        ModuleType module = (ModuleType) initializedModules.get(moduleClass);
-
-        if (module == null) {
-
-            try {
-
-                logger.finest("Creating an instance of the module "
-                        + moduleClass.getName());
-
-                // Create instance and init module
-                module = (ModuleType) moduleClass.getDeclaredConstructor()
-                        .newInstance();
-
-                // Add to the module list
-                initializedModules.put(moduleClass, module);
-
-            } catch (Throwable e) {
-                logger.log(Level.SEVERE,
-                        "Could not start module " + moduleClass, e);
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        return module;
-    }
-
-    public static Collection<MZmineModule> getAllModules() {
-        return initializedModules.values();
-    }
-
-    public static RawDataFileWriter createNewFile(String name)
-            throws IOException {
-        return new RawDataFileImpl(name);
-    }
-
-    @Nonnull
-    public static String getMZmineVersion() {
-        try {
-            ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
-            InputStream inStream = myClassLoader
-                    .getResourceAsStream("mzmineversion.properties");
-            if (inStream == null)
-                return "0.0";
-            Properties properties = new Properties();
-            properties.load(inStream);
-            String version = properties.getProperty("mzmine.version");
-            if ((version == null) || (version.startsWith("$")))
-                return "0.0";
-            return version;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "0.0";
-        }
-    }
-
-    public static void runMZmineModule(
-            @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
-            @Nonnull ParameterSet parameters) {
-
-        MZmineRunnableModule module = (MZmineRunnableModule) getModuleInstance(
-                moduleClass);
-
-        // Usage Tracker
-        GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(
-                module.getName(), "/JAVA/" + module.getName());
-        Thread gatThread = new Thread(GAT);
-        gatThread.setPriority(Thread.MIN_PRIORITY);
-        gatThread.start();
-
-        // Run the module
-        final List<Task> newTasks = new ArrayList<>();
-        final MZmineProject currentProject = projectManager.getCurrentProject();
-        module.runModule(currentProject, parameters, newTasks);
-        taskController.addTasks(newTasks.toArray(new Task[0]));
-
-        // Log module run in audit log
-        // AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
-        // newTasks);
-        // currentProject.logProcessingStep(auditLogEntry);
+      File batchFile = new File(args[0]);
+      if ((!batchFile.exists()) || (!batchFile.canRead())) {
+        logger.severe("Cannot read batch file " + batchFile);
+        System.exit(1);
+      }
+      ExitCode exitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile);
+      if (exitCode == ExitCode.OK)
+        System.exit(0);
+      else
+        System.exit(1);
 
     }
+
+  }
+
+  @Nonnull
+  public static TaskController getTaskController() {
+    return taskController;
+  }
+
+  /**
+   * May return null during application startup when desktop is not ready yet.
+   */
+  @Nullable
+  public static Desktop getDesktop() {
+    return desktop;
+  }
+
+  @Nonnull
+  public static void setDesktop(Desktop desktop) {
+    assert desktop != null;
+    MZmineCore.desktop = desktop;
+  }
+
+  @Nonnull
+  public static ProjectManager getProjectManager() {
+    assert projectManager != null;
+    return projectManager;
+  }
+
+  @Nonnull
+  public static MZmineConfiguration getConfiguration() {
+    assert configuration != null;
+    return configuration;
+  }
+
+  /**
+   * Returns the instance of a module of given class
+   */
+  @SuppressWarnings("unchecked")
+  public synchronized static <ModuleType extends MZmineModule> ModuleType getModuleInstance(
+      Class<ModuleType> moduleClass) {
+
+    ModuleType module = (ModuleType) initializedModules.get(moduleClass);
+
+    if (module == null) {
+
+      try {
+
+        logger.finest("Creating an instance of the module " + moduleClass.getName());
+
+        // Create instance and init module
+        module = (ModuleType) moduleClass.getDeclaredConstructor().newInstance();
+
+        // Add to the module list
+        initializedModules.put(moduleClass, module);
+
+      } catch (Throwable e) {
+        logger.log(Level.SEVERE, "Could not start module " + moduleClass, e);
+        e.printStackTrace();
+        return null;
+      }
+    }
+
+    return module;
+  }
+
+  public static Collection<MZmineModule> getAllModules() {
+    return initializedModules.values();
+  }
+
+  public static RawDataFileWriter createNewFile(String name) throws IOException {
+    return new RawDataFileImpl(name);
+  }
+
+  @Nonnull
+  public static String getMZmineVersion() {
+    try {
+      ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
+      InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
+      if (inStream == null)
+        return "0.0";
+      Properties properties = new Properties();
+      properties.load(inStream);
+      String version = properties.getProperty("mzmine.version");
+      if ((version == null) || (version.startsWith("$")))
+        return "0.0";
+      return version;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return "0.0";
+    }
+  }
+
+  public static void runMZmineModule(@Nonnull Class<? extends MZmineRunnableModule> moduleClass,
+      @Nonnull ParameterSet parameters) {
+
+    MZmineRunnableModule module = (MZmineRunnableModule) getModuleInstance(moduleClass);
+
+    // Usage Tracker
+    GoogleAnalyticsTracker GAT =
+        new GoogleAnalyticsTracker(module.getName(), "/JAVA/" + module.getName());
+    Thread gatThread = new Thread(GAT);
+    gatThread.setPriority(Thread.MIN_PRIORITY);
+    gatThread.start();
+
+    // Run the module
+    final List<Task> newTasks = new ArrayList<>();
+    final MZmineProject currentProject = projectManager.getCurrentProject();
+    module.runModule(currentProject, parameters, newTasks);
+    taskController.addTasks(newTasks.toArray(new Task[0]));
+
+    // Log module run in audit log
+    // AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
+    // newTasks);
+    // currentProject.logProcessingStep(auditLogEntry);
+
+  }
 
 }

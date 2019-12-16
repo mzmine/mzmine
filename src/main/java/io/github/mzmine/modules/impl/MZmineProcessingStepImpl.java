@@ -28,28 +28,27 @@ import io.github.mzmine.parameters.ParameterSet;
  * MZmine processing step implementation
  */
 public class MZmineProcessingStepImpl<ModuleType extends MZmineModule>
-        implements MZmineProcessingStep<ModuleType> {
+    implements MZmineProcessingStep<ModuleType> {
 
-    private ModuleType module;
-    private ParameterSet parameters;
+  private ModuleType module;
+  private ParameterSet parameters;
 
-    public MZmineProcessingStepImpl(ModuleType module,
-            ParameterSet parameters) {
-        this.module = module;
-        this.parameters = parameters;
-    }
+  public MZmineProcessingStepImpl(ModuleType module, ParameterSet parameters) {
+    this.module = module;
+    this.parameters = parameters;
+  }
 
-    public @Nonnull ModuleType getModule() {
-        return module;
-    }
+  public @Nonnull ModuleType getModule() {
+    return module;
+  }
 
-    public @Nonnull ParameterSet getParameterSet() {
-        return parameters;
-    }
+  public @Nonnull ParameterSet getParameterSet() {
+    return parameters;
+  }
 
-    @Override
-    public String toString() {
-        return module.getName();
-    }
+  @Override
+  public String toString() {
+    return module.getName();
+  }
 
 }

@@ -32,46 +32,44 @@ import javafx.stage.Stage;
 
 public class FXCategoryChartGestureDemo extends Application {
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        JFreeChart chart = ChartFactory.createBarChart("Random", "Category",
-                "value", createDataset());
-        EChartViewer canvas = new EChartViewer(chart);
-        StackPane stackPane = new StackPane();
-        stackPane.getChildren().add(canvas);
-        stage.setScene(new Scene(stackPane));
-        stage.setTitle("Chart gesture demo");
-        stage.setWidth(700);
-        stage.setHeight(390);
-        stage.show();
-    }
+  @Override
+  public void start(Stage stage) throws Exception {
+    JFreeChart chart = ChartFactory.createBarChart("Random", "Category", "value", createDataset());
+    EChartViewer canvas = new EChartViewer(chart);
+    StackPane stackPane = new StackPane();
+    stackPane.getChildren().add(canvas);
+    stage.setScene(new Scene(stackPane));
+    stage.setTitle("Chart gesture demo");
+    stage.setWidth(700);
+    stage.setHeight(390);
+    stage.show();
+  }
 
-    /**
-     * Creates a dataset, consisting of two series of monthly data.
-     *
-     * @return the dataset.
-     */
-    private static CategoryDataset createDataset() {
-        DefaultCategoryDataset data = new DefaultCategoryDataset();
-        Random r = new Random(System.currentTimeMillis());
-        for (int i = 0; i < 3; i++) {
-            for (int t = 0; t < 2; t++) {
+  /**
+   * Creates a dataset, consisting of two series of monthly data.
+   *
+   * @return the dataset.
+   */
+  private static CategoryDataset createDataset() {
+    DefaultCategoryDataset data = new DefaultCategoryDataset();
+    Random r = new Random(System.currentTimeMillis());
+    for (int i = 0; i < 3; i++) {
+      for (int t = 0; t < 2; t++) {
 
-                for (int x = 0; x < 100; x++) {
-                    double v = r.nextGaussian() * (i + 1);
-                    data.addValue(v, "series" + i, "type" + t);
-                }
-            }
+        for (int x = 0; x < 100; x++) {
+          double v = r.nextGaussian() * (i + 1);
+          data.addValue(v, "series" + i, "type" + t);
         }
-        return data;
+      }
     }
+    return data;
+  }
 
-    /**
-     * @param args
-     *            the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
-    }
+  /**
+   * @param args the command line arguments
+   */
+  public static void main(String[] args) {
+    launch(args);
+  }
 
 }

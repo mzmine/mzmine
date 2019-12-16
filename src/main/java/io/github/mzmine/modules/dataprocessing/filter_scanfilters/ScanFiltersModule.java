@@ -32,42 +32,42 @@ import io.github.mzmine.util.ExitCode;
 
 public class ScanFiltersModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Scan by scan filtering";
-    private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on each scan individually.";
+  private static final String MODULE_NAME = "Scan by scan filtering";
+  private static final String MODULE_DESCRIPTION =
+      "This module performs filtering algorithms on each scan individually.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    RawDataFile[] dataFiles = parameters.getParameter(ScanFiltersParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
+
+    for (RawDataFile dataFile : dataFiles) {
+      Task newTask = new ScanFilteringTask(project, dataFile, parameters);
+      tasks.add(newTask);
     }
+    return ExitCode.OK;
+  }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.RAWDATAFILTERING;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-
-        RawDataFile[] dataFiles = parameters
-                .getParameter(ScanFiltersParameters.dataFiles).getValue()
-                .getMatchingRawDataFiles();
-
-        for (RawDataFile dataFile : dataFiles) {
-            Task newTask = new ScanFilteringTask(project, dataFile, parameters);
-            tasks.add(newTask);
-        }
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.RAWDATAFILTERING;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ScanFiltersParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return ScanFiltersParameters.class;
+  }
 }

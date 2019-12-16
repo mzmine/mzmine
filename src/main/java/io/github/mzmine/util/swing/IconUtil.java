@@ -32,32 +32,26 @@ import javax.swing.ImageIcon;
  */
 public class IconUtil {
 
-    public static @Nonnull ImageIcon loadIconFromResources(
-            final @Nonnull String resourcePath) {
-        final URL iconResourcePath = IconUtil.class.getClassLoader()
-                .getResource(resourcePath);
-        if (iconResourcePath == null)
-            throw new IllegalArgumentException(
-                    "Could not find an icon file at path " + resourcePath);
-        final ImageIcon icon = new ImageIcon(iconResourcePath);
-        return icon;
-    }
+  public static @Nonnull ImageIcon loadIconFromResources(final @Nonnull String resourcePath) {
+    final URL iconResourcePath = IconUtil.class.getClassLoader().getResource(resourcePath);
+    if (iconResourcePath == null)
+      throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
+    final ImageIcon icon = new ImageIcon(iconResourcePath);
+    return icon;
+  }
 
-    public static @Nonnull Icon loadIconFromResources(
-            final @Nonnull String resourcePath, final int width) {
-        final ImageIcon icon = loadIconFromResources(resourcePath);
-        final ImageIcon scaledIcon = scaled(icon, width);
-        return scaledIcon;
-    }
+  public static @Nonnull Icon loadIconFromResources(final @Nonnull String resourcePath,
+      final int width) {
+    final ImageIcon icon = loadIconFromResources(resourcePath);
+    final ImageIcon scaledIcon = scaled(icon, width);
+    return scaledIcon;
+  }
 
-    public static @Nonnull ImageIcon scaled(final ImageIcon icon,
-            final int width) {
-        int height = Math.round(
-                icon.getIconHeight() / (float) icon.getIconWidth() * width);
-        Image image = icon.getImage();
-        Image newimg = image.getScaledInstance(width, height,
-                java.awt.Image.SCALE_SMOOTH);
-        return new ImageIcon(newimg);
-    }
+  public static @Nonnull ImageIcon scaled(final ImageIcon icon, final int width) {
+    int height = Math.round(icon.getIconHeight() / (float) icon.getIconWidth() * width);
+    Image image = icon.getImage();
+    Image newimg = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+    return new ImageIcon(newimg);
+  }
 
 }

@@ -28,69 +28,77 @@ import javafx.beans.property.StringProperty;
  */
 public class WrappedTask {
 
-    private StringProperty name = new SimpleStringProperty("Gagaga");
-    public final String getName() { return name.get(); }
-    public final void setName(String value) { name.set(value); }
-    public StringProperty nameProperty() { return name; }
-    
-    private Task task;
-    private TaskPriority priority;
-    private WorkerThread assignedTo;
+  private StringProperty name = new SimpleStringProperty("Gagaga");
 
-    WrappedTask(Task task, TaskPriority priority) {
-        this.task = task;
-        this.priority = priority;
-    }
+  public final String getName() {
+    return name.get();
+  }
 
-    /**
-     * @return Returns the priority.
-     */
-    TaskPriority getPriority() {
-        return priority;
-    }
+  public final void setName(String value) {
+    name.set(value);
+  }
 
-    /**
-     * @param priority
-     *            The priority to set.
-     */
-    void setPriority(TaskPriority priority) {
-        this.priority = priority;
-        if (assignedTo != null) {
-            switch (priority) {
-            case HIGH:
-                assignedTo.setPriority(Thread.MAX_PRIORITY);
-                break;
-            case NORMAL:
-                assignedTo.setPriority(Thread.NORM_PRIORITY);
-                break;
-            }
-        }
-    }
+  public StringProperty nameProperty() {
+    return name;
+  }
 
-    /**
-     * @return Returns the assigned.
-     */
-    boolean isAssigned() {
-        return assignedTo != null;
-    }
+  private Task task;
+  private TaskPriority priority;
+  private WorkerThread assignedTo;
 
-    void assignTo(WorkerThread thread) {
-        assignedTo = thread;
-    }
+  WrappedTask(Task task, TaskPriority priority) {
+    this.task = task;
+    this.priority = priority;
+  }
 
-    /**
-     * @return Returns the task.
-     */
-    public synchronized Task getActualTask() {
-        return task;
-    }
+  /**
+   * @return Returns the priority.
+   */
+  TaskPriority getPriority() {
+    return priority;
+  }
 
-    public synchronized String toString() {
-        return task.getTaskDescription();
+  /**
+   * @param priority The priority to set.
+   */
+  void setPriority(TaskPriority priority) {
+    this.priority = priority;
+    if (assignedTo != null) {
+      switch (priority) {
+        case HIGH:
+          assignedTo.setPriority(Thread.MAX_PRIORITY);
+          break;
+        case NORMAL:
+          assignedTo.setPriority(Thread.NORM_PRIORITY);
+          break;
+      }
     }
+  }
 
-    synchronized void removeTaskReference() {
-        task = new FinishedTask(task);
-    }
+  /**
+   * @return Returns the assigned.
+   */
+  boolean isAssigned() {
+    return assignedTo != null;
+  }
+
+  void assignTo(WorkerThread thread) {
+    assignedTo = thread;
+  }
+
+  /**
+   * @return Returns the task.
+   */
+  public synchronized Task getActualTask() {
+    return task;
+  }
+
+  public synchronized String toString() {
+    return task.getTaskDescription();
+  }
+
+  synchronized void removeTaskReference() {
+    task = new FinishedTask(task);
+  }
 
 }

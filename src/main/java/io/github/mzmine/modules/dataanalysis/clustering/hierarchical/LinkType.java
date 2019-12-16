@@ -20,18 +20,18 @@ package io.github.mzmine.modules.dataanalysis.clustering.hierarchical;
 
 public enum LinkType {
 
-    SINGLE("Single"), COMPLETE("Complete"), AVERAGE("Average"), MEAN(
-            "Mean"), CENTROID("Centroid"), WARD("Ward"), ADJUSTEDCOMPLETE(
-                    "Adjusted complete"), NEIGHBOT("Neighbor Joining");
+  SINGLE("Single"), COMPLETE("Complete"), AVERAGE("Average"), MEAN("Mean"), CENTROID(
+      "Centroid"), WARD(
+          "Ward"), ADJUSTEDCOMPLETE("Adjusted complete"), NEIGHBOT("Neighbor Joining");
 
-    private final String name;
+  private final String name;
 
-    LinkType(String name) {
-        this.name = name;
-    }
+  LinkType(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return this.name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
 }

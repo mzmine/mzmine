@@ -55,8 +55,8 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
         .getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask =
-          new ModularADAPChromatogramBuilderTask(project, dataFiles[i], parameters.cloneParameterSet());
+      Task newTask = new ModularADAPChromatogramBuilderTask(project, dataFiles[i],
+          parameters.cloneParameterSet());
       tasks.add(newTask);
     }
 

@@ -25,40 +25,39 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 /**
- * Item label generator for XYPlots adds the name of a feature in form of a
- * label
+ * Item label generator for XYPlots adds the name of a feature in form of a label
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class NameItemLabelGenerator implements XYItemLabelGenerator {
 
-    private PeakListRow rows[];
+  private PeakListRow rows[];
 
-    public NameItemLabelGenerator(PeakListRow rows[]) {
-        this.rows = rows;
+  public NameItemLabelGenerator(PeakListRow rows[]) {
+    this.rows = rows;
+  }
+
+  @Override
+  public String generateLabel(XYDataset dataset, int series, int item) {
+
+    // Create label
+    String label = null;
+    if (rows[item].getPreferredPeakIdentity() != null) {
+      label = rows[item].getPreferredPeakIdentity().getName();
+    } else {
+      // get charge
+      int charge = 1;
+      if (rows[item].getRowCharge() == 0) {
+        charge = 1;
+      } else {
+        charge = rows[item].getRowCharge();
+      }
+      label = "m/z: "
+          + String.valueOf(
+              MZmineCore.getConfiguration().getMZFormat().format(rows[item].getAverageMZ()))
+          + " charge: " + charge;
     }
-
-    @Override
-    public String generateLabel(XYDataset dataset, int series, int item) {
-
-        // Create label
-        String label = null;
-        if (rows[item].getPreferredPeakIdentity() != null) {
-            label = rows[item].getPreferredPeakIdentity().getName();
-        } else {
-            // get charge
-            int charge = 1;
-            if (rows[item].getRowCharge() == 0) {
-                charge = 1;
-            } else {
-                charge = rows[item].getRowCharge();
-            }
-            label = "m/z: "
-                    + String.valueOf(MZmineCore.getConfiguration().getMZFormat()
-                            .format(rows[item].getAverageMZ()))
-                    + " charge: " + charge;
-        }
-        return label;
-    }
+    return label;
+  }
 
 }

@@ -34,45 +34,43 @@ import javafx.scene.web.WebView;
  */
 public class HelpWindowController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @FXML
-    private WebView helpWebView;
+  @FXML
+  private WebView helpWebView;
 
-    @FXML
-    public void initialize() {
+  @FXML
+  public void initialize() {
 
-        helpWebView.getEngine().locationProperty()
-                .addListener((observable, oldValue, newValue) -> {
+    helpWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
 
-                    // Open external links in system web browser
-                    if (newValue.startsWith("http://")
-                            || newValue.startsWith("https://")) {
-                        try {
+      // Open external links in system web browser
+      if (newValue.startsWith("http://") || newValue.startsWith("https://")) {
+        try {
 
-                            // Open system browser
-                            Desktop.getDesktop().browse(new URI(newValue));
+          // Open system browser
+          Desktop.getDesktop().browse(new URI(newValue));
 
-                            // Stay on the page that is already open
-                            helpWebView.getEngine().load(oldValue);
+          // Stay on the page that is already open
+          helpWebView.getEngine().load(oldValue);
 
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
 
-                });
+    });
 
-    }
+  }
 
-    @FXML
-    protected void handleClose(ActionEvent event) {
-        logger.debug("Closing help window");
-        helpWebView.getScene().getWindow().hide();
-    }
+  @FXML
+  protected void handleClose(ActionEvent event) {
+    logger.debug("Closing help window");
+    helpWebView.getScene().getWindow().hide();
+  }
 
-    WebEngine getEngine() {
-        return helpWebView.getEngine();
-    }
+  WebEngine getEngine() {
+    return helpWebView.getEngine();
+  }
 
 }

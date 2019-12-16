@@ -23,15 +23,15 @@ package io.github.mzmine.modules.io.rawdataimport;
  */
 public enum RawDataFileType {
 
-    MZML, //
-    MZXML, //
-    MZDATA, //
-    NETCDF, //
-    AGILENT_CSV, //
-    THERMO_RAW, //
-    WATERS_RAW, //
-    ZIP, //
-    GZIP, //
-    ICPMSMS_CSV
+  MZML, //
+  MZXML, //
+  MZDATA, //
+  NETCDF, //
+  AGILENT_CSV, //
+  THERMO_RAW, //
+  WATERS_RAW, //
+  ZIP, //
+  GZIP, //
+  ICPMSMS_CSV
 
 }

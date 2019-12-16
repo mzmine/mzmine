@@ -20,16 +20,16 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public enum ClustererType {
 
-    CLASSIC("Classic (Base)"), CACHED("Classic (Cached)"), HYBRID("Hybrid");
+  CLASSIC("Classic (Base)"), CACHED("Classic (Cached)"), HYBRID("Hybrid");
 
-    private final String name;
+  private final String name;
 
-    ClustererType(String name) {
-        this.name = name;
-    }
+  ClustererType(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return this.name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
 }

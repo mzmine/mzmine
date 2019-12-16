@@ -32,64 +32,61 @@ import io.github.mzmine.util.ExitCode;
 
 public class FormulaPredictionModule implements MZmineModule {
 
-    private static final String MODULE_NAME = "Formula prediction";
+  private static final String MODULE_NAME = "Formula prediction";
 
-    public static void showSingleRowIdentificationDialog(PeakListRow row) {
+  public static void showSingleRowIdentificationDialog(PeakListRow row) {
 
-        ParameterSet parameters = MZmineCore.getConfiguration()
-                .getModuleParameters(FormulaPredictionModule.class);
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class);
 
-        double mzValue = row.getAverageMZ();
-        parameters.getParameter(FormulaPredictionParameters.neutralMass)
-                .setIonMass(mzValue);
+    double mzValue = row.getAverageMZ();
+    parameters.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(mzValue);
 
-        int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
-        if (bestScanNum > 0) {
-            RawDataFile dataFile = row.getBestPeak().getDataFile();
-            Scan bestScan = dataFile.getScan(bestScanNum);
-            PolarityType scanPolarity = bestScan.getPolarity();
-            switch (scanPolarity) {
-            case POSITIVE:
-                parameters.getParameter(FormulaPredictionParameters.neutralMass)
-                        .setIonType(IonizationType.POSITIVE_HYDROGEN);
-                break;
-            case NEGATIVE:
-                parameters.getParameter(FormulaPredictionParameters.neutralMass)
-                        .setIonType(IonizationType.NEGATIVE_HYDROGEN);
-                break;
-            default:
-                break;
-            }
-        }
-
-        int charge = row.getBestPeak().getCharge();
-        if (charge > 0) {
-            parameters.getParameter(FormulaPredictionParameters.neutralMass)
-                    .setCharge(charge);
-        }
-
-        ExitCode exitCode = parameters
-                .showSetupDialog(null, true);
-        if (exitCode != ExitCode.OK) {
-            return;
-        }
-
-        SingleRowPredictionTask newTask = new SingleRowPredictionTask(
-                parameters.cloneParameterSet(), row);
-
-        // execute the sequence
-        MZmineCore.getTaskController().addTask(newTask);
-
+    int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
+    if (bestScanNum > 0) {
+      RawDataFile dataFile = row.getBestPeak().getDataFile();
+      Scan bestScan = dataFile.getScan(bestScanNum);
+      PolarityType scanPolarity = bestScan.getPolarity();
+      switch (scanPolarity) {
+        case POSITIVE:
+          parameters.getParameter(FormulaPredictionParameters.neutralMass)
+              .setIonType(IonizationType.POSITIVE_HYDROGEN);
+          break;
+        case NEGATIVE:
+          parameters.getParameter(FormulaPredictionParameters.neutralMass)
+              .setIonType(IonizationType.NEGATIVE_HYDROGEN);
+          break;
+        default:
+          break;
+      }
     }
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+    int charge = row.getBestPeak().getCharge();
+    if (charge > 0) {
+      parameters.getParameter(FormulaPredictionParameters.neutralMass).setCharge(charge);
     }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return FormulaPredictionParameters.class;
+    ExitCode exitCode = parameters.showSetupDialog(null, true);
+    if (exitCode != ExitCode.OK) {
+      return;
     }
+
+    SingleRowPredictionTask newTask =
+        new SingleRowPredictionTask(parameters.cloneParameterSet(), row);
+
+    // execute the sequence
+    MZmineCore.getTaskController().addTask(newTask);
+
+  }
+
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return FormulaPredictionParameters.class;
+  }
 
 }

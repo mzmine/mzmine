@@ -35,79 +35,78 @@ import javafx.stage.Stage;
 
 public class HeadLessDesktop implements Desktop {
 
-    private static final String MODULE_NAME = "Desktop";
+  private static final String MODULE_NAME = "Desktop";
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    @Override
-    public Stage getMainWindow() {
-        return null;
-    }
+  @Override
+  public Stage getMainWindow() {
+    return null;
+  }
 
-    @Override
-    public void setStatusBarText(String text) {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public void setStatusBarText(String text) {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public void setStatusBarText(String text, Color textColor) {
-    }
+  @Override
+  public void setStatusBarText(String text, Color textColor) {}
 
-    @Override
-    public void displayMessage(Stage window, String msg) {
-        logger.info(msg);
-    }
+  @Override
+  public void displayMessage(Stage window, String msg) {
+    logger.info(msg);
+  }
 
-    @Override
-    public void displayMessage(Stage window, String title, String msg) {
-        logger.info(msg);
-    }
+  @Override
+  public void displayMessage(Stage window, String title, String msg) {
+    logger.info(msg);
+  }
 
-    @Override
-    public void displayErrorMessage(Stage window, String msg) {
-        logger.severe(msg);
-    }
+  @Override
+  public void displayErrorMessage(Stage window, String msg) {
+    logger.severe(msg);
+  }
 
-    @Override
-    public void displayErrorMessage(Stage window, String title, String msg) {
-        logger.severe(msg);
-    }
+  @Override
+  public void displayErrorMessage(Stage window, String title, String msg) {
+    logger.severe(msg);
+  }
 
-    @Override
-    public void displayException(Stage window, Exception e) {
-        logger.log(Level.SEVERE, e.toString(), e);
-        e.printStackTrace();
-    }
+  @Override
+  public void displayException(Stage window, Exception e) {
+    logger.log(Level.SEVERE, e.toString(), e);
+    e.printStackTrace();
+  }
 
-    @Override
-    public RawDataFile[] getSelectedDataFiles() {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public RawDataFile[] getSelectedDataFiles() {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public PeakList[] getSelectedPeakLists() {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public PeakList[] getSelectedPeakLists() {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return SimpleParameterSet.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return SimpleParameterSet.class;
+  }
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public @Nonnull ExitCode exitMZmine() {
-        System.exit(0);
-        return ExitCode.OK;
-    }
+  @Override
+  public @Nonnull ExitCode exitMZmine() {
+    System.exit(0);
+    return ExitCode.OK;
+  }
 
-    @Override
-    public TableView<WrappedTask> getTasksView() {
-        return null;
-    }
+  @Override
+  public TableView<WrappedTask> getTasksView() {
+    return null;
+  }
 
 }

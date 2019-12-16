@@ -29,33 +29,29 @@ import io.github.mzmine.util.swing.IconUtil;
 
 public class ProjectionPlotToolbar extends JToolBar {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    static final Icon axesIcon = IconUtil
-            .loadIconFromResources("icons/axesicon.png");
+  static final Icon axesIcon = IconUtil.loadIconFromResources("icons/axesicon.png");
 
-    static final Icon labelsIcon = IconUtil
-            .loadIconFromResources("icons/annotationsicon.png");
+  static final Icon labelsIcon = IconUtil.loadIconFromResources("icons/annotationsicon.png");
 
-    public ProjectionPlotToolbar(ProjectionPlotWindow masterFrame) {
-        super(JToolBar.VERTICAL);
+  public ProjectionPlotToolbar(ProjectionPlotWindow masterFrame) {
+    super(JToolBar.VERTICAL);
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+    setFloatable(false);
+    setFocusable(false);
+    setMargin(new Insets(5, 5, 5, 5));
+    setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
-                "Setup ranges for axes");
+    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
 
-        addSeparator();
+    addSeparator();
 
-        GUIUtils.addButton(this, null, labelsIcon, masterFrame, "TOGGLE_LABELS",
-                "Toggle sample names");
+    GUIUtils.addButton(this, null, labelsIcon, masterFrame, "TOGGLE_LABELS", "Toggle sample names");
 
-    }
+  }
 
 }

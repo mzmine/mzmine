@@ -20,17 +20,16 @@ package io.github.mzmine.modules.dataanalysis.clustering.hierarchical;
 
 public enum DistanceType {
 
-    EUCLIDIAN("Euclidian"), CHEBYSHEV("Chebyshev"), MANHATTAN(
-            "Manhattan"), MINKOWSKI("Minkowski");
+  EUCLIDIAN("Euclidian"), CHEBYSHEV("Chebyshev"), MANHATTAN("Manhattan"), MINKOWSKI("Minkowski");
 
-    private final String name;
+  private final String name;
 
-    DistanceType(String name) {
-        this.name = name;
-    }
+  DistanceType(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return this.name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
 }

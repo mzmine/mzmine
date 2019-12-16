@@ -28,30 +28,28 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 public class PeakSummaryTableCellRenderer extends DefaultTableCellRenderer {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+      boolean hasFocus, int row, int column) {
 
-        Component newComponent = super.getTableCellRendererComponent(table,
-                value, isSelected, hasFocus, row, column);
+    Component newComponent =
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-        PeakSummaryTableModel listElementModel = (PeakSummaryTableModel) table
-                .getModel();
+    PeakSummaryTableModel listElementModel = (PeakSummaryTableModel) table.getModel();
 
-        if (column == 0) {
-            newComponent.setForeground(listElementModel.getPeakColor(row));
-            ((JLabel) newComponent).setHorizontalAlignment(SwingConstants.LEFT);
-        } else {
-            newComponent.setForeground(Color.BLACK);
-            ((JLabel) newComponent)
-                    .setHorizontalAlignment(SwingConstants.CENTER);
-        }
-
-        return newComponent;
+    if (column == 0) {
+      newComponent.setForeground(listElementModel.getPeakColor(row));
+      ((JLabel) newComponent).setHorizontalAlignment(SwingConstants.LEFT);
+    } else {
+      newComponent.setForeground(Color.BLACK);
+      ((JLabel) newComponent).setHorizontalAlignment(SwingConstants.CENTER);
     }
+
+    return newComponent;
+  }
 
 }

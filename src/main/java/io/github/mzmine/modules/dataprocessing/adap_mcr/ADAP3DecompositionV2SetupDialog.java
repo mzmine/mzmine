@@ -63,364 +63,341 @@ import io.github.mzmine.util.GUIUtils;
  */
 
 public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
-    /**
-     * Minimum dimensions of plots
-     */
-    private static final Dimension MIN_DIMENSIONS = new Dimension(400, 300);
+  /**
+   * Minimum dimensions of plots
+   */
+  private static final Dimension MIN_DIMENSIONS = new Dimension(400, 300);
 
-    /**
-     * Font for the preview combo elements
-     */
-    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN,
-            10);
+  /**
+   * Font for the preview combo elements
+   */
+  private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
 
-    private static final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
+  private static final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
 
-    /**
-     * One of three states: > no changes made, > change in the first phase
-     * parameters, > change in the second phase parameters
-     */
-    private enum CHANGE_STATE {
-        NONE, FIRST_PHASE, SECOND_PHASE
-    }
+  /**
+   * One of three states: > no changes made, > change in the first phase parameters, > change in the
+   * second phase parameters
+   */
+  private enum CHANGE_STATE {
+    NONE, FIRST_PHASE, SECOND_PHASE
+  }
 
-    /**
-     * Elements of the interface
-     */
-    private JPanel pnlUIElements;
-    private JPanel pnlComboBoxes;
-    private JPanel pnlPlots;
-    private JCheckBox chkPreview;
-    private JComboBox<ChromatogramPeakPair> cboPeakLists;
-    private JComboBox<RetTimeClusterer.Cluster> cboClusters;
-    private JButton btnRefresh;
-    private SimpleScatterPlot retTimeMZPlot;
-    private EICPlot retTimeIntensityPlot;
+  /**
+   * Elements of the interface
+   */
+  private JPanel pnlUIElements;
+  private JPanel pnlComboBoxes;
+  private JPanel pnlPlots;
+  private JCheckBox chkPreview;
+  private JComboBox<ChromatogramPeakPair> cboPeakLists;
+  private JComboBox<RetTimeClusterer.Cluster> cboClusters;
+  private JButton btnRefresh;
+  private SimpleScatterPlot retTimeMZPlot;
+  private EICPlot retTimeIntensityPlot;
 
-    /**
-     * Current values of the parameters
-     */
-    private Object[] currentParameters;
+  /**
+   * Current values of the parameters
+   */
+  private Object[] currentParameters;
 
-    /**
-     * Creates an instance of the class and saves the current values of all
-     * parameters
-     */
-    ADAP3DecompositionV2SetupDialog(Window parent, boolean valueCheckRequired,
-            @Nonnull final ParameterSet parameters) {
-        super(parent, valueCheckRequired, parameters);
+  /**
+   * Creates an instance of the class and saves the current values of all parameters
+   */
+  ADAP3DecompositionV2SetupDialog(Window parent, boolean valueCheckRequired,
+      @Nonnull final ParameterSet parameters) {
+    super(parent, valueCheckRequired, parameters);
 
-        Parameter[] params = parameters.getParameters();
-        int size = params.length;
+    Parameter[] params = parameters.getParameters();
+    int size = params.length;
 
-        currentParameters = new Object[size];
-        for (int i = 0; i < size; ++i)
-            currentParameters[i] = params[i].getValue();
-    }
+    currentParameters = new Object[size];
+    for (int i = 0; i < size; ++i)
+      currentParameters[i] = params[i].getValue();
+  }
 
-    /**
-     * Creates the interface elements
-     */
-    @Override
-    protected void addDialogComponents() {
-        super.addDialogComponents();
+  /**
+   * Creates the interface elements
+   */
+  @Override
+  protected void addDialogComponents() {
+    super.addDialogComponents();
 
-        // -----------------------------
-        // Panel with preview UI elements
-        // -----------------------------
+    // -----------------------------
+    // Panel with preview UI elements
+    // -----------------------------
 
-        // Preview CheckBox
-        chkPreview = new JCheckBox("Show preview");
-        chkPreview.addActionListener(this);
-        chkPreview.setHorizontalAlignment(SwingConstants.CENTER);
-        chkPreview.setEnabled(true);
+    // Preview CheckBox
+    chkPreview = new JCheckBox("Show preview");
+    chkPreview.addActionListener(this);
+    chkPreview.setHorizontalAlignment(SwingConstants.CENTER);
+    chkPreview.setEnabled(true);
 
-        // Preview panel that will contain ComboBoxes
-        final JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JSeparator(), BorderLayout.NORTH);
-        panel.add(chkPreview, BorderLayout.CENTER);
-        panel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
-        pnlUIElements = new JPanel(new BorderLayout());
-        pnlUIElements.add(panel, BorderLayout.NORTH);
+    // Preview panel that will contain ComboBoxes
+    final JPanel panel = new JPanel(new BorderLayout());
+    panel.add(new JSeparator(), BorderLayout.NORTH);
+    panel.add(chkPreview, BorderLayout.CENTER);
+    panel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+    pnlUIElements = new JPanel(new BorderLayout());
+    pnlUIElements.add(panel, BorderLayout.NORTH);
 
-        // ComboBox for Feature lists
-        cboPeakLists = new JComboBox<>();
-        cboPeakLists.setFont(COMBO_FONT);
-        for (ChromatogramPeakPair p : ChromatogramPeakPair
-                .fromParameterSet(parameterSet).values())
-            cboPeakLists.addItem(p);
-        cboPeakLists.addActionListener(this);
+    // ComboBox for Feature lists
+    cboPeakLists = new JComboBox<>();
+    cboPeakLists.setFont(COMBO_FONT);
+    for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
+      cboPeakLists.addItem(p);
+    cboPeakLists.addActionListener(this);
 
-        URL refreshImageURL = this.getClass()
-                .getResource("images/refresh.16.png");
-        btnRefresh = refreshImageURL != null
-                ? new JButton(new ImageIcon(refreshImageURL))
-                : new JButton("Refresh");
-        btnRefresh.addActionListener(this);
+    URL refreshImageURL = this.getClass().getResource("images/refresh.16.png");
+    btnRefresh = refreshImageURL != null ? new JButton(new ImageIcon(refreshImageURL))
+        : new JButton("Refresh");
+    btnRefresh.addActionListener(this);
 
-        // ComboBox with Clusters
-        cboClusters = new JComboBox<>();
-        cboClusters.setFont(COMBO_FONT);
-        cboClusters.addActionListener(this);
+    // ComboBox with Clusters
+    cboClusters = new JComboBox<>();
+    cboClusters.setFont(COMBO_FONT);
+    cboClusters.addActionListener(this);
 
-        pnlComboBoxes = GUIUtils.makeTablePanel(2, 3, 1,
-                new JComponent[] { new JLabel("Feature Lists"), cboPeakLists,
-                        btnRefresh, new JLabel("Clusters"), cboClusters,
-                        new JPanel() });
+    pnlComboBoxes = GUIUtils.makeTablePanel(2, 3, 1, new JComponent[] {new JLabel("Feature Lists"),
+        cboPeakLists, btnRefresh, new JLabel("Clusters"), cboClusters, new JPanel()});
 
-        // --------------------------------------------------------------------
-        // ----- Panel with plots --------------------------------------
-        // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // ----- Panel with plots --------------------------------------
+    // --------------------------------------------------------------------
 
-        pnlPlots = new JPanel();
-        pnlPlots.setLayout(new BoxLayout(pnlPlots, BoxLayout.Y_AXIS));
+    pnlPlots = new JPanel();
+    pnlPlots.setLayout(new BoxLayout(pnlPlots, BoxLayout.Y_AXIS));
 
-        // Plot with retention-time clusters
-        retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
-        retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
-        retTimeMZPlot.setPreferredSize(MIN_DIMENSIONS);
+    // Plot with retention-time clusters
+    retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
+    retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeMZPlot.setPreferredSize(MIN_DIMENSIONS);
 
-        final JPanel pnlPlotRetTimeClusters = new JPanel(new BorderLayout());
-        pnlPlotRetTimeClusters.setBackground(Color.white);
-        pnlPlotRetTimeClusters.add(retTimeMZPlot, BorderLayout.CENTER);
-        GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
+    final JPanel pnlPlotRetTimeClusters = new JPanel(new BorderLayout());
+    pnlPlotRetTimeClusters.setBackground(Color.white);
+    pnlPlotRetTimeClusters.add(retTimeMZPlot, BorderLayout.CENTER);
+    GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
 
-        // Plot with chromatograms
-        retTimeIntensityPlot = new EICPlot();
-        retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
-        retTimeIntensityPlot.setPreferredSize(MIN_DIMENSIONS);
+    // Plot with chromatograms
+    retTimeIntensityPlot = new EICPlot();
+    retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
+    retTimeIntensityPlot.setPreferredSize(MIN_DIMENSIONS);
 
-        JPanel pnlPlotShapeClusters = new JPanel(new BorderLayout());
-        pnlPlotShapeClusters.setBackground(Color.white);
-        pnlPlotShapeClusters.add(retTimeIntensityPlot, BorderLayout.CENTER);
-        GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
+    JPanel pnlPlotShapeClusters = new JPanel(new BorderLayout());
+    pnlPlotShapeClusters.setBackground(Color.white);
+    pnlPlotShapeClusters.add(retTimeIntensityPlot, BorderLayout.CENTER);
+    GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
 
-        pnlPlots.add(pnlPlotRetTimeClusters);
-        pnlPlots.add(pnlPlotShapeClusters);
+    pnlPlots.add(pnlPlotRetTimeClusters);
+    pnlPlots.add(pnlPlotShapeClusters);
 
-        super.mainPanel.add(pnlUIElements, 0, super.getNumberOfParameters() + 3,
-                2, 1, 0, 0, GridBagConstraints.HORIZONTAL);
-    }
+    super.mainPanel.add(pnlUIElements, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
+        GridBagConstraints.HORIZONTAL);
+  }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        super.actionPerformed(e);
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    super.actionPerformed(e);
 
-        final Object source = e.getSource();
+    final Object source = e.getSource();
 
-        if (source.equals(chkPreview)) {
-            if (chkPreview.isSelected()) {
-                // Set the height of the chkPreview to 200 cells, so it will
-                // span
-                // the whole vertical length of the dialog (buttons are at row
-                // no 100). Also, we set the weight to 10, so the chkPreview
-                // component will consume most of the extra available space.
-                mainPanel.add(pnlPlots, 3, 0, 1, 200, 10, 10,
-                        GridBagConstraints.BOTH);
-                pnlUIElements.add(pnlComboBoxes, BorderLayout.CENTER);
+    if (source.equals(chkPreview)) {
+      if (chkPreview.isSelected()) {
+        // Set the height of the chkPreview to 200 cells, so it will
+        // span
+        // the whole vertical length of the dialog (buttons are at row
+        // no 100). Also, we set the weight to 10, so the chkPreview
+        // component will consume most of the extra available space.
+        mainPanel.add(pnlPlots, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+        pnlUIElements.add(pnlComboBoxes, BorderLayout.CENTER);
 
-                refresh();
-            } else {
-                mainPanel.remove(pnlPlots);
-                pnlUIElements.remove(pnlComboBoxes);
-            }
+        refresh();
+      } else {
+        mainPanel.remove(pnlPlots);
+        pnlUIElements.remove(pnlComboBoxes);
+      }
 
-            updateMinimumSize();
-            pack();
-            // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-        } else if (source.equals(btnRefresh))
-            refresh();
+      updateMinimumSize();
+      pack();
+      // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+    } else if (source.equals(btnRefresh))
+      refresh();
 
-        else if (source.equals(cboPeakLists))
-            retTimeCluster();
+    else if (source.equals(cboPeakLists))
+      retTimeCluster();
 
-        else if (source.equals(cboClusters))
-            shapeCluster();
-    }
+    else if (source.equals(cboClusters))
+      shapeCluster();
+  }
 
-    @Override
-    public void parametersChanged() {
-        super.updateParameterSetFromComponents();
+  @Override
+  public void parametersChanged() {
+    super.updateParameterSetFromComponents();
 
-        if (!chkPreview.isSelected())
-            return;
+    if (!chkPreview.isSelected())
+      return;
 
-        Cursor cursor = this.getCursor();
-        this.setCursor(WAIT_CURSOR);
+    Cursor cursor = this.getCursor();
+    this.setCursor(WAIT_CURSOR);
 
-        switch (compareParameters(parameterSet.getParameters())) {
-        case FIRST_PHASE:
-            retTimeCluster();
-            break;
+    switch (compareParameters(parameterSet.getParameters())) {
+      case FIRST_PHASE:
+        retTimeCluster();
+        break;
 
-        case SECOND_PHASE:
-            shapeCluster();
-            break;
-        }
-
-        this.setCursor(cursor);
-    }
-
-    private void refresh() {
-        cboPeakLists.removeActionListener(this);
-        cboPeakLists.removeAllItems();
-        for (ChromatogramPeakPair p : ChromatogramPeakPair
-                .fromParameterSet(parameterSet).values())
-            cboPeakLists.addItem(p);
-        cboPeakLists.addActionListener(this);
-
-        if (cboPeakLists.getItemCount() > 0)
-            cboPeakLists.setSelectedIndex(0);
-    }
-
-    /**
-     * Cluster all peaks in PeakList based on retention time
-     */
-    private void retTimeCluster() {
-        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists
-                .getItemAt(cboPeakLists.getSelectedIndex());
-        if (chromatogramPeakPair == null)
-            return;
-
-        PeakList chromatogramList = chromatogramPeakPair.chromatograms;
-        PeakList peakList = chromatogramPeakPair.peaks;
-        if (chromatogramList == null || peakList == null)
-            return;
-
-        Double minDistance = parameterSet
-                .getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH)
-                .getValue();
-        if (minDistance == null || minDistance <= 0.0)
-            return;
-
-        // Convert peakList into ranges
-        List<RetTimeClusterer.Interval> ranges = Arrays
-                .stream(peakList.getRows()).map(PeakListRow::getBestPeak)
-                .map(p -> new RetTimeClusterer.Interval(
-                        p.getRawDataPointsRTRange(), p.getMZ()))
-                .collect(Collectors.toList());
-
-        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils()
-                .getPeaks(peakList);
-
-        // Form clusters of ranges
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(
-                minDistance).execute(peaks);
-
-        cboClusters.removeAllItems();
-        cboClusters.removeActionListener(this);
-        for (RetTimeClusterer.Cluster cluster : retTimeClusters) {
-            int i;
-
-            for (i = 0; i < cboClusters.getItemCount(); ++i) {
-                double retTime = cboClusters.getItemAt(i).retTime;
-                if (cluster.retTime < retTime) {
-                    cboClusters.insertItemAt(cluster, i);
-                    break;
-                }
-            }
-
-            if (i == cboClusters.getItemCount())
-                cboClusters.addItem(cluster);
-        }
-        cboClusters.addActionListener(this);
-
-        retTimeMZPlot.updateData(retTimeClusters);
-
+      case SECOND_PHASE:
         shapeCluster();
+        break;
     }
 
-    /**
-     * Cluster list of PeakInfo based on the chromatographic shapes
-     */
-    private void shapeCluster() {
-        ChromatogramPeakPair chromatogramPeakPair = cboPeakLists
-                .getItemAt(cboPeakLists.getSelectedIndex());
-        if (chromatogramPeakPair == null)
-            return;
+    this.setCursor(cursor);
+  }
 
-        PeakList chromatogramList = chromatogramPeakPair.chromatograms;
-        PeakList peakList = chromatogramPeakPair.peaks;
-        if (chromatogramList == null || peakList == null)
-            return;
+  private void refresh() {
+    cboPeakLists.removeActionListener(this);
+    cboPeakLists.removeAllItems();
+    for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
+      cboPeakLists.addItem(p);
+    cboPeakLists.addActionListener(this);
 
-        final RetTimeClusterer.Cluster cluster = cboClusters
-                .getItemAt(cboClusters.getSelectedIndex());
-        if (cluster == null)
-            return;
+    if (cboPeakLists.getItemCount() > 0)
+      cboPeakLists.setSelectedIndex(0);
+  }
 
-        Double retTimeTolerance = parameterSet
-                .getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE)
-                .getValue();
-        Boolean adjustApexRetTime = parameterSet
-                .getParameter(
-                        ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME)
-                .getValue();
-        Integer minClusterSize = parameterSet
-                .getParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE)
-                .getValue();
-        if (retTimeTolerance == null || retTimeTolerance <= 0.0
-                || adjustApexRetTime == null || minClusterSize == null
-                || minClusterSize <= 0)
-            return;
+  /**
+   * Cluster all peaks in PeakList based on retention time
+   */
+  private void retTimeCluster() {
+    ChromatogramPeakPair chromatogramPeakPair =
+        cboPeakLists.getItemAt(cboPeakLists.getSelectedIndex());
+    if (chromatogramPeakPair == null)
+      return;
 
-        List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils()
-                .getPeaks(chromatogramList);
+    PeakList chromatogramList = chromatogramPeakPair.chromatograms;
+    PeakList peakList = chromatogramPeakPair.peaks;
+    if (chromatogramList == null || peakList == null)
+      return;
 
-        List<BetterComponent> components = null;
-        try {
-            components = new ComponentSelector().execute(chromatograms, cluster,
-                    retTimeTolerance, adjustApexRetTime, minClusterSize);
-        } catch (Exception e) {
-            e.printStackTrace();
+    Double minDistance =
+        parameterSet.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
+    if (minDistance == null || minDistance <= 0.0)
+      return;
+
+    // Convert peakList into ranges
+    List<RetTimeClusterer.Interval> ranges =
+        Arrays.stream(peakList.getRows()).map(PeakListRow::getBestPeak)
+            .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
+            .collect(Collectors.toList());
+
+    List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
+
+    // Form clusters of ranges
+    List<RetTimeClusterer.Cluster> retTimeClusters =
+        new RetTimeClusterer(minDistance).execute(peaks);
+
+    cboClusters.removeAllItems();
+    cboClusters.removeActionListener(this);
+    for (RetTimeClusterer.Cluster cluster : retTimeClusters) {
+      int i;
+
+      for (i = 0; i < cboClusters.getItemCount(); ++i) {
+        double retTime = cboClusters.getItemAt(i).retTime;
+        if (cluster.retTime < retTime) {
+          cboClusters.insertItemAt(cluster, i);
+          break;
         }
+      }
 
-        if (components != null)
-            retTimeIntensityPlot.updateData(chromatograms, components); // chromatograms
+      if (i == cboClusters.getItemCount())
+        cboClusters.addItem(cluster);
+    }
+    cboClusters.addActionListener(this);
+
+    retTimeMZPlot.updateData(retTimeClusters);
+
+    shapeCluster();
+  }
+
+  /**
+   * Cluster list of PeakInfo based on the chromatographic shapes
+   */
+  private void shapeCluster() {
+    ChromatogramPeakPair chromatogramPeakPair =
+        cboPeakLists.getItemAt(cboPeakLists.getSelectedIndex());
+    if (chromatogramPeakPair == null)
+      return;
+
+    PeakList chromatogramList = chromatogramPeakPair.chromatograms;
+    PeakList peakList = chromatogramPeakPair.peaks;
+    if (chromatogramList == null || peakList == null)
+      return;
+
+    final RetTimeClusterer.Cluster cluster = cboClusters.getItemAt(cboClusters.getSelectedIndex());
+    if (cluster == null)
+      return;
+
+    Double retTimeTolerance =
+        parameterSet.getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
+    Boolean adjustApexRetTime =
+        parameterSet.getParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
+    Integer minClusterSize =
+        parameterSet.getParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+    if (retTimeTolerance == null || retTimeTolerance <= 0.0 || adjustApexRetTime == null
+        || minClusterSize == null || minClusterSize <= 0)
+      return;
+
+    List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);
+
+    List<BetterComponent> components = null;
+    try {
+      components = new ComponentSelector().execute(chromatograms, cluster, retTimeTolerance,
+          adjustApexRetTime, minClusterSize);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
-    private CHANGE_STATE compareParameters(Parameter[] newValues) {
-        if (currentParameters == null) {
-            int size = newValues.length;
-            currentParameters = new Object[size];
-            for (int i = 0; i < size; ++i)
-                currentParameters[i] = newValues[i].getValue();
+    if (components != null)
+      retTimeIntensityPlot.updateData(chromatograms, components); // chromatograms
+  }
 
-            return CHANGE_STATE.FIRST_PHASE;
-        }
+  private CHANGE_STATE compareParameters(Parameter[] newValues) {
+    if (currentParameters == null) {
+      int size = newValues.length;
+      currentParameters = new Object[size];
+      for (int i = 0; i < size; ++i)
+        currentParameters[i] = newValues[i].getValue();
 
-        final Set<Integer> firstPhaseIndices = new HashSet<>(
-                Collections.singleton(2));
-        final Set<Integer> secondPhaseIndices = new HashSet<>(
-                Arrays.asList(3, 4, 5));
-
-        int size = Math.min(currentParameters.length, newValues.length);
-
-        Set<Integer> changedIndices = new HashSet<>();
-
-        for (int i = 0; i < size; ++i) {
-            Object oldValue = currentParameters[i];
-            Object newValue = newValues[i].getValue();
-
-            if (newValue != null && oldValue != null
-                    && oldValue.equals(newValue))
-                continue;
-
-            changedIndices.add(i);
-        }
-
-        CHANGE_STATE result = CHANGE_STATE.NONE;
-
-        if (!Sets.intersection(firstPhaseIndices, changedIndices).isEmpty())
-            result = CHANGE_STATE.FIRST_PHASE;
-
-        else if (!Sets.intersection(secondPhaseIndices, changedIndices)
-                .isEmpty())
-            result = CHANGE_STATE.SECOND_PHASE;
-
-        for (int i = 0; i < size; ++i)
-            currentParameters[i] = newValues[i].getValue();
-
-        return result;
+      return CHANGE_STATE.FIRST_PHASE;
     }
+
+    final Set<Integer> firstPhaseIndices = new HashSet<>(Collections.singleton(2));
+    final Set<Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4, 5));
+
+    int size = Math.min(currentParameters.length, newValues.length);
+
+    Set<Integer> changedIndices = new HashSet<>();
+
+    for (int i = 0; i < size; ++i) {
+      Object oldValue = currentParameters[i];
+      Object newValue = newValues[i].getValue();
+
+      if (newValue != null && oldValue != null && oldValue.equals(newValue))
+        continue;
+
+      changedIndices.add(i);
+    }
+
+    CHANGE_STATE result = CHANGE_STATE.NONE;
+
+    if (!Sets.intersection(firstPhaseIndices, changedIndices).isEmpty())
+      result = CHANGE_STATE.FIRST_PHASE;
+
+    else if (!Sets.intersection(secondPhaseIndices, changedIndices).isEmpty())
+      result = CHANGE_STATE.SECOND_PHASE;
+
+    for (int i = 0; i < size; ++i)
+      currentParameters[i] = newValues[i].getValue();
+
+    return result;
+  }
 }

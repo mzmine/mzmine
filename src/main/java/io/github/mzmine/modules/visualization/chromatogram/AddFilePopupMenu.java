@@ -37,70 +37,68 @@ import io.github.mzmine.main.MZmineCore;
  */
 class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
-    private TICVisualizerWindow visualizer;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
+  private TICVisualizerWindow visualizer;
 
-    AddFilePopupMenu(TICVisualizerWindow visualizer) {
-        super("Add plot of file...");
-        addMenuListener(this);
-        this.visualizer = visualizer;
+  AddFilePopupMenu(TICVisualizerWindow visualizer) {
+    super("Add plot of file...");
+    addMenuListener(this);
+    this.visualizer = visualizer;
+  }
+
+  /**
+   * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
+   */
+  public void menuSelected(MenuEvent event) {
+
+    // remove all menu items
+    removeAll();
+
+    // get all project files
+    RawDataFile[] openFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    List<RawDataFile> visualizedFiles = Arrays.asList(visualizer.getRawDataFiles());
+
+    menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+    for (RawDataFile file : openFiles) {
+
+      // if this file is already added, skip it
+      if (visualizedFiles.contains(file))
+        continue;
+
+      // add a menu item for each file
+      JMenuItem newItem = new JMenuItem(file.getName());
+      newItem.addActionListener(this);
+      menuItemFiles.put(newItem, file);
+      add(newItem);
     }
 
-    /**
-     * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
-     */
-    public void menuSelected(MenuEvent event) {
+  }
 
-        // remove all menu items
-        removeAll();
+  /**
+   * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
+   */
+  public void menuDeselected(MenuEvent arg0) {
+    // do nothing
+  }
 
-        // get all project files
-        RawDataFile[] openFiles = MZmineCore.getProjectManager()
-                .getCurrentProject().getDataFiles();
-        List<RawDataFile> visualizedFiles = Arrays
-                .asList(visualizer.getRawDataFiles());
+  /**
+   * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
+   */
+  public void menuCanceled(MenuEvent arg0) {
+    // do nothing
+  }
 
-        menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
-        for (RawDataFile file : openFiles) {
-
-            // if this file is already added, skip it
-            if (visualizedFiles.contains(file))
-                continue;
-
-            // add a menu item for each file
-            JMenuItem newItem = new JMenuItem(file.getName());
-            newItem.addActionListener(this);
-            menuItemFiles.put(newItem, file);
-            add(newItem);
-        }
-
-    }
-
-    /**
-     * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
-     */
-    public void menuDeselected(MenuEvent arg0) {
-        // do nothing
-    }
-
-    /**
-     * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
-     */
-    public void menuCanceled(MenuEvent arg0) {
-        // do nothing
-    }
-
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
-        Object src = event.getSource();
-        RawDataFile file = menuItemFiles.get(src);
-        if (file != null)
-            visualizer.addRawDataFile(file);
-    }
+  /**
+   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+   */
+  public void actionPerformed(ActionEvent event) {
+    Object src = event.getSource();
+    RawDataFile file = menuItemFiles.get(src);
+    if (file != null)
+      visualizer.addRawDataFile(file);
+  }
 }

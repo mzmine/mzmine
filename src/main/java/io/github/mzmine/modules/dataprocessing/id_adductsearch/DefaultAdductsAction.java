@@ -40,32 +40,31 @@ import io.github.mzmine.parameters.parametertypes.AdductsComponent;
  */
 public class DefaultAdductsAction extends AbstractAction {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * Create the action.
-     */
-    public DefaultAdductsAction() {
+  /**
+   * Create the action.
+   */
+  public DefaultAdductsAction() {
 
-        super("Reset");
-        putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
+    super("Reset");
+    putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
+  }
+
+  @Override
+  public void actionPerformed(final ActionEvent e) {
+
+    // Parent component.
+    final AdductsComponent parent = (AdductsComponent) SwingUtilities
+        .getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
+
+    if (parent != null) {
+
+      // Reset default choices.
+      parent.setChoices(AdductType.getDefaultValues());
     }
-
-    @Override
-    public void actionPerformed(final ActionEvent e) {
-
-        // Parent component.
-        final AdductsComponent parent = (AdductsComponent) SwingUtilities
-                .getAncestorOfClass(AdductsComponent.class,
-                        (Component) e.getSource());
-
-        if (parent != null) {
-
-            // Reset default choices.
-            parent.setChoices(AdductType.getDefaultValues());
-        }
-    }
+  }
 }

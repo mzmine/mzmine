@@ -24,15 +24,12 @@ import io.github.mzmine.main.MZmineCore;
 
 public class ComplexIdentity extends SimplePeakIdentity {
 
-    public ComplexIdentity(final PeakListRow peak1, final PeakListRow peak2) {
+  public ComplexIdentity(final PeakListRow peak1, final PeakListRow peak2) {
 
-        super("Complex of "
-                + MZmineCore.getConfiguration().getMZFormat()
-                        .format(peak1.getAverageMZ())
-                + " and " + MZmineCore.getConfiguration().getMZFormat()
-                        .format(peak2.getAverageMZ())
-                + " m/z");
+    super("Complex of " + MZmineCore.getConfiguration().getMZFormat().format(peak1.getAverageMZ())
+        + " and " + MZmineCore.getConfiguration().getMZFormat().format(peak2.getAverageMZ())
+        + " m/z");
 
-        setPropertyValue(PROPERTY_METHOD, "Complex search");
-    }
+    setPropertyValue(PROPERTY_METHOD, "Complex search");
+  }
 }

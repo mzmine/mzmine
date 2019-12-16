@@ -42,279 +42,259 @@ import io.github.mzmine.util.PeakUtils;
  */
 public class FeatureFilterTask extends AbstractTask {
 
-    // Logger
-    private static final Logger LOG = Logger
-            .getLogger(FeatureFilterTask.class.getName());
+  // Logger
+  private static final Logger LOG = Logger.getLogger(FeatureFilterTask.class.getName());
 
-    // Feature lists
-    private final MZmineProject project;
-    private final PeakList origPeakList;
-    private PeakList filteredPeakList;
+  // Feature lists
+  private final MZmineProject project;
+  private final PeakList origPeakList;
+  private PeakList filteredPeakList;
 
-    // Processed rows counter
-    private int processedRows, totalRows;
+  // Processed rows counter
+  private int processedRows, totalRows;
 
-    // Parameters
-    private final ParameterSet parameters;
+  // Parameters
+  private final ParameterSet parameters;
 
-    /**
-     * Create the task.
-     *
-     * @param list
-     *            feature list to process.
-     * @param parameterSet
-     *            task parameters.
-     */
-    public FeatureFilterTask(final MZmineProject project, final PeakList list,
-            final ParameterSet parameterSet) {
+  /**
+   * Create the task.
+   *
+   * @param list feature list to process.
+   * @param parameterSet task parameters.
+   */
+  public FeatureFilterTask(final MZmineProject project, final PeakList list,
+      final ParameterSet parameterSet) {
 
-        // Initialize
-        this.project = project;
-        parameters = parameterSet;
-        origPeakList = list;
-        filteredPeakList = null;
-        processedRows = 0;
-        totalRows = 0;
+    // Initialize
+    this.project = project;
+    parameters = parameterSet;
+    origPeakList = list;
+    filteredPeakList = null;
+    processedRows = 0;
+    totalRows = 0;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Filtering feature list";
+  }
+
+  @Override
+  public void run() {
+
+    if (isCanceled()) {
+      return;
     }
 
-    @Override
-    public double getFinishedPercentage() {
-        return totalRows == 0 ? 0.0
-                : (double) processedRows / (double) totalRows;
+    try {
+      setStatus(TaskStatus.PROCESSING);
+      LOG.info("Filtering feature list");
+
+      // Filter the feature list
+      filteredPeakList = filterPeakList(origPeakList);
+
+      if (!isCanceled()) {
+
+        // Add new peaklist to the project
+        project.addPeakList(filteredPeakList);
+
+        // Remove the original peaklist if requested
+        if (parameters.getParameter(FeatureFilterParameters.AUTO_REMOVE).getValue()) {
+          project.removePeakList(origPeakList);
+        }
+        setStatus(TaskStatus.FINISHED);
+        LOG.info("Finished feature list filter");
+      }
+    } catch (Throwable t) {
+
+      setErrorMessage(t.getMessage());
+      setStatus(TaskStatus.ERROR);
+      LOG.log(Level.SEVERE, "Feature list filter error", t);
     }
 
-    @Override
-    public String getTaskDescription() {
-        return "Filtering feature list";
-    }
+  }
 
-    @Override
-    public void run() {
+  /**
+   * Filter the feature list.
+   *
+   * @param peakList feature list to filter.
+   * @return a new feature list with entries of the original feature list that pass the filtering.
+   */
+  private PeakList filterPeakList(final PeakList peakList) {
 
-        if (isCanceled()) {
-            return;
+    // Make a copy of the peakList
+    final PeakList newPeakList = new SimplePeakList(
+        peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
+        peakList.getRawDataFiles());
+
+    // Get parameters - which filters are active
+    final boolean filterByDuration =
+        parameters.getParameter(FeatureFilterParameters.PEAK_DURATION).getValue();
+    final boolean filterByArea =
+        parameters.getParameter(FeatureFilterParameters.PEAK_AREA).getValue();
+    final boolean filterByHeight =
+        parameters.getParameter(FeatureFilterParameters.PEAK_HEIGHT).getValue();
+    final boolean filterByDatapoints =
+        parameters.getParameter(FeatureFilterParameters.PEAK_DATAPOINTS).getValue();
+    final boolean filterByFWHM =
+        parameters.getParameter(FeatureFilterParameters.PEAK_FWHM).getValue();
+    final boolean filterByTailingFactor =
+        parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR).getValue();
+    final boolean filterByAsymmetryFactor =
+        parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
+    final boolean filterByMS2 =
+        parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
+
+    // Loop through all rows in feature list
+    final PeakListRow[] rows = peakList.getRows();
+    totalRows = rows.length;
+    for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+      final PeakListRow row = rows[processedRows];
+      final RawDataFile[] rawdatafiles = row.getRawDataFiles();
+      int totalRawDataFiles = rawdatafiles.length;
+      boolean[] keepPeak = new boolean[totalRawDataFiles];
+
+      for (int i = 0; i < totalRawDataFiles; i++) {
+        // Peak values
+        keepPeak[i] = true;
+        final Feature peak = row.getPeak(rawdatafiles[i]);
+        final double peakDuration = peak.getRawDataPointsRTRange().upperEndpoint()
+            - peak.getRawDataPointsRTRange().lowerEndpoint();
+        final double peakArea = peak.getArea();
+        final double peakHeight = peak.getHeight();
+        final int peakDatapoints = peak.getScanNumbers().length;
+        final int msmsScanNumber = peak.getMostIntenseFragmentScanNumber();
+
+        Double peakFWHM = peak.getFWHM();
+        Double peakTailingFactor = peak.getTailingFactor();
+        Double peakAsymmetryFactor = peak.getAsymmetryFactor();
+        if (peakFWHM == null) {
+          peakFWHM = -1.0;
+        }
+        if (peakTailingFactor == null) {
+          peakTailingFactor = -1.0;
+        }
+        if (peakAsymmetryFactor == null) {
+          peakAsymmetryFactor = -1.0;
         }
 
-        try {
-            setStatus(TaskStatus.PROCESSING);
-            LOG.info("Filtering feature list");
-
-            // Filter the feature list
-            filteredPeakList = filterPeakList(origPeakList);
-
-            if (!isCanceled()) {
-
-                // Add new peaklist to the project
-                project.addPeakList(filteredPeakList);
-
-                // Remove the original peaklist if requested
-                if (parameters.getParameter(FeatureFilterParameters.AUTO_REMOVE)
-                        .getValue()) {
-                    project.removePeakList(origPeakList);
-                }
-                setStatus(TaskStatus.FINISHED);
-                LOG.info("Finished feature list filter");
-            }
-        } catch (Throwable t) {
-
-            setErrorMessage(t.getMessage());
-            setStatus(TaskStatus.ERROR);
-            LOG.log(Level.SEVERE, "Feature list filter error", t);
+        // Check Duration
+        if (filterByDuration) {
+          final Range<Double> durationRange =
+              parameters.getParameter(FeatureFilterParameters.PEAK_DURATION).getEmbeddedParameter()
+                  .getValue();
+          if (!durationRange.contains(peakDuration)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
         }
+
+        // Check Area
+        if (filterByArea) {
+          final Range<Double> areaRange = parameters.getParameter(FeatureFilterParameters.PEAK_AREA)
+              .getEmbeddedParameter().getValue();
+          if (!areaRange.contains(peakArea)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check Height
+        if (filterByHeight) {
+          final Range<Double> heightRange = parameters
+              .getParameter(FeatureFilterParameters.PEAK_HEIGHT).getEmbeddedParameter().getValue();
+          if (!heightRange.contains(peakHeight)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check # Data Points
+        if (filterByDatapoints) {
+          final Range<Integer> datapointsRange =
+              parameters.getParameter(FeatureFilterParameters.PEAK_DATAPOINTS)
+                  .getEmbeddedParameter().getValue();
+          if (!datapointsRange.contains(peakDatapoints)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check FWHM
+        if (filterByFWHM) {
+          final Range<Double> fwhmRange = parameters.getParameter(FeatureFilterParameters.PEAK_FWHM)
+              .getEmbeddedParameter().getValue();
+          if (!fwhmRange.contains(peakFWHM)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check Tailing Factor
+        if (filterByTailingFactor) {
+          final Range<Double> tailingRange =
+              parameters.getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
+                  .getEmbeddedParameter().getValue();
+          if (!tailingRange.contains(peakTailingFactor)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check height
+        if (filterByAsymmetryFactor) {
+          final Range<Double> asymmetryRange =
+              parameters.getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
+                  .getEmbeddedParameter().getValue();
+          if (!asymmetryRange.contains(peakAsymmetryFactor)) {
+            // Mark peak to be removed
+            keepPeak[i] = false;
+          }
+        }
+
+        // Check MS/MS filter
+        if (filterByMS2) {
+          if (msmsScanNumber < 1)
+            keepPeak[i] = false;
+        }
+      }
+      // empty row?
+      boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
+      if (!isEmpty)
+        newPeakList.addRow(copyPeakRow(row, keepPeak));
 
     }
 
-    /**
-     * Filter the feature list.
-     *
-     * @param peakList
-     *            feature list to filter.
-     * @return a new feature list with entries of the original feature list that
-     *         pass the filtering.
-     */
-    private PeakList filterPeakList(final PeakList peakList) {
+    return newPeakList;
+  }
 
-        // Make a copy of the peakList
-        final PeakList newPeakList = new SimplePeakList(
-                peakList.getName() + ' ' + parameters
-                        .getParameter(RowsFilterParameters.SUFFIX).getValue(),
-                peakList.getRawDataFiles());
+  /**
+   * Create a copy of a feature list row.
+   */
+  private static PeakListRow copyPeakRow(final PeakListRow row, final boolean[] keepPeak) {
 
-        // Get parameters - which filters are active
-        final boolean filterByDuration = parameters
-                .getParameter(FeatureFilterParameters.PEAK_DURATION).getValue();
-        final boolean filterByArea = parameters
-                .getParameter(FeatureFilterParameters.PEAK_AREA).getValue();
-        final boolean filterByHeight = parameters
-                .getParameter(FeatureFilterParameters.PEAK_HEIGHT).getValue();
-        final boolean filterByDatapoints = parameters
-                .getParameter(FeatureFilterParameters.PEAK_DATAPOINTS).getValue();
-        final boolean filterByFWHM = parameters
-                .getParameter(FeatureFilterParameters.PEAK_FWHM).getValue();
-        final boolean filterByTailingFactor = parameters
-                .getParameter(FeatureFilterParameters.PEAK_TAILINGFACTOR)
-                .getValue();
-        final boolean filterByAsymmetryFactor = parameters
-                .getParameter(FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
-                .getValue();
-        final boolean filterByMS2 = parameters
-                .getParameter(FeatureFilterParameters.MS2_Filter).getValue();
+    // Copy the feature list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
 
-        // Loop through all rows in feature list
-        final PeakListRow[] rows = peakList.getRows();
-        totalRows = rows.length;
-        for (processedRows = 0; !isCanceled()
-                && processedRows < totalRows; processedRows++) {
-            final PeakListRow row = rows[processedRows];
-            final RawDataFile[] rawdatafiles = row.getRawDataFiles();
-            int totalRawDataFiles = rawdatafiles.length;
-            boolean[] keepPeak = new boolean[totalRawDataFiles];
+    // Copy the peaks.
+    int i = 0;
+    for (final Feature peak : row.getPeaks()) {
 
-            for (int i = 0; i < totalRawDataFiles; i++) {
-                // Peak values
-                keepPeak[i] = true;
-                final Feature peak = row.getPeak(rawdatafiles[i]);
-                final double peakDuration = peak.getRawDataPointsRTRange()
-                        .upperEndpoint()
-                        - peak.getRawDataPointsRTRange().lowerEndpoint();
-                final double peakArea = peak.getArea();
-                final double peakHeight = peak.getHeight();
-                final int peakDatapoints = peak.getScanNumbers().length;
-                final int msmsScanNumber = peak
-                        .getMostIntenseFragmentScanNumber();
-
-                Double peakFWHM = peak.getFWHM();
-                Double peakTailingFactor = peak.getTailingFactor();
-                Double peakAsymmetryFactor = peak.getAsymmetryFactor();
-                if (peakFWHM == null) {
-                    peakFWHM = -1.0;
-                }
-                if (peakTailingFactor == null) {
-                    peakTailingFactor = -1.0;
-                }
-                if (peakAsymmetryFactor == null) {
-                    peakAsymmetryFactor = -1.0;
-                }
-
-                // Check Duration
-                if (filterByDuration) {
-                    final Range<Double> durationRange = parameters
-                            .getParameter(FeatureFilterParameters.PEAK_DURATION)
-                            .getEmbeddedParameter().getValue();
-                    if (!durationRange.contains(peakDuration)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check Area
-                if (filterByArea) {
-                    final Range<Double> areaRange = parameters
-                            .getParameter(FeatureFilterParameters.PEAK_AREA)
-                            .getEmbeddedParameter().getValue();
-                    if (!areaRange.contains(peakArea)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check Height
-                if (filterByHeight) {
-                    final Range<Double> heightRange = parameters
-                            .getParameter(FeatureFilterParameters.PEAK_HEIGHT)
-                            .getEmbeddedParameter().getValue();
-                    if (!heightRange.contains(peakHeight)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check # Data Points
-                if (filterByDatapoints) {
-                    final Range<Integer> datapointsRange = parameters
-                            .getParameter(FeatureFilterParameters.PEAK_DATAPOINTS)
-                            .getEmbeddedParameter().getValue();
-                    if (!datapointsRange.contains(peakDatapoints)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check FWHM
-                if (filterByFWHM) {
-                    final Range<Double> fwhmRange = parameters
-                            .getParameter(FeatureFilterParameters.PEAK_FWHM)
-                            .getEmbeddedParameter().getValue();
-                    if (!fwhmRange.contains(peakFWHM)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check Tailing Factor
-                if (filterByTailingFactor) {
-                    final Range<Double> tailingRange = parameters
-                            .getParameter(
-                                    FeatureFilterParameters.PEAK_TAILINGFACTOR)
-                            .getEmbeddedParameter().getValue();
-                    if (!tailingRange.contains(peakTailingFactor)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check height
-                if (filterByAsymmetryFactor) {
-                    final Range<Double> asymmetryRange = parameters
-                            .getParameter(
-                                    FeatureFilterParameters.PEAK_ASYMMETRYFACTOR)
-                            .getEmbeddedParameter().getValue();
-                    if (!asymmetryRange.contains(peakAsymmetryFactor)) {
-                        // Mark peak to be removed
-                        keepPeak[i] = false;
-                    }
-                }
-
-                // Check MS/MS filter
-                if (filterByMS2) {
-                    if (msmsScanNumber < 1)
-                        keepPeak[i] = false;
-                }
-            }
-            // empty row?
-            boolean isEmpty = Booleans.asList(keepPeak).stream()
-                    .allMatch(keep -> !keep);
-            if (!isEmpty)
-                newPeakList.addRow(copyPeakRow(row, keepPeak));
-
-        }
-
-        return newPeakList;
+      // Only keep peak if it fulfills the filter criteria
+      if (keepPeak[i]) {
+        final Feature newPeak = new SimpleFeature(peak);
+        PeakUtils.copyPeakProperties(peak, newPeak);
+        newRow.addPeak(peak.getDataFile(), newPeak);
+      }
+      i++;
     }
 
-    /**
-     * Create a copy of a feature list row.
-     */
-    private static PeakListRow copyPeakRow(final PeakListRow row,
-            final boolean[] keepPeak) {
-
-        // Copy the feature list row.
-        final PeakListRow newRow = new SimplePeakListRow(row.getID());
-        PeakUtils.copyPeakListRowProperties(row, newRow);
-
-        // Copy the peaks.
-        int i = 0;
-        for (final Feature peak : row.getPeaks()) {
-
-            // Only keep peak if it fulfills the filter criteria
-            if (keepPeak[i]) {
-                final Feature newPeak = new SimpleFeature(peak);
-                PeakUtils.copyPeakProperties(peak, newPeak);
-                newRow.addPeak(peak.getDataFile(), newPeak);
-            }
-            i++;
-        }
-
-        return newRow;
-    }
+    return newRow;
+  }
 }

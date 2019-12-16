@@ -28,17 +28,17 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MzTabImportParameters extends SimpleParameterSet {
 
-    private static final List<ExtensionFilter> filters = List
-            .of(new ExtensionFilter("mztab files", "*.mztab"));
+  private static final List<ExtensionFilter> filters =
+      List.of(new ExtensionFilter("mztab files", "*.mztab"));
 
-    public static final FileNamesParameter file = new FileNamesParameter(
-            "mzTab files", "mzTab files to import.", filters);
+  public static final FileNamesParameter file =
+      new FileNamesParameter("mzTab files", "mzTab files to import.", filters);
 
-    public static final BooleanParameter importrawfiles = new BooleanParameter(
-            "Import raw data files?",
-            "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
+  public static final BooleanParameter importrawfiles = new BooleanParameter(
+      "Import raw data files?",
+      "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
 
-    public MzTabImportParameters() {
-        super(new Parameter[] { file, importrawfiles });
-    }
+  public MzTabImportParameters() {
+    super(new Parameter[] {file, importrawfiles});
+  }
 }

@@ -33,47 +33,46 @@ import io.github.mzmine.util.ExitCode;
 
 public class AlignScansModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Align scans (LC/MS or MS level 1)";
-    private static final String MODULE_DESCRIPTION = "This module align scans for small fluctuations correlating consecutive scans.";
+  private static final String MODULE_NAME = "Align scans (LC/MS or MS level 1)";
+  private static final String MODULE_DESCRIPTION =
+      "This module align scans for small fluctuations correlating consecutive scans.";
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    RawDataFile[] dataFiles =
+        parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
+
+    for (int i = 0; i < dataFiles.length; i++) {
+      Task newTask = new AlignScansTask(project, dataFiles[i], parameters.cloneParameterSet());
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.RAWDATAFILTERING;
+  }
 
-        RawDataFile[] dataFiles = parameters
-                .getParameter(new RawDataFilesParameter()).getValue()
-                .getMatchingRawDataFiles();
-
-        for (int i = 0; i < dataFiles.length; i++) {
-            Task newTask = new AlignScansTask(project, dataFiles[i],
-                    parameters.cloneParameterSet());
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.RAWDATAFILTERING;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return AlignScansParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return AlignScansParameters.class;
+  }
 
 }

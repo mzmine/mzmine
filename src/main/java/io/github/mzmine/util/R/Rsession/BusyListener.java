@@ -24,6 +24,6 @@ package io.github.mzmine.util.R.Rsession;
 
 public interface BusyListener {
 
-    /** Notify the state of R engine */
-    public void setBusy(boolean busy);
+  /** Notify the state of R engine */
+  public void setBusy(boolean busy);
 }

@@ -33,28 +33,28 @@ import io.github.mzmine.util.ExitCode;
 
 public class XICManualPickerParameters extends SimpleParameterSet {
 
-    public static final HiddenParameter<RawDataFilesParameter, RawDataFilesSelection> rawDataFiles = new HiddenParameter<RawDataFilesParameter, RawDataFilesSelection>(
-            new RawDataFilesParameter("Raw data file", 1, 100));
+  public static final HiddenParameter<RawDataFilesParameter, RawDataFilesSelection> rawDataFiles =
+      new HiddenParameter<RawDataFilesParameter, RawDataFilesSelection>(
+          new RawDataFilesParameter("Raw data file", 1, 100));
 
-    public static final HiddenParameter<DoubleRangeParameter, Range<Double>> rtRange = new HiddenParameter<DoubleRangeParameter, Range<Double>>(
-            new DoubleRangeParameter("Retention time", "Retention time range",
-                    MZmineCore.getConfiguration().getRTFormat()));
+  public static final HiddenParameter<DoubleRangeParameter, Range<Double>> rtRange =
+      new HiddenParameter<DoubleRangeParameter, Range<Double>>(new DoubleRangeParameter(
+          "Retention time", "Retention time range", MZmineCore.getConfiguration().getRTFormat()));
 
-    public static final HiddenParameter<DoubleRangeParameter, Range<Double>> mzRange = new HiddenParameter<DoubleRangeParameter, Range<Double>>(
-            new DoubleRangeParameter("m/z range", "m/z range",
-                    MZmineCore.getConfiguration().getMZFormat()));
+  public static final HiddenParameter<DoubleRangeParameter, Range<Double>> mzRange =
+      new HiddenParameter<DoubleRangeParameter, Range<Double>>(new DoubleRangeParameter("m/z range",
+          "m/z range", MZmineCore.getConfiguration().getMZFormat()));
 
-    public XICManualPickerParameters() {
-        super(new Parameter[] { rawDataFiles, rtRange, mzRange });
-    }
+  public XICManualPickerParameters() {
+    super(new Parameter[] {rawDataFiles, rtRange, mzRange});
+  }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-        ParameterSetupDialog dialog = new XICManualPickerDialog(
-                null, true, this);
-        dialog.setVisible(true);
+    ParameterSetupDialog dialog = new XICManualPickerDialog(null, true, this);
+    dialog.setVisible(true);
 
-        return dialog.getExitCode();
-    }
+    return dialog.getExitCode();
+  }
 }

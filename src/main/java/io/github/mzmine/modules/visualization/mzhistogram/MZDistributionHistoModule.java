@@ -32,45 +32,45 @@ import io.github.mzmine.util.ExitCode;
 
 public class MZDistributionHistoModule implements MZmineRunnableModule {
 
-    private static final String MODULE_NAME = "m/z scan histogram";
-    private static final String MODULE_DESCRIPTION = "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
+  private static final String MODULE_NAME = "m/z scan histogram";
+  private static final String MODULE_DESCRIPTION =
+      "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    RawDataFile[] dataFiles = parameters.getParameter(MZDistributionHistoParameters.dataFiles)
+        .getValue().getMatchingRawDataFiles();
+
+    for (int i = 0; i < dataFiles.length; i++) {
+      Task newTask =
+          new MZDistributionHistoTask(project, dataFiles[i], parameters.cloneParameterSet());
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+  }
 
-        RawDataFile[] dataFiles = parameters
-                .getParameter(MZDistributionHistoParameters.dataFiles)
-                .getValue().getMatchingRawDataFiles();
-
-        for (int i = 0; i < dataFiles.length; i++) {
-            Task newTask = new MZDistributionHistoTask(project, dataFiles[i],
-                    parameters.cloneParameterSet());
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return MZDistributionHistoParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return MZDistributionHistoParameters.class;
+  }
 
 }

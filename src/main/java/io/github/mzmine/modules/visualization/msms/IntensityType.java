@@ -20,16 +20,16 @@ package io.github.mzmine.modules.visualization.msms;
 
 public enum IntensityType {
 
-    MSMS("Total intensity in MS/MS scan"), MS("Precursor intensity in MS scan");
+  MSMS("Total intensity in MS/MS scan"), MS("Precursor intensity in MS scan");
 
-    private String type;
+  private String type;
 
-    IntensityType(String type) {
-        this.type = type;
-    }
+  IntensityType(String type) {
+    this.type = type;
+  }
 
-    public String toString() {
-        return type;
-    }
+  public String toString() {
+    return type;
+  }
 
 }

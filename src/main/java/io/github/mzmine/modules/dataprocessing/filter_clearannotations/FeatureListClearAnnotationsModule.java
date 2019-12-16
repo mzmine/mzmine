@@ -31,52 +31,52 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * Implements a filter for comparison of peaks in a given row after alignment
- * results. The filter removes rows (features) that meet certain criteria
- * between given peaks in the row e.g. fold change, etc.
+ * Implements a filter for comparison of peaks in a given row after alignment results. The filter
+ * removes rows (features) that meet certain criteria between given peaks in the row e.g. fold
+ * change, etc.
  */
 public class FeatureListClearAnnotationsModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Clear peaklist annotations";
-    private static final String MODULE_DESCRIPTION = "This method clears the annotations from the peaklist";
+  private static final String MODULE_NAME = "Clear peaklist annotations";
+  private static final String MODULE_DESCRIPTION =
+      "This method clears the annotations from the peaklist";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    final PeakList[] peakLists =
+        parameters.getParameter(FeatureListClearAnnotationsParameters.PEAK_LISTS).getValue()
+            .getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+
+      Task newTask = new FeatureListClearAnnotationsTask(project, peakList, parameters);
+      tasks.add(newTask);
+
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTFILTERING;
+  }
 
-        final PeakList[] peakLists = parameters
-                .getParameter(FeatureListClearAnnotationsParameters.PEAK_LISTS)
-                .getValue().getMatchingPeakLists();
-
-        for (PeakList peakList : peakLists) {
-
-            Task newTask = new FeatureListClearAnnotationsTask(project, peakList,
-                    parameters);
-            tasks.add(newTask);
-
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTFILTERING;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return FeatureListClearAnnotationsParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return FeatureListClearAnnotationsParameters.class;
+  }
 }

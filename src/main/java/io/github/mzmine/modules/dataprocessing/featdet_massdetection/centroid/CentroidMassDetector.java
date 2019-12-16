@@ -28,45 +28,42 @@ import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 
 /**
- * Remove peaks below the given noise level. Note that the module is bypassed in
- * the MassDetectionTask to speed up noise removal. Thus, changes within this
- * module will have no effect in some cases. This is just a temporary hack to
- * speed up noise removal in MZMine2.
+ * Remove peaks below the given noise level. Note that the module is bypassed in the
+ * MassDetectionTask to speed up noise removal. Thus, changes within this module will have no effect
+ * in some cases. This is just a temporary hack to speed up noise removal in MZMine2.
  */
 public class CentroidMassDetector implements MassDetector {
 
-    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-        return getMassValues(scan.getDataPoints(), parameters);
+  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
+
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
+
+    double noiseLevel =
+        parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
+
+    ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+
+    // Find possible mzPeaks
+    for (int j = 0; j < dataPoints.length; j++) {
+
+      // Is intensity above the noise level?
+      if (dataPoints[j].getIntensity() >= noiseLevel) {
+        // Yes, then mark this index as mzPeak
+        mzPeaks.add(dataPoints[j]);
+      }
     }
+    return mzPeaks.toArray(new DataPoint[0]);
+  }
 
-    public DataPoint[] getMassValues(DataPoint dataPoints[],
-            ParameterSet parameters) {
+  public @Nonnull String getName() {
+    return "Centroid";
+  }
 
-        double noiseLevel = parameters
-                .getParameter(CentroidMassDetectorParameters.noiseLevel)
-                .getValue();
-
-        ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
-
-        // Find possible mzPeaks
-        for (int j = 0; j < dataPoints.length; j++) {
-
-            // Is intensity above the noise level?
-            if (dataPoints[j].getIntensity() >= noiseLevel) {
-                // Yes, then mark this index as mzPeak
-                mzPeaks.add(dataPoints[j]);
-            }
-        }
-        return mzPeaks.toArray(new DataPoint[0]);
-    }
-
-    public @Nonnull String getName() {
-        return "Centroid";
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return CentroidMassDetectorParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return CentroidMassDetectorParameters.class;
+  }
 
 }

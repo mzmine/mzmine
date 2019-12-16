@@ -22,6 +22,6 @@ import java.util.ArrayList;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 
 public class MSMSIdentityList extends ArrayList<AbstractMSMSIdentity> {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
 }

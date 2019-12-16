@@ -19,12 +19,12 @@
 package io.github.mzmine.datamodel;
 
 /**
- * This interface represents one data point of a spectra (m/z and intensity).
- * Data point is immutable once created, to make things simple.
+ * This interface represents one data point of a spectra (m/z and intensity). Data point is
+ * immutable once created, to make things simple.
  */
 public interface DataPoint {
 
-    public double getMZ();
+  public double getMZ();
 
-    public double getIntensity();
+  public double getIntensity();
 }

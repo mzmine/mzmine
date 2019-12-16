@@ -32,30 +32,29 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class MSMSMultimerIdentity extends MSMSIonIdentity {
 
-    // the identified x-mer
-    private List<MSMSMultimerIdentity> links;
+  // the identified x-mer
+  private List<MSMSMultimerIdentity> links;
 
-    public MSMSMultimerIdentity(MZTolerance mzTolerance, DataPoint dp,
-            IonType b) {
-        super(mzTolerance, dp, b);
-    }
+  public MSMSMultimerIdentity(MZTolerance mzTolerance, DataPoint dp, IonType b) {
+    super(mzTolerance, dp, b);
+  }
 
-    public List<MSMSMultimerIdentity> getLinks() {
-        return links;
-    }
+  public List<MSMSMultimerIdentity> getLinks() {
+    return links;
+  }
 
-    public void addLink(MSMSMultimerIdentity l) {
-        if (links == null)
-            links = new ArrayList<>();
-        links.add(l);
-    }
+  public void addLink(MSMSMultimerIdentity l) {
+    if (links == null)
+      links = new ArrayList<>();
+    links.add(l);
+  }
 
-    public int getLinksCount() {
-        return links == null ? 0 : links.size();
-    }
+  public int getLinksCount() {
+    return links == null ? 0 : links.size();
+  }
 
-    public int getMCount() {
-        return getType().getMolecules();
-    }
+  public int getMCount() {
+    return getType().getMolecules();
+  }
 
 }

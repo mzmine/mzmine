@@ -25,42 +25,39 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 
 /**
- * @author akshaj This class represents the color picker in the table of
- *         Fx3DVisualizer.
+ * @author akshaj This class represents the color picker in the table of Fx3DVisualizer.
  * @param <T>
  */
 public class ColorTableCell<T> extends TableCell<T, Color> {
 
-    private final ColorPicker colorPicker;
+  private final ColorPicker colorPicker;
 
-    public ColorTableCell(TableColumn<T, Color> column) {
-        colorPicker = new ColorPicker();
-        colorPicker.editableProperty().bind(column.editableProperty());
-        colorPicker.disableProperty().bind(column.editableProperty().not());
-        colorPicker.setOnShowing(event -> {
-            final TableView<T> tableView = getTableView();
-            tableView.getSelectionModel().select(getTableRow().getIndex());
-            tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
-                    column);
-        });
-        colorPicker.valueProperty()
-                .addListener((observable, oldValue, newValue) -> {
-                    commitEdit(newValue);
-                });
-        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  public ColorTableCell(TableColumn<T, Color> column) {
+    colorPicker = new ColorPicker();
+    colorPicker.editableProperty().bind(column.editableProperty());
+    colorPicker.disableProperty().bind(column.editableProperty().not());
+    colorPicker.setOnShowing(event -> {
+      final TableView<T> tableView = getTableView();
+      tableView.getSelectionModel().select(getTableRow().getIndex());
+      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
+    });
+    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+      commitEdit(newValue);
+    });
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  }
+
+  @Override
+  protected void updateItem(Color item, boolean empty) {
+
+    super.updateItem(item, empty);
+
+    setText(null);
+    if (empty) {
+      setGraphic(null);
+    } else {
+      colorPicker.setValue(item);
+      setGraphic(colorPicker);
     }
-
-    @Override
-    protected void updateItem(Color item, boolean empty) {
-
-        super.updateItem(item, empty);
-
-        setText(null);
-        if (empty) {
-            setGraphic(null);
-        } else {
-            colorPicker.setValue(item);
-            setGraphic(colorPicker);
-        }
-    }
+  }
 }

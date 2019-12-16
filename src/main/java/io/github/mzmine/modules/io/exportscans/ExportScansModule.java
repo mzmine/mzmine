@@ -33,43 +33,39 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ExportScansModule implements MZmineModule {
 
-    private static final String MODULE_NAME = "Export spectra module";
-    private static final String MODULE_DESCRIPTION = "Export spectra to different formats";
+  private static final String MODULE_NAME = "Export spectra module";
+  private static final String MODULE_DESCRIPTION = "Export spectra to different formats";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  /**
+   * Show dialog for identifying a single peak-list row.
+   * 
+   */
+  public static void showSetupDialog(final Scan scan) {
+    showSetupDialog(new Scan[] {scan});
+  }
+
+  public static void showSetupDialog(Scan[] scans) {
+    final ExportScansParameters parameters = (ExportScansParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(ExportScansModule.class);;
+
+    // Run task.
+    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+      MZmineCore.getTaskController().addTask(new ExportScansTask(scans, parameters));
     }
+  }
 
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
-
-    /**
-     * Show dialog for identifying a single peak-list row.
-     * 
-     */
-    public static void showSetupDialog(final Scan scan) {
-        showSetupDialog(new Scan[] { scan });
-    }
-
-    public static void showSetupDialog(Scan[] scans) {
-        final ExportScansParameters parameters = (ExportScansParameters) MZmineCore
-                .getConfiguration()
-                .getModuleParameters(ExportScansModule.class);
-        ;
-
-        // Run task.
-        if (parameters.showSetupDialog(null,
-                true) == ExitCode.OK) {
-            MZmineCore.getTaskController()
-                    .addTask(new ExportScansTask(scans, parameters));
-        }
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ExportScansParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return ExportScansParameters.class;
+  }
 
 }

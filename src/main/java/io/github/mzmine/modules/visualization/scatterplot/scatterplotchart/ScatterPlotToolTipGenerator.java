@@ -23,8 +23,8 @@ import org.jfree.data.xy.XYDataset;
 
 public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 
-    public String generateToolTip(XYDataset dataset, int series, int item) {
-        return String.valueOf(series + ":" + item);
-    }
+  public String generateToolTip(XYDataset dataset, int series, int item) {
+    return String.valueOf(series + ":" + item);
+  }
 
 }

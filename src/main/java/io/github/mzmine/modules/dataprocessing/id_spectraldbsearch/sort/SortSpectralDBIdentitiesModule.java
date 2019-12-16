@@ -31,45 +31,44 @@ import io.github.mzmine.util.ExitCode;
 
 public class SortSpectralDBIdentitiesModule implements MZmineProcessingModule {
 
-    public static final String MODULE_NAME = "Sort results of spectra database search";
-    private static final String MODULE_DESCRIPTION = "This method sorts all results of spectral database search.";
+  public static final String MODULE_NAME = "Sort results of spectra database search";
+  private static final String MODULE_DESCRIPTION =
+      "This method sorts all results of spectral database search.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] = parameters.getParameter(SortSpectralDBIdentitiesParameters.peakLists)
+        .getValue().getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+      Task newTask = new SortSpectralDBIdentitiesTask(peakList, parameters);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.IDENTIFICATION;
+  }
 
-        PeakList peakLists[] = parameters
-                .getParameter(SortSpectralDBIdentitiesParameters.peakLists)
-                .getValue().getMatchingPeakLists();
-
-        for (PeakList peakList : peakLists) {
-            Task newTask = new SortSpectralDBIdentitiesTask(peakList,
-                    parameters);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return SortSpectralDBIdentitiesParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return SortSpectralDBIdentitiesParameters.class;
+  }
 
 }

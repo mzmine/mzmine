@@ -20,17 +20,17 @@ package io.github.mzmine.util;
 
 public enum PeakMeasurementType {
 
-    HEIGHT("Peak height"), //
-    AREA("Peak area");
+  HEIGHT("Peak height"), //
+  AREA("Peak area");
 
-    private final String name;
+  private final String name;
 
-    PeakMeasurementType(String name) {
-        this.name = name;
-    }
+  PeakMeasurementType(String name) {
+    this.name = name;
+  }
 
-    public String toString() {
-        return this.name;
-    }
+  public String toString() {
+    return this.name;
+  }
 
 }

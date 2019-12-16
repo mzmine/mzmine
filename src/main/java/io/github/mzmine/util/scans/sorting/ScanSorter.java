@@ -35,33 +35,29 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class ScanSorter implements Comparator<Scan> {
 
-    private final String massListName;
-    private final MassListSorter comp;
+  private final String massListName;
+  private final MassListSorter comp;
 
-    /**
-     * Scans need at least one MassList (define name or use empty/null
-     * massListName for first MassList)
-     * 
-     * @param massListName
-     *            any name or null/empty to use the first MassList of each scan
-     * @param noiseLevel
-     * @param sort
-     *            sorting mode
-     */
-    public ScanSorter(String massListName, double noiseLevel,
-            ScanSortMode sortMode) {
-        this.massListName = massListName;
-        comp = new MassListSorter(noiseLevel, sortMode);
-    }
+  /**
+   * Scans need at least one MassList (define name or use empty/null massListName for first
+   * MassList)
+   * 
+   * @param massListName any name or null/empty to use the first MassList of each scan
+   * @param noiseLevel
+   * @param sort sorting mode
+   */
+  public ScanSorter(String massListName, double noiseLevel, ScanSortMode sortMode) {
+    this.massListName = massListName;
+    comp = new MassListSorter(noiseLevel, sortMode);
+  }
 
-    @Override
-    public int compare(Scan a, Scan b) {
-        MassList ma = ScanUtils.getMassListOrFirst(a, massListName);
-        MassList mb = ScanUtils.getMassListOrFirst(b, massListName);
-        if (ma == null || mb == null)
-            throw new RuntimeException(
-                    new MissingMassListException(massListName));
-        return comp.compare(ma.getDataPoints(), mb.getDataPoints());
-    }
+  @Override
+  public int compare(Scan a, Scan b) {
+    MassList ma = ScanUtils.getMassListOrFirst(a, massListName);
+    MassList mb = ScanUtils.getMassListOrFirst(b, massListName);
+    if (ma == null || mb == null)
+      throw new RuntimeException(new MissingMassListException(massListName));
+    return comp.compare(ma.getDataPoints(), mb.getDataPoints());
+  }
 
 }

@@ -30,5 +30,5 @@ import io.github.mzmine.gui.chartbasics.gestures.standard.GestureHandlerDef;
  */
 public interface GestureHandlerFactory {
 
-    public ChartGestureHandler createHandler();
+  public ChartGestureHandler createHandler();
 }

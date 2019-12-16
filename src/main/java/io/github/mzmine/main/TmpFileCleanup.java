@@ -28,48 +28,45 @@ import java.util.logging.Logger;
 
 class TmpFileCleanup implements Runnable {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public void run() {
+  public void run() {
 
-        logger.fine("Checking for old temporary files...");
-        try {
+    logger.fine("Checking for old temporary files...");
+    try {
 
-            // Find all temporary files with the mask mzmine*.scans
-            File tempDir = new File(System.getProperty("java.io.tmpdir"));
-            File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.matches("mzmine.*\\.scans");
-                }
-            });
-
-            if (remainingTmpFiles != null)
-                for (File remainingTmpFile : remainingTmpFiles) {
-
-                    // Skip files created by someone else
-                    if (!remainingTmpFile.canWrite())
-                        continue;
-
-                    // Try to obtain a lock on the file
-                    RandomAccessFile rac = new RandomAccessFile(
-                            remainingTmpFile, "rw");
-
-                    FileLock lock = rac.getChannel().tryLock();
-                    rac.close();
-
-                    if (lock != null) {
-                        // We locked the file, which means nobody is using it
-                        // anymore and it can be removed
-                        logger.finest("Removing unused temporary file "
-                                + remainingTmpFile);
-                        remainingTmpFile.delete();
-                    }
-
-                }
-        } catch (IOException e) {
-            logger.log(Level.WARNING,
-                    "Error while checking for old temporary files", e);
+      // Find all temporary files with the mask mzmine*.scans
+      File tempDir = new File(System.getProperty("java.io.tmpdir"));
+      File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+          return name.matches("mzmine.*\\.scans");
         }
+      });
 
+      if (remainingTmpFiles != null)
+        for (File remainingTmpFile : remainingTmpFiles) {
+
+          // Skip files created by someone else
+          if (!remainingTmpFile.canWrite())
+            continue;
+
+          // Try to obtain a lock on the file
+          RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
+
+          FileLock lock = rac.getChannel().tryLock();
+          rac.close();
+
+          if (lock != null) {
+            // We locked the file, which means nobody is using it
+            // anymore and it can be removed
+            logger.finest("Removing unused temporary file " + remainingTmpFile);
+            remainingTmpFile.delete();
+          }
+
+        }
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error while checking for old temporary files", e);
     }
+
+  }
 }

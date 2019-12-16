@@ -29,20 +29,19 @@ import io.github.mzmine.util.ExitCode;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
-    public static final DoubleParameter noiseLevel = new DoubleParameter(
-            "Noise level",
-            "Intensities less than this value are interpreted as noise.",
-            MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
+      "Intensities less than this value are interpreted as noise.",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
-    public ExactMassDetectorParameters() {
-        super(new UserParameter[] { noiseLevel });
-    }
+  public ExactMassDetectorParameters() {
+    super(new UserParameter[] {noiseLevel});
+  }
 
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-        MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(parent,
-                valueCheckRequired, ExactMassDetector.class, this);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    MassDetectorSetupDialog dialog =
+        new MassDetectorSetupDialog(parent, valueCheckRequired, ExactMassDetector.class, this);
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
 
 }

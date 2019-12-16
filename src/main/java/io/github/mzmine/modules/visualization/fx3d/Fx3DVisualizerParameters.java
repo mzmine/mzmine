@@ -33,30 +33,29 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParamet
  */
 public class Fx3DVisualizerParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-            new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection =
+      new ScanSelectionParameter(new ScanSelection(1));
 
-    public static final MZRangeParameter mzRange = new MZRangeParameter();
+  public static final MZRangeParameter mzRange = new MZRangeParameter();
 
-    public static final FeaturesParameter features = new FeaturesParameter();
+  public static final FeaturesParameter features = new FeaturesParameter();
 
-    public static final IntegerParameter rtResolution = new IntegerParameter(
-            "Retention time resolution",
-            "Number of data points on retention time axis", 500);
+  public static final IntegerParameter rtResolution = new IntegerParameter(
+      "Retention time resolution", "Number of data points on retention time axis", 500);
 
-    public static final IntegerParameter mzResolution = new IntegerParameter(
-            "m/z resolution", "Number of data points on m/z axis", 500);
+  public static final IntegerParameter mzResolution =
+      new IntegerParameter("m/z resolution", "Number of data points on m/z axis", 500);
 
-    /**
-     * Windows size and position
-     */
-    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+  /**
+   * Windows size and position
+   */
+  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-    public Fx3DVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanSelection, mzRange, features,
-                rtResolution, mzResolution, windowSettings });
-    }
+  public Fx3DVisualizerParameters() {
+    super(new Parameter[] {dataFiles, scanSelection, mzRange, features, rtResolution, mzResolution,
+        windowSettings});
+  }
 
 }

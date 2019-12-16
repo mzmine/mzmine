@@ -32,44 +32,44 @@ import io.github.mzmine.util.ExitCode;
 
 public class ShapeModelerModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Peak shape modeler (experimental)";
-    private static final String MODULE_DESCRIPTION = "This module models the shape of the peak according to the detected data points.";
+  private static final String MODULE_NAME = "Peak shape modeler (experimental)";
+  private static final String MODULE_DESCRIPTION =
+      "This module models the shape of the peak according to the detected data points.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] =
+        parameters.getParameter(ShapeModelerParameters.peakLists).getValue().getMatchingPeakLists();
+
+    for (final PeakList peakList : peakLists) {
+      Task newTask = new ShapeModelerTask(project, peakList, parameters);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTPICKING;
+  }
 
-        PeakList peakLists[] = parameters
-                .getParameter(ShapeModelerParameters.peakLists).getValue()
-                .getMatchingPeakLists();
-
-        for (final PeakList peakList : peakLists) {
-            Task newTask = new ShapeModelerTask(project, peakList, parameters);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTPICKING;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ShapeModelerParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return ShapeModelerParameters.class;
+  }
 
 }

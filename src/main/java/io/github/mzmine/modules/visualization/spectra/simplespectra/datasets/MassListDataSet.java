@@ -25,13 +25,13 @@ import io.github.mzmine.datamodel.MassList;
  */
 public class MassListDataSet extends DataPointsDataSet {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    public MassListDataSet(MassList massList) {
-        super("Mass list " + massList.getName(), massList.getDataPoints());
-    }
+  public MassListDataSet(MassList massList) {
+    super("Mass list " + massList.getName(), massList.getDataPoints());
+  }
 
 }

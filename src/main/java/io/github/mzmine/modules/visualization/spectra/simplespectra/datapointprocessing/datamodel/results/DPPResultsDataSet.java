@@ -24,18 +24,18 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Dat
 
 public class DPPResultsDataSet extends DataPointsDataSet {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
-        super(label, mzPeaks);
-    }
+  public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
+    super(label, mzPeaks);
+  }
 
-    /**
-     * This type has to be DataPoint, else you will get class cast exceptions.
-     * Casting it later on is still possible.
-     */
-    public DataPoint[] getDataPoints() {
-        return mzPeaks;
-    }
+  /**
+   * This type has to be DataPoint, else you will get class cast exceptions. Casting it later on is
+   * still possible.
+   */
+  public DataPoint[] getDataPoints() {
+    return mzPeaks;
+  }
 
 }

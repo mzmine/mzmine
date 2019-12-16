@@ -24,27 +24,27 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidCoreClasses {
-    FATTYACYLS("Fatty Acyls"), //
-    GLYCEROLIPIDS("Glycerolipids"), //
-    GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
-    SPHINGOLIPIDS("Sphingolipids");//
+  FATTYACYLS("Fatty Acyls"), //
+  GLYCEROLIPIDS("Glycerolipids"), //
+  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
+  SPHINGOLIPIDS("Sphingolipids");//
 
-    private String name;
+  private String name;
 
-    LipidCoreClasses(String name) {
-        this.name = name;
-    }
+  LipidCoreClasses(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @Override
-    public String toString() {
-        return this.name;
-    }
+  @Override
+  public String toString() {
+    return this.name;
+  }
 }

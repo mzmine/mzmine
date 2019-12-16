@@ -32,23 +32,23 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationOnlineDatabaseParameters
-        extends SimpleParameterSet {
+public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
 
-    public static final ModuleComboParameter<OnlineDatabases> database = new ModuleComboParameter<OnlineDatabases>(
-            "Database", "Database to search", OnlineDatabases.values());
+  public static final ModuleComboParameter<OnlineDatabases> database =
+      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
+          OnlineDatabases.values());
 
-    public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
-            "Ionization type", "Ionization type", IonizationType.values());
+  public static final ComboParameter<IonizationType> ionizationType =
+      new ComboParameter<IonizationType>("Ionization type", "Ionization type",
+          IonizationType.values());
 
-    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-    public static final DoubleParameter noiseLevel = new DoubleParameter(
-            "Noise level", "Set a noise level");
+  public static final DoubleParameter noiseLevel =
+      new DoubleParameter("Noise level", "Set a noise level");
 
-    public SpectraIdentificationOnlineDatabaseParameters() {
-        super(new Parameter[] { database, ionizationType, mzTolerance,
-                noiseLevel });
-    }
+  public SpectraIdentificationOnlineDatabaseParameters() {
+    super(new Parameter[] {database, ionizationType, mzTolerance, noiseLevel});
+  }
 
 }

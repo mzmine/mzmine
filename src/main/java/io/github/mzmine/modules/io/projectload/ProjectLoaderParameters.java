@@ -35,47 +35,45 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectLoaderParameters extends SimpleParameterSet {
 
-    private static final FileFilter filters[] = new FileFilter[] {
-            new FileNameExtensionFilter("MZmine projects", "mzmine") };
+  private static final FileFilter filters[] =
+      new FileFilter[] {new FileNameExtensionFilter("MZmine projects", "mzmine")};
 
-    public static final FileNameParameter projectFile = new FileNameParameter(
-            "Project file", "File name of project to be loaded");
+  public static final FileNameParameter projectFile =
+      new FileNameParameter("Project file", "File name of project to be loaded");
 
-    public ProjectLoaderParameters() {
-        super(new Parameter[] { projectFile });
+  public ProjectLoaderParameters() {
+    super(new Parameter[] {projectFile});
+  }
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Open MZmine project");
+    fileChooser.getExtensionFilters().addAll(new ExtensionFilter("MZmine projects", "*.mzmine"),
+        new ExtensionFilter("All Files", "*.*"));
+
+    File currentFile = getParameter(projectFile).getValue();
+    if (currentFile != null) {
+      File currentDir = currentFile.getParentFile();
+      if ((currentDir != null) && (currentDir.exists()))
+        fileChooser.setInitialDirectory(currentDir);
     }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    final FutureTask<File> task = new FutureTask<>(() -> fileChooser.showOpenDialog(null));
+    Platform.runLater(task);
 
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open MZmine project");
-        fileChooser.getExtensionFilters().addAll(
-                new ExtensionFilter("MZmine projects", "*.mzmine"),
-                new ExtensionFilter("All Files", "*.*"));
-
-        File currentFile = getParameter(projectFile).getValue();
-        if (currentFile != null) {
-            File currentDir = currentFile.getParentFile();
-            if ((currentDir != null) && (currentDir.exists()))
-                fileChooser.setInitialDirectory(currentDir);
-        }
-
-        final FutureTask<File> task = new FutureTask<>(
-                () -> fileChooser.showOpenDialog(null));
-        Platform.runLater(task);
-
-        try {
-            File selectedFile = task.get();
-            if (selectedFile == null)
-                return ExitCode.CANCEL;
-            getParameter(projectFile).setValue(selectedFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return ExitCode.OK;
-
+    try {
+      File selectedFile = task.get();
+      if (selectedFile == null)
+        return ExitCode.CANCEL;
+      getParameter(projectFile).setValue(selectedFile);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+
+    return ExitCode.OK;
+
+  }
 
 }

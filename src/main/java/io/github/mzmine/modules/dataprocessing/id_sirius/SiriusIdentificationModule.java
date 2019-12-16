@@ -35,95 +35,80 @@ import io.github.mzmine.util.ExitCode;
 
 public class SiriusIdentificationModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "SIRIUS structure prediction";
-    private static final String MODULE_DESCRIPTION = "Sirius identification method.";
+  private static final String MODULE_NAME = "SIRIUS structure prediction";
+  private static final String MODULE_DESCRIPTION = "Sirius identification method.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    final PeakList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
+        .getValue().getMatchingPeakLists();
+    for (final PeakList peakList : peakLists) {
+      Task newTask = new PeakListIdentificationTask(parameters, peakList);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
+    return ExitCode.OK;
+  }
+
+  /**
+   * Show dialog for identifying a single peak-list row.
+   *
+   * @param row the feature list row.
+   */
+  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+
+    final ParameterSet parameters = new SingleRowIdentificationParameters();
+
+    // Set m/z.
+    parameters.getParameter(SingleRowIdentificationParameters.ION_MASS)
+        .setValue(row.getAverageMZ());
+
+    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+      String massListName =
+          parameters.getParameter(SingleRowIdentificationParameters.MASS_LIST).getValue();
+      List<String> massLists = MassListComponent.getMassListNames();
+
+      int fingerCandidates, siriusCandidates, timer;
+      timer = parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+      siriusCandidates =
+          parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_CANDIDATES).getValue();
+      fingerCandidates =
+          parameters.getParameter(SingleRowIdentificationParameters.FINGERID_CANDIDATES).getValue();
+
+      if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0) {
+        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Sirius parameters can't be negative");
+      } else if (!massLists.contains(massListName)) {
+        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Mass List parameter",
+            String.format("Mass List parameter is set wrong [%s]", massListName));
+      } else { // Run task.
+        MZmineCore.getTaskController()
+            .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row));
+      }
     }
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.IDENTIFICATION;
+  }
 
-        final PeakList[] peakLists = parameters
-                .getParameter(PeakListIdentificationParameters.peakLists)
-                .getValue().getMatchingPeakLists();
-        for (final PeakList peakList : peakLists) {
-            Task newTask = new PeakListIdentificationTask(parameters, peakList);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    /**
-     * Show dialog for identifying a single peak-list row.
-     *
-     * @param row
-     *            the feature list row.
-     */
-    public static void showSingleRowIdentificationDialog(
-            final PeakListRow row) {
-
-        final ParameterSet parameters = new SingleRowIdentificationParameters();
-
-        // Set m/z.
-        parameters.getParameter(SingleRowIdentificationParameters.ION_MASS)
-                .setValue(row.getAverageMZ());
-
-        if (parameters.showSetupDialog(null,
-                true) == ExitCode.OK) {
-            String massListName = parameters
-                    .getParameter(SingleRowIdentificationParameters.MASS_LIST)
-                    .getValue();
-            List<String> massLists = MassListComponent.getMassListNames();
-
-            int fingerCandidates, siriusCandidates, timer;
-            timer = parameters
-                    .getParameter(
-                            SingleRowIdentificationParameters.SIRIUS_TIMEOUT)
-                    .getValue();
-            siriusCandidates = parameters
-                    .getParameter(
-                            SingleRowIdentificationParameters.SIRIUS_CANDIDATES)
-                    .getValue();
-            fingerCandidates = parameters.getParameter(
-                    SingleRowIdentificationParameters.FINGERID_CANDIDATES)
-                    .getValue();
-
-            if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0) {
-                MZmineCore.getDesktop().displayErrorMessage(
-                        MZmineCore.getDesktop().getMainWindow(),
-                        "Sirius parameters can't be negative");
-            } else if (!massLists.contains(massListName)) {
-                MZmineCore.getDesktop().displayErrorMessage(
-                        MZmineCore.getDesktop().getMainWindow(),
-                        "Mass List parameter",
-                        String.format("Mass List parameter is set wrong [%s]",
-                                massListName));
-            } else { // Run task.
-                MZmineCore.getTaskController()
-                        .addTask(new SingleRowIdentificationTask(
-                                parameters.cloneParameterSet(), row));
-            }
-        }
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return PeakListIdentificationParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return PeakListIdentificationParameters.class;
+  }
 }

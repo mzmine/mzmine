@@ -28,71 +28,69 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 public interface MzMergeMode {
 
-    public static MzMergeMode[] values() {
-        return new MzMergeMode[] { MOST_INTENSE,
-                WEIGHTED_AVERAGE_CUTOFF_OUTLIERS, WEIGHTED_AVERAGE };
+  public static MzMergeMode[] values() {
+    return new MzMergeMode[] {MOST_INTENSE, WEIGHTED_AVERAGE_CUTOFF_OUTLIERS, WEIGHTED_AVERAGE};
+  }
+
+  public double merge(DataPoint[] sources);
+
+  public static MzMergeMode WEIGHTED_AVERAGE = new MzMergeMode() {
+    @Override
+    public double merge(DataPoint[] sources) {
+      double mz = 0d, intens = 0d;
+      for (DataPoint d : sources) {
+        mz += d.getMZ() * d.getIntensity();
+        intens += d.getIntensity();
+      }
+      return mz / intens;
     }
 
-    public double merge(DataPoint[] sources);
+    @Override
+    public String toString() {
+      return "weighted average";
+    }
+  };
 
-    public static MzMergeMode WEIGHTED_AVERAGE = new MzMergeMode() {
-        @Override
-        public double merge(DataPoint[] sources) {
-            double mz = 0d, intens = 0d;
-            for (DataPoint d : sources) {
-                mz += d.getMZ() * d.getIntensity();
-                intens += d.getIntensity();
-            }
-            return mz / intens;
+  public static MzMergeMode MOST_INTENSE = new MzMergeMode() {
+    @Override
+    public double merge(DataPoint[] sources) {
+      double mz = Double.NEGATIVE_INFINITY, intens = Double.NEGATIVE_INFINITY;
+      for (DataPoint d : sources) {
+        if (d.getIntensity() > intens) {
+          mz = d.getMZ();
+          intens = d.getIntensity();
         }
+      }
+      return mz;
+    }
 
-        @Override
-        public String toString() {
-            return "weighted average";
-        }
-    };
+    @Override
+    public String toString() {
+      return "most intense";
+    }
+  };
 
-    public static MzMergeMode MOST_INTENSE = new MzMergeMode() {
-        @Override
-        public double merge(DataPoint[] sources) {
-            double mz = Double.NEGATIVE_INFINITY,
-                    intens = Double.NEGATIVE_INFINITY;
-            for (DataPoint d : sources) {
-                if (d.getIntensity() > intens) {
-                    mz = d.getMZ();
-                    intens = d.getIntensity();
-                }
-            }
-            return mz;
+  public static MzMergeMode WEIGHTED_AVERAGE_CUTOFF_OUTLIERS = new MzMergeMode() {
+    @Override
+    public double merge(DataPoint[] sources) {
+      if (sources.length >= 4) {
+        sources = sources.clone();
+        ScanUtils.sortDataPointsByMz(sources);
+        int i = (int) (sources.length * 0.25);
+        double mz = 0d, intens = 0d;
+        for (int k = i; k < sources.length - i; ++k) {
+          mz += sources[k].getMZ() * sources[k].getIntensity();
+          intens += sources[k].getIntensity();
         }
+        return mz / intens;
+      } else
+        return WEIGHTED_AVERAGE.merge(sources);
+    }
 
-        @Override
-        public String toString() {
-            return "most intense";
-        }
-    };
-
-    public static MzMergeMode WEIGHTED_AVERAGE_CUTOFF_OUTLIERS = new MzMergeMode() {
-        @Override
-        public double merge(DataPoint[] sources) {
-            if (sources.length >= 4) {
-                sources = sources.clone();
-                ScanUtils.sortDataPointsByMz(sources);
-                int i = (int) (sources.length * 0.25);
-                double mz = 0d, intens = 0d;
-                for (int k = i; k < sources.length - i; ++k) {
-                    mz += sources[k].getMZ() * sources[k].getIntensity();
-                    intens += sources[k].getIntensity();
-                }
-                return mz / intens;
-            } else
-                return WEIGHTED_AVERAGE.merge(sources);
-        }
-
-        @Override
-        public String toString() {
-            return "weighted average (remove outliers)";
-        }
-    };
+    @Override
+    public String toString() {
+      return "weighted average (remove outliers)";
+    }
+  };
 
 }

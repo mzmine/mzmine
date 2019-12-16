@@ -34,38 +34,38 @@ import io.github.mzmine.util.ExitCode;
  */
 public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
 
-    public static final String MODULE_NAME = "Peak list blank subtraction";
+  public static final String MODULE_NAME = "Peak list blank subtraction";
 
-    @Override
-    public String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
-        return PeakListBlankSubtractionParameters.class;
-    }
+  @Override
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return PeakListBlankSubtractionParameters.class;
+  }
 
-    @Override
-    public String getDescription() {
-        return "Subtracts a blank measurements peak list from another peak list.";
-    }
+  @Override
+  public String getDescription() {
+    return "Subtracts a blank measurements peak list from another peak list.";
+  }
 
-    @Override
-    public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-            Collection<Task> tasks) {
+  @Override
+  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
+      Collection<Task> tasks) {
 
-        Task task = new PeakListBlankSubtractionMasterTask(project,
-                (PeakListBlankSubtractionParameters) parameters);
+    Task task = new PeakListBlankSubtractionMasterTask(project,
+        (PeakListBlankSubtractionParameters) parameters);
 
-        tasks.add(task);
+    tasks.add(task);
 
-        return ExitCode.OK;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    public MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTFILTERING;
-    }
+  @Override
+  public MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTFILTERING;
+  }
 
 }

@@ -31,52 +31,51 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * This class implements a simple isotopic peaks grouper method based on
- * searching for neighbouring peaks from expected locations.
+ * This class implements a simple isotopic peaks grouper method based on searching for neighbouring
+ * peaks from expected locations.
  * 
  */
 public class IsotopeGrouperModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Isotopic peaks grouper";
-    private static final String MODULE_DESCRIPTION = "This module detects isotopic peaks and groups them together into isotope patterns.";
+  private static final String MODULE_NAME = "Isotopic peaks grouper";
+  private static final String MODULE_DESCRIPTION =
+      "This module detects isotopic peaks and groups them together into isotope patterns.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] = parameters.getParameter(IsotopeGrouperParameters.peakLists).getValue()
+        .getMatchingPeakLists();
+
+    for (final PeakList peakList : peakLists) {
+      Task newTask = new IsotopeGrouperTask(project, peakList, parameters);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  }
 
-        PeakList peakLists[] = parameters
-                .getParameter(IsotopeGrouperParameters.peakLists).getValue()
-                .getMatchingPeakLists();
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.ISOTOPES;
+  }
 
-        for (final PeakList peakList : peakLists) {
-            Task newTask = new IsotopeGrouperTask(project, peakList,
-                    parameters);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.ISOTOPES;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return IsotopeGrouperParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return IsotopeGrouperParameters.class;
+  }
 
 }

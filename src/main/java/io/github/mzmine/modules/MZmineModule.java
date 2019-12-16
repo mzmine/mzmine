@@ -24,24 +24,23 @@ import javax.annotation.Nullable;
 import io.github.mzmine.parameters.ParameterSet;
 
 /**
- * This interface represents any component of MZmine that has a ParameterSet,
- * and therefore can store its settings.
+ * This interface represents any component of MZmine that has a ParameterSet, and therefore can
+ * store its settings.
  */
 public interface MZmineModule {
 
-    /**
-     * Returns module name
-     * 
-     * @return Module name
-     */
-    @Nonnull
-    public String getName();
+  /**
+   * Returns module name
+   * 
+   * @return Module name
+   */
+  @Nonnull
+  public String getName();
 
-    /**
-     * Returns module's parameter class. If the module has no parameters, it can
-     * return null. The returned class must provide a public constructor without
-     * parameters.
-     */
-    public @Nullable Class<? extends ParameterSet> getParameterSetClass();
+  /**
+   * Returns module's parameter class. If the module has no parameters, it can return null. The
+   * returned class must provide a public constructor without parameters.
+   */
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
 
 }

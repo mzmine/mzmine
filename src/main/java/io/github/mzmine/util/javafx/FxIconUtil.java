@@ -27,20 +27,18 @@ import javafx.scene.image.Image;
 
 public class FxIconUtil {
 
-    public static @Nonnull Image loadImageFromResources(
-            final @Nonnull String resourcePath) {
-        final InputStream iconResource = FxIconUtil.class.getClassLoader()
-                .getResourceAsStream(resourcePath);
-        if (iconResource == null)
-            throw new IllegalArgumentException(
-                    "Could not find an icon file at path " + resourcePath);
-        final Image icon = new Image(iconResource);
-        try {
-            iconResource.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return icon;
+  public static @Nonnull Image loadImageFromResources(final @Nonnull String resourcePath) {
+    final InputStream iconResource =
+        FxIconUtil.class.getClassLoader().getResourceAsStream(resourcePath);
+    if (iconResource == null)
+      throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
+    final Image icon = new Image(iconResource);
+    try {
+      iconResource.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+    return icon;
+  }
 
 }

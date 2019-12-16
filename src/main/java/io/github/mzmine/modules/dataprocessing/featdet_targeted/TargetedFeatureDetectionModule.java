@@ -32,41 +32,39 @@ import io.github.mzmine.util.ExitCode;
 
 public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Targeted feature detection";
-    private static final String MODULE_DESCRIPTION = "Targeted feature detection"; // TODO
+  private static final String MODULE_NAME = "Targeted feature detection";
+  private static final String MODULE_DESCRIPTION = "Targeted feature detection"; // TODO
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        RawDataFile[] dataFiles = parameters
-                .getParameter(TargetedPeakDetectionParameters.rawDataFile)
-                .getValue().getMatchingRawDataFiles();
-        for (RawDataFile dataFile : dataFiles) {
-            Task newTask = new TargetedPeakDetectionModuleTask(project,
-                    parameters, dataFile);
-            tasks.add(newTask);
-        }
-        return ExitCode.OK;
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+    RawDataFile[] dataFiles = parameters.getParameter(TargetedPeakDetectionParameters.rawDataFile)
+        .getValue().getMatchingRawDataFiles();
+    for (RawDataFile dataFile : dataFiles) {
+      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile);
+      tasks.add(newTask);
     }
+    return ExitCode.OK;
+  }
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKPICKING;
-    }
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKPICKING;
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return TargetedPeakDetectionParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return TargetedPeakDetectionParameters.class;
+  }
 }

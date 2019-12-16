@@ -31,37 +31,35 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 
 public class DisableableTreeCellRenderer extends DefaultTreeCellRenderer {
 
-    private static Logger logger = Logger
-            .getLogger(DisableableTreeCellRenderer.class.getName());
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  private static Logger logger = Logger.getLogger(DisableableTreeCellRenderer.class.getName());
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    public DisableableTreeCellRenderer() {
-        super();
-    }
+  public DisableableTreeCellRenderer() {
+    super();
+  }
 
-    @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value,
-            boolean isSelected, boolean expanded, boolean leaf, int row,
-            boolean hasFocus) {
+  @Override
+  public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected,
+      boolean expanded, boolean leaf, int row, boolean hasFocus) {
 
-        JComponent c = (JComponent) super.getTreeCellRendererComponent(tree,
-                value, isSelected, expanded, leaf, row, hasFocus);
+    JComponent c = (JComponent) super.getTreeCellRendererComponent(tree, value, isSelected,
+        expanded, leaf, row, hasFocus);
 
-        if (value instanceof DisableableTreeNode)
-            c.setEnabled(((DisableableTreeNode) value).isEnabled());
+    if (value instanceof DisableableTreeNode)
+      c.setEnabled(((DisableableTreeNode) value).isEnabled());
 
-        return c;
-    }
+    return c;
+  }
 
-    // private Color getNodeColor(DPPMSLevelTreeNode node, boolean diffMSn) {
-    // if(!diffMSn && node.getMSLevel() == MSLevel.MSONE)
-    // return Color.GREEN;
-    // if(!diffMSn && node.getMSLevel() == MSLevel.MSMS)
-    // return Color.RED;
-    //
-    // return Color.GREEN;
-    // }
+  // private Color getNodeColor(DPPMSLevelTreeNode node, boolean diffMSn) {
+  // if(!diffMSn && node.getMSLevel() == MSLevel.MSONE)
+  // return Color.GREEN;
+  // if(!diffMSn && node.getMSLevel() == MSLevel.MSMS)
+  // return Color.RED;
+  //
+  // return Color.GREEN;
+  // }
 }

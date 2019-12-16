@@ -34,27 +34,23 @@ import io.github.mzmine.util.ExitCode;
  * @author owenmyers
  */
 public class WaveletCoefficientsSNParameters extends SimpleParameterSet {
-    public static final DoubleParameter HALF_WAVELET_WINDOW = new DoubleParameter(
-            "Peak width mult.",
-            "Singal to noise estimator window size determination.",
-            NumberFormat.getNumberInstance(), 3.0, 0.0, null);
+  public static final DoubleParameter HALF_WAVELET_WINDOW = new DoubleParameter("Peak width mult.",
+      "Singal to noise estimator window size determination.", NumberFormat.getNumberInstance(), 3.0,
+      0.0, null);
 
-    public static final BooleanParameter ABS_WAV_COEFFS = new BooleanParameter(
-            "abs(wavelet coeffs.)",
-            "Do you want to take the absolute value of the wavelet coefficients.",
-            true);
+  public static final BooleanParameter ABS_WAV_COEFFS = new BooleanParameter("abs(wavelet coeffs.)",
+      "Do you want to take the absolute value of the wavelet coefficients.", true);
 
-    public WaveletCoefficientsSNParameters() {
-        super(new Parameter[] { HALF_WAVELET_WINDOW, ABS_WAV_COEFFS });
-    }
+  public WaveletCoefficientsSNParameters() {
+    super(new Parameter[] {HALF_WAVELET_WINDOW, ABS_WAV_COEFFS});
+  }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-        final SNSetUpDialog dialog = new SNSetUpDialog(parent,
-                valueCheckRequired, this);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+    final SNSetUpDialog dialog = new SNSetUpDialog(parent, valueCheckRequired, this);
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
 
 }

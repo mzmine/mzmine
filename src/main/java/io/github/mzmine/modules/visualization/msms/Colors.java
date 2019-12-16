@@ -20,16 +20,16 @@ package io.github.mzmine.modules.visualization.msms;
 
 public enum Colors {
 
-    red("Red"), green("Green"), blue("Blue");
+  red("Red"), green("Green"), blue("Blue");
 
-    private String type;
+  private String type;
 
-    Colors(String type) {
-        this.type = type;
-    }
+  Colors(String type) {
+    this.type = type;
+  }
 
-    public String toString() {
-        return type;
-    }
+  public String toString() {
+    return type;
+  }
 
 }

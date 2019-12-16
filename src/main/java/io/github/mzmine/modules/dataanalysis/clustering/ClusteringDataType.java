@@ -20,16 +20,16 @@ package io.github.mzmine.modules.dataanalysis.clustering;
 
 public enum ClusteringDataType {
 
-    SAMPLES("Samples"), VARIABLES("Variables");
+  SAMPLES("Samples"), VARIABLES("Variables");
 
-    private final String name;
+  private final String name;
 
-    ClusteringDataType(String name) {
-        this.name = name;
-    }
+  ClusteringDataType(String name) {
+    this.name = name;
+  }
 
-    public String toString() {
-        return this.name;
-    }
+  public String toString() {
+    return this.name;
+  }
 
 }

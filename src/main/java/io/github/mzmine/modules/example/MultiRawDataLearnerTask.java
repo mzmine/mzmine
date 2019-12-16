@@ -39,146 +39,138 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
 class MultiRawDataLearnerTask extends AbstractTask {
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private final MZmineProject project;
-    private PeakList peakList;
-    private PeakList resultPeakList;
+  private final MZmineProject project;
+  private PeakList peakList;
+  private PeakList resultPeakList;
 
-    // peaks counter
-    private int processedRows;
-    private int totalRows;
+  // peaks counter
+  private int processedRows;
+  private int totalRows;
 
-    // parameter values
-    private String suffix;
-    private MZTolerance mzTolerance;
-    private RTTolerance rtTolerance;
-    private boolean removeOriginal;
-    private ParameterSet parameters;
+  // parameter values
+  private String suffix;
+  private MZTolerance mzTolerance;
+  private RTTolerance rtTolerance;
+  private boolean removeOriginal;
+  private ParameterSet parameters;
+
+  /**
+   * Constructor to set all parameters and the project
+   * 
+   * @param rawDataFile
+   * @param parameters
+   */
+  public MultiRawDataLearnerTask(MZmineProject project, PeakList peakList,
+      ParameterSet parameters) {
+    this.project = project;
+    this.peakList = peakList;
+    this.parameters = parameters;
+    // Get parameter values for easier use
+    suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
+    mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
+    rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
+    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+   */
+  @Override
+  public String getTaskDescription() {
+    return "Learner task on " + peakList;
+  }
+
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+   */
+  @Override
+  public double getFinishedPercentage() {
+    if (totalRows == 0)
+      return 0;
+    return (double) processedRows / (double) totalRows;
+  }
+
+  /**
+   * @see Runnable#run()
+   */
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+    logger.info("Running learner task on " + peakList);
+
+    // Create a new results peakList which is added at the end
+    resultPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     /**
-     * Constructor to set all parameters and the project
-     * 
-     * @param rawDataFile
-     * @param parameters
+     * - A PeakList is a list of Features (peak in retention time dimension with accurate m/z)<br>
+     * ---- contains one or multiple RawDataFiles <br>
+     * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
+     * - A RawDataFile holds a full chromatographic run with all ms scans<br>
+     * ---- Each Scan and the underlying raw data can be accessed <br>
+     * ---- Scans can be filtered by MS level, polarity, ...<br>
      */
-    public MultiRawDataLearnerTask(MZmineProject project, PeakList peakList,
-            ParameterSet parameters) {
-        this.project = project;
-        this.peakList = peakList;
-        this.parameters = parameters;
-        // Get parameter values for easier use
-        suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
-        mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance)
-                .getValue();
-        rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance)
-                .getValue();
-        removeOriginal = parameters.getParameter(LearnerParameters.autoRemove)
-                .getValue();
-    }
+    // get all rows and sort by m/z
+    PeakListRow[] rows = peakList.getRows();
+    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    @Override
-    public String getTaskDescription() {
-        return "Learner task on " + peakList;
-    }
+    // number of rawFiles is 1 prior to peaklist alignment
+    RawDataFile[] rawFiles = peakList.getRawDataFiles();
+    boolean isAlignedPeakList = rawFiles.length > 1;
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    @Override
-    public double getFinishedPercentage() {
-        if (totalRows == 0)
-            return 0;
-        return (double) processedRows / (double) totalRows;
-    }
+    totalRows = rows.length;
+    // loop through all rows
+    for (PeakListRow row : rows) {
+      // loop through all raw data files
+      for (RawDataFile raw : rawFiles) {
+        // check for cancelled state and stop
+        if (isCanceled())
+          return;
 
-    /**
-     * @see Runnable#run()
-     */
-    @Override
-    public void run() {
-        setStatus(TaskStatus.PROCESSING);
-        logger.info("Running learner task on " + peakList);
+        // current peak
+        Feature peak = row.getPeak(raw);
+        // check for peak in row for specific raw file
+        if (peak != null) {
+          double mz = peak.getMZ();
+          double intensity = peak.getHeight();
+          double rt = peak.getRT();
 
-        // Create a new results peakList which is added at the end
-        resultPeakList = new SimplePeakList(peakList + " " + suffix,
-                peakList.getRawDataFiles());
+          // do stuff
+          // ...
 
-        /**
-         * - A PeakList is a list of Features (peak in retention time dimension
-         * with accurate m/z)<br>
-         * ---- contains one or multiple RawDataFiles <br>
-         * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
-         * - A RawDataFile holds a full chromatographic run with all ms
-         * scans<br>
-         * ---- Each Scan and the underlying raw data can be accessed <br>
-         * ---- Scans can be filtered by MS level, polarity, ...<br>
-         */
-        // get all rows and sort by m/z
-        PeakListRow[] rows = peakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
-                SortingDirection.Ascending));
-
-        // number of rawFiles is 1 prior to peaklist alignment
-        RawDataFile[] rawFiles = peakList.getRawDataFiles();
-        boolean isAlignedPeakList = rawFiles.length > 1;
-
-        totalRows = rows.length;
-        // loop through all rows
-        for (PeakListRow row : rows) {
-            // loop through all raw data files
-            for (RawDataFile raw : rawFiles) {
-                // check for cancelled state and stop
-                if (isCanceled())
-                    return;
-
-                // current peak
-                Feature peak = row.getPeak(raw);
-                // check for peak in row for specific raw file
-                if (peak != null) {
-                    double mz = peak.getMZ();
-                    double intensity = peak.getHeight();
-                    double rt = peak.getRT();
-
-                    // do stuff
-                    // ...
-
-                }
-            }
-            // Update completion rate
-            processedRows++;
         }
-
-        // add to project
-        addResultToProject();
-
-        logger.info("Finished on " + peakList);
-        setStatus(TaskStatus.FINISHED);
+      }
+      // Update completion rate
+      processedRows++;
     }
 
-    /**
-     * Add peaklist to project, delete old if requested, add description to
-     * result
-     */
-    public void addResultToProject() {
-        // Add new peakList to the project
-        project.addPeakList(resultPeakList);
+    // add to project
+    addResultToProject();
 
-        // Load previous applied methods
-        for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
-            resultPeakList.addDescriptionOfAppliedTask(proc);
-        }
+    logger.info("Finished on " + peakList);
+    setStatus(TaskStatus.FINISHED);
+  }
 
-        // Add task description to peakList
-        resultPeakList.addDescriptionOfAppliedTask(
-                new SimplePeakListAppliedMethod("Learner task", parameters));
+  /**
+   * Add peaklist to project, delete old if requested, add description to result
+   */
+  public void addResultToProject() {
+    // Add new peakList to the project
+    project.addPeakList(resultPeakList);
 
-        // Remove the original peakList if requested
-        if (removeOriginal)
-            project.removePeakList(peakList);
+    // Load previous applied methods
+    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
+      resultPeakList.addDescriptionOfAppliedTask(proc);
     }
+
+    // Add task description to peakList
+    resultPeakList
+        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Learner task", parameters));
+
+    // Remove the original peakList if requested
+    if (removeOriginal)
+      project.removePeakList(peakList);
+  }
 
 }

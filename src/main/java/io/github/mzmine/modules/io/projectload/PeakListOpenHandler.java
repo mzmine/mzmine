@@ -29,9 +29,9 @@ import io.github.mzmine.datamodel.PeakList;
 
 public interface PeakListOpenHandler {
 
-    PeakList readPeakList(InputStream inputStream)
-            throws IOException, ParserConfigurationException, SAXException;
+  PeakList readPeakList(InputStream inputStream)
+      throws IOException, ParserConfigurationException, SAXException;
 
-    void cancel();
+  void cancel();
 
 }

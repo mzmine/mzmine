@@ -37,359 +37,350 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
- * Implementation of the Scan interface which stores raw data points in a
- * temporary file, accessed by RawDataFileImpl.readFromFloatBufferFile()
+ * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
+ * by RawDataFileImpl.readFromFloatBufferFile()
  */
 public class StorableScan implements Scan {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private int scanNumber, msLevel, fragmentScans[];
-    private double precursorMZ;
-    private int precursorCharge;
-    private double retentionTime;
-    private Range<Double> mzRange;
-    private DataPoint basePeak;
-    private Double totalIonCurrent;
-    private MassSpectrumType spectrumType;
-    private int numberOfDataPoints;
-    private RawDataFileImpl rawDataFile;
-    private ArrayList<MassList> massLists = new ArrayList<MassList>();
-    private PolarityType polarity;
-    private String scanDefinition;
-    private Range<Double> scanMZRange;
+  private int scanNumber, msLevel, fragmentScans[];
+  private double precursorMZ;
+  private int precursorCharge;
+  private double retentionTime;
+  private Range<Double> mzRange;
+  private DataPoint basePeak;
+  private Double totalIonCurrent;
+  private MassSpectrumType spectrumType;
+  private int numberOfDataPoints;
+  private RawDataFileImpl rawDataFile;
+  private ArrayList<MassList> massLists = new ArrayList<MassList>();
+  private PolarityType polarity;
+  private String scanDefinition;
+  private Range<Double> scanMZRange;
 
-    private int storageID;
+  private int storageID;
 
-    /**
-     * Constructor for creating a storable scan from a given scan
-     */
-    public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile,
-            int numberOfDataPoints, int storageID) {
+  /**
+   * Constructor for creating a storable scan from a given scan
+   */
+  public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile, int numberOfDataPoints,
+      int storageID) {
 
-        // save scan data
-        this.rawDataFile = rawDataFile;
-        this.numberOfDataPoints = numberOfDataPoints;
-        this.storageID = storageID;
+    // save scan data
+    this.rawDataFile = rawDataFile;
+    this.numberOfDataPoints = numberOfDataPoints;
+    this.storageID = storageID;
 
-        this.scanNumber = originalScan.getScanNumber();
-        this.msLevel = originalScan.getMSLevel();
-        this.retentionTime = originalScan.getRetentionTime();
-        this.precursorMZ = originalScan.getPrecursorMZ();
-        this.precursorCharge = originalScan.getPrecursorCharge();
-        this.fragmentScans = originalScan.getFragmentScanNumbers();
-        this.spectrumType = originalScan.getSpectrumType();
-        this.mzRange = originalScan.getDataPointMZRange();
-        this.basePeak = originalScan.getHighestDataPoint();
-        this.totalIonCurrent = originalScan.getTIC();
-        this.polarity = originalScan.getPolarity();
-        this.scanDefinition = originalScan.getScanDefinition();
-        this.scanMZRange = originalScan.getScanningMZRange();
+    this.scanNumber = originalScan.getScanNumber();
+    this.msLevel = originalScan.getMSLevel();
+    this.retentionTime = originalScan.getRetentionTime();
+    this.precursorMZ = originalScan.getPrecursorMZ();
+    this.precursorCharge = originalScan.getPrecursorCharge();
+    this.fragmentScans = originalScan.getFragmentScanNumbers();
+    this.spectrumType = originalScan.getSpectrumType();
+    this.mzRange = originalScan.getDataPointMZRange();
+    this.basePeak = originalScan.getHighestDataPoint();
+    this.totalIonCurrent = originalScan.getTIC();
+    this.polarity = originalScan.getPolarity();
+    this.scanDefinition = originalScan.getScanDefinition();
+    this.scanMZRange = originalScan.getScanningMZRange();
 
+  }
+
+  public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
+      int scanNumber, int msLevel, double retentionTime, double precursorMZ, int precursorCharge,
+      int fragmentScans[], MassSpectrumType spectrumType, PolarityType polarity,
+      String scanDefinition, Range<Double> scanMZRange) {
+
+    this.rawDataFile = rawDataFile;
+    this.numberOfDataPoints = numberOfDataPoints;
+    this.storageID = storageID;
+
+    this.scanNumber = scanNumber;
+    this.msLevel = msLevel;
+    this.retentionTime = retentionTime;
+    this.precursorMZ = precursorMZ;
+    this.precursorCharge = precursorCharge;
+    this.fragmentScans = fragmentScans;
+    this.spectrumType = spectrumType;
+    this.polarity = polarity;
+    this.scanDefinition = scanDefinition;
+    this.scanMZRange = scanMZRange;
+  }
+
+  /**
+   * @return Scan's datapoints from temporary file.
+   */
+  public @Nonnull DataPoint[] getDataPoints() {
+
+    try {
+      DataPoint result[] = rawDataFile.readDataPoints(storageID);
+      return result;
+    } catch (IOException e) {
+      logger.severe("Could not read data from temporary file " + e.toString());
+      return new DataPoint[0];
     }
 
-    public StorableScan(RawDataFileImpl rawDataFile, int storageID,
-            int numberOfDataPoints, int scanNumber, int msLevel,
-            double retentionTime, double precursorMZ, int precursorCharge,
-            int fragmentScans[], MassSpectrumType spectrumType,
-            PolarityType polarity, String scanDefinition,
-            Range<Double> scanMZRange) {
+  }
 
-        this.rawDataFile = rawDataFile;
-        this.numberOfDataPoints = numberOfDataPoints;
-        this.storageID = storageID;
+  /**
+   * @return Returns scan datapoints within a given range
+   */
+  public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
 
-        this.scanNumber = scanNumber;
-        this.msLevel = msLevel;
-        this.retentionTime = retentionTime;
-        this.precursorMZ = precursorMZ;
-        this.precursorCharge = precursorCharge;
-        this.fragmentScans = fragmentScans;
-        this.spectrumType = spectrumType;
-        this.polarity = polarity;
-        this.scanDefinition = scanDefinition;
-        this.scanMZRange = scanMZRange;
+    DataPoint dataPoints[] = getDataPoints();
+
+    int startIndex, endIndex;
+    for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+      if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
+        break;
+      }
     }
 
-    /**
-     * @return Scan's datapoints from temporary file.
-     */
-    public @Nonnull DataPoint[] getDataPoints() {
-
-        try {
-            DataPoint result[] = rawDataFile.readDataPoints(storageID);
-            return result;
-        } catch (IOException e) {
-            logger.severe(
-                    "Could not read data from temporary file " + e.toString());
-            return new DataPoint[0];
-        }
-
+    for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+      if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
+        break;
+      }
     }
 
-    /**
-     * @return Returns scan datapoints within a given range
-     */
-    public @Nonnull DataPoint[] getDataPointsByMass(
-            @Nonnull Range<Double> mzRange) {
+    DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
 
-        DataPoint dataPoints[] = getDataPoints();
+    // Copy the relevant points
+    System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
 
-        int startIndex, endIndex;
-        for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-            if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint()) {
-                break;
-            }
-        }
+    return pointsWithinRange;
+  }
 
-        for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-            if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) {
-                break;
-            }
-        }
+  /**
+   * @return Returns scan datapoints over certain intensity
+   */
+  public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
+    int index;
+    Vector<DataPoint> points = new Vector<DataPoint>();
+    DataPoint dataPoints[] = getDataPoints();
 
-        DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-
-        // Copy the relevant points
-        System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0,
-                endIndex - startIndex);
-
-        return pointsWithinRange;
+    for (index = 0; index < dataPoints.length; index++) {
+      if (dataPoints[index].getIntensity() >= intensity) {
+        points.add(dataPoints[index]);
+      }
     }
 
-    /**
-     * @return Returns scan datapoints over certain intensity
-     */
-    public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
-        int index;
-        Vector<DataPoint> points = new Vector<DataPoint>();
-        DataPoint dataPoints[] = getDataPoints();
+    DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
-        for (index = 0; index < dataPoints.length; index++) {
-            if (dataPoints[index].getIntensity() >= intensity) {
-                points.add(dataPoints[index]);
-            }
-        }
+    return pointsOverIntensity;
+  }
 
-        DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
+  public @Nonnull RawDataFile getDataFile() {
+    return rawDataFile;
+  }
 
-        return pointsOverIntensity;
+  public int getStorageID() {
+    return storageID;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getNumberOfDataPoints()
+   */
+  public int getNumberOfDataPoints() {
+    return numberOfDataPoints;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getScanNumber()
+   */
+  public int getScanNumber() {
+    return scanNumber;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getMSLevel()
+   */
+  public int getMSLevel() {
+    return msLevel;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
+   */
+  public double getPrecursorMZ() {
+    return precursorMZ;
+  }
+
+  /**
+   * @return Returns the precursorCharge.
+   */
+  public int getPrecursorCharge() {
+    return precursorCharge;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
+   */
+  public double getRetentionTime() {
+    return retentionTime;
+  }
+
+  void updateValues() {
+    DataPoint dataPoints[] = getDataPoints();
+
+    // find m/z range and base peak
+    if (dataPoints.length > 0) {
+
+      basePeak = dataPoints[0];
+      mzRange = Range.singleton(dataPoints[0].getMZ());
+      double tic = 0;
+
+      for (DataPoint dp : dataPoints) {
+
+        if (dp.getIntensity() > basePeak.getIntensity())
+          basePeak = dp;
+
+        mzRange = mzRange.span(Range.singleton(dp.getMZ()));
+
+        tic += dp.getIntensity();
+
+      }
+
+      totalIonCurrent = new Double(tic);
+
+    } else {
+      mzRange = Range.singleton(0.0);
+      totalIonCurrent = new Double(0);
+    }
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getMZRangeMax()
+   */
+  public @Nonnull Range<Double> getDataPointMZRange() {
+    if (mzRange == null)
+      updateValues();
+    return mzRange;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
+   */
+  public DataPoint getHighestDataPoint() {
+    if ((basePeak == null) && (numberOfDataPoints > 0))
+      updateValues();
+    return basePeak;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getFragmentScanNumbers()
+   */
+  public int[] getFragmentScanNumbers() {
+    return fragmentScans;
+  }
+
+  /**
+   * @param fragmentScans The fragmentScans to set.
+   */
+  void setFragmentScanNumbers(int[] fragmentScans) {
+    this.fragmentScans = fragmentScans;
+  }
+
+  /**
+   * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
+   */
+  public MassSpectrumType getSpectrumType() {
+    if (spectrumType == null) {
+      spectrumType = ScanUtils.detectSpectrumType(getDataPoints());
+    }
+    return spectrumType;
+  }
+
+  public double getTIC() {
+    if (totalIonCurrent == null)
+      updateValues();
+    return totalIonCurrent;
+  }
+
+  @Override
+  public String toString() {
+    return ScanUtils.scanToString(this, false);
+  }
+
+  @Override
+  public synchronized void addMassList(final @Nonnull MassList massList) {
+
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName()))
+        removeMassList(ml);
     }
 
-    public @Nonnull RawDataFile getDataFile() {
-        return rawDataFile;
+    StorableMassList storedMassList;
+    if (massList instanceof StorableMassList) {
+      storedMassList = (StorableMassList) massList;
+    } else {
+      DataPoint massListDataPoints[] = massList.getDataPoints();
+      try {
+        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
+        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
+      } catch (IOException e) {
+        logger.severe("Could not write data to temporary file " + e.toString());
+        return;
+      }
     }
 
-    public int getStorageID() {
-        return storageID;
+    // Add the new mass list
+    massLists.add(storedMassList);
+
+    // Add the mass list to the tree model
+    MZmineProjectImpl project =
+        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+
+  }
+
+  @Override
+  public synchronized void removeMassList(final @Nonnull MassList massList) {
+
+    // Remove the mass list
+    massLists.remove(massList);
+    if (massList instanceof StorableMassList) {
+      StorableMassList storableMassList = (StorableMassList) massList;
+      storableMassList.removeStoredData();
     }
 
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getNumberOfDataPoints()
-     */
-    public int getNumberOfDataPoints() {
-        return numberOfDataPoints;
+  }
+
+  @Override
+  public @Nonnull MassList[] getMassLists() {
+    return massLists.toArray(new MassList[0]);
+  }
+
+  @Override
+  public MassList getMassList(@Nonnull String name) {
+    for (MassList ml : massLists) {
+      if (ml.getName().equals(name))
+        return ml;
     }
+    return null;
+  }
 
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getScanNumber()
-     */
-    public int getScanNumber() {
-        return scanNumber;
-    }
+  @Override
+  public @Nonnull PolarityType getPolarity() {
+    if (polarity == null)
+      polarity = PolarityType.UNKNOWN;
+    return polarity;
+  }
 
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getMSLevel()
-     */
-    public int getMSLevel() {
-        return msLevel;
-    }
+  @Override
+  public String getScanDefinition() {
+    if (scanDefinition == null)
+      scanDefinition = "";
+    return scanDefinition;
+  }
 
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
-     */
-    public double getPrecursorMZ() {
-        return precursorMZ;
-    }
-
-    /**
-     * @return Returns the precursorCharge.
-     */
-    public int getPrecursorCharge() {
-        return precursorCharge;
-    }
-
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
-     */
-    public double getRetentionTime() {
-        return retentionTime;
-    }
-
-    void updateValues() {
-        DataPoint dataPoints[] = getDataPoints();
-
-        // find m/z range and base peak
-        if (dataPoints.length > 0) {
-
-            basePeak = dataPoints[0];
-            mzRange = Range.singleton(dataPoints[0].getMZ());
-            double tic = 0;
-
-            for (DataPoint dp : dataPoints) {
-
-                if (dp.getIntensity() > basePeak.getIntensity())
-                    basePeak = dp;
-
-                mzRange = mzRange.span(Range.singleton(dp.getMZ()));
-
-                tic += dp.getIntensity();
-
-            }
-
-            totalIonCurrent = new Double(tic);
-
-        } else {
-            mzRange = Range.singleton(0.0);
-            totalIonCurrent = new Double(0);
-        }
-    }
-
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getMZRangeMax()
-     */
-    public @Nonnull Range<Double> getDataPointMZRange() {
-        if (mzRange == null)
-            updateValues();
-        return mzRange;
-    }
-
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
-     */
-    public DataPoint getHighestDataPoint() {
-        if ((basePeak == null) && (numberOfDataPoints > 0))
-            updateValues();
-        return basePeak;
-    }
-
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getFragmentScanNumbers()
-     */
-    public int[] getFragmentScanNumbers() {
-        return fragmentScans;
-    }
-
-    /**
-     * @param fragmentScans
-     *            The fragmentScans to set.
-     */
-    void setFragmentScanNumbers(int[] fragmentScans) {
-        this.fragmentScans = fragmentScans;
-    }
-
-    /**
-     * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
-     */
-    public MassSpectrumType getSpectrumType() {
-        if (spectrumType == null) {
-            spectrumType = ScanUtils.detectSpectrumType(getDataPoints());
-        }
-        return spectrumType;
-    }
-
-    public double getTIC() {
-        if (totalIonCurrent == null)
-            updateValues();
-        return totalIonCurrent;
-    }
-
-    @Override
-    public String toString() {
-        return ScanUtils.scanToString(this, false);
-    }
-
-    @Override
-    public synchronized void addMassList(final @Nonnull MassList massList) {
-
-        // Remove all mass lists with same name, if there are any
-        MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-        for (MassList ml : currentMassLists) {
-            if (ml.getName().equals(massList.getName()))
-                removeMassList(ml);
-        }
-
-        StorableMassList storedMassList;
-        if (massList instanceof StorableMassList) {
-            storedMassList = (StorableMassList) massList;
-        } else {
-            DataPoint massListDataPoints[] = massList.getDataPoints();
-            try {
-                int mlStorageID = rawDataFile
-                        .storeDataPoints(massListDataPoints);
-                storedMassList = new StorableMassList(rawDataFile, mlStorageID,
-                        massList.getName(), this);
-            } catch (IOException e) {
-                logger.severe("Could not write data to temporary file "
-                        + e.toString());
-                return;
-            }
-        }
-
-        // Add the new mass list
-        massLists.add(storedMassList);
-
-        // Add the mass list to the tree model
-        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-                .getProjectManager().getCurrentProject();
-
-    }
-
-    @Override
-    public synchronized void removeMassList(final @Nonnull MassList massList) {
-
-        // Remove the mass list
-        massLists.remove(massList);
-        if (massList instanceof StorableMassList) {
-            StorableMassList storableMassList = (StorableMassList) massList;
-            storableMassList.removeStoredData();
-        }
-
-    }
-
-    @Override
-    public @Nonnull MassList[] getMassLists() {
-        return massLists.toArray(new MassList[0]);
-    }
-
-    @Override
-    public MassList getMassList(@Nonnull String name) {
-        for (MassList ml : massLists) {
-            if (ml.getName().equals(name))
-                return ml;
-        }
-        return null;
-    }
-
-    @Override
-    public @Nonnull PolarityType getPolarity() {
-        if (polarity == null)
-            polarity = PolarityType.UNKNOWN;
-        return polarity;
-    }
-
-    @Override
-    public String getScanDefinition() {
-        if (scanDefinition == null)
-            scanDefinition = "";
-        return scanDefinition;
-    }
-
-    @Override
-    public @Nonnull Range<Double> getScanningMZRange() {
-        if (scanMZRange == null)
-            scanMZRange = getDataPointMZRange();
-        return scanMZRange;
-    }
+  @Override
+  public @Nonnull Range<Double> getScanningMZRange() {
+    if (scanMZRange == null)
+      scanMZRange = getDataPointMZRange();
+    return scanMZRange;
+  }
 
 }

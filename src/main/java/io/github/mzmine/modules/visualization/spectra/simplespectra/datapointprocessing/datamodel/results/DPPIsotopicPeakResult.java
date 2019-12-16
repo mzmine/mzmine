@@ -25,33 +25,31 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 
 public class DPPIsotopicPeakResult extends DPPResult<ProcessedDataPoint> {
 
-    private final int charge;
-    private final String isotope;
-    private static final NumberFormat format = MZmineCore.getConfiguration()
-            .getMZFormat();
+  private final int charge;
+  private final String isotope;
+  private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();
 
-    public DPPIsotopicPeakResult(ProcessedDataPoint peak, String isotope,
-            int charge) {
-        super(peak);
-        this.isotope = isotope;
-        this.charge = charge;
-    }
+  public DPPIsotopicPeakResult(ProcessedDataPoint peak, String isotope, int charge) {
+    super(peak);
+    this.isotope = isotope;
+    this.charge = charge;
+  }
 
-    public int getCharge() {
-        return charge;
-    }
+  public int getCharge() {
+    return charge;
+  }
 
-    public String getIsotope() {
-        return isotope;
-    }
+  public String getIsotope() {
+    return isotope;
+  }
 
-    @Override
-    public String toString() {
-        return format.format(value.getMZ()) + " (" + isotope + ")";
-    }
+  @Override
+  public String toString() {
+    return format.format(value.getMZ()) + " (" + isotope + ")";
+  }
 
-    @Override
-    public ResultType getResultType() {
-        return ResultType.ISOTOPICPEAK;
-    }
+  @Override
+  public ResultType getResultType() {
+    return ResultType.ISOTOPICPEAK;
+  }
 }

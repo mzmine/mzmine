@@ -27,19 +27,18 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 
 public class SpectraVisualizerParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
-            1, 1);
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
-    public static final IntegerParameter scanNumber = new IntegerParameter(
-            "Scan number", "Scan number");
+  public static final IntegerParameter scanNumber =
+      new IntegerParameter("Scan number", "Scan number");
 
-    /**
-     * Windows size and position
-     */
-    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+  /**
+   * Windows size and position
+   */
+  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-    public SpectraVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanNumber, windowSettings });
-    }
+  public SpectraVisualizerParameters() {
+    super(new Parameter[] {dataFiles, scanNumber, windowSettings});
+  }
 
 }

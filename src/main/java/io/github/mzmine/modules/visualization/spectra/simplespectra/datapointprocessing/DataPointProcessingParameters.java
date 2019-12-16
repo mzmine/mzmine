@@ -25,17 +25,16 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 
 public class DataPointProcessingParameters extends SimpleParameterSet {
-    /**
-     * Processing
-     */
-    public static final HiddenParameter<BooleanParameter, Boolean> enableProcessing = new HiddenParameter<>(
-            new BooleanParameter("Enable Processing", "", false));
+  /**
+   * Processing
+   */
+  public static final HiddenParameter<BooleanParameter, Boolean> enableProcessing =
+      new HiddenParameter<>(new BooleanParameter("Enable Processing", "", false));
 
-    public static final ProcessingParameter processingParameters = new ProcessingParameter(
-            "Processing queues",
-            "Set the modules to be executed in the processing queue.");
+  public static final ProcessingParameter processingParameters = new ProcessingParameter(
+      "Processing queues", "Set the modules to be executed in the processing queue.");
 
-    public DataPointProcessingParameters() {
-        super(new Parameter[] { processingParameters, enableProcessing });
-    }
+  public DataPointProcessingParameters() {
+    super(new Parameter[] {processingParameters, enableProcessing});
+  }
 }

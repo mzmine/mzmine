@@ -26,69 +26,67 @@ import io.github.mzmine.parameters.ParameterSet;
 
 public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
-    private ColoringType coloringType;
+  private ColoringType coloringType;
 
-    private enum LabelMode {
-        FileName, FileNameAndParameterValue
+  private enum LabelMode {
+    FileName, FileNameAndParameterValue
+  }
+
+  private LabelMode labelMode;
+
+  ProjectionPlotToolTipGenerator(ParameterSet parameters) {
+    try {
+      coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
+    } catch (IllegalArgumentException exeption) {
+      coloringType = ColoringType.NOCOLORING;
     }
+    if (coloringType.equals(ColoringType.NOCOLORING))
+      labelMode = LabelMode.FileName;
 
-    private LabelMode labelMode;
+    if (coloringType.equals(ColoringType.COLORBYFILE))
+      labelMode = LabelMode.FileName;
 
-    ProjectionPlotToolTipGenerator(ParameterSet parameters) {
-        try {
-            coloringType = parameters
-                    .getParameter(ProjectionPlotParameters.coloringType)
-                    .getValue();
-        } catch (IllegalArgumentException exeption) {
-            coloringType = ColoringType.NOCOLORING;
-        }
-        if (coloringType.equals(ColoringType.NOCOLORING))
-            labelMode = LabelMode.FileName;
+    if (coloringType.isByParameter())
+      labelMode = LabelMode.FileNameAndParameterValue;
 
-        if (coloringType.equals(ColoringType.COLORBYFILE))
-            labelMode = LabelMode.FileName;
+  }
 
-        if (coloringType.isByParameter())
-            labelMode = LabelMode.FileNameAndParameterValue;
+  private String generateToolTip(ProjectionPlotDataset dataset, int item) {
 
-    }
+    switch (labelMode) {
 
-    private String generateToolTip(ProjectionPlotDataset dataset, int item) {
+      case FileName:
+      default:
+        return dataset.getRawDataFile(item);
 
-        switch (labelMode) {
+      case FileNameAndParameterValue:
+        String ret = dataset.getRawDataFile(item) + "\n";
 
-        case FileName:
-        default:
-            return dataset.getRawDataFile(item);
+        ret += coloringType.getParameter().getName() + ": ";
 
-        case FileNameAndParameterValue:
-            String ret = dataset.getRawDataFile(item) + "\n";
-
-            ret += coloringType.getParameter().getName() + ": ";
-
-            int groupNumber = dataset.getGroupNumber(item);
-            Object paramValue = dataset.getGroupParameterValue(groupNumber);
-            if (paramValue != null)
-                ret += paramValue.toString();
-            else
-                ret += "N/A";
-
-            return ret;
-        }
-
-    }
-
-    public String generateToolTip(XYDataset dataset, int series, int item) {
-        if (dataset instanceof ProjectionPlotDataset)
-            return generateToolTip((ProjectionPlotDataset) dataset, item);
+        int groupNumber = dataset.getGroupNumber(item);
+        Object paramValue = dataset.getGroupParameterValue(groupNumber);
+        if (paramValue != null)
+          ret += paramValue.toString();
         else
-            return null;
+          ret += "N/A";
+
+        return ret;
     }
 
-    public String generateToolTip(XYZDataset dataset, int series, int item) {
-        if (dataset instanceof ProjectionPlotDataset)
-            return generateToolTip((ProjectionPlotDataset) dataset, item);
-        else
-            return null;
-    }
+  }
+
+  public String generateToolTip(XYDataset dataset, int series, int item) {
+    if (dataset instanceof ProjectionPlotDataset)
+      return generateToolTip((ProjectionPlotDataset) dataset, item);
+    else
+      return null;
+  }
+
+  public String generateToolTip(XYZDataset dataset, int series, int item) {
+    if (dataset instanceof ProjectionPlotDataset)
+      return generateToolTip((ProjectionPlotDataset) dataset, item);
+    else
+      return null;
+  }
 }

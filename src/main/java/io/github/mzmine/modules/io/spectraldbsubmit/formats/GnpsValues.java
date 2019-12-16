@@ -38,49 +38,49 @@ package io.github.mzmine.modules.io.spectraldbsubmit.formats;
  */
 public class GnpsValues {
 
-    public enum CompoundSource {
-        Lysate, Isolated, Commercial, Crude, Other;
+  public enum CompoundSource {
+    Lysate, Isolated, Commercial, Crude, Other;
+  }
+
+  public enum Polarity {
+    Positive, Negative;
+  }
+
+  public enum Instrument {
+    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+
+    private final String value;
+
+    private Instrument() {
+      this.value = null;
     }
 
-    public enum Polarity {
-        Positive, Negative;
+    private Instrument(String value) {
+      this.value = value;
     }
 
-    public enum Instrument {
-        qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
+  }
 
-        private final String value;
+  public enum IonSource {
+    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
 
-        private Instrument() {
-            this.value = null;
-        }
+    private final String value;
 
-        private Instrument(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value != null ? value : super.toString();
-        }
+    private IonSource() {
+      this.value = null;
     }
 
-    public enum IonSource {
-        LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
-
-        private final String value;
-
-        private IonSource() {
-            this.value = null;
-        }
-
-        private IonSource(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value != null ? value : super.toString();
-        }
+    private IonSource(String value) {
+      this.value = value;
     }
+
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
+  }
 }

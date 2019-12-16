@@ -31,39 +31,38 @@ import io.github.mzmine.util.ExitCode;
 
 public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Formula prediction";
-    private static final String MODULE_DESCRIPTION = "This method gets the predicted formula for each unknown compound";
+  private static final String MODULE_NAME = "Formula prediction";
+  private static final String MODULE_DESCRIPTION =
+      "This method gets the predicted formula for each unknown compound";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.IDENTIFICATION;
+  }
+
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return FormulaPredictionPeakListParameters.class;
+  }
+
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+    PeakList peakLists[] = parameters.getParameter(FormulaPredictionPeakListParameters.PEAK_LISTS)
+        .getValue().getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+      Task newTask = new FormulaPredictionPeakListTask(peakList, parameters);
+      tasks.add(newTask);
     }
-
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return FormulaPredictionPeakListParameters.class;
-    }
-
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
-
-    @Override
-    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        PeakList peakLists[] = parameters
-                .getParameter(FormulaPredictionPeakListParameters.PEAK_LISTS)
-                .getValue().getMatchingPeakLists();
-
-        for (PeakList peakList : peakLists) {
-            Task newTask = new FormulaPredictionPeakListTask(peakList,
-                    parameters);
-            tasks.add(newTask);
-        }
-        return ExitCode.OK;
-    }
+    return ExitCode.OK;
+  }
 }

@@ -32,43 +32,43 @@ import io.github.mzmine.util.ExitCode;
 
 public class FragmentSearchModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Fragment search";
-    private static final String MODULE_DESCRIPTION = "This method searches for ion fragments that appear at the same retention time.";
+  private static final String MODULE_NAME = "Fragment search";
+  private static final String MODULE_DESCRIPTION =
+      "This method searches for ion fragments that appear at the same retention time.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] = parameters.getParameter(FragmentSearchParameters.peakLists).getValue()
+        .getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+      Task newTask = new FragmentSearchTask(parameters, peakList);
+      tasks.add(newTask);
     }
+    return ExitCode.OK;
+  }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.IDENTIFICATION;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-
-        PeakList peakLists[] = parameters
-                .getParameter(FragmentSearchParameters.peakLists).getValue()
-                .getMatchingPeakLists();
-
-        for (PeakList peakList : peakLists) {
-            Task newTask = new FragmentSearchTask(parameters, peakList);
-            tasks.add(newTask);
-        }
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return FragmentSearchParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return FragmentSearchParameters.class;
+  }
 
 }

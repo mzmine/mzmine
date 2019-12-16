@@ -23,22 +23,21 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public class MSMSDataPointIdentity extends AbstractMSMSDataPointIdentity {
 
-    private String name;
-    private DataPoint dp;
+  private String name;
+  private DataPoint dp;
 
-    public MSMSDataPointIdentity(MZTolerance mzTolerance, DataPoint dp,
-            String name) {
-        super(mzTolerance, dp);
-        setName(name);
-    }
+  public MSMSDataPointIdentity(MZTolerance mzTolerance, DataPoint dp, String name) {
+    super(mzTolerance, dp);
+    setName(name);
+  }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
 }

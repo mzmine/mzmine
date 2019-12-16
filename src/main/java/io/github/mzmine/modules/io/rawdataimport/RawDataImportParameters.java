@@ -32,57 +32,55 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class RawDataImportParameters extends SimpleParameterSet {
 
-    public static final FileNamesParameter fileNames = new FileNamesParameter();
+  public static final FileNamesParameter fileNames = new FileNamesParameter();
 
-    public RawDataImportParameters() {
-        super(new Parameter[] { fileNames });
+  public RawDataImportParameters() {
+    super(new Parameter[] {fileNames});
+  }
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Import raw data files");
+    fileChooser.getExtensionFilters().addAll(
+        new ExtensionFilter("All raw data files", "*.cdf", "*.nc", "*.mzData", "*.mzML", "*.mzXML",
+            "*.xml", "*.raw", "*.csv", "*.zip", "*.gz"), //
+        new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
+        new ExtensionFilter("mzML files", "*.mzML"), //
+        new ExtensionFilter("mzData files", "*.mzData"), //
+        new ExtensionFilter("mzXML files", "*.mzXML"), //
+        new ExtensionFilter("Thermo RAW files", "*.raw"), //
+        new ExtensionFilter("Waters RAW folders", "*.raw"), //
+        new ExtensionFilter("Agilent CSV files", "*.csv"), //
+        new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
+        new ExtensionFilter("All Files", "*.*"));
+
+    // We need to allow directories, because Waters raw data come in
+    // directories, not files
+    // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+
+    File lastFiles[] = getParameter(fileNames).getValue();
+    if ((lastFiles != null) && (lastFiles.length > 0)) {
+      File currentDir = lastFiles[0].getParentFile();
+      if ((currentDir != null) && (currentDir.exists()))
+        fileChooser.setInitialDirectory(currentDir);
     }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Import raw data files");
-        fileChooser.getExtensionFilters().addAll(
-                new ExtensionFilter("All raw data files", "*.cdf", "*.nc",
-                        "*.mzData", "*.mzML", "*.mzXML", "*.xml", "*.raw",
-                        "*.csv", "*.zip", "*.gz"), //
-                new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
-                new ExtensionFilter("mzML files", "*.mzML"), //
-                new ExtensionFilter("mzData files", "*.mzData"), //
-                new ExtensionFilter("mzXML files", "*.mzXML"), //
-                new ExtensionFilter("Thermo RAW files", "*.raw"), //
-                new ExtensionFilter("Waters RAW folders", "*.raw"), //
-                new ExtensionFilter("Agilent CSV files", "*.csv"), //
-                new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
-                new ExtensionFilter("All Files", "*.*"));
-
-        // We need to allow directories, because Waters raw data come in
-        // directories, not files
-        // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
-        File lastFiles[] = getParameter(fileNames).getValue();
-        if ((lastFiles != null) && (lastFiles.length > 0)) {
-            File currentDir = lastFiles[0].getParentFile();
-            if ((currentDir != null) && (currentDir.exists()))
-                fileChooser.setInitialDirectory(currentDir);
-        }
-
-        final FutureTask<List<File>> task = new FutureTask<>(
-                () -> fileChooser.showOpenMultipleDialog(null));
-        Platform.runLater(task);
-        try {
-            List<File> selectedFiles = task.get();
-            if (selectedFiles == null)
-                return ExitCode.CANCEL;
-            getParameter(fileNames)
-                    .setValue(selectedFiles.toArray(new File[0]));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return ExitCode.OK;
-
+    final FutureTask<List<File>> task =
+        new FutureTask<>(() -> fileChooser.showOpenMultipleDialog(null));
+    Platform.runLater(task);
+    try {
+      List<File> selectedFiles = task.get();
+      if (selectedFiles == null)
+        return ExitCode.CANCEL;
+      getParameter(fileNames).setValue(selectedFiles.toArray(new File[0]));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+
+    return ExitCode.OK;
+
+  }
 
 }

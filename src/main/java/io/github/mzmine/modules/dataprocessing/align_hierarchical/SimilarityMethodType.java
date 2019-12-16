@@ -20,16 +20,16 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public enum SimilarityMethodType {
 
-    DOT("Dot product"), PEARSON("Pearson correlation");
+  DOT("Dot product"), PEARSON("Pearson correlation");
 
-    private final String name;
+  private final String name;
 
-    SimilarityMethodType(String name) {
-        this.name = name;
-    }
+  SimilarityMethodType(String name) {
+    this.name = name;
+  }
 
-    public String toString() {
-        return name;
-    }
+  public String toString() {
+    return name;
+  }
 
 }

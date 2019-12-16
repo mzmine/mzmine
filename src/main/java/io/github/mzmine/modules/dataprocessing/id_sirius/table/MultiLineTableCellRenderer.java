@@ -27,17 +27,16 @@ import javax.swing.table.TableCellRenderer;
 /**
  * Class for multiline String cell rendering.
  */
-public class MultiLineTableCellRenderer extends JList<String>
-        implements TableCellRenderer {
+public class MultiLineTableCellRenderer extends JList<String> implements TableCellRenderer {
 
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+  @Override
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+      boolean hasFocus, int row, int column) {
 
-        if (value instanceof String[]) {
-            setListData((String[]) value);
-        }
-
-        return this;
+    if (value instanceof String[]) {
+      setListData((String[]) value);
     }
+
+    return this;
+  }
 }

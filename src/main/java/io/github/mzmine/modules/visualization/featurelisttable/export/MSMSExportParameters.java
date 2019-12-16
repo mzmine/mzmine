@@ -25,14 +25,13 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class MSMSExportParameters extends SimpleParameterSet {
 
-    public static final FileNameParameter outputFile = new FileNameParameter(
-            "Output file",
-            "Please set the path and name of the output text file");
+  public static final FileNameParameter outputFile =
+      new FileNameParameter("Output file", "Please set the path and name of the output text file");
 
-    public static final MassListParameter massList = new MassListParameter();
+  public static final MassListParameter massList = new MassListParameter();
 
-    public MSMSExportParameters() {
-        super(new Parameter[] { outputFile, massList });
-    }
+  public MSMSExportParameters() {
+    super(new Parameter[] {outputFile, massList});
+  }
 
 }

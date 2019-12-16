@@ -23,33 +23,32 @@ import javax.swing.event.DocumentListener;
 
 public class StringComponent extends JPanel {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    private final JTextField textField;
+  private final JTextField textField;
 
-    public StringComponent(int inputsize) {
-        textField = new JTextField(inputsize);
-        add(textField);
-    }
+  public StringComponent(int inputsize) {
+    textField = new JTextField(inputsize);
+    add(textField);
+  }
 
-    public void setText(String text) {
-        textField.setText(text);
-    }
+  public void setText(String text) {
+    textField.setText(text);
+  }
 
-    public String getText() {
-        return textField.getText();
-    }
+  public String getText() {
+    return textField.getText();
+  }
 
-    @Override
-    public void setToolTipText(String toolTip) {
-        textField.setToolTipText(toolTip);
-    }
+  @Override
+  public void setToolTipText(String toolTip) {
+    textField.setToolTipText(toolTip);
+  }
 
-    public void addDocumentListener(DocumentListener dl) {
-        textField.getDocument().addDocumentListener(dl);
-        ;
-    }
+  public void addDocumentListener(DocumentListener dl) {
+    textField.getDocument().addDocumentListener(dl);;
+  }
 }

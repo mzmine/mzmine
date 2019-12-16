@@ -33,47 +33,45 @@ import io.github.mzmine.util.ExitCode;
 /**
  * Normalization module using selected internal standards
  */
-public class StandardCompoundNormalizerModule
-        implements MZmineProcessingModule {
+public class StandardCompoundNormalizerModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Standard compound normalizer";
-    private static final String MODULE_DESCRIPTION = "This module normalizes the peak heights and areas according to selected internal standards.";
+  private static final String MODULE_NAME = "Standard compound normalizer";
+  private static final String MODULE_DESCRIPTION =
+      "This module normalizes the peak heights and areas according to selected internal standards.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.peakList)
+        .getValue().getMatchingPeakLists();
+    for (PeakList peakList : peakLists) {
+      Task newTask = new StandardCompoundNormalizerTask(project, peakList, parameters);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.NORMALIZATION;
+  }
 
-        PeakList peakLists[] = parameters
-                .getParameter(StandardCompoundNormalizerParameters.peakList)
-                .getValue().getMatchingPeakLists();
-        for (PeakList peakList : peakLists) {
-            Task newTask = new StandardCompoundNormalizerTask(project, peakList,
-                    parameters);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.NORMALIZATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return StandardCompoundNormalizerParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return StandardCompoundNormalizerParameters.class;
+  }
 
 }

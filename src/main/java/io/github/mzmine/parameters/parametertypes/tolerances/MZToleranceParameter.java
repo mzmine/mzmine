@@ -25,118 +25,114 @@ import org.w3c.dom.NodeList;
 
 import io.github.mzmine.parameters.UserParameter;
 
-public class MZToleranceParameter
-        implements UserParameter<MZTolerance, MZToleranceComponent> {
+public class MZToleranceParameter implements UserParameter<MZTolerance, MZToleranceComponent> {
 
-    private String name, description;
-    private MZTolerance value;
+  private String name, description;
+  private MZTolerance value;
 
-    public MZToleranceParameter() {
-        this("m/z tolerance",
-                "Maximum allowed difference between two m/z values to be considered same.\n"
-                        + "The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\n"
-                        + "The tolerance range is calculated using maximum of the absolute and relative tolerances.");
+  public MZToleranceParameter() {
+    this("m/z tolerance",
+        "Maximum allowed difference between two m/z values to be considered same.\n"
+            + "The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\n"
+            + "The tolerance range is calculated using maximum of the absolute and relative tolerances.");
+  }
+
+  public MZToleranceParameter(String name, String description) {
+    this.name = name;
+    this.description = description;
+  }
+
+  public MZToleranceParameter(String name, String description, double deltaMZ, double ppm) {
+    this.name = name;
+    this.description = description;
+    value = new MZTolerance(deltaMZ, ppm);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public MZToleranceComponent createEditingComponent() {
+    return new MZToleranceComponent();
+  }
+
+  @Override
+  public MZToleranceParameter cloneParameter() {
+    MZToleranceParameter copy = new MZToleranceParameter(name, description);
+    copy.setValue(this.getValue());
+    return copy;
+  }
+
+  @Override
+  public void setValueFromComponent(MZToleranceComponent component) {
+    value = component.getValue();
+  }
+
+  @Override
+  public void setValueToComponent(MZToleranceComponent component, MZTolerance newValue) {
+    component.setValue(newValue);
+  }
+
+  @Override
+  public MZTolerance getValue() {
+    return value;
+  }
+
+  @Override
+  public void setValue(MZTolerance newValue) {
+    this.value = newValue;
+  }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    // Set some default values
+    double mzTolerance = 0.001;
+    double ppmTolerance = 5;
+    NodeList items = xmlElement.getElementsByTagName("absolutetolerance");
+    for (int i = 0; i < items.getLength(); i++) {
+      String itemString = items.item(i).getTextContent();
+      mzTolerance = Double.parseDouble(itemString);
+    }
+    items = xmlElement.getElementsByTagName("ppmtolerance");
+    for (int i = 0; i < items.getLength(); i++) {
+      String itemString = items.item(i).getTextContent();
+      ppmTolerance = Double.parseDouble(itemString);
     }
 
-    public MZToleranceParameter(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
+    this.value = new MZTolerance(mzTolerance, ppmTolerance);
+  }
 
-    public MZToleranceParameter(String name, String description, double deltaMZ,
-            double ppm) {
-        this.name = name;
-        this.description = description;
-        value = new MZTolerance(deltaMZ, ppm);
-    }
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    if (value == null)
+      return;
+    Document parentDocument = xmlElement.getOwnerDocument();
+    Element newElement = parentDocument.createElement("absolutetolerance");
+    newElement.setTextContent(String.valueOf(value.getMzTolerance()));
+    xmlElement.appendChild(newElement);
+    newElement = parentDocument.createElement("ppmtolerance");
+    newElement.setTextContent(String.valueOf(value.getPpmTolerance()));
+    xmlElement.appendChild(newElement);
+  }
 
-    @Override
-    public String getName() {
-        return name;
+  @Override
+  public boolean checkValue(Collection<String> errorMessages) {
+    if (value == null) {
+      errorMessages.add(name + " is not set properly");
+      return false;
     }
-
-    @Override
-    public String getDescription() {
-        return description;
+    if ((value.getMzTolerance() <= 0.0) && (value.getPpmTolerance() <= 0.0)) {
+      errorMessages.add(name + " must be greater than zero");
+      return false;
     }
-
-    @Override
-    public MZToleranceComponent createEditingComponent() {
-        return new MZToleranceComponent();
-    }
-
-    @Override
-    public MZToleranceParameter cloneParameter() {
-        MZToleranceParameter copy = new MZToleranceParameter(name, description);
-        copy.setValue(this.getValue());
-        return copy;
-    }
-
-    @Override
-    public void setValueFromComponent(MZToleranceComponent component) {
-        value = component.getValue();
-    }
-
-    @Override
-    public void setValueToComponent(MZToleranceComponent component,
-            MZTolerance newValue) {
-        component.setValue(newValue);
-    }
-
-    @Override
-    public MZTolerance getValue() {
-        return value;
-    }
-
-    @Override
-    public void setValue(MZTolerance newValue) {
-        this.value = newValue;
-    }
-
-    @Override
-    public void loadValueFromXML(Element xmlElement) {
-        // Set some default values
-        double mzTolerance = 0.001;
-        double ppmTolerance = 5;
-        NodeList items = xmlElement.getElementsByTagName("absolutetolerance");
-        for (int i = 0; i < items.getLength(); i++) {
-            String itemString = items.item(i).getTextContent();
-            mzTolerance = Double.parseDouble(itemString);
-        }
-        items = xmlElement.getElementsByTagName("ppmtolerance");
-        for (int i = 0; i < items.getLength(); i++) {
-            String itemString = items.item(i).getTextContent();
-            ppmTolerance = Double.parseDouble(itemString);
-        }
-
-        this.value = new MZTolerance(mzTolerance, ppmTolerance);
-    }
-
-    @Override
-    public void saveValueToXML(Element xmlElement) {
-        if (value == null)
-            return;
-        Document parentDocument = xmlElement.getOwnerDocument();
-        Element newElement = parentDocument.createElement("absolutetolerance");
-        newElement.setTextContent(String.valueOf(value.getMzTolerance()));
-        xmlElement.appendChild(newElement);
-        newElement = parentDocument.createElement("ppmtolerance");
-        newElement.setTextContent(String.valueOf(value.getPpmTolerance()));
-        xmlElement.appendChild(newElement);
-    }
-
-    @Override
-    public boolean checkValue(Collection<String> errorMessages) {
-        if (value == null) {
-            errorMessages.add(name + " is not set properly");
-            return false;
-        }
-        if ((value.getMzTolerance() <= 0.0)
-                && (value.getPpmTolerance() <= 0.0)) {
-            errorMessages.add(name + " must be greater than zero");
-            return false;
-        }
-        return true;
-    }
+    return true;
+  }
 
 }

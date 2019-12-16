@@ -23,47 +23,47 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * @author akshaj This class contains the set of Feature, PeakList, PeakListRow
- *         and RawDataFile selected by the user.
+ * @author akshaj This class contains the set of Feature, PeakList, PeakListRow and RawDataFile
+ *         selected by the user.
  */
 public class FeatureSelection implements Cloneable {
 
-    private Feature feature;
-    private PeakListRow peakListRow;
-    private PeakList peakList;
-    private RawDataFile rawDataFile;
+  private Feature feature;
+  private PeakListRow peakListRow;
+  private PeakList peakList;
+  private RawDataFile rawDataFile;
 
-    public FeatureSelection(PeakList peakList, Feature feature,
-            PeakListRow peakListRow, RawDataFile rawDataFile) {
-        this.peakList = peakList;
-        this.feature = feature;
-        this.peakListRow = peakListRow;
-        this.rawDataFile = rawDataFile;
-    }
+  public FeatureSelection(PeakList peakList, Feature feature, PeakListRow peakListRow,
+      RawDataFile rawDataFile) {
+    this.peakList = peakList;
+    this.feature = feature;
+    this.peakListRow = peakListRow;
+    this.rawDataFile = rawDataFile;
+  }
 
-    public Feature getFeature() {
-        return feature;
-    }
+  public Feature getFeature() {
+    return feature;
+  }
 
-    public PeakListRow getPeakListRow() {
-        return peakListRow;
-    }
+  public PeakListRow getPeakListRow() {
+    return peakListRow;
+  }
 
-    public PeakList getPeakList() {
-        return peakList;
-    }
+  public PeakList getPeakList() {
+    return peakList;
+  }
 
-    public RawDataFile getRawDataFile() {
-        return rawDataFile;
-    }
+  public RawDataFile getRawDataFile() {
+    return rawDataFile;
+  }
 
-    /*
-     * @see java.lang.Object#clone()
-     */
-    public FeatureSelection clone() {
-        FeatureSelection newSelection = new FeatureSelection(peakList, feature,
-                peakListRow, rawDataFile);
-        return newSelection;
-    }
+  /*
+   * @see java.lang.Object#clone()
+   */
+  public FeatureSelection clone() {
+    FeatureSelection newSelection =
+        new FeatureSelection(peakList, feature, peakListRow, rawDataFile);
+    return newSelection;
+  }
 
 }

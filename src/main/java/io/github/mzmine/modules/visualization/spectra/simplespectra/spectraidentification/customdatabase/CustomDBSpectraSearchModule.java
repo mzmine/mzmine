@@ -34,42 +34,40 @@ import io.github.mzmine.util.ExitCode;
  */
 public class CustomDBSpectraSearchModule implements MZmineModule {
 
-    private static final String MODULE_NAME = "Custom database search";
-    private static final String MODULE_DESCRIPTION = "This module attepts to annotate signals in selected mass spectra";
+  private static final String MODULE_NAME = "Custom database search";
+  private static final String MODULE_DESCRIPTION =
+      "This module attepts to annotate signals in selected mass spectra";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  /**
+   * Show dialog for identifying a single peak-list row.
+   * 
+   */
+  public static void showSpectraIdentificationDialog(final Scan scan,
+      final SpectraPlot spectraPlot) {
+
+    final SpectraIdentificationCustomDatabaseParameters parameters =
+        (SpectraIdentificationCustomDatabaseParameters) MZmineCore.getConfiguration()
+            .getModuleParameters(CustomDBSpectraSearchModule.class);;
+
+    // Run task.
+    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+
+      MZmineCore.getTaskController().addTask(new SpectraIdentificationCustomDatabaseTask(
+          parameters.cloneParameterSet(), scan, spectraPlot));
     }
+  }
 
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
-
-    /**
-     * Show dialog for identifying a single peak-list row.
-     * 
-     */
-    public static void showSpectraIdentificationDialog(final Scan scan,
-            final SpectraPlot spectraPlot) {
-
-        final SpectraIdentificationCustomDatabaseParameters parameters = (SpectraIdentificationCustomDatabaseParameters) MZmineCore
-                .getConfiguration()
-                .getModuleParameters(CustomDBSpectraSearchModule.class);
-        ;
-
-        // Run task.
-        if (parameters.showSetupDialog(null,
-                true) == ExitCode.OK) {
-
-            MZmineCore.getTaskController()
-                    .addTask(new SpectraIdentificationCustomDatabaseTask(
-                            parameters.cloneParameterSet(), scan, spectraPlot));
-        }
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return SpectraIdentificationCustomDatabaseParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return SpectraIdentificationCustomDatabaseParameters.class;
+  }
 }

@@ -19,5 +19,5 @@
 package io.github.mzmine.util.maths;
 
 public enum CenterMeasure {
-    AUTO, MEDIAN, AVG;
+  AUTO, MEDIAN, AVG;
 }

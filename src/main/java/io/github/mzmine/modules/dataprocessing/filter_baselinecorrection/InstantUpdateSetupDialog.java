@@ -23,23 +23,22 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 
 /**
- * @description Same as "ParameterSetupDialog", but any change on the parameters
- *              is immediately recorded to the related ParameterSet, such that
- *              those parameters can be obtained at any time, even before having
- *              started running the module.
+ * @description Same as "ParameterSetupDialog", but any change on the parameters is immediately
+ *              recorded to the related ParameterSet, such that those parameters can be obtained at
+ *              any time, even before having started running the module.
  * 
  */
 @SuppressWarnings("serial")
 public class InstantUpdateSetupDialog extends ParameterSetupDialog {
 
-    public InstantUpdateSetupDialog(Window parent, boolean valueCheckRequired,
-            ParameterSet parameters) {
-        super(parent, valueCheckRequired, parameters);
-    }
+  public InstantUpdateSetupDialog(Window parent, boolean valueCheckRequired,
+      ParameterSet parameters) {
+    super(parent, valueCheckRequired, parameters);
+  }
 
-    @Override
-    protected void parametersChanged() {
-        this.updateParameterSetFromComponents();
-    }
+  @Override
+  protected void parametersChanged() {
+    this.updateParameterSetFromComponents();
+  }
 
 }

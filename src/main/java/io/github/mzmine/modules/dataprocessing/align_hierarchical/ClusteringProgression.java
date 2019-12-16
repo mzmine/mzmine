@@ -20,13 +20,13 @@ package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 public class ClusteringProgression {
 
-    private double progress = 0d;
+  private double progress = 0d;
 
-    public void setProgress(double value) {
-        progress = value;
-    }
+  public void setProgress(double value) {
+    progress = value;
+  }
 
-    public double getProgress() {
-        return progress;
-    }
+  public double getProgress() {
+    return progress;
+  }
 }

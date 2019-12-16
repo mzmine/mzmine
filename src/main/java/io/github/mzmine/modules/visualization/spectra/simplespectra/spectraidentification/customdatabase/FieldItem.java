@@ -25,21 +25,21 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
  */
 public enum FieldItem {
 
-    FIELD_MZ("m/z"), //
-    FIELD_NAME("Identity"); //
+  FIELD_MZ("m/z"), //
+  FIELD_NAME("Identity"); //
 
-    private final String name;
+  private final String name;
 
-    FieldItem(String name) {
-        this.name = name;
-    }
+  FieldItem(String name) {
+    this.name = name;
+  }
 
-    public String getName() {
-        return this.name;
-    }
+  public String getName() {
+    return this.name;
+  }
 
-    @Override
-    public String toString() {
-        return this.name;
-    }
+  @Override
+  public String toString() {
+    return this.name;
+  }
 }

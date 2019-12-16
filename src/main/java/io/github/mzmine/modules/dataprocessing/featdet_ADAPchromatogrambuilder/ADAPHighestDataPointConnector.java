@@ -36,149 +36,143 @@ import io.github.mzmine.util.SortingProperty;
 
 public class ADAPHighestDataPointConnector {
 
-    private final MZTolerance mzTolerance;
-    private final double minimumTimeSpan, minimumHeight;
-    private final RawDataFile dataFile;
-    private final int allScanNumbers[];
+  private final MZTolerance mzTolerance;
+  private final double minimumTimeSpan, minimumHeight;
+  private final RawDataFile dataFile;
+  private final int allScanNumbers[];
 
-    // Mapping of last data point m/z --> chromatogram
-    private Set<ADAPChromatogram> buildingChromatograms;
+  // Mapping of last data point m/z --> chromatogram
+  private Set<ADAPChromatogram> buildingChromatograms;
 
-    public ADAPHighestDataPointConnector(RawDataFile dataFile,
-            int allScanNumbers[], double minimumTimeSpan, double minimumHeight,
-            MZTolerance mzTolerance) {
+  public ADAPHighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
+      double minimumTimeSpan, double minimumHeight, MZTolerance mzTolerance) {
 
-        this.mzTolerance = mzTolerance;
-        this.minimumHeight = minimumHeight;
-        this.minimumTimeSpan = minimumTimeSpan;
-        this.dataFile = dataFile;
-        this.allScanNumbers = allScanNumbers;
+    this.mzTolerance = mzTolerance;
+    this.minimumHeight = minimumHeight;
+    this.minimumTimeSpan = minimumTimeSpan;
+    this.dataFile = dataFile;
+    this.allScanNumbers = allScanNumbers;
 
-        // We use LinkedHashSet to maintain a reproducible ordering. If we use
-        // plain HashSet, the resulting feature list row IDs will have different
-        // order every time the method is invoked.
-        buildingChromatograms = new LinkedHashSet<ADAPChromatogram>();
+    // We use LinkedHashSet to maintain a reproducible ordering. If we use
+    // plain HashSet, the resulting feature list row IDs will have different
+    // order every time the method is invoked.
+    buildingChromatograms = new LinkedHashSet<ADAPChromatogram>();
+
+  }
+
+  public void addScan(int scanNumber, DataPoint mzValues[]) {
+
+    // Sort m/z peaks by descending intensity
+    Arrays.sort(mzValues,
+        new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+
+    // Set of already connected chromatograms in each iteration
+    Set<ADAPChromatogram> connectedChromatograms = new LinkedHashSet<ADAPChromatogram>();
+
+    // TODO: these two nested cycles should be optimized for speed
+    for (DataPoint mzPeak : mzValues) {
+
+      // Search for best chromatogram, which has highest last data point
+      ADAPChromatogram bestChromatogram = null;
+
+      for (ADAPChromatogram testChrom : buildingChromatograms) {
+
+        DataPoint lastMzPeak = testChrom.getLastMzPeak();
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(lastMzPeak.getMZ());
+        if (toleranceRange.contains(mzPeak.getMZ())) {
+          if ((bestChromatogram == null) || (testChrom.getLastMzPeak()
+              .getIntensity() > bestChromatogram.getLastMzPeak().getIntensity())) {
+            bestChromatogram = testChrom;
+          }
+        }
+
+      }
+
+      // If we found best chromatogram, check if it is already connected.
+      // In such case, we may discard this mass and continue. If we
+      // haven't found a chromatogram, we may create a new one.
+      if (bestChromatogram != null) {
+        if (connectedChromatograms.contains(bestChromatogram)) {
+          continue;
+        }
+      } else {
+        bestChromatogram = new ADAPChromatogram(dataFile, allScanNumbers);
+      }
+
+      // Add this mzPeak to the chromatogram
+      bestChromatogram.addMzPeak(scanNumber, mzPeak);
+
+      // Move the chromatogram to the set of connected chromatograms
+      connectedChromatograms.add(bestChromatogram);
 
     }
 
-    public void addScan(int scanNumber, DataPoint mzValues[]) {
+    // Process those chromatograms which were not connected to any m/z peak
+    for (ADAPChromatogram testChrom : buildingChromatograms) {
 
-        // Sort m/z peaks by descending intensity
-        Arrays.sort(mzValues, new DataPointSorter(SortingProperty.Intensity,
-                SortingDirection.Descending));
+      // Skip those which were connected
+      if (connectedChromatograms.contains(testChrom)) {
+        continue;
+      }
 
-        // Set of already connected chromatograms in each iteration
-        Set<ADAPChromatogram> connectedChromatograms = new LinkedHashSet<ADAPChromatogram>();
+      // Check if we just finished a long-enough segment
+      if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
+        testChrom.commitBuildingSegment();
 
-        // TODO: these two nested cycles should be optimized for speed
-        for (DataPoint mzPeak : mzValues) {
+        // Move the chromatogram to the set of connected chromatograms
+        connectedChromatograms.add(testChrom);
+        continue;
+      }
 
-            // Search for best chromatogram, which has highest last data point
-            ADAPChromatogram bestChromatogram = null;
+      // Check if we have any committed segments in the chromatogram
+      if (testChrom.getNumberOfCommittedSegments() > 0) {
+        testChrom.removeBuildingSegment();
 
-            for (ADAPChromatogram testChrom : buildingChromatograms) {
-
-                DataPoint lastMzPeak = testChrom.getLastMzPeak();
-                Range<Double> toleranceRange = mzTolerance
-                        .getToleranceRange(lastMzPeak.getMZ());
-                if (toleranceRange.contains(mzPeak.getMZ())) {
-                    if ((bestChromatogram == null) || (testChrom.getLastMzPeak()
-                            .getIntensity() > bestChromatogram.getLastMzPeak()
-                                    .getIntensity())) {
-                        bestChromatogram = testChrom;
-                    }
-                }
-
-            }
-
-            // If we found best chromatogram, check if it is already connected.
-            // In such case, we may discard this mass and continue. If we
-            // haven't found a chromatogram, we may create a new one.
-            if (bestChromatogram != null) {
-                if (connectedChromatograms.contains(bestChromatogram)) {
-                    continue;
-                }
-            } else {
-                bestChromatogram = new ADAPChromatogram(dataFile,
-                        allScanNumbers);
-            }
-
-            // Add this mzPeak to the chromatogram
-            bestChromatogram.addMzPeak(scanNumber, mzPeak);
-
-            // Move the chromatogram to the set of connected chromatograms
-            connectedChromatograms.add(bestChromatogram);
-
-        }
-
-        // Process those chromatograms which were not connected to any m/z peak
-        for (ADAPChromatogram testChrom : buildingChromatograms) {
-
-            // Skip those which were connected
-            if (connectedChromatograms.contains(testChrom)) {
-                continue;
-            }
-
-            // Check if we just finished a long-enough segment
-            if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
-                testChrom.commitBuildingSegment();
-
-                // Move the chromatogram to the set of connected chromatograms
-                connectedChromatograms.add(testChrom);
-                continue;
-            }
-
-            // Check if we have any committed segments in the chromatogram
-            if (testChrom.getNumberOfCommittedSegments() > 0) {
-                testChrom.removeBuildingSegment();
-
-                // Move the chromatogram to the set of connected chromatograms
-                connectedChromatograms.add(testChrom);
-                continue;
-            }
-
-        }
-
-        // All remaining chromatograms in buildingChromatograms are discarded
-        // and buildingChromatograms is replaced with connectedChromatograms
-        buildingChromatograms = connectedChromatograms;
+        // Move the chromatogram to the set of connected chromatograms
+        connectedChromatograms.add(testChrom);
+        continue;
+      }
 
     }
 
-    public ADAPChromatogram[] finishChromatograms() {
+    // All remaining chromatograms in buildingChromatograms are discarded
+    // and buildingChromatograms is replaced with connectedChromatograms
+    buildingChromatograms = connectedChromatograms;
 
-        // Iterate through current chromatograms and remove those which do not
-        // contain any committed segment nor long-enough building segment
+  }
 
-        Iterator<ADAPChromatogram> chromIterator = buildingChromatograms
-                .iterator();
-        while (chromIterator.hasNext()) {
+  public ADAPChromatogram[] finishChromatograms() {
 
-            ADAPChromatogram chromatogram = chromIterator.next();
+    // Iterate through current chromatograms and remove those which do not
+    // contain any committed segment nor long-enough building segment
 
-            if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
-                chromatogram.commitBuildingSegment();
-                chromatogram.finishChromatogram();
-            } else {
-                if (chromatogram.getNumberOfCommittedSegments() == 0) {
-                    chromIterator.remove();
-                    continue;
-                } else {
-                    chromatogram.removeBuildingSegment();
-                    chromatogram.finishChromatogram();
-                }
-            }
+    Iterator<ADAPChromatogram> chromIterator = buildingChromatograms.iterator();
+    while (chromIterator.hasNext()) {
 
-            // Remove chromatograms smaller then minimum height
-            if (chromatogram.getHeight() < minimumHeight)
-                chromIterator.remove();
+      ADAPChromatogram chromatogram = chromIterator.next();
 
+      if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
+        chromatogram.commitBuildingSegment();
+        chromatogram.finishChromatogram();
+      } else {
+        if (chromatogram.getNumberOfCommittedSegments() == 0) {
+          chromIterator.remove();
+          continue;
+        } else {
+          chromatogram.removeBuildingSegment();
+          chromatogram.finishChromatogram();
         }
+      }
 
-        // All remaining chromatograms are good, so we can return them
-        ADAPChromatogram[] chromatograms = buildingChromatograms
-                .toArray(new ADAPChromatogram[0]);
-        return chromatograms;
+      // Remove chromatograms smaller then minimum height
+      if (chromatogram.getHeight() < minimumHeight)
+        chromIterator.remove();
+
     }
+
+    // All remaining chromatograms are good, so we can return them
+    ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
+    return chromatograms;
+  }
 
 }

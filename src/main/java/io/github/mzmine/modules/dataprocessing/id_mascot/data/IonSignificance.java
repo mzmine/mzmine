@@ -20,20 +20,20 @@ package io.github.mzmine.modules.dataprocessing.id_mascot.data;
 
 public enum IonSignificance {
 
-    NOT_Sign_NOT_Scoring(0), // this as a random match
-    Sign_NOT_Scoring(1), // fragment ion with significance but no importance for
-    // the score calculation of the peptide
-    Sign_AND_Scoring(2);// fragment ion with significance and was used for the
-    // score calculation of the peptide
+  NOT_Sign_NOT_Scoring(0), // this as a random match
+  Sign_NOT_Scoring(1), // fragment ion with significance but no importance for
+  // the score calculation of the peptide
+  Sign_AND_Scoring(2);// fragment ion with significance and was used for the
+  // score calculation of the peptide
 
-    private int value;
+  private int value;
 
-    private IonSignificance(int value) {
-        this.value = value;
-    }
+  private IonSignificance(int value) {
+    this.value = value;
+  }
 
-    public int getValue() {
-        return value;
-    }
+  public int getValue() {
+    return value;
+  }
 
 }

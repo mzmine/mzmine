@@ -33,99 +33,96 @@ import io.github.mzmine.parameters.UserParameter;
 /**
  * A parameter that represents a file system directory.
  */
-public class DirectoryParameter
-        implements UserParameter<File, DirectoryComponent> {
+public class DirectoryParameter implements UserParameter<File, DirectoryComponent> {
 
-    private final String name;
-    private final String description;
-    private File value;
+  private final String name;
+  private final String description;
+  private File value;
 
-    public DirectoryParameter(final String aName, final String aDescription) {
+  public DirectoryParameter(final String aName, final String aDescription) {
 
-        name = aName;
-        description = aDescription;
+    name = aName;
+    description = aDescription;
+  }
+
+  @Override
+  public String getName() {
+
+    return name;
+  }
+
+  @Override
+  public String getDescription() {
+
+    return description;
+  }
+
+  @Override
+  public DirectoryComponent createEditingComponent() {
+
+    return new DirectoryComponent();
+  }
+
+  @Override
+  public File getValue() {
+
+    return value;
+  }
+
+  @Override
+  public void setValue(final File newValue) {
+
+    value = newValue;
+  }
+
+  @Override
+  public DirectoryParameter cloneParameter() {
+
+    final DirectoryParameter copy = new DirectoryParameter(name, description);
+    copy.setValue(getValue());
+    return copy;
+  }
+
+  @Override
+  public void setValueFromComponent(final DirectoryComponent component) {
+
+    value = component.getValue();
+  }
+
+  @Override
+  public void setValueToComponent(final DirectoryComponent component, final File newValue) {
+
+    component.setValue(newValue);
+  }
+
+  @Override
+  public void loadValueFromXML(final Element xmlElement) {
+
+    final String fileString = xmlElement.getTextContent();
+    if (fileString.length() != 0) {
+
+      value = new File(fileString);
     }
+  }
 
-    @Override
-    public String getName() {
+  @Override
+  public void saveValueToXML(final Element xmlElement) {
 
-        return name;
+    if (value != null) {
+
+      xmlElement.setTextContent(value.getPath());
     }
+  }
 
-    @Override
-    public String getDescription() {
+  @Override
+  public boolean checkValue(final Collection<String> errorMessages) {
 
-        return description;
+    boolean check = true;
+    if (value == null) {
+
+      errorMessages.add(name + " is not set properly");
+      check = false;
     }
-
-    @Override
-    public DirectoryComponent createEditingComponent() {
-
-        return new DirectoryComponent();
-    }
-
-    @Override
-    public File getValue() {
-
-        return value;
-    }
-
-    @Override
-    public void setValue(final File newValue) {
-
-        value = newValue;
-    }
-
-    @Override
-    public DirectoryParameter cloneParameter() {
-
-        final DirectoryParameter copy = new DirectoryParameter(name,
-                description);
-        copy.setValue(getValue());
-        return copy;
-    }
-
-    @Override
-    public void setValueFromComponent(final DirectoryComponent component) {
-
-        value = component.getValue();
-    }
-
-    @Override
-    public void setValueToComponent(final DirectoryComponent component,
-            final File newValue) {
-
-        component.setValue(newValue);
-    }
-
-    @Override
-    public void loadValueFromXML(final Element xmlElement) {
-
-        final String fileString = xmlElement.getTextContent();
-        if (fileString.length() != 0) {
-
-            value = new File(fileString);
-        }
-    }
-
-    @Override
-    public void saveValueToXML(final Element xmlElement) {
-
-        if (value != null) {
-
-            xmlElement.setTextContent(value.getPath());
-        }
-    }
-
-    @Override
-    public boolean checkValue(final Collection<String> errorMessages) {
-
-        boolean check = true;
-        if (value == null) {
-
-            errorMessages.add(name + " is not set properly");
-            check = false;
-        }
-        return check;
-    }
+    return check;
+  }
 }

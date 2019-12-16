@@ -41,126 +41,119 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 class ManualPickerTask extends AbstractTask {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private int processedScans, totalScans;
+  private int processedScans, totalScans;
 
-    private final MZmineProject project;
-    private final PeakListTable table;
-    private final PeakList peakList;
-    private PeakListRow peakListRow;
-    private RawDataFile dataFiles[];
-    private Range<Double> rtRange, mzRange;
+  private final MZmineProject project;
+  private final PeakListTable table;
+  private final PeakList peakList;
+  private PeakListRow peakListRow;
+  private RawDataFile dataFiles[];
+  private Range<Double> rtRange, mzRange;
 
-    ManualPickerTask(MZmineProject project, PeakListRow peakListRow,
-            RawDataFile dataFiles[], ManualPickerParameters parameters,
-            PeakList peakList, PeakListTable table) {
+  ManualPickerTask(MZmineProject project, PeakListRow peakListRow, RawDataFile dataFiles[],
+      ManualPickerParameters parameters, PeakList peakList, PeakListTable table) {
 
-        this.project = project;
-        this.peakListRow = peakListRow;
-        this.dataFiles = dataFiles;
-        this.peakList = peakList;
-        this.table = table;
+    this.project = project;
+    this.peakListRow = peakListRow;
+    this.dataFiles = dataFiles;
+    this.peakList = peakList;
+    this.table = table;
 
-        rtRange = parameters
-                .getParameter(ManualPickerParameters.retentionTimeRange)
-                .getValue();
-        mzRange = parameters.getParameter(ManualPickerParameters.mzRange)
-                .getValue();
+    rtRange = parameters.getParameter(ManualPickerParameters.retentionTimeRange).getValue();
+    mzRange = parameters.getParameter(ManualPickerParameters.mzRange).getValue();
+
+  }
+
+  public double getFinishedPercentage() {
+    if (totalScans == 0)
+      return 0;
+    return (double) processedScans / totalScans;
+  }
+
+  public String getTaskDescription() {
+    return "Manually picking peaks from " + Arrays.toString(dataFiles);
+  }
+
+  public void run() {
+
+    setStatus(TaskStatus.PROCESSING);
+
+    logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: " + mzRange);
+
+    // Calculate total number of scans to process
+    for (RawDataFile dataFile : dataFiles) {
+      int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+      totalScans += scanNumbers.length;
+    }
+
+    // Find peak in each data file
+    for (RawDataFile dataFile : dataFiles) {
+
+      ManualPeak newPeak = new ManualPeak(dataFile);
+      boolean dataPointFound = false;
+
+      int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+
+      for (int scanNumber : scanNumbers) {
+
+        if (isCanceled())
+          return;
+
+        // Get next scan
+        Scan scan = dataFile.getScan(scanNumber);
+
+        // Find most intense m/z peak
+        DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+        if (basePeak != null) {
+          if (basePeak.getIntensity() > 0)
+            dataPointFound = true;
+          newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+        } else {
+          final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
+          DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
+          newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        }
+
+        processedScans++;
+
+      }
+
+      if (dataPointFound) {
+        newPeak.finalizePeak();
+        if (newPeak.getArea() > 0)
+          peakListRow.addPeak(dataFile, newPeak);
+      } else {
+        peakListRow.removePeak(dataFile);
+      }
 
     }
 
-    public double getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0;
-        return (double) processedScans / totalScans;
+    // Notify the GUI that peaklist contents have changed
+    if (peakList != null) {
+      // Check if the feature list row has been added to the feature list,
+      // and
+      // if it has not, add it
+      List<PeakListRow> rows = Arrays.asList(peakList.getRows());
+      if (!rows.contains(peakListRow)) {
+        peakList.addRow(peakListRow);
+      }
+
+      // Add quality parameters to peaks
+      QualityParameters.calculateQualityParameters(peakList);
+
+      project.notifyObjectChanged(peakList, true);
+    }
+    if (table != null) {
+      ((AbstractTableModel) table.getModel()).fireTableDataChanged();
     }
 
-    public String getTaskDescription() {
-        return "Manually picking peaks from " + Arrays.toString(dataFiles);
-    }
+    logger.finest("Finished manual peak picker, " + processedScans + " scans processed");
 
-    public void run() {
+    setStatus(TaskStatus.FINISHED);
 
-        setStatus(TaskStatus.PROCESSING);
-
-        logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: "
-                + mzRange);
-
-        // Calculate total number of scans to process
-        for (RawDataFile dataFile : dataFiles) {
-            int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-            totalScans += scanNumbers.length;
-        }
-
-        // Find peak in each data file
-        for (RawDataFile dataFile : dataFiles) {
-
-            ManualPeak newPeak = new ManualPeak(dataFile);
-            boolean dataPointFound = false;
-
-            int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-
-            for (int scanNumber : scanNumbers) {
-
-                if (isCanceled())
-                    return;
-
-                // Get next scan
-                Scan scan = dataFile.getScan(scanNumber);
-
-                // Find most intense m/z peak
-                DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-                if (basePeak != null) {
-                    if (basePeak.getIntensity() > 0)
-                        dataPointFound = true;
-                    newPeak.addDatapoint(scan.getScanNumber(), basePeak);
-                } else {
-                    final double mzCenter = (mzRange.lowerEndpoint()
-                            + mzRange.upperEndpoint()) / 2.0;
-                    DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-                    newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
-                }
-
-                processedScans++;
-
-            }
-
-            if (dataPointFound) {
-                newPeak.finalizePeak();
-                if (newPeak.getArea() > 0)
-                    peakListRow.addPeak(dataFile, newPeak);
-            } else {
-                peakListRow.removePeak(dataFile);
-            }
-
-        }
-
-        // Notify the GUI that peaklist contents have changed
-        if (peakList != null) {
-            // Check if the feature list row has been added to the feature list,
-            // and
-            // if it has not, add it
-            List<PeakListRow> rows = Arrays.asList(peakList.getRows());
-            if (!rows.contains(peakListRow)) {
-                peakList.addRow(peakListRow);
-            }
-
-            // Add quality parameters to peaks
-            QualityParameters.calculateQualityParameters(peakList);
-
-            project.notifyObjectChanged(peakList, true);
-        }
-        if (table != null) {
-            ((AbstractTableModel) table.getModel()).fireTableDataChanged();
-        }
-
-        logger.finest("Finished manual peak picker, " + processedScans
-                + " scans processed");
-
-        setStatus(TaskStatus.FINISHED);
-
-    }
+  }
 
 }

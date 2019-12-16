@@ -36,91 +36,82 @@ import javafx.stage.Stage;
  */
 public interface Desktop extends MZmineModule {
 
-    /**
-     * Returns a reference to main application window. May return null if MZmine
-     * is running in headless (batch) mode.
-     * 
-     * @return Main window
-     */
-    public Stage getMainWindow();
+  /**
+   * Returns a reference to main application window. May return null if MZmine is running in
+   * headless (batch) mode.
+   * 
+   * @return Main window
+   */
+  public Stage getMainWindow();
 
-    /**
-     * Displays a given text on the application status bar in black color
-     * 
-     * @param text
-     *            Text to show
-     */
-    public void setStatusBarText(String text);
+  /**
+   * Displays a given text on the application status bar in black color
+   * 
+   * @param text Text to show
+   */
+  public void setStatusBarText(String text);
 
-    /**
-     * Displays a given text on the application status bar in a given color
-     * 
-     * @param text
-     *            Text to show
-     * @param textColor
-     *            Text color
-     */
-    public void setStatusBarText(String text, Color textColor);
+  /**
+   * Displays a given text on the application status bar in a given color
+   * 
+   * @param text Text to show
+   * @param textColor Text color
+   */
+  public void setStatusBarText(String text, Color textColor);
 
-    /**
-     * Displays a message box with a given text
-     * 
-     * @param msg
-     *            Text to show
-     */
-    public void displayMessage(Stage window, String msg);
+  /**
+   * Displays a message box with a given text
+   * 
+   * @param msg Text to show
+   */
+  public void displayMessage(Stage window, String msg);
 
-    /**
-     * Displays a message box with a given text
-     * 
-     * @param title
-     *            Message box title
-     * @param msg
-     *            Text to show
-     */
-    public void displayMessage(Stage window, String title, String msg);
+  /**
+   * Displays a message box with a given text
+   * 
+   * @param title Message box title
+   * @param msg Text to show
+   */
+  public void displayMessage(Stage window, String title, String msg);
 
-    /**
-     * Displays an error message box with a given text
-     * 
-     * @param msg
-     *            Text to show
-     */
-    public void displayErrorMessage(Stage window, String msg);
+  /**
+   * Displays an error message box with a given text
+   * 
+   * @param msg Text to show
+   */
+  public void displayErrorMessage(Stage window, String msg);
 
-    /**
-     * Displays an error message box with a given text
-     * 
-     * @param title
-     *            Message box title
-     * @param msg
-     *            Text to show
-     */
-    public void displayErrorMessage(Stage window, String title, String msg);
+  /**
+   * Displays an error message box with a given text
+   * 
+   * @param title Message box title
+   * @param msg Text to show
+   */
+  public void displayErrorMessage(Stage window, String title, String msg);
 
-    /**
-     * Displays an error message
-     *
-     */
-    public void displayException(Stage window, Exception e);
+  /**
+   * Displays an error message
+   *
+   */
+  public void displayException(Stage window, Exception e);
 
-    /**
-     * Returns array of currently selected raw data files in GUI
-     * 
-     * @return Array of selected raw data files
-     */
-    public RawDataFile[] getSelectedDataFiles();
+  /**
+   * Returns array of currently selected raw data files in GUI
+   * 
+   * @return Array of selected raw data files
+   */
+  public RawDataFile[] getSelectedDataFiles();
 
-    /**
-     * Returns array of currently selected feature lists in GUI
-     * 
-     * @return Array of selected feature lists
-     */
-    public PeakList[] getSelectedPeakLists();
+  /**
+   * Returns array of currently selected feature lists in GUI
+   * 
+   * @return Array of selected feature lists
+   */
+  public PeakList[] getSelectedPeakLists();
 
-    @Nonnull
-    public ExitCode exitMZmine();
-    
-    public TableView<WrappedTask> getTasksView();
+  @Nonnull
+  public ExitCode exitMZmine();
+
+  public TableView<WrappedTask> getTasksView();
 
 }

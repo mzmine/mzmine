@@ -27,20 +27,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class SameRangeGapFillerParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    public static final StringParameter suffix = new StringParameter(
-            "Name suffix", "Suffix to be added to feature list name",
-            "gap-filled");
+  public static final StringParameter suffix =
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "gap-filled");
 
-    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-    public static final BooleanParameter autoRemove = new BooleanParameter(
-            "Remove original feature list",
-            "If checked, the original feature list will be removed");
+  public static final BooleanParameter autoRemove = new BooleanParameter(
+      "Remove original feature list", "If checked, the original feature list will be removed");
 
-    public SameRangeGapFillerParameters() {
-        super(new Parameter[] { peakLists, suffix, mzTolerance, autoRemove });
-    }
+  public SameRangeGapFillerParameters() {
+    super(new Parameter[] {peakLists, suffix, mzTolerance, autoRemove});
+  }
 
 }

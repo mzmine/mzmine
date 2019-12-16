@@ -34,101 +34,82 @@ import io.github.mzmine.util.RangeUtils;
 
 public class RTScore implements ScoreCalculator {
 
-    MZTolerance mzTolerance;
-    RTTolerance rtTolerance;
-    private final static double WORST_SCORE = Double.MAX_VALUE;
+  MZTolerance mzTolerance;
+  RTTolerance rtTolerance;
+  private final static double WORST_SCORE = Double.MAX_VALUE;
 
-    public double calculateScore(AlignmentPath path, PeakListRow peak,
-            ParameterSet parameters) {
-        try {
-            rtTolerance = parameters
-                    .getParameter(PathAlignerParameters.RTTolerance).getValue();
-            mzTolerance = parameters
-                    .getParameter(PathAlignerParameters.MZTolerance).getValue();
-            Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
-            Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
+  public double calculateScore(AlignmentPath path, PeakListRow peak, ParameterSet parameters) {
+    try {
+      rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance).getValue();
+      mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance).getValue();
+      Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
+      Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
 
-            if (!rtRange.contains(peak.getAverageRT())
-                    || !mzRange.contains(peak.getAverageMZ())) {
-                return WORST_SCORE;
-            }
-
-            double mzDiff = Math.abs(path.getMZ() - peak.getAverageMZ());
-
-            double rtDiff = Math.abs(path.getRT() - peak.getAverageRT());
-
-            double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0)))
-                    + ((rtDiff / (RangeUtils.rangeLength(rtRange) / 2.0)));
-
-            if (parameters
-                    .getParameter(PathAlignerParameters.SameChargeRequired)
-                    .getValue()) {
-                if (!PeakUtils.compareChargeState(path.convertToAlignmentRow(0),
-                        peak)) {
-                    return WORST_SCORE;
-                }
-            }
-
-            if (parameters.getParameter(PathAlignerParameters.SameIDRequired)
-                    .getValue()) {
-                if (!PeakUtils.compareIdentities(path.convertToAlignmentRow(0),
-                        peak)) {
-                    return WORST_SCORE;
-                }
-            }
-
-            if (parameters
-                    .getParameter(PathAlignerParameters.compareIsotopePattern)
-                    .getValue()) {
-                IsotopePattern ip1 = path.convertToAlignmentRow(0)
-                        .getBestIsotopePattern();
-                IsotopePattern ip2 = peak.getBestIsotopePattern();
-
-                if ((ip1 != null) && (ip2 != null)) {
-                    ParameterSet isotopeParams = parameters
-                            .getParameter(
-                                    PathAlignerParameters.compareIsotopePattern)
-                            .getEmbeddedParameters();
-
-                    if (!IsotopePatternScoreCalculator.checkMatch(ip1, ip2,
-                            isotopeParams)) {
-                        return WORST_SCORE;
-                    }
-                }
-            }
-
-            return score;
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            return WORST_SCORE;
-        }
-    }
-
-    public boolean matches(AlignmentPath path, PeakListRow peak,
-            ParameterSet parameters) {
-        rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance)
-                .getValue();
-        mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance)
-                .getValue();
-        Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
-        Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
-
-        if (!rtRange.contains(peak.getAverageRT())
-                || !mzRange.contains(peak.getAverageMZ())) {
-            return false;
-        }
-        return true;
-    }
-
-    public double getWorstScore() {
+      if (!rtRange.contains(peak.getAverageRT()) || !mzRange.contains(peak.getAverageMZ())) {
         return WORST_SCORE;
-    }
+      }
 
-    public boolean isValid(PeakListRow peak) {
-        return true;
-    }
+      double mzDiff = Math.abs(path.getMZ() - peak.getAverageMZ());
 
-    public String name() {
-        return "Uses MZ and retention time";
+      double rtDiff = Math.abs(path.getRT() - peak.getAverageRT());
+
+      double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0)))
+          + ((rtDiff / (RangeUtils.rangeLength(rtRange) / 2.0)));
+
+      if (parameters.getParameter(PathAlignerParameters.SameChargeRequired).getValue()) {
+        if (!PeakUtils.compareChargeState(path.convertToAlignmentRow(0), peak)) {
+          return WORST_SCORE;
+        }
+      }
+
+      if (parameters.getParameter(PathAlignerParameters.SameIDRequired).getValue()) {
+        if (!PeakUtils.compareIdentities(path.convertToAlignmentRow(0), peak)) {
+          return WORST_SCORE;
+        }
+      }
+
+      if (parameters.getParameter(PathAlignerParameters.compareIsotopePattern).getValue()) {
+        IsotopePattern ip1 = path.convertToAlignmentRow(0).getBestIsotopePattern();
+        IsotopePattern ip2 = peak.getBestIsotopePattern();
+
+        if ((ip1 != null) && (ip2 != null)) {
+          ParameterSet isotopeParams = parameters
+              .getParameter(PathAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
+
+          if (!IsotopePatternScoreCalculator.checkMatch(ip1, ip2, isotopeParams)) {
+            return WORST_SCORE;
+          }
+        }
+      }
+
+      return score;
+    } catch (NullPointerException e) {
+      e.printStackTrace();
+      return WORST_SCORE;
     }
+  }
+
+  public boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet parameters) {
+    rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance).getValue();
+    mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance).getValue();
+    Range<Double> rtRange = rtTolerance.getToleranceRange(path.getRT());
+    Range<Double> mzRange = mzTolerance.getToleranceRange(path.getMZ());
+
+    if (!rtRange.contains(peak.getAverageRT()) || !mzRange.contains(peak.getAverageMZ())) {
+      return false;
+    }
+    return true;
+  }
+
+  public double getWorstScore() {
+    return WORST_SCORE;
+  }
+
+  public boolean isValid(PeakListRow peak) {
+    return true;
+  }
+
+  public String name() {
+    return "Uses MZ and retention time";
+  }
 }

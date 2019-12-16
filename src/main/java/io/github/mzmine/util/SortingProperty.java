@@ -20,6 +20,6 @@ package io.github.mzmine.util;
 
 public enum SortingProperty {
 
-    MZ, RT, Intensity, ID, Height, Area
+  MZ, RT, Intensity, ID, Height, Area
 
 }

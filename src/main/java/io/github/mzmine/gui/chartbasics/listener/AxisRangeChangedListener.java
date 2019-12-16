@@ -28,35 +28,34 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 
 public abstract class AxisRangeChangedListener implements AxisChangeListener {
 
-    // last lower / upper range
-    private Range lastRange = null;
-    private ChartViewWrapper chart;
+  // last lower / upper range
+  private Range lastRange = null;
+  private ChartViewWrapper chart;
 
-    public AxisRangeChangedListener(@Nullable ChartViewWrapper cp) {
-        chart = cp;
+  public AxisRangeChangedListener(@Nullable ChartViewWrapper cp) {
+    chart = cp;
+  }
+
+  @Override
+  public void axisChanged(AxisChangeEvent e) {
+    ValueAxis a = (ValueAxis) e.getAxis();
+    Range r = a.getRange();
+
+    if (r != null && (lastRange == null || !r.equals(lastRange))) {
+      // range has changed
+      axisRangeChanged(chart, a, lastRange, r);
     }
+    lastRange = r;
+  }
 
-    @Override
-    public void axisChanged(AxisChangeEvent e) {
-        ValueAxis a = (ValueAxis) e.getAxis();
-        Range r = a.getRange();
-
-        if (r != null && (lastRange == null || !r.equals(lastRange))) {
-            // range has changed
-            axisRangeChanged(chart, a, lastRange, r);
-        }
-        lastRange = r;
-    }
-
-    /**
-     * only if axis range has changed
-     * 
-     * @param chart
-     *            (null if no chart was defined when this listener was created)
-     * @param axis
-     * @param lastR
-     * @param newR
-     */
-    public abstract void axisRangeChanged(@Nullable ChartViewWrapper chart,
-            ValueAxis axis, Range lastR, Range newR);
+  /**
+   * only if axis range has changed
+   * 
+   * @param chart (null if no chart was defined when this listener was created)
+   * @param axis
+   * @param lastR
+   * @param newR
+   */
+  public abstract void axisRangeChanged(@Nullable ChartViewWrapper chart, ValueAxis axis,
+      Range lastR, Range newR);
 }

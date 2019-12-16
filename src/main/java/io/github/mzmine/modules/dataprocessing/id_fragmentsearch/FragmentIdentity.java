@@ -24,10 +24,11 @@ import io.github.mzmine.main.MZmineCore;
 
 public class FragmentIdentity extends SimplePeakIdentity {
 
-    public FragmentIdentity(final PeakListRow mainPeakListRow) {
+  public FragmentIdentity(final PeakListRow mainPeakListRow) {
 
-        super("Fragment of " + MZmineCore.getConfiguration().getMZFormat()
-                .format(mainPeakListRow.getAverageMZ()) + " m/z");
-        setPropertyValue(PROPERTY_METHOD, "Fragment search");
-    }
+    super("Fragment of "
+        + MZmineCore.getConfiguration().getMZFormat().format(mainPeakListRow.getAverageMZ())
+        + " m/z");
+    setPropertyValue(PROPERTY_METHOD, "Fragment search");
+  }
 }

@@ -36,102 +36,96 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 public class CropFilterTask extends AbstractTask {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private MZmineProject project;
-    private RawDataFile dataFile;
-    private int processedScans, totalScans;
-    private Scan[] scans;
+  private MZmineProject project;
+  private RawDataFile dataFile;
+  private int processedScans, totalScans;
+  private Scan[] scans;
 
-    // User parameters
-    private ScanSelection scanSelection;
-    private Range<Double> mzRange;
-    private String suffix;
-    private boolean removeOriginal;
+  // User parameters
+  private ScanSelection scanSelection;
+  private Range<Double> mzRange;
+  private String suffix;
+  private boolean removeOriginal;
 
-    CropFilterTask(MZmineProject project, RawDataFile dataFile,
-            ParameterSet parameters) {
-        this.project = project;
-        this.dataFile = dataFile;
+  CropFilterTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
+    this.project = project;
+    this.dataFile = dataFile;
 
-        this.scanSelection = parameters
-                .getParameter(CropFilterParameters.scanSelection).getValue();
-        this.mzRange = parameters.getParameter(CropFilterParameters.mzRange)
-                .getValue();
-        this.suffix = parameters.getParameter(CropFilterParameters.suffix)
-                .getValue();
-        this.removeOriginal = parameters
-                .getParameter(CropFilterParameters.autoRemove).getValue();
+    this.scanSelection = parameters.getParameter(CropFilterParameters.scanSelection).getValue();
+    this.mzRange = parameters.getParameter(CropFilterParameters.mzRange).getValue();
+    this.suffix = parameters.getParameter(CropFilterParameters.suffix).getValue();
+    this.removeOriginal = parameters.getParameter(CropFilterParameters.autoRemove).getValue();
+  }
+
+  /**
+   * @see Runnable#run()
+   */
+  @Override
+  public void run() {
+
+    setStatus(TaskStatus.PROCESSING);
+
+    logger.info("Started crop filter on " + dataFile);
+
+    scans = scanSelection.getMatchingScans(dataFile);
+    totalScans = scans.length;
+
+    // Check if we have any scans
+    if (totalScans == 0) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("No scans match the selected criteria");
+      return;
     }
 
-    /**
-     * @see Runnable#run()
-     */
-    @Override
-    public void run() {
+    try {
 
-        setStatus(TaskStatus.PROCESSING);
+      RawDataFileWriter rawDataFileWriter =
+          MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
 
-        logger.info("Started crop filter on " + dataFile);
+      for (Scan scan : scans) {
 
-        scans = scanSelection.getMatchingScans(dataFile);
-        totalScans = scans.length;
+        SimpleScan scanCopy = new SimpleScan(scan);
 
-        // Check if we have any scans
-        if (totalScans == 0) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("No scans match the selected criteria");
-            return;
+        // Check if we have something to crop
+        if (!mzRange.encloses(scan.getDataPointMZRange())) {
+          DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
+          scanCopy.setDataPoints(croppedDataPoints);
         }
 
-        try {
+        rawDataFileWriter.addScan(scanCopy);
 
-            RawDataFileWriter rawDataFileWriter = MZmineCore
-                    .createNewFile(dataFile.getName() + " " + suffix);
+        processedScans++;
+      }
 
-            for (Scan scan : scans) {
+      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+      project.addFile(filteredRawDataFile);
 
-                SimpleScan scanCopy = new SimpleScan(scan);
+      // Remove the original file if requested
+      if (removeOriginal) {
+        project.removeFile(dataFile);
+      }
 
-                // Check if we have something to crop
-                if (!mzRange.encloses(scan.getDataPointMZRange())) {
-                    DataPoint croppedDataPoints[] = scan
-                            .getDataPointsByMass(mzRange);
-                    scanCopy.setDataPoints(croppedDataPoints);
-                }
+      setStatus(TaskStatus.FINISHED);
 
-                rawDataFileWriter.addScan(scanCopy);
-
-                processedScans++;
-            }
-
-            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-            project.addFile(filteredRawDataFile);
-
-            // Remove the original file if requested
-            if (removeOriginal) {
-                project.removeFile(dataFile);
-            }
-
-            setStatus(TaskStatus.FINISHED);
-
-        } catch (Exception e) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage(e.toString());
-            e.printStackTrace();
-        }
+    } catch (Exception e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(e.toString());
+      e.printStackTrace();
     }
+  }
 
-    @Override
-    public double getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0;
-        return (double) processedScans / totalScans;
-    }
+  @Override
+  public double getFinishedPercentage() {
+    if (totalScans == 0)
+      return 0;
+    return (double) processedScans / totalScans;
+  }
 
-    @Override
-    public String getTaskDescription() {
-        return "Cropping file " + dataFile.getName();
-    }
+  @Override
+  public String getTaskDescription() {
+    return "Cropping file " + dataFile.getName();
+  }
 
 }

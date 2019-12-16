@@ -25,104 +25,113 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 /**
- * An abstract implementation of task which defines common methods to make Task
- * implementation easier. Added task status listener
+ * An abstract implementation of task which defines common methods to make Task implementation
+ * easier. Added task status listener
  */
 public abstract class AbstractTask implements Task {
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage = null;
-    // listener to control status changes
-    private List<TaskStatusListener> listener;
+  private TaskStatus status = TaskStatus.WAITING;
+  private String errorMessage = null;
+  // listener to control status changes
+  private List<TaskStatusListener> listener;
 
-    private StringProperty name = new SimpleStringProperty("Gagaga");
-    public final String getName() { return name.get(); }
-    public final void setName(String value) { name.set(value); }
-    public StringProperty nameProperty() { return name; }
-    
-    
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#setStatus()
-     */
-    public final void setStatus(TaskStatus newStatus) {
-        TaskStatus old = status;
-        this.status = newStatus;
-        if (listener != null && !status.equals(old))
-            for (int i = 0; i < listener.size(); i++)
-                listener.get(i).taskStatusChanged(this, status, old);
-    }
+  private StringProperty name = new SimpleStringProperty("Gagaga");
 
-    /**
-     * Convenience method for determining if this task has been canceled. Also
-     * returns true if the task encountered an error.
-     * 
-     * @return true if this task has been canceled or stopped due to an error
-     */
-    public final boolean isCanceled() {
-        return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
-    }
+  public final String getName() {
+    return name.get();
+  }
 
-    /**
-     * Convenience method for determining if this task has been completed
-     * 
-     * @return true if this task is finished
-     */
-    public final boolean isFinished() {
-        return status == TaskStatus.FINISHED;
-    }
+  public final void setName(String value) {
+    name.set(value);
+  }
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#cancel()
-     */
-    @Override
-    public void cancel() {
-        setStatus(TaskStatus.CANCELED);
-    }
+  public StringProperty nameProperty() {
+    return name;
+  }
 
-    /**
-     * @see io.github.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    @Override
-    public final String getErrorMessage() {
-        return errorMessage;
-    }
 
-    /**
-     */
-    public final void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#setStatus()
+   */
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = status;
+    this.status = newStatus;
+    if (listener != null && !status.equals(old))
+      for (int i = 0; i < listener.size(); i++)
+        listener.get(i).taskStatusChanged(this, status, old);
+  }
 
-    @Override
-    public TaskPriority getTaskPriority() {
-        return TaskPriority.NORMAL;
-    }
+  /**
+   * Convenience method for determining if this task has been canceled. Also returns true if the
+   * task encountered an error.
+   * 
+   * @return true if this task has been canceled or stopped due to an error
+   */
+  public final boolean isCanceled() {
+    return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
+  }
 
-    /**
-     * Returns the TaskStatus of this Task
-     * 
-     * @return The current status of this task
-     */
-    @Override
-    public final TaskStatus getStatus() {
-        return this.status;
-    }
+  /**
+   * Convenience method for determining if this task has been completed
+   * 
+   * @return true if this task is finished
+   */
+  public final boolean isFinished() {
+    return status == TaskStatus.FINISHED;
+  }
 
-    public void addTaskStatusListener(TaskStatusListener list) {
-        if (listener == null)
-            listener = new ArrayList<>();
-        listener.add(list);
-    }
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#cancel()
+   */
+  @Override
+  public void cancel() {
+    setStatus(TaskStatus.CANCELED);
+  }
 
-    public boolean removeTaskStatusListener(TaskStatusListener list) {
-        if (listener != null)
-            return listener.remove(list);
-        else
-            return false;
-    }
+  /**
+   * @see io.github.mzmine.taskcontrol.Task#getErrorMessage()
+   */
+  @Override
+  public final String getErrorMessage() {
+    return errorMessage;
+  }
 
-    public void clearTaskStatusListener() {
-        if (listener != null)
-            listener.clear();
-    }
+  /**
+   */
+  public final void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  /**
+   * Returns the TaskStatus of this Task
+   * 
+   * @return The current status of this task
+   */
+  @Override
+  public final TaskStatus getStatus() {
+    return this.status;
+  }
+
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listener == null)
+      listener = new ArrayList<>();
+    listener.add(list);
+  }
+
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listener != null)
+      return listener.remove(list);
+    else
+      return false;
+  }
+
+  public void clearTaskStatusListener() {
+    if (listener != null)
+      listener.clear();
+  }
 }

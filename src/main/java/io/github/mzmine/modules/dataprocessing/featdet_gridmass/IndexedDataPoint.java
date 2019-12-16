@@ -21,11 +21,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 import io.github.mzmine.datamodel.DataPoint;
 
 class IndexedDataPoint {
-    DataPoint datapoint;
-    int index;
+  DataPoint datapoint;
+  int index;
 
-    public IndexedDataPoint(int index, DataPoint dp) {
-        this.datapoint = dp;
-        this.index = index;
-    }
+  public IndexedDataPoint(int index, DataPoint dp) {
+    this.datapoint = dp;
+    this.index = index;
+  }
 }

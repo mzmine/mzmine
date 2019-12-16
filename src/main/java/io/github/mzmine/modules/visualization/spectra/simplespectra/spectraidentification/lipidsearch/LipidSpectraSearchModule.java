@@ -34,42 +34,40 @@ import io.github.mzmine.util.ExitCode;
  */
 public class LipidSpectraSearchModule implements MZmineModule {
 
-    private static final String MODULE_NAME = "Lipid search";
-    private static final String MODULE_DESCRIPTION = "This module attempts to annotate signals in selected mass spectra as lipids";
+  private static final String MODULE_NAME = "Lipid search";
+  private static final String MODULE_DESCRIPTION =
+      "This module attempts to annotate signals in selected mass spectra as lipids";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  /**
+   * Show dialog for identifying lipids in spectra.
+   * 
+   */
+  public static void showSpectraIdentificationDialog(final Scan scan,
+      final SpectraPlot spectraPlot) {
+
+    final SpectraIdentificationLipidSearchParameters parameters =
+        (SpectraIdentificationLipidSearchParameters) MZmineCore.getConfiguration()
+            .getModuleParameters(LipidSpectraSearchModule.class);;
+
+    // Run task.
+    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+
+      MZmineCore.getTaskController().addTask(new SpectraIdentificationLipidSearchTask(
+          parameters.cloneParameterSet(), scan, spectraPlot));
     }
+  }
 
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
-
-    /**
-     * Show dialog for identifying lipids in spectra.
-     * 
-     */
-    public static void showSpectraIdentificationDialog(final Scan scan,
-            final SpectraPlot spectraPlot) {
-
-        final SpectraIdentificationLipidSearchParameters parameters = (SpectraIdentificationLipidSearchParameters) MZmineCore
-                .getConfiguration()
-                .getModuleParameters(LipidSpectraSearchModule.class);
-        ;
-
-        // Run task.
-        if (parameters.showSetupDialog(null,
-                true) == ExitCode.OK) {
-
-            MZmineCore.getTaskController()
-                    .addTask(new SpectraIdentificationLipidSearchTask(
-                            parameters.cloneParameterSet(), scan, spectraPlot));
-        }
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return SpectraIdentificationLipidSearchParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return SpectraIdentificationLipidSearchParameters.class;
+  }
 }

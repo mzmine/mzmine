@@ -33,38 +33,38 @@ import io.github.mzmine.util.ExitCode;
  */
 public class ADAP3AlignerModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "ADAP Aligner (GC)";
-    private static final String MODULE_DESCRIPTION = "This module calculates "
-            + "pairwise convolution integral for each pair of unaligned peaks "
-            + "in order to find the best alignment";
+  private static final String MODULE_NAME = "ADAP Aligner (GC)";
+  private static final String MODULE_DESCRIPTION =
+      "This module calculates " + "pairwise convolution integral for each pair of unaligned peaks "
+          + "in order to find the best alignment";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
 
-    @Override
-    @Nonnull
-    public MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.ALIGNMENT;
-    }
+  @Override
+  @Nonnull
+  public MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.ALIGNMENT;
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ADAP3AlignerParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return ADAP3AlignerParameters.class;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        Task newTask = new ADAP3AlignerTask(project, parameters);
-        tasks.add(newTask);
-        return ExitCode.OK;
-    }
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+    Task newTask = new ADAP3AlignerTask(project, parameters);
+    tasks.add(newTask);
+    return ExitCode.OK;
+  }
 }

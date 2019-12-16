@@ -24,47 +24,44 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
 /**
- * @author akshaj This class represents the slider in the table of
- *         Fx3DVisualizer.
+ * @author akshaj This class represents the slider in the table of Fx3DVisualizer.
  * @param <T>
  */
 public class SliderCell<T> extends TableCell<T, Double> {
 
-    private final Slider slider;
+  private final Slider slider;
 
-    public SliderCell(TableColumn<T, Double> column, Double min, Double max) {
-        slider = new Slider();
-        slider.setMin(min);
-        slider.setMax(max);
-        slider.setBlockIncrement(0.2f);
+  public SliderCell(TableColumn<T, Double> column, Double min, Double max) {
+    slider = new Slider();
+    slider.setMin(min);
+    slider.setMax(max);
+    slider.setBlockIncrement(0.2f);
 
-        slider.setOnMouseDragged(event -> {
-            final TableView<T> tableView = getTableView();
-            tableView.getSelectionModel().select(getTableRow().getIndex());
-            tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
-                    column);
-        });
-        slider.setOnMouseClicked(event -> {
-            final TableView<T> tableView = getTableView();
-            tableView.getSelectionModel().select(getTableRow().getIndex());
-            tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
-                    column);
-        });
-        slider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            commitEdit((Double) newValue);
-        });
-        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    slider.setOnMouseDragged(event -> {
+      final TableView<T> tableView = getTableView();
+      tableView.getSelectionModel().select(getTableRow().getIndex());
+      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
+    });
+    slider.setOnMouseClicked(event -> {
+      final TableView<T> tableView = getTableView();
+      tableView.getSelectionModel().select(getTableRow().getIndex());
+      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
+    });
+    slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+      commitEdit((Double) newValue);
+    });
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  }
+
+  @Override
+  protected void updateItem(Double item, boolean empty) {
+
+    super.updateItem(item, empty);
+    if (empty) {
+      setGraphic(null);
+    } else {
+      slider.setValue(item);
+      setGraphic(slider);
     }
-
-    @Override
-    protected void updateItem(Double item, boolean empty) {
-
-        super.updateItem(item, empty);
-        if (empty) {
-            setGraphic(null);
-        } else {
-            slider.setValue(item);
-            setGraphic(slider);
-        }
-    }
+  }
 }

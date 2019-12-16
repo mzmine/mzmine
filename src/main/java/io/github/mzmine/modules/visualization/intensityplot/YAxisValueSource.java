@@ -20,16 +20,16 @@ package io.github.mzmine.modules.visualization.intensityplot;
 
 public enum YAxisValueSource {
 
-    HEIGHT("Peak height"), AREA("Peak area"), RT("Peak retention time");
+  HEIGHT("Peak height"), AREA("Peak area"), RT("Peak retention time");
 
-    private String type;
+  private String type;
 
-    YAxisValueSource(String type) {
-        this.type = type;
-    }
+  YAxisValueSource(String type) {
+    this.type = type;
+  }
 
-    public String toString() {
-        return type;
-    }
+  public String toString() {
+    return type;
+  }
 
 }

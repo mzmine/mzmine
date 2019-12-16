@@ -29,101 +29,97 @@ import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 
 public class IntegerComponent extends JPanel {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-    private final Integer minimum, maximum;
-    private final JTextField textField;
+  private final Integer minimum, maximum;
+  private final JTextField textField;
 
-    public IntegerComponent(int inputsize, Integer minimum, Integer maximum) {
-        this.minimum = minimum;
-        this.maximum = maximum;
+  public IntegerComponent(int inputsize, Integer minimum, Integer maximum) {
+    this.minimum = minimum;
+    this.maximum = maximum;
 
-        textField = new JTextField();
-        textField.setPreferredSize(
-                new Dimension(inputsize, textField.getPreferredSize().height));
-        // Add an input verifier if any bounds are specified.
-        if (minimum != null || maximum != null) {
-            textField.setInputVerifier(new MinMaxVerifier());
-        }
-
-        add(textField);
+    textField = new JTextField();
+    textField.setPreferredSize(new Dimension(inputsize, textField.getPreferredSize().height));
+    // Add an input verifier if any bounds are specified.
+    if (minimum != null || maximum != null) {
+      textField.setInputVerifier(new MinMaxVerifier());
     }
 
-    public void setText(String text) {
-        textField.setText(text);
-    }
+    add(textField);
+  }
 
-    public String getText() {
-        return textField.getText().trim();
+  public void setText(String text) {
+    textField.setText(text);
+  }
+
+  public String getText() {
+    return textField.getText().trim();
+  }
+
+  @Override
+  public void setToolTipText(String toolTip) {
+    textField.setToolTipText(toolTip);
+  }
+
+  private boolean checkBounds(final int number) {
+    return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
+  }
+
+  /**
+   * Sets the number of columns in this TextField.
+   */
+  public void setColumns(int columns) {
+    textField.setColumns(columns);
+  }
+
+  /**
+   * Input verifier used when minimum or maximum bounds are defined.
+   */
+  private class MinMaxVerifier extends InputVerifier {
+
+    @Override
+    public boolean shouldYieldFocus(final JComponent input) {
+
+      final boolean yield = super.shouldYieldFocus(input);
+      if (!yield) {
+
+        // Beep and highlight.
+        Toolkit.getDefaultToolkit().beep();
+        ((JTextComponent) input).selectAll();
+      }
+
+      return yield;
     }
 
     @Override
-    public void setToolTipText(String toolTip) {
-        textField.setToolTipText(toolTip);
+    public boolean verify(final JComponent input) {
+
+      boolean verified = false;
+      try {
+
+        verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText()));
+      } catch (final NumberFormatException e) {
+
+        // not a number.
+      }
+
+      return verified;
     }
+  }
 
-    private boolean checkBounds(final int number) {
-        return (minimum == null || number >= minimum)
-                && (maximum == null || number <= maximum);
-    }
+  public JTextField getTextField() {
+    return textField;
+  }
 
-    /**
-     * Sets the number of columns in this TextField.
-     */
-    public void setColumns(int columns) {
-        textField.setColumns(columns);
-    }
-
-    /**
-     * Input verifier used when minimum or maximum bounds are defined.
-     */
-    private class MinMaxVerifier extends InputVerifier {
-
-        @Override
-        public boolean shouldYieldFocus(final JComponent input) {
-
-            final boolean yield = super.shouldYieldFocus(input);
-            if (!yield) {
-
-                // Beep and highlight.
-                Toolkit.getDefaultToolkit().beep();
-                ((JTextComponent) input).selectAll();
-            }
-
-            return yield;
-        }
-
-        @Override
-        public boolean verify(final JComponent input) {
-
-            boolean verified = false;
-            try {
-
-                verified = checkBounds(
-                        Integer.parseInt(((JTextComponent) input).getText()));
-            } catch (final NumberFormatException e) {
-
-                // not a number.
-            }
-
-            return verified;
-        }
-    }
-
-    public JTextField getTextField() {
-        return textField;
-    }
-
-    /**
-     * Add a document listener to the underlying textfield (see
-     * {@link DelayedDocumentListener}
-     * 
-     * @param dl
-     */
-    public void addDocumentListener(DelayedDocumentListener dl) {
-        textField.getDocument().addDocumentListener(dl);
-    }
+  /**
+   * Add a document listener to the underlying textfield (see {@link DelayedDocumentListener}
+   * 
+   * @param dl
+   */
+  public void addDocumentListener(DelayedDocumentListener dl) {
+    textField.getDocument().addDocumentListener(dl);
+  }
 }

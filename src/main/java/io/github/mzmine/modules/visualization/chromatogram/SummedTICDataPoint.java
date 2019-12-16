@@ -19,50 +19,50 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 public class SummedTICDataPoint {
-    private double rt;
-    private double intensity;
-    private double mzBasePeak;
-    private double intensityBasePeak;
+  private double rt;
+  private double intensity;
+  private double mzBasePeak;
+  private double intensityBasePeak;
 
-    public SummedTICDataPoint(double rt, double intensity, double mzBasePeak,
-            double intensityBasePeak) {
-        super();
-        this.rt = rt;
-        this.intensity = intensity;
-        this.mzBasePeak = mzBasePeak;
-        this.intensityBasePeak = intensityBasePeak;
-    }
+  public SummedTICDataPoint(double rt, double intensity, double mzBasePeak,
+      double intensityBasePeak) {
+    super();
+    this.rt = rt;
+    this.intensity = intensity;
+    this.mzBasePeak = mzBasePeak;
+    this.intensityBasePeak = intensityBasePeak;
+  }
 
-    public double getIntensityBasePeak() {
-        return intensityBasePeak;
-    }
+  public double getIntensityBasePeak() {
+    return intensityBasePeak;
+  }
 
-    public void setIntensityBasePeak(double intensityBasePeak) {
-        this.intensityBasePeak = intensityBasePeak;
-    }
+  public void setIntensityBasePeak(double intensityBasePeak) {
+    this.intensityBasePeak = intensityBasePeak;
+  }
 
-    public double getRetentionTime() {
-        return rt;
-    }
+  public double getRetentionTime() {
+    return rt;
+  }
 
-    public void setRetentionTime(double rt) {
-        this.rt = rt;
-    }
+  public void setRetentionTime(double rt) {
+    this.rt = rt;
+  }
 
-    public double getIntensity() {
-        return intensity;
-    }
+  public double getIntensity() {
+    return intensity;
+  }
 
-    public void setIntensity(double intensity) {
-        this.intensity = intensity;
-    }
+  public void setIntensity(double intensity) {
+    this.intensity = intensity;
+  }
 
-    public double getMzBasePeak() {
-        return mzBasePeak;
-    }
+  public double getMzBasePeak() {
+    return mzBasePeak;
+  }
 
-    public void setMzBasePeak(double mzBasePeak) {
-        this.mzBasePeak = mzBasePeak;
-    }
+  public void setMzBasePeak(double mzBasePeak) {
+    this.mzBasePeak = mzBasePeak;
+  }
 
 }
