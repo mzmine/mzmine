@@ -82,10 +82,10 @@ public class PeakDetectionCorrectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {LEFT, RIGHT, LWIN, RWIN, SNMINIMUM, MONO, MULTIPLIER});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(parent,
         valueCheckRequired, this, PeakDetectionCorrector.class);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

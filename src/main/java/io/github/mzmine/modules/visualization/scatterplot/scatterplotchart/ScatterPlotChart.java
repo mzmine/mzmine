@@ -237,7 +237,7 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(window, plot);
-      dialog.setVisible(true);
+      dialog.showAndWait();
       return;
     }
 

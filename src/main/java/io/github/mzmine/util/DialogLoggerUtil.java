@@ -36,21 +36,21 @@ public class DialogLoggerUtil {
    * Dialogs
    */
   public static void showErrorDialog(Component parent, String message, Exception e) {
-    JOptionPane.showMessageDialog(parent, message + " \n" + e.getMessage(), "ERROR",
+    JOptionPane.showMessageDialog(message + " \n" + e.getMessage(), "ERROR",
         JOptionPane.ERROR_MESSAGE);
   }
 
   public static void showErrorDialog(Component parent, String title, String message) {
-    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
+    JOptionPane.showMessageDialog(message, title, JOptionPane.ERROR_MESSAGE);
   }
 
   public static void showMessageDialog(Component parent, String title, String message) {
-    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(message, title, JOptionPane.INFORMATION_MESSAGE);
   }
 
   public static boolean showDialogYesNo(Component parent, String title, String text) {
     Object[] options = {"Yes", "No"};
-    int n = JOptionPane.showOptionDialog(parent, text, title, JOptionPane.YES_NO_OPTION,
+    int n = JOptionPane.showOptionDialog(text, title, JOptionPane.YES_NO_OPTION,
         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     return n == 0;
   }
@@ -65,7 +65,7 @@ public class DialogLoggerUtil {
    */
   public static void showMessageDialogForTime(Frame parent, String title, String message,
       long time) {
-    TimeDialog dialog = new TimeDialog(parent, time);
+    TimeDialog dialog = new TimeDialog(time);
     dialog.setLayout(new FlowLayout(FlowLayout.LEFT));
     dialog.add(new JLabel(message));
     dialog.setTitle(title);

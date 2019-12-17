@@ -48,10 +48,10 @@ public class RollingBallCorrectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {MIN_MAX_WIDTH, SMOOTHING});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(parent,
         valueCheckRequired, this, RollingBallCorrector.class);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

@@ -40,7 +40,7 @@ public class ScatterPlotParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     return ExitCode.OK;
   }
 

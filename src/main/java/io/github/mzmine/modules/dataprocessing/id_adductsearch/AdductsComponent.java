@@ -22,26 +22,26 @@
  * pre-existing work.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
 import javax.swing.JButton;
-
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AddAdductsAction;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductType;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.DefaultAdductsAction;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.ExportAdductsAction;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.ImportAdductsAction;
+import org.controlsfx.control.CheckListView;
+import javafx.scene.control.Button;
+import javafx.scene.layout.FlowPane;
 
 /**
  * A component for selecting adducts.
  *
  */
-public class AdductsComponent extends MultiChoiceComponent {
+public class AdductsComponent extends FlowPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  private final CheckListView<AdductType> adducts = new CheckListView<>();
+  private final Button addButton = new Button("Add...");
+  private final Button importButton = new Button("Import...");
+  private final Button exportButton = new Button("Add...");
+  private final Button defaultButton = new Button("Add...");
+
+
 
   /**
    * Create the component.
@@ -51,6 +51,7 @@ public class AdductsComponent extends MultiChoiceComponent {
   public AdductsComponent(AdductType[] choices) {
 
     super(choices);
+    getChildren
     addButton(new JButton(new AddAdductsAction()));
     addButton(new JButton(new ImportAdductsAction()));
     addButton(new JButton(new ExportAdductsAction()));

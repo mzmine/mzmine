@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -30,18 +29,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.BorderFactory;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
-
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -54,7 +49,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramP
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 
@@ -62,14 +56,10 @@ import io.github.mzmine.util.R.RSessionWrapperException;
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
  *              to preview how the selected baseline correction method and its parameters works over
  *              the raw data file.
- * 
+ *
  */
 public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
 
   // Logger.
   private static final Logger LOG =
@@ -136,14 +126,14 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
   }
 
   /**
-   * 
+   *
    * @param correctorParameters Method specific parameters
    * @param correctorClass Chosen corrector to be instantiated
    */
-  public BaselineCorrectorSetupDialog(Window parent, boolean valueCheckRequired,
-      ParameterSet correctorParameters, Class<? extends BaselineCorrector> correctorClass) {
+  public BaselineCorrectorSetupDialog(boolean valueCheckRequired, ParameterSet correctorParameters,
+      Class<? extends BaselineCorrector> correctorClass) {
 
-    super(parent, valueCheckRequired, correctorParameters);
+    super(valueCheckRequired, correctorParameters);
 
     this.correctorParameters = correctorParameters;
 
@@ -326,7 +316,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
      */
     @Override
@@ -336,7 +326,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     @Override
@@ -377,6 +367,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
         SwingUtilities.invokeLater(new Runnable() {
+          @Override
           public void run() {
             progressBar.setValue(
                 (int) Math.round(100.0 * baselineCorrector.getFinishedPercentage(dataFile)));
@@ -451,7 +442,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
   /**
    * Quick way to recover the baseline plot (by subtracting the corrected file from the original
    * one).
-   * 
+   *
    * @param dataFile original datafile
    * @param newDataFile corrected datafile
    * @param plotType expected plot type

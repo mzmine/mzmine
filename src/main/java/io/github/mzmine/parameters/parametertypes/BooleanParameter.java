@@ -18,21 +18,17 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Insets;
 import java.util.Collection;
-
-import javax.swing.JCheckBox;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.control.CheckBox;
 
 /**
  * Simple Parameter implementation
  * 
  * 
  */
-public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
+public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
 
   private String name, description;
   private Boolean value;
@@ -64,9 +60,9 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   @Override
-  public JCheckBox createEditingComponent() {
-    JCheckBox checkBox = new JCheckBox();
-    checkBox.setMargin(new Insets(0, 7, 0, 0));
+  public CheckBox createEditingComponent() {
+    CheckBox checkBox = new CheckBox();
+    // checkBox.setMargin(new Insets(0, 7, 0, 0));
     return checkBox;
   }
 
@@ -88,12 +84,12 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   @Override
-  public void setValueFromComponent(JCheckBox component) {
+  public void setValueFromComponent(CheckBox component) {
     value = component.isSelected();
   }
 
   @Override
-  public void setValueToComponent(JCheckBox component, Boolean newValue) {
+  public void setValueToComponent(CheckBox component, Boolean newValue) {
     component.setSelected(newValue);
   }
 

@@ -1,18 +1,16 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package io.github.mzmine.modules.io.siriusexport;
-
-import java.awt.*;
 
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -57,16 +55,16 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   public static final MassListParameter MASS_LIST = new MassListParameter();
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:" + "<ul>"
         + "<li>If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:<br>"
         + "<a href=\"http://dx.doi.org/10.1038/s41592-019-0344-8\">K. Duhrkop, et al., Sirius 4: a rapid tool for turning tandem mass spectra into metabolite structure information, Nature Methods, 2019.</a>"
         + "<li>Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>"
         + "<li>Sirius results can be mapped into <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular networks. <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a>."
         + "</ul>";
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

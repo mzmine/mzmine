@@ -52,7 +52,7 @@ public class LogratioParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
     PeakList selectedPeakLists[] = getParameter(peakLists).getValue().getMatchingPeakLists();
     RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
@@ -60,7 +60,7 @@ public class LogratioParameters extends SimpleParameterSet {
     getParameter(groupOneFiles).setChoices(plDataFiles);
     getParameter(groupTwoFiles).setChoices(plDataFiles);
 
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return super.showSetupDialog(valueCheckRequired);
   }
 
 }

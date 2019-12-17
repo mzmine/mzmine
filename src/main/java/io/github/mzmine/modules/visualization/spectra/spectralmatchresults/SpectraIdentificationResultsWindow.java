@@ -131,7 +131,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private void setChartFont() {
     FontDialog dialog = new FontDialog(this, "Font Dialog Example", true);
     dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     if (!dialog.isCancelSelected()) {
       setChartFont(dialog.getSelectedFont());
     }

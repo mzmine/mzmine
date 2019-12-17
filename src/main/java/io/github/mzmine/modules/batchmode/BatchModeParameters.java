@@ -40,8 +40,8 @@ public class BatchModeParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     // set lastUsed files list
     final BatchSetupComponent batchComponent =
         ((BatchSetupComponent) dialog.getComponentForParameter(batchQueue));
@@ -49,7 +49,7 @@ public class BatchModeParameters extends SimpleParameterSet {
     // new last used files are inserted to this list in the component
     batchComponent.setLastFiles(lastFiles.getValue());
 
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

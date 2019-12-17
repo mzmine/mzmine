@@ -73,7 +73,7 @@ public class JStrokeChooserDialog extends JDialog {
     try {
       JStrokeChooserDialog dialog = new JStrokeChooserDialog(new SettingsBasicStroke(1.5f));
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      dialog.setVisible(true);
+      dialog.showAndWait();
     } catch (Exception e) {
       e.printStackTrace();
     }

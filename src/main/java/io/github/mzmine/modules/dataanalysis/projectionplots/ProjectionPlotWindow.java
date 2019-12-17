@@ -68,7 +68,7 @@ public class ProjectionPlotWindow extends JFrame implements ActionListener {
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("TOGGLE_LABELS")) {

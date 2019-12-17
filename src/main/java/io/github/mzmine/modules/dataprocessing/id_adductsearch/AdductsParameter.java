@@ -22,7 +22,7 @@
  * pre-existing work.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,8 +34,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductType;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 
 /**
  * Adducts parameter.

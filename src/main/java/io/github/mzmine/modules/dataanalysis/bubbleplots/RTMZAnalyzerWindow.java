@@ -66,13 +66,13 @@ public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("SETUP_COLORS")) {
       InterpolatingLookupPaintScaleSetupDialog colorDialog =
           new InterpolatingLookupPaintScaleSetupDialog(this, plot.getPaintScale());
-      colorDialog.setVisible(true);
+      colordialog.showAndWait();
 
       if (colorDialog.getExitCode() == ExitCode.OK)
         plot.setPaintScale(colorDialog.getPaintScale());

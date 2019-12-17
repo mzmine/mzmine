@@ -126,7 +126,7 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
 
     if (command.equals("HIGHLIGHT")) {
       JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("SHOW_SPECTRUM")) {

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,12 +19,8 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -32,24 +28,18 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.LegendItemEntity;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -62,20 +52,44 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Separator;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
-public class TICVisualizerWindow extends JFrame implements ActionListener {
+public class TICVisualizerWindow extends Stage {
 
-  private static final long serialVersionUID = 1L;
+  // Icons.
+  private static final Image SHOW_SPECTRUM_ICON =
+      FxIconUtil.loadImageFromResources("icons/spectrumicon.png");
+  private static final Image DATA_POINTS_ICON =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image ANNOTATIONS_ICON =
+      FxIconUtil.loadImageFromResources("icons/annotationsicon.png");
+  private static final Image AXES_ICON = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image LEGEND_ICON = FxIconUtil.loadImageFromResources("icons/legendkey.png");
+  private static final Image BACKGROUND_ICON =
+      FxIconUtil.loadImageFromResources("icons/bgicon.png");
 
   // CSV extension.
   private static final String CSV_EXTENSION = "csv";
 
-  private TICToolBar toolBar;
-  private TICPlot ticPlot;
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolBar;
+  private final TICPlot ticPlot;
 
   // Data sets
   private Hashtable<RawDataFile, TICDataSet> ticDataSets;
@@ -96,9 +110,10 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
       ScanSelection scanSelection, Range<Double> mzRange, Feature[] peaks,
       Map<Feature, String> peakLabels) {
 
-    super("Chromatogram loading...");
-
     assert mzRange != null;
+
+    setTitle("Chromatogram loading...");
+
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
@@ -106,14 +121,72 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     this.scanSelection = scanSelection;
     this.mzRange = mzRange;
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
 
-    ticPlot = new TICPlot(this);
-    add(ticPlot, BorderLayout.CENTER);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
 
-    toolBar = new TICToolBar(ticPlot);
-    add(toolBar, BorderLayout.EAST);
+    setMinWidth(400.0);
+    setMinHeight(300.0);
+
+    // sizeToScene();
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
+
+    ticPlot = new TICPlot();
+    mainPane.setCenter(ticPlot);
+
+    toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
+
+
+    Button showSpectrumBtn = new Button(null, new ImageView(SHOW_SPECTRUM_ICON));
+    showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
+    showSpectrumBtn.setOnAction(e -> {
+      CursorPosition pos = getCursorPosition();
+      if (pos != null) {
+        SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
+      }
+    });
+
+
+    Button datapointsBtn = new Button(null, new ImageView(DATA_POINTS_ICON));
+    datapointsBtn.setTooltip(new Tooltip("Toggle displaying of data points"));
+    datapointsBtn.setOnAction(e -> {
+      ticPlot.switchDataPointsVisible();
+    });
+
+
+    Button annotationsBtn = new Button(null, new ImageView(ANNOTATIONS_ICON));
+    annotationsBtn.setTooltip(new Tooltip("Toggle displaying of peak labels"));
+    annotationsBtn.setOnAction(e -> {
+      ticPlot.switchItemLabelsVisible();
+    });
+
+
+    Button axesBtn = new Button(null, new ImageView(AXES_ICON));
+    axesBtn.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesBtn.setOnAction(e -> {
+      AxesSetupDialog dialog = new AxesSetupDialog(this, ticPlot.getXYPlot());
+      dialog.show();
+    });
+
+    Button legendBtn = new Button(null, new ImageView(LEGEND_ICON));
+    legendBtn.setTooltip(new Tooltip("Toggle display of the legend"));
+    legendBtn.setOnAction(e -> {
+      ticPlot.switchLegendVisible();
+    });
+
+    Button backgroundBtn = new Button(null, new ImageView(BACKGROUND_ICON));
+    backgroundBtn.setTooltip(new Tooltip("Toggle between white or gray background color"));
+
+    toolBar.getItems().addAll(showSpectrumBtn, new Separator(), datapointsBtn, new Separator(),
+        annotationsBtn, new Separator(), axesBtn, new Separator(), legendBtn, new Separator(),
+        backgroundBtn);
+    mainPane.setRight(toolBar);
 
     // add all peaks
     if (peaks != null) {
@@ -138,11 +211,11 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     }
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
+    // JMenuBar menuBar = new JMenuBar();
     // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    // setJMenuBar(menuBar);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -151,13 +224,13 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
         paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
     // Listen for clicks on legend items
-    ticPlot.addChartMouseListener(new ChartMouseListener() {
+    ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
       @Override
-      public void chartMouseClicked(ChartMouseEvent event) {
+      public void chartMouseClicked(ChartMouseEventFX event) {
         ChartEntity entity = event.getEntity();
         XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
 
@@ -191,15 +264,26 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
       }
 
       @Override
-      public void chartMouseMoved(ChartMouseEvent event) {
+      public void chartMouseMoved(ChartMouseEventFX event) {
         ChartEntity entity = event.getEntity();
         XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
         if ((entity != null) && entity instanceof LegendItemEntity
             && plot.getRenderer().getClass().getName().indexOf(".TICPlotRenderer") > -1) {
-          ticPlot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+          // ticPlot.setCursor(new Cursor(Cursor.HAND_CURSOR));
         } else {
-          ticPlot.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+          // ticPlot.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
         }
+      }
+    });
+
+
+    setOnHiding(e -> {
+      for (Task task : ticDataSets.values()) {
+        TaskStatus status = task.getStatus();
+        if ((status == TaskStatus.WAITING) || (status == TaskStatus.PROCESSING)) {
+          task.cancel();
+        }
+
       }
     });
 
@@ -354,7 +438,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
       }
 
       // Choose an export file.
-      final File exportFile = exportChooser.getSaveFile(this, file.getName(), CSV_EXTENSION);
+      final File exportFile = exportChooser.getSaveFile(null, file.getName(), CSV_EXTENSION);
       if (exportFile != null) {
 
         MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));
@@ -396,16 +480,12 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
   /**
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
-  @Override
+  // @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
 
     if (command.equals("SHOW_SPECTRUM")) {
-      CursorPosition pos = getCursorPosition();
-      if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
-      }
     }
 
     if (command.equals("MOVE_CURSOR_LEFT")) {
@@ -441,38 +521,11 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
   }
 
-  @Override
-  public void dispose() {
 
-    // If the window is closed, we want to cancel all running tasks of the
-    // data sets
-    Task tasks[] = this.ticDataSets.values().toArray(new Task[0]);
-
-    for (Task task : tasks) {
-      TaskStatus status = task.getStatus();
-      if ((status == TaskStatus.WAITING) || (status == TaskStatus.PROCESSING)) {
-        task.cancel();
-      }
-
-    }
-    super.dispose();
-
-  }
-
-  public TICToolBar getToolBar() {
-    return toolBar;
-  }
-
-  public void setToolBar(TICToolBar toolBar) {
-    this.toolBar = toolBar;
-  }
 
   public TICPlot getTICPlot() {
     return ticPlot;
   }
 
-  public void setTICPlot(TICPlot ticPlot) {
-    this.ticPlot = ticPlot;
-  }
 
 }

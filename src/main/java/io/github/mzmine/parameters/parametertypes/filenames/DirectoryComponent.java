@@ -23,59 +23,69 @@
  */
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.File;
-import java.util.concurrent.FutureTask;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
-import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 
 /**
  */
-public class DirectoryComponent extends JPanel implements ActionListener {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+public class DirectoryComponent extends BorderPane {
 
   // Text field width.
   private static final int TEXT_FIELD_COLUMNS = 15;
 
   // Text field font.
-  private static final Font SMALL_FONT = new Font("SansSerif", Font.PLAIN, 10);
+  private static final Font SMALL_FONT = new Font("SansSerif", 10);
 
   // Chooser title.
   private static final String TITLE = "Select Directory";
 
   // Text field.
-  private final JTextField txtDirectory;
+  private final TextField txtDirectory;
 
   /**
    * Create the component.
    */
   public DirectoryComponent() {
 
-    super(new BorderLayout());
-
     // Create text field.
-    txtDirectory = new JTextField();
-    txtDirectory.setColumns(TEXT_FIELD_COLUMNS);
+    txtDirectory = new TextField();
+    txtDirectory.setPrefColumnCount(TEXT_FIELD_COLUMNS);
     txtDirectory.setFont(SMALL_FONT);
 
     // Chooser button.
-    final JButton btnFileBrowser = new JButton("...");
-    btnFileBrowser.addActionListener(this);
+    final Button btnFileBrowser = new Button("...");
+    btnFileBrowser.setOnAction(e -> {
+      // Create chooser.
+      DirectoryChooser fileChooser = new DirectoryChooser();
+      fileChooser.setTitle(TITLE);
 
-    add(txtDirectory, BorderLayout.CENTER);
-    add(btnFileBrowser, BorderLayout.EAST);
+      // Set current directory.
+      final String currentPath = txtDirectory.getText();
+      if (currentPath.length() > 0) {
+
+        final File currentFile = new File(currentPath);
+        final File currentDir = currentFile.getParentFile();
+        if (currentDir != null && currentDir.exists()) {
+          fileChooser.setInitialDirectory(currentDir);
+        }
+      }
+
+      // Open chooser.
+      File selectedFile = fileChooser.showDialog(null);
+      if (selectedFile == null)
+        return;
+      txtDirectory.setText(selectedFile.getPath());
+
+    });
+
+    setCenter(txtDirectory);
+    setRight(btnFileBrowser);
   }
 
   public File getValue() {
@@ -84,46 +94,11 @@ public class DirectoryComponent extends JPanel implements ActionListener {
   }
 
   public void setValue(final File value) {
-
     txtDirectory.setText(value.getPath());
   }
 
-  @Override
   public void setToolTipText(final String text) {
-
-    txtDirectory.setToolTipText(text);
+    txtDirectory.setTooltip(new Tooltip(text));
   }
 
-  @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    // Create chooser.
-    DirectoryChooser fileChooser = new DirectoryChooser();
-    fileChooser.setTitle(TITLE);
-
-    // Set current directory.
-    final String currentPath = txtDirectory.getText();
-    if (currentPath.length() > 0) {
-
-      final File currentFile = new File(currentPath);
-      final File currentDir = currentFile.getParentFile();
-      if (currentDir != null && currentDir.exists()) {
-        fileChooser.setInitialDirectory(currentDir);
-      }
-    }
-
-    // Open chooser.
-    final FutureTask<File> task = new FutureTask<>(() -> fileChooser.showDialog(null));
-    Platform.runLater(task);
-
-    try {
-      File selectedFile = task.get();
-      if (selectedFile == null)
-        return;
-      txtDirectory.setText(selectedFile.getPath());
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-  }
 }

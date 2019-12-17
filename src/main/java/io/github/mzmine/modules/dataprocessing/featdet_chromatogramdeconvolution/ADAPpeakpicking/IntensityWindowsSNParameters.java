@@ -33,10 +33,10 @@ public class IntensityWindowsSNParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
-    final SNSetUpDialog dialog = new SNSetUpDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    final SNSetUpDialog dialog = new SNSetUpDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

@@ -76,9 +76,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
-    ExitCode exitCode = super.showSetupDialog(parent, valueCheckRequired);
+    ExitCode exitCode = super.showSetupDialog(valueCheckRequired);
 
     // If the parameters are not complete, let's just stop here
     if (exitCode != ExitCode.OK)

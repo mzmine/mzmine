@@ -20,11 +20,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import java.text.NumberFormat;
 import java.util.Collection;
-
-import javax.swing.BorderFactory;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
 
 /**
@@ -84,18 +80,16 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public DoubleComponent createEditingComponent() {
 
     DoubleComponent doubleComponent = new DoubleComponent(WIDTH, minimum, maximum, format);
-    doubleComponent.setBorder(BorderFactory.createCompoundBorder(doubleComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 3, 0, 0)));
+    //doubleComponent.setBorder(BorderFactory.createCompoundBorder(doubleComponent.getBorder(),
+      //  BorderFactory.createEmptyBorder(0, 3, 0, 0)));
     return doubleComponent;
   }
 
   @Override
   public void setValueFromComponent(final DoubleComponent component) {
     try {
-
       value = format.parse(component.getText()).doubleValue();
     } catch (Exception e) {
-
       value = null;
     }
   }

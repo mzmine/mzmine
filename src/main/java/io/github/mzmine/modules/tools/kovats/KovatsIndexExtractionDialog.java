@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -42,7 +42,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -55,15 +54,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
@@ -87,7 +83,6 @@ import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import io.github.mzmine.parameters.parametertypes.StringComponent;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -144,7 +139,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private KovatsIndex currentAlkane;
 
   /**
-   * 
+   *
    * @param parent
    * @param parameters
    * @param saveFileListener accepts saved files
@@ -189,8 +184,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     // add min max
     JPanel pnKovatsParam = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
     west.add(pnKovatsParam, BorderLayout.NORTH);
-    minc = (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.minKovats);
-    maxc = (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.maxKovats);
+    minc = getComponentForParameter(KovatsIndexExtractionParameters.minKovats);
+    maxc = getComponentForParameter(KovatsIndexExtractionParameters.maxKovats);
     minc.addDocumentListener(ddlKovats);
     maxc.addDocumentListener(ddlKovats);
 
@@ -224,10 +219,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         (MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange);
     RTRangeComponent rtc =
         (RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange);
-    DoubleComponent noisec =
-        (DoubleComponent) getComponentForParameter(KovatsIndexExtractionParameters.noiseLevel);
+    DoubleComponent noisec = getComponentForParameter(KovatsIndexExtractionParameters.noiseLevel);
     DoubleComponent edgeRatioC =
-        (DoubleComponent) getComponentForParameter(KovatsIndexExtractionParameters.ratioTopEdge);
+        getComponentForParameter(KovatsIndexExtractionParameters.ratioTopEdge);
 
     valuesComponent.addDocumentListener(new DelayedDocumentListener(e -> kovatsValuesChanged()));
     valuesComponent.setLayout(new GridLayout(1, 1));
@@ -379,8 +373,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   private void setLastFile(File f) {
-    ((FileNameComponent) getComponentForParameter(KovatsIndexExtractionParameters.lastSavedFile))
-        .setValue(f);
+    getComponentForParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
     parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
   }
 
@@ -435,7 +428,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   /**
    * Set value with index in markers list / parsedValues
-   * 
+   *
    * @param index
    * @param value
    */
@@ -456,7 +449,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   * 
+   *
    * @param values
    * @param checkMinMaxSelectedChange check min max and selected Kovats for Kovats Index list
    */
@@ -495,9 +488,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   /**
    * GNPS GC MS formatted table (comma-separated)
-   * 
+   *
    * @param values
-   * 
+   *
    * @return
    */
   private String getCsvTable(TreeMap<KovatsIndex, Double> values) {
@@ -587,7 +580,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   /**
    * Drag marker positions
-   * 
+   *
    * @param e
    */
   private void handleMarkerDrag(ChartGestureDragDiffEvent e) {
@@ -766,7 +759,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   * 
+   *
    * @return number of loaded files
    */
   private int loadFile() {
@@ -857,7 +850,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   * 
+   *
    */
   private void combineFiles() {
     // load success?

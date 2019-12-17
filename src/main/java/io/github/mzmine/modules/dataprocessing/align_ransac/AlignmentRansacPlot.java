@@ -45,17 +45,12 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 
-public class AlignmentRansacPlot extends EChartPanel {
+public class AlignmentRansacPlot extends EChartViewer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   // peak labels color
   private static final Color labelsColor = Color.darkGray;
   // grid color
@@ -80,7 +75,7 @@ public class AlignmentRansacPlot extends EChartPanel {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
   public AlignmentRansacPlot() {
-    super(null, true);
+    super(null);
 
     dataset = new XYSeriesCollection();
     chart = ChartFactory.createXYLineChart("", null, null, dataset, PlotOrientation.VERTICAL, true,
@@ -149,7 +144,7 @@ public class AlignmentRansacPlot extends EChartPanel {
 
   /**
    * Add new serie.
-   * 
+   *
    * @param v Vector with the alignments
    * @param Name Name of the type of lipids in this alignment
    */

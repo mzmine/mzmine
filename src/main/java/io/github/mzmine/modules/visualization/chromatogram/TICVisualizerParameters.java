@@ -115,13 +115,13 @@ public class TICVisualizerParameters extends SimpleParameterSet {
    * @param selectedPeaks default peak selections.
    * @return an ExitCode indicating the user's action.
    */
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired,
+  public ExitCode showSetupDialog( boolean valueCheckRequired,
       final RawDataFile[] allFiles, final RawDataFile[] selectedFiles, final Feature[] allPeaks,
       final Feature[] selectedPeaks) {
 
     getParameter(DATA_FILES).setValue(RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
     getParameter(PEAKS).setChoices(allPeaks);
     getParameter(PEAKS).setValue(selectedPeaks);
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return super.showSetupDialog(valueCheckRequired);
   }
 }

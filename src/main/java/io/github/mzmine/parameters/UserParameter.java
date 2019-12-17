@@ -18,12 +18,12 @@
 
 package io.github.mzmine.parameters;
 
-import javax.swing.JComponent;
+import javafx.scene.Node;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
  */
-public interface UserParameter<ValueType, EditorComponent extends JComponent>
+public interface UserParameter<ValueType, EditorComponent extends Node>
     extends Parameter<ValueType> {
 
   /**

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,29 +18,22 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import javax.swing.SwingUtilities;
-
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -67,16 +60,45 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.ToolBar;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizerWindow extends JFrame implements ActionListener {
-
-  private static final long serialVersionUID = 1L;
+public class SpectraVisualizerWindow extends Stage {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private static final Image centroidIcon =
+      FxIconUtil.loadImageFromResources("icons/centroidicon.png");
+  private static final Image continuousIcon =
+      FxIconUtil.loadImageFromResources("icons/continuousicon.png");
+  private static final Image dataPointsIcon =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image annotationsIcon =
+      FxIconUtil.loadImageFromResources("icons/annotationsicon.png");
+  private static final Image pickedPeakIcon =
+      FxIconUtil.loadImageFromResources("icons/pickedpeakicon.png");
+  private static final Image isotopePeakIcon =
+      FxIconUtil.loadImageFromResources("icons/isotopepeakicon.png");
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image exportIcon = FxIconUtil.loadImageFromResources("icons/exporticon.png");
+  private static final Image dbOnlineIcon =
+      FxIconUtil.loadImageFromResources("icons/DBOnlineIcon.png");
+  private static final Image dbCustomIcon =
+      FxIconUtil.loadImageFromResources("icons/DBCustomIcon.png");
+  private static final Image dbLipidsIcon =
+      FxIconUtil.loadImageFromResources("icons/DBLipidsIcon.png");
+  private static final Image dbSpectraIcon =
+      FxIconUtil.loadImageFromResources("icons/DBSpectraIcon.png");
+  private static final Image sumFormulaIcon = FxIconUtil.loadImageFromResources("icons/search.png");
 
   public static final Color scanColor = new Color(0, 0, 192);
   public static final Color peaksColor = Color.red;
@@ -84,9 +106,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
   public static final Color detectedIsotopesColor = Color.magenta;
   public static final Color predictedIsotopesColor = Color.green;
 
-  private SpectraToolBar toolBar;
-  private SpectraPlot spectrumPlot;
-  private SpectraBottomPanel bottomPanel;
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolBar;
+  private final SpectraPlot spectrumPlot;
+  private final SpectraBottomPanel bottomPanel;
 
   private RawDataFile dataFile;
 
@@ -106,32 +130,38 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
   public SpectraVisualizerWindow(RawDataFile dataFile, boolean enableProcessing) {
 
-    super("Spectrum loading...");
+    setTitle("Spectrum loading...");
     this.dataFile = dataFile;
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
 
     spectrumPlot = new SpectraPlot(this, enableProcessing);
-    add(spectrumPlot, BorderLayout.CENTER);
+    mainPane.setCenter(spectrumPlot);
 
-    toolBar = new SpectraToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
+
+
+    mainPane.setRight(toolBar);
 
     // Create relationship between the current Plot and Tool bar
     // spectrumPlot.setRelatedToolBar(toolBar);
 
     bottomPanel = new SpectraBottomPanel(this, dataFile);
-    add(bottomPanel, BorderLayout.SOUTH);
+    mainPane.setBottom(bottomPanel);
 
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
+    // JMenuBar menuBar = new JMenuBar();
     // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    // setJMenuBar(menuBar);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
@@ -139,8 +169,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
     dppmWindowOpen = false;
   }
@@ -426,7 +456,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     }
 
     if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, spectrumPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(null, spectrumPlot.getXYPlot());
       dialog.setVisible(true);
     }
     // library entry creation
@@ -539,7 +569,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
             dppmWindowOpen = true;
 
             ExitCode exitCode =
-                DataPointProcessingManager.getInst().getParameters().showSetupDialog(null, true);
+                DataPointProcessingManager.getInst().getParameters().showSetupDialog(true);
 
             dppmWindowOpen = false;
             if (exitCode == ExitCode.OK && DataPointProcessingManager.getInst().isEnabled()) {

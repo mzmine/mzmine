@@ -96,8 +96,8 @@ public class IntegerParameter implements UserParameter<Integer, IntegerComponent
   @Override
   public IntegerComponent createEditingComponent() {
     IntegerComponent integerComponent = new IntegerComponent(WIDTH, minimum, maximum);
-    integerComponent.setBorder(BorderFactory.createCompoundBorder(integerComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+    //integerComponent.setBorder(BorderFactory.createCompoundBorder(integerComponent.getBorder(),
+      //  BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return integerComponent;
   }
 

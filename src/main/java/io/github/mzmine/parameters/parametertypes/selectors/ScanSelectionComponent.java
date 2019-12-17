@@ -18,23 +18,11 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.text.NumberFormat;
 import java.util.Arrays;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
@@ -46,15 +34,16 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.GUIUtils;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 
-public class ScanSelectionComponent extends JPanel implements ActionListener {
+public class ScanSelectionComponent extends FlowPane {
 
-  private static final long serialVersionUID = 1L;
+  private final Button setButton, clearButton;
 
-  private final JButton setButton, clearButton;
-
-  private final JLabel restrictionsList;
+  private final Label restrictionsList;
 
   private Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
@@ -66,48 +55,17 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
 
   public ScanSelectionComponent() {
 
-    BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
-    setLayout(layout);
+    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
-
-    restrictionsList = new JLabel();
-    add(restrictionsList);
+    restrictionsList = new Label();
     updateRestrictionList();
 
-    add(Box.createHorizontalStrut(10));
+    // add(Box.createHorizontalStrut(10));
 
-    setButton = GUIUtils.addButton(this, "Set filters", null, this);
-    clearButton = GUIUtils.addButton(this, "Clear filters", null, this);
-
-  }
-
-  void setValue(ScanSelection newValue) {
-    scanNumberRange = newValue.getScanNumberRange();
-    baseFilteringInteger = newValue.getBaseFilteringInteger();
-    scanRTRange = newValue.getScanRTRange();
-    polarity = newValue.getPolarity();
-    spectrumType = newValue.getSpectrumType();
-    msLevel = newValue.getMsLevel();
-    scanDefinition = newValue.getScanDefinition();
-
-    updateRestrictionList();
-  }
-
-  public ScanSelection getValue() {
-    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == setButton) {
-
+    setButton = new Button("Set filters");
+    setButton.setOnAction(e -> {
       SimpleParameterSet paramSet;
       ExitCode exitCode;
-      Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
 
       final IntRangeParameter scanNumParameter = new IntRangeParameter("Scan number",
           "Range of included scan numbers", false, scanNumberRange);
@@ -148,7 +106,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
       paramSet = new SimpleParameterSet(
           new Parameter[] {scanNumParameter, baseFilteringIntegerParameter, rtParameter,
               msLevelParameter, scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
-      exitCode = paramSet.showSetupDialog(parent, true);
+      exitCode = paramSet.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
         this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
@@ -186,9 +144,13 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         }
 
       }
-    }
+      updateRestrictionList();
 
-    if (src == clearButton) {
+    });
+
+
+    clearButton = new Button("Clear filters");
+    clearButton.setOnAction(e -> {
       scanNumberRange = null;
       baseFilteringInteger = null;
       scanRTRange = null;
@@ -196,15 +158,34 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
       spectrumType = null;
       msLevel = null;
       scanDefinition = null;
-    }
+      updateRestrictionList();
 
-    updateRestrictionList();
+    });
+
+    getChildren().addAll(restrictionsList, setButton, clearButton);
 
   }
 
-  @Override
+  void setValue(ScanSelection newValue) {
+    scanNumberRange = newValue.getScanNumberRange();
+    baseFilteringInteger = newValue.getBaseFilteringInteger();
+    scanRTRange = newValue.getScanRTRange();
+    polarity = newValue.getPolarity();
+    spectrumType = newValue.getSpectrumType();
+    msLevel = newValue.getMsLevel();
+    scanDefinition = newValue.getScanDefinition();
+
+    updateRestrictionList();
+  }
+
+  public ScanSelection getValue() {
+    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
+        spectrumType, msLevel, scanDefinition);
+  }
+
+
   public void setToolTipText(String toolTip) {
-    restrictionsList.setToolTipText(toolTip);
+    restrictionsList.setTooltip(new Tooltip(toolTip));
   }
 
   private void updateRestrictionList() {

@@ -1,21 +1,19 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package io.github.mzmine.modules.io.siriusexport;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
@@ -57,7 +55,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       ParameterSet parameters =
           MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
 
-      ExitCode exitCode = parameters.showSetupDialog(null, true);
+      ExitCode exitCode = parameters.showSetupDialog(true);
       if (exitCode != ExitCode.OK)
         return;
       // Open file
@@ -76,7 +74,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       ParameterSet parameters =
           MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
 
-      ExitCode exitCode = parameters.showSetupDialog(null, true);
+      ExitCode exitCode = parameters.showSetupDialog(true);
       if (exitCode != ExitCode.OK)
         return;
       // Open file
@@ -106,7 +104,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
  * Fleischauer, M. Ludwig, A. A. Aksenov, A. V. Melnik, M. Meusel, P. C. Dorrestein, J. Rousu, and
  * S. Boecker, Sirius 4: a rapid tool for turning tandem mass spectra into metabolite structure
  * information, Nat methods, 2019. 8:5
- * 
+ *
  * [Link](http://dx.doi.org/10.1038/s41592-019-0344-8), and
  * [Link](https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8)
  */

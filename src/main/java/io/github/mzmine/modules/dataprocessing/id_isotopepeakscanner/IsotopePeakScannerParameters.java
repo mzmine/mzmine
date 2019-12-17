@@ -121,13 +121,13 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
 
     ParameterSetupDialog dialog =
-        new IsotopePeakScannerSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+        new IsotopePeakScannerSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

@@ -139,7 +139,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(this, twoDPlot.getXYPlot());
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("SWITCH_PLOTMODE")) {

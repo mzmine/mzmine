@@ -75,10 +75,10 @@ public class LocMinLoessCorrectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {METHOD, BW, BREAKS, BREAK_WIDTH, QNTL});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(parent,
         valueCheckRequired, this, LocMinLoessCorrector.class);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

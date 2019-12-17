@@ -230,7 +230,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
     if (stepParameters.getParameters().length > 0 && !selected.isDialogShowing()) {
       selected.setDialogShowing(true);
-      ExitCode exitCode = stepParameters.showSetupDialog(null, true);
+      ExitCode exitCode = stepParameters.showSetupDialog( true);
       selected.setDialogShowing(false);
       if (exitCode == ExitCode.OK) {
         // store the parameters in the tree item

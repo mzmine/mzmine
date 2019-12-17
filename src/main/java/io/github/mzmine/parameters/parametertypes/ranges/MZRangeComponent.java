@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,16 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.SwingUtilities;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -39,47 +30,26 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import javafx.scene.control.Button;
 
-public class MZRangeComponent extends DoubleRangeComponent implements ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent {
 
-  private static final long serialVersionUID = 1L;
-  private final JButton setAutoButton, fromMassButton, fromFormulaButton;
+  private final Button setAutoButton, fromMassButton, fromFormulaButton;
 
   public MZRangeComponent() {
 
     super(MZmineCore.getConfiguration().getMZFormat());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    setAutoButton = new JButton("Auto range");
-    setAutoButton.addActionListener(this);
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    setAutoButton.setEnabled(currentFiles.length > 0);
-    add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-
-    fromMassButton = new JButton("From mass");
-    fromMassButton.addActionListener(this);
-    add(fromMassButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-
-    fromFormulaButton = new JButton("From formula");
-    fromFormulaButton.addActionListener(this);
-    add(fromFormulaButton, 5, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == setAutoButton) {
+    setAutoButton = new Button("Auto range");
+    setAutoButton.setOnAction(e -> {
       RawDataFile currentFiles[] =
           MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
       ScanSelection scanSelection = new ScanSelection();
 
       try {
-        ParameterSetupDialog setupDialog =
-            (ParameterSetupDialog) SwingUtilities.getWindowAncestor(this);
+        ParameterSetupDialog setupDialog = (ParameterSetupDialog) this.getScene().getWindow();
         RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
             .getComponentForParameter(new RawDataFilesParameter());
         if (rdc != null) {
@@ -91,8 +61,8 @@ public class MZRangeComponent extends DoubleRangeComponent implements ActionList
             .getComponentForParameter(new ScanSelectionParameter());
         if (ssc != null)
           scanSelection = ssc.getValue();
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (Exception ex) {
+        ex.printStackTrace();
       }
 
       Range<Double> mzRange = null;
@@ -110,28 +80,27 @@ public class MZRangeComponent extends DoubleRangeComponent implements ActionList
       }
       if (mzRange != null)
         setValue(mzRange);
-    }
+    });
+    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    setAutoButton.setDisable(currentFiles.length == 0);
+    add(setAutoButton, 3, 0);
 
-    if (src == fromMassButton) {
+    fromMassButton = new Button("From mass");
+    fromMassButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeMassCalculatorModule.showRangeCalculationDialog();
       if (mzRange != null)
         setValue(mzRange);
-    }
+    });
+    add(fromMassButton, 4, 0);
 
-    if (src == fromFormulaButton) {
+    fromFormulaButton = new Button("From formula");
+    fromFormulaButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeFormulaCalculatorModule.showRangeCalculationDialog();
       if (mzRange != null)
         setValue(mzRange);
-    }
+    });
+    add(fromFormulaButton, 5, 0);
 
-  }
-
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    setAutoButton.setEnabled(enabled);
-    fromMassButton.setEnabled(enabled);
-    fromFormulaButton.setEnabled(enabled);
   }
 
 }

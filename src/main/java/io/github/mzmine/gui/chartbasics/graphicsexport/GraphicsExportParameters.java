@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,11 +18,9 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
@@ -33,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import javafx.scene.paint.Color;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
@@ -79,7 +78,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * height is unchecked - use only width for size calculations
-   * 
+   *
    * @return
    */
   public boolean isUseOnlyWidth() {
@@ -92,7 +91,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * height in unit
-   * 
+   *
    * @return
    */
   public double getHeight() {
@@ -101,7 +100,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * width in unit
-   * 
+   *
    * @return
    */
   public double getWidth() {
@@ -110,7 +109,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Pixel size
-   * 
+   *
    * @return
    */
   public Dimension getPixelSize() {
@@ -119,7 +118,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Pixel width
-   * 
+   *
    * @return
    */
   public float getWidthPixel() {
@@ -128,7 +127,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Pixel height
-   * 
+   *
    * @return
    */
   public float getHeightPixel() {
@@ -175,7 +174,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * path/filename.format
-   * 
+   *
    * @return
    */
   public File getFullpath() {
@@ -184,7 +183,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Converts the pixel value to the specified unit
-   * 
+   *
    * @param value as pixel
    */
   public void setWidthPixel(double value) {
@@ -193,7 +192,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Converts the pixel value to the specified unit
-   * 
+   *
    * @param value as pixel
    */
   public void setHeightPixel(double value) {
@@ -203,7 +202,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Converts the pixel value to the specified unit
-   * 
+   *
    * @param value as pixel
    */
   public void setPixelSize(Dimension size) {
@@ -213,7 +212,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   /**
    * Converts the pixel value to the specified unit
-   * 
+   *
    * @param value as pixel
    */
   public void setPixelSize(double w, double h) {

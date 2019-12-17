@@ -114,7 +114,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     String message = "<html>Module Disclaimer:"
         + "<br> If you use this Spectral Deconvolution Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
@@ -124,9 +124,9 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
         + "</html>";
 
     final ADAP3DecompositionV1_5SetupDialog dialog =
-        new ADAP3DecompositionV1_5SetupDialog(parent, valueCheckRequired, this, message);
+        new ADAP3DecompositionV1_5SetupDialog(valueCheckRequired, this, message);
 
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

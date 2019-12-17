@@ -115,10 +115,10 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
     // only enable precursor mz tolerance if precursor mz is used
     OptionalParameterComponent usePreComp =
@@ -129,7 +129,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       mzTolPrecursor.setEnabled(usePreComp.isSelected());
     });
 
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 
@@ -141,6 +141,6 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
     else
       this.getParameter(usePrecursorMZ).setValue(false);
 
-    return this.showSetupDialog(parent, valueCheckRequired);
+    return this.showSetupDialog(valueCheckRequired);
   }
 }

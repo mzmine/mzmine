@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,26 +23,21 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
-
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.components.ComponentCellRenderer;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
+import javafx.embed.swing.SwingNode;
 
-public class ElementsTableComponent extends JPanel implements ActionListener {
-
-  private static final long serialVersionUID = 1L;
+public class ElementsTableComponent extends SwingNode implements ActionListener {
 
   private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
@@ -52,7 +47,8 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
 
   public ElementsTableComponent() {
 
-    super(new BorderLayout());
+    JPanel mainPanel = new JPanel(new BorderLayout());
+
 
     elementsTableModel = new ElementsTableModel();
 
@@ -67,7 +63,7 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
     elementsTable.setPreferredScrollableViewportSize(new Dimension(200, 80));
 
     JScrollPane elementsScroll = new JScrollPane(elementsTable);
-    add(elementsScroll, BorderLayout.CENTER);
+    mainPanel.add(elementsScroll, BorderLayout.CENTER);
 
     // Add buttons
     JPanel buttonsPanel = new JPanel();
@@ -75,20 +71,22 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
     buttonsPanel.setLayout(buttonsPanelLayout);
     addElementButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
     removeElementButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-    add(buttonsPanel, BorderLayout.EAST);
+    mainPanel.add(buttonsPanel, BorderLayout.EAST);
 
-    this.setPreferredSize(new Dimension(300, 100));
+    mainPanel.setPreferredSize(new Dimension(300, 100));
+
+    SwingUtilities.invokeLater(() -> setContent(mainPanel));
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     Object src = event.getSource();
 
     if (src == addElementButton) {
-      JFrame parent = (JFrame) SwingUtilities.getAncestorOfClass(JFrame.class, this);
-      PeriodicTableDialog dialog = new PeriodicTableDialog(parent);
-      dialog.setVisible(true);
+      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
+      dialog.showAndWait();
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;

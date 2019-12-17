@@ -23,10 +23,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
 
 /**
  * A button with a pupup menu of files. Used as last files chooser
@@ -34,65 +35,65 @@ import javax.swing.JPopupMenu;
  * @author Robin Schmid
  *
  */
-public class JLastFilesButton extends JButton implements LastFilesComponent {
-  private static final long serialVersionUID = 1L;
-  private JPopupMenu menu;
+public class LastFilesButton extends Button implements LastFilesComponent {
+
+  private ContextMenu menu;
   private List<File> lastFiles;
   // listens for click on one of the last files
   // consumer decides what to do
   private Consumer<File> changeListener;
 
-  public JLastFilesButton(Consumer<File> changeListener) {
+  public LastFilesButton(Consumer<File> changeListener) {
     this("Last", changeListener);
   }
 
-  public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
+  public LastFilesButton(ImageView icon, Consumer<File> changeListener) {
     this("", icon, changeListener);
   }
 
-  public JLastFilesButton(String text, Icon icon, Consumer<File> changeListener) {
+  public LastFilesButton(String text, ImageView icon, Consumer<File> changeListener) {
     super(text, icon);
     this.changeListener = changeListener;
     init();
   }
 
-  public JLastFilesButton(String text, Consumer<File> changeListener) {
+  public LastFilesButton(String text, Consumer<File> changeListener) {
     super(text);
     this.changeListener = changeListener;
     init();
   }
 
   private void init() {
-    setToolTipText("Load last files");
-    menu = new JPopupMenu();
+    setTooltip(new Tooltip("Load last files"));
+    menu = new ContextMenu();
     lastFiles = new ArrayList<>();
     setLastFiles(lastFiles);
     // show menu on click
-    this.addActionListener(e -> menu.show(this, 0, 0));
+    this.setOnAction(e -> menu.show(this, 0, 0));
   }
 
   @Override
   public void setLastFiles(List<File> lastFiles) {
     this.lastFiles = lastFiles;
 
-    menu.removeAll();
+    menu.getItems().clear();
     if (lastFiles == null || lastFiles.isEmpty()) {
-      setEnabled(false);
+      setDisable(true);
       return;
     }
-    setEnabled(true);
+    setDisable(false);
 
-    lastFiles.stream().map(this::fileToString).forEach(name -> {
-      JMenuItem item = new JMenuItem(name);
-      item.addActionListener(e -> {
-        JMenuItem c = (JMenuItem) e.getSource();
+    lastFiles.stream().forEach(file -> {
+      String name = fileToString(file);
+      MenuItem item = new MenuItem(name);
+      item.setUserData(file);
+      item.setOnAction(e -> {
+        MenuItem c = (MenuItem) e.getSource();
         if (c != null) {
-          int i = menu.getComponentIndex(c);
-          if (i != -1 && i < lastFiles.size())
-            changeListener.accept(lastFiles.get(i));
+          changeListener.accept((File) c.getUserData());
         }
       });
-      menu.add(item);
+      menu.getItems().add(item);
     });
   }
 

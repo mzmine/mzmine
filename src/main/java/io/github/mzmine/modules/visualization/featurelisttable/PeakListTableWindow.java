@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,7 +30,6 @@ import java.awt.event.MouseListener;
 import java.awt.print.PrinterException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,7 +45,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -63,7 +61,7 @@ import io.github.mzmine.util.ExitCode;
 public class PeakListTableWindow extends JFrame implements ActionListener, MouseListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -80,6 +78,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener, Mouse
   private JTextField filterTextComment;
 
   RowFilter<Object, Object> mzFilter = new RowFilter<Object, Object>() {
+    @Override
     public boolean include(Entry<? extends Object, ? extends Object> entry) {
       String mzValue = entry.getStringValue(1);
       if (mzValue.startsWith(filterTextMz.getText())) {
@@ -90,6 +89,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener, Mouse
   };
 
   RowFilter<Object, Object> rtFilter = new RowFilter<Object, Object>() {
+    @Override
     public boolean include(Entry<? extends Object, ? extends Object> entry) {
       String rtValue = entry.getStringValue(2);
       if (rtValue.startsWith(filterTextRt.getText())) {
@@ -222,13 +222,14 @@ public class PeakListTableWindow extends JFrame implements ActionListener, Mouse
   /**
    * Methods for ActionListener interface implementation
    */
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
 
     if (command.equals("PROPERTIES")) {
 
-      ExitCode exitCode = parameters.showSetupDialog(this, true);
+      ExitCode exitCode = parameters.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         int rowHeight = parameters.getParameter(PeakListTableParameters.rowHeight).getValue();
         table.setRowHeight(rowHeight);

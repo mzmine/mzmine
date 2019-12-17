@@ -108,7 +108,7 @@ public class HeatMapParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
@@ -128,8 +128,8 @@ public class HeatMapParameters extends SimpleParameterSet {
       Object newValues[] = values.toArray();
       getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
     }
-    HeatmapSetupDialog dialog = new HeatmapSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    HeatmapSetupDialog dialog = new HeatmapSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

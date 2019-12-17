@@ -75,7 +75,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 
-    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+    if (parameters.showSetupDialog( true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(
           new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));

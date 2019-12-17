@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,17 +22,14 @@ import java.awt.Color;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
-
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.swing.IconUtil;
@@ -43,7 +40,7 @@ import io.github.mzmine.util.swing.IconUtil;
 class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   static final Icon pointsIcon = IconUtil.loadIconFromResources("icons/pointsicon.png");
@@ -74,6 +71,7 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     Object src = e.getSource();

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine 3.
- * 
+ *
  * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -66,7 +66,7 @@ import javafx.util.Duration;
 
 /**
  * This class controls the main window of the application
- * 
+ *
  */
 public class MainWindowController {
 
@@ -238,7 +238,7 @@ public class MainWindowController {
      * Timeline msdkTaskUpdater = new Timeline(); UPDATE_FREQUENCY = 50; // ms
      * msdkTaskUpdater.setCycleCount(Animation.INDEFINITE); msdkTaskUpdater.getKeyFrames() .add(new
      * KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
-     * 
+     *
      * Collection<Task<?>> tasks = tasksView.getTasks(); for (Task<?> task : tasks) { if (task
      * instanceof MZmineTask) { MZmineTask mzmineTask = (MZmineTask) task;
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
@@ -282,7 +282,7 @@ public class MainWindowController {
           MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
       parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
           RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
-      ExitCode exitCode = parameters.showSetupDialog(null, true);
+      ExitCode exitCode = parameters.showSetupDialog(true);
       MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
       if (exitCode == ExitCode.OK)
         module.runModule(project, parameters, new ArrayList<Task>());

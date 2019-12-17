@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -25,7 +25,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -42,7 +41,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-
 import io.github.mzmine.main.MZmineCore;
 import javafx.application.Platform;
 
@@ -53,7 +51,7 @@ public class GUIUtils {
 
   /**
    * Registers a keyboard handler to a given component
-   * 
+   *
    * @param component Component to register the handler to
    * @param stroke Keystroke to activate the handler
    * @param listener ActionListener to handle the key press
@@ -67,7 +65,7 @@ public class GUIUtils {
 
   /**
    * Registers a keyboard handler to a given component
-   * 
+   *
    * @param component Component to register the handler to
    * @param condition see {@link JComponent} and {@link JComponent#WHEN_IN_FOCUSED_WINDOW}
    * @param stroke Keystroke to activate the handler
@@ -80,10 +78,11 @@ public class GUIUtils {
     component.getActionMap().put(actionCommand, new AbstractAction() {
 
       /**
-           * 
+           *
            */
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent event) {
         ActionEvent newEvent =
             new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, actionCommand);
@@ -116,7 +115,7 @@ public class GUIUtils {
 
   /**
    * Add a new menu item to a given menu
-   * 
+   *
    * @param menu Menu to add the item to
    * @param text Menu item text
    * @param listener Menu item's ActionListener or null
@@ -128,7 +127,7 @@ public class GUIUtils {
 
   /**
    * Add a new menu item to a given menu
-   * 
+   *
    * @param menu Menu to add the item to
    * @param text Menu item text
    * @param listener Menu item's ActionListener or null
@@ -142,7 +141,7 @@ public class GUIUtils {
 
   /**
    * Add a new menu item to a given menu
-   * 
+   *
    * @param menu Menu to add the item to
    * @param text Menu item text
    * @param listener Menu item's ActionListener or null
@@ -156,7 +155,7 @@ public class GUIUtils {
 
   /**
    * Add a new menu item to a given menu
-   * 
+   *
    * @param menu Menu to add the item to
    * @param text Menu item text
    * @param listener Menu item's ActionListener or null
@@ -172,7 +171,7 @@ public class GUIUtils {
 
   /**
    * Add a new menu item to a given menu
-   * 
+   *
    * @param menu Menu to add the item to
    * @param text Menu item text
    * @param listener Menu item's ActionListener or null
@@ -200,7 +199,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -214,7 +213,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -229,7 +228,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -245,7 +244,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -273,7 +272,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a JPanel and then add the panel to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -287,7 +286,7 @@ public class GUIUtils {
 
   /**
    * Add a new button to a JPanel and then add the panel to a given component
-   * 
+   *
    * @param component Component to add the button to
    * @param text Button's text or null
    * @param icon Button's icon or null
@@ -311,7 +310,7 @@ public class GUIUtils {
 
   /**
    * Add a new editorpane to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @return Created EditorPane
@@ -324,7 +323,7 @@ public class GUIUtils {
 
   /**
    * Add a new label to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @return Created label
@@ -335,7 +334,7 @@ public class GUIUtils {
 
   /**
    * Add a new label to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @param horizontalAlignment Label's horizontal alignment (e.g. JLabel.LEFT)
@@ -347,7 +346,7 @@ public class GUIUtils {
 
   /**
    * Add a new label to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @param horizontalAlignment Label's horizontal alignment (e.g. JLabel.LEFT)
@@ -361,7 +360,7 @@ public class GUIUtils {
 
   /**
    * Add a new label to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @param icon Label's icon
@@ -381,7 +380,7 @@ public class GUIUtils {
 
   /**
    * Add a new label to a JPanel and then add the panel to a given component
-   * 
+   *
    * @param component Component to add the label to
    * @param text Label's text
    * @return Created label
@@ -394,7 +393,7 @@ public class GUIUtils {
 
   /**
    * Add a separator to a given component
-   * 
+   *
    * @param component Component to add the separator to
    * @return Created separator
    */
@@ -404,7 +403,7 @@ public class GUIUtils {
 
   /**
    * Add a separator to a given component
-   * 
+   *
    * @param component Component to add the separator to
    * @param margin Margin around the separator
    * @return Created separator
@@ -420,7 +419,7 @@ public class GUIUtils {
 
   /**
    * Add a margin to a given component
-   * 
+   *
    * @param component Component to add the margin to
    * @param margin Margin size
    * @return Created border
@@ -433,7 +432,7 @@ public class GUIUtils {
 
   /**
    * Add a margin and border to a given component
-   * 
+   *
    * @param component Component to add the margin to
    * @param margin Margin size
    * @return Created border
@@ -493,9 +492,9 @@ public class GUIUtils {
   }
 
   /**
-   * 
+   *
    * Add a new checkbox to given component
-   * 
+   *
    * @param container Component to add the checkbox to
    * @param text Checkbox' text
    * @param icon Checkbox' icon or null
@@ -523,9 +522,9 @@ public class GUIUtils {
   }
 
   /**
-   * 
+   *
    * Add a new checkbox to given component
-   * 
+   *
    * @param component Component to add the checkbox to
    * @param text Checkbox' text
    * @param icon Checkbox' icon or null
@@ -541,9 +540,9 @@ public class GUIUtils {
   }
 
   /**
-   * 
+   *
    * Add a new checkbox to given component
-   * 
+   *
    * @param component Component to add the checkbox to
    * @param text Checkbox' text
    * @param icon Checkbox' icon or null
@@ -558,9 +557,9 @@ public class GUIUtils {
   }
 
   /**
-   * 
+   *
    * Add a new checkbox to given component
-   * 
+   *
    * @param component Component to add the checkbox to
    * @param text Checkbox' text
    * @param listener Checkbox' listener or null

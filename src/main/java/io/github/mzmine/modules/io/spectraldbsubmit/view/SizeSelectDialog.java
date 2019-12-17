@@ -47,7 +47,7 @@ public class SizeSelectDialog extends JDialog {
     try {
       SizeSelectDialog dialog = new SizeSelectDialog();
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      dialog.setVisible(true);
+      dialog.showAndWait();
     } catch (Exception e) {
       e.printStackTrace();
     }

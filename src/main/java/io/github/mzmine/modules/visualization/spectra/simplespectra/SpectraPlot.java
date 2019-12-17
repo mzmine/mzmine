@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,7 +22,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
 import javax.swing.JFileChooser;
@@ -43,10 +42,9 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
@@ -64,14 +62,10 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 
 /**
- * 
+ *
  */
-public class SpectraPlot extends EChartPanel {
+public class SpectraPlot extends EChartViewer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   private JFreeChart chart;
   private XYPlot plot;
 
@@ -103,7 +97,11 @@ public class SpectraPlot extends EChartPanel {
   DataPointProcessingController controller;
   private boolean processingAllowed;
 
-  public SpectraPlot(ActionListener masterPlot, boolean processingAllowed) {
+  public SpectraPlot() {
+    this(false);
+  }
+
+  public SpectraPlot(boolean processingAllowed) {
 
     super(ChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
@@ -231,9 +229,6 @@ public class SpectraPlot extends EChartPanel {
     setProcessingAllowed(processingAllowed);
   }
 
-  public SpectraPlot(ActionListener masterPlot) {
-    this(masterPlot, false);
-  }
 
   @Override
   public void actionPerformed(final ActionEvent event) {

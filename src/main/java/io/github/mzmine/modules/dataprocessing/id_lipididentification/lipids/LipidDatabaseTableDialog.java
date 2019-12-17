@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -26,7 +26,6 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -46,7 +45,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
@@ -56,21 +54,21 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.ColorCircle;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import net.miginfocom.swing.MigLayout;
 
 /**
  * This class creates a frame with a table that contains all information of the created lipid
  * database, based on the user selected parameters. The database is also presented in two Kendrick
  * plots (CH2 and H as KMD base) for fast interference spotting
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidDatabaseTableDialog extends JFrame {
+public class LipidDatabaseTableDialog extends Stage {
 
-  private static final long serialVersionUID = 1L;
-
-  private JPanel contentPane;
-  private JPanel mainPanel;
+  private final BorderPane mainPanel;
   private JPanel chartPanel;
   private JSplitPane splitPane;
   private JPanel legendPanel;
@@ -87,20 +85,21 @@ public class LipidDatabaseTableDialog extends JFrame {
 
   public LipidDatabaseTableDialog(LipidClasses[] choices) {
     this.selectedLipids = choices;
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setBounds(100, 100, 600, 800);
+    // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    // setBounds(100, 100, 600, 800);
     setTitle("Lipid database");
     // setExtendedState(JFrame.MAXIMIZED_BOTH);
-    contentPane = new JPanel();
-    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));;
+    // contentPane = new JPanel();
+    // contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));;
 
-    mainPanel = new JPanel();
-    mainPanel.setLayout(new BorderLayout());
-    mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-    setContentPane(mainPanel);
+    mainPanel = new BorderPane();
+    // mainPanel.setLayout(new BorderLayout());
+    // mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+    Scene mainScene = new Scene(mainPanel);
+    setScene(mainScene);
+
 
     // add mainPanel to content pane
-    mainPanel.setLayout(new BorderLayout());
 
     // create scrollPane
     scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,

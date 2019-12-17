@@ -80,7 +80,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
 
@@ -97,8 +97,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
     int max = getParameter(maxKovats).getValue();
     getParameter(kovats).setChoices(KovatsIndex.getRange(min, max));
 
-    ParameterSetupDialog dialog = new KovatsIndexExtractionDialog(parent, this);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new KovatsIndexExtractionDialog(this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

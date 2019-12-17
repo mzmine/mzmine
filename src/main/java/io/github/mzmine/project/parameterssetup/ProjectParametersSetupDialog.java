@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -25,7 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
 import java.util.Iterator;
-
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -35,7 +34,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
@@ -49,7 +47,7 @@ import io.github.mzmine.util.ExitCode;
 public class ProjectParametersSetupDialog extends JDialog implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private JPanel panelParameterValues;
@@ -94,6 +92,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
     return exitCode;
   }
 
+  @Override
   public void actionPerformed(ActionEvent actionEvent) {
 
     Object src = actionEvent.getSource();
@@ -146,7 +145,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
 
   /**
    * Adds a new parameter to the table of the dialog (not MZmineProject)
-   * 
+   *
    * @param parameter
    */
   protected void addParameter(UserParameter<?, ?> parameter) {
@@ -162,7 +161,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
 
   /**
    * Removes a parameter from the table
-   * 
+   *
    * @param parameter
    */
   protected void removeParameter(UserParameter<?, ?> parameter) {
@@ -187,7 +186,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
 
   /**
    * Sets value of a parameter in the table (not MZmineProject)
-   * 
+   *
    * @param parameter
    * @param dataFile
    * @param value
@@ -275,12 +274,12 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
         if (parameter instanceof StringParameter) {
           if (value == null)
             value = "";
-          currentProject.setParameterValue(parameter, file, (String) value);
+          currentProject.setParameterValue(parameter, file, value);
         }
         if (parameter instanceof ComboParameter) {
           if (value == null)
             value = "";
-          currentProject.setParameterValue(parameter, file, (String) value);
+          currentProject.setParameterValue(parameter, file, value);
         }
 
       }

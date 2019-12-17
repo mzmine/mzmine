@@ -24,20 +24,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
 import javax.swing.AbstractAction;
-import javax.swing.SwingUtilities;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.AdductsComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
@@ -49,7 +44,7 @@ import io.github.mzmine.util.ExitCode;
 public class AddAdductsAction extends AbstractAction {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -65,29 +60,22 @@ public class AddAdductsAction extends AbstractAction {
   @Override
   public void actionPerformed(final ActionEvent e) {
 
-    // Parent component.
-    final AdductsComponent parent = (AdductsComponent) SwingUtilities
-        .getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
+    // Show dialog.
+    final ParameterSet parameters = new AddAdductParameters();
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-    if (parent != null) {
+      // Create new adduct.
+      final AdductType adduct =
+          new AdductType(parameters.getParameter(AddAdductParameters.NAME).getValue(),
+              parameters.getParameter(AddAdductParameters.MASS_DIFFERENCE).getValue());
 
-      // Show dialog.
-      final ParameterSet parameters = new AddAdductParameters();
-      if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+      // Add to list of choices (if not already present).
+      final Collection<AdductType> choices =
+          new ArrayList<AdductType>(Arrays.asList((AdductType[]) parent.getChoices()));
+      if (!choices.contains(adduct)) {
 
-        // Create new adduct.
-        final AdductType adduct =
-            new AdductType(parameters.getParameter(AddAdductParameters.NAME).getValue(),
-                parameters.getParameter(AddAdductParameters.MASS_DIFFERENCE).getValue());
-
-        // Add to list of choices (if not already present).
-        final Collection<AdductType> choices =
-            new ArrayList<AdductType>(Arrays.asList((AdductType[]) parent.getChoices()));
-        if (!choices.contains(adduct)) {
-
-          choices.add(adduct);
-          parent.setChoices(choices.toArray(new AdductType[choices.size()]));
-        }
+        choices.add(adduct);
+        parent.setChoices(choices.toArray(new AdductType[choices.size()]));
       }
     }
   }

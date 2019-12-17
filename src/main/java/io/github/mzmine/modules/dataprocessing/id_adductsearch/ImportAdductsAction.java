@@ -42,7 +42,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import com.Ostermiller.util.CSVParser;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.AdductsComponent;
 import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 
 /**

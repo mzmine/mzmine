@@ -48,13 +48,13 @@ public class CVParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     PeakList selectedPeakLists[] = getParameter(peakLists).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
       RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
       getParameter(dataFiles).setChoices(plDataFiles);
     }
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return super.showSetupDialog(valueCheckRequired);
   }
 
 }

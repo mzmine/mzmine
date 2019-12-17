@@ -62,7 +62,7 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
         mzTolerance, suffix});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     String message =
         "<html><b>Note:</b> starting with MZmine.39, this module is considered deprecated <br>"
             + "and will be removed in future MZmine versions. Please use the <b>ADAP Chromatogram Builder</b>,<br>"
@@ -70,8 +70,8 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
             + "Contact the developers if you have any questions or concerns.</html>";
 
     ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+        new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
 
   }

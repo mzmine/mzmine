@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,15 +23,11 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
-
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
@@ -110,6 +106,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
     this.addComponentListener(settings);
   }
 
+  @Override
   public void dispose() {
     super.dispose();
     // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
@@ -126,8 +123,8 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
    * @return current cursor position
    */
   public CursorPosition getCursorPosition() {
-    double selectedRT = (double) IDAPlot.getXYPlot().getDomainCrosshairValue();
-    double selectedMZ = (double) IDAPlot.getXYPlot().getRangeCrosshairValue();
+    double selectedRT = IDAPlot.getXYPlot().getDomainCrosshairValue();
+    double selectedMZ = IDAPlot.getXYPlot().getRangeCrosshairValue();
 
     int index = dataset.getIndex(selectedRT, selectedMZ);
 
@@ -144,6 +141,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
   /**
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
@@ -157,7 +155,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(this, IDAPlot.getXYPlot());
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("SHOW_DATA_POINTS")) {
@@ -202,7 +200,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
       parameters[4] = inputColors;
 
       final ParameterSet parametersSearch = new SimpleParameterSet(parameters);
-      ExitCode exitCode = parametersSearch.showSetupDialog(this, true);
+      ExitCode exitCode = parametersSearch.showSetupDialog(true);
 
       if (exitCode != ExitCode.OK)
         return;

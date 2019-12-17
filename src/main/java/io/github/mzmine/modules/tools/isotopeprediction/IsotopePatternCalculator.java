@@ -266,7 +266,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(IsotopePatternCalculator.class);
-    ExitCode exitCode = parameters.showSetupDialog(parent, valueCheckRequired);
+    ExitCode exitCode = parameters.showSetupDialog(valueCheckRequired);
     if (exitCode != ExitCode.OK)
       return null;
 

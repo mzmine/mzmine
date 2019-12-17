@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,12 +22,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.Font;
-
 import javax.annotation.Nonnull;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -38,16 +37,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
-
 import io.github.mzmine.util.GUIUtils;
+import javafx.embed.swing.SwingNode;
 
-public class SQLColumnSettingsComponent extends JPanel implements ActionListener {
+public class SQLColumnSettingsComponent extends SwingNode implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+
   private final JTable columnsTable;
   private final JButton addColumnButton, removeColumnButton;
 
@@ -56,19 +53,22 @@ public class SQLColumnSettingsComponent extends JPanel implements ActionListener
 
   public SQLColumnSettingsComponent() {
 
-    super(new BorderLayout());
+    JPanel mainPanel = new JPanel(new BorderLayout());
 
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+
+
+    mainPanel.setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
     value = new SQLColumnSettings();
 
     // columnsTable = new JTable(value);
     columnsTable = new JTable(value) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
+      @Override
       public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Component c = super.prepareRenderer(renderer, row, column);
         if (!isCellEditable(row, column)) {
@@ -99,7 +99,7 @@ public class SQLColumnSettingsComponent extends JPanel implements ActionListener
     columnsTable.setPreferredScrollableViewportSize(new Dimension(550, 220));
 
     columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
-    columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
+    columnsTable.setFont(new Font(mainPanel.getFont().getName(), Font.PLAIN, 13));
 
     JComboBox<SQLExportDataType> dataTypeCombo =
         new JComboBox<SQLExportDataType>(SQLExportDataType.values());
@@ -123,7 +123,7 @@ public class SQLColumnSettingsComponent extends JPanel implements ActionListener
     });
 
     JScrollPane elementsScroll = new JScrollPane(columnsTable);
-    add(elementsScroll, BorderLayout.CENTER);
+    mainPanel.add(elementsScroll, BorderLayout.CENTER);
 
     // Add buttons
     JPanel buttonsPanel = new JPanel();
@@ -131,10 +131,13 @@ public class SQLColumnSettingsComponent extends JPanel implements ActionListener
     buttonsPanel.setLayout(buttonsPanelLayout);
     addColumnButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
     removeColumnButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-    add(buttonsPanel, BorderLayout.EAST);
+    mainPanel.add(buttonsPanel, BorderLayout.EAST);
+
+    SwingUtilities.invokeLater(() -> setContent(mainPanel));
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     Object src = event.getSource();

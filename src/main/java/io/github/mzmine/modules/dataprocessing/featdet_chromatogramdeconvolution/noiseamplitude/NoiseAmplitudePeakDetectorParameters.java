@@ -49,10 +49,10 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(parent, valueCheckRequired,
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(valueCheckRequired,
         this, NoiseAmplitudePeakDetector.class);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

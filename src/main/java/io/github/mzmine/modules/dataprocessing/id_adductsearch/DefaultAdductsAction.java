@@ -30,8 +30,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 
-import io.github.mzmine.parameters.parametertypes.AdductsComponent;
-
 /**
  * An action to handle resetting the adducts list.
  *

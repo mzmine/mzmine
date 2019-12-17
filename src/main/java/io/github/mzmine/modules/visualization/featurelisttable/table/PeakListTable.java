@@ -185,13 +185,13 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
           if (item != null) {
             if (item.toString() == NEW_IDENTITY) {
               PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(window, peakListRow);
-              dialog.setVisible(true);
+              dialog.showAndWait();
               return;
             }
             if (item.toString() == EDIT_IDENTITY) {
               PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(window, peakListRow,
                   peakListRow.getPreferredPeakIdentity());
-              dialog.setVisible(true);
+              dialog.showAndWait();
               return;
             }
             if (item.toString() == REMOVE_IDENTITY) {

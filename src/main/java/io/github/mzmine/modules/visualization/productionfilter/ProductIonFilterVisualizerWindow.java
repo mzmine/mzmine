@@ -158,7 +158,7 @@ public class ProductIonFilterVisualizerWindow extends JFrame implements ActionLi
 
     if (command.equals("HIGHLIGHT")) {
       JDialog dialog = new ProductIonFilterSetHighlightDialog(ProductIonFilterPlot, command);
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
 
     if (command.equals("SHOW_SPECTRUM")) {

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -35,7 +35,6 @@ import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportDialog;
@@ -56,12 +55,12 @@ import javafx.scene.control.MenuItem;
 /**
  * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
  * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public class EChartViewer extends ChartViewer {
-  private static final long serialVersionUID = 1L;
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   // one history for each plot/subplot
@@ -78,7 +77,7 @@ public class EChartViewer extends ChartViewer {
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false <br>
    * Graphics and data export menu are added
-   * 
+   *
    * @param chart
    */
   public EChartViewer(JFreeChart chart) {
@@ -88,7 +87,7 @@ public class EChartViewer extends ChartViewer {
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
    * stickyZeroForRangeAxis = false
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param standardGestures adds the standard ChartGestureHandlers
@@ -101,7 +100,7 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param dataExportMenu adds data export menu
@@ -115,7 +114,7 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
-   * 
+   *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param dataExportMenu adds data export menu
@@ -278,7 +277,7 @@ public class EChartViewer extends ChartViewer {
    * Default tries to extract all series from an XYDataset or XYZDataset<br>
    * series 1 | Series 2 <br>
    * x y x y x y z x y z
-   * 
+   *
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
@@ -409,11 +408,11 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Returns the {@link ChartGestureMouseAdapter} alternatively for other ChartPanel classes use:
-   * 
+   *
    * <pre>
    * this.getCanvas().addAuxiliaryMouseHandler(handler);
    * </pre>
-   * 
+   *
    * @return
    */
   public ChartGestureMouseAdapterFX getGestureAdapter() {

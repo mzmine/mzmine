@@ -49,10 +49,10 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     final PeakResolverSetupDialog dialog =
-        new PeakResolverSetupDialog(parent, valueCheckRequired, this, BaselinePeakDetector.class);
-    dialog.setVisible(true);
+        new PeakResolverSetupDialog(valueCheckRequired, this, BaselinePeakDetector.class);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

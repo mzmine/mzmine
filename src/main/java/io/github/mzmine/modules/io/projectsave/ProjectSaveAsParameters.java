@@ -43,7 +43,7 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
     final File currentProjectFile =
         MZmineCore.getProjectManager().getCurrentProject().getProjectFile();

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,19 +19,16 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package io.github.mzmine.modules.io.gnpsexport.gc;
-
-import java.awt.Window;
-import javax.swing.JButton;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -51,10 +48,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.Button;
 
 /**
  * GC-GNPS
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
@@ -98,23 +96,23 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     // add button to create Kovats file
     FileNameComponent pn = (FileNameComponent) ((OptionalParameterComponent) dialog
         .getComponentForParameter(KOVATS_FILE)).getEmbeddedComponent();
-    JButton btn = new JButton("Create");
-    pn.add(btn);
-    btn.addActionListener(e -> openKovatsDialog(pn));
+    Button btn = new Button("Create");
+    pn.getChildren().add(btn);
+    btn.setOnAction(e -> openKovatsDialog(pn));
 
-    dialog.updateMinimumSize();
-    dialog.setVisible(true);
+    // dialog.updateMinimumSize();
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 
   /**
    * OPen Kovats creation dialog, save file and retrieve file
-   * 
+   *
    * @param pn
    */
   private void openKovatsDialog(FileNameComponent pn) {
@@ -131,6 +129,6 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
         MZmineCore.getConfiguration().getModuleParameters(KovatsIndexExtractionModule.class);
     KovatsIndexExtractionDialog kd =
         new KovatsIndexExtractionDialog(null, param, savedFile -> pn.setValue(savedFile));
-    kd.setVisible(true);
+    kd.show();
   }
 }

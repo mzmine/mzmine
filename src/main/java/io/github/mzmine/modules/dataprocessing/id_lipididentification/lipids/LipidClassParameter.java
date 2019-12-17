@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
 import java.util.ArrayList;
 import java.util.Collection;

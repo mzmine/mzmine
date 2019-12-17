@@ -74,7 +74,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
 
     PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
@@ -82,7 +82,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
       Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
     }
 
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return super.showSetupDialog(valueCheckRequired);
   }
 
 }

@@ -1,49 +1,45 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
-package io.github.mzmine.gui.framework.fontspecs;
+package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Font;
-import javax.swing.JComboBox;
+import javax.annotation.concurrent.Immutable;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
-public class JFontStyleBox extends JComboBox<Object> {
+@Immutable
+public class FontSpecs {
 
-  private enum Style {
-    PLAIN, BOLD, ITALIC, BOLDITALIC
+  private final Color color;
+  private final Font font;
+
+  public FontSpecs(Color color, Font font) {
+    super();
+    this.color = color;
+    this.font = font;
   }
 
-  public JFontStyleBox() {
-    super(Style.values());
-    setSelectedIndex(0);
+  public Color getColor() {
+    return color;
   }
 
-  public int getSelectedStyle() {
-    switch ((Style) getSelectedItem()) {
-      case PLAIN:
-        return Font.PLAIN;
-      case BOLD:
-        return Font.BOLD;
-      case ITALIC:
-        return Font.ITALIC;
-      case BOLDITALIC:
-        return Font.BOLD + Font.ITALIC;
-    }
-    return Font.PLAIN;
+  public Font getFont() {
+    return font;
   }
 
 }

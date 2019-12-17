@@ -64,7 +64,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.JLastFilesButton;
+import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
@@ -111,7 +111,7 @@ public class BatchSetupComponent extends JPanel
   // File chooser.
   private LoadSaveFileChooser chooser;
 
-  private JLastFilesButton btnLoadLastFiles;
+  private LastFilesButton btnLoadLastFiles;
 
   /**
    * Create the component.
@@ -169,7 +169,7 @@ public class BatchSetupComponent extends JPanel
     final JPanel panelTop = new JPanel();
     panelTop.setLayout(new BoxLayout(panelTop, BoxLayout.X_AXIS));
     // button to load one of the last used files
-    btnLoadLastFiles = new JLastFilesButton("Load last...", file -> {
+    btnLoadLastFiles = new LastFilesButton("Load last...", file -> {
       try {
         loadBatchSteps(file);
       } catch (ParserConfigurationException | IOException | SAXException e) {
@@ -247,7 +247,7 @@ public class BatchSetupComponent extends JPanel
         // Configure parameters
         if (stepParams.getParameters().length > 0) {
           Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-          ExitCode exitCode = stepParams.showSetupDialog(parent, false);
+          ExitCode exitCode = stepParams.showSetupDialog(false);
           if (exitCode != ExitCode.OK)
             return;
         }
@@ -292,7 +292,7 @@ public class BatchSetupComponent extends JPanel
       final ParameterSet parameters = selected == null ? null : selected.getParameterSet();
       if (parameters != null) {
         Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-        parameters.showSetupDialog(parent, false);
+        parameters.showSetupDialog(false);
       }
     }
 

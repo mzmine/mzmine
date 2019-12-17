@@ -100,18 +100,18 @@ public class JColorPickerButton extends JButton {
       };
 
       if (dialog == null)
-        dialog = JColorChooser.createDialog(parent, // parent comp
+        dialog = JColorChooser.createDialog(// parent comp
             "Pick A Color", // dialog title
             false, // modality
             chooser, okListener, cancelListener);
 
-      dialog.setVisible(true);
+      dialog.showAndWait();
       //
     } catch (Exception ex) {
       ex.printStackTrace();
     }
     if (dialog != null) {
-      dialog.setVisible(true);
+      dialog.showAndWait();
     }
   }
 

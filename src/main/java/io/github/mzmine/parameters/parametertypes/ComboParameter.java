@@ -20,17 +20,15 @@ package io.github.mzmine.parameters.parametertypes;
 
 import java.util.Arrays;
 import java.util.Collection;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.control.ComboBox;
 
 /**
  * Combo Parameter implementation
  * 
  */
-public class ComboParameter<ValueType>
-    implements UserParameter<ValueType, ComboComponent<ValueType>> {
+public class ComboParameter<ValueType> implements UserParameter<ValueType, ComboBox<ValueType>> {
 
   private String name, description;
   private ValueType choices[], value;
@@ -56,8 +54,11 @@ public class ComboParameter<ValueType>
   }
 
   @Override
-  public ComboComponent<ValueType> createEditingComponent() {
-    ComboComponent<ValueType> comboComponent = new ComboComponent<ValueType>(choices);
+  public ComboBox<ValueType> createEditingComponent() {
+    ComboBox<ValueType> comboComponent = new ComboBox<ValueType>();
+    for (ValueType choice : choices) {
+      comboComponent.getItems().add(choice);
+    }
     return comboComponent;
   }
 
@@ -87,8 +88,8 @@ public class ComboParameter<ValueType>
   }
 
   @Override
-  public void setValueFromComponent(ComboComponent<ValueType> component) {
-    Object selectedItem = component.getSelectedItem();
+  public void setValueFromComponent(ComboBox<ValueType> component) {
+    ValueType selectedItem = component.getSelectionModel().getSelectedItem();
     if (selectedItem == null) {
       value = null;
       return;
@@ -97,7 +98,7 @@ public class ComboParameter<ValueType>
       throw new IllegalArgumentException(
           "Invalid value for parameter " + name + ": " + selectedItem);
     }
-    int index = component.getSelectedIndex();
+    int index = component.getSelectionModel().getSelectedIndex();
     if (index < 0)
       return;
 
@@ -105,8 +106,8 @@ public class ComboParameter<ValueType>
   }
 
   @Override
-  public void setValueToComponent(ComboComponent<ValueType> component, ValueType newValue) {
-    component.setSelectedItem(newValue);
+  public void setValueToComponent(ComboBox<ValueType> component, ValueType newValue) {
+    component.getSelectionModel().select(newValue);
   }
 
   @Override

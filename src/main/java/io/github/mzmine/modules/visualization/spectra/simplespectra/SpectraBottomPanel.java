@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,32 +18,29 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.GUIUtils;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 
 /**
  * Spectra visualizer's bottom panel
  */
-class SpectraBottomPanel extends JPanel implements TreeModelListener {
+class SpectraBottomPanel extends BorderPane implements TreeModelListener {
 
   private static final long serialVersionUID = 1L;
 
@@ -55,11 +52,11 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
   public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-  private JPanel topPanel, bottomPanel;
-  private JComboBox<String> msmsSelector;
-  private JComboBox<PeakList> peakListSelector;
-  private JCheckBox processingCbx;
-  private JButton processingParametersBtn;
+  private FlowPane topPanel, bottomPanel;
+  private ComboBox<String> msmsSelector;
+  private ComboBox<PeakList> peakListSelector;
+  private CheckBox processingCbx;
+  private Button processingParametersBtn;
 
   private RawDataFile dataFile;
   private SpectraVisualizerWindow masterFrame;
@@ -72,31 +69,31 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
   SpectraBottomPanel(SpectraVisualizerWindow masterFrame, RawDataFile dataFile) {
 
-    super(new BorderLayout());
+    // super(new BorderLayout());
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;
 
-    setBackground(Color.white);
+    // setBackground(Color.white);
 
-    topPanel = new JPanel();
-    topPanel.setBackground(Color.white);
-    topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-    add(topPanel, BorderLayout.CENTER);
+    topPanel = new FlowPane();
+    // topPanel.setBackground(Color.white);
+    // topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+    setCenter(topPanel);
 
-    topPanel.add(Box.createHorizontalStrut(10));
+    // topPanel.add(Box.createHorizontalStrut(10));
 
-    JButton prevScanBtn =
-        GUIUtils.addButton(topPanel, leftArrow, null, masterFrame, "PREVIOUS_SCAN");
-    prevScanBtn.setBackground(Color.white);
-    prevScanBtn.setFont(smallFont);
+    Button prevScanBtn = new Button(leftArrow);
+    // prevScanBtn.setBackground(Color.white);
+    // prevScanBtn.setFont(smallFont);
 
-    topPanel.add(Box.createHorizontalGlue());
+    // topPanel.add(Box.createHorizontalGlue());
 
     GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
 
-    peakListSelector = new JComboBox<PeakList>();
-    peakListSelector.setBackground(Color.white);
-    peakListSelector.setFont(smallFont);
+    peakListSelector =
+        new ComboBox<PeakList>(MZmineCore.getProjectManager().getCurrentProject().featureLists());
+    // peakListSelector.setBackground(Color.white);
+    // peakListSelector.setFont(smallFont);
     peakListSelector.addActionListener(masterFrame);
     peakListSelector.setActionCommand("PEAKLIST_CHANGE");
     topPanel.add(peakListSelector);
@@ -121,10 +118,10 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
     topPanel.add(Box.createHorizontalStrut(10));
 
-    bottomPanel = new JPanel();
-    bottomPanel.setBackground(Color.white);
-    bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-    add(bottomPanel, BorderLayout.SOUTH);
+    bottomPanel = new FlowPane();
+    // bottomPanel.setBackground(Color.white);
+    // bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+    setBottom(bottomPanel);
 
     bottomPanel.add(Box.createHorizontalGlue());
 
@@ -135,11 +132,11 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     msmsSelector.setFont(smallFont);
     bottomPanel.add(msmsSelector);
 
-    JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null, masterFrame, "SHOW_MSMS");
-    showButton.setBackground(Color.white);
+    Button showButton = GUIUtils.addButton(bottomPanel, "Show", null, masterFrame, "SHOW_MSMS");
+    // showButton.setBackground(Color.white);
     showButton.setFont(smallFont);
 
-    bottomPanel.add(Box.createHorizontalGlue());
+    // bottomPanel.add(Box.createHorizontalGlue());
 
   }
 
@@ -159,77 +156,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     return selectedPeakList;
   }
 
-  /**
-   * Reloads feature lists from the project to the selector combo box
-   */
-  void rebuildPeakListSelector() {
 
-    // Refresh every REDRAW_INTERVAL ms.
-    if (System.currentTimeMillis() - lastRebuildTime < REDRAW_INTERVAL)
-      return;
-
-    logger.finest("Rebuilding the feature list selector");
-
-    PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-    PeakList currentPeakLists[] =
-        MZmineCore.getProjectManager().getCurrentProject().getPeakLists(dataFile);
-    peakListSelector.setEnabled(false);
-    peakListSelector.removeActionListener(masterFrame);
-    peakListSelector.removeAllItems();
-
-    // Add all feature lists in reverse order (last added feature list will
-    // be
-    // first)
-    for (int i = currentPeakLists.length - 1; i >= 0; i--) {
-      peakListSelector.addItem(currentPeakLists[i]);
-    }
-
-    // If there is any feature list, make a selection
-    if (currentPeakLists.length > 0) {
-      peakListSelector.setEnabled(true);
-      peakListSelector.addActionListener(masterFrame);
-      if (selectedPeakList != null)
-        peakListSelector.setSelectedItem(selectedPeakList);
-      else
-        peakListSelector.setSelectedIndex(0);
-    }
-
-    // Update last rebuild time
-    lastRebuildTime = System.currentTimeMillis();
-
-  }
-
-  @Override
-  public void treeNodesChanged(TreeModelEvent event) {
-    DefaultMutableTreeNode node =
-        (DefaultMutableTreeNode) event.getTreePath().getLastPathComponent();
-    if (node.getUserObject() instanceof PeakList)
-      rebuildPeakListSelector();
-  }
-
-  @Override
-  public void treeNodesInserted(TreeModelEvent event) {
-    DefaultMutableTreeNode node =
-        (DefaultMutableTreeNode) event.getTreePath().getLastPathComponent();
-    if (node.getUserObject() instanceof PeakList)
-      rebuildPeakListSelector();
-  }
-
-  @Override
-  public void treeNodesRemoved(TreeModelEvent event) {
-    DefaultMutableTreeNode node =
-        (DefaultMutableTreeNode) event.getTreePath().getLastPathComponent();
-    if (node.getUserObject() instanceof PeakList)
-      rebuildPeakListSelector();
-  }
-
-  @Override
-  public void treeStructureChanged(TreeModelEvent event) {
-    DefaultMutableTreeNode node =
-        (DefaultMutableTreeNode) event.getTreePath().getLastPathComponent();
-    if (node.getUserObject() instanceof PeakList)
-      rebuildPeakListSelector();
-  }
 
   public void updateProcessingCheckbox() {
     processingCbx.setSelected(DataPointProcessingManager.getInst().isEnabled());

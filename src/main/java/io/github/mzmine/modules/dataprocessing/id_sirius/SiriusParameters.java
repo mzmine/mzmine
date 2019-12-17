@@ -18,13 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import java.awt.Window;
 import java.io.IOException;
-
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements.ElementsParameter;
 import io.github.mzmine.parameters.Parameter;
@@ -53,7 +50,8 @@ public abstract class SiriusParameters extends SimpleParameterSet {
   /**
    * Disclaimer message about boecker-labs
    */
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:"
         + "<br>    - Identification task consists of two parts:"
         + "<br>      1) Sirius Identification job, the timer you specify above controls the execution of this job. "
@@ -63,9 +61,8 @@ public abstract class SiriusParameters extends SimpleParameterSet {
         + "and <a href=\"https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8\">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>"
         + "<br>    - Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>"
         + "<br>    - Sirius results can be mapped into <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular networks. <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a>.";
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 
@@ -79,7 +76,7 @@ public abstract class SiriusParameters extends SimpleParameterSet {
 
   /**
    * Create default table of elements The table is used later to calculate FormulaConstraints
-   * 
+   *
    * @return
    */
   private static MolecularFormulaRange createDefaultElements() {

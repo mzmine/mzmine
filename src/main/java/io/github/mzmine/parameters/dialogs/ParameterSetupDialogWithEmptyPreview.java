@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,6 +30,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import io.github.mzmine.parameters.ParameterSet;
+import javafx.scene.layout.BorderPane;
 
 /**
  * You can extend this class to create your own setup dialog containing a preview. All you need to
@@ -37,27 +38,25 @@ import io.github.mzmine.parameters.ParameterSet;
  * and then add your preview (e.g. a chart) to pnlPreview via the .add-method to
  * BorderLayout.CENTER. If you need extra buttons you can add them to pnlPreviewButtons, which is a
  * panel south of the preview and formatted by a flow layout.
- * 
+ *
  * Please note the mainPanel of ParameterSetupDialog is not the main panel anymore, but newMainPanel
  * is. The old mainPanel is moved inside a JScrollPane to allow users with low resolution to set the
  * parameters properly.
- * 
+ *
  * TODO: COPY actionPerformed METHOD TO YOUR SUBCLASS AND UNCOMMENT THE LINES TO SHOW PREVIEW DEFINE
  * cmpPreview AS WELL. THIS IS PRECODED FOR A CHECKBOX!
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class ParameterSetupDialogWithEmptyPreview extends ParameterSetupDialog {
 
-  private static final long serialVersionUID = 1L;
-
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   // panels
-  protected JScrollPane pnScroll; // this will contain the parameter panel
-  protected JPanel pnlPreview; // this will contain the preview and navigation
-                               // panels
+  protected ScrollPane pnScroll; // this will contain the parameter panel
+  protected BorderPane pnlPreview; // this will contain the preview and navigation
+  // panels
   protected JPanel pnlPreviewButtons; // this will contain the navigation
                                       // buttons for the preview
   protected JPanel newMainPanel; // this will be the new main panel
@@ -65,17 +64,13 @@ public class ParameterSetupDialogWithEmptyPreview extends ParameterSetupDialog {
                                   // module (the main panel
   // will be inserted here)
 
-  public ParameterSetupDialogWithEmptyPreview(Window parent, boolean valueCheckRequired,
+  public ParameterSetupDialogWithEmptyPreview(boolean valueCheckRequired,
       ParameterSet parameters) {
-    super(parent, valueCheckRequired, parameters);
-  }
 
-  @Override
-  protected void addDialogComponents() {
-    super.addDialogComponents();
+    super(valueCheckRequired, parameters);
 
     // initialize panels
-    pnlPreview = new JPanel(new BorderLayout());
+    pnlPreview = new BorderPane());
     pnlPreviewButtons = new JPanel(new FlowLayout());
     pnlParameters = new JPanel(new BorderLayout());
     newMainPanel = new JPanel(new BorderLayout());
@@ -96,13 +91,8 @@ public class ParameterSetupDialogWithEmptyPreview extends ParameterSetupDialog {
 
     pnlPreview.setVisible(false);
 
-    // later add your preview via pnlPreview.add(YOUR_PANEL,
-    // BorderLayout.CENTER);
-    // and your buttons to control the preview via
-    // pnlPreviewButtons.add(YOUR_BUTTON);
-    updateMinimumSize();
-    pack();
   }
+
 
   // TODO: COPY THIS METHOD TO YOUR SUBCLASS AND UNCOMMENT THE LINES TO SHOW
   // PREVIEW
@@ -112,7 +102,7 @@ public class ParameterSetupDialogWithEmptyPreview extends ParameterSetupDialog {
     super.actionPerformed(ae);
     /*
      * if (ae.getSource() == cmpPreview) { logger.info(ae.getSource().toString());
-     * 
+     *
      * if (cmpPreview.isSelected()) { newMainPanel.add(pnlPreview, BorderLayout.CENTER);
      * pnlPreview.setVisible(true); updateMinimumSize(); pack(); } else {
      * newMainPanel.remove(pnlPreview); pnlPreview.setVisible(false); updateMinimumSize(); pack(); }

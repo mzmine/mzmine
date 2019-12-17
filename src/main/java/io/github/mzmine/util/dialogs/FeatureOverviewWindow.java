@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -31,7 +31,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -43,7 +42,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
  * Window to show an overview of a feature displayed in a plot
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class FeatureOverviewWindow extends JFrame {
@@ -124,7 +123,7 @@ public class FeatureOverviewWindow extends JFrame {
         row.getPeaks(), // selected features
         labelsMap); // labels
 
-    pane.add(window.getTICPlot());
+    // pane.add(window.getTICPlot());
     pane.add(window.getToolBar());
     pane.setResizeWeight(1);
     pane.setDividerSize(1);
@@ -163,7 +162,7 @@ public class FeatureOverviewWindow extends JFrame {
     SpectraVisualizerWindow spectraWindowMS1 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS1.loadRawData(rawFiles[0].getScan(feature.getRepresentativeScanNumber()));
 
-    pane.add(spectraWindowMS1.getSpectrumPlot());
+    // pane.add(spectraWindowMS1.getSpectrumPlot());
     pane.add(spectraWindowMS1.getToolBar());
     pane.setResizeWeight(1);
     pane.setEnabled(false);
@@ -176,7 +175,7 @@ public class FeatureOverviewWindow extends JFrame {
     SpectraVisualizerWindow spectraWindowMS2 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS2.loadRawData(rawFiles[0].getScan(feature.getMostIntenseFragmentScanNumber()));
 
-    pane.add(spectraWindowMS2.getSpectrumPlot());
+    // pane.add(spectraWindowMS2.getSpectrumPlot());
     pane.add(spectraWindowMS2.getToolBar());
     pane.setResizeWeight(1);
     pane.setEnabled(false);

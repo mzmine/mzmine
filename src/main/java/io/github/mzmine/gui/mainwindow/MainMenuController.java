@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine 3.
- * 
+ *
  * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
@@ -43,7 +42,7 @@ import javafx.stage.Window;
 
 /**
  * The controller class for MainMenu.fxml
- * 
+ *
  */
 public class MainMenuController {
 
@@ -153,15 +152,13 @@ public class MainMenuController {
 
     logger.info("Setting parameters for module " + module.getName());
 
-    SwingUtilities.invokeLater(() -> {
-      ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
-      if (exitCode != ExitCode.OK)
-        return;
+    ExitCode exitCode = moduleParameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK)
+      return;
 
-      ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-      logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
-      MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
-    });
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
   }
 
   public void fillRecentProjects(Event event) {

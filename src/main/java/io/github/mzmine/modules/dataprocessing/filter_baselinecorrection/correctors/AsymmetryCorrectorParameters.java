@@ -51,10 +51,10 @@ public class AsymmetryCorrectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {SMOOTHING, ASYMMETRY});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog( boolean valueCheckRequired) {
     BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(parent,
         valueCheckRequired, this, AsymmetryCorrector.class);
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }
