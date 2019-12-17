@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -134,7 +134,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
       int selectedColumn = tableParameterValues.getSelectedColumn();
       UserParameter<?, ?> parameter = tablemodelParameterValues.getParameter(selectedColumn);
       if (parameter == null) {
-        desktop.displayErrorMessage(null, "Select a parameter column from the table first.");
+        desktop.displayErrorMessage("Select a parameter column from the table first.");
         return;
       }
 
@@ -225,7 +225,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
             try {
               Double.parseDouble((String) objValue);
             } catch (NumberFormatException ex) {
-              desktop.displayErrorMessage(null,
+              desktop.displayErrorMessage(
                   "Incorrect value (" + objValue + ") for parameter " + parameter.getName()
                       + " in data file " + dataFiles[dataFileIndex].getName() + ".");
               return false;

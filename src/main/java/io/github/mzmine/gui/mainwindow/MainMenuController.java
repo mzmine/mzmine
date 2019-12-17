@@ -137,14 +137,14 @@ public class MainMenuController {
     try {
       moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
     } catch (Exception e) {
-      MZmineGUI.displayMessage("Cannot load module class " + moduleClass);
+      MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
       return;
     }
 
     MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
 
     if (module == null) {
-      MZmineGUI.displayMessage("Cannot find module of class " + moduleClass);
+      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
       return;
     }
 

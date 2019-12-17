@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -18,12 +18,12 @@
 
 package io.github.mzmine.gui;
 
-import java.awt.Color;
+
 import java.net.URL;
 import java.util.logging.Logger;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.InetUtils;
+import javafx.scene.paint.Color;
 
 public class NewVersionCheck implements Runnable {
 
@@ -68,22 +68,22 @@ public class NewVersionCheck implements Runnable {
         final String msg =
             "An error occured. Please make sure that you are connected to the internet or try again later.";
         logger.info(msg);
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg);
+        desktop.displayMessage(msg);
       }
     } else if (currentVersion.equals(newestVersion) || currentVersion.equals("0.0")) {
       if (checkType.equals(CheckType.MENU)) {
         final String msg = "No updated version of MZmine is available.";
         logger.info(msg);
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg);
+        desktop.displayMessage(msg);
       }
     } else {
       final String msg = "An updated version is available: MZmine " + newestVersion;
       final String msg2 = "Please download the newest version from: http://mzmine.github.io";
       logger.info(msg);
       if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(), msg + "\n" + msg2);
+        desktop.displayMessage(msg + "\n" + msg2);
       } else if (checkType.equals(CheckType.DESKTOP)) {
-        desktop.setStatusBarText(msg + ". " + msg2, Color.red);
+        desktop.setStatusBarText(msg + ". " + msg2, Color.RED);
       }
     }
   }

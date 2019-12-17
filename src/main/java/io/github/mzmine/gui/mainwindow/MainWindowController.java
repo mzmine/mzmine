@@ -210,7 +210,6 @@ public class MainWindowController {
       }
     });
 
-    statusBar.setText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
 
     /*
      * tasksView.setGraphicFactory(task -> { return new Glyph("FontAwesome",
@@ -356,9 +355,9 @@ public class MainWindowController {
 
   @FXML
   public void handleMemoryBarClick(Event e) {
-    // Run garbage collector on a new thread, so it does not block the GUI
+    // Run garbage collector on a new thread, so it doesn't block the GUI
     new Thread(() -> {
-      logger.info("Running garbage collector...");
+      logger.info("Freeing unused memory");
       System.gc();
     }).start();
   }

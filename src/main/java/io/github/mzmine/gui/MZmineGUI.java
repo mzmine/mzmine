@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui;
 
-import java.awt.Color;
+
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +41,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -55,6 +56,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
@@ -115,6 +117,8 @@ public class MZmineGUI extends Application implements Desktop {
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
+    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
+
     stage.show();
 
     // update the size and position of the main window
@@ -166,7 +170,7 @@ public class MZmineGUI extends Application implements Desktop {
       if ((result.isPresent()) && (result.get() == ButtonType.OK)) {
         // Quit the JavaFX thread
         Platform.exit();
-        // Call System.exit() cause there are probably some background
+        // Call System.exit() because there are probably some background
         // threads still running
         System.exit(0);
       }
@@ -195,7 +199,7 @@ public class MZmineGUI extends Application implements Desktop {
         ProjectManager projectManager = MZmineCore.getProjectManager();
         projectManager.setCurrentProject(newProject);
 
-        MZmineGUI.setStatusBarMessage("Project space cleaned");
+        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
 
         // Ask the garbage collector to free the previously used memory
         System.gc();
@@ -203,29 +207,7 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-  public static void displayMessage(String msg) {
-    Platform.runLater(() -> {
-      Dialog<ButtonType> dialog = new Dialog<>();
-      Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
-      stage.getIcons().add(mzMineIcon);
-      dialog.setTitle("Warning");
-      dialog.setContentText(msg);
-      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-      dialog.showAndWait();
-    });
-  }
 
-  public static void setStatusBarMessage(String message) {
-    Platform.runLater(() -> {
-      System.out.println("logging msg " + message);
-      StatusBar statusBar = mainWindowController.getStatusBar();
-      statusBar.setText(message);
-    });
-  }
-
-  public static MainWindowController getMainWindowController() {
-    return mainWindowController;
-  }
 
   public static void addWindow(Node node, String title) {
 
@@ -322,7 +304,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(String message) {
-    setStatusBarText(message, Color.black);
+    setStatusBarText(message, Color.BLACK);
   }
 
   @Override
@@ -334,33 +316,36 @@ public class MZmineGUI extends Application implements Desktop {
       if (statusBar == null)
         return;
       statusBar.setText(message);
+      statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
     });
   }
 
   @Override
-  public void displayMessage(Stage window, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayMessage(String msg) {
+    displayMessage("Message", msg);
   }
 
   @Override
-  public void displayMessage(Stage window, String title, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayMessage(String title, String msg) {
+    Platform.runLater(() -> {
+      Dialog<ButtonType> dialog = new Dialog<>();
+      Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+      stage.getIcons().add(mzMineIcon);
+      dialog.setTitle(title);
+      dialog.setContentText(msg);
+      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+      dialog.showAndWait();
+    });
   }
 
   @Override
-  public void displayErrorMessage(Stage window, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayErrorMessage(String msg) {
+    displayMessage("Error", msg);
   }
 
   @Override
-  public void displayErrorMessage(Stage window, String title, String msg) {
-    MZmineGUI.displayMessage(msg);
-
-  }
-
-  @Override
-  public void displayException(Stage window, Exception e) {
-    MZmineGUI.displayMessage(e.toString());
+  public void displayException(Exception e) {
+    displayErrorMessage(e.toString());
   }
 
   @Override
