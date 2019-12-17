@@ -51,27 +51,23 @@ public class HeadLessDesktop implements Desktop {
   public void setStatusBarText(String text, Color textColor) {}
 
   @Override
-  public void displayMessage(Stage window, String msg) {
+  public void displayMessage(String msg) {
     logger.info(msg);
   }
 
   @Override
-  public void displayMessage(Stage window, String title, String msg) {
+  public void displayMessage(String title, String msg) {
     logger.info(msg);
   }
 
   @Override
-  public void displayErrorMessage(Stage window, String msg) {
+  public void displayErrorMessage(String msg) {
     logger.severe(msg);
   }
 
-  @Override
-  public void displayErrorMessage(Stage window, String title, String msg) {
-    logger.severe(msg);
-  }
 
   @Override
-  public void displayException(Stage window, Exception e) {
+  public void displayException(Exception e) {
     logger.log(Level.SEVERE, e.toString(), e);
     e.printStackTrace();
   }

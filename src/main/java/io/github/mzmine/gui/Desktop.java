@@ -62,7 +62,7 @@ public interface Desktop extends MZmineModule {
    * 
    * @param msg Text to show
    */
-  public void displayMessage(Stage window, String msg);
+  public void displayMessage(String msg);
 
   /**
    * Displays a message box with a given text
@@ -70,28 +70,20 @@ public interface Desktop extends MZmineModule {
    * @param title Message box title
    * @param msg Text to show
    */
-  public void displayMessage(Stage window, String title, String msg);
+  public void displayMessage(String title, String msg);
 
   /**
    * Displays an error message box with a given text
    * 
    * @param msg Text to show
    */
-  public void displayErrorMessage(Stage window, String msg);
-
-  /**
-   * Displays an error message box with a given text
-   * 
-   * @param title Message box title
-   * @param msg Text to show
-   */
-  public void displayErrorMessage(Stage window, String title, String msg);
+  public void displayErrorMessage(String msg);
 
   /**
    * Displays an error message
    *
    */
-  public void displayException(Stage window, Exception e);
+  public void displayException(Exception e);
 
   /**
    * Returns array of currently selected raw data files in GUI

@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -142,8 +142,7 @@ public class ProjectParametersImporter {
         if (parameterValues.containsKey(paramName)) {
           logger.severe(
               "Did not import parameters because of a non-unique parameter name: " + paramName);
-          desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-              "Could not open file " + parameterFile);
+          desktop.displayErrorMessage("Could not open file " + parameterFile);
           parameterFileReader.close();
           return null;
         }
@@ -167,8 +166,7 @@ public class ProjectParametersImporter {
 
           if (st.hasMoreTokens() ^ parameterNameIterator.hasNext()) {
             logger.severe("Incorrect number of parameter values on row " + rowNumber);
-            desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-                "Incorrect number of parameter values on row " + rowNumber);
+            desktop.displayErrorMessage("Incorrect number of parameter values on row " + rowNumber);
             parameterFileReader.close();
             return null;
           }
@@ -227,8 +225,7 @@ public class ProjectParametersImporter {
 
     } catch (IOException ex) {
       logger.severe("Could not read file " + parameterFile);
-      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Could not open file " + parameterFile);
+      desktop.displayErrorMessage("Could not open file " + parameterFile);
       return null;
     }
 
@@ -271,8 +268,7 @@ public class ProjectParametersImporter {
       parameterFileReader = new BufferedReader(new FileReader(parameterFile));
     } catch (FileNotFoundException ex) {
       logger.severe("Could not open file " + parameterFile);
-      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Could not open file " + parameterFile);
+      desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
 
@@ -314,8 +310,7 @@ public class ProjectParametersImporter {
 
     } catch (IOException ex) {
       logger.severe("Could not read file " + parameterFile);
-      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Could not open file " + parameterFile);
+      desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
 
@@ -324,8 +319,7 @@ public class ProjectParametersImporter {
       parameterFileReader.close();
     } catch (IOException ex) {
       logger.severe("Could not close file " + parameterFile);
-      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Could not close file " + parameterFile);
+      desktop.displayErrorMessage("Could not close file " + parameterFile);
       return false;
     }
 

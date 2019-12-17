@@ -207,22 +207,7 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-  public static void displayMessage(String msg) {
-    Platform.runLater(() -> {
-      Dialog<ButtonType> dialog = new Dialog<>();
-      Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
-      stage.getIcons().add(mzMineIcon);
-      dialog.setTitle("Warning");
-      dialog.setContentText(msg);
-      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-      dialog.showAndWait();
-    });
-  }
 
-
-  public static MainWindowController getMainWindowController() {
-    return mainWindowController;
-  }
 
   public static void addWindow(Node node, String title) {
 
@@ -336,29 +321,31 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void displayMessage(Stage window, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayMessage(String msg) {
+    displayMessage("Message", msg);
   }
 
   @Override
-  public void displayMessage(Stage window, String title, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayMessage(String title, String msg) {
+    Platform.runLater(() -> {
+      Dialog<ButtonType> dialog = new Dialog<>();
+      Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+      stage.getIcons().add(mzMineIcon);
+      dialog.setTitle(title);
+      dialog.setContentText(msg);
+      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+      dialog.showAndWait();
+    });
   }
 
   @Override
-  public void displayErrorMessage(Stage window, String msg) {
-    MZmineGUI.displayMessage(msg);
+  public void displayErrorMessage(String msg) {
+    displayMessage("Error", msg);
   }
 
   @Override
-  public void displayErrorMessage(Stage window, String title, String msg) {
-    MZmineGUI.displayMessage(msg);
-
-  }
-
-  @Override
-  public void displayException(Stage window, Exception e) {
-    MZmineGUI.displayMessage(e.toString());
+  public void displayException(Exception e) {
+    displayErrorMessage(e.toString());
   }
 
   @Override

@@ -55,8 +55,7 @@ public class SaveImage implements Runnable {
         out.close();
       }
     } catch (IOException e) {
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Unable to save image.");
+      MZmineCore.getDesktop().displayErrorMessage("Unable to save image.");
       e.printStackTrace();
     }
   }

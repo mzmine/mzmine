@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -67,8 +67,7 @@ class WorkerThread extends Thread {
         // Log the error
         logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
 
-        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-            "Error of task " + actualTask.getTaskDescription(), errorMsg);
+        MZmineCore.getDesktop().displayErrorMessage(errorMsg);
       } else {
         // Log the finish
         logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
@@ -94,9 +93,8 @@ class WorkerThread extends Thread {
 
       e.printStackTrace();
 
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
-              + ExceptionUtils.exceptionToString(e));
+      MZmineCore.getDesktop().displayErrorMessage("Unhandled exception in task "
+          + actualTask.getTaskDescription() + ": " + ExceptionUtils.exceptionToString(e));
 
     }
 

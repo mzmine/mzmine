@@ -342,7 +342,7 @@ public class ProjectOpeningTask extends AbstractTask {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
             + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
             + " may result in errors or loss of information.";
-        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(), warning);
+        MZmineCore.getDesktop().displayMessage(warning);
       }
     }
 

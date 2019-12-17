@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -183,7 +183,7 @@ public class ResultWindow extends JFrame implements ActionListener {
         writer.close();
 
       } catch (Exception ex) {
-        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+        MZmineCore.getDesktop().displayErrorMessage(
             "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(ex));
       }
       return;
@@ -195,8 +195,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     int index = resultsTable.getSelectedRow();
 
     if (index < 0) {
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Please select one result");
+      MZmineCore.getDesktop().displayMessage("Please select one result");
       return;
     }
     index = resultsTable.convertRowIndexToModel(index);

@@ -7,9 +7,9 @@
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
@@ -197,7 +197,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
 
     if (src == buttonAddParameter) {
       if (fieldName.getText().length() == 0) {
-        desktop.displayErrorMessage(null, "Give a name for the parameter first.");
+        desktop.displayErrorMessage("Give a name for the parameter first.");
         return;
       }
       String paramName = fieldName.getText();
@@ -216,7 +216,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
       if (radiobuttonCategorical.isSelected()) {
         String[] possibleValues = new String[categories.size()];
         if (possibleValues.length == 0) {
-          desktop.displayErrorMessage(null, "Give at least a single parameter value.");
+          desktop.displayErrorMessage("Give at least a single parameter value.");
           return;
         }
         for (int valueIndex = 0; valueIndex < categories.size(); valueIndex++)
@@ -247,7 +247,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
       if ((inputValue == null) || (inputValue.trim().length() == 0))
         return;
       if (((DefaultListModel<String>) listCategories.getModel()).contains(inputValue)) {
-        desktop.displayErrorMessage(null, "Value already exists.");
+        desktop.displayErrorMessage("Value already exists.");
         return;
       }
       ((DefaultListModel<String>) listCategories.getModel()).addElement(inputValue);
@@ -257,7 +257,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
 
       int[] selectedIndices = listCategories.getSelectedIndices();
       if ((selectedIndices == null) || (selectedIndices.length == 0)) {
-        desktop.displayErrorMessage(null, "Select at least one value first.");
+        desktop.displayErrorMessage("Select at least one value first.");
         return;
       }
 

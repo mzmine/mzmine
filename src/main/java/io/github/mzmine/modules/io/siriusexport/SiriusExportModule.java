@@ -65,7 +65,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       task.runSingleRow(row);
     } catch (Exception e) {
       e.printStackTrace();
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+      MZmineCore.getDesktop().displayErrorMessage(
           "Error while exporting feature to SIRIUS: " + ExceptionUtils.exceptionToString(e));
     }
 
@@ -84,7 +84,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       task.runSingleRows(row);
     } catch (Exception e) {
       e.printStackTrace();
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+      MZmineCore.getDesktop().displayErrorMessage(
           "Error while exporting feature to SIRIUS: " + ExceptionUtils.exceptionToString(e));
     }
   }
