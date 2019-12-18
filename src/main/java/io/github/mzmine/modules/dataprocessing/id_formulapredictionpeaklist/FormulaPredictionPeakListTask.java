@@ -101,7 +101,14 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         parameters.getParameter(FormulaPredictionPeakListParameters.isotopeFilter).getValue();
     isotopeParameters = parameters.getParameter(FormulaPredictionPeakListParameters.isotopeFilter)
         .getEmbeddedParameters();
-
+    if (checkIsotopes) {
+      // Only get the value if the isotope checking is activated, otherwise we might get a NPE
+      minScore = isotopeParameters
+        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
+    } else {
+      minScore = 0d;
+    }
+    
     checkMSMS = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter).getValue();
     msmsParameters = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter)
         .getEmbeddedParameters();
@@ -124,12 +131,6 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
 
     maxBestFormulasPerPeak = parameters
         .getParameter(FormulaPredictionPeakListParameters.maxBestFormulasPerPeak).getValue();
-
-
-    minScore = isotopeParameters
-        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
-
-
 
     // get sorting parameters
     isSorting = parameters.getParameter(FormulaPredictionPeakListParameters.sorting).getValue();
