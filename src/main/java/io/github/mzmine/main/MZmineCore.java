@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -31,10 +31,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
@@ -46,7 +44,6 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.Task;
@@ -120,10 +117,6 @@ public final class MZmineCore {
         e.printStackTrace();
       }
     }
-
-    // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager.getCurrentProject();
-    currentProject.activateProject();
 
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
     if (args.length == 0) {
@@ -208,7 +201,7 @@ public final class MZmineCore {
         logger.finest("Creating an instance of the module " + moduleClass.getName());
 
         // Create instance and init module
-        module = (ModuleType) moduleClass.getDeclaredConstructor().newInstance();
+        module = moduleClass.getDeclaredConstructor().newInstance();
 
         // Add to the module list
         initializedModules.put(moduleClass, module);
@@ -253,7 +246,7 @@ public final class MZmineCore {
   public static void runMZmineModule(@Nonnull Class<? extends MZmineRunnableModule> moduleClass,
       @Nonnull ParameterSet parameters) {
 
-    MZmineRunnableModule module = (MZmineRunnableModule) getModuleInstance(moduleClass);
+    MZmineRunnableModule module = getModuleInstance(moduleClass);
 
     // Usage Tracker
     GoogleAnalyticsTracker GAT =
