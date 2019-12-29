@@ -15,6 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
+
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import java.util.List;
@@ -25,35 +26,35 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * @author akshaj This class represents the component which shows Features in the parameter setup
  *         dialog of Fx3DVisualizer.
  */
-public class FeaturesComponent extends BorderPane {
+public class FeaturesComponent extends HBox {
 
   public ObservableList<FeatureSelection> currentValue = FXCollections.observableArrayList();
   private ListView<FeatureSelection> featuresList = new ListView<>(currentValue);
   private final Button addButton = new Button("Add");;
   private final Button removeButton = new Button("Remove");
-  private FlowPane buttonPane = new FlowPane(Orientation.VERTICAL);
+  private VBox buttonPane = new VBox();
 
   private Logger LOG = Logger.getLogger(this.getClass().getName());
 
   public FeaturesComponent() {
-    // setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
-    // JScrollPane scrollPane = new JScrollPane(jlist);
-    // scrollPane.setPreferredSize(new Dimension(300, 60));
-    setCenter(featuresList);
+    setSpacing(8.0);
 
+    buttonPane.setSpacing(8.0);
     buttonPane.getChildren().addAll(addButton, removeButton);
-    setRight(buttonPane);
+
+    getChildren().addAll(featuresList, buttonPane);
+
+    featuresList.setPrefHeight(120.0);
 
     addButton.setOnAction(e -> {
       currentValue.clear();

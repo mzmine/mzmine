@@ -127,7 +127,8 @@ public class EChartViewer extends ChartViewer {
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
-    setChart(chart);
+    if (chart != null)
+      setChart(chart);
 
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)

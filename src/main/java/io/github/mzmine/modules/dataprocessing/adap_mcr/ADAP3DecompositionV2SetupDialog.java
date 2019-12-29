@@ -191,7 +191,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     pnlPlots.add(pnlPlotRetTimeClusters);
     pnlPlots.add(pnlPlotShapeClusters);
 
-    super.mainPanel.add(pnlUIElements, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
+    super.paramsPane.add(pnlUIElements, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
         GridBagConstraints.HORIZONTAL);
   }
 
@@ -208,12 +208,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the chkPreview
         // component will consume most of the extra available space.
-        mainPanel.add(pnlPlots, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+        paramsPane.add(pnlPlots, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
         pnlUIElements.add(pnlComboBoxes, BorderLayout.CENTER);
 
         refresh();
       } else {
-        mainPanel.remove(pnlPlots);
+        paramsPane.remove(pnlPlots);
         pnlUIElements.remove(pnlComboBoxes);
       }
 

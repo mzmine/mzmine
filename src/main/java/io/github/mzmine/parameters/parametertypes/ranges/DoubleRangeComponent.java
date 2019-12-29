@@ -23,28 +23,47 @@ import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.util.converter.NumberStringConverter;
 
-public class DoubleRangeComponent extends GridPane {
+public class DoubleRangeComponent extends HBox {
 
+  private final TextField minTxtField, maxTxtField;
+  private final Label minusLabel;
 
-  private TextField minTxtField, maxTxtField;
   private NumberFormat format;
+  private NumberStringConverter formatConverter;
 
   public DoubleRangeComponent(NumberFormat format) {
 
-    this.format = format;
+    setSpacing(8.0);
 
     minTxtField = new TextField();
     minTxtField.setPrefColumnCount(8);
+    // minTxtField.setMinWidth(100.0);
 
     maxTxtField = new TextField();
     maxTxtField.setPrefColumnCount(8);
+    // maxTxtField.setMinWidth(100.0);
 
-    add(minTxtField, 0, 0);
-    add(new Label(" - "), 1, 0);
-    add(maxTxtField, 2, 0);
+    minusLabel = new Label(" - ");
+    minusLabel.setMinWidth(15.0);
+
+    getChildren().addAll(minTxtField, minusLabel, maxTxtField);
+
+    setMinWidth(600.0);
+    // setStyle("-fx-border-color: red");
+
+    setNumberFormat(format);
+  }
+
+  public void setNumberFormat(NumberFormat format) {
+    this.format = format;
+    this.formatConverter = new NumberStringConverter(format);
+    minTxtField.setTextFormatter(new TextFormatter<Number>(formatConverter));
+    maxTxtField.setTextFormatter(new TextFormatter<Number>(formatConverter));
   }
 
   public Range<Double> getValue() {
@@ -60,12 +79,9 @@ public class DoubleRangeComponent extends GridPane {
       return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
     } catch (Exception e) {
+      e.printStackTrace();
       return null;
     }
-  }
-
-  public void setNumberFormat(NumberFormat format) {
-    this.format = format;
   }
 
   public void setValue(Range<Double> value) {

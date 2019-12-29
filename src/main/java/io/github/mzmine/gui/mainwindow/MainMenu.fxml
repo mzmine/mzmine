@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.text.*?>
 <?import io.github.mzmine.gui.mainwindow.*?>
+<?import io.github.mzmine.util.javafx.*?>
 
 <MenuBar useSystemMenuBar="true"
 	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
@@ -356,13 +357,7 @@
 
 
 	<!-- WINDOWS -->
-	<Menu fx:id="windowsMenu" text="Windows"
-		onShowing="#fillWindowsMenu">
-		<MenuItem text="Close all windows"
-			onAction="#closeAllWindows" />
-		<SeparatorMenuItem />
-	</Menu>
-
+	<WindowsMenu />
 
 	<!-- HELP -->
 	<Menu text="Help">

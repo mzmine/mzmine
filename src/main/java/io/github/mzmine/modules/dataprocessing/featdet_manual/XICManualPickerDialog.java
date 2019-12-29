@@ -151,13 +151,13 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     Stroke stroke = new BasicStroke(1.0f);
 
     // make new panel, put tic into the middle of a border layout.
-    remove(this.mainPanel);
+    remove(this.paramsPane);
 
     rtRangeComp = new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
     addListenertoRTComp(rtRangeComp);
     JLabel rtLabel = new JLabel("Retention time range");
-    mainPanel.add(rtLabel, 0, getNumberOfParameters() + 1);
-    mainPanel.add(rtRangeComp, 1, getNumberOfParameters() + 1);
+    paramsPane.add(rtLabel, 0, getNumberOfParameters() + 1);
+    paramsPane.add(rtRangeComp, 1, getNumberOfParameters() + 1);
 
     BorderLayout borderLayout = new BorderLayout();
     Panel pnlNewMain = new Panel(borderLayout);
@@ -166,7 +166,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     // place controls and
     // integration specific stuff there
     Panel pnlControlsAndParameters = new Panel(new BorderLayout());
-    pnlControlsAndParameters.add(this.mainPanel, BorderLayout.CENTER);
+    pnlControlsAndParameters.add(this.paramsPane, BorderLayout.CENTER);
     pnlNewMain.add(pnlControlsAndParameters, BorderLayout.SOUTH);
 
     // now make another panel to put the integration specific stuff, like

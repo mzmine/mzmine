@@ -233,10 +233,10 @@ public class MZmineGUI extends Application implements Desktop {
       MZmineCore.getProjectManager().setCurrentProject(project);
 
       ListView<RawDataFile> rawDataTree = mainWindowController.getRawDataTree();
-      rawDataTree.setItems(project.rawDataFiles());
+      rawDataTree.setItems(project.getRawDataFiles());
 
       ListView<PeakList> featureTree = mainWindowController.getFeatureTree();
-      featureTree.setItems(project.featureLists());
+      featureTree.setItems(project.getFeatureLists());
     });
 
   }

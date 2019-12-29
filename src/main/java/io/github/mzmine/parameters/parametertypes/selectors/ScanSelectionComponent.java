@@ -57,6 +57,8 @@ public class ScanSelectionComponent extends FlowPane {
 
     // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
+    setHgap(5.0);
+
     restrictionsList = new Label();
     updateRestrictionList();
 
@@ -197,30 +199,30 @@ public class ScanSelectionComponent extends FlowPane {
       return;
     }
 
-    StringBuilder newText = new StringBuilder("<html>");
+    StringBuilder newText = new StringBuilder();
     if (scanNumberRange != null) {
       int upperEndpoint = scanNumberRange.upperEndpoint();
       String maxCountText =
           upperEndpoint == Integer.MAX_VALUE ? "Max" : Integer.toString(upperEndpoint);
-      newText.append(
-          "Scan number: " + scanNumberRange.lowerEndpoint() + " - " + maxCountText + "<br>");
+      newText
+          .append("Scan number: " + scanNumberRange.lowerEndpoint() + " - " + maxCountText + "\n");
     }
     if (baseFilteringInteger != null) {
-      newText.append("Base Filtering Integer: " + baseFilteringInteger + "<br>");
+      newText.append("Base Filtering Integer: " + baseFilteringInteger + "\n");
     }
     if (scanRTRange != null) {
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
       newText.append("Retention time: " + rtFormat.format(scanRTRange.lowerEndpoint()) + " - "
-          + rtFormat.format(scanRTRange.upperEndpoint()) + " min.<br>");
+          + rtFormat.format(scanRTRange.upperEndpoint()) + " min.\n");
     }
     if (msLevel != null) {
-      newText.append("MS level: " + msLevel + "<br>");
+      newText.append("MS level: " + msLevel + "\n");
     }
     if (!Strings.isNullOrEmpty(scanDefinition)) {
-      newText.append("Scan definition: " + scanDefinition + "<br>");
+      newText.append("Scan definition: " + scanDefinition + "\n");
     }
     if (polarity != null) {
-      newText.append("Polarity: " + polarity.asSingleChar() + "<br>");
+      newText.append("Polarity: " + polarity.asSingleChar() + "\n");
     }
     if (spectrumType != null) {
       newText.append("Spectrum type: " + spectrumType.toString().toLowerCase());

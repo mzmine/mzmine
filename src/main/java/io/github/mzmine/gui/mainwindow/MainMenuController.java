@@ -37,8 +37,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * The controller class for MainMenu.fxml
@@ -49,7 +47,7 @@ public class MainMenuController {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @FXML
-  private Menu windowsMenu, recentProjectsMenu;
+  private Menu recentProjectsMenu;
 
   public void closeProject(Event event) {
     MZmineGUI.requestCloseProject();
@@ -101,27 +99,6 @@ public class MainMenuController {
     MZmineGUI.showAboutWindow();
   }
 
-  public void fillWindowsMenu(Event event) {
-    final var windowsMenuItems = windowsMenu.getItems();
-    while (windowsMenuItems.size() > 2)
-      windowsMenuItems.remove(2);
-    for (Window win : Window.getWindows()) {
-      if (win instanceof Stage) {
-        Stage stage = (Stage) win;
-        final MenuItem item = new MenuItem(stage.getTitle());
-        windowsMenuItems.add(item);
-      }
-    }
-  }
-
-  public void closeAllWindows(Event event) {
-    for (Window win : Window.getWindows()) {
-      if (win == MZmineCore.getDesktop().getMainWindow())
-        continue;
-      win.hide();
-    }
-
-  }
 
   @SuppressWarnings("unchecked")
   public void runModule(Event event) {

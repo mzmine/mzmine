@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import javafx.beans.property.SimpleListProperty;
 import javafx.scene.control.Button;
 
 public class MZRangeComponent extends DoubleRangeComponent {
@@ -40,9 +41,8 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
     super(MZmineCore.getConfiguration().getMZFormat());
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
-
     setAutoButton = new Button("Auto range");
+    setAutoButton.setMinWidth(100.0);
     setAutoButton.setOnAction(e -> {
       RawDataFile currentFiles[] =
           MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
@@ -50,15 +50,15 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
       try {
         ParameterSetupDialog setupDialog = (ParameterSetupDialog) this.getScene().getWindow();
-        RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
-            .getComponentForParameter(new RawDataFilesParameter());
+        RawDataFilesComponent rdc =
+            setupDialog.getComponentForParameter(new RawDataFilesParameter());
         if (rdc != null) {
           RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
           if (matchingFiles.length > 0)
             currentFiles = matchingFiles;
         }
-        ScanSelectionComponent ssc = (ScanSelectionComponent) setupDialog
-            .getComponentForParameter(new ScanSelectionParameter());
+        ScanSelectionComponent ssc =
+            setupDialog.getComponentForParameter(new ScanSelectionParameter());
         if (ssc != null)
           scanSelection = ssc.getValue();
       } catch (Exception ex) {
@@ -81,25 +81,29 @@ public class MZRangeComponent extends DoubleRangeComponent {
       if (mzRange != null)
         setValue(mzRange);
     });
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-    setAutoButton.setDisable(currentFiles.length == 0);
-    add(setAutoButton, 3, 0);
+    SimpleListProperty<RawDataFile> list = new SimpleListProperty<>(
+        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    setAutoButton.disableProperty().bind(MZmineCore.getProjectManager().getCurrentProject()
+        .rawDataFilesProperty().sizeProperty().isEqualTo(0));
 
     fromMassButton = new Button("From mass");
+    fromMassButton.setMinWidth(100.0);
     fromMassButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeMassCalculatorModule.showRangeCalculationDialog();
       if (mzRange != null)
         setValue(mzRange);
     });
-    add(fromMassButton, 4, 0);
 
     fromFormulaButton = new Button("From formula");
+    fromFormulaButton.setMinWidth(100.0);
     fromFormulaButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeFormulaCalculatorModule.showRangeCalculationDialog();
       if (mzRange != null)
         setValue(mzRange);
     });
-    add(fromFormulaButton, 5, 0);
+
+    // fromFormulaButton.setMinWidth(fromFormulaButton.getPrefWidth());
+    getChildren().addAll(setAutoButton, fromMassButton, fromFormulaButton);
 
   }
 

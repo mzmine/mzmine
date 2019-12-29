@@ -158,8 +158,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   @Override
   protected void addDialogComponents() {
     super.addDialogComponents();
-    mainPanel.removeAll();
-    mainPanel.getParent().remove(mainPanel);
+    paramsPane.removeAll();
+    paramsPane.getParent().remove(paramsPane);
 
     ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
     DelayedDocumentListener ddlUpdateChart = new DelayedDocumentListener(e -> updateChart());

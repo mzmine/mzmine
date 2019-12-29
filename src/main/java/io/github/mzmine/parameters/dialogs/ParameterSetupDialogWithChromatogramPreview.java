@@ -85,8 +85,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     });
     // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
-    mainPanel.add(new Separator(), 0, getNumberOfParameters() + 1);
-    mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2);
+    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
+    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
 
     // Elements of pnlLab
     FlowPane pnlLab = new FlowPane(Orientation.VERTICAL);
@@ -107,7 +107,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     // pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().rawDataFiles());
+        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       int ind = comboDataFileName.getSelectionModel().getSelectedIndex();
@@ -147,7 +147,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     // ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
     // ticPlot.setMinimumSize(new Dimension(400, 300));
 
-    mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
 
 
 
@@ -186,7 +186,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     // the whole vertical length of the dialog (buttons are at row
     // no 100). Also, we set the weight to 10, so the preview
     // component will consume most of the extra available space.
-    mainPanel.add(ticPlot, 3, 0, 1, 200);
+    paramsPane.add(ticPlot, 3, 0, 1, 200);
     pnlPreviewFields.setVisible(true);
     // updateMinimumSize();
     // pack();
@@ -195,7 +195,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   }
 
   public void hidePreview() {
-    mainPanel.getChildren().remove(ticPlot);
+    paramsPane.getChildren().remove(ticPlot);
     pnlPreviewFields.setVisible(false);
     // updateMinimumSize();
     // pack();

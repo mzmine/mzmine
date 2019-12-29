@@ -79,8 +79,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     previewCheckBox = new CheckBox("Show preview");
     // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
-    mainPanel.add(new Separator(), 0, getNumberOfParameters() + 1);
-    mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2);
+    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
+    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
 
     // Elements of pnlLab
     pnlLab = new FlowPane(Orientation.VERTICAL);
@@ -103,7 +103,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
 
     comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().rawDataFiles());
+        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       var previewDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
@@ -162,7 +162,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     // spectrumPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
     // spectrumPlot.setMinimumSize(new Dimension(400, 300));
 
-    mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
   }
 
   /**

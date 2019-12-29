@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,12 +19,12 @@
 package io.github.mzmine.datamodel;
 
 import java.io.File;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 
 /**
- * 
+ *
  * MZmineProject collects all items user has opened or created during an MZmine session. This
  * includes
  * <ul>
@@ -37,12 +37,12 @@ import javafx.collections.ObservableList;
  * aligning multiple PeakLists of individual runs or a processed version of a preceding aligned
  * PeakList.
  * </ul>
- * 
+ *
  * @see UserParameter
  * @see ParameterValue
  * @see RawDataFile
  * @see PeakList
- * 
+ *
  */
 public interface MZmineProject {
 
@@ -53,14 +53,14 @@ public interface MZmineProject {
 
   /**
    * Adds a new experimental parameter to the project
-   * 
+   *
    * @param parameter
    */
   public void addParameter(UserParameter<?, ?> parameter);
 
   /**
    * Removes an experimental parameter from the project
-   * 
+   *
    * @param parameter
    */
   public void removeParameter(UserParameter<?, ?> parameter);
@@ -80,14 +80,14 @@ public interface MZmineProject {
    * <p>
    * If the parameter does not exists in the project, it is added to the project. If parameter
    * already has a value corresponding the given file, previous value is replaced.
-   * 
+   *
    */
   public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
       Object value);
 
   /**
    * Returns experimental parameter's value corresponding to a RawDataFile.
-   * 
+   *
    */
   public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
@@ -103,7 +103,7 @@ public interface MZmineProject {
 
   /**
    * Returns all RawDataFiles of the project.
-   * 
+   *
    */
   public RawDataFile[] getDataFiles();
 
@@ -122,19 +122,23 @@ public interface MZmineProject {
    */
   public PeakList[] getPeakLists();
 
-  public ObservableList<RawDataFile> rawDataFiles();
+  public ObservableList<RawDataFile> getRawDataFiles();
 
-  public ObservableList<PeakList> featureLists();
+  public ListProperty<RawDataFile> rawDataFilesProperty();
+
+  public ObservableList<PeakList> getFeatureLists();
+
+  public ListProperty<PeakList> featureListsProperty();
 
   /**
    * Returns all feature lists which contain given data file
    */
   public PeakList[] getPeakLists(RawDataFile file);
 
-  public void notifyObjectChanged(Object object, boolean structureChanged);
+  // public void notifyObjectChanged(Object object, boolean structureChanged);
 
-  public void addProjectListener(MZmineProjectListener newListener);
+  // public void addProjectListener(MZmineProjectListener newListener);
 
-  public void removeProjectListener(MZmineProjectListener listener);
+  // public void removeProjectListener(MZmineProjectListener listener);
 
 }

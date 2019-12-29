@@ -165,7 +165,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+        paramsPane.add(pnlPlotXY, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
         pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
         updateMinimumSize();
         pack();
@@ -182,7 +182,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
       } else {
 
-        mainPanel.remove(pnlPlotXY);
+        paramsPane.remove(pnlPlotXY);
         pnlVisible.remove(pnlLabelsFields);
         updateBounds();
       }
@@ -341,7 +341,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     pnlPlotXY.add(toolBar, BorderLayout.EAST);
     GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 
-    mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0,
+    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0,
         GridBagConstraints.HORIZONTAL);
 
     // Layout and position.

@@ -54,7 +54,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
     super(valueCheckRequired, parameters);
 
-    var featureLists = MZmineCore.getProjectManager().getCurrentProject().featureLists();
+    var featureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists();
 
     PeakList selectedPeakLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
 
@@ -65,8 +65,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     peakListsPanel.visibleProperty().bind(previewCheckBox.selectedProperty());
     // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
-    mainPanel.add(new Separator(), 0, getNumberOfParameters() + 1);
-    mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2);
+    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
+    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
 
     // Panel for the combo boxes with the feature lists
     comboPanel = new GridPane();
@@ -101,7 +101,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     chart = new AlignmentRansacPlot();
     pnlPlotXY.setCenter(chart);
 
-    mainPanel.add(peakListsPanel, 0, getNumberOfParameters() + 3);
+    paramsPane.add(peakListsPanel, 0, getNumberOfParameters() + 3);
 
   }
 

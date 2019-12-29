@@ -26,6 +26,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -48,6 +49,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -55,10 +57,11 @@ import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Separator;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -107,13 +110,12 @@ public class TICVisualizerWindow extends Stage {
    * Constructor for total ion chromatogram visualizer
    */
   public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
-      ScanSelection scanSelection, Range<Double> mzRange, Feature[] peaks,
+      ScanSelection scanSelection, Range<Double> mzRange, List<FeatureSelection> peaks,
       Map<Feature, String> peakLabels) {
 
     assert mzRange != null;
 
     setTitle("Chromatogram loading...");
-
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
@@ -141,7 +143,6 @@ public class TICVisualizerWindow extends Stage {
 
     toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
-
 
     Button showSpectrumBtn = new Button(null, new ImageView(SHOW_SPECTRUM_ICON));
     showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
@@ -182,17 +183,19 @@ public class TICVisualizerWindow extends Stage {
 
     Button backgroundBtn = new Button(null, new ImageView(BACKGROUND_ICON));
     backgroundBtn.setTooltip(new Tooltip("Toggle between white or gray background color"));
+    backgroundBtn.setOnAction(e -> {
+      ticPlot.switchBackground();
+    });
 
-    toolBar.getItems().addAll(showSpectrumBtn, new Separator(), datapointsBtn, new Separator(),
-        annotationsBtn, new Separator(), axesBtn, new Separator(), legendBtn, new Separator(),
+    toolBar.getItems().addAll(showSpectrumBtn, datapointsBtn, annotationsBtn, axesBtn, legendBtn,
         backgroundBtn);
     mainPane.setRight(toolBar);
 
     // add all peaks
     if (peaks != null) {
 
-      for (Feature peak : peaks) {
-
+      for (FeatureSelection selectedPeak : peaks) {
+        Feature peak = selectedPeak.getFeature();
         if (peakLabels != null && peakLabels.containsKey(peak)) {
 
           final String label = peakLabels.get(peak);
@@ -211,9 +214,12 @@ public class TICVisualizerWindow extends Stage {
     }
 
     // Add the Windows menu
-    // JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    // setJMenuBar(menuBar);
+    MenuBar menuBar = new MenuBar();
+    menuBar.setUseSystemMenuBar(true);
+    menuBar.getMenus().add(new WindowsMenu());
+    mainPane.getChildren().add(menuBar);
+
+
 
     // pack();
 

@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -94,39 +93,37 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     int rtRes = myParameters.getParameter(Fx3DVisualizerParameters.rtResolution).getValue();
     int mzRes = myParameters.getParameter(Fx3DVisualizerParameters.mzResolution).getValue();
 
-    Platform.runLater(() -> {
-      if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
-        JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
-        return;
-      }
-      FXMLLoader loader = new FXMLLoader((getClass().getResource("Fx3DStage.fxml")));
-      Stage stage = null;
-      try {
-        stage = loader.load();
-        LOG.finest("Stage has been successfully loaded from the FXML loader.");
-      } catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-      String title = "";
-      Fx3DStageController controller = loader.getController();
-      controller.setScanSelection(scanSel);
-      controller.setRtAndMzResolutions(rtRes, mzRes);
-      controller.setRtAndMzValues(rtRange, mzRange);
-      for (int i = 0; i < currentDataFiles.length; i++) {
-        MZmineCore.getTaskController().addTask(
-            new Fx3DSamplingTask(currentDataFiles[i], scanSel, mzRange, rtRes, mzRes, controller),
-            TaskPriority.HIGH);
+    if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
+      JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
+      return ExitCode.ERROR;
+    }
+    FXMLLoader loader = new FXMLLoader((getClass().getResource("Fx3DStage.fxml")));
+    Stage stage = null;
+    try {
+      stage = loader.load();
+      LOG.finest("Stage has been successfully loaded from the FXML loader.");
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ExitCode.ERROR;
+    }
+    String title = "";
+    Fx3DStageController controller = loader.getController();
+    controller.setScanSelection(scanSel);
+    controller.setRtAndMzResolutions(rtRes, mzRes);
+    controller.setRtAndMzValues(rtRange, mzRange);
+    for (int i = 0; i < currentDataFiles.length; i++) {
+      MZmineCore.getTaskController().addTask(
+          new Fx3DSamplingTask(currentDataFiles[i], scanSel, mzRange, rtRes, mzRes, controller),
+          TaskPriority.HIGH);
 
-      }
-      controller.addFeatureSelections(featureSelList);
-      for (int i = 0; i < currentDataFiles.length; i++) {
-        title = title + currentDataFiles[i].toString() + " ";
-      }
-      stage.show();
-      stage.setMinWidth(stage.getWidth());
-      stage.setMinHeight(stage.getHeight());
-    });
+    }
+    controller.addFeatureSelections(featureSelList);
+    for (int i = 0; i < currentDataFiles.length; i++) {
+      title = title + currentDataFiles[i].toString() + " ";
+    }
+    stage.show();
+    stage.setMinWidth(400.0);
+    stage.setMinHeight(400.0);
 
     return ExitCode.OK;
 

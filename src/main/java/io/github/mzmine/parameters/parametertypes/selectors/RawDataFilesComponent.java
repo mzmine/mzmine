@@ -30,9 +30,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 
-public class RawDataFilesComponent extends BorderPane {
+public class RawDataFilesComponent extends GridPane {
 
   private final ComboBox<RawDataFilesSelectionType> typeCombo;
   private final Button detailsButton;
@@ -41,14 +41,14 @@ public class RawDataFilesComponent extends BorderPane {
 
   public RawDataFilesComponent() {
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    setHgap(8.0);
 
     numFilesLabel = new Label();
-    setLeft(numFilesLabel);
+    add(numFilesLabel, 0, 0);
 
     detailsButton = new Button("...");
     detailsButton.setDisable(true);
-    setRight(detailsButton);
+    add(detailsButton, 2, 0);
 
     typeCombo =
         new ComboBox<>(FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
@@ -59,7 +59,8 @@ public class RawDataFilesComponent extends BorderPane {
           && (type != RawDataFilesSelectionType.SPECIFIC_FILES));
       updateNumFiles();
     });
-    setCenter(typeCombo);
+    add(typeCombo, 1, 0);
+
 
     detailsButton.setOnAction(e -> {
       RawDataFilesSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
@@ -90,6 +91,10 @@ public class RawDataFilesComponent extends BorderPane {
       }
       updateNumFiles();
     });
+
+
+    setMinWidth(getPrefWidth());
+
   }
 
   void setValue(RawDataFilesSelection newValue) {

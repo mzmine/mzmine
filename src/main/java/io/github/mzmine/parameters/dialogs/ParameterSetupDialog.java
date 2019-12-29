@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -39,8 +40,12 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 /**
@@ -87,7 +92,11 @@ public class ParameterSetupDialog extends Stage {
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
    * the unused cells of the grid.
    */
-  protected final GridPane mainPanel;
+  protected final GridPane paramsPane;
+
+  protected final BorderPane mainPane;
+
+  protected final ScrollPane mainScrollPane;
 
   /**
    * Constructor
@@ -109,10 +118,39 @@ public class ParameterSetupDialog extends Stage {
     this.helpURL = parameters.getClass().getResource("help/help.html");
     this.footerMessage = message;
 
+
     // Main panel which holds all the components in a grid
-    mainPanel = new GridPane();
-    Scene scene = new Scene(mainPanel);
+    mainPane = new BorderPane();
+    Scene scene = new Scene(mainPane);
+
+    // Use main CSS
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
+
+    paramsPane = new GridPane();
+
+    // paramsPane.setStyle("-fx-border-color: blue;");
+
+    ColumnConstraints column1 = new ColumnConstraints();
+
+    /*
+     * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
+     * constraints, leaving the GridPane to compute the column's layout based solely on its
+     * content's size preferences and constraints.
+     */
+    ColumnConstraints column2 = new ColumnConstraints();
+    // column2.setHgrow(Priority.ALWAYS);
+    // paramsPane.getColumnConstraints().addAll(column1, column2);
+    // paramsPane.setMinWidth(500.0);
+    // paramsPane.setPrefWidth(800.0);
+
+    mainScrollPane = new ScrollPane(paramsPane);
+    // mainScrollPane.setStyle("-fx-border-color: red;");
+    mainScrollPane.setFitToWidth(true);
+    mainScrollPane.setFitToHeight(true);
+    mainScrollPane.setPadding(new Insets(10.0));
+    mainPane.setCenter(mainScrollPane);
 
     int rowCounter = 0;
     int vertWeightSum = 0;
@@ -128,6 +166,13 @@ public class ParameterSetupDialog extends Stage {
       if (comp instanceof Control) {
         ((Control) comp).setTooltip(new Tooltip(up.getDescription()));
       }
+      if (comp instanceof Region) {
+        double minWidth = ((Region) comp).getMinWidth();
+        // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
+        // paramsPane.setMinWidth(minWidth + 200);
+      }
+      GridPane.setMargin(comp, new Insets(5.0, 0.0, 5.0, 0.0));
+
       // Set the initial value
       Object value = up.getValue();
       if (value != null)
@@ -143,7 +188,11 @@ public class ParameterSetupDialog extends Stage {
       // comp.setToolTipText(up.getDescription());
 
       Label label = new Label(p.getName());
-      mainPanel.add(label, 0, rowCounter);
+      label.minWidthProperty().bind(label.widthProperty());
+      label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
+
+      label.setStyle("-fx-font-weight: bold");
+      paramsPane.add(label, 0, rowCounter);
       label.setLabelFor(comp);
 
       parametersAndComponents.put(p.getName(), comp);
@@ -155,7 +204,7 @@ public class ParameterSetupDialog extends Stage {
        * vertWeightSum += verticalWeight;
        */
 
-      mainPanel.add(comp, 1, rowCounter, 1, 1);
+      paramsPane.add(comp, 1, rowCounter, 1, 1);
 
       rowCounter++;
 
@@ -183,6 +232,8 @@ public class ParameterSetupDialog extends Stage {
     // Add buttons to the ButtonBar
     pnlButtons = new ButtonBar();
     pnlButtons.getButtons().addAll(btnOK, btnCancel);
+    pnlButtons.setPadding(new Insets(10.0));
+
 
     if (helpURL != null) {
       btnHelp = new Button("Help");
@@ -202,7 +253,7 @@ public class ParameterSetupDialog extends Stage {
       btnHelp = null;
     }
 
-    mainPanel.add(pnlButtons, 0, 100, 2, 1);
+    mainPane.setBottom(pnlButtons);
 
     /*
      * Last row in the table will be occupied by the buttons. We set the row number to 100 and width
@@ -216,7 +267,7 @@ public class ParameterSetupDialog extends Stage {
 
       // Footer
       // WebView webView = new WebView();
-      NotificationPane notificationPane = new NotificationPane(mainPanel);
+      NotificationPane notificationPane = new NotificationPane(mainPane);
       notificationPane.setText(footerMessage);
       notificationPane.setShowFromTop(false);
       notificationPane.getActions().add(new Action("Close", e -> notificationPane.hide()));
@@ -250,9 +301,13 @@ public class ParameterSetupDialog extends Stage {
     // pack();
 
     setTitle("Please set the parameters");
-    setMinWidth(400.0);
+
+    // minWidthProperty().bind(scene.widthProperty());
+    // minHeightProperty().bind(scene.widthProperty().divide(1.5));
+
+    setMinWidth(500.0);
     setMinHeight(400.0);
-    sizeToScene();
+
     centerOnScreen();
 
   }

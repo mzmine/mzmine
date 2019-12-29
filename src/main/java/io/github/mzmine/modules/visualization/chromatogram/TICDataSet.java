@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,14 +23,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
-
 import org.jfree.data.xy.AbstractXYZDataset;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -39,11 +34,12 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
  * create separate data set for each file because the user may add/remove files later.
- * 
+ *
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
@@ -386,15 +382,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * Notify data set listener (on the EDT).
    */
   private void refresh() {
-
-    SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-
-        fireDatasetChanged();
-      }
-    });
+    Platform.runLater(() -> fireDatasetChanged());
   }
 
   @Override

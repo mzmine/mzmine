@@ -35,10 +35,6 @@ public class RTRangeComponent extends DoubleRangeComponent {
 
     super(MZmineCore.getConfiguration().getRTFormat());
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
-
-    add(new Label("min."), 3, 0);
-
     setAutoButton = new Button("Auto range");
     setAutoButton.setOnAction(e -> {
       RawDataFile currentFiles[] =
@@ -47,8 +43,8 @@ public class RTRangeComponent extends DoubleRangeComponent {
       try {
         ParameterSetupDialog setupDialog = (ParameterSetupDialog) this.getScene().getWindow();
 
-        RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
-            .getComponentForParameter(new RawDataFilesParameter());
+        RawDataFilesComponent rdc =
+            setupDialog.getComponentForParameter(new RawDataFilesParameter());
 
         // If the current setup dialog has no raw data file selector, it
         // is probably in the parent dialog, so let's check it
@@ -75,7 +71,8 @@ public class RTRangeComponent extends DoubleRangeComponent {
     });
     RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     setAutoButton.setDisable(currentFiles.length == 0);
-    add(setAutoButton, 4, 0);
+
+    getChildren().addAll(new Label("min."), setAutoButton);
   }
 
 }

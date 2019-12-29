@@ -190,7 +190,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     theme.initialize();
 
     // reorganize
-    getContentPane().remove(mainPanel);
+    getContentPane().remove(paramsPane);
     organizeParameterPanel();
     pnlControl.add(pnlParameters, BorderLayout.CENTER);
     pnlControl.add(pnlButtons, BorderLayout.SOUTH);
@@ -216,10 +216,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     lblStatus = new JLabel("Status");
     setStatus("Waiting.");
 
-    mainPanel.remove(cmpCharge);
-    mainPanel.remove(cmpMergeWidth);
-    mainPanel.remove(cmpMinIntensity);
-    mainPanel.remove(cmpFormula);
+    paramsPane.remove(cmpCharge);
+    paramsPane.remove(cmpMergeWidth);
+    paramsPane.remove(cmpMinIntensity);
+    paramsPane.remove(cmpFormula);
 
     lblFormula.setLabelFor(cmpFormula);
     lblMinIntensity.setLabelFor(cmpMinIntensity);

@@ -141,7 +141,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
         // no
         // 100). Also, we set the weight to 10, so the preview component
         // will consume most of the extra available space.
-        mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
+        paramsPane.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
         pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
         updateMinimumSize();
         pack();
@@ -152,7 +152,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
           comboPeakList.setSelectedIndex(0);
         // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
       } else {
-        mainPanel.remove(pnlPlotXY);
+        paramsPane.remove(pnlPlotXY);
         pnlVisible.remove(pnlLabelsFields);
         updateMinimumSize();
         pack();
@@ -299,7 +299,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
     toolBar.getComponentAtIndex(0).setVisible(false);
     pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-    mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
+    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
 
     updateMinimumSize();
     pack();

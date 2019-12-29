@@ -32,7 +32,7 @@ public class MZToleranceComponent extends FlowPane {
     // setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 
     mzToleranceField = new TextField();
-    mzToleranceField.setPrefColumnCount(6);
+    mzToleranceField.setPrefColumnCount(12);
 
 
     ppmToleranceField = new TextField();

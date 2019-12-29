@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,17 +18,9 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -36,66 +28,158 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizerWindow extends JFrame implements ActionListener {
+public class TwoDVisualizerWindow extends Stage {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final long serialVersionUID = 1L;
-  private TwoDToolBar toolBar;
-  private TwoDPlot twoDPlot;
-  private TwoDBottomPanel bottomPanel;
-  private TwoDDataSet dataset;
-  private RawDataFile dataFile;
-  private boolean tooltipMode;
-  private boolean logScale;
+  private static final Image paletteIcon =
+      FxIconUtil.loadImageFromResources("icons/colorbaricon.png");
+  private static final Image dataPointsIcon =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image centroidIcon =
+      FxIconUtil.loadImageFromResources("icons/centroidicon.png");
+  private static final Image continuousIcon =
+      FxIconUtil.loadImageFromResources("icons/continuousicon.png");
+  private static final Image tooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/tooltips2dploticon.png");
+  private static final Image notooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
+  private static final Image logScaleIcon = FxIconUtil.loadImageFromResources("icons/logicon.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolBar;
+  private final TwoDPlot twoDPlot;
+  private final TwoDBottomPanel bottomPanel;
+  private final TwoDDataSet dataset;
+  private final RawDataFile dataFile;
 
   public TwoDVisualizerWindow(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
       Range<Double> mzRange, ParameterSet parameters) {
 
-    super("2D view: [" + dataFile.getName() + "]");
+    setTitle("2D view: [" + dataFile.getName() + "]");
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
 
     this.dataFile = dataFile;
 
-    this.tooltipMode = true;
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
 
     dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
     if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue() == PlotType.FAST2D) {
       twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange, "default");
-      add(twoDPlot, BorderLayout.CENTER);
-    }
-
-    if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue() == PlotType.POINT2D) {
+    } else {
       twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange, "point2D");
-      add(twoDPlot, BorderLayout.CENTER);
     }
+    mainPane.setCenter(twoDPlot);
 
-    toolBar = new TwoDToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
+
+    Button paletteBtn = new Button(null, new ImageView(paletteIcon));
+    paletteBtn.setTooltip(new Tooltip("Switch palette"));
+    paletteBtn.setOnAction(e -> {
+      twoDPlot.getXYPlot().switchPalette();
+    });
+
+
+    Button toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
+    toggleContinuousModeButton
+        .setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+    toggleContinuousModeButton.setOnAction(e -> {
+      twoDPlot.switchDataPointsVisible();
+    });
+
+    Button axesButton = new Button(null, new ImageView(axesIcon));
+    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesButton.setOnAction(e -> {
+      AxesSetupDialog dialog = new AxesSetupDialog(this, twoDPlot.getXYPlot());
+      dialog.showAndWait();
+    });
+
+    Button centroidContinuousButton = new Button(null, new ImageView(centroidIcon));
+    centroidContinuousButton
+        .setTooltip(new Tooltip("Switch between continuous and centroided mode"));
+    centroidContinuousButton.setOnAction(e -> {
+      if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+        centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
+        twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+      } else {
+        centroidContinuousButton.setGraphic(new ImageView(continuousIcon));
+        twoDPlot.setPlotMode(PlotMode.CENTROID);
+      }
+    });
+
+    ToggleButton toggleTooltipButton = new ToggleButton(null, new ImageView(tooltipsIcon));
+    toggleTooltipButton.setTooltip(new Tooltip("Toggle displaying of tool tips on the peaks"));
+    toggleTooltipButton.setSelected(true);
+    toggleTooltipButton.setOnAction(e -> {
+      if (toggleTooltipButton.isSelected()) {
+        twoDPlot.showPeaksTooltips(false);
+        toggleTooltipButton.setGraphic(new ImageView(notooltipsIcon));
+      } else {
+        twoDPlot.showPeaksTooltips(true);
+        toggleTooltipButton.setGraphic(new ImageView(tooltipsIcon));
+      }
+      toggleTooltipButton.setSelected(!toggleTooltipButton.isSelected());
+    });
+
+    ToggleButton logScaleButton = new ToggleButton(null, new ImageView(logScaleIcon));
+    logScaleButton.setTooltip(new Tooltip("Set log scale"));
+    logScaleButton.setOnAction(e -> {
+      boolean logScale = !logScaleButton.isSelected();
+      logScaleButton.setSelected(logScale);
+      twoDPlot.setLogScale(logScale);
+    });
+
+    toolBar.getItems().addAll(paletteBtn, toggleContinuousModeButton, axesButton,
+        centroidContinuousButton, toggleTooltipButton, logScaleButton);
+
+    mainPane.setRight(toolBar);
 
     bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
-    add(bottomPanel, BorderLayout.SOUTH);
+    mainPane.setBottom(bottomPanel);
 
     updateTitle();
 
     // After we have constructed everything, load the feature lists into the
     // bottom panel
-    bottomPanel.rebuildPeakListSelector();
+    // bottomPanel.rebuildPeakListSelector();
 
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    MenuBar menuBar = new MenuBar();
+    menuBar.setUseSystemMenuBar(true);
+    menuBar.getMenus().add(new WindowsMenu());
+    mainPane.getChildren().add(menuBar);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -104,14 +188,9 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
         paramSet.getParameter(TwoDVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
-  }
-
-  public void dispose() {
-    super.dispose();
-    // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
   }
 
   void updateTitle() {
@@ -130,46 +209,28 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     String command = event.getActionCommand();
 
     if (command.equals("SWITCH_PALETTE")) {
-      twoDPlot.getXYPlot().switchPalette();
+
     }
 
     if (command.equals("SHOW_DATA_POINTS")) {
-      twoDPlot.switchDataPointsVisible();
+
     }
 
     if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, twoDPlot.getXYPlot());
-      dialog.showAndWait();
+
     }
 
     if (command.equals("SWITCH_PLOTMODE")) {
 
-      if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-        toolBar.setCentroidButton(true);
-        twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-      } else {
-        toolBar.setCentroidButton(false);
-        twoDPlot.setPlotMode(PlotMode.CENTROID);
-      }
+
     }
 
     if (command.equals("SWITCH_TOOLTIPS")) {
-      if (tooltipMode) {
-        twoDPlot.showPeaksTooltips(false);
-        toolBar.setTooltipButton(false);
-        tooltipMode = false;
-      } else {
-        twoDPlot.showPeaksTooltips(true);
-        toolBar.setTooltipButton(true);
-        tooltipMode = true;
-      }
+
     }
 
     if (command.equals("SWITCH_LOG_SCALE")) {
-      if (twoDPlot != null) {
-        logScale = !logScale;
-        twoDPlot.setLogScale(logScale);
-      }
+
     }
 
     if ("PEAKLIST_CHANGE".equals(command)) {

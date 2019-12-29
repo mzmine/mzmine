@@ -1,20 +1,21 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
+
 package io.github.mzmine.modules.visualization.fx3d;
 
 import java.util.ArrayList;
@@ -22,11 +23,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.controlsfx.glyphfont.Glyph;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -38,6 +36,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import io.github.mzmine.util.components.SliderCell;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -55,6 +54,7 @@ import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -167,6 +167,11 @@ public class Fx3DStageController {
   private int axesPosition = 0;
 
   public void initialize() {
+
+    // Use main CSS
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
     rotateX.setPivotZ(SIZE / 2);
     rotateX.setPivotX(SIZE / 2);
     rotateY.setPivotZ(SIZE / 2);
@@ -204,6 +209,13 @@ public class Fx3DStageController {
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
     scene3D.setPickOnBounds(true);
+
+    // Add the Windows menu
+    MenuBar menuBar = new MenuBar();
+    menuBar.setUseSystemMenuBar(true);
+    menuBar.getMenus().add(new WindowsMenu());
+    root.getChildren().add(menuBar);
+
   }
 
   private void addLights() {
@@ -294,8 +306,8 @@ public class Fx3DStageController {
       int red = (int) (newValue.getRed() * 255);
       int green = (int) (newValue.getGreen() * 255);
       int blue = (int) (newValue.getBlue() * 255);
-      dataset.setNodeColor(Color.rgb(red, green, blue, (double) dataset.opacityProperty().get()));
-      dataset.getNode().setOpacity((double) dataset.opacityProperty().get());
+      dataset.setNodeColor(Color.rgb(red, green, blue, dataset.opacityProperty().get()));
+      dataset.getNode().setOpacity(dataset.opacityProperty().get());
       LOG.finest("Color is changed from " + oldValue + " to " + newValue + " for the dataset "
           + dataset.getFileName());
     });
@@ -344,6 +356,7 @@ public class Fx3DStageController {
       MenuItem menuItem = new MenuItem(dataset.getFileName());
       removeMenu.getItems().add(menuItem);
       menuItem.setOnAction(new EventHandler<ActionEvent>() {
+        @Override
         public void handle(ActionEvent e) {
           LOG.finest("Context menu invoked. Remove Data file button clicked. Removing dataset "
               + dataset.getFileName() + " from the plot.");
@@ -361,6 +374,7 @@ public class Fx3DStageController {
         addDatafileMenu.getItems().add(menuItem);
         final Fx3DStageController controller = this;
         menuItem.setOnAction(new EventHandler<ActionEvent>() {
+          @Override
           public void handle(ActionEvent e) {
             LOG.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
                 + file.getName() + " to the plot.");
@@ -390,6 +404,7 @@ public class Fx3DStageController {
               MenuItem menuItem = new MenuItem(feature.toString());
               dataFileMenu.getItems().add(menuItem);
               menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
                   LOG.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
                       + feature.toString() + " to the plot.");
@@ -469,7 +484,7 @@ public class Fx3DStageController {
       tickLineZ.setTranslateY(-4);
       tickLineZ.setTranslateX(y - 2);
       float roundOff = (float) (Math.round(mzScaleValue * 100.0) / 100.0);
-      Text text = new Text("" + (float) roundOff);
+      Text text = new Text("" + roundOff);
       text.setRotationAxis(Rotate.X_AXIS);
       text.setRotate(-45);
       text.setTranslateY(8);
@@ -505,7 +520,7 @@ public class Fx3DStageController {
       tickLineX.setTranslateX(y);
       tickLineX.setTranslateZ(-3.5);
       float roundOff = (float) (Math.round(rtScaleValue * 10.0) / 10.0);
-      Text text = new Text("" + (float) roundOff);
+      Text text = new Text("" + roundOff);
       text.setRotationAxis(Rotate.X_AXIS);
       text.setRotate(-45);
       text.setTranslateY(9);

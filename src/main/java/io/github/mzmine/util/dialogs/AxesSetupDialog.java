@@ -19,6 +19,7 @@
 package io.github.mzmine.util.dialogs;
 
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.ValueAxis;
@@ -69,7 +70,10 @@ public class AxesSetupDialog extends Stage {
   /**
    * Constructor
    */
-  public AxesSetupDialog(Stage parent, XYPlot plot) {
+  public AxesSetupDialog(@Nonnull Stage parent, @Nonnull XYPlot plot) {
+
+    assert parent != null;
+    assert plot != null;
 
     mainPane = new DialogPane();
 
@@ -80,10 +84,7 @@ public class AxesSetupDialog extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
 
-    parent.setOnHiding(e -> {
-      if (this.isShowing())
-        this.hide();
-    });
+    initOwner(parent);
 
     xAxis = plot.getDomainAxis();
     yAxis = plot.getRangeAxis();

@@ -186,7 +186,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     pnlTabs.add(pnlPlotShapeClusters);
 
-    super.mainPanel.add(pnlVisible, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
+    super.paramsPane.add(pnlVisible, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
         GridBagConstraints.HORIZONTAL);
   }
 
@@ -202,11 +202,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        mainPanel.add(pnlTabs, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+        paramsPane.add(pnlTabs, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
         pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
         comboPeakList.setSelectedIndex(0);
       } else {
-        mainPanel.remove(pnlTabs);
+        paramsPane.remove(pnlTabs);
         pnlVisible.remove(pnlLabelsFields);
       }
 

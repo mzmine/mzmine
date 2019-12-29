@@ -284,6 +284,8 @@ public class TICPlot extends EChartViewer {
     popupMenu.getItems().add(new MenuItem("gagaga"));
     popupMenu.getItems().add(new SeparatorMenuItem());
 
+
+
     // Add EMF and EPS options to the save as menu
     // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
     // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
@@ -465,6 +467,7 @@ public class TICPlot extends EChartViewer {
     // Handle mouse click events
     if (event.getButton() == MouseEvent.BUTTON1) {
 
+      System.out.println("mouse " + event);
       if (event.getX() < 70) { // User clicked on Y-axis
         if (event.getClickCount() == 2) { // Reset zoom on Y-axis
           XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
@@ -496,10 +499,10 @@ public class TICPlot extends EChartViewer {
 
     if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
-      // if (visualizer instanceof TICVisualizerWindow) {
-
-      // ((TICVisualizerWindow) visualizer).updateTitle();
-      // }
+      Window myWindow = this.getScene().getWindow();
+      if (myWindow instanceof TICVisualizerWindow) {
+        ((TICVisualizerWindow) myWindow).updateTitle();
+      }
 
       if (showSpectrumRequest) {
 
@@ -578,7 +581,6 @@ public class TICPlot extends EChartViewer {
   }
 
   public XYPlot getXYPlot() {
-
     return plot;
   }
 
@@ -643,10 +645,8 @@ public class TICPlot extends EChartViewer {
       addDataSetRenderer(dataSet, renderer);
       renderer.setDrawSeriesLineAsPath(true);
       renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
-
         @Override
         public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
-
           return ((PeakDataSet) xyDataSet).isPeak(item) ? label : null;
         }
       });
