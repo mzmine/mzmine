@@ -66,19 +66,6 @@ public class MZmineProjectImpl implements MZmineProject {
 
   }
 
-<<<<<<< HEAD
-  public void activateProject() {
-
-    // If running without GUI, just return
-    if (MZmineCore.getDesktop() == null)
-      return;
-
-    MZmineGUI.activateProject(this);
-
-  }
-
-=======
->>>>>>> refs/remotes/upstream/master
   @Override
   public void addParameter(UserParameter<?, ?> parameter) {
     if (projectParametersAndValues.containsKey(parameter))
