@@ -54,7 +54,6 @@ import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -211,10 +210,7 @@ public class Fx3DStageController {
     scene3D.setPickOnBounds(true);
 
     // Add the Windows menu
-    MenuBar menuBar = new MenuBar();
-    menuBar.setUseSystemMenuBar(true);
-    menuBar.getMenus().add(new WindowsMenu());
-    root.getChildren().add(menuBar);
+    WindowsMenu.addWindowsMenu(scene);
 
   }
 

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,70 +18,85 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Main window of the scatter plot visualizer.
- * 
+ *
  */
-public class ScatterPlotWindow extends JFrame {
+public class ScatterPlotWindow extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private ScatterPlotToolBar toolbar;
-  private ScatterPlotChart chart;
-  private ScatterPlotTopPanel topPanel;
-  private ScatterPlotBottomPanel bottomPanel;
+  static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolbar;
+  private final Button axesButton;
+  private final ScatterPlotChart chart;
+  private final ScatterPlotTopPanel topPanel;
+  private final ScatterPlotBottomPanel bottomPanel;
 
   public ScatterPlotWindow(PeakList peakList) {
 
-    super("Scatter plot of " + peakList);
+    setTitle("Scatter plot of " + peakList);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
     topPanel = new ScatterPlotTopPanel();
-    add(topPanel, BorderLayout.NORTH);
+    mainPane.setTop(topPanel);
 
     chart = new ScatterPlotChart(this, topPanel, peakList);
-    Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    chart.setBorder(border);
-    chart.setBackground(Color.white);
-    add(chart, BorderLayout.CENTER);
+    // Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+    // chart.setBorder(border);
+    // chart.setBackground(Color.white);
+    mainPane.setCenter(chart);
 
-    toolbar = new ScatterPlotToolBar(chart);
-    add(toolbar, BorderLayout.EAST);
+    toolbar = new ToolBar();
+    toolbar.setOrientation(Orientation.VERTICAL);
 
-    JComponent leftMargin = (JComponent) Box.createRigidArea(new Dimension(10, 10));
-    leftMargin.setOpaque(false);
-    add(leftMargin, BorderLayout.WEST);
+    axesButton = new Button(null, new ImageView(axesIcon));
+    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesButton.setOnAction(e -> {
+      AxesSetupDialog dialog = new AxesSetupDialog(this, chart.getPlot());
+      dialog.show();
+    });
+
+    mainPane.setRight(toolbar);
+
+    // JComponent leftMargin = (JComponent) Box.createRigidArea(new Dimension(10, 10));
+    // leftMargin.setOpaque(false);
+    // add(leftMargin, BorderLayout.WEST);
 
     bottomPanel = new ScatterPlotBottomPanel(this, chart, peakList);
-    add(bottomPanel, BorderLayout.SOUTH);
+    mainPane.setBottom(bottomPanel);
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
-    pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -89,8 +104,8 @@ public class ScatterPlotWindow extends JFrame {
     WindowSettingsParameter settings = paramSet.getParameter(ScatterPlotParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
   }
 

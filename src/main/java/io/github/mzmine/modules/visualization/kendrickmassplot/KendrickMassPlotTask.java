@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,15 +18,11 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -45,9 +41,7 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
@@ -62,7 +56,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Task to create a Kendrick mass plot of selected features of a selected feature list
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotTask extends AbstractTask {
@@ -161,9 +155,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     // create chart JPanel
     EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
 
-    // Create Kendrick mass plot Window
-    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
-    frame.add(chartPanel, BorderLayout.CENTER);
+
 
     // set title properties
     TextTitle chartTitle = chart.getTitle();
@@ -171,11 +163,15 @@ public class KendrickMassPlotTask extends AbstractTask {
     chartTitle.setFont(titleFont);
     LegendTitle legend = chart.getLegend();
     legend.setVisible(false);
-    frame.setTitle(title);
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    frame.setBackground(Color.white);
-    frame.setVisible(true);
-    frame.pack();
+    // frame.setTitle(title);
+    // frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    // frame.setBackground(Color.white);
+    // frame.setVisible(true);
+    // frame.pack();
+
+    // Create Kendrick mass plot Window
+    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
+    frame.show();
 
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating Kendrick mass plot of " + peakList);

@@ -18,13 +18,9 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import com.google.common.collect.Range;
@@ -43,16 +39,34 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.ToolBar;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * MS/MS visualizer using JFreeChart library
  */
-public class MsMsVisualizerWindow extends JFrame implements ActionListener {
+public class MsMsVisualizerWindow extends Stage {
 
-  private static final long serialVersionUID = 1L;
-  private MsMsToolBar toolBar;
-  private MsMsPlot IDAPlot;
-  private MsMsBottomPanel bottomPanel;
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image dataPointsIcon =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image tooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/tooltips2dploticon.png");
+  private static final Image notooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
+  private static final Image findIcon = FxIconUtil.loadImageFromResources("icons/search.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolBar;
+  private final MsMsPlot IDAPlot;
+  private final MsMsBottomPanel bottomPanel;
   private MsMsDataSet dataset;
   private RawDataFile dataFile;
   private boolean tooltipMode;
@@ -61,10 +75,16 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
       IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
       ParameterSet parameters) {
 
-    super("MS/MS visualizer: [" + dataFile.getName() + "]");
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
 
     this.dataFile = dataFile;
     this.tooltipMode = true;
@@ -72,29 +92,24 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
     dataset = new MsMsDataSet(dataFile, rtRange, mzRange, intensityType, normalizationType,
         minPeakInt, this);
 
-    toolBar = new MsMsToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
+    mainPane.setRight(toolBar);
 
     IDAPlot = new MsMsPlot(this, dataFile, this, dataset, rtRange, mzRange);
-    add(IDAPlot, BorderLayout.CENTER);
+    mainPane.setCenter(IDAPlot);
 
     bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
-    add(bottomPanel, BorderLayout.SOUTH);
+    mainPane.setBottom(bottomPanel);
 
     updateTitle();
-
-    // After we have constructed everything, load the feature lists into the
-    // bottom panel
-    bottomPanel.rebuildPeakListSelector();
 
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -102,14 +117,8 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
     WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
-  }
-
-  @Override
-  public void dispose() {
-    super.dispose();
-    // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
   }
 
   void updateTitle() {

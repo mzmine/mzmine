@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,32 +23,38 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.PaintScaleLegend;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.embed.swing.SwingNode;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Window for Kendrick mass plots
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotWindow extends JFrame implements ActionListener {
+public class KendrickMassPlotWindow extends Stage implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final JPanel swingPanel;
+
   private KendrickMassPlotToolBar kendrickToolBar;
   private JFreeChart chart;
   private PeakListRow selectedRows[];
@@ -73,6 +79,17 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
   private int zAxisDivisor;
 
   public KendrickMassPlotWindow(JFreeChart chart, ParameterSet parameters, EChartPanel chartPanel) {
+
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    SwingNode swingNode = new SwingNode();
+    mainPane.setCenter(swingNode);
 
     PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
@@ -128,22 +145,26 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     this.useRKM_Y = false;
     this.useRKM_Z = false;
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
+    swingPanel = new JPanel(new BorderLayout());
+
+    swingPanel.add(chartPanel, BorderLayout.CENTER);
 
     // Add toolbar
     kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
         xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
         useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    add(kendrickToolBar, BorderLayout.EAST);
+    swingPanel.add(kendrickToolBar, BorderLayout.EAST);
 
     // set tooltips
     setTooltips();
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
+
+    SwingUtilities.invokeLater(() -> swingNode.setContent(swingPanel));
 
     // mouse listener
     chartPanel.addChartMouseListener(new ChartMouseListener() {
@@ -185,7 +206,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       @Override
       public void chartMouseMoved(ChartMouseEvent event) {}
     });
-    pack();
+    // pack();
   }
 
   @Override
@@ -534,7 +555,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       dataset.setyValues(yValues);
       dataset.setxValues(xValues);
       chart.fireChartChanged();
-      validate();
+      // validate();
     } else if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
       KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
       double[] xValues = new double[dataset.getItemCount(0)];
@@ -655,18 +676,18 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       dataset.setxValues(xValues);
       dataset.setzValues(zValues);
       chart.fireChartChanged();
-      validate();
+      // validate();
     }
 
     // update toolbar
-    this.remove(kendrickToolBar);
+    swingPanel.remove(kendrickToolBar);
     kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
         xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
         useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
     setTooltips();
 
-    this.add(kendrickToolBar, BorderLayout.EAST);
-    this.revalidate();
+    swingPanel.add(kendrickToolBar, BorderLayout.EAST);
+    // this.revalidate();
   }
 
   /*

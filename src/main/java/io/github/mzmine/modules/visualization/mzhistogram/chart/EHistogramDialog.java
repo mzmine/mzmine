@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -28,23 +28,22 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
-
 import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.util.GUIUtils;
 
 /**
  * Enhanced version. Use arrows to jump to the next or previous distribution
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public class EHistogramDialog extends HistogramDialog implements ActionListener {
-  private static final long serialVersionUID = 1L;
+
   private JCheckBox cbKeepSameXaxis;
 
   /**
    * Create the dialog. Auto detect binWidth
-   * 
+   *
    * @wbp.parser.constructor
    */
   public EHistogramDialog(String title, String xLabel, HistogramData data) {
@@ -52,7 +51,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
   }
 
   /**
-   * 
+   *
    * @param title
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
@@ -172,7 +171,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
 
   /**
    * Set zoom factor around peak at data point i
-   * 
+   *
    * @param i
    */
   private void setZoomAroundPeakAt(int i) {

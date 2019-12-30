@@ -22,9 +22,13 @@ import java.util.logging.Logger;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.main.MZmineCore;
 import javafx.beans.property.SimpleListProperty;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -57,6 +61,20 @@ public class WindowsMenu extends Menu {
 
     this.setOnShowing(e -> fillWindowsMenu());
 
+  }
+
+  /**
+   * Add the Windows menu
+   */
+  public static void addWindowsMenu(final Scene scene) {
+    Parent rootNode = scene.getRoot();
+    if (rootNode instanceof Pane) {
+      Pane rootPane = (Pane) rootNode;
+      MenuBar menuBar = new MenuBar();
+      menuBar.setUseSystemMenuBar(true);
+      menuBar.getMenus().add(new WindowsMenu());
+      rootPane.getChildren().add(menuBar);
+    }
   }
 
   private void fillWindowsMenu() {

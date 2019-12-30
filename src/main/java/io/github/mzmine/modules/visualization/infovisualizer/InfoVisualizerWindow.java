@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,19 +23,14 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.text.NumberFormat;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -43,13 +38,16 @@ import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
-class InfoVisualizerWindow extends JFrame {
+class InfoVisualizerWindow extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
@@ -58,11 +56,20 @@ class InfoVisualizerWindow extends JFrame {
 
   InfoVisualizerWindow(PeakList peakList) {
 
-    super("Feature list information");
+    setTitle(peakList.getName() + " information");
 
-    // this.setTitle(peakList.getName() + " information");
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    setMinWidth(400.0);
+    setMinHeight(300.0);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
     this.getInfoRange(peakList);
@@ -150,13 +157,12 @@ class InfoVisualizerWindow extends JFrame {
 
     add(pnlGrid);
     setResizable(false);
+    sizeToScene();
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
-    pack();
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -165,8 +171,8 @@ class InfoVisualizerWindow extends JFrame {
         paramSet.getParameter(InfoVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
   }
 

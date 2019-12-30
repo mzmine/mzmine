@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,13 +21,10 @@ package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -39,33 +36,32 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SearchDefinition;
 import io.github.mzmine.util.SaveImage.FileType;
+import io.github.mzmine.util.SearchDefinition;
 import io.github.mzmine.util.components.ComponentToolTipManager;
 import io.github.mzmine.util.components.ComponentToolTipProvider;
 import io.github.mzmine.util.components.PeakSummaryComponent;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.input.MouseEvent;
 
-public class ScatterPlotChart extends EChartPanel implements ComponentToolTipProvider {
-
-  private static final long serialVersionUID = 1L;
+public class ScatterPlotChart extends EChartViewer implements ComponentToolTipProvider {
 
   // grid color
   private static final Color gridColor = Color.lightGray;
@@ -99,7 +95,7 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
   public ScatterPlotChart(ScatterPlotWindow window, ScatterPlotTopPanel topPanel,
       PeakList peakList) {
 
-    super(null, true);
+    super(null);
 
     this.window = window;
     this.peakList = peakList;
@@ -120,8 +116,8 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
     setChart(chart);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -167,20 +163,20 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
     plot.setRenderer(1, diagonalLineRenderer);
 
     // Set tooltip properties
-    ttm = new ComponentToolTipManager();
-    ttm.registerComponent(this);
-    setDismissDelay(Integer.MAX_VALUE);
-    setInitialDelay(0);
+    // ttm = new ComponentToolTipManager();
+    // ttm.registerComponent(this);
+    // setDismissDelay(Integer.MAX_VALUE);
+    // setInitialDelay(0);
 
     // add items to popup menu TODO: add other Show... items
-    JPopupMenu popupMenu = getPopupMenu();
-    popupMenu.addSeparator();
-    GUIUtils.addMenuItem(popupMenu, "Show Chromatogram", this, "TIC");
+    ContextMenu popupMenu = getContextMenu();
+    // popupMenu.addSeparator();
+    // GUIUtils.addMenuItem(popupMenu, "Show Chromatogram", this, "TIC");
 
     // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
+    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -188,7 +184,8 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
       history.clear();
   }
 
-  public JComponent getCustomToolTipComponent(MouseEvent event) {
+  @Override
+  public Node getCustomToolTipComponent(MouseEvent event) {
 
     String index = this.getToolTipText(event);
     if (index == null) {
@@ -215,9 +212,8 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
   /**
    * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
    */
-  @Override
+  // @Override
   public void chartProgress(ChartProgressEvent event) {
-    super.chartProgress(event);
 
     // Whenever chart is repainted (e.g. after crosshair position changed),
     // we update the selected item name
@@ -229,17 +225,16 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
     }
   }
 
+  public XYPlot getPlot() {
+    return plot;
+  }
+
   public void actionPerformed(ActionEvent event) {
 
-    super.actionPerformed(event);
+
 
     String command = event.getActionCommand();
 
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(window, plot);
-      dialog.showAndWait();
-      return;
-    }
 
     if (command.equals("TIC")) {
 
@@ -267,8 +262,10 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
 
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-      ChromatogramVisualizerModule.showNewTICVisualizerWindow(peakList.getRawDataFiles(), peaks,
-          labelMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
+      FeatureSelection sel = new FeatureSelection(peakList, bestPeak, selectedRow, null);
+
+      ChromatogramVisualizerModule.showNewTICVisualizerWindow(peakList.getRawDataFiles(),
+          Collections.singletonList(sel), labelMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
     }
 
     if ("SAVE_EMF".equals(command)) {
@@ -282,8 +279,8 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
         if (!file.toLowerCase().endsWith(".emf"))
           file += ".emf";
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
         SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
@@ -303,8 +300,8 @@ public class ScatterPlotChart extends EChartPanel implements ComponentToolTipPro
         if (!file.toLowerCase().endsWith(".eps"))
           file += ".eps";
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
         SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);

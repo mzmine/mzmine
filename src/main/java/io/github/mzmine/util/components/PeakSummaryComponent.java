@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -42,7 +42,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
@@ -50,31 +49,28 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeakPickerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import javafx.scene.layout.BorderPane;
 
-public class PeakSummaryComponent extends JPanel implements ActionListener {
+public class PeakSummaryComponent extends BorderPane implements ActionListener {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+
 
   private static final DecimalFormat formatter = new DecimalFormat("###.#");
 
@@ -118,7 +114,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
       bg = backgroundColor;
     }
 
-    setBackground(bg);
+    // setBackground(bg);
 
     this.row = row;
 
@@ -270,9 +266,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
     buttonsAndTablePanel.setBackground(bg);
 
     pnlAll.add(buttonsAndTablePanel, BorderLayout.SOUTH);
-    setLayout(new BorderLayout());
-    setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    add(pnlAll, BorderLayout.CENTER);
+    // setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    setCenter(pnlAll);
 
   }
 
@@ -350,6 +345,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     String command = e.getActionCommand();

@@ -18,10 +18,8 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -33,7 +31,6 @@ import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -174,10 +171,7 @@ public class TwoDVisualizerWindow extends Stage {
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
     // Add the Windows menu
-    MenuBar menuBar = new MenuBar();
-    menuBar.setUseSystemMenuBar(true);
-    menuBar.getMenus().add(new WindowsMenu());
-    mainPane.getChildren().add(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
@@ -199,49 +193,6 @@ public class TwoDVisualizerWindow extends Stage {
     title.append(dataFile.getName());
     title.append("]: 2D view");
     twoDPlot.setTitle(title.toString());
-  }
-
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SWITCH_PALETTE")) {
-
-    }
-
-    if (command.equals("SHOW_DATA_POINTS")) {
-
-    }
-
-    if (command.equals("SETUP_AXES")) {
-
-    }
-
-    if (command.equals("SWITCH_PLOTMODE")) {
-
-
-    }
-
-    if (command.equals("SWITCH_TOOLTIPS")) {
-
-    }
-
-    if (command.equals("SWITCH_LOG_SCALE")) {
-
-    }
-
-    if ("PEAKLIST_CHANGE".equals(command)) {
-      final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-      if (selectedPeakList != null) {
-        logger
-            .finest("Loading a feature list " + selectedPeakList + " to a 2D view of " + dataFile);
-        twoDPlot.loadPeakList(selectedPeakList);
-      }
-    }
-
   }
 
   TwoDPlot getPlot() {

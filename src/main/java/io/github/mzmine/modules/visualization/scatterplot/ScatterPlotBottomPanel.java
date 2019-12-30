@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,45 +24,42 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.regex.PatternSyntaxException;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SearchDefinition;
 import io.github.mzmine.util.SearchDefinitionType;
-import io.github.mzmine.util.components.CenteredListCellRenderer;
+import javafx.collections.FXCollections;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 
-public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
+public class ScatterPlotBottomPanel extends GridPane {
 
-  private static final long serialVersionUID = 1L;
-
-  private JComboBox<ScatterPlotAxisSelection> comboX, comboY;
-  private JComboBox<String> comboFold;
-  private JComboBox<SearchDefinitionType> comboSearchDataType;
-  private JTextField txtSearchField;
-  private JFormattedTextField minSearchField, maxSearchField;
-  private JLabel labelRange;
-  private JCheckBox labeledItems;
+  private final ComboBox<ScatterPlotAxisSelection> comboX, comboY;
+  private final ComboBox<String> comboFold;
+  private final ComboBox<SearchDefinitionType> comboSearchDataType;
+  private final TextField txtSearchField;
+  private final TextField minSearchField, maxSearchField;
+  private final Label labelRange;
+  private final CheckBox labeledItems;
 
   private static final String[] foldXvalues =
       {"2", "4", "5", "8", "10", "15", "20", "50", "100", "200", "1000"};
@@ -82,45 +79,49 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
     ScatterPlotAxisSelection axesOptions[] =
         ScatterPlotAxisSelection.generateOptionsForPeakList(peakList);
 
-    comboX = new JComboBox<ScatterPlotAxisSelection>(axesOptions);
+    comboX = new ComboBox<>(FXCollections.observableArrayList(axesOptions));
     comboX.addActionListener(this);
-    comboX.setActionCommand("DATA_CHANGE");
-    comboY = new JComboBox<ScatterPlotAxisSelection>(axesOptions);
+    // comboX.setActionCommand("DATA_CHANGE");
+    comboY = new ComboBox<>(FXCollections.observableArrayList(axesOptions));
     comboY.addActionListener(this);
-    comboY.setActionCommand("DATA_CHANGE");
+    // comboY.setActionCommand("DATA_CHANGE");
 
     // Fold
-    comboFold = new JComboBox<String>(foldXvalues);
+    comboFold = new ComboBox<>(FXCollections.observableArrayList(foldXvalues));
     comboFold.addActionListener(this);
-    comboFold.setActionCommand("DATA_CHANGE");
-    comboFold.setRenderer(new CenteredListCellRenderer());
+    // comboFold.setActionCommand("DATA_CHANGE");
+    // comboFold.setRenderer(new CenteredListCellRenderer());
 
     JPanel pnlFold = new JPanel(new FlowLayout());
     pnlFold.add(new JLabel("Fold (x)", SwingConstants.CENTER));
     pnlFold.add(comboFold);
 
     // Search
-    txtSearchField = new JTextField();
+    txtSearchField = new TextField();
     txtSearchField.selectAll();
-    txtSearchField.setEnabled(true);
-    txtSearchField.setPreferredSize(new Dimension(230, txtSearchField.getPreferredSize().height));
+    // txtSearchField.setEnabled(true);
+    // txtSearchField.setPreferredSize(new Dimension(230,
+    // txtSearchField.getPreferredSize().height));
 
-    minSearchField = new JFormattedTextField();
+    minSearchField = new TextField();
     minSearchField.selectAll();
     minSearchField.setVisible(false);
-    minSearchField.setPreferredSize(new Dimension(100, minSearchField.getPreferredSize().height));
+    // minSearchField.setPreferredSize(new Dimension(100,
+    // minSearchField.getPreferredSize().height));
 
-    labelRange = new JLabel("-");
+    labelRange = new Label("-");
     labelRange.setVisible(false);
 
-    maxSearchField = new JFormattedTextField();
+    maxSearchField = new TextField();
     maxSearchField.selectAll();
     maxSearchField.setVisible(false);
-    maxSearchField.setPreferredSize(new Dimension(100, maxSearchField.getPreferredSize().height));
+    // maxSearchField.setPreferredSize(new Dimension(100,
+    // maxSearchField.getPreferredSize().height));
 
-    comboSearchDataType = new JComboBox<SearchDefinitionType>(SearchDefinitionType.values());
+    comboSearchDataType =
+        new JComboBox<>(FXCollections.observableArrayList(SearchDefinitionType.values()));
     comboSearchDataType.addActionListener(this);
-    comboSearchDataType.setActionCommand("SEARCH_DATA_TYPE");
+    // comboSearchDataType.setActionCommand("SEARCH_DATA_TYPE");
 
     JPanel pnlGridSearch = new JPanel();
     pnlGridSearch.setLayout(new GridBagLayout());
@@ -200,7 +201,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 
     // Activate the second item in the Y axis combo, this will also trigger
     // DATA_CHANGE event
-    comboY.setSelectedIndex(1);
+    comboY.getSelectionModel().select(1);
 
   }
 

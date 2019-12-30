@@ -61,7 +61,6 @@ import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -214,12 +213,7 @@ public class TICVisualizerWindow extends Stage {
     }
 
     // Add the Windows menu
-    MenuBar menuBar = new MenuBar();
-    menuBar.setUseSystemMenuBar(true);
-    menuBar.getMenus().add(new WindowsMenu());
-    mainPane.getChildren().add(menuBar);
-
-
+    WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
