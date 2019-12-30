@@ -101,10 +101,23 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         parameters.getParameter(FormulaPredictionPeakListParameters.isotopeFilter).getValue();
     isotopeParameters = parameters.getParameter(FormulaPredictionPeakListParameters.isotopeFilter)
         .getEmbeddedParameters();
-
+    if (checkIsotopes) {
+      // Only get the value if the isotope checking is activated, otherwise we might get a NPE
+      minScore = isotopeParameters
+        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
+    } else {
+      minScore = 0d;
+    }
+    
     checkMSMS = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter).getValue();
     msmsParameters = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter)
         .getEmbeddedParameters();
+    if (checkMSMS) {
+      // Only get the value if the MSMS checking is activated, otherwise we might get a NPE
+      minMSMSScore = msmsParameters.getParameter(MSMSScoreParameters.msmsMinScore).getValue();
+    } else {
+      minMSMSScore = 0d;
+    }
 
     checkRDBE =
         parameters.getParameter(FormulaPredictionPeakListParameters.rdbeRestrictions).getValue();
@@ -118,13 +131,6 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
 
     maxBestFormulasPerPeak = parameters
         .getParameter(FormulaPredictionPeakListParameters.maxBestFormulasPerPeak).getValue();
-
-
-    minScore = isotopeParameters
-        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
-
-
-    minMSMSScore = msmsParameters.getParameter(MSMSScoreParameters.msmsMinScore).getValue();
 
     // get sorting parameters
     isSorting = parameters.getParameter(FormulaPredictionPeakListParameters.sorting).getValue();

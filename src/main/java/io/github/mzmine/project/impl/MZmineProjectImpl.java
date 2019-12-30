@@ -24,8 +24,6 @@ import java.util.Vector;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
@@ -68,6 +66,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   }
 
+<<<<<<< HEAD
   public void activateProject() {
 
     // If running without GUI, just return
@@ -78,6 +77,8 @@ public class MZmineProjectImpl implements MZmineProject {
 
   }
 
+=======
+>>>>>>> refs/remotes/upstream/master
   @Override
   public void addParameter(UserParameter<?, ?> parameter) {
     if (projectParametersAndValues.containsKey(parameter))

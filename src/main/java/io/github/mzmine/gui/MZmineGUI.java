@@ -136,6 +136,12 @@ public class MZmineGUI extends Application implements Desktop {
      * ((MainWindow) desk) .createLastUsedProjectsMenu(list); } }); }
      */
 
+    // Activate project - bind it to the desktop's project tree
+    MZmineProjectImpl currentProject =
+        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+    MZmineGUI.activateProject(currentProject);
+
+
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
     Thread nvcThread = new Thread(NVC);
