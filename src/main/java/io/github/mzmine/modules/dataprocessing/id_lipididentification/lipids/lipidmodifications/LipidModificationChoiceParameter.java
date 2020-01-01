@@ -88,6 +88,10 @@ public class LipidModificationChoiceParameter
     return values;
   }
 
+  public LipidModification[] getChoices() {
+    return choices;
+  }
+
   @Override
   public void setValue(LipidModification[] newValue) {
     this.values = newValue;

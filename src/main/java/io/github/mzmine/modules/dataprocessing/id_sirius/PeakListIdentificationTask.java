@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,12 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import javax.annotation.Nonnull;
+import org.slf4j.LoggerFactory;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.parameters.ParameterSet;
@@ -34,15 +38,6 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
-
-import javax.annotation.Nonnull;
-
-import org.slf4j.LoggerFactory;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
@@ -67,7 +62,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   /**
    * Create the identification task.
-   * 
+   *
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
@@ -166,7 +161,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   /**
    * Adds peak identities to requested row
-   * 
+   *
    * @param annotations list of IonAnnotations
    * @param row to add identities
    * @param amount of identities to be added from list
@@ -178,17 +173,6 @@ public class PeakListIdentificationTask extends AbstractTask {
       SiriusCompound compound = new SiriusCompound(annotation);
       row.addPeakIdentity(compound, false);
     }
-    notifyRow(row);
-  }
-
-  /**
-   * Method notifies object about content update
-   * 
-   * @param row to be notified
-   */
-  private static void notifyRow(PeakListRow row) {
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
-
   }
 
   /**

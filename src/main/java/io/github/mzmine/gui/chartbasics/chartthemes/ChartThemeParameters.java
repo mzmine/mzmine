@@ -101,8 +101,8 @@ public class ChartThemeParameters extends SimpleParameterSet {
         this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
 
     Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
-    chart.setBackgroundPaint(gbColor);
-    chart.getPlot().setBackgroundPaint(gbColor);
+    // chart.setBackgroundPaint(gbColor);
+    // chart.getPlot().setBackgroundPaint(gbColor);
 
     if (changeTitle)
       chart.setTitle(title);

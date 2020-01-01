@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
 import java.awt.geom.Ellipse2D;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
@@ -27,7 +26,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -38,13 +36,16 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -65,11 +66,12 @@ public class MsMsVisualizerWindow extends Stage {
   private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
+  private final Button toggleContinuousModeButton, findButton;
+  private final ToggleButton toggleTooltipButton;
   private final MsMsPlot IDAPlot;
   private final MsMsBottomPanel bottomPanel;
   private MsMsDataSet dataset;
   private RawDataFile dataFile;
-  private boolean tooltipMode;
 
   public MsMsVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
       IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
@@ -87,17 +89,98 @@ public class MsMsVisualizerWindow extends Stage {
     // setBackground(Color.white);
 
     this.dataFile = dataFile;
-    this.tooltipMode = true;
 
     dataset = new MsMsDataSet(dataFile, rtRange, mzRange, intensityType, normalizationType,
         minPeakInt, this);
 
+    IDAPlot = new MsMsPlot(dataFile, this, dataset, rtRange, mzRange);
+    mainPane.setCenter(IDAPlot);
+
     toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
+
+    toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
+    toggleContinuousModeButton
+        .setTooltip(new Tooltip("Toggle displaying of data points for the peaks"));
+    toggleContinuousModeButton.setOnAction(e -> {
+      IDAPlot.switchDataPointsVisible();
+    });
+
+    toggleTooltipButton = new ToggleButton(null, new ImageView(tooltipsIcon));
+    toggleTooltipButton.setSelected(true);
+    toggleTooltipButton.setTooltip(new Tooltip("Toggle displaying of tool tips on the peaks"));
+    toggleTooltipButton.setOnAction(e -> {
+      if (toggleTooltipButton.isSelected()) {
+        IDAPlot.showPeaksTooltips(false);
+        toggleTooltipButton.setSelected(false);
+      } else {
+        IDAPlot.showPeaksTooltips(true);
+        toggleTooltipButton.setSelected(true);
+      }
+    });
+
+    findButton = new Button(null, new ImageView(findIcon));
+    findButton.setTooltip(new Tooltip("Search for MS/MS spectra with specific ions"));
+    findButton.setOnAction(e -> {
+      // Parameters
+      final DoubleParameter inputMZ =
+          new DoubleParameter("Ion m/z", "m/z value of ion to search for.");
+
+      final MZToleranceParameter inputMZTolerance = new MZToleranceParameter();
+
+      final DoubleParameter inputIntensity = new DoubleParameter("Min. ion intensity",
+          "Only ions with intensities above this value will be searched for.");
+
+      final BooleanParameter inputNL = new BooleanParameter("Neutral Loss",
+          "If selected, the ion to be searched for will be a neutral loss ion.\nIn this case, only ions above the min. intensity will be examined.",
+          false);
+
+      final ComboParameter<Colors> inputColors = new ComboParameter<Colors>("Color",
+          "The color which the data points will be marked with.", Colors.values());
+
+      Parameter<?>[] findParams = new Parameter<?>[5];
+      findParams[0] = inputMZ;
+      findParams[1] = inputMZTolerance;
+      findParams[2] = inputIntensity;
+      findParams[3] = inputNL;
+      findParams[4] = inputColors;
+
+      final ParameterSet parametersSearch = new SimpleParameterSet(findParams);
+      ExitCode exitCode = parametersSearch.showSetupDialog(true);
+
+      if (exitCode != ExitCode.OK)
+        return;
+
+      double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
+      MZTolerance searchMZTolerance = parametersSearch.getParameter(inputMZTolerance).getValue();
+      double minIntensity = parametersSearch.getParameter(inputIntensity).getValue();
+      boolean neutralLoss = parametersSearch.getParameter(inputNL).getValue();
+
+      Color highligtColor = Color.red;;
+      if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {
+        highligtColor = Color.green;
+      }
+      if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.blue)) {
+        highligtColor = Color.blue;
+      }
+
+      // Find and highlight spectra with specific ion
+      dataset.highlightSpectra(searchMZ, searchMZTolerance, minIntensity, neutralLoss,
+          highligtColor);
+
+      // Add legend entry
+      LegendItemCollection chartLegend = IDAPlot.getXYPlot().getLegendItems();
+      chartLegend.add(new LegendItem("Ion: " + searchMZ, "",
+          "MS/MS spectra which contain the " + searchMZ + " ion\nTolerance: "
+              + searchMZTolerance.toString() + "\nMin intensity: " + minIntensity,
+          "", new Ellipse2D.Double(0, 0, 7, 7), highligtColor));
+      IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);
+    });
+
+
+    toolBar.getItems().addAll(toggleContinuousModeButton, toggleTooltipButton, findButton);
     mainPane.setRight(toolBar);
 
-    IDAPlot = new MsMsPlot(this, dataFile, this, dataset, rtRange, mzRange);
-    mainPane.setCenter(IDAPlot);
 
     bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
     mainPane.setBottom(bottomPanel);
@@ -147,100 +230,6 @@ public class MsMsVisualizerWindow extends Stage {
     return null;
   }
 
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SHOW_SPECTRUM")) {
-      CursorPosition pos = getCursorPosition();
-      if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
-      }
-    }
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, IDAPlot.getXYPlot());
-      dialog.showAndWait();
-    }
-
-    if (command.equals("SHOW_DATA_POINTS")) {
-      IDAPlot.switchDataPointsVisible();
-    }
-
-    if (command.equals("SWITCH_TOOLTIPS")) {
-      if (tooltipMode) {
-        IDAPlot.showPeaksTooltips(false);
-        toolBar.setTooltipButton(false);
-        tooltipMode = false;
-      } else {
-        IDAPlot.showPeaksTooltips(true);
-        toolBar.setTooltipButton(true);
-        tooltipMode = true;
-      }
-    }
-
-    if (command.equals("FIND_SPECTRA")) {
-
-      // Parameters
-      final DoubleParameter inputMZ =
-          new DoubleParameter("Ion m/z", "m/z value of ion to search for.");
-
-      final MZToleranceParameter inputMZTolerance = new MZToleranceParameter();
-
-      final DoubleParameter inputIntensity = new DoubleParameter("Min. ion intensity",
-          "Only ions with intensities above this value will be searched for.");
-
-      final BooleanParameter inputNL = new BooleanParameter("Neutral Loss",
-          "If selected, the ion to be searched for will be a neutral loss ion.\nIn this case, only ions above the min. intensity will be examined.",
-          false);
-
-      final ComboParameter<Colors> inputColors = new ComboParameter<Colors>("Color",
-          "The color which the data points will be marked with.", Colors.values());
-
-      Parameter<?>[] parameters = new Parameter<?>[5];
-      parameters[0] = inputMZ;
-      parameters[1] = inputMZTolerance;
-      parameters[2] = inputIntensity;
-      parameters[3] = inputNL;
-      parameters[4] = inputColors;
-
-      final ParameterSet parametersSearch = new SimpleParameterSet(parameters);
-      ExitCode exitCode = parametersSearch.showSetupDialog(true);
-
-      if (exitCode != ExitCode.OK)
-        return;
-
-      double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
-      MZTolerance searchMZTolerance = parametersSearch.getParameter(inputMZTolerance).getValue();
-      double minIntensity = parametersSearch.getParameter(inputIntensity).getValue();
-      boolean neutralLoss = parametersSearch.getParameter(inputNL).getValue();
-
-      Color highligtColor = Color.red;;
-      if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {
-        highligtColor = Color.green;
-      }
-      if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.blue)) {
-        highligtColor = Color.blue;
-      }
-
-      // Find and highlight spectra with specific ion
-      dataset.highlightSpectra(searchMZ, searchMZTolerance, minIntensity, neutralLoss,
-          highligtColor);
-
-      // Add legend entry
-      LegendItemCollection chartLegend = IDAPlot.getXYPlot().getLegendItems();
-      chartLegend.add(new LegendItem("Ion: " + searchMZ, "",
-          "MS/MS spectra which contain the " + searchMZ + " ion\nTolerance: "
-              + searchMZTolerance.toString() + "\nMin intensity: " + minIntensity,
-          "", new Ellipse2D.Double(0, 0, 7, 7), highligtColor));
-      IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);
-    }
-
-  }
 
   MsMsPlot getPlot() {
     return IDAPlot;

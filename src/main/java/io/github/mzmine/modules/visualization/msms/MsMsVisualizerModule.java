@@ -65,7 +65,7 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
     MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFiles[0], rtRange, mzRange,
         intensityType, normalizationType, minPeakInt, parameters);
 
-    newWindow.setVisible(true);
+    newWindow.show();
 
     return ExitCode.OK;
   }
@@ -108,7 +108,7 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
     MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFile, rtRange, mzRange,
         intensityType, normalizationType, minPeakInt, parameters);
 
-    newWindow.setVisible(true);
+    newWindow.show();
 
   }
 

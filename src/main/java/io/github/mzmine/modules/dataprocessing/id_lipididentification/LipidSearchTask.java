@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -34,8 +33,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
@@ -53,7 +50,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Task to search and annotate lipids in feature list
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidSearchTask extends AbstractTask {
@@ -184,7 +181,7 @@ public class LipidSearchTask extends AbstractTask {
 
   /**
    * Check if candidate peak may be a possible adduct of a given main peak
-   * 
+   *
    * @param mainPeak
    * @param possibleFragment
    */
@@ -210,9 +207,6 @@ public class LipidSearchTask extends AbstractTask {
         if (searchForMSMSFragments == true) {
           searchMsmsFragments(rows[rowIndex], lipidIonMass, lipid);
         }
-        // Notify the GUI about the change in the project
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
-            false);
         logger.info("Found lipid: " + lipid.getName() + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
       }
@@ -391,8 +385,6 @@ public class LipidSearchTask extends AbstractTask {
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
-        // Notify the GUI about the change in the project
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows, false);
       }
     }
   }

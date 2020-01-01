@@ -139,6 +139,21 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
+      final Feature[] selectionPeaks, final Map<Feature, String> peakLabels,
+      final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
+
+    List<FeatureSelection> featureSelection = new ArrayList<>();
+    if (selectionPeaks != null)
+      for (Feature f : selectionPeaks) {
+        FeatureSelection fs = new FeatureSelection(null, f, null, null);
+        featureSelection.add(fs);
+      }
+    TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
+        mzRange, featureSelection, peakLabels);
+    window.show();
+  }
+
+  public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
       final List<FeatureSelection> selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 

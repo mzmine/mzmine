@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -54,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.ColorCircle;
+import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -68,7 +70,9 @@ import net.miginfocom.swing.MigLayout;
  */
 public class LipidDatabaseTableDialog extends Stage {
 
-  private final BorderPane mainPanel;
+  private final BorderPane mainFXPanel;
+  private final SwingNode mainSwingPanel;
+  private final JPanel mainPanel;
   private JPanel chartPanel;
   private JSplitPane splitPane;
   private JPanel legendPanel;
@@ -92,12 +96,17 @@ public class LipidDatabaseTableDialog extends Stage {
     // contentPane = new JPanel();
     // contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));;
 
-    mainPanel = new BorderPane();
     // mainPanel.setLayout(new BorderLayout());
-    // mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-    Scene mainScene = new Scene(mainPanel);
+
+    mainSwingPanel = new SwingNode();
+    mainFXPanel = new BorderPane();
+    mainFXPanel.setCenter(mainSwingPanel);
+
+    Scene mainScene = new Scene(mainFXPanel);
     setScene(mainScene);
 
+    mainPanel = new JPanel(new BorderLayout());
+    mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
     // add mainPanel to content pane
 
@@ -200,8 +209,8 @@ public class LipidDatabaseTableDialog extends Stage {
             chartPanel.add(chartPanelCH2, BorderLayout.WEST);
             chartPanel.add(chartPanelH, BorderLayout.EAST);
 
-            revalidate();
-            pack();
+            // revalidate();
+            // pack();
           }
         } catch (InterruptedException | ExecutionException e) {
           e.printStackTrace();
@@ -335,8 +344,12 @@ public class LipidDatabaseTableDialog extends Stage {
       }
     }.execute();
 
-    validate();
-    pack();
+    SwingUtilities.invokeLater(() -> {
+      mainSwingPanel.setContent(mainPanel);
+    });
+
+    // validate();
+    // pack();
   }
 
   /**

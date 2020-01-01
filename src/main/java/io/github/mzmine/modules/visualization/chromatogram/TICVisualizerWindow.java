@@ -105,6 +105,7 @@ public class TICVisualizerWindow extends Stage {
   // Export file chooser.
   private static LoadSaveFileChooser exportChooser = null;
 
+
   /**
    * Constructor for total ion chromatogram visualizer
    */
@@ -525,6 +526,10 @@ public class TICVisualizerWindow extends Stage {
 
   public TICPlot getTICPlot() {
     return ticPlot;
+  }
+
+  public ToolBar getToolBar() {
+    return toolBar;
   }
 
 

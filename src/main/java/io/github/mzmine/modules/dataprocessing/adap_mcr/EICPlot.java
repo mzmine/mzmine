@@ -13,11 +13,11 @@
  * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  */
+
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
@@ -36,15 +36,16 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import javafx.scene.Cursor;
 
 /**
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-public class EICPlot extends EChartPanel {
+public class EICPlot extends EChartViewer {
   private enum PeakType {
     SIMPLE, MODEL
   };
@@ -64,10 +65,10 @@ public class EICPlot extends EChartPanel {
 
   public EICPlot(List<List<NavigableMap<Double, Double>>> clusters, List<Double> colors,
       List<List<String>> info, List<NavigableMap<Double, Double>> modelPeaks) {
-    super(null, true);
+    super(null);
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     NumberAxis xAxis = new NumberAxis("Retention Time");
     xAxis.setAutoRangeIncludesZero(false);

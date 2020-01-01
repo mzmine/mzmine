@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -54,10 +53,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
@@ -91,11 +88,12 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.GridBagPanel;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import javafx.application.Platform;
+import javafx.scene.control.ComboBox;
 import net.miginfocom.swing.MigLayout;
 
 /**
  * Holds more charts for data reviewing
- * 
+ *
  * @author Robin Schmid
  *
  */
@@ -235,7 +233,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
     nc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
     IntegerComponent minc = getMinSignalComponent();
     minc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
-    ComboComponent<ScanSortMode> sortc = getComboSortMode();
+    ComboBox<ScanSortMode> sortc = getComboSortMode();
     sortc.addItemListener(e -> updateSortModeOnAllSelectors());
 
     IntegerComponent mslevel = getMSLevelComponent();
@@ -248,7 +246,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * Sort rows
-   * 
+   *
    * @param rows
    * @param raw
    * @param sorting
@@ -262,7 +260,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * Create charts and show
-   * 
+   *
    * @param rows
    * @param raw
    */
@@ -281,7 +279,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * Set data as single scan
-   * 
+   *
    * @param scan
    */
   public void setData(Scan scan) {
@@ -290,7 +288,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * set data as set of scans of one entry
-   * 
+   *
    * @param scans
    */
   public void setData(Scan[] scans) {
@@ -301,7 +299,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * Set data as set of entries with 1 or multiple scans
-   * 
+   *
    * @param scanList
    */
   public void setData(List<Scan[]> scanList) {
@@ -326,7 +324,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   /**
    * Set whether this is a fragment scan or MS1 and enables some user parameters (e.g., precursor
    * mz, adduct, charge, GNPS submission)
-   * 
+   *
    * @param isFragmentScan
    */
   public void setFragmentScan(boolean isFragmentScan) {
@@ -562,7 +560,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * The full set of parameters for the submission/creation of one library entry
-   * 
+   *
    * @param paramSubmit
    * @param paramMeta
    * @param ion
@@ -809,7 +807,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * To flag annotations in spectra
-   * 
+   *
    * @param mzTolerance
    */
   public void setMzTolerance(MZTolerance mzTolerance) {
@@ -856,7 +854,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * all charts (ms1 and MS2)
-   * 
+   *
    * @param op
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
@@ -866,7 +864,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   /**
    * only ms2 charts
-   * 
+   *
    * @param op
    */
   public void forAllMSMSCharts(Consumer<JFreeChart> op) {

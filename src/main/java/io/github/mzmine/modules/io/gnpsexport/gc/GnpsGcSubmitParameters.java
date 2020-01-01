@@ -128,7 +128,7 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
     ParameterSet param =
         MZmineCore.getConfiguration().getModuleParameters(KovatsIndexExtractionModule.class);
     KovatsIndexExtractionDialog kd =
-        new KovatsIndexExtractionDialog(null, param, savedFile -> pn.setValue(savedFile));
+        new KovatsIndexExtractionDialog(param, savedFile -> pn.setValue(savedFile));
     kd.show();
   }
 }

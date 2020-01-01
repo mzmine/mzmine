@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.KeyEvent;
@@ -29,10 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -51,6 +47,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import javafx.scene.control.ProgressBar;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
@@ -107,23 +104,16 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     return compList;
   }
 
-  private void set_VK_ESCAPE_KeyListener() {
-    // Set VK_ESCAPE KeyEvent listeners
-    List<Component> comps =
-        BaselineCorrectorSetupDialog.getAllComponents(BaselineCorrectorSetupDialog.this);
-    for (Component c : comps) {
-      c.addKeyListener(BaselineCorrectorSetupDialog.this.keyListener);
-    }
-  }
-
-  private void unset_VK_ESCAPE_KeyListener() {
-    // Remove VK_ESCAPE KeyEvent listeners
-    List<Component> comps =
-        BaselineCorrectorSetupDialog.getAllComponents(BaselineCorrectorSetupDialog.this);
-    for (Component c : comps) {
-      c.removeKeyListener(BaselineCorrectorSetupDialog.this.keyListener);
-    }
-  }
+  /*
+   * private void set_VK_ESCAPE_KeyListener() { // Set VK_ESCAPE KeyEvent listeners List<Component>
+   * comps = BaselineCorrectorSetupDialog.getAllComponents(BaselineCorrectorSetupDialog.this); for
+   * (Component c : comps) { c.addKeyListener(BaselineCorrectorSetupDialog.this.keyListener); } }
+   *
+   * private void unset_VK_ESCAPE_KeyListener() { // Remove VK_ESCAPE KeyEvent listeners
+   * List<Component> comps =
+   * BaselineCorrectorSetupDialog.getAllComponents(BaselineCorrectorSetupDialog.this); for
+   * (Component c : comps) { c.removeKeyListener(BaselineCorrectorSetupDialog.this.keyListener); } }
+   */
 
   /**
    *
@@ -218,7 +208,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         }
 
         // Set VK_ESCAPE KeyEvent listeners
-        set_VK_ESCAPE_KeyListener();
+        // set_VK_ESCAPE_KeyListener();
 
         // Reset TIC plot
         ticPlot.removeAllTICDataSets();
@@ -275,7 +265,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       }
 
       // Task is over: Restore "parametersChanged" listeners
-      unset_VK_ESCAPE_KeyListener();
+      // nset_VK_ESCAPE_KeyListener();
 
       if (errorMsg != null) {
         // Handle error.
@@ -305,7 +295,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         // Cancel task.
         this.cancel();
         // Release "ESC" listener.
-        unset_VK_ESCAPE_KeyListener();
+        // unset_VK_ESCAPE_KeyListener();
         // Abort current processing thread
         baselineCorrector.setAbortProcessing(dataFile, true);
 
@@ -351,7 +341,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     private RawDataFile dataFile;
     private PreviewTask previewTask;
     private BaselineCorrectorSetupDialog dialog;
-    private JProgressBar progressBar;
+    private ProgressBar progressBar;
 
     public ProgressThread(BaselineCorrectorSetupDialog dialog, PreviewTask previewTask,
         RawDataFile dataFile) {
@@ -369,8 +359,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         SwingUtilities.invokeLater(new Runnable() {
           @Override
           public void run() {
-            progressBar.setValue(
-                (int) Math.round(100.0 * baselineCorrector.getFinishedPercentage(dataFile)));
+            progressBar.setProgress(baselineCorrector.getFinishedPercentage(dataFile));
           }
         });
         try {
@@ -382,28 +371,28 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       }
       // Clear GUI stuffs
       removeProgessBar();
-      unset_VK_ESCAPE_KeyListener();
+      // unset_VK_ESCAPE_KeyListener();
     }
 
     private void addProgessBar() {
       // Add progress bar
-      progressBar = new JProgressBar();
-      progressBar.setValue(25);
-      progressBar.setStringPainted(true);
-      Border border =
-          BorderFactory.createTitledBorder("Processing...     <Press \"ESC\" to cancel>    ");
-      progressBar.setBorder(border);
-      this.dialog.add(progressBar, BorderLayout.NORTH);
+      progressBar = new ProgressBar();
+      progressBar.setProgress(0.25);
+      // progressBar.setetStringPainted(true);
+      // Border border =
+      // BorderFactory.createTitledBorder("Processing... <Press \"ESC\" to cancel> ");
+      // progressBar.setBorder(border);
+      dialog.mainPane.setTop(progressBar);
       // this.dialog.repaint();
       progressBar.setVisible(true);
-      this.dialog.pack();
+      // this.dialog.pack();
     }
 
     private void removeProgessBar() {
       // Remove progress bar
       progressBar.setVisible(false);
-      this.dialog.remove(progressBar);
-      this.dialog.pack();
+      dialog.mainPane.getChildren().remove(progressBar);
+      // this.dialog.pack();
     }
 
   }

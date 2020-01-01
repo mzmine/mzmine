@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -36,28 +36,28 @@ public class DialogLoggerUtil {
    * Dialogs
    */
   public static void showErrorDialog(Component parent, String message, Exception e) {
-    JOptionPane.showMessageDialog(message + " \n" + e.getMessage(), "ERROR",
+    JOptionPane.showMessageDialog(parent, message + " \n" + e.getMessage(), "ERROR",
         JOptionPane.ERROR_MESSAGE);
   }
 
   public static void showErrorDialog(Component parent, String title, String message) {
-    JOptionPane.showMessageDialog(message, title, JOptionPane.ERROR_MESSAGE);
+    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
   }
 
   public static void showMessageDialog(Component parent, String title, String message) {
-    JOptionPane.showMessageDialog(message, title, JOptionPane.INFORMATION_MESSAGE);
+    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
   }
 
   public static boolean showDialogYesNo(Component parent, String title, String text) {
     Object[] options = {"Yes", "No"};
-    int n = JOptionPane.showOptionDialog(text, title, JOptionPane.YES_NO_OPTION,
+    int n = JOptionPane.showOptionDialog(parent, text, title, JOptionPane.YES_NO_OPTION,
         JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     return n == 0;
   }
 
   /**
    * shows a message dialog just for a few given milliseconds
-   * 
+   *
    * @param parent
    * @param title
    * @param message
@@ -65,7 +65,7 @@ public class DialogLoggerUtil {
    */
   public static void showMessageDialogForTime(Frame parent, String title, String message,
       long time) {
-    TimeDialog dialog = new TimeDialog(time);
+    TimeDialog dialog = new TimeDialog(parent, time);
     dialog.setLayout(new FlowLayout(FlowLayout.LEFT));
     dialog.add(new JLabel(message));
     dialog.setTitle(title);
@@ -76,7 +76,7 @@ public class DialogLoggerUtil {
 
   /**
    * Center on screen ( abslute true/false (exact center or 25% upper left) )o
-   * 
+   *
    * @param c
    * @param absolute
    */
@@ -95,7 +95,7 @@ public class DialogLoggerUtil {
 
   /**
    * Center on parent ( absolute true/false (exact center or 25% upper left) )
-   * 
+   *
    * @param child
    * @param absolute
    */

@@ -18,6 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -29,27 +47,6 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GUIUtils;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
 /**
  * ResultWindow object for Sirius module Appears when SingleIdentificationTask is called Shows
@@ -116,6 +113,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     pack();
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
     String command = e.getActionCommand();
 
@@ -129,9 +127,6 @@ public class ResultWindow extends JFrame implements ActionListener {
       }
       index = compoundsTable.convertRowIndexToModel(index);
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index), false);
-
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakListRow, false);
 
       dispose();
     }
@@ -179,7 +174,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Method sets value of clipboard to `content`
-   * 
+   *
    * @param content - Formula or SMILES string
    * @param errorMessage - to print in a message if value of `content` is null
    */
@@ -196,12 +191,13 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Update content of a table using swing-thread
-   * 
+   *
    * @param compound
    */
   public void addNewListItem(@Nonnull final SiriusCompound compound) {
     // Update the model in swing thread to avoid exceptions
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run() {
         listElementModel.addElement(compound);
         compoundsTable.generateIconImage(compound); // todo: add here
@@ -214,7 +210,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Method adds a new SiriusCompound to a table
-   * 
+   *
    * @param annotations - SiriusIonAnnotation results processed by Sirius/FingerId methods
    */
   public void addListofItems(@Nonnull final List<IonAnnotation> annotations) {
@@ -228,6 +224,7 @@ public class ResultWindow extends JFrame implements ActionListener {
   /**
    * Releases the list of subtasks and disposes windows related to it.
    */
+  @Override
   public void dispose() {
     // Cancel the search task if it is still running
     TaskStatus searchStatus = searchTask.getStatus();

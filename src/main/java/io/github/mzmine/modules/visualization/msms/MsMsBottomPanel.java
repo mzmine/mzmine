@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -73,13 +72,55 @@ class MsMsBottomPanel extends HBox {
     // thresholdCombo.getSelectionModel().select(PeakThresholdMode.NONE);
     // thresholdCombo.setBackground(Color.white);
     // thresholdCombo.setFont(smallFont);
-    thresholdCombo.addActionListener(this);
+    thresholdCombo.setOnAction(e -> {
+      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
+
+      switch (mode) {
+        case ABOVE_INTENSITY_PEAKS:
+          peakTextField.setText(String.valueOf(thresholdSettings.getIntensityThreshold()));
+          peakTextField.setDisable(false);
+          break;
+        case ALL_PEAKS:
+          peakTextField.setDisable(true);
+          break;
+        case TOP_PEAKS:
+        case TOP_PEAKS_AREA:
+          peakTextField.setText(String.valueOf(thresholdSettings.getTopPeaksThreshold()));
+          peakTextField.setDisable(false);
+          break;
+      }
+
+      thresholdSettings.setMode(mode);
+      PeakList selectedPeakList = getPeaksInThreshold();
+      if (selectedPeakList != null)
+        masterFrame.getPlot().loadPeakList(selectedPeakList);
+    });
 
 
     peakTextField = new TextField();
     // peakTextField.setPreferredSize(new Dimension(50, 15));
     // peakTextField.setFont(smallFont);
-    peakTextField.addActionListener(this);
+    peakTextField.setOnAction(e -> {
+      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
+      String value = peakTextField.getText();
+      switch (mode) {
+        case ABOVE_INTENSITY_PEAKS:
+          double topInt = Double.parseDouble(value);
+          thresholdSettings.setIntensityThreshold(topInt);
+          break;
+        case TOP_PEAKS:
+        case TOP_PEAKS_AREA:
+          int topPeaks = Integer.parseInt(value);
+          thresholdSettings.setTopPeaksThreshold(topPeaks);
+          break;
+        default:
+          break;
+      }
+      PeakList selectedPeakList = getPeaksInThreshold();
+      if (selectedPeakList != null)
+        masterFrame.getPlot().loadPeakList(selectedPeakList);
+
+    });
 
 
     peakListSelector =
@@ -199,60 +240,6 @@ class MsMsBottomPanel extends HBox {
   PeakList getSelectedPeakList() {
     PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
     return selectedPeakList;
-  }
-
-
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-
-    Object src = e.getSource();
-
-    if (src == thresholdCombo) {
-
-      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
-
-      switch (mode) {
-        case ABOVE_INTENSITY_PEAKS:
-          peakTextField.setText(String.valueOf(thresholdSettings.getIntensityThreshold()));
-          peakTextField.setDisable(false);
-          break;
-        case ALL_PEAKS:
-          peakTextField.setDisable(true);
-          break;
-        case TOP_PEAKS:
-        case TOP_PEAKS_AREA:
-          peakTextField.setText(String.valueOf(thresholdSettings.getTopPeaksThreshold()));
-          peakTextField.setDisable(false);
-          break;
-      }
-
-      thresholdSettings.setMode(mode);
-
-    }
-
-    if (src == peakTextField) {
-      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
-      String value = peakTextField.getText();
-      switch (mode) {
-        case ABOVE_INTENSITY_PEAKS:
-          double topInt = Double.parseDouble(value);
-          thresholdSettings.setIntensityThreshold(topInt);
-          break;
-        case TOP_PEAKS:
-        case TOP_PEAKS_AREA:
-          int topPeaks = Integer.parseInt(value);
-          thresholdSettings.setTopPeaksThreshold(topPeaks);
-          break;
-        default:
-          break;
-      }
-    }
-
-    PeakList selectedPeakList = getPeaksInThreshold();
-    if (selectedPeakList != null)
-      masterFrame.getPlot().loadPeakList(selectedPeakList);
-
   }
 
 

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,12 +20,10 @@ package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import java.awt.Color;
 import java.awt.Component;
-
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.OverlayLayout;
 import javax.swing.table.TableCellRenderer;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -33,7 +31,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableParameters;
 import io.github.mzmine.modules.visualization.featurelisttable.PeakShapeNormalization;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.components.CombinedXICComponent;
 import io.github.mzmine.util.components.PeakXICComponent;
 
 class PeakShapeCellRenderer implements TableCellRenderer {
@@ -50,6 +47,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
    * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
    *      java.lang.Object, boolean, boolean, int, int)
    */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
       boolean hasFocus, int row, int column) {
 
@@ -104,11 +102,11 @@ class PeakShapeCellRenderer implements TableCellRenderer {
         peaks[i] = plRow.getPeak(dataFiles[i]);
       }
 
-      CombinedXICComponent xic = new CombinedXICComponent(peaks, plRow.getID());
+      // CombinedXICComponent xic = new CombinedXICComponent(peaks, plRow.getID());
 
-      newPanel.add(xic);
+      // newPanel.add(xic);
 
-      newPanel.setToolTipText(xic.getToolTipText());
+      // newPanel.setToolTipText(xic.getToolTipText());
 
     }
 

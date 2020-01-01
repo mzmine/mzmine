@@ -16,15 +16,10 @@
  * USA
  */
 
-package io.github.mzmine.util.components;
+package io.github.mzmine.modules.visualization.peaksummary;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.Format;
 import java.util.ArrayList;
@@ -32,19 +27,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -66,33 +51,41 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.components.CombinedXICComponent;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingNode;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 
-public class PeakSummaryComponent extends BorderPane implements ActionListener {
-
-
+public class PeakSummaryComponent extends BorderPane {
 
   private static final DecimalFormat formatter = new DecimalFormat("###.#");
 
-  private static final Font defaultFont = new Font("SansSerif", Font.PLAIN, 11);
-  private static final Font titleFont = new Font("SansSerif", Font.BOLD, 14);
-  private static final Font ratioFont = new Font("SansSerif", Font.PLAIN, 18);
-
+  /*
+   * private static final Font defaultFont = new Font("SansSerif", Font.PLAIN, 11); private static
+   * final Font titleFont = new Font("SansSerif", Font.BOLD, 14); private static final Font
+   * ratioFont = new Font("SansSerif", Font.PLAIN, 18);
+   */
   private static final Dimension xicPreferredSize = new Dimension(350, 70);
 
-  private JButton btnChange, btnShow;
-  private JComboBox<String> comboShow;
-  private JLabel ratio;
+  private Button btnChange, btnShow;
+  private ComboBox<String> comboShow;
+  private Label ratio;
 
-  private PeakSummaryTableModel listElementModel;
-  private JTable peaksInfoList;
+  private final PeakSummaryTableModel listElementModel = new PeakSummaryTableModel();
+  private final JTable peaksInfoList;
 
   private PeakListRow row;
 
-  private static String[] visualizers =
-      {"Chromatogram", "Mass spectrum", "Peak in 2D", "Peak in 3D", "MS/MS", "Isotope pattern"};
+  private static ObservableList<String> visualizers = FXCollections.observableArrayList(
+      "Chromatogram", "Mass spectrum", "Peak in 2D", "Peak in 3D", "MS/MS", "Isotope pattern");
 
-  private Color bg = new Color(255, 250, 205); // default color
+  private Color bg = Color.rgb(255, 250, 205); // default color
 
   public PeakSummaryComponent(PeakListRow row, boolean headerVisible, boolean ratioVisible,
       boolean graphVisible, boolean tableVisible, boolean buttonsVisible, Color backgroundColor) {
@@ -127,16 +120,16 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
     PeakIdentity identity = row.getPreferredPeakIdentity();
 
     // General container
-    JPanel pnlAll = new JPanel(new BorderLayout());
-    pnlAll.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-    pnlAll.setBackground(bg);
+    BorderPane pnlAll = new BorderPane();
+    // pnlAll.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    // pnlAll.setBackground(bg);
 
     // Header peak identification & ratio
-    JPanel headerPanel = new JPanel();
-    headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-    JLabel name, info;
+    BorderPane headerPanel = new BorderPane();
+    // headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+    Label name, info;
     if (identity != null) {
-      name = new JLabel(identity.getName(), SwingUtilities.LEFT);
+      name = new Label(identity.getName());
       StringBuffer buf = new StringBuffer();
       Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
       Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -144,64 +137,64 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
       buf.append(mzFormat.format(row.getAverageMZ()));
       buf.append(" m/z @");
       buf.append(timeFormat.format(row.getAverageRT()));
-      info = new JLabel(buf.toString(), SwingUtilities.LEFT);
-      info.setBackground(bg);
-      info.setFont(defaultFont);
-      headerPanel.add(name, BorderLayout.NORTH);
-      headerPanel.add(info, BorderLayout.CENTER);
+      info = new Label(buf.toString());
+      // info.setBackground(bg);
+      // info.setFont(defaultFont);
+      headerPanel.setTop(name);
+      headerPanel.setCenter(info);
     } else {
-      name = new JLabel(row.toString(), SwingUtilities.LEFT);
-      headerPanel.add(name, BorderLayout.CENTER);
+      name = new Label(row.toString());
+      headerPanel.setCenter(name);
     }
 
-    name.setFont(titleFont);
-    name.setBackground(bg);
-    headerPanel.setBackground(bg);
-    headerPanel.setPreferredSize(new Dimension(290, 50));
+    // name.setFont(titleFont);
+    // name.setBackground(bg);
+    // headerPanel.setBackground(bg);
+    // headerPanel.setPreferredSize(new Dimension(290, 50));
     headerPanel.setVisible(headerVisible);
 
     // Ratio between peaks
-    JPanel ratioPanel = new JPanel(new BorderLayout());
-    ratio = new JLabel("", SwingUtilities.LEFT);
-    ratio.setFont(ratioFont);
+    BorderPane ratioPanel = new BorderPane();
+    ratio = new Label("");
+    // ratio.setFont(ratioFont);
 
-    ratio.setBackground(bg);
-    ratioPanel.add(ratio, BorderLayout.CENTER);
+    // ratio.setBackground(bg);
+    ratioPanel.setCenter(ratio);
 
-    ratioPanel.setBackground(bg);
+    // ratioPanel.setBackground(bg);
     ratioPanel.setVisible(ratioVisible);
 
-    JPanel headerAndRatioPanel = new JPanel(new BorderLayout());
-    headerAndRatioPanel.add(headerPanel, BorderLayout.WEST);
-    headerAndRatioPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
-    headerAndRatioPanel.add(ratioPanel, BorderLayout.EAST);
-    headerAndRatioPanel.setBackground(bg);
-    pnlAll.add(headerAndRatioPanel, BorderLayout.NORTH);
+    BorderPane headerAndRatioPanel = new BorderPane();
+    headerAndRatioPanel.setLeft(headerPanel);
+    // headerAndRatioPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+    headerAndRatioPanel.setRight(ratioPanel);
+    // headerAndRatioPanel.setBackground(bg);
+    pnlAll.setTop(headerAndRatioPanel);
     // <-
 
     // Plot section
-    JPanel plotPanel = new JPanel();
-    plotPanel.setLayout(new BoxLayout(plotPanel, BoxLayout.Y_AXIS));
-    Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-    plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
-    plotPanel.setBackground(Color.white);
+    BorderPane plotPanel = new BorderPane();
+    // plotPanel.setLayout(new BoxLayout(plotPanel, BoxLayout.Y_AXIS));
+    // Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+    // Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+    // plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
+    // plotPanel.setBackground(Color.white);
     // No tooltip
     CombinedXICComponent xic = new CombinedXICComponent(peaks, -1);
-    xic.setPreferredSize(xicPreferredSize);
-    plotPanel.add(xic);
+    // xic.setPreferredSize(xicPreferredSize);
+    plotPanel.setCenter(xic);
     plotPanel.setVisible(graphVisible);
-    pnlAll.add(plotPanel, BorderLayout.CENTER);
+    pnlAll.setCenter(plotPanel);
     // <-
 
     // Table with peak's information
-    JPanel tablePanel = new JPanel();
-    tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
-    tablePanel.setBackground(bg);
+    BorderPane tablePanel = new BorderPane();
+    // tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
+    // tablePanel.setBackground(bg);
 
-    listElementModel = new PeakSummaryTableModel();
+    // listElementModel = new PeakSummaryTableModel();
     peaksInfoList = new JTable();
-    peaksInfoList.setModel(listElementModel);
+    // peaksInfoList.setModel(listElementModel);
     // commenting this out did not break anything for my. Why does every
     // actionCommand work with
     // multiple row selection, but the table itself disallows it?
@@ -210,7 +203,7 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
     peaksInfoList.setDefaultRenderer(Object.class, new PeakSummaryTableCellRenderer());
 
     int colorIndex = 0;
-    Color peakColor;
+    java.awt.Color peakColor;
 
     for (Feature peak : peaks) {
       // set color for current XIC
@@ -221,138 +214,29 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
       colorIndex = (colorIndex + 1) % CombinedXICComponent.plotColors.length;
     }
 
-    JPanel listPanel = new JPanel(new BorderLayout());
-    listPanel.add(new JScrollPane(peaksInfoList), BorderLayout.CENTER);
-    listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
-    listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    BorderPane listPanel = new BorderPane();
+    SwingNode sn = new SwingNode();
+    listPanel.setCenter(sn);
+    SwingUtilities.invokeLater(() -> {
+      sn.setContent(new JScrollPane(peaksInfoList));
+    });
+    // listPanel.setTop(peaksInfoList.getTableHeader());
+    // listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
     Dimension d = calculatedTableDimension(peaksInfoList);
-    listPanel.setPreferredSize(d);
+    // listPanel.setPreferredSize(d);
 
-    tablePanel.add(Box.createVerticalStrut(5));
-    tablePanel.add(listPanel, BorderLayout.CENTER);
-    tablePanel.setBackground(bg);
+    // tablePanel.add(Box.createVerticalStrut(5));
+    tablePanel.setCenter(listPanel);
+    // tablePanel.setBackground(bg);
     tablePanel.setVisible(tableVisible);
 
     // Buttons
-    comboShow = new JComboBox<String>(visualizers);
+    comboShow = new ComboBox<String>(visualizers);
 
-    btnShow = new JButton("Show");
-    btnShow.setActionCommand("SHOW");
-    btnShow.addActionListener(this);
-
-    btnChange = new JButton("Change");
-    btnChange.setActionCommand("CHANGE");
-    btnChange.addActionListener(this);
-
-    JPanel pnlShow = new JPanel(new BorderLayout());
-    pnlShow.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-
-    pnlShow.add(comboShow, BorderLayout.NORTH);
-    pnlShow.add(btnShow, BorderLayout.CENTER);
-    pnlShow.setBackground(bg);
-
-    JPanel buttonsPanel = new JPanel(new BorderLayout());
-    buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    buttonsPanel.add(pnlShow, BorderLayout.NORTH);
-    buttonsPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
-    buttonsPanel.add(btnChange, BorderLayout.SOUTH);
-    buttonsPanel.setBackground(bg);
-    buttonsPanel.setVisible(buttonsVisible);
-
-    JPanel buttonsAndTablePanel = new JPanel(new BorderLayout());
-    buttonsAndTablePanel.add(tablePanel, BorderLayout.CENTER);
-    buttonsAndTablePanel.add(buttonsPanel, BorderLayout.EAST);
-    buttonsAndTablePanel.setBackground(bg);
-
-    pnlAll.add(buttonsAndTablePanel, BorderLayout.SOUTH);
-    // setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    setCenter(pnlAll);
-
-  }
-
-  public void setRatio(double area1, double area2) {
-    String text;
-    Color ratioColor;
-    if (area1 > area2) {
-      text = formatter.format(area1 / area2) + "x";
-      ratioColor = CombinedXICComponent.plotColors[0];
-    } else {
-      text = formatter.format(area2 / area1) + "x";
-      ratioColor = CombinedXICComponent.plotColors[1];
-    }
-    ratio.setForeground(ratioColor);
-    ratio.setText(text);
-  }
-
-  /**
-   * @param peaksInfoList
-   * @return
-   */
-  private Dimension calculatedTableDimension(JTable peaksInfoList) {
-
-    int numRows = peaksInfoList.getRowCount();
-    int numCols = peaksInfoList.getColumnCount();
-    int maxWidth = 0, compWidth, totalWidth = 0, totalHeight = 0;
-    TableCellRenderer renderer = peaksInfoList.getDefaultRenderer(Object.class);
-    TableCellRenderer headerRenderer = peaksInfoList.getTableHeader().getDefaultRenderer();
-    TableModel model = peaksInfoList.getModel();
-    Component comp;
-    TableColumn column;
-
-    for (int c = 0; c < numCols; c++) {
-      for (int r = 0; r < numRows; r++) {
-
-        if (r == 0) {
-          comp = headerRenderer.getTableCellRendererComponent(peaksInfoList, model.getColumnName(c),
-              false, false, r, c);
-          compWidth = comp.getPreferredSize().width + 10;
-          maxWidth = Math.max(maxWidth, compWidth);
-
-        }
-
-        comp = renderer.getTableCellRendererComponent(peaksInfoList, model.getValueAt(r, c), false,
-            false, r, c);
-
-        compWidth = comp.getPreferredSize().width + 10;
-        maxWidth = Math.max(maxWidth, compWidth);
-
-        if (c == 0) {
-          totalHeight += comp.getPreferredSize().height;
-        }
-
-        // Consider max 10 rows
-        if (r == 8) {
-          break;
-        }
-
-      }
-      totalWidth += maxWidth;
-      column = peaksInfoList.getColumnModel().getColumn(c);
-      column.setPreferredWidth(maxWidth);
-      maxWidth = 0;
-    }
-
-    // add 30x10 px for a scrollbar
-    totalWidth += 30;
-    totalHeight += 10;
-
-    comp = headerRenderer.getTableCellRendererComponent(peaksInfoList, model.getColumnName(0),
-        false, false, 0, 0);
-    totalHeight += comp.getPreferredSize().height;
-
-    return new Dimension(totalWidth, totalHeight);
-
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-
-    String command = e.getActionCommand();
-
-    if (command.equals("SHOW")) {
-
-      String visualizerType = (String) comboShow.getSelectedItem();
+    btnShow = new Button("Show");
+    btnShow.setOnAction(e -> {
+      String visualizerType = comboShow.getSelectionModel().getSelectedItem();
       int[] indexesRow = peaksInfoList.getSelectedRows();
       Feature[] selectedPeaks = new Feature[indexesRow.length];
       RawDataFile[] dataFiles = new RawDataFile[indexesRow.length];
@@ -411,10 +295,10 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
             // ---------------------------
 
             List<DataPoint> identityDataPoints = new ArrayList<>();
-            PeakIdentity identity = row.getPreferredPeakIdentity();
+            PeakIdentity identity2 = row.getPreferredPeakIdentity();
 
-            if (identity != null) {
-              String spectrum = identity.getPropertyValue(PeakIdentity.PROPERTY_SPECTRUM);
+            if (identity2 != null) {
+              String spectrum = identity2.getPropertyValue(PeakIdentity.PROPERTY_SPECTRUM);
 
               if (spectrum != null && spectrum.length() > 2) {
                 spectrum = spectrum.substring(1, spectrum.length() - 1);
@@ -488,7 +372,6 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
           if (scanNumber > 0) {
             SpectraVisualizerModule.showNewSpectrumWindow(dataFiles[i], scanNumber);
           } else {
-            JFrame frame = (JFrame) SwingUtilities.getAncestorOfClass(JFrame.class, this);
             MZmineCore.getDesktop().displayMessage(null,
                 "There is no fragment for the mass "
                     + MZmineCore.getConfiguration().getMZFormat().format(selectedPeaks[i].getMZ())
@@ -508,19 +391,115 @@ public class PeakSummaryComponent extends BorderPane implements ActionListener {
 
         }
       }
-      return;
-    }
+    });
 
-    if (command.equals("CHANGE")) {
+    btnChange = new Button("Change");
+    btnChange.setOnAction(e -> {
       int indexRow = peaksInfoList.getSelectedRow();
       if (indexRow == -1) {
         return;
       }
       Feature selectedPeak = listElementModel.getElementAt(indexRow);
       ManualPeakPickerModule.runManualDetection(selectedPeak.getDataFile(), row, null, null);
+    });
 
-      return;
+    BorderPane pnlShow = new BorderPane();
+    // pnlShow.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+
+    pnlShow.setTop(comboShow);
+    pnlShow.setCenter(btnShow);
+    // pnlShow.setBackground(bg);
+
+    BorderPane buttonsPanel = new BorderPane();
+    // buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    buttonsPanel.setTop(pnlShow);
+    // buttonsPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+    buttonsPanel.setBottom(btnChange);
+    // buttonsPanel.setBackground(bg);
+    buttonsPanel.setVisible(buttonsVisible);
+
+    BorderPane buttonsAndTablePanel = new BorderPane();
+    buttonsAndTablePanel.setCenter(tablePanel);
+    buttonsAndTablePanel.setLeft(buttonsPanel);
+    // buttonsAndTablePanel.setBackground(bg);
+
+    pnlAll.setBottom(buttonsAndTablePanel);
+    // setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    setCenter(pnlAll);
+
+  }
+
+  public void setRatio(double area1, double area2) {
+    String text;
+    Color ratioColor;
+    if (area1 > area2) {
+      text = formatter.format(area1 / area2) + "x";
+      ratioColor = FxColorUtil.awtColorToFX(CombinedXICComponent.plotColors[0]);
+    } else {
+      text = formatter.format(area2 / area1) + "x";
+      ratioColor = FxColorUtil.awtColorToFX(CombinedXICComponent.plotColors[1]);
     }
+    // ratio.setForeground(ratioColor);
+    ratio.setText(text);
+  }
+
+  /**
+   * @param peaksInfoList
+   * @return
+   */
+  private Dimension calculatedTableDimension(JTable peaksInfoList) {
+
+    int numRows = peaksInfoList.getRowCount();
+    int numCols = peaksInfoList.getColumnCount();
+    int maxWidth = 0, compWidth, totalWidth = 0, totalHeight = 0;
+    TableCellRenderer renderer = peaksInfoList.getDefaultRenderer(Object.class);
+    TableCellRenderer headerRenderer = peaksInfoList.getTableHeader().getDefaultRenderer();
+    TableModel model = peaksInfoList.getModel();
+    Component comp;
+    TableColumn column;
+
+    for (int c = 0; c < numCols; c++) {
+      for (int r = 0; r < numRows; r++) {
+
+        if (r == 0) {
+          comp = headerRenderer.getTableCellRendererComponent(peaksInfoList, model.getColumnName(c),
+              false, false, r, c);
+          compWidth = comp.getPreferredSize().width + 10;
+          maxWidth = Math.max(maxWidth, compWidth);
+
+        }
+
+        comp = renderer.getTableCellRendererComponent(peaksInfoList, model.getValueAt(r, c), false,
+            false, r, c);
+
+        compWidth = comp.getPreferredSize().width + 10;
+        maxWidth = Math.max(maxWidth, compWidth);
+
+        if (c == 0) {
+          totalHeight += comp.getPreferredSize().height;
+        }
+
+        // Consider max 10 rows
+        if (r == 8) {
+          break;
+        }
+
+      }
+      totalWidth += maxWidth;
+      column = peaksInfoList.getColumnModel().getColumn(c);
+      column.setPreferredWidth(maxWidth);
+      maxWidth = 0;
+    }
+
+    // add 30x10 px for a scrollbar
+    totalWidth += 30;
+    totalHeight += 10;
+
+    comp = headerRenderer.getTableCellRendererComponent(peaksInfoList, model.getColumnName(0),
+        false, false, 0, 0);
+    totalHeight += comp.getPreferredSize().height;
+
+    return new Dimension(totalWidth, totalHeight);
 
   }
 

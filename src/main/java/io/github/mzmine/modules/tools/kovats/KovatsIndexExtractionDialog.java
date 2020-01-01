@@ -27,7 +27,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Stroke;
-import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,7 +51,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jfree.chart.plot.ValueMarker;
@@ -82,7 +80,6 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
-import io.github.mzmine.parameters.parametertypes.StringComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -92,6 +89,11 @@ import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import net.miginfocom.swing.MigLayout;
 
 public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
@@ -107,15 +109,14 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   // button size < >
   private static final int SIZE = 25;
 
-  private Window parent;
-  private JPanel newMainPanel;
-  private JPanel pnChart;
+  private BorderPane newMainPanel;
+  private BorderPane pnChart;
   private KovatsIndex[] selectedKovats;
 
   // accepts saved files
   private Consumer<File> saveFileListener;
-  private JTextField txtPeakPick;
-  private StringComponent valuesComponent;
+  private TextField txtPeakPick;
+  private TextField valuesComponent;
   private TICPlot chart;
 
   private String pickedValuesString;
@@ -123,20 +124,25 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private double noiseLevel = 0;
   private double ratioEdge = 2;
   private RawDataFile[] dataFiles;
-  private JComboBox<RawDataFile> comboDataFileName;
-  private JComboBox<RawDataFile> comboDataFileName2;
+  private ComboBox<RawDataFile> comboDataFileName;
+  private ComboBox<RawDataFile> comboDataFileName2;
   private RawDataFile[] selectedDataFile;
   private IntegerComponent minc;
   private IntegerComponent maxc;
   private DelayedDocumentListener ddlKovats;
-  private MultiChoiceComponent comboKovats;
+  private ComboBox comboKovats;
   private List<ValueMarker> markers;
   private ValueMarker currentlyDraggedMarker;
-  private JCheckBox cbSecondRaw;
-  private JCheckBox cbCurrentAlkaneSubH;
-  private JLabel lbCurrentAlkane;
+  private CheckBox cbSecondRaw;
+  private CheckBox cbCurrentAlkaneSubH;
+  private Label lbCurrentAlkane;
   // for direct selection of mz by alkane buttons
   private KovatsIndex currentAlkane;
+
+
+  public KovatsIndexExtractionDialog(ParameterSet parameters) {
+    this(parameters, null)
+  }
 
   /**
    *
@@ -144,20 +150,10 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * @param parameters
    * @param saveFileListener accepts saved files
    */
-  public KovatsIndexExtractionDialog(Window parent, ParameterSet parameters,
-      Consumer<File> saveFileListener) {
-    this(parent, parameters);
+  public KovatsIndexExtractionDialog(ParameterSet parameters, Consumer<File> saveFileListener) {
+    super(false, parameters);
     this.saveFileListener = saveFileListener;
-  }
 
-  public KovatsIndexExtractionDialog(Window parent, ParameterSet parameters) {
-    super(parent, false, parameters);
-    this.parent = parent;
-  }
-
-  @Override
-  protected void addDialogComponents() {
-    super.addDialogComponents();
     paramsPane.removeAll();
     paramsPane.getParent().remove(paramsPane);
 
@@ -213,8 +209,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     JPanel pnPeakPick = new JPanel(new MigLayout("", "[right][]", ""));
     pnSouth.add(pnPeakPick, BorderLayout.CENTER);
 
-    valuesComponent = (StringComponent) getComponentForParameter(
-        KovatsIndexExtractionParameters.pickedKovatsValues);
+    valuesComponent = getComponentForParameter(KovatsIndexExtractionParameters.pickedKovatsValues);
     MZRangeComponent mzc =
         (MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange);
     RTRangeComponent rtc =
@@ -297,11 +292,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     mzc.addDocumentListener(ddlUpdateChart);
     rtc.addDocumentListener(ddlUpdateChart);
 
-    // show
-    revalidate();
-    updateMinimumSize();
-    pack();
     updateChart();
+
   }
 
   private void setMzRangeByAlkane(int diff) {
@@ -401,8 +393,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         markers.add(marker);
       }
 
-      revalidate();
-      repaint();
+      // revalidate();
+      // repaint();
     }
   }
 

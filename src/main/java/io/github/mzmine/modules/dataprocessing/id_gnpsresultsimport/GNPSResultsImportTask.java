@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -36,14 +36,10 @@ import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSource;
 import org.graphstream.stream.file.FileSourceGraphML;
 import com.google.common.util.concurrent.AtomicDouble;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsIdentity.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,7 +47,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Import library matches
- * 
+ *
  * @author
  *
  */
@@ -149,7 +145,7 @@ public class GNPSResultsImportTask extends AbstractTask {
 
   /**
    * All edges have id=0 - this causes an exception. Replace all zero ids and save the file
-   * 
+   *
    * @param file2
    */
   private void removeZeroIDFromEdge(File file) {
@@ -197,8 +193,6 @@ public class GNPSResultsImportTask extends AbstractTask {
           // add identity
           GNPSResultsIdentity identity = new GNPSResultsIdentity(results, compoundName, adduct);
           row.addPeakIdentity(identity, true);
-          // Notify the GUI about the change in the project
-          MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
         }
       } else
         missingRows.getAndIncrement();

@@ -18,11 +18,12 @@
 
 package io.github.mzmine.util.components;
 
-import javafx.scene.Node;
-import javafx.scene.input.MouseEvent;
+import java.awt.event.MouseEvent;
+import javax.swing.JComponent;
+
 
 public interface ComponentToolTipProvider {
 
-  public Node getCustomToolTipComponent(MouseEvent event);
+  public JComponent getCustomToolTipComponent(MouseEvent event);
 
 }

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,12 +19,13 @@ package io.github.mzmine.parameters.parametertypes;
 
 import java.text.NumberFormat;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import javafx.util.converter.NumberStringConverter;
 
 public class DoubleComponent extends FlowPane {
 
-  private final NumberFormat format;
   private final Double minimum;
   private final Double maximum;
   private final TextField textField;
@@ -32,10 +33,9 @@ public class DoubleComponent extends FlowPane {
   public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format) {
     this.minimum = minimum;
     this.maximum = maximum;
-    this.format = format;
 
     textField = new TextField();
-    // textField.setTextFormatter(value);
+    textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
     textField.setPrefWidth(inputsize);
 
     // Add an input verifier if any bounds are specified.
@@ -67,23 +67,23 @@ public class DoubleComponent extends FlowPane {
    */
   /*
    * private class MinMaxVerifier extends InputVerifier {
-   * 
+   *
    * @Override public boolean shouldYieldFocus(final JComponent input) {
-   * 
+   *
    * final boolean yield = super.shouldYieldFocus(input); if (!yield) {
-   * 
+   *
    * // Beep and highlight. Toolkit.getDefaultToolkit().beep(); ((JTextComponent)
    * input).selectAll(); }
-   * 
+   *
    * return yield; }
-   * 
+   *
    * @Override public boolean verify(final JComponent input) {
-   * 
+   *
    * boolean verified = false; try {
-   * 
+   *
    * verified = checkBounds(format.parse(((JTextComponent) input).getText()).doubleValue()); } catch
    * (ParseException e) {
-   * 
+   *
    * // Not a number. } return verified; } }
    */
 

@@ -31,7 +31,6 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.SAME_IDENTITIES;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.SPECTRUM_RT_WIDTH;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,16 +52,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -340,8 +335,6 @@ public class NistMsSearchTask extends AbstractTask {
               row.addPeakIdentity(id, isPreferred);
             }
 
-            // Notify the GUI about the change in the project
-            MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
           }
           progress++;
         }

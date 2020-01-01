@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,7 +22,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
@@ -35,7 +34,6 @@ import javax.swing.UIManager;
 import javax.swing.event.RowSorterEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
-
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -46,14 +44,13 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.components.ComponentToolTipManager;
 import io.github.mzmine.util.components.ComponentToolTipProvider;
 import io.github.mzmine.util.components.GroupableTableHeader;
-import io.github.mzmine.util.components.PeakSummaryComponent;
 import io.github.mzmine.util.components.PopupListener;
 import io.github.mzmine.util.dialogs.PeakIdentitySetupDialog;
 
 public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   static final String EDIT_IDENTITY = "Edit";
@@ -108,6 +105,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
   }
 
+  @Override
   public JComponent getCustomToolTipComponent(MouseEvent event) {
 
     JComponent component = null;
@@ -121,8 +119,8 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
       int myID = Integer.parseInt(values[1].trim());
       for (PeakListRow row : peakList.getRows()) {
         if (row.getID() == myID) {
-          component = new PeakSummaryComponent(row, peakList.getRawDataFiles(), true, false, false,
-              true, false, ComponentToolTipManager.bg);
+          // component = new PeakSummaryComponent(row, peakList.getRawDataFiles(), true, false,
+          // false, true, false, ComponentToolTipManager.bg);
           break;
         }
       }
@@ -150,6 +148,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
     return sorter;
   }
 
+  @Override
   public TableCellEditor getCellEditor(int row, int column) {
 
     CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
@@ -179,19 +178,20 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
       combo.addActionListener(new ActionListener() {
 
+        @Override
         public void actionPerformed(ActionEvent e) {
           JComboBox<?> combo = (JComboBox<?>) e.getSource();
           Object item = combo.getSelectedItem();
           if (item != null) {
             if (item.toString() == NEW_IDENTITY) {
               PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(window, peakListRow);
-              dialog.showAndWait();
+              dialog.setVisible(true);
               return;
             }
             if (item.toString() == EDIT_IDENTITY) {
               PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(window, peakListRow,
                   peakListRow.getPreferredPeakIdentity());
-              dialog.showAndWait();
+              dialog.setVisible(true);
               return;
             }
             if (item.toString() == REMOVE_IDENTITY) {
@@ -226,11 +226,14 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
    * When user sorts the table, we have to cancel current combobox for identity selection.
    * Unfortunately, this doesn't happen automatically.
    */
+  @Override
   public void sorterChanged(RowSorterEvent e) {
     if (currentEditor != null) {
       currentEditor.stopCellEditing();
     }
     super.sorterChanged(e);
   }
+
+
 
 }

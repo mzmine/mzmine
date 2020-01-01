@@ -610,7 +610,7 @@ public class SpectraVisualizerWindow extends Stage {
     return spectrumPlot;
   }
 
-  public SpectraToolBar getToolBar() {
+  public ToolBar getToolBar() {
     return toolBar;
   }
 

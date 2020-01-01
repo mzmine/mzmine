@@ -84,6 +84,7 @@ public class ScatterPlotWindow extends Stage {
       AxesSetupDialog dialog = new AxesSetupDialog(this, chart.getPlot());
       dialog.show();
     });
+    toolbar.getItems().add(axesButton);
 
     mainPane.setRight(toolbar);
 
@@ -106,6 +107,9 @@ public class ScatterPlotWindow extends Stage {
     // update the window and listen for changes
     // settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
+
+    setMinWidth(500.0);
+    setMinHeight(400.0);
 
   }
 

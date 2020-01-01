@@ -67,7 +67,7 @@ ext {
 
 dependencies {
     implementation "com.github.graphstream:gs-core:2.0-alpha"
-    implementation "com.github.graphstream:gs-ui-swing:2.0-alpha"
+    implementation "com.github.graphstream:gs-ui-javafx:2.0-alpha"
     implementation "org.jfree:jfreechart:1.5.0"
     implementation "org.jfree:jfreechart-fx:1.0.1"
     implementation "org.jfree:fxgraphics2d:1.8"
@@ -132,8 +132,7 @@ dependencies {
     implementation "org.apache.xmlgraphics:batik-gui-util:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-ttf2svg:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-parser:$batikVersion"
-    implementation "net.sf.epsgraphics:epsgraphics:1.2"
-    implementation "com.miglayout:miglayout:3.7.4"
+    implementation "net.sf.epsgraphics:epsgraphics:1.2"    
     implementation "javax.xml.bind:jaxb-api:2.3.1"
     implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
     implementation "com.sun.xml.bind:jaxb-impl:2.3.2"

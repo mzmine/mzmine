@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.util.components;
+package io.github.mzmine.modules.visualization.peaksummary;
 
 import java.awt.Color;
 import java.awt.Component;
