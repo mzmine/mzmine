@@ -238,6 +238,8 @@ public class TICPlot extends EChartViewer {
 
     // }
 
+
+
     // Set the x-axis (retention time) properties.
     final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
@@ -324,6 +326,23 @@ public class TICPlot extends EChartViewer {
 
     // Register for mouse-wheel events
     // addMouseWheelListener(this);
+
+    chart.addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+
+        Window myWindow = this.getScene().getWindow();
+        if (myWindow instanceof TICVisualizerWindow) {
+          ((TICVisualizerWindow) myWindow).updateTitle();
+        }
+
+        if (showSpectrumRequest) {
+
+          showSpectrumRequest = false;
+          // visualizer.actionPerformed(
+          // new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+        }
+      }
+    });
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -492,26 +511,7 @@ public class TICPlot extends EChartViewer {
 
   }
 
-  // @Override
-  public void chartProgress(final ChartProgressEvent event) {
 
-    // super.chartProgress(event);
-
-    if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
-
-      Window myWindow = this.getScene().getWindow();
-      if (myWindow instanceof TICVisualizerWindow) {
-        ((TICVisualizerWindow) myWindow).updateTitle();
-      }
-
-      if (showSpectrumRequest) {
-
-        showSpectrumRequest = false;
-        // visualizer.actionPerformed(
-        // new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
-      }
-    }
-  }
 
   public void switchLegendVisible() {
     // Toggle legend visibility.
