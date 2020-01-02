@@ -18,19 +18,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.SwingConstants;
-import javax.swing.event.TreeModelListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.util.GUIUtils;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -40,7 +33,7 @@ import javafx.scene.layout.FlowPane;
 /**
  * Spectra visualizer's bottom panel
  */
-class SpectraBottomPanel extends BorderPane implements TreeModelListener {
+class SpectraBottomPanel extends BorderPane {
 
   private static final long serialVersionUID = 1L;
 
@@ -88,61 +81,63 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
 
     // topPanel.add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
+    // GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
 
-    peakListSelector =
-        new ComboBox<PeakList>(MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+    peakListSelector = new ComboBox<PeakList>(
+        MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
-    peakListSelector.addActionListener(masterFrame);
-    peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-    topPanel.add(peakListSelector);
+    // peakListSelector.addActionListener(masterFrame);
+    // peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+    // topPanel.add(peakListSelector);
 
-    processingCbx = GUIUtils.addCheckbox(topPanel, "Enable Processing", masterFrame,
-        "ENABLE_PROCESSING", "Enables quick scan processing.");
-    processingCbx.setBackground(Color.white);
-    processingCbx.setFont(smallFont);
-    updateProcessingCheckbox();
+    // processingCbx = GUIUtils.addCheckbox(topPanel, "Enable Processing", masterFrame,
+    // "ENABLE_PROCESSING", "Enables quick scan processing.");
+    // processingCbx.setBackground(Color.white);
+    // processingCbx.setFont(smallFont);
+    // updateProcessingCheckbox();
 
-    processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null, masterFrame,
-        "SET_PROCESSING_PARAMETERS", "Set the parameters for quick spectra processing.");
-    processingParametersBtn.setBackground(Color.white);
-    processingParametersBtn.setFont(smallFont);
-    updateProcessingButton();
+    // processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null,
+    // masterFrame,
+    // "SET_PROCESSING_PARAMETERS", "Set the parameters for quick spectra processing.");
+    // processingParametersBtn.setBackground(Color.white);
+    // processingParametersBtn.setFont(smallFont);
+    // updateProcessingButton();
 
-    topPanel.add(Box.createHorizontalGlue());
+    // topPanel.add(Box.createHorizontalGlue());
 
-    JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null, masterFrame, "NEXT_SCAN");
-    nextScanBtn.setBackground(Color.white);
-    nextScanBtn.setFont(smallFont);
+    // JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null, masterFrame,
+    // "NEXT_SCAN");
+    // nextScanBtn.setBackground(Color.white);
+    // nextScanBtn.setFont(smallFont);
 
-    topPanel.add(Box.createHorizontalStrut(10));
+    // topPanel.add(Box.createHorizontalStrut(10));
 
     bottomPanel = new FlowPane();
     // bottomPanel.setBackground(Color.white);
     // bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
     setBottom(bottomPanel);
 
-    bottomPanel.add(Box.createHorizontalGlue());
+    // bottomPanel.add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+    // GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
 
-    msmsSelector = new JComboBox<String>();
-    msmsSelector.setBackground(Color.white);
-    msmsSelector.setFont(smallFont);
-    bottomPanel.add(msmsSelector);
+    // msmsSelector = new JComboBox<String>();
+    // msmsSelector.setBackground(Color.white);
+    // msmsSelector.setFont(smallFont);
+    // bottomPanel.add(msmsSelector);
 
-    Button showButton = GUIUtils.addButton(bottomPanel, "Show", null, masterFrame, "SHOW_MSMS");
+    // Button showButton = GUIUtils.addButton(bottomPanel, "Show", null, masterFrame, "SHOW_MSMS");
     // showButton.setBackground(Color.white);
-    showButton.setFont(smallFont);
+    // showButton.setFont(smallFont);
 
     // bottomPanel.add(Box.createHorizontalGlue());
 
   }
 
-  JComboBox<String> getMSMSSelector() {
-    return msmsSelector;
-  }
+  // JComboBox<String> getMSMSSelector() {
+  // return msmsSelector;
+  // }
 
   void setMSMSSelectorVisible(boolean visible) {
     bottomPanel.setVisible(visible);
@@ -151,10 +146,10 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
   /**
    * Returns selected feature list
    */
-  PeakList getSelectedPeakList() {
-    PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-    return selectedPeakList;
-  }
+  // PeakList getSelectedPeakList() {
+  // PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+  // return selectedPeakList;
+  // }
 
 
 
@@ -162,7 +157,7 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
     processingCbx.setSelected(DataPointProcessingManager.getInst().isEnabled());
   }
 
-  public void updateProcessingButton() {
-    processingParametersBtn.setEnabled(DataPointProcessingManager.getInst().isEnabled());
-  }
+  // public void updateProcessingButton() {
+  // processingParametersBtn.setEnabled(DataPointProcessingManager.getInst().isEnabled());
+  // }
 }

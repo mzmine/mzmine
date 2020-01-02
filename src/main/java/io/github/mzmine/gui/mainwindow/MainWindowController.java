@@ -21,7 +21,6 @@ package io.github.mzmine.gui.mainwindow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import org.controlsfx.control.StatusBar;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
@@ -267,26 +266,22 @@ public class MainWindowController {
 
   public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
-    SwingUtilities.invokeLater(() -> {
-      var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-      ChromatogramVisualizerModule.setupNewTICVisualizer(selectedFiles.toArray(new RawDataFile[0]));
-    });
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ChromatogramVisualizerModule.setupNewTICVisualizer(selectedFiles.toArray(new RawDataFile[0]));
   }
 
   public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");
-    SwingUtilities.invokeLater(() -> {
-      var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-      SpectraVisualizerModule module = MZmineCore.getModuleInstance(SpectraVisualizerModule.class);
-      ParameterSet parameters =
-          MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
-      parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
-          RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
-      ExitCode exitCode = parameters.showSetupDialog(true);
-      MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-      if (exitCode == ExitCode.OK)
-        module.runModule(project, parameters, new ArrayList<Task>());
-    });
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    SpectraVisualizerModule module = MZmineCore.getModuleInstance(SpectraVisualizerModule.class);
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+    parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (exitCode == ExitCode.OK)
+      module.runModule(project, parameters, new ArrayList<Task>());
   }
 
   public void handleShow2DPlot(Event event) {

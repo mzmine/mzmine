@@ -26,7 +26,6 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.jfree.chart.axis.NumberAxis;
@@ -38,7 +37,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -136,10 +134,18 @@ public class SpectraVisualizerWindow extends Stage {
     mainPane = new BorderPane();
     mainScene = new Scene(mainPane);
 
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    setMinWidth(400.0);
+    setMinHeight(300.0);
+
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
-    spectrumPlot = new SpectraPlot(this, enableProcessing);
+    spectrumPlot = new SpectraPlot(enableProcessing);
     mainPane.setCenter(spectrumPlot);
 
     toolBar = new ToolBar();
@@ -179,12 +185,6 @@ public class SpectraVisualizerWindow extends Stage {
     this(dataFile, false);
   }
 
-  @Override
-  public void dispose() {
-    super.dispose();
-    // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
-  }
-
   public void loadRawData(Scan scan) {
 
     logger.finest(
@@ -195,21 +195,21 @@ public class SpectraVisualizerWindow extends Stage {
     this.currentScan = scan;
 
     // If the plot mode has not been set yet, set it accordingly
-    if (spectrumPlot.getPlotMode() == null) {
-      spectrumPlot.setPlotMode(currentScan.getSpectrumType());
-      toolBar.setCentroidButton(currentScan.getSpectrumType());
-    }
+    // if (spectrumPlot.getPlotMode() == null) {
+    // spectrumPlot.setPlotMode(currentScan.getSpectrumType());
+    // toolBar.setCentroidButton(currentScan.getSpectrumType());
+    // }
 
     // Clean up the MS/MS selector combo
 
-    final JComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
+    // final JComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
 
     // We disable the MSMS selector first and then enable it again later
     // after updating the items. If we skip this, the size of the
     // selector may not be adjusted properly (timing issues?)
-    msmsSelector.setEnabled(false);
+    // msmsSelector.setEnabled(false);
 
-    msmsSelector.removeAllItems();
+    // msmsSelector.removeAllItems();
     boolean msmsVisible = false;
 
     // Add parent scan to MS/MS selector combo
@@ -233,14 +233,14 @@ public class SpectraVisualizerWindow extends Stage {
         SwingUtilities.invokeLater(new Runnable() {
           @Override
           public void run() {
-            msmsSelector.addItem(itemText);
+            // msmsSelector.addItem(itemText);
           }
         });
         msmsVisible = true;
       }
     }
 
-    msmsSelector.setEnabled(true);
+    // msmsSelector.setEnabled(true);
 
     // Update the visibility of MS/MS selection combo
     bottomPanel.setMSMSSelectorVisible(msmsVisible);
@@ -269,7 +269,7 @@ public class SpectraVisualizerWindow extends Stage {
     spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
 
     // Reload feature list
-    bottomPanel.rebuildPeakListSelector();
+    // bottomPanel.rebuildPeakListSelector();
 
   }
 
@@ -346,7 +346,6 @@ public class SpectraVisualizerWindow extends Stage {
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
   }
 
-  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
@@ -357,8 +356,8 @@ public class SpectraVisualizerWindow extends Stage {
       if (currentScan == null)
         return;
 
-      PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-      loadPeaks(selectedPeakList);
+      // PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+      // loadPeaks(selectedPeakList);
 
     }
 
@@ -417,26 +416,26 @@ public class SpectraVisualizerWindow extends Stage {
 
     if (command.equals("SHOW_MSMS")) {
 
-      String selectedScanString = (String) bottomPanel.getMSMSSelector().getSelectedItem();
-      if (selectedScanString == null)
-        return;
-
-      int sharpIndex = selectedScanString.indexOf('#');
-      int commaIndex = selectedScanString.indexOf(',');
-      selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
-      int selectedScan = Integer.valueOf(selectedScanString);
-
-      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
+      // String selectedScanString = (String) bottomPanel.getMSMSSelector().getSelectedItem();
+      // if (selectedScanString == null)
+      // return;
+      //
+      // int sharpIndex = selectedScanString.indexOf('#');
+      // int commaIndex = selectedScanString.indexOf(',');
+      // selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
+      // int selectedScan = Integer.valueOf(selectedScanString);
+      //
+      // SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
     }
 
     if (command.equals("TOGGLE_PLOT_MODE")) {
-      if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
-        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
-        toolBar.setCentroidButton(MassSpectrumType.PROFILE);
-      } else {
-        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
-        toolBar.setCentroidButton(MassSpectrumType.CENTROIDED);
-      }
+      // if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
+      // spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
+      // toolBar.setCentroidButton(MassSpectrumType.PROFILE);
+      // } else {
+      // spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+      // toolBar.setCentroidButton(MassSpectrumType.CENTROIDED);
+      // }
     }
 
     if (command.equals("SHOW_DATA_POINTS")) {
@@ -457,7 +456,7 @@ public class SpectraVisualizerWindow extends Stage {
 
     if (command.equals("SETUP_AXES")) {
       AxesSetupDialog dialog = new AxesSetupDialog(null, spectrumPlot.getXYPlot());
-      dialog.setVisible(true);
+      dialog.show();
     }
     // library entry creation
     if (command.equals("CREATE_LIBRARY_ENTRY")) {
@@ -473,12 +472,13 @@ public class SpectraVisualizerWindow extends Stage {
 
     if (command.equals("ADD_ISOTOPE_PATTERN")) {
 
-      IsotopePattern newPattern = IsotopePatternCalculator.showIsotopePredictionDialog(this, true);
+      // IsotopePattern newPattern = IsotopePatternCalculator.showIsotopePredictionDialog(this,
+      // true);
 
-      if (newPattern == null)
-        return;
+      // if (newPattern == null)
+      // return;
 
-      loadIsotopes(newPattern);
+      // loadIsotopes(newPattern);
 
     }
 
@@ -506,12 +506,12 @@ public class SpectraVisualizerWindow extends Stage {
       Window spectraFrames[] = JFrame.getWindows();
 
       // Set the range of these frames
-      for (Window frame : spectraFrames) {
-        if (!(frame instanceof SpectraVisualizerWindow))
-          continue;
-        SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
-        spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
-      }
+      // for (Window frame : spectraFrames) {
+      // if (!(frame instanceof SpectraVisualizerWindow))
+      // continue;
+      // SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
+      // spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+      // }
 
     }
 
@@ -589,7 +589,7 @@ public class SpectraVisualizerWindow extends Stage {
         public void run() {
           DataPointProcessingManager inst = DataPointProcessingManager.getInst();
           inst.setEnabled(!inst.isEnabled());
-          bottomPanel.updateProcessingButton();
+          // bottomPanel.updateProcessingButton();
           getSpectrumPlot().checkAndRunController();
 
           // if the tick is removed, set the data back to default

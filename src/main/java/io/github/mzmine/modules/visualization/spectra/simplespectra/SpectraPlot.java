@@ -19,15 +19,11 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
 import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -48,8 +44,6 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
@@ -57,9 +51,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
-import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
+import javafx.scene.Cursor;
 
 /**
  *
@@ -113,8 +107,8 @@ public class SpectraPlot extends EChartViewer {
         false // generate URLs?
     ));
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     // initialize the chart by default time series chart from factory
     chart = getChart();
@@ -136,9 +130,9 @@ public class SpectraPlot extends EChartViewer {
     legend.setFrame(BlockBorder.NONE);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
-    setMinimumDrawHeight(0);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMinimumDrawHeight(0);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -171,54 +165,55 @@ public class SpectraPlot extends EChartViewer {
     yAxis.setNumberFormatOverride(intensityFormat);
 
     // set focusable state to receive key events
-    setFocusable(true);
+    // setFocusable(true);
 
     // register key handlers
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), masterPlot, "PREVIOUS_SCAN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), masterPlot, "NEXT_SCAN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
-
-    JPopupMenu popupMenu = getPopupMenu();
+    // GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), masterPlot,
+    // "PREVIOUS_SCAN");
+    // GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), masterPlot, "NEXT_SCAN");
+    // GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
+    // GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
+    //
+    // JPopupMenu popupMenu = getPopupMenu();
 
     // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
+    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
     // add items to popup menu
-    if (masterPlot instanceof SpectraVisualizerWindow) {
-
-      GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
-          "EXPORT_SPECTRA");
-      GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
-          "CREATE_LIBRARY_ENTRY");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
-          "TOGGLE_PLOT_MODE");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of data points in continuous mode",
-          masterPlot, "SHOW_DATA_POINTS");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
-          "SHOW_ANNOTATIONS");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks", masterPlot,
-          "SHOW_PICKED_PEAKS");
-
-      GUIUtils.addMenuItem(popupMenu, "Reset removed titles to visible", this,
-          "SHOW_REMOVED_TITLES");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
-
-      GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
-          "SET_SAME_RANGE");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
-    }
+    // if (masterPlot instanceof SpectraVisualizerWindow) {
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
+    // "EXPORT_SPECTRA");
+    // GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
+    // "CREATE_LIBRARY_ENTRY");
+    //
+    // popupMenu.addSeparator();
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
+    // "TOGGLE_PLOT_MODE");
+    // GUIUtils.addMenuItem(popupMenu, "Toggle displaying of data points in continuous mode",
+    // masterPlot, "SHOW_DATA_POINTS");
+    // GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
+    // "SHOW_ANNOTATIONS");
+    // GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks", masterPlot,
+    // "SHOW_PICKED_PEAKS");
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Reset removed titles to visible", this,
+    // "SHOW_REMOVED_TITLES");
+    //
+    // popupMenu.addSeparator();
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
+    // "SET_SAME_RANGE");
+    //
+    // popupMenu.addSeparator();
+    //
+    // GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
+    // }
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -229,11 +224,10 @@ public class SpectraPlot extends EChartViewer {
     setProcessingAllowed(processingAllowed);
   }
 
-
-  @Override
+  // @Override
   public void actionPerformed(final ActionEvent event) {
 
-    super.actionPerformed(event);
+    // super.actionPerformed(event);
 
     final String command = event.getActionCommand();
     if ("SHOW_REMOVED_TITLES".equals(command)) {
@@ -254,8 +248,8 @@ public class SpectraPlot extends EChartViewer {
         if (!file.toLowerCase().endsWith(".emf"))
           file += ".emf";
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+        int width = (int) this.getPrefWidth();
+        int height = (int) this.getHeight();
 
         // Save image
         SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
@@ -275,8 +269,8 @@ public class SpectraPlot extends EChartViewer {
         if (!file.toLowerCase().endsWith(".eps"))
           file += ".eps";
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
         SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
@@ -376,11 +370,11 @@ public class SpectraPlot extends EChartViewer {
   /**
    * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
    */
-  @Override
+  // @Override
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
+    // super.mouseClicked(event);
 
     // request focus to receive key events
     requestFocus();
@@ -497,26 +491,26 @@ public class SpectraPlot extends EChartViewer {
     // been executed. When
     // loading a new spectrum, the controller is set to null in
     // removeAllDataSets()
-    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    // DataPointProcessingManager inst = DataPointProcessingManager.getInst();
 
-    if (!isProcessingAllowed() || !inst.isEnabled())
-      return;
+    // if (!isProcessingAllowed() || !inst.isEnabled())
+    // return;
 
-    if (controller != null)
-      controller = null;
+    // if (controller != null)
+    // controller = null;
 
     // if a controller is re-run then delete previous results
-    removeDataPointProcessingResultDataSets();
+    // removeDataPointProcessingResultDataSets();
 
     // if enabled, do the data point processing as set up by the user
-    XYDataset dataSet = getMainScanDataSet();
-    if (dataSet instanceof ScanDataSet) {
-      Scan scan = ((ScanDataSet) dataSet).getScan();
-      MSLevel mslevel = inst.decideMSLevel(scan);
-      controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
-          getMainScanDataSet().getDataPoints());
-      inst.addController(controller);
-    }
+    // XYDataset dataSet = getMainScanDataSet();
+    // if (dataSet instanceof ScanDataSet) {
+    // Scan scan = ((ScanDataSet) dataSet).getScan();
+    // MSLevel mslevel = inst.decideMSLevel(scan);
+    // controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
+    // getMainScanDataSet().getDataPoints());
+    // inst.addController(controller);
+    // }
   }
 
   public boolean isProcessingAllowed() {
