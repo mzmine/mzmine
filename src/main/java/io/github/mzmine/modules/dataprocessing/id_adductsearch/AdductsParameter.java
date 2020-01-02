@@ -45,7 +45,7 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 public class AdductsParameter extends MultiChoiceParameter<AdductType> {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(AdductsParameter.class.getName());
+  private static final Logger logger = Logger.getLogger(AdductsParameter.class.getName());
 
   // XML tags.
   private static final String ADDUCTS_TAG = "adduct";
@@ -122,7 +122,7 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
         } catch (NumberFormatException ex) {
 
           // Ignore.
-          LOG.warning("Illegal mass difference attribute in " + item.getNodeValue());
+          logger.warning("Illegal mass difference attribute in " + item.getNodeValue());
         }
       }
     }

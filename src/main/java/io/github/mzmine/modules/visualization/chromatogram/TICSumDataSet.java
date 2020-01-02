@@ -49,7 +49,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private final Logger LOG = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   // rt bin for summing different files
   private final double RT_BIN = 0.001;
@@ -170,12 +170,12 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
         // Always redraw when we add last value.
         refresh();
 
-        LOG.info("TIC sum data calculated for " + rawFileString());
+        logger.info("TIC sum data calculated for " + rawFileString());
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Problem calculating data set values for " + rawFileString(), t);
+      logger.log(Level.SEVERE, "Problem calculating data set values for " + rawFileString(), t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
     }

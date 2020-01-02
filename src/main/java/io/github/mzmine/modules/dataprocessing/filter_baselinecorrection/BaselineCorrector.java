@@ -46,7 +46,7 @@ import io.github.mzmine.util.R.RSessionWrapperException;
 public abstract class BaselineCorrector implements BaselineProvider, MZmineModule {
 
   // Logger.
-  protected static final Logger LOG = Logger.getLogger(BaselineCorrector.class.getName());
+  protected static final Logger logger = Logger.getLogger(BaselineCorrector.class.getName());
 
   // Processing info storage
   /**
@@ -195,7 +195,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
   private void copyScansToWriter(final RawDataFile origDataFile, final RawDataFileWriter writer,
       final int level) throws IOException {
 
-    LOG.finest("Copy scans");
+    logger.finest("Copy scans");
 
     // Get scan numbers for MS-level.
     final int[] scanNumbers = origDataFile.getScanNumbers(level);
@@ -248,12 +248,12 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     final int numScans = scanNumbers.length;
 
     // Build chromatograms.
-    LOG.finest("Building base peak chromatograms.");
+    logger.finest("Building base peak chromatograms.");
     final double[][] baseChrom = buildBasePeakChromatograms(origDataFile, level, numBins);
 
     // Calculate baselines: done in-place, i.e. overwrite chromatograms to
     // save memory.
-    LOG.finest("Calculating baselines.");
+    logger.finest("Calculating baselines.");
     for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
       baseChrom[binIndex] =
           computeBaseline(rSession, origDataFile, baseChrom[binIndex], parameters);
@@ -261,7 +261,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     }
 
     // Subtract baselines.
-    LOG.finest("Subtracting baselines.");
+    logger.finest("Subtracting baselines.");
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.
@@ -300,12 +300,12 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     final int numScans = scanNumbers.length;
 
     // Build chromatograms.
-    LOG.finest("Building TIC chromatograms.");
+    logger.finest("Building TIC chromatograms.");
     final double[][] baseChrom = buildTICChromatograms(origDataFile, level, numBins);
 
     // Calculate baselines: done in-place, i.e. overwrite chromatograms to
     // save memory.
-    LOG.finest("Calculating baselines.");
+    logger.finest("Calculating baselines.");
     for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
 
       // Calculate baseline.
@@ -324,7 +324,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
     }
 
     // Subtract baselines.
-    LOG.finest("Subtracting baselines.");
+    logger.finest("Subtracting baselines.");
     for (int scanIndex = 0; !isAborted(origDataFile) && scanIndex < numScans; scanIndex++) {
 
       // Get original scan.

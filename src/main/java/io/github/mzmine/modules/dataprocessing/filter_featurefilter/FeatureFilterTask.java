@@ -43,7 +43,7 @@ import io.github.mzmine.util.PeakUtils;
 public class FeatureFilterTask extends AbstractTask {
 
   // Logger
-  private static final Logger LOG = Logger.getLogger(FeatureFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(FeatureFilterTask.class.getName());
 
   // Feature lists
   private final MZmineProject project;
@@ -93,7 +93,7 @@ public class FeatureFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list");
+      logger.info("Filtering feature list");
 
       // Filter the feature list
       filteredPeakList = filterPeakList(origPeakList);
@@ -108,13 +108,13 @@ public class FeatureFilterTask extends AbstractTask {
           project.removePeakList(origPeakList);
         }
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished feature list filter");
+        logger.info("Finished feature list filter");
       }
     } catch (Throwable t) {
 
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Feature list filter error", t);
+      logger.log(Level.SEVERE, "Feature list filter error", t);
     }
 
   }

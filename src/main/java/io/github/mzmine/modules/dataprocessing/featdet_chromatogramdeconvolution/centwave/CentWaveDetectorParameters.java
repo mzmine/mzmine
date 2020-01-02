@@ -108,7 +108,7 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     final PeakResolverSetupDialog dialog =
         new PeakResolverSetupDialog(valueCheckRequired, this, CentWaveDetector.class);

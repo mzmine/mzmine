@@ -115,7 +115,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);

@@ -37,7 +37,7 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class RLocationDetection {
 
-  private static final Logger LOG = Logger.getLogger(RLocationDetection.class.getName());
+  private static final Logger logger = Logger.getLogger(RLocationDetection.class.getName());
 
   public final static String R_HOME_ENV_KEY = "R_HOME";
 
@@ -63,9 +63,9 @@ public class RLocationDetection {
     if (!Strings.isNullOrEmpty(rExecPath)) {
       final File rExecFile = new File(rExecPath);
       if (!rExecFile.canExecute())
-        LOG.warning("R executable location set to '" + rExecPath
+        logger.warning("R executable location set to '" + rExecPath
             + "' in MZmine preferences, but this file is not executable");
-      LOG.finest("R path set to '" + rExecPath + "' based on MZmine preferences");
+      logger.finest("R path set to '" + rExecPath + "' based on MZmine preferences");
       return rExecPath;
     }
 
@@ -75,7 +75,7 @@ public class RLocationDetection {
       rExecPath = rHome + File.separator + "bin" + File.separator + "R"
           + (System.getProperty("os.name").contains("Win") ? ".exe" : "");
 
-      LOG.finest("R executable location value set to '" + rExecPath + "' based on the '"
+      logger.finest("R executable location value set to '" + rExecPath + "' based on the '"
           + R_HOME_ENV_KEY + "' environment variable");
       return rExecPath;
     }
@@ -83,11 +83,11 @@ public class RLocationDetection {
     // Third attempt - autodetection
     rExecPath = autodetectRExecutable();
     if (!Strings.isNullOrEmpty(rExecPath)) {
-      LOG.finest("R executable location auto-detected as '" + rExecPath + "'");
+      logger.finest("R executable location auto-detected as '" + rExecPath + "'");
       return rExecPath;
     }
 
-    LOG.warning("No R installation found");
+    logger.warning("No R installation found");
     return null;
 
   }
@@ -108,7 +108,7 @@ public class RLocationDetection {
 
     // Win: Get R path from registry.
     if (isWindows()) {
-      LOG.log(Level.FINEST, "Windows: Query registry to find where R is installed ...");
+      logger.log(Level.FINEST, "Windows: Query registry to find where R is installed ...");
       String installPath = null;
       try {
         Process rp = Runtime.getRuntime().exec("reg query HKLM\\Software\\R-core\\R");
@@ -117,11 +117,11 @@ public class RLocationDetection {
         regHog.join();
         installPath = regHog.getInstallPath();
       } catch (Exception rge) {
-        LOG.log(Level.SEVERE, "ERROR: Unable to run REG to find the location of R: " + rge);
+        logger.log(Level.SEVERE, "ERROR: Unable to run REG to find the location of R: " + rge);
         return null;
       }
       if (installPath == null) {
-        LOG.log(Level.SEVERE, "ERROR: Cannot find path to R. Make sure reg is available"
+        logger.log(Level.SEVERE, "ERROR: Cannot find path to R. Make sure reg is available"
             + " and R was installed with registry settings.");
         return null;
       }
@@ -197,10 +197,10 @@ public class RLocationDetection {
               if (j >= 0)
                 s = s.substring(j + 6).trim();
               installPath = s;
-              LOG.log(Level.FINEST, "R InstallPath = " + s);
+              logger.log(Level.FINEST, "R InstallPath = " + s);
             }
           } else
-            LOG.log(Level.FINEST, "Rserve > " + line);
+            logger.log(Level.FINEST, "Rserve > " + line);
         }
       } catch (IOException e) {
         e.printStackTrace();

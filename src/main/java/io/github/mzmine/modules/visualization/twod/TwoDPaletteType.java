@@ -27,7 +27,7 @@ import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPa
  */
 enum TwoDPaletteType {
 
-  PALETTE_GRAY20, PALETTE_GRAY5, PALETTE_GRAY1, PALETTE_RAINBOW, PALETTE_LOG;
+  PALETTE_GRAY20, PALETTE_GRAY5, PALETTE_GRAY1, PALETTE_RAINBOW, PALETTE_logger;
 
   private InterpolatingLookupPaintScale rainbowScale;
   private InterpolatingLookupPaintScale logScale;
@@ -80,7 +80,7 @@ enum TwoDPaletteType {
       case PALETTE_RAINBOW:
         return (Color) rainbowScale.getPaint(intensity);
 
-      case PALETTE_LOG:
+      case PALETTE_logger:
         return (Color) logScale.getPaint(intensity);
 
     }

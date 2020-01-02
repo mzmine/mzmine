@@ -45,7 +45,7 @@ import io.github.mzmine.util.SortingProperty;
 public class AdductSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(AdductSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(AdductSearchTask.class.getName());
 
   private int finishedRows;
   private int totalRows;
@@ -94,7 +94,7 @@ public class AdductSearchTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    LOG.info("Starting adducts search in " + peakList);
+    logger.info("Starting adducts search in " + peakList);
 
     try {
 
@@ -114,11 +114,11 @@ public class AdductSearchTask extends AbstractTask {
 
         // Done.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished adducts search in " + peakList);
+        logger.info("Finished adducts search in " + peakList);
       }
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Adduct search error", t);
+      logger.log(Level.SEVERE, "Adduct search error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
     }

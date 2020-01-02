@@ -87,7 +87,7 @@ public class XICManualPickerModule implements MZmineModule {
       parameters.getParameter(XICManualPickerParameters.rawDataFiles).setValue(selection);
     }
 
-    ExitCode exitCode = parameters.showSetupDialog( true);
+    ExitCode exitCode = parameters.showSetupDialog(true);
 
     if (exitCode != ExitCode.OK)
       return exitCode;

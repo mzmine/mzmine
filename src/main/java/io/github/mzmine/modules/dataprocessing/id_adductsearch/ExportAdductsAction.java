@@ -55,7 +55,7 @@ public class ExportAdductsAction extends AbstractAction {
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ExportAdductsAction.class.getName());
+  private static final Logger logger = Logger.getLogger(ExportAdductsAction.class.getName());
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "csv";
@@ -103,7 +103,7 @@ public class ExportAdductsAction extends AbstractAction {
               (Window) SwingUtilities.getAncestorOfClass(Window.class, (Component) e.getSource());
           final String msg = "There was a problem writing the adducts file.";
           MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
-          LOG.log(Level.SEVERE, msg, ex);
+          logger.log(Level.SEVERE, msg, ex);
         }
       }
     }

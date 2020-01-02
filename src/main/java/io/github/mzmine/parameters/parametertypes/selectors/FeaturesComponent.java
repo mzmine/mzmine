@@ -43,7 +43,7 @@ public class FeaturesComponent extends HBox {
   private final Button removeButton = new Button("Remove");
   private VBox buttonPane = new VBox();
 
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeaturesComponent() {
 
@@ -58,7 +58,7 @@ public class FeaturesComponent extends HBox {
 
     addButton.setOnAction(e -> {
       currentValue.clear();
-      LOG.finest("Add Button Clicked!");
+      logger.finest("Add Button Clicked!");
       FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
       featuresSelectionDialog.setModal(true);
       featuresSelectionDialog.setVisible(true);
@@ -66,8 +66,8 @@ public class FeaturesComponent extends HBox {
         // jlist.setVisible(true);
         PeakList selectedPeakList = featuresSelectionDialog.getSelectedPeakList();
         RawDataFile selectedRawDataFile = featuresSelectionDialog.getSelectedRawDataFile();
-        LOG.finest("Selected PeakList is:" + selectedPeakList.getName());
-        LOG.finest("Selected RawDataFile is:" + selectedRawDataFile.getName());
+        logger.finest("Selected PeakList is:" + selectedPeakList.getName());
+        logger.finest("Selected RawDataFile is:" + selectedRawDataFile.getName());
         currentValue.clear();
         for (Feature feature : featuresSelectionDialog.getSelectedFeatures()) {
           PeakListRow selectedRow = selectedPeakList.getPeakRow(feature);
@@ -79,7 +79,7 @@ public class FeaturesComponent extends HBox {
     });
 
     removeButton.setOnAction(e -> {
-      LOG.finest("Remove Button Clicked!");
+      logger.finest("Remove Button Clicked!");
       var sel = featuresList.getSelectionModel().getSelectedItems();
       currentValue.removeAll(sel);
     });

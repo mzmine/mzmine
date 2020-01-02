@@ -35,7 +35,7 @@ public class MeanFilterParameters extends SimpleParameterSet {
     super(new UserParameter[] {oneSidedWindowLength});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ScanFilterSetupDialog dialog =
         new ScanFilterSetupDialog(valueCheckRequired, this, MeanFilter.class);
     dialog.showAndWait();

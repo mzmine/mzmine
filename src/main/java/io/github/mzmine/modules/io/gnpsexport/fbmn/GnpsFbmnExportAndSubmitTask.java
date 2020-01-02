@@ -63,7 +63,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  */
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private ParameterSet parameters;
   private AtomicDouble progress = new AtomicDouble(0);
@@ -114,7 +114,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         // succeed
         l -> {
           try {
-            LOG.info("succeed" + thistask.getStatus().toString());
+            logger.info("succeed" + thistask.getStatus().toString());
             if (submit) {
               GnpsFbmnSubmitParameters param = parameters
                   .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
@@ -156,7 +156,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
-        LOG.log(Level.SEVERE, "Error in GNPS export/submit task", e);
+        logger.log(Level.SEVERE, "Error in GNPS export/submit task", e);
       }
     }
   }
@@ -171,9 +171,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     try {
       String url = GNPSUtils.submitFbmnJob(fileName, param);
       if (url == null || url.isEmpty())
-        LOG.log(Level.WARNING, "GNPS submit failed (response url empty)");
+        logger.log(Level.WARNING, "GNPS submit failed (response url empty)");
     } catch (Exception e) {
-      LOG.log(Level.WARNING, "GNPS submit failed", e);
+      logger.log(Level.WARNING, "GNPS submit failed", e);
     }
   }
 

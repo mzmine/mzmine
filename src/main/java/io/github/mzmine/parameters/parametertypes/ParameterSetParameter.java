@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.UserParameter;
  */
 public class ParameterSetParameter
     implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
-  private static Logger LOG = Logger.getLogger(MZmineCore.class.getName());
+  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private String name;
   private String description;
@@ -120,7 +120,7 @@ public class ParameterSetParameter
           try {
             p.loadValueFromXML(nextElement);
           } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
+            logger.log(Level.WARNING, "Error while loading parameter values for " + p.getName(), e);
           }
         }
       }

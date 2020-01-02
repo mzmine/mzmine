@@ -80,8 +80,8 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public DoubleComponent createEditingComponent() {
 
     DoubleComponent doubleComponent = new DoubleComponent(WIDTH, minimum, maximum, format);
-    //doubleComponent.setBorder(BorderFactory.createCompoundBorder(doubleComponent.getBorder(),
-      //  BorderFactory.createEmptyBorder(0, 3, 0, 0)));
+    // doubleComponent.setBorder(BorderFactory.createCompoundBorder(doubleComponent.getBorder(),
+    // BorderFactory.createEmptyBorder(0, 3, 0, 0)));
     return doubleComponent;
   }
 

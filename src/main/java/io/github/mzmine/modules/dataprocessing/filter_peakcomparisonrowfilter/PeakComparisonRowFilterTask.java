@@ -44,7 +44,8 @@ import io.github.mzmine.util.PeakUtils;
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
@@ -89,7 +90,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list rows");
+      logger.info("Filtering feature list rows");
 
       // Filter the feature list.
       filteredPeakList = filterPeakListRows(origPeakList);
@@ -109,13 +110,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
       }
 
       setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished peak comparison rows filter");
+      logger.info("Finished peak comparison rows filter");
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+      logger.log(Level.SEVERE, "Peak comparison row filter error", t);
     }
 
   }

@@ -47,7 +47,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 public class ExportScansTask extends AbstractTask {
 
   // Logger
-  private static final Logger LOG = Logger.getLogger(ExportScansTask.class.getName());
+  private static final Logger logger = Logger.getLogger(ExportScansTask.class.getName());
 
   private final File exportFile;
   private final Scan[] scans;
@@ -106,13 +106,13 @@ public class ExportScansTask extends AbstractTask {
         exportText();
       }
       // Success
-      LOG.info("Export of spectra finished");
+      logger.info("Export of spectra finished");
 
       setStatus(TaskStatus.FINISHED);
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Spectrum export error", t);
+      logger.log(Level.SEVERE, "Spectrum export error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
     }
@@ -129,7 +129,7 @@ public class ExportScansTask extends AbstractTask {
     final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
     try {
       for (Scan scan : scans) {
-        LOG.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
+        logger.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
             + scan.getDataFile().getName());
         // Write Header row
         switch (extension) {

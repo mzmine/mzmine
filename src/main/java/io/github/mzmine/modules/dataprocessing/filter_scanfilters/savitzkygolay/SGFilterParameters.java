@@ -37,7 +37,7 @@ public class SGFilterParameters extends SimpleParameterSet {
     super(new Parameter[] {datapoints});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ScanFilterSetupDialog dialog =
         new ScanFilterSetupDialog(valueCheckRequired, this, SGFilter.class);
     dialog.showAndWait();

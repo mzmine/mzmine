@@ -47,7 +47,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private final Logger LOG = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   // For comparing small differences.
   private static final double EPSILON = 0.0000001;
@@ -157,12 +157,12 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         // Always redraw when we add last value.
         refresh();
 
-        LOG.info("TIC data calculated for " + dataFile);
+        logger.info("TIC data calculated for " + dataFile);
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
+      logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
     }

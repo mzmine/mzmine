@@ -59,7 +59,7 @@ public class ImportAdductsAction extends AbstractAction {
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ImportAdductsAction.class.getName());
+  private static final Logger logger = Logger.getLogger(ImportAdductsAction.class.getName());
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "csv";
@@ -108,7 +108,7 @@ public class ImportAdductsAction extends AbstractAction {
               (Window) SwingUtilities.getAncestorOfClass(Window.class, (Component) e.getSource());
           final String msg = "There was a problem reading the adducts file.";
           MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
-          LOG.log(Level.SEVERE, msg, ex);
+          logger.log(Level.SEVERE, msg, ex);
         }
 
         // Read the adducts data.
@@ -150,11 +150,11 @@ public class ImportAdductsAction extends AbstractAction {
           }
         } catch (final NumberFormatException ignored) {
 
-          LOG.warning("Invalid numeric value (" + line[1] + ") - ignored.");
+          logger.warning("Invalid numeric value (" + line[1] + ") - ignored.");
         }
       } else {
 
-        LOG.warning("Line #" + i + " contains too few fields - ignored.");
+        logger.warning("Line #" + i + " contains too few fields - ignored.");
       }
       i++;
     }

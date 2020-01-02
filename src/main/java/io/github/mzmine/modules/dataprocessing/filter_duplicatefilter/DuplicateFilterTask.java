@@ -49,7 +49,7 @@ import io.github.mzmine.util.SortingProperty;
 public class DuplicateFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(DuplicateFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(DuplicateFilterTask.class.getName());
 
   // Original and resultant feature lists.
   private final MZmineProject project;
@@ -93,7 +93,7 @@ public class DuplicateFilterTask extends AbstractTask {
     if (!isCanceled()) {
       try {
 
-        LOG.info("Filtering duplicate peaks list rows of " + peakList);
+        logger.info("Filtering duplicate peaks list rows of " + peakList);
         setStatus(TaskStatus.PROCESSING);
 
         // Filter out duplicates..
@@ -116,12 +116,12 @@ public class DuplicateFilterTask extends AbstractTask {
           }
 
           // Finished.
-          LOG.info("Finished filtering duplicate feature list rows on " + peakList);
+          logger.info("Finished filtering duplicate feature list rows on " + peakList);
           setStatus(TaskStatus.FINISHED);
         }
       } catch (Throwable t) {
 
-        LOG.log(Level.SEVERE, "Duplicate filter error", t);
+        logger.log(Level.SEVERE, "Duplicate filter error", t);
         setErrorMessage(t.getMessage());
         setStatus(TaskStatus.ERROR);
       }
@@ -218,7 +218,7 @@ public class DuplicateFilterTask extends AbstractTask {
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
           new SimplePeakListAppliedMethod("Duplicate feature list rows filter", parameters));
-      LOG.info("Removed " + n + " duplicate rows");
+      logger.info("Removed " + n + " duplicate rows");
     }
 
     return newPeakList;

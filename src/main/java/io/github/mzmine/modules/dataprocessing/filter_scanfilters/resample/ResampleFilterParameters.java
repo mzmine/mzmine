@@ -36,7 +36,7 @@ public class ResampleFilterParameters extends SimpleParameterSet {
     super(new Parameter[] {binSize});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ScanFilterSetupDialog dialog =
         new ScanFilterSetupDialog(valueCheckRequired, this, ResampleFilter.class);
     dialog.showAndWait();

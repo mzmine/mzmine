@@ -52,7 +52,7 @@ import io.github.mzmine.util.RangeUtils;
 public class RowsFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(RowsFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(RowsFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
@@ -100,7 +100,7 @@ public class RowsFilterTask extends AbstractTask {
 
       try {
         setStatus(TaskStatus.PROCESSING);
-        LOG.info("Filtering feature list rows");
+        logger.info("Filtering feature list rows");
 
         // Filter the feature list.
         filteredPeakList = filterPeakListRows(origPeakList);
@@ -116,13 +116,13 @@ public class RowsFilterTask extends AbstractTask {
             project.removePeakList(origPeakList);
           }
           setStatus(TaskStatus.FINISHED);
-          LOG.info("Finished feature list rows filter");
+          logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
 
         setErrorMessage(t.getMessage());
         setStatus(TaskStatus.ERROR);
-        LOG.log(Level.SEVERE, "Feature list row filter error", t);
+        logger.log(Level.SEVERE, "Feature list row filter error", t);
       }
     }
   }

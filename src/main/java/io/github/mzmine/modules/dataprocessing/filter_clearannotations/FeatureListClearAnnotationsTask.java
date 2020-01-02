@@ -45,7 +45,7 @@ import io.github.mzmine.util.PeakUtils;
 public class FeatureListClearAnnotationsTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG =
+  private static final Logger logger =
       Logger.getLogger(FeatureListClearAnnotationsTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
@@ -91,7 +91,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list rows");
+      logger.info("Filtering feature list rows");
 
       totalRows = origPeakList.getRows().length;
       // Filter the feature list.
@@ -127,13 +127,13 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
        */
 
       setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished peak comparison rows filter");
+      logger.info("Finished peak comparison rows filter");
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+      logger.log(Level.SEVERE, "Peak comparison row filter error", t);
     }
 
   }

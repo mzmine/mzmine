@@ -83,7 +83,7 @@ public class BatchSetupComponent extends JPanel
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(BatchSetupComponent.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchSetupComponent.class.getName());
 
   // XML extension.
   private static final String XML_EXTENSION = "xml";
@@ -173,7 +173,7 @@ public class BatchSetupComponent extends JPanel
       try {
         loadBatchSteps(file);
       } catch (ParserConfigurationException | IOException | SAXException e) {
-        LOG.log(Level.WARNING, "Could not load last file " + file.getAbsolutePath(), e);
+        logger.log(Level.WARNING, "Could not load last file " + file.getAbsolutePath(), e);
       }
     });
     panelTop.add(btnLoadLastFiles);
@@ -408,7 +408,7 @@ public class BatchSetupComponent extends JPanel
     // Write to file and transform.
     transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
 
-    LOG.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
+    logger.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
     // add to last used files
     addLastUsedFile(file);
   }
@@ -427,7 +427,7 @@ public class BatchSetupComponent extends JPanel
     final BatchQueue queue = BatchQueue.loadFromXml(
         DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement());
 
-    LOG.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
+    logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 
     // Append, prepend, insert or replace.
     final int option = JOptionPane.showOptionDialog(this,

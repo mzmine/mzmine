@@ -49,7 +49,7 @@ import io.github.mzmine.util.R.RSessionWrapperException;
 public class BaselineCorrectionTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(BaselineCorrectionTask.class.getName());
+  private static final Logger logger = Logger.getLogger(BaselineCorrectionTask.class.getName());
 
   // Original data file and newly created baseline corrected file.
   private final MZmineProject project;
@@ -143,7 +143,7 @@ public class BaselineCorrectionTask extends AbstractTask {
         // Set task status to FINISHED
         setStatus(TaskStatus.FINISHED);
 
-        LOG.info("Baseline corrected " + origDataFile.getName());
+        logger.info("Baseline corrected " + origDataFile.getName());
       }
       // Turn off R instance, once task ended gracefully.
       if (!isCanceled())

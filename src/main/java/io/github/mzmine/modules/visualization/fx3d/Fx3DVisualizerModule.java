@@ -50,7 +50,7 @@ import javafx.stage.Stage;
  */
 public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
-  private static final Logger LOG = Logger.getLogger(Fx3DVisualizerModule.class.getName());
+  private static final Logger logger = Logger.getLogger(Fx3DVisualizerModule.class.getName());
 
   private static final String MODULE_NAME = "3D visualizer";
   private static final String MODULE_DESCRIPTION = "3D visualizer."; // TODO
@@ -78,9 +78,9 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(Fx3DVisualizerParameters.scanSelection).getValue();
     final List<FeatureSelection> featureSelList =
         parameters.getParameter(Fx3DVisualizerParameters.features).getValue();
-    LOG.finest("Feature selection is:" + featureSelList.toString());
+    logger.finest("Feature selection is:" + featureSelList.toString());
     for (FeatureSelection selection : featureSelList) {
-      LOG.finest("Selected features are:" + selection.getFeature().toString());
+      logger.finest("Selected features are:" + selection.getFeature().toString());
     }
 
     Range<Double> rtRange = ScanUtils.findRtRange(scanSel
@@ -101,7 +101,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     Stage stage = null;
     try {
       stage = loader.load();
-      LOG.finest("Stage has been successfully loaded from the FXML loader.");
+      logger.finest("Stage has been successfully loaded from the FXML loader.");
     } catch (Exception e) {
       e.printStackTrace();
       return ExitCode.ERROR;

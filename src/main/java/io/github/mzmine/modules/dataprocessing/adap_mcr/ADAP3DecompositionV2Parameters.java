@@ -87,7 +87,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
     PEAK_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
 

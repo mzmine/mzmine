@@ -59,7 +59,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
 
 
   // Logger.
-  private static final Logger LOG =
+  private static final Logger logger =
       Logger.getLogger(ParameterSetupDialogWithChromatogramPreview.class.getName());
 
   private ParameterSet correctorParameters;
@@ -78,7 +78,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       int keyCode = ke.getKeyCode();
       if (keyCode == KeyEvent.VK_ESCAPE) {
 
-        LOG.info("<ESC> Presssed.");
+        logger.info("<ESC> Presssed.");
         previewTask.kill();
         hidePreview();
 
@@ -299,7 +299,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         // Abort current processing thread
         baselineCorrector.setAbortProcessing(dataFile, true);
 
-        LOG.info("Preview task canceled!");
+        logger.info("Preview task canceled!");
       }
 
     }
@@ -329,7 +329,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       setStatus(status);
       if (this.getStatus() == TaskStatus.ERROR) {
         setErrorMessage(errorMsg);
-        LOG.log(Level.SEVERE, "Baseline correction error", this.getErrorMessage());
+        logger.log(Level.SEVERE, "Baseline correction error", this.getErrorMessage());
         MZmineCore.getDesktop().displayErrorMessage(this.getErrorMessage());
         hidePreview();
       }
@@ -423,7 +423,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       baselineCorrector.initProgress(dataFile);
       previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange);
       previewThread = new Thread(previewTask);
-      LOG.info("Launch preview task.");
+      logger.info("Launch preview task.");
       previewThread.start();
     }
   }
@@ -484,7 +484,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
   // @Override
   // public void statusChanged(TaskEvent e) {
   // if (e.getStatus() == TaskStatus.ERROR) {
-  // LOG.log(Level.SEVERE, "Baseline correction error",
+  // logger.log(Level.SEVERE, "Baseline correction error",
   // e.getSource().getErrorMessage());
   // MZmineCore.getDesktop().displayErrorMessage( "Error of preview task ",
   // e.getSource().getErrorMessage());

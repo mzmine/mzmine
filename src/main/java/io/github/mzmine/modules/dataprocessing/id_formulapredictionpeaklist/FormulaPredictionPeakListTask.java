@@ -104,11 +104,11 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
     if (checkIsotopes) {
       // Only get the value if the isotope checking is activated, otherwise we might get a NPE
       minScore = isotopeParameters
-        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
+          .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
     } else {
       minScore = 0d;
     }
-    
+
     checkMSMS = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter).getValue();
     msmsParameters = parameters.getParameter(FormulaPredictionPeakListParameters.msmsFilter)
         .getEmbeddedParameters();

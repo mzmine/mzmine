@@ -43,7 +43,7 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public class LibrarySubmitModule implements MZmineModule {
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private static final String MODULE_NAME = "Export spectral library entries (submit to GNPS)";
 

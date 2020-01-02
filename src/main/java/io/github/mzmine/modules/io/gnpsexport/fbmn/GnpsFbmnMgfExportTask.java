@@ -67,7 +67,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  */
 public class GnpsFbmnMgfExportTask extends AbstractTask {
   // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   //
   private final PeakList[] peakLists;
@@ -281,14 +281,14 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     }
 
     if (count == 0)
-      LOG.log(Level.WARNING, "No MS/MS scans exported.");
+      logger.log(Level.WARNING, "No MS/MS scans exported.");
     else
-      LOG.info(
+      logger.info(
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
               count, peakList.getName()));
 
     if (countMissingMassList > 0)
-      LOG.warning(MessageFormat.format(
+      logger.warning(MessageFormat.format(
           "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
           countMissingMassList, peakList.getName()));
 

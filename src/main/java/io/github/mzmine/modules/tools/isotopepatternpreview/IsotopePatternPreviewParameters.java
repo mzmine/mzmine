@@ -55,7 +55,7 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
       1, true);
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
 

@@ -41,7 +41,7 @@ import java.util.logging.Logger;
  * @author Markus Fleischauer (markus.fleischauer@gmail.com)
  */
 public class StringCrypter {
-  private static final Logger LOGGER = Logger.getLogger(StringCrypter.class.getName());
+  private static final Logger loggerGER = Logger.getLogger(StringCrypter.class.getName());
   private static final String HASH_METHOD = "SHA-512";
   private static final String CRYPT_METHOD = "AES";
 
@@ -84,7 +84,7 @@ public class StringCrypter {
     // parementers that contain
     // no null checks
     if (toEncrypt == null || toEncrypt.isEmpty()) {
-      LOGGER.warning("Skipped empty encryption try.");
+      loggerGER.warning("Skipped empty encryption try.");
       return toEncrypt;
     }
 
@@ -105,7 +105,7 @@ public class StringCrypter {
 
   public String decrypt(String encrypted) throws DecryptionException {
     if (encrypted == null || encrypted.isEmpty()) {
-      LOGGER.warning("Skipped empty decryption try.");
+      loggerGER.warning("Skipped empty decryption try.");
       return encrypted;
     }
 

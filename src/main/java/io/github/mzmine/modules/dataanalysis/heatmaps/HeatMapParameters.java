@@ -108,7 +108,7 @@ public class HeatMapParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();

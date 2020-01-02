@@ -79,7 +79,7 @@ import java.util.Map.Entry;
 public class CameraSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(CameraSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
 
   // Required version of CAMERA.
   private static final String CAMERA_VERSION = "1.12";
@@ -213,7 +213,7 @@ public class CameraSearchTask extends AbstractTask {
 
         // Finished.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("CAMERA Search completed");
+        logger.info("CAMERA Search completed");
       }
 
       // Repaint the window to reflect the change in the feature list
@@ -223,7 +223,7 @@ public class CameraSearchTask extends AbstractTask {
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "CAMERA Search error", t);
+      logger.log(Level.SEVERE, "CAMERA Search error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
@@ -236,7 +236,7 @@ public class CameraSearchTask extends AbstractTask {
    */
   private void cameraSearch(final RawDataFile rawFile) {
 
-    LOG.finest("Detecting peaks.");
+    logger.finest("Detecting peaks.");
 
     errorMsg = null;
     try {
@@ -535,7 +535,7 @@ public class CameraSearchTask extends AbstractTask {
 
           } else {
 
-            LOG.warning("Irregular isotope value: " + isotope);
+            logger.warning("Irregular isotope value: " + isotope);
           }
         }
       }

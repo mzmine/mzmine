@@ -55,7 +55,7 @@ public class SumFormulaSpectraSearchModule implements MZmineModule {
             .getModuleParameters(SumFormulaSpectraSearchModule.class);
 
     // Run task.
-    if (parameters.showSetupDialog( true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationSumFormulaTask(
           parameters.cloneParameterSet(), scan, spectraPlot));

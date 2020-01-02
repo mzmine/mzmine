@@ -72,7 +72,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class NistMsSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(NistMsSearchModule.class.getName());
+  private static final Logger logger = Logger.getLogger(NistMsSearchModule.class.getName());
 
   // Command-line arguments passed to executable.
   private static final String COMMAND_LINE_ARGS = "/par=2 /instrument";
@@ -204,12 +204,12 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Finished.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("NIST MS Search completed");
+        logger.info("NIST MS Search completed");
       }
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "NIST MS Search error", t);
+      logger.log(Level.SEVERE, "NIST MS Search error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
@@ -590,7 +590,7 @@ public class NistMsSearchTask extends AbstractTask {
     }
 
     // Execute NIS MS Search.
-    LOG.finest("Executing " + command);
+    logger.finest("Executing " + command);
     Runtime.getRuntime().exec(command);
 
     // Wait for the search to finish by polling the results file.
@@ -620,7 +620,7 @@ public class NistMsSearchTask extends AbstractTask {
     spectraFile.deleteOnExit();
     final BufferedWriter writer = new BufferedWriter(new FileWriter(spectraFile));
     try {
-      LOG.finest("Writing spectra to file " + spectraFile);
+      logger.finest("Writing spectra to file " + spectraFile);
 
       // Write header.
       final PeakIdentity identity = peakRow.getPreferredPeakIdentity();
@@ -680,7 +680,7 @@ public class NistMsSearchTask extends AbstractTask {
 
     // Check for the primary locator file.
     if (!primaryLocatorFile.exists()) {
-      LOG.warning("Primary locator file not found - writing new " + primaryLocatorFile);
+      logger.warning("Primary locator file not found - writing new " + primaryLocatorFile);
 
       // Write the primary locator file.
       final BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile));

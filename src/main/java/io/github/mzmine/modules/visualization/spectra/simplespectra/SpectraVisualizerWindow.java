@@ -59,13 +59,17 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -109,6 +113,7 @@ public class SpectraVisualizerWindow extends Stage {
   private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
+  private final Button centroidContinuousButton, dataPointsButton;
   private final SpectraPlot spectrumPlot;
   private final SpectraBottomPanel bottomPanel;
 
@@ -139,12 +144,83 @@ public class SpectraVisualizerWindow extends Stage {
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
-    spectrumPlot = new SpectraPlot(this, enableProcessing);
+    spectrumPlot = new SpectraPlot(enableProcessing);
     mainPane.setCenter(spectrumPlot);
 
     toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
 
+    centroidContinuousButton = new Button(null, new ImageView(centroidIcon));
+    centroidContinuousButton.setTooltip(new Tooltip("Toggle centroid/continuous mode"));
+    centroidContinuousButton.setOnAction(e -> {
+      if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
+        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
+        centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
+        dataPointsButton.setDisable(false);
+      } else {
+        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+        centroidContinuousButton.setGraphic(new ImageView(continuousIcon));
+        dataPointsButton.setDisable(true);
+      }
+    });
+
+    dataPointsButton = new Button(null, new ImageView(dataPointsIcon));
+    dataPointsButton
+        .setTooltip(new Tooltip("Toggle displaying of data points  in continuous mode"));
+
+
+
+    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "SHOW_ANNOTATIONS",
+        "Toggle displaying of peak values");
+
+
+
+    GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame, "SHOW_PICKED_PEAKS",
+        "Toggle displaying of picked peaks");
+
+
+
+    GUIUtils.addButton(this, null, isotopePeakIcon, masterFrame, "SHOW_ISOTOPE_PEAKS",
+        "Toggle displaying of predicted isotope peaks");
+
+
+
+    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
+
+
+
+    GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
+        "Export spectra to spectra file");
+
+
+
+    GUIUtils.addButton(this, null, exportIcon, masterFrame, "CREATE_LIBRARY_ENTRY",
+        "Create spectral library entry");
+
+
+
+    GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame, "ONLINEDATABASESEARCH",
+        "Select online database for annotation");
+
+
+
+    GUIUtils.addButton(this, null, dbCustomIcon, masterFrame, "CUSTOMDATABASESEARCH",
+        "Select custom database for annotation");
+
+
+
+    GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
+        "Select target lipid classes for annotation");
+
+
+
+    GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame, "SPECTRALDATABASESEARCH",
+        "Compare spectrum with spectral database");
+
+
+
+    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
+        "Predict sum formulas for annotation");
 
     mainPane.setRight(toolBar);
 
@@ -179,11 +255,6 @@ public class SpectraVisualizerWindow extends Stage {
     this(dataFile, false);
   }
 
-  @Override
-  public void dispose() {
-    super.dispose();
-    // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
-  }
 
   public void loadRawData(Scan scan) {
 
@@ -429,15 +500,7 @@ public class SpectraVisualizerWindow extends Stage {
       SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
     }
 
-    if (command.equals("TOGGLE_PLOT_MODE")) {
-      if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
-        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
-        toolBar.setCentroidButton(MassSpectrumType.PROFILE);
-      } else {
-        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
-        toolBar.setCentroidButton(MassSpectrumType.CENTROIDED);
-      }
-    }
+
 
     if (command.equals("SHOW_DATA_POINTS")) {
       spectrumPlot.switchDataPointsVisible();

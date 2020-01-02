@@ -129,7 +129,7 @@ public class Fx3DStageController {
   private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
   private final Translate translateX = new Translate();
   private final Translate translateY = new Translate();
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private int rtResolution, mzResolution;
   private double mousePosX, mousePosY;
   private double mouseOldX, mouseOldY;
@@ -304,7 +304,7 @@ public class Fx3DStageController {
       int blue = (int) (newValue.getBlue() * 255);
       dataset.setNodeColor(Color.rgb(red, green, blue, dataset.opacityProperty().get()));
       dataset.getNode().setOpacity(dataset.opacityProperty().get());
-      LOG.finest("Color is changed from " + oldValue + " to " + newValue + " for the dataset "
+      logger.finest("Color is changed from " + oldValue + " to " + newValue + " for the dataset "
           + dataset.getFileName());
     });
   }
@@ -354,7 +354,7 @@ public class Fx3DStageController {
       menuItem.setOnAction(new EventHandler<ActionEvent>() {
         @Override
         public void handle(ActionEvent e) {
-          LOG.finest("Context menu invoked. Remove Data file button clicked. Removing dataset "
+          logger.finest("Context menu invoked. Remove Data file button clicked. Removing dataset "
               + dataset.getFileName() + " from the plot.");
           visualizedFiles.remove(dataset.getFile());
           visualizedMeshPlots.remove(dataset);
@@ -372,7 +372,7 @@ public class Fx3DStageController {
         menuItem.setOnAction(new EventHandler<ActionEvent>() {
           @Override
           public void handle(ActionEvent e) {
-            LOG.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
+            logger.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
                 + file.getName() + " to the plot.");
             MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(file, scanSel, mzRange,
                 rtResolution, mzResolution, controller), TaskPriority.HIGH);
@@ -402,7 +402,7 @@ public class Fx3DStageController {
               menuItem.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent e) {
-                  LOG.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
+                  logger.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
                       + feature.toString() + " to the plot.");
                   PeakListRow row = peakList.getPeakRow(feature);
                   FeatureSelection featureSelection =
@@ -613,34 +613,34 @@ public class Fx3DStageController {
       plot.getTransforms().addAll(pivot, yRotate, new Translate(-250, 0, -250));
       rotateAnimationTimeline.play();
       animationRunning = true;
-      LOG.finest("ANIMATE button clicked.Starting animation.");
+      logger.finest("ANIMATE button clicked.Starting animation.");
     } else {
       plot.getTransforms().remove(yRotate);
       rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
       deltaAngle = yRotate.getAngle();
       rotateAnimationTimeline.stop();
       animationRunning = false;
-      LOG.finest("ANIMATE button clicked.Stopping animation.");
+      logger.finest("ANIMATE button clicked.Stopping animation.");
     }
   }
 
   public void handleAxis(Event event) {
     if (axes.isVisible()) {
       axes.setVisible(false);
-      LOG.finest("Axes ON/OFF button clicked.Setting axes to invisible.");
+      logger.finest("Axes ON/OFF button clicked.Setting axes to invisible.");
     } else {
       axes.setVisible(true);
-      LOG.finest("Axes ON/OFF button clicked.Setting axes to visible.");
+      logger.finest("Axes ON/OFF button clicked.Setting axes to visible.");
     }
   }
 
   public void handleLights() {
     if (lightsBtn.isSelected()) {
       top.setLightOn(true);
-      LOG.finest("Lights ON/OFF button clicked.Switching lights ON.");
+      logger.finest("Lights ON/OFF button clicked.Switching lights ON.");
     } else {
       top.setLightOn(false);
-      LOG.finest("Lights ON/OFF button clicked.Switching lights OFF.");
+      logger.finest("Lights ON/OFF button clicked.Switching lights OFF.");
     }
   }
 

@@ -59,7 +59,7 @@ public class CustomDBSpectraSearchModule implements MZmineModule {
             .getModuleParameters(CustomDBSpectraSearchModule.class);;
 
     // Run task.
-    if (parameters.showSetupDialog( true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationCustomDatabaseTask(
           parameters.cloneParameterSet(), scan, spectraPlot));

@@ -89,7 +89,7 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
     UserParameter<?, ?> newChoices[] =

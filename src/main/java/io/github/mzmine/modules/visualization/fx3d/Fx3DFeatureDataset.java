@@ -42,7 +42,7 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
   private Range<Double> plotRtRange;
   private Range<Double> plotMzRange;
   private double maxIntensityValue;
-  private static final Logger LOG = Logger.getLogger(Fx3DFeatureDataset.class.getName());
+  private static final Logger logger = Logger.getLogger(Fx3DFeatureDataset.class.getName());
 
   public Fx3DFeatureDataset(FeatureSelection featureSel, int rtResolution, int mzResolution,
       Range<Double> rtRange, Range<Double> mzRange, double maxOfAllBinnedIntensity,
@@ -63,8 +63,8 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
         (double) ((double) SIZE / (plotRtRange.upperEndpoint() - plotRtRange.lowerEndpoint()));
     double mzSlope =
         (double) ((double) SIZE / (plotMzRange.upperEndpoint() - plotMzRange.lowerEndpoint()));
-    LOG.finest("RtSlope is:" + rtSlope);
-    LOG.finest("MzSlope is:" + mzSlope);
+    logger.finest("RtSlope is:" + rtSlope);
+    logger.finest("MzSlope is:" + mzSlope);
     double minFeatureRtPoint =
         (double) ((featureRtRange.lowerEndpoint() - plotRtRange.lowerEndpoint()) * rtSlope);
     double maxFeatureRtPoint =
@@ -73,14 +73,14 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
         (double) ((featureMzRange.lowerEndpoint() - plotMzRange.lowerEndpoint()) * mzSlope);
     double maxFeatureMzPoint =
         (double) ((featureMzRange.upperEndpoint() - plotMzRange.lowerEndpoint()) * mzSlope);
-    LOG.finest("minRTPoint:" + minFeatureRtPoint + "  maxRTPoint:" + maxFeatureRtPoint);
-    LOG.finest("minMzPoint:" + minFeatureMzPoint + "  maxMzPoint:" + maxFeatureMzPoint);
-    LOG.finest("maxIntensityValue is:" + maxIntensityValue * AMPLIFI);
-    LOG.finest("maxOfAllBinnedIntensity value is:" + maxOfAllBinnedIntensity * AMPLIFI);
+    logger.finest("minRTPoint:" + minFeatureRtPoint + "  maxRTPoint:" + maxFeatureRtPoint);
+    logger.finest("minMzPoint:" + minFeatureMzPoint + "  maxMzPoint:" + maxFeatureMzPoint);
+    logger.finest("maxIntensityValue is:" + maxIntensityValue * AMPLIFI);
+    logger.finest("maxOfAllBinnedIntensity value is:" + maxOfAllBinnedIntensity * AMPLIFI);
     double width = maxFeatureRtPoint - minFeatureRtPoint;
     double depth = maxFeatureMzPoint - minFeatureMzPoint;
-    LOG.finest("width is: " + width);
-    LOG.finest("depth is:" + depth);
+    logger.finest("width is: " + width);
+    logger.finest("depth is:" + depth);
     featureBox = new Box(width * factorX, maxIntensityValue * AMPLIFI, depth * factorZ);
     featureBox.setTranslateX((minFeatureRtPoint + width / 2) * factorX);
     featureBox.setTranslateY(-maxIntensityValue * AMPLIFI / 2);
@@ -104,7 +104,7 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
    */
   public void normalize(double maxOfAllBinnedIntensities) {
     featureBox.setHeight((maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI);
-    LOG.finest("Final height is:" + (maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI);
+    logger.finest("Final height is:" + (maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI);
     featureBox.setTranslateY(-(maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI / 2);
   }
 

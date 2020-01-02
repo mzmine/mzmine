@@ -58,7 +58,7 @@ import io.github.mzmine.util.adap.ADAPInterface;
  */
 public class ADAP3AlignerTask extends AbstractTask {
 
-  private static final Logger LOG = Logger.getLogger(ADAP3AlignerTask.class.getName());
+  private static final Logger logger = Logger.getLogger(ADAP3AlignerTask.class.getName());
 
   private final MZmineProject project;
   private final ParameterSet parameters;
@@ -109,7 +109,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     String errorMsg = null;
 
     setStatus(TaskStatus.PROCESSING);
-    LOG.info("Started ADAP Peak Alignment");
+    logger.info("Started ADAP Peak Alignment");
 
     try {
       PeakList peakList = alignPeaks();
@@ -120,7 +120,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         QualityParameters.calculateQualityParameters(peakList);
 
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished ADAP Peak Alignment");
+        logger.info("Finished ADAP Peak Alignment");
       }
     } catch (IllegalArgumentException e) {
       errorMsg = "Incorrect Feature Lists:\n" + e.getMessage();
@@ -129,7 +129,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     } catch (Throwable t) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
-      LOG.log(Level.SEVERE, "ADAP Alignment error", t);
+      logger.log(Level.SEVERE, "ADAP Alignment error", t);
     }
 
     // Report error

@@ -42,7 +42,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
   private int rtResolution;
   private int mzResolution;
   private MeshView meshView = new MeshView();
-  private static final Logger LOG = Logger.getLogger(Fx3DRawDataFileDataset.class.getName());
+  private static final Logger logger = Logger.getLogger(Fx3DRawDataFileDataset.class.getName());
   private TriangleMesh mesh;
   private int[][] peakListIndices;
   private float[][] intensityValues;
@@ -126,7 +126,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     meshView.setCullFace(CullFace.NONE);
     meshView.setDrawMode(DrawMode.FILL);
     meshView.setDepthTest(DepthTest.ENABLE);
-    LOG.finest("Plot mesh is ready.");
+    logger.finest("Plot mesh is ready.");
   }
 
   /*

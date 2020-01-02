@@ -60,7 +60,7 @@ public class OnlineDBSpectraSearchModule implements MZmineModule {
             .getModuleParameters(OnlineDBSpectraSearchModule.class);
 
     // Run task.
-    if (parameters.showSetupDialog( true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationOnlineDatabaseTask(
           parameters.cloneParameterSet(), scan, spectraPlot));

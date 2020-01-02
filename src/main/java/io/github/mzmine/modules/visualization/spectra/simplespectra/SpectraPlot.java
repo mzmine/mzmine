@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -60,6 +59,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.Sp
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
+import javafx.scene.Cursor;
 
 /**
  *
@@ -113,8 +113,8 @@ public class SpectraPlot extends EChartViewer {
         false // generate URLs?
     ));
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     // initialize the chart by default time series chart from factory
     chart = getChart();

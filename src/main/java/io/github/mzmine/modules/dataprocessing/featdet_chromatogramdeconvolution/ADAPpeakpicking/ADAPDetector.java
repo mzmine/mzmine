@@ -58,7 +58,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 public class ADAPDetector implements PeakResolver {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ADAPDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(ADAPDetector.class.getName());
 
   // Name.
   private static final String NAME = "Wavelets (ADAP)";

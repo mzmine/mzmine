@@ -50,7 +50,7 @@ import io.github.mzmine.util.ExitCode;
  *
  */
 public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private static final String MODULE_NAME = "Export to GNPS-GC-MS (with ADAP)";
   private static final String MODULE_DESCRIPTION =

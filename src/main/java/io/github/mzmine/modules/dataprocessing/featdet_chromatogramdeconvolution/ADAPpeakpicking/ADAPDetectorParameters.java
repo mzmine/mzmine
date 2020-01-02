@@ -88,7 +88,7 @@ public class ADAPDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>ADAP Module Disclaimer:"
         + "<br> If you use the  ADAP Chromatogram Deconvolution Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"

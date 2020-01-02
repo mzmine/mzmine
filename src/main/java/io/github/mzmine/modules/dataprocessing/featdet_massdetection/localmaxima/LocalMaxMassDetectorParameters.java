@@ -37,7 +37,7 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {noiseLevel});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     MassDetectorSetupDialog dialog =
         new MassDetectorSetupDialog(valueCheckRequired, LocalMaxMassDetector.class, this);
     dialog.showAndWait();

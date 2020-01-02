@@ -29,7 +29,7 @@ import io.github.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
   // Logger.
-  private static final Logger LOG = Logger.getLogger(BatchModeParameters.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchModeParameters.class.getName());
 
   public static final FileNameListSilentParameter lastFiles =
       new FileNameListSilentParameter("Last used files");
@@ -40,7 +40,7 @@ public class BatchModeParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     // set lastUsed files list
     final BatchSetupComponent batchComponent =

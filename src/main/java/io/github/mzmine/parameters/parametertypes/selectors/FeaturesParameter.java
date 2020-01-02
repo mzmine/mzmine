@@ -41,7 +41,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
 
   private String name = "Features";
   private List<FeatureSelection> value;
-  private final Logger LOG = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
   public String getName() {
@@ -103,7 +103,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
     }
     this.value = new ArrayList<FeatureSelection>();
     this.value = newValues;
-    LOG.finest("Values have been loaded from XML");
+    logger.finest("Values have been loaded from XML");
   }
 
   /*
@@ -138,7 +138,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
 
       xmlElement.appendChild(featureElement);
     }
-    LOG.finest("Values are saved to XML");
+    logger.finest("Values are saved to XML");
   }
 
   @Override
@@ -173,7 +173,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
     }
     for (FeatureSelection featureSelection : value) {
       FeatureSelection selection = featureSelection.clone();
-      LOG.finest("Feature Selection cloned" + selection);
+      logger.finest("Feature Selection cloned" + selection);
       copy.value.add(selection);
     }
     return copy;

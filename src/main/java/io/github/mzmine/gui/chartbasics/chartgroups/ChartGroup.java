@@ -46,7 +46,7 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
  */
 public class ChartGroup {
   // Logger.
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   // max range of all charts
   private Range[] maxRange = new Range[2];

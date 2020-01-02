@@ -90,8 +90,8 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
 
     GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
 
-    peakListSelector =
-        new ComboBox<PeakList>(MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+    peakListSelector = new ComboBox<PeakList>(
+        MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
     peakListSelector.addActionListener(masterFrame);

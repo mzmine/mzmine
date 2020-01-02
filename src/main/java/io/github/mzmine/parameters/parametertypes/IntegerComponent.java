@@ -67,37 +67,29 @@ public class IntegerComponent extends FlowPane {
   /**
    * Input verifier used when minimum or maximum bounds are defined.
    */
- /* private class MinMaxVerifier extends InputVerifier {
-
-    @Override
-    public boolean shouldYieldFocus(final JComponent input) {
-
-      final boolean yield = super.shouldYieldFocus(input);
-      if (!yield) {
-
-        // Beep and highlight.
-        Toolkit.getDefaultToolkit().beep();
-        ((JTextComponent) input).selectAll();
-      }
-
-      return yield;
-    }
-
-    @Override
-    public boolean verify(final JComponent input) {
-
-      boolean verified = false;
-      try {
-
-        verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText()));
-      } catch (final NumberFormatException e) {
-
-        // not a number.
-      }
-
-      return verified;
-    }
-  }*/
+  /*
+   * private class MinMaxVerifier extends InputVerifier {
+   * 
+   * @Override public boolean shouldYieldFocus(final JComponent input) {
+   * 
+   * final boolean yield = super.shouldYieldFocus(input); if (!yield) {
+   * 
+   * // Beep and highlight. Toolkit.getDefaultToolkit().beep(); ((JTextComponent)
+   * input).selectAll(); }
+   * 
+   * return yield; }
+   * 
+   * @Override public boolean verify(final JComponent input) {
+   * 
+   * boolean verified = false; try {
+   * 
+   * verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText())); } catch (final
+   * NumberFormatException e) {
+   * 
+   * // not a number. }
+   * 
+   * return verified; } }
+   */
 
   public TextField getTextField() {
     return textField;
@@ -108,7 +100,8 @@ public class IntegerComponent extends FlowPane {
    * 
    * @param dl
    */
-  /*public void addDocumentListener(DelayedDocumentListener dl) {
-    textField.getDocument().addDocumentListener(dl);
-  }*/
+  /*
+   * public void addDocumentListener(DelayedDocumentListener dl) {
+   * textField.getDocument().addDocumentListener(dl); }
+   */
 }

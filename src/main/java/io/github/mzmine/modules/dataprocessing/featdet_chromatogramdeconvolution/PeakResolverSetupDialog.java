@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -37,7 +36,6 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jfree.data.xy.XYDataset;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -59,13 +57,8 @@ import io.github.mzmine.util.maths.CenterMeasure;
  */
 public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakResolverSetupDialog.class.getName());
+  private static final Logger logger = Logger.getLogger(PeakResolverSetupDialog.class.getName());
 
   // Combo-box font.
   private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
@@ -94,14 +87,14 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
   /**
    * Create the dialog.
-   * 
+   *
    * @param resolverParameters resolver parameters.
    * @param resolverClass resolver class.
    */
-  public PeakResolverSetupDialog(Window parent, boolean valueCheckRequired,
-      final ParameterSet resolverParameters, final Class<? extends PeakResolver> resolverClass) {
+  public PeakResolverSetupDialog(boolean valueCheckRequired, final ParameterSet resolverParameters,
+      final Class<? extends PeakResolver> resolverClass) {
 
-    this(parent, valueCheckRequired, resolverParameters, resolverClass, null);
+    this(valueCheckRequired, resolverParameters, resolverClass, null);
   }
 
   /**
@@ -109,19 +102,18 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
    *
    * @param message: html-formatted text
    */
-  public PeakResolverSetupDialog(Window parent, boolean valueCheckRequired,
-      final ParameterSet resolverParameters, final Class<? extends PeakResolver> resolverClass,
-      String message) {
+  public PeakResolverSetupDialog(boolean valueCheckRequired, final ParameterSet resolverParameters,
+      final Class<? extends PeakResolver> resolverClass, String message) {
 
-    super(parent, valueCheckRequired, resolverParameters, message);
+    super(valueCheckRequired, resolverParameters, message);
 
     // Instantiate resolver.
     try {
 
-      peakResolver = resolverClass.newInstance();
+      peakResolver = resolverClass.getDeclaredConstructor().newInstance();
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+      logger.log(Level.SEVERE, "Peak deconvolution error", t);
       MZmineCore.getDesktop()
           .displayErrorMessage("Couldn't create peak resolver (" + t.getMessage() + ')');
     }
@@ -130,7 +122,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
   }
 
-  @Override
   public void actionPerformed(final ActionEvent ae) {
 
     super.actionPerformed(ae);
@@ -197,7 +188,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
       final PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
       if (previewRow != null) {
 
-        LOG.finest("Loading new preview peak " + previewRow);
+        logger.finest("Loading new preview peak " + previewRow);
 
         ticPlot.removeAllTICDataSets();
         ticPlot.addTICDataset(new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
@@ -214,7 +205,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         // just exit.
         ArrayList<String> errors = new ArrayList<String>();
         if (!parameterSet.checkParameterValues(errors)) {
-          LOG.fine("Illegal parameter value: " + errors);
+          logger.fine("Illegal parameter value: " + errors);
           return;
         }
 
@@ -254,7 +245,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
           throw new IllegalStateException(e.getMessage());
         } catch (Throwable t) {
 
-          LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+          logger.log(Level.SEVERE, "Peak deconvolution error", t);
           MZmineCore.getDesktop().displayErrorMessage(t.toString());
         }
 
@@ -345,13 +336,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         GridBagConstraints.HORIZONTAL);
 
     // Layout and position.
-    updateBounds();
+    // updateBounds();
   }
 
-  private void updateBounds() {
 
-    updateMinimumSize();
-    pack();
-    // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-  }
 }

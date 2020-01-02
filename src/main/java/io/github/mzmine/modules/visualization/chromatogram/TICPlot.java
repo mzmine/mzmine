@@ -72,7 +72,7 @@ import javafx.stage.Window;
 public class TICPlot extends EChartViewer {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(TICPlot.class.getName());
+  private static final Logger logger = Logger.getLogger(TICPlot.class.getName());
 
   // Zoom factor.
   private static final double ZOOM_FACTOR = 1.2;
@@ -604,7 +604,7 @@ public class TICPlot extends EChartViewer {
       // RemoveFilePopupMenu.setEnabled(true);
       // }
     } catch (CloneNotSupportedException e) {
-      LOG.log(Level.WARNING, "Unable to clone renderer", e);
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
   }
 

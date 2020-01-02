@@ -80,7 +80,7 @@ import net.miginfocom.swing.MigLayout;
 public class GraphicsExportDialog extends JFrame {
   private static final long serialVersionUID = 1L;
 
-  private final Logger LOG = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   // only one instance!
   private static GraphicsExportDialog inst;
   // theme
@@ -311,7 +311,7 @@ public class GraphicsExportDialog extends JFrame {
       try {
         copy = (JFreeChart) chart.clone();
       } catch (Exception e) {
-        LOG.log(Level.WARNING, "Chart cannot be cloned", e);
+        logger.log(Level.WARNING, "Chart cannot be cloned", e);
       }
       addChartToPanel(new EChartPanel(copy), true);
       setVisible(true);
@@ -372,7 +372,7 @@ public class GraphicsExportDialog extends JFrame {
       }
     } catch (Exception ex) {
       ex.printStackTrace();
-      LOG.log(Level.SEVERE, "Error while renewing preview of graphics export dialog ", ex);
+      logger.log(Level.SEVERE, "Error while renewing preview of graphics export dialog ", ex);
     }
   }
 
@@ -413,12 +413,12 @@ public class GraphicsExportDialog extends JFrame {
     if (parameters.checkParameterValues(null)) {
       File path = parameters.getFullpath();
       try {
-        LOG.info("Writing image to file: " + path.getAbsolutePath());
+        logger.info("Writing image to file: " + path.getAbsolutePath());
         ChartExportUtil.writeChartToImage(chartPanel, parameters);
-        LOG.info("Success" + path);
+        logger.info("Success" + path);
       } catch (Exception e) {
         e.printStackTrace();
-        LOG.log(Level.SEVERE, "File not written (" + path + ")", e);
+        logger.log(Level.SEVERE, "File not written (" + path + ")", e);
         DialogLoggerUtil.showErrorDialog(this, "File not written. ", e);
       }
     }

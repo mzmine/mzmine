@@ -50,9 +50,9 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(valueCheckRequired,
-        this, SavitzkyGolayPeakDetector.class);
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final PeakResolverSetupDialog dialog =
+        new PeakResolverSetupDialog(valueCheckRequired, this, SavitzkyGolayPeakDetector.class);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

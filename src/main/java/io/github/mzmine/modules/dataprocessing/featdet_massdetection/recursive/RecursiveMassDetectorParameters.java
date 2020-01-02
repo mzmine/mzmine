@@ -43,7 +43,7 @@ public class RecursiveMassDetectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     MassDetectorSetupDialog dialog =
         new MassDetectorSetupDialog(valueCheckRequired, RecursiveMassDetector.class, this);
     dialog.showAndWait();

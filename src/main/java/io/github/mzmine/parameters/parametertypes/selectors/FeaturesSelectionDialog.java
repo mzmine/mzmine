@@ -45,7 +45,7 @@ import io.github.mzmine.util.components.MultipleSelectionComponent;
 public class FeaturesSelectionDialog extends JDialog implements ActionListener {
 
   private static final long serialVersionUID = 1L;
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private MultipleSelectionComponent<Feature> featuresSelectionBox;
   private JComboBox<RawDataFile> rawDataFileComboBox;
   private JComboBox<PeakList> peakListComboBox;
@@ -170,7 +170,7 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
           panel11.add(rawDataFileComboBox, BorderLayout.CENTER);
 
           this.setSize(670, 400);
-          LOG.finest("PeakListRowComboBox is Added");
+          logger.finest("PeakListRowComboBox is Added");
 
           selectedIndex = j;
           RawDataFile datafile = allPeakLists[j].getRawDataFile(0);

@@ -66,7 +66,7 @@ public class FormulaPredictionModule implements MZmineModule {
       parameters.getParameter(FormulaPredictionParameters.neutralMass).setCharge(charge);
     }
 
-    ExitCode exitCode = parameters.showSetupDialog( true);
+    ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode != ExitCode.OK) {
       return;
     }

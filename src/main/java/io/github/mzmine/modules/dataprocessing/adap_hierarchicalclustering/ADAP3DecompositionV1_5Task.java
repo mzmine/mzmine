@@ -59,7 +59,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV1_5Task.class.getName());
+  private static final Logger logger = Logger.getLogger(ADAP3DecompositionV1_5Task.class.getName());
 
   // Feature lists.
   private final MZmineProject project;
@@ -96,7 +96,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       String errorMsg = null;
 
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Started ADAP Peak Decomposition on " + originalPeakList);
+      logger.info("Started ADAP Peak Decomposition on " + originalPeakList);
 
       // Check raw data files.
       if (originalPeakList.getNumberOfRawDataFiles() > 1) {
@@ -125,7 +125,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
             }
 
             setStatus(TaskStatus.FINISHED);
-            LOG.info("Finished peak decomposition on " + originalPeakList);
+            logger.info("Finished peak decomposition on " + originalPeakList);
           }
 
         } catch (IllegalArgumentException e) {
@@ -138,7 +138,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
           setStatus(TaskStatus.ERROR);
           setErrorMessage(t.getMessage());
-          LOG.log(Level.SEVERE, "Peak decompostion error", t);
+          logger.log(Level.SEVERE, "Peak decompostion error", t);
         }
 
         // Report error.
@@ -301,7 +301,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         info.rightPeakIndex = info.rightApexIndex;
 
       } catch (Exception e) {
-        LOG.info("Skipping " + row + ": " + e.getMessage());
+        logger.info("Skipping " + row + ": " + e.getMessage());
         continue;
       }
 

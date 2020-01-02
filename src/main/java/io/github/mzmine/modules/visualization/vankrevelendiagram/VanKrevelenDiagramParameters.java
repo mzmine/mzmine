@@ -74,7 +74,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {

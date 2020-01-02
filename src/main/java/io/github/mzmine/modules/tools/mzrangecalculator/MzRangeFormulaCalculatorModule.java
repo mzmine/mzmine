@@ -61,7 +61,7 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
     if (myParameters == null)
       return null;
 
-    ExitCode exitCode = myParameters.showSetupDialog( true);
+    ExitCode exitCode = myParameters.showSetupDialog(true);
     if (exitCode != ExitCode.OK)
       return null;
 

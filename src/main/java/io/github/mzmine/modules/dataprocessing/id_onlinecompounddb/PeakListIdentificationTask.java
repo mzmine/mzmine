@@ -45,7 +45,7 @@ import io.github.mzmine.util.SortingProperty;
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakListIdentificationTask.class.getName());
+  private static final Logger logger = Logger.getLogger(PeakListIdentificationTask.class.getName());
 
   // Minimum abundance.
   private static final double MIN_ABUNDANCE = 0.001;
@@ -137,7 +137,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       } catch (Throwable t) {
 
         final String msg = "Could not search " + db;
-        LOG.log(Level.WARNING, msg, t);
+        logger.log(Level.WARNING, msg, t);
         setStatus(TaskStatus.ERROR);
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }
@@ -188,8 +188,8 @@ public class PeakListIdentificationTask extends AbstractTask {
         // First modify the formula according to ionization.
         final String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
 
-        LOG.finest("Calculating isotope pattern for compound formula " + formula + " adjusted to "
-            + adjustedFormula);
+        logger.finest("Calculating isotope pattern for compound formula " + formula
+            + " adjusted to " + adjustedFormula);
 
         // Generate IsotopePattern for this compound
         final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator

@@ -48,7 +48,7 @@ import javafx.scene.layout.FlowPane;
 public class LipidModificationChoiceComponent extends BorderPane {
 
   // Logger.
-  private final Logger LOG = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final CheckListView<LipidModification> checkList = new CheckListView<>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.VERTICAL);
@@ -106,7 +106,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
       } catch (IOException ex) {
         final String msg = "There was a problem reading the lipid modification file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
-        LOG.log(Level.SEVERE, msg, ex);
+        logger.log(Level.SEVERE, msg, ex);
         return;
       }
 
@@ -121,7 +121,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
             checkList.getItems();
           }
         } catch (final NumberFormatException ignored) {
-          LOG.warning("Couldn't find lipid modifier in line " + line[0]);
+          logger.warning("Couldn't find lipid modifier in line " + line[0]);
         }
       }
 
@@ -153,7 +153,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
       } catch (IOException ex) {
         final String msg = "There was a problem writing the lipid modifications file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
-        LOG.log(Level.SEVERE, msg, ex);
+        logger.log(Level.SEVERE, msg, ex);
       }
 
     });

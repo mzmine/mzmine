@@ -49,7 +49,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 public class DeconvolutionTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(DeconvolutionTask.class.getName());
+  private static final Logger logger = Logger.getLogger(DeconvolutionTask.class.getName());
 
   // Feature lists.
   private final MZmineProject project;
@@ -110,7 +110,7 @@ public class DeconvolutionTask extends AbstractTask {
     if (!isCanceled()) {
 
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Started peak deconvolution on " + originalPeakList);
+      logger.info("Started peak deconvolution on " + originalPeakList);
 
       // Check raw data files.
       if (originalPeakList.getNumberOfRawDataFiles() > 1) {
@@ -160,7 +160,7 @@ public class DeconvolutionTask extends AbstractTask {
             }
 
             setStatus(TaskStatus.FINISHED);
-            LOG.info("Finished peak recognition on " + originalPeakList);
+            logger.info("Finished peak recognition on " + originalPeakList);
           }
           // Turn off R instance.
           if (this.rSession != null)
@@ -174,7 +174,7 @@ public class DeconvolutionTask extends AbstractTask {
 
           setStatus(TaskStatus.ERROR);
           setErrorMessage(t.getMessage());
-          LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+          logger.log(Level.SEVERE, "Peak deconvolution error", t);
         }
 
         // Turn off R instance, once task ended UNgracefully.

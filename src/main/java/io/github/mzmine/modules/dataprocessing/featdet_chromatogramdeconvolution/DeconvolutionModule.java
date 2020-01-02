@@ -74,10 +74,10 @@ public class DeconvolutionModule implements MZmineProcessingModule {
     CenterFunction mzCenterFunction =
         parameters.getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION).getValue();
 
-    // use a LOG weighted, noise corrected, maximum weight capped function
+    // use a logger weighted, noise corrected, maximum weight capped function
     if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
       // data point with lowest intensity
-      // weight = LOG(value) - LOG(noise) (maxed to maxWeight)
+      // weight = logger(value) - logger(noise) (maxed to maxWeight)
       double noise = Arrays.stream(peakLists).flatMap(pkl -> Arrays.stream(pkl.getRows()))
           .map(r -> r.getPeaks()[0])
           .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
@@ -90,9 +90,10 @@ public class DeconvolutionModule implements MZmineProcessingModule {
       // accuracy
       double maxWeight = 4;
 
-      // use a LOG weighted, noise corrected, maximum weight capped
+      // use a logger weighted, noise corrected, maximum weight capped
       // function
-      mzCenterFunction = new CenterFunction(CenterMeasure.AVG, Weighting.LOG10, noise, maxWeight);
+      mzCenterFunction =
+          new CenterFunction(CenterMeasure.AVG, Weighting.logger10, noise, maxWeight);
     }
 
     for (final PeakList peakList : peakLists) {

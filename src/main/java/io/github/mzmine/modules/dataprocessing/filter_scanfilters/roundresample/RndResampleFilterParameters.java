@@ -42,7 +42,7 @@ public class RndResampleFilterParameters extends SimpleParameterSet {
     super(new Parameter[] {SUM_DUPLICATES, REMOVE_ZERO_INTENSITY});
   }
 
-  public ExitCode showSetupDialog( boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ScanFilterSetupDialog dialog =
         new ScanFilterSetupDialog(valueCheckRequired, this, RndResampleFilter.class);
     dialog.showAndWait();
