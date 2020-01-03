@@ -37,6 +37,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 
 public class KendrickMassPlotWindowController {
 
@@ -113,10 +114,82 @@ public class KendrickMassPlotWindowController {
   private Label divisorLabelYAxis;
 
   @FXML
-  private Button toggleKMDRKM;
+  private Button toggleKMDRKMY;
 
   @FXML
-  private ImageView imageViewKMDRKM;
+  private ImageView imageViewKMDRKMY;
+
+  @FXML
+  private GridPane gridPaneXAxis;
+
+  @FXML
+  private Button shiftUpXAxis;
+
+  @FXML
+  private Button chargeUpXAxis;
+
+  @FXML
+  private Button divisorUpXAxis;
+
+  @FXML
+  private Button shiftDownXAxis;
+
+  @FXML
+  private Button chargeDownXAxis;
+
+  @FXML
+  private Button divisorDownXAxis;
+
+  @FXML
+  private Label shiftLabelXAxis;
+
+  @FXML
+  private Label chargeLabelXAxis;
+
+  @FXML
+  private Label divisorLabelXAxis;
+
+  @FXML
+  private Button toggleKMDRKMX;
+
+  @FXML
+  private ImageView imageViewKMDRKMX;
+
+  @FXML
+  private GridPane gridPaneZAxis;
+
+  @FXML
+  private Button shiftUpZAxis;
+
+  @FXML
+  private Button chargeUpZAxis;
+
+  @FXML
+  private Button divisorUpZAxis;
+
+  @FXML
+  private Button shiftDownZAxis;
+
+  @FXML
+  private Button chargeDownZAxis;
+
+  @FXML
+  private Button divisorDownZAxis;
+
+  @FXML
+  private Label shiftLabelZAxis;
+
+  @FXML
+  private Label chargeLabelZAxis;
+
+  @FXML
+  private Label divisorLabelZAxis;
+
+  @FXML
+  private Button toggleKMDRKMZ;
+
+  @FXML
+  private ImageView imageViewKMDRKMZ;
 
   public void initialize(ParameterSet parameters) {
 
@@ -139,6 +212,7 @@ public class KendrickMassPlotWindowController {
       this.customXAxisKMBase =
           parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
               .getEmbeddedParameter().getValue();
+      gridPaneXAxis.setDisable(false);
     } else {
       this.xAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
     }
@@ -150,6 +224,7 @@ public class KendrickMassPlotWindowController {
       this.customZAxisKMBase =
           parameters.getParameter(KendrickMassPlotParameters.zAxisCustomKendrickMassBase)
               .getEmbeddedParameter().getValue();
+      gridPaneZAxis.setDisable(false);
     } else {
       this.zAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
     }
@@ -250,9 +325,45 @@ public class KendrickMassPlotWindowController {
   }
 
   @FXML
+  void chargeDownX(ActionEvent event) {
+    if (xAxisCharge > 1) {
+      xAxisCharge = xAxisCharge - 1;
+    } else
+      xAxisCharge = 1;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void chargeDownZ(ActionEvent event) {
+    if (zAxisCharge > 1) {
+      zAxisCharge = zAxisCharge - 1;
+    } else
+      zAxisCharge = 1;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
   void chargeUpY(ActionEvent event) {
     logger.finest("Charge Y-axis up");
     yAxisCharge = yAxisCharge + 1;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void chargeUpX(ActionEvent event) {
+    logger.finest("Charge X-axis up");
+    xAxisCharge = xAxisCharge + 1;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void chargeUpZ(ActionEvent event) {
+    logger.finest("Charge Z-axis up");
+    zAxisCharge = zAxisCharge + 1;
     XYPlot plot = getChart().getXYPlot();
     kendrickVariableChanged(plot);
   }
@@ -265,6 +376,32 @@ public class KendrickMassPlotWindowController {
     if (yAxisDivisor > minDivisor && yAxisDivisor <= maxDivisor) {
       yAxisDivisor--;
       yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
+    }
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void divisorDownX(ActionEvent event) {
+    logger.finest("Divisor X-axis down");
+    int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
+    int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
+    if (xAxisDivisor > minDivisor && xAxisDivisor <= maxDivisor) {
+      xAxisDivisor--;
+      xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
+    }
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void divisorDownZ(ActionEvent event) {
+    logger.finest("Divisor Z-axis down");
+    int minDivisor = getMinimumRecommendedDivisor(customZAxisKMBase);
+    int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
+    if (zAxisDivisor > minDivisor && zAxisDivisor <= maxDivisor) {
+      zAxisDivisor--;
+      zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
     }
     XYPlot plot = getChart().getXYPlot();
     kendrickVariableChanged(plot);
@@ -284,10 +421,54 @@ public class KendrickMassPlotWindowController {
   }
 
   @FXML
+  void divisorUpX(ActionEvent event) {
+    logger.finest("Divisor X-axis up");
+    int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
+    int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
+    if (xAxisDivisor >= minDivisor && xAxisDivisor < maxDivisor) {
+      xAxisDivisor++;
+      xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, true);
+    }
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void divisorUpZ(ActionEvent event) {
+    logger.finest("Divisor Z-axis up");
+    int minDivisor = getMinimumRecommendedDivisor(customZAxisKMBase);
+    int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
+    if (zAxisDivisor >= minDivisor && zAxisDivisor < maxDivisor) {
+      zAxisDivisor++;
+      zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, true);
+    }
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
   void shiftDownY(ActionEvent event) {
     logger.finest("Shift Y-axis down");
     Double shiftValue = -0.01;
     yAxisShift = yAxisShift + shiftValue;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void shiftDownX(ActionEvent event) {
+    logger.finest("Shift X-axis down");
+    Double shiftValue = -0.01;
+    xAxisShift = xAxisShift + shiftValue;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void shiftDownZ(ActionEvent event) {
+    logger.finest("Shift Z-axis down");
+    Double shiftValue = -0.01;
+    zAxisShift = zAxisShift + shiftValue;
     XYPlot plot = getChart().getXYPlot();
     kendrickVariableChanged(plot);
   }
@@ -302,20 +483,76 @@ public class KendrickMassPlotWindowController {
   }
 
   @FXML
-  void toggleKMDRKM(ActionEvent event) {
-    logger.finest("Toggle KMD and RKM");
+  void shiftUpXAxis(ActionEvent event) {
+    logger.finest("Shift X-axis up");
+    Double shiftValue = 0.01;
+    xAxisShift = xAxisShift + shiftValue;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void shiftUpZAxis(ActionEvent event) {
+    logger.finest("Shift Z-axis up");
+    Double shiftValue = 0.01;
+    zAxisShift = zAxisShift + shiftValue;
+    XYPlot plot = getChart().getXYPlot();
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void toggleKMDRKMY(ActionEvent event) {
+    logger.finest("Toggle KMD and RKM Y-Axis");
     XYPlot plot = getChart().getXYPlot();
     if (useRKM_Y) {
       useRKM_Y = false;
       plot.getDomainAxis().setLabel("KMD(" + customYAxisKMBase + ")");
-      imageViewKMDRKM.setImage(iconRKM);
+      imageViewKMDRKMY.setImage(iconKMD);
     } else {
       useRKM_Y = true;
 
       // if the divisor is round(R) switch to round(R)-1 for RKM plot
       yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
       plot.getDomainAxis().setLabel("RKM(" + customYAxisKMBase + ")");
-      imageViewKMDRKM.setImage(iconKMD);
+      imageViewKMDRKMY.setImage(iconRKM);
+    }
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void toggleKMDRKMX(ActionEvent event) {
+    logger.finest("Toggle KMD and RKM X-Axis");
+    XYPlot plot = getChart().getXYPlot();
+    if (useRKM_X) {
+      useRKM_X = false;
+      plot.getDomainAxis().setLabel("KMD(" + customXAxisKMBase + ")");
+      imageViewKMDRKMX.setImage(iconKMD);
+    } else {
+      useRKM_X = true;
+
+      // if the divisor is round(R) switch to round(R)-1 for RKM plot
+      xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
+      plot.getDomainAxis().setLabel("RKM(" + customXAxisKMBase + ")");
+      imageViewKMDRKMX.setImage(iconRKM);
+    }
+    kendrickVariableChanged(plot);
+  }
+
+  @FXML
+  void toggleKMDRKMZ(ActionEvent event) {
+    logger.finest("Toggle KMD and RKM Z-Axis");
+    XYPlot plot = getChart().getXYPlot();
+    if (useRKM_Z) {
+      useRKM_Z = false;
+      plot.getDomainAxis().setLabel("KMD(" + customZAxisKMBase + ")");
+      imageViewKMDRKMZ.setImage(iconKMD);
+    } else {
+      useRKM_Z = true;
+
+      // if the divisor is round(R) switch to round(R)-1 for RKM plot
+      zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
+      plot.getDomainAxis().setLabel("RKM(" + customZAxisKMBase + ")");
+      imageViewKMDRKMZ.setImage(iconRKM);
     }
     kendrickVariableChanged(plot);
   }
@@ -638,7 +875,6 @@ public class KendrickMassPlotWindowController {
       dataset.setxValues(xValues);
       dataset.setzValues(zValues);
       getChart().fireChartChanged();
-      // validate();
     }
 
     // update toolbar
@@ -707,8 +943,19 @@ public class KendrickMassPlotWindowController {
   }
 
   private void updateToolBar() {
+    // Y-Axis
     shiftLabelYAxis.setText(shiftFormat.format(yAxisShift));
     chargeLabelYAxis.setText(Integer.toString(yAxisCharge));
     divisorLabelYAxis.setText(Integer.toString(yAxisDivisor));
+
+    // X-Axis
+    shiftLabelXAxis.setText(shiftFormat.format(xAxisShift));
+    chargeLabelXAxis.setText(Integer.toString(xAxisCharge));
+    divisorLabelXAxis.setText(Integer.toString(xAxisDivisor));
+
+    // Z-Axis
+    shiftLabelZAxis.setText(shiftFormat.format(zAxisShift));
+    chargeLabelZAxis.setText(Integer.toString(zAxisCharge));
+    divisorLabelZAxis.setText(Integer.toString(zAxisDivisor));
   }
 }
