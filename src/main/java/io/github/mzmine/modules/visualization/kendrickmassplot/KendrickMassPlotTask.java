@@ -29,6 +29,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
@@ -55,9 +57,11 @@ import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParamet
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -161,6 +165,49 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     // create chartViewer
     EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
+
+    // get plot
+    XYPlot plot = (XYPlot) chart.getPlot();
+
+    // mouse listener
+    chartViewer.addChartMouseListener(new ChartMouseListenerFX() {
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {}
+
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        double xValue = plot.getDomainCrosshairValue();
+        double yValue = plot.getRangeCrosshairValue();
+        if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
+          KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(rows[i]);
+              }
+            }
+          }
+        }
+        if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
+          KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(rows[i]);
+              }
+            }
+          }
+        }
+      }
+    });
+
 
     // set title properties
     TextTitle chartTitle = chart.getTitle();

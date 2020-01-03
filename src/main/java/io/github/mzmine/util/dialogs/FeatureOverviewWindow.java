@@ -91,11 +91,11 @@ public class FeatureOverviewWindow extends Stage {
     splitPaneCenter.getItems().add(splitPaneRight);
 
     // add spectra MS1
-    splitPaneRight.getItems().add(addSpectraMS1());
+    // splitPaneRight.getItems().add(addSpectraMS1());
 
     // add Spectra MS2
     if (feature.getMostIntenseFragmentScanNumber() > 0) {
-      splitPaneRight.getItems().add(addSpectraMS2());
+      // splitPaneRight.getItems().add(addSpectraMS2());
     } else {
       FlowPane noMSMSPanel = new FlowPane();
       Label noMSMSScansFound = new Label("Sorry, no MS/MS scans found!");
@@ -107,6 +107,7 @@ public class FeatureOverviewWindow extends Stage {
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
+    this.show();
 
   }
 

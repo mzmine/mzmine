@@ -260,7 +260,6 @@ public class KendrickMassPlotWindowController {
     this.useRKM_X = false;
     this.useRKM_Y = false;
     this.useRKM_Z = false;
-
   }
 
   // Plot style actions
@@ -972,4 +971,5 @@ public class KendrickMassPlotWindowController {
     chargeLabelZAxis.setText(Integer.toString(zAxisCharge));
     divisorLabelZAxis.setText(Integer.toString(zAxisDivisor));
   }
+
 }
