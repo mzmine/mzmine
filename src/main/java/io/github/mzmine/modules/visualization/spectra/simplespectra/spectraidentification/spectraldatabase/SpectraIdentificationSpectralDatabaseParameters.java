@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,8 +20,6 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import java.awt.Window;
 import java.util.Collection;
-import javax.swing.JComponent;
-
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
@@ -37,13 +35,14 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
 /**
  * Module to compare single spectra with spectral databases
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParameterSet {
@@ -121,13 +120,12 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
     // only enable precursor mz tolerance if precursor mz is used
-    OptionalParameterComponent usePreComp =
-        (OptionalParameterComponent) dialog.getComponentForParameter(usePrecursorMZ);
-    JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
-    mzTolPrecursor.setEnabled(getParameter(usePrecursorMZ).getValue());
-    usePreComp.addItemListener(e -> {
-      mzTolPrecursor.setEnabled(usePreComp.isSelected());
-    });
+    OptionalParameterComponent usePreComp = dialog.getComponentForParameter(usePrecursorMZ);
+    MZToleranceComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+
+
+    mzTolPrecursor.setDisable(!getParameter(usePrecursorMZ).getValue());
+    usePreComp.disableProperty().bind(usePreComp.getCheckBox().selectedProperty().not());
 
     dialog.showAndWait();
     return dialog.getExitCode();

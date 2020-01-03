@@ -19,16 +19,11 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.Color;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
@@ -59,19 +54,21 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -113,7 +110,9 @@ public class SpectraVisualizerWindow extends Stage {
   private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
-  private final Button centroidContinuousButton, dataPointsButton;
+  private final Button centroidContinuousButton, dataPointsButton, annotationsButton,
+      pickedPeakButton, isotopePeakButton, axesButton, exportButton, createLibraryEntryButton,
+      dbOnlineButton, dbCustomButton, dbLipidsButton, dbSpectraButton, sumFormulaButton;
   private final SpectraPlot spectrumPlot;
   private final SpectraBottomPanel bottomPanel;
 
@@ -140,6 +139,7 @@ public class SpectraVisualizerWindow extends Stage {
 
     mainPane = new BorderPane();
     mainScene = new Scene(mainPane);
+    setScene(mainScene);
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
@@ -152,6 +152,11 @@ public class SpectraVisualizerWindow extends Stage {
 
     centroidContinuousButton = new Button(null, new ImageView(centroidIcon));
     centroidContinuousButton.setTooltip(new Tooltip("Toggle centroid/continuous mode"));
+
+    dataPointsButton = new Button(null, new ImageView(dataPointsIcon));
+    dataPointsButton.setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+    dataPointsButton.setOnAction(e -> spectrumPlot.switchDataPointsVisible());
+
     centroidContinuousButton.setOnAction(e -> {
       if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
         spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
@@ -164,64 +169,72 @@ public class SpectraVisualizerWindow extends Stage {
       }
     });
 
-    dataPointsButton = new Button(null, new ImageView(dataPointsIcon));
-    dataPointsButton
-        .setTooltip(new Tooltip("Toggle displaying of data points  in continuous mode"));
+    annotationsButton = new Button(null, new ImageView(annotationsIcon));
+    annotationsButton.setTooltip(new Tooltip("Toggle displaying of peak values"));
+    annotationsButton.setOnAction(e -> spectrumPlot.switchItemLabelsVisible());
 
+    pickedPeakButton = new Button(null, new ImageView(pickedPeakIcon));
+    pickedPeakButton.setTooltip(new Tooltip("Toggle displaying of picked peaks"));
+    pickedPeakButton.setOnAction(e -> spectrumPlot.switchPickedPeaksVisible());
 
+    isotopePeakButton = new Button(null, new ImageView(isotopePeakIcon));
+    isotopePeakButton.setTooltip(new Tooltip("Toggle displaying of predicted isotope peaks"));
+    isotopePeakButton.setOnAction(e -> spectrumPlot.switchIsotopePeaksVisible());
 
-    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "SHOW_ANNOTATIONS",
-        "Toggle displaying of peak values");
+    axesButton = new Button(null, new ImageView(axesIcon));
+    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    axesButton.setOnAction(e -> {
+      AxesSetupDialog dialog = new AxesSetupDialog(this, spectrumPlot.getXYPlot());
+      dialog.show();
+    });
 
+    exportButton = new Button(null, new ImageView(exportIcon));
+    exportButton.setTooltip(new Tooltip("Export spectra to spectra file"));
+    exportButton.setOnAction(e -> ExportScansModule.showSetupDialog(currentScan));
 
+    createLibraryEntryButton = new Button(null, new ImageView(exportIcon));
+    createLibraryEntryButton.setTooltip(new Tooltip("Create spectral library entry"));
+    createLibraryEntryButton.setOnAction(e -> {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(currentScan);
+      libraryWindow.setVisible(true);
+    });
 
-    GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame, "SHOW_PICKED_PEAKS",
-        "Toggle displaying of picked peaks");
+    dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
+    dbOnlineButton.setTooltip(new Tooltip("Select online database for annotation"));
+    dbOnlineButton.setOnAction(e -> {
+      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+    });
 
+    dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
+    dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
+    dbCustomButton.setOnAction(e -> {
+      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+    });
 
+    dbLipidsButton = new Button(null, new ImageView(dbLipidsIcon));
+    dbLipidsButton.setTooltip(new Tooltip("Select target lipid classes for annotation"));
+    dbLipidsButton.setOnAction(e -> {
+      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+    });
 
-    GUIUtils.addButton(this, null, isotopePeakIcon, masterFrame, "SHOW_ISOTOPE_PEAKS",
-        "Toggle displaying of predicted isotope peaks");
+    dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
+    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
+    dbSpectraButton.setOnAction(e -> {
+      SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
+          spectrumPlot);
+    });
 
+    sumFormulaButton = new Button(null, new ImageView(sumFormulaIcon));
+    sumFormulaButton.setTooltip(new Tooltip("Predict sum formulas for annotation"));
+    sumFormulaButton.setOnAction(e -> {
+      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+    });
 
-
-    GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES", "Setup ranges for axes");
-
-
-
-    GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
-        "Export spectra to spectra file");
-
-
-
-    GUIUtils.addButton(this, null, exportIcon, masterFrame, "CREATE_LIBRARY_ENTRY",
-        "Create spectral library entry");
-
-
-
-    GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame, "ONLINEDATABASESEARCH",
-        "Select online database for annotation");
-
-
-
-    GUIUtils.addButton(this, null, dbCustomIcon, masterFrame, "CUSTOMDATABASESEARCH",
-        "Select custom database for annotation");
-
-
-
-    GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
-        "Select target lipid classes for annotation");
-
-
-
-    GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame, "SPECTRALDATABASESEARCH",
-        "Compare spectrum with spectral database");
-
-
-
-    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
-        "Predict sum formulas for annotation");
-
+    toolBar.getItems().addAll(centroidContinuousButton, dataPointsButton, annotationsButton,
+        pickedPeakButton, isotopePeakButton, axesButton, exportButton, createLibraryEntryButton,
+        dbOnlineButton, dbCustomButton, dbLipidsButton, dbSpectraButton, sumFormulaButton);
     mainPane.setRight(toolBar);
 
     // Create relationship between the current Plot and Tool bar
@@ -249,6 +262,9 @@ public class SpectraVisualizerWindow extends Stage {
     // this.addComponentListener(settings);
 
     dppmWindowOpen = false;
+
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
   }
 
   public SpectraVisualizerWindow(RawDataFile dataFile) {
@@ -268,19 +284,25 @@ public class SpectraVisualizerWindow extends Stage {
     // If the plot mode has not been set yet, set it accordingly
     if (spectrumPlot.getPlotMode() == null) {
       spectrumPlot.setPlotMode(currentScan.getSpectrumType());
-      toolBar.setCentroidButton(currentScan.getSpectrumType());
+      if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+        centroidContinuousButton.setGraphic(new ImageView(continuousIcon));
+      } else {
+        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
+        centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
+      }
     }
 
     // Clean up the MS/MS selector combo
 
-    final JComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
+    final ComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
 
     // We disable the MSMS selector first and then enable it again later
     // after updating the items. If we skip this, the size of the
     // selector may not be adjusted properly (timing issues?)
-    msmsSelector.setEnabled(false);
+    msmsSelector.setDisable(true);
 
-    msmsSelector.removeAllItems();
+    msmsSelector.getItems().clear();
     boolean msmsVisible = false;
 
     // Add parent scan to MS/MS selector combo
@@ -301,17 +323,12 @@ public class SpectraVisualizerWindow extends Stage {
             + mzFormat.format(fragmentScan.getPrecursorMZ());
         // Updating the combo in other than Swing thread may cause
         // exception
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            msmsSelector.addItem(itemText);
-          }
-        });
+        msmsSelector.getItems().add(itemText);
         msmsVisible = true;
       }
     }
 
-    msmsSelector.setEnabled(true);
+    msmsSelector.setDisable(false);
 
     // Update the visibility of MS/MS selection combo
     bottomPanel.setMSMSSelectorVisible(msmsVisible);
@@ -338,9 +355,6 @@ public class SpectraVisualizerWindow extends Stage {
     // Set plot data set
     spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
-
-    // Reload feature list
-    bottomPanel.rebuildPeakListSelector();
 
   }
 
@@ -417,126 +431,65 @@ public class SpectraVisualizerWindow extends Stage {
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
   }
 
-  @Override
-  public void actionPerformed(ActionEvent event) {
+  public void loadPreviousScan() {
 
-    String command = event.getActionCommand();
+    if (dataFile == null)
+      return;
 
-    if (command.equals("PEAKLIST_CHANGE")) {
+    int msLevel = currentScan.getMSLevel();
+    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
+    if (scanIndex > 0) {
+      final int prevScanIndex = scanNumbers[scanIndex - 1];
 
-      // If no scan is loaded yet, ignore
-      if (currentScan == null)
-        return;
+      Runnable newThreadRunnable = new Runnable() {
 
-      PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-      loadPeaks(selectedPeakList);
+        @Override
+        public void run() {
+          loadRawData(dataFile.getScan(prevScanIndex));
+        }
+
+      };
+
+      Thread newThread = new Thread(newThreadRunnable);
+      newThread.start();
 
     }
+  }
 
-    if (command.equals("PREVIOUS_SCAN")) {
 
-      if (dataFile == null)
-        return;
+  public void loadNextScan() {
 
-      int msLevel = currentScan.getMSLevel();
-      int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-      int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
-      if (scanIndex > 0) {
-        final int prevScanIndex = scanNumbers[scanIndex - 1];
+    if (dataFile == null)
+      return;
 
-        Runnable newThreadRunnable = new Runnable() {
+    int msLevel = currentScan.getMSLevel();
+    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
 
-          @Override
-          public void run() {
-            loadRawData(dataFile.getScan(prevScanIndex));
-          }
+    if (scanIndex < (scanNumbers.length - 1)) {
+      final int nextScanIndex = scanNumbers[scanIndex + 1];
 
-        };
+      Runnable newThreadRunnable = new Runnable() {
 
-        Thread newThread = new Thread(newThreadRunnable);
-        newThread.start();
+        @Override
+        public void run() {
+          loadRawData(dataFile.getScan(nextScanIndex));
+        }
 
-      }
+      };
+
+      Thread newThread = new Thread(newThreadRunnable);
+      newThread.start();
+
     }
-
-    if (command.equals("NEXT_SCAN")) {
-
-      if (dataFile == null)
-        return;
-
-      int msLevel = currentScan.getMSLevel();
-      int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-      int scanIndex = Arrays.binarySearch(scanNumbers, currentScan.getScanNumber());
-
-      if (scanIndex < (scanNumbers.length - 1)) {
-        final int nextScanIndex = scanNumbers[scanIndex + 1];
-
-        Runnable newThreadRunnable = new Runnable() {
-
-          @Override
-          public void run() {
-            loadRawData(dataFile.getScan(nextScanIndex));
-          }
-
-        };
-
-        Thread newThread = new Thread(newThreadRunnable);
-        newThread.start();
-
-      }
-    }
-
-    if (command.equals("SHOW_MSMS")) {
-
-      String selectedScanString = (String) bottomPanel.getMSMSSelector().getSelectedItem();
-      if (selectedScanString == null)
-        return;
-
-      int sharpIndex = selectedScanString.indexOf('#');
-      int commaIndex = selectedScanString.indexOf(',');
-      selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
-      int selectedScan = Integer.valueOf(selectedScanString);
-
-      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
-    }
+  }
 
 
-
-    if (command.equals("SHOW_DATA_POINTS")) {
-      spectrumPlot.switchDataPointsVisible();
-    }
-
-    if (command.equals("SHOW_ANNOTATIONS")) {
-      spectrumPlot.switchItemLabelsVisible();
-    }
-
-    if (command.equals("SHOW_PICKED_PEAKS")) {
-      spectrumPlot.switchPickedPeaksVisible();
-    }
-
-    if (command.equals("SHOW_ISOTOPE_PEAKS")) {
-      spectrumPlot.switchIsotopePeaksVisible();
-    }
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(null, spectrumPlot.getXYPlot());
-      dialog.setVisible(true);
-    }
-    // library entry creation
-    if (command.equals("CREATE_LIBRARY_ENTRY")) {
-      // open window with all selected rows
-      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
-      libraryWindow.setData(currentScan);
-      libraryWindow.setVisible(true);
-    }
-
-    if (command.equals("EXPORT_SPECTRA")) {
-      ExportScansModule.showSetupDialog(currentScan);
-    }
-
+  void oldActionCommands(String command) {
     if (command.equals("ADD_ISOTOPE_PATTERN")) {
 
-      IsotopePattern newPattern = IsotopePatternCalculator.showIsotopePredictionDialog(this, true);
+      IsotopePattern newPattern = IsotopePatternCalculator.showIsotopePredictionDialog(null, true);
 
       if (newPattern == null)
         return;
@@ -565,11 +518,7 @@ public class SpectraVisualizerWindow extends Stage {
       double yMax = yAxis.getRange().getUpperBound();
       double yTick = yAxis.getTickUnit().getSize();
 
-      // Get all frames of my class
-      Window spectraFrames[] = JFrame.getWindows();
-
-      // Set the range of these frames
-      for (Window frame : spectraFrames) {
+      for (Window frame : Stage.getWindows()) {
         if (!(frame instanceof SpectraVisualizerWindow))
           continue;
         SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
@@ -578,90 +527,36 @@ public class SpectraVisualizerWindow extends Stage {
 
     }
 
-    if (command.equals("ONLINEDATABASESEARCH")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
-        }
-      });
+
+  }
+
+  public void enableProcessing() {
+    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    inst.setEnabled(!inst.isEnabled());
+    bottomPanel.updateProcessingButton();
+    getSpectrumPlot().checkAndRunController();
+
+    // if the tick is removed, set the data back to default
+    if (!inst.isEnabled()) {
+      getSpectrumPlot().removeDataPointProcessingResultDataSets();
+      // loadRawData(currentScan);
     }
+  }
 
-    if (command.equals("CUSTOMDATABASESEARCH")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
-        }
-      });
-    }
+  public void setProcessingParams() {
+    if (!dppmWindowOpen) {
+      dppmWindowOpen = true;
 
-    if (command.equals("LIPIDSEARCH")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
-        }
-      });
-    }
+      ExitCode exitCode =
+          DataPointProcessingManager.getInst().getParameters().showSetupDialog(true);
 
-    if (command.equals("SUMFORMULA")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
-        }
-      });
-    }
-
-    if (command.equals("SPECTRALDATABASESEARCH")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
-              spectrumPlot);
-        }
-      });
-    }
-
-    if (command.equals("SET_PROCESSING_PARAMETERS")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          if (!dppmWindowOpen) {
-            dppmWindowOpen = true;
-
-            ExitCode exitCode =
-                DataPointProcessingManager.getInst().getParameters().showSetupDialog(true);
-
-            dppmWindowOpen = false;
-            if (exitCode == ExitCode.OK && DataPointProcessingManager.getInst().isEnabled()) {
-              // if processing was run before, this removes the
-              // previous results.
-              getSpectrumPlot().removeDataPointProcessingResultDataSets();
-              getSpectrumPlot().checkAndRunController();
-            }
-          }
-        }
-      });
-    }
-
-    if (command.equals("ENABLE_PROCESSING")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          DataPointProcessingManager inst = DataPointProcessingManager.getInst();
-          inst.setEnabled(!inst.isEnabled());
-          bottomPanel.updateProcessingButton();
-          getSpectrumPlot().checkAndRunController();
-
-          // if the tick is removed, set the data back to default
-          if (!inst.isEnabled()) {
-            getSpectrumPlot().removeDataPointProcessingResultDataSets();
-            // loadRawData(currentScan);
-          }
-        }
-      });
+      dppmWindowOpen = false;
+      if (exitCode == ExitCode.OK && DataPointProcessingManager.getInst().isEnabled()) {
+        // if processing was run before, this removes the
+        // previous results.
+        getSpectrumPlot().removeDataPointProcessingResultDataSets();
+        getSpectrumPlot().checkAndRunController();
+      }
     }
   }
 

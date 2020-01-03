@@ -18,31 +18,24 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.SwingConstants;
-import javax.swing.event.TreeModelListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.util.GUIUtils;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
 /**
  * Spectra visualizer's bottom panel
  */
-class SpectraBottomPanel extends BorderPane implements TreeModelListener {
-
-  private static final long serialVersionUID = 1L;
+class SpectraBottomPanel extends BorderPane {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -88,59 +81,75 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
 
     // topPanel.add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
+    Label featureListLabel = new Label("Feature list: ");
 
     peakListSelector = new ComboBox<PeakList>(
         MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
-    peakListSelector.addActionListener(masterFrame);
-    peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-    topPanel.add(peakListSelector);
+    peakListSelector.setOnAction(
+        e -> masterFrame.loadPeaks(peakListSelector.getSelectionModel().getSelectedItem()));
 
-    processingCbx = GUIUtils.addCheckbox(topPanel, "Enable Processing", masterFrame,
-        "ENABLE_PROCESSING", "Enables quick scan processing.");
-    processingCbx.setBackground(Color.white);
-    processingCbx.setFont(smallFont);
+    processingCbx = new CheckBox("Enable Processing");
+    processingCbx.setTooltip(new Tooltip("Enables quick scan processing."));
+    processingCbx.setOnAction(e -> masterFrame.enableProcessing());
     updateProcessingCheckbox();
 
-    processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null, masterFrame,
-        "SET_PROCESSING_PARAMETERS", "Set the parameters for quick spectra processing.");
-    processingParametersBtn.setBackground(Color.white);
-    processingParametersBtn.setFont(smallFont);
+    processingParametersBtn = new Button("Spectra processing");
+    processingParametersBtn
+        .setTooltip(new Tooltip("Set the parameters for quick spectra processing."));
+    processingParametersBtn.setOnAction(e -> masterFrame.setProcessingParams());
     updateProcessingButton();
 
-    topPanel.add(Box.createHorizontalGlue());
+    // topPanel.add(Box.createHorizontalGlue());
 
-    JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null, masterFrame, "NEXT_SCAN");
-    nextScanBtn.setBackground(Color.white);
-    nextScanBtn.setFont(smallFont);
+    Button nextScanBtn = new Button(rightArrow);
+    nextScanBtn.setOnAction(e -> masterFrame.loadNextScan());
 
-    topPanel.add(Box.createHorizontalStrut(10));
+    topPanel.getChildren().addAll(prevScanBtn, featureListLabel, peakListSelector, processingCbx,
+        processingParametersBtn, nextScanBtn);
+
+    // nextScanBtn.setBackground(Color.white);
+    // nextScanBtn.setFont(smallFont);
+
+    // topPanel.add(Box.createHorizontalStrut(10));
 
     bottomPanel = new FlowPane();
     // bottomPanel.setBackground(Color.white);
     // bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
     setBottom(bottomPanel);
 
-    bottomPanel.add(Box.createHorizontalGlue());
+    // bottomPanel.add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+    Label msmsLabel = new Label("MS/MS: ");
 
-    msmsSelector = new JComboBox<String>();
-    msmsSelector.setBackground(Color.white);
-    msmsSelector.setFont(smallFont);
-    bottomPanel.add(msmsSelector);
+    msmsSelector = new ComboBox<String>();
+    // msmsSelector.setBackground(Color.white);
+    // msmsSelector.setFont(smallFont);
 
-    Button showButton = GUIUtils.addButton(bottomPanel, "Show", null, masterFrame, "SHOW_MSMS");
+    Button showButton = new Button("Show");
+    bottomPanel.getChildren().addAll(msmsLabel, msmsSelector, showButton);
+
     // showButton.setBackground(Color.white);
-    showButton.setFont(smallFont);
+    showButton.setOnAction(e -> {
+      String selectedScanString = msmsSelector.getSelectionModel().getSelectedItem();
+      if (selectedScanString == null)
+        return;
+
+      int sharpIndex = selectedScanString.indexOf('#');
+      int commaIndex = selectedScanString.indexOf(',');
+      selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
+      int selectedScan = Integer.valueOf(selectedScanString);
+
+      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
+    });
+    // showButton.setFont(smallFont);
 
     // bottomPanel.add(Box.createHorizontalGlue());
 
   }
 
-  JComboBox<String> getMSMSSelector() {
+  ComboBox<String> getMSMSSelector() {
     return msmsSelector;
   }
 
@@ -152,7 +161,7 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
    * Returns selected feature list
    */
   PeakList getSelectedPeakList() {
-    PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
     return selectedPeakList;
   }
 
@@ -163,6 +172,6 @@ class SpectraBottomPanel extends BorderPane implements TreeModelListener {
   }
 
   public void updateProcessingButton() {
-    processingParametersBtn.setEnabled(DataPointProcessingManager.getInst().isEnabled());
+    processingParametersBtn.setDisable(!DataPointProcessingManager.getInst().isEnabled());
   }
 }

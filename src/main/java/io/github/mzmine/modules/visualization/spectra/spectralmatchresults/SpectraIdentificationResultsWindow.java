@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
-
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,16 +39,14 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-
 import org.drjekyll.fontchooser.FontDialog;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
  * Window to show all spectral database matches from selected scan or peaklist match
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationResultsWindow extends JFrame {
@@ -95,7 +92,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     btnSetup.addActionListener(e -> {
       if (MZmineCore.getConfiguration()
           .getModuleParameters(SpectraIdentificationResultsModule.class)
-          .showSetupDialog(this, true) == ExitCode.OK) {
+          .showSetupDialog(true) == ExitCode.OK) {
         showExportButtonsChanged();
       }
     });
@@ -131,7 +128,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private void setChartFont() {
     FontDialog dialog = new FontDialog(this, "Font Dialog Example", true);
     dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    dialog.showAndWait();
+    dialog.setVisible(true);
     if (!dialog.isCancelSelected()) {
       setChartFont(dialog.getSelectedFont());
     }
@@ -148,7 +145,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   /**
    * Add a new match and sort the view
-   * 
+   *
    * @param scan
    * @param match
    */
@@ -167,7 +164,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   /**
    * add all matches and sort the view
-   * 
+   *
    * @param scan
    * @param matches
    */
@@ -188,7 +185,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   /**
    * Sort all matches and renew panels
-   * 
+   *
    */
   public void sortTotalMatches() {
     if (totalMatches.isEmpty()) {
@@ -213,7 +210,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   /**
    * Add a spectral library hit
-   * 
+   *
    * @param ident
    * @param simScore
    */

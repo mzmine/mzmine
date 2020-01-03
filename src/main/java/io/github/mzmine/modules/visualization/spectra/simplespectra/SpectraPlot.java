@@ -20,14 +20,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
-import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -56,10 +49,8 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import javafx.scene.Cursor;
+import javafx.scene.control.ContextMenu;
 
 /**
  *
@@ -136,9 +127,9 @@ public class SpectraPlot extends EChartViewer {
     legend.setFrame(BlockBorder.NONE);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
-    setMinimumDrawHeight(0);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMinimumDrawHeight(0);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -171,54 +162,55 @@ public class SpectraPlot extends EChartViewer {
     yAxis.setNumberFormatOverride(intensityFormat);
 
     // set focusable state to receive key events
-    setFocusable(true);
+    // setFocusable(true);
 
     // register key handlers
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), masterPlot, "PREVIOUS_SCAN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), masterPlot, "NEXT_SCAN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
+    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), masterPlot,
+    // "PREVIOUS_SCAN");
+    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), masterPlot,
+    // "NEXT_SCAN");
+    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
+    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
 
-    JPopupMenu popupMenu = getPopupMenu();
+    ContextMenu popupMenu = getContextMenu();
 
     // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
+    // FxMenuUtil.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+    // FxMenuUtil.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
     // add items to popup menu
-    if (masterPlot instanceof SpectraVisualizerWindow) {
-
-      GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
-          "EXPORT_SPECTRA");
-      GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
-          "CREATE_LIBRARY_ENTRY");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
-          "TOGGLE_PLOT_MODE");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of data points in continuous mode",
-          masterPlot, "SHOW_DATA_POINTS");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
-          "SHOW_ANNOTATIONS");
-      GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks", masterPlot,
-          "SHOW_PICKED_PEAKS");
-
-      GUIUtils.addMenuItem(popupMenu, "Reset removed titles to visible", this,
-          "SHOW_REMOVED_TITLES");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
-
-      GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
-          "SET_SAME_RANGE");
-
-      popupMenu.addSeparator();
-
-      GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
-    }
+    /*
+     * if (masterPlot instanceof SpectraVisualizerWindow) {
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
+     * "EXPORT_SPECTRA"); FxMenuUtil.addMenuItem(popupMenu, "Create spectral library entry",
+     * masterPlot, "CREATE_LIBRARY_ENTRY");
+     * 
+     * popupMenu.addSeparator();
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
+     * "TOGGLE_PLOT_MODE"); FxMenuUtil.addMenuItem(popupMenu,
+     * "Toggle displaying of data points in continuous mode", masterPlot, "SHOW_DATA_POINTS");
+     * FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
+     * "SHOW_ANNOTATIONS"); FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
+     * masterPlot, "SHOW_PICKED_PEAKS");
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Reset removed titles to visible", this,
+     * "SHOW_REMOVED_TITLES");
+     * 
+     * popupMenu.addSeparator();
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
+     * "SET_SAME_RANGE");
+     * 
+     * popupMenu.addSeparator();
+     * 
+     * FxMenuUtil.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
+     * }
+     */
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -230,62 +222,43 @@ public class SpectraPlot extends EChartViewer {
   }
 
 
-  @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-    if ("SHOW_REMOVED_TITLES".equals(command)) {
-      for (int i = 0; i < getChart().getSubtitleCount(); i++) {
-        getChart().getSubtitle(i).setVisible(true);
-      }
-      getChart().getTitle().setVisible(true);
-    }
-
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
-    }
-
-    if ("SAVE_EPS".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
-  }
+  /*
+   * public void actionPerformed(final ActionEvent event) {
+   *
+   * final String command = event.getActionCommand(); if ("SHOW_REMOVED_TITLES".equals(command)) {
+   * for (int i = 0; i < getChart().getSubtitleCount(); i++) {
+   * getChart().getSubtitle(i).setVisible(true); } getChart().getTitle().setVisible(true); }
+   *
+   * if ("SAVE_EMF".equals(command)) {
+   *
+   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
+   * FileNameExtensionFilter("EMF Image", "EMF"); chooser.setFileFilter(filter); int returnVal =
+   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
+   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
+   *
+   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
+   *
+   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF); new
+   * Thread(SI).start();
+   *
+   * } }
+   *
+   * if ("SAVE_EPS".equals(command)) {
+   *
+   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
+   * FileNameExtensionFilter("EPS Image", "EPS"); chooser.setFileFilter(filter); int returnVal =
+   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
+   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
+   *
+   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
+   *
+   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS); new
+   * Thread(SI).start();
+   *
+   * }
+   *
+   * } }
+   */
 
   /**
    * This will set either centroid or continuous renderer to the first data set, assuming that
@@ -373,18 +346,14 @@ public class SpectraPlot extends EChartViewer {
       chartSubTitle.setText(subTitle);
   }
 
-  /**
-   * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+  /*
+   * public void mouseClicked(MouseEvent event) {
+   *
+   * // let the parent handle the event (selection etc.) super.mouseClicked(event);
+   *
+   * // request focus to receive key events requestFocus(); }
    */
-  @Override
-  public void mouseClicked(MouseEvent event) {
 
-    // let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
-
-    // request focus to receive key events
-    requestFocus();
-  }
 
   public synchronized void removeAllDataSets() {
 
