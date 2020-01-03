@@ -34,6 +34,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -87,6 +88,9 @@ public class KendrickMassPlotWindowController {
   private Button annotationButton;
 
   @FXML
+  private Tooltip tooltipYAxisLabel;
+
+  @FXML
   private Button shiftUpYAxis;
 
   @FXML
@@ -123,6 +127,9 @@ public class KendrickMassPlotWindowController {
   private GridPane gridPaneXAxis;
 
   @FXML
+  private Tooltip tooltipXAxisLabel;
+
+  @FXML
   private Button shiftUpXAxis;
 
   @FXML
@@ -157,6 +164,9 @@ public class KendrickMassPlotWindowController {
 
   @FXML
   private GridPane gridPaneZAxis;
+
+  @FXML
+  private Tooltip tooltipZAxisLabel;
 
   @FXML
   private Button shiftUpZAxis;
@@ -879,6 +889,21 @@ public class KendrickMassPlotWindowController {
 
     // update toolbar
     updateToolBar();
+
+    // set tooltip
+    setTooltips();
+  }
+
+  private void setTooltips() {
+    if (customYAxisKMBase != null)
+      tooltipYAxisLabel.setText("The KM-Plot for divisor " + //
+          getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+    if (customXAxisKMBase != null)
+      tooltipXAxisLabel.setText("The KM-Plot for divisor " + //
+          getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+    if (customZAxisKMBase != null)
+      tooltipZAxisLabel.setText("The KM-Plot for divisor " + //
+          getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
   }
 
   /*
@@ -913,21 +938,6 @@ public class KendrickMassPlotWindowController {
     return (int) Math.round(2.0 * exactMass);
   }
 
-  // private void setTooltips() {
-  // if (customYAxisKMBase != null)
-  // kendrickToolBar.getyAxisDivisorLabel().//
-  // setToolTipText("The KM-Plot for divisor " + //
-  // getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-  // if (customXAxisKMBase != null)
-  // kendrickToolBar.getxAxisDivisorLabel().//
-  // setToolTipText("The KM-Plot for divisor " + //
-  // getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-  // if (customZAxisKMBase != null)
-  // kendrickToolBar.getzAxisDivisorLabel().//
-  // setToolTipText("The KM-Plot for divisor " + //
-  // getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-  // }
-
   /*
    * Method to avoid round(R) as divisor for RKM plots All RKM values would be 0 in that case
    */
@@ -942,7 +952,11 @@ public class KendrickMassPlotWindowController {
       return divisor;
   }
 
+  /*
+   * Method to update buttons in tool bar
+   */
   private void updateToolBar() {
+
     // Y-Axis
     shiftLabelYAxis.setText(shiftFormat.format(yAxisShift));
     chargeLabelYAxis.setText(Integer.toString(yAxisCharge));

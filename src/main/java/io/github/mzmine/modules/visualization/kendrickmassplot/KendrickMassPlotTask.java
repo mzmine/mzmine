@@ -148,6 +148,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       return;
 
     JFreeChart chart = null;
+
     // 2D, if no third dimension was selected
     if (zAxisLabel.equals("none")) {
       chart = create2DKendrickMassPlot();
@@ -167,16 +168,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     chartTitle.setFont(titleFont);
     LegendTitle legend = chart.getLegend();
     legend.setVisible(false);
-    // frame.setTitle(title);
-    // frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    // frame.setBackground(Color.white);
-    // frame.setVisible(true);
-    // frame.pack();
 
     // Create Kendrick mass plot Window
-    // KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
-    // frame.show();
-
     Platform.runLater(() -> {
       FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindowFX.fxml")));
       Stage stage = new Stage();
@@ -205,8 +198,6 @@ public class KendrickMassPlotTask extends AbstractTask {
       stage.setMinWidth(stage.getWidth());
       stage.setMinHeight(stage.getHeight());
     });
-
-
 
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating Kendrick mass plot of " + peakList);

@@ -87,12 +87,6 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    // PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
-    // if (selectedPeakLists.length > 0) {
-    // PeakListRow plRows[] = selectedPeakLists[0].getRows();
-    // Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-    // }
-
     return super.showSetupDialog(valueCheckRequired);
   }
 

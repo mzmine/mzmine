@@ -55,7 +55,6 @@ public class KendrickMassPlotWindow extends Stage implements ActionListener {
   private final BorderPane mainPane;
   private final JPanel swingPanel;
 
-  private KendrickMassPlotToolBar kendrickToolBar;
   private JFreeChart chart;
   private PeakListRow selectedRows[];
   private String xAxisKMBase;
@@ -152,13 +151,13 @@ public class KendrickMassPlotWindow extends Stage implements ActionListener {
     swingPanel.add(chartPanel, BorderLayout.CENTER);
 
     // Add toolbar
-    kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
-        xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
-        useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    swingPanel.add(kendrickToolBar, BorderLayout.EAST);
-
-    // set tooltips
-    setTooltips();
+    // kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
+    // xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
+    // useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
+    // swingPanel.add(kendrickToolBar, BorderLayout.EAST);
+    //
+    // // set tooltips
+    // setTooltips();
 
     // Add the Windows menu
     // Add the Windows menu
@@ -680,13 +679,13 @@ public class KendrickMassPlotWindow extends Stage implements ActionListener {
     }
 
     // update toolbar
-    swingPanel.remove(kendrickToolBar);
-    kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
-        xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
-        useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    setTooltips();
-
-    swingPanel.add(kendrickToolBar, BorderLayout.EAST);
+    // swingPanel.remove(kendrickToolBar);
+    // kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
+    // xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
+    // useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
+    // setTooltips();
+    //
+    // swingPanel.add(kendrickToolBar, BorderLayout.EAST);
     // this.revalidate();
   }
 
@@ -722,20 +721,20 @@ public class KendrickMassPlotWindow extends Stage implements ActionListener {
     return (int) Math.round(2.0 * exactMass);
   }
 
-  private void setTooltips() {
-    if (customYAxisKMBase != null)
-      kendrickToolBar.getyAxisDivisorLabel().//
-          setToolTipText("The KM-Plot for divisor " + //
-              getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-    if (customXAxisKMBase != null)
-      kendrickToolBar.getxAxisDivisorLabel().//
-          setToolTipText("The KM-Plot for divisor " + //
-              getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-    if (customZAxisKMBase != null)
-      kendrickToolBar.getzAxisDivisorLabel().//
-          setToolTipText("The KM-Plot for divisor " + //
-              getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-  }
+  // private void setTooltips() {
+  // if (customYAxisKMBase != null)
+  // kendrickToolBar.getyAxisDivisorLabel().//
+  // setToolTipText("The KM-Plot for divisor " + //
+  // getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+  // if (customXAxisKMBase != null)
+  // kendrickToolBar.getxAxisDivisorLabel().//
+  // setToolTipText("The KM-Plot for divisor " + //
+  // getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+  // if (customZAxisKMBase != null)
+  // kendrickToolBar.getzAxisDivisorLabel().//
+  // setToolTipText("The KM-Plot for divisor " + //
+  // getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+  // }
 
   /*
    * Method to avoid round(R) as divisor for RKM plots All RKM values would be 0 in that case
