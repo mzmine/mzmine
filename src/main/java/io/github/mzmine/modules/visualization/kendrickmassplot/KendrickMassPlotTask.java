@@ -218,7 +218,7 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     // Create Kendrick mass plot Window
     Platform.runLater(() -> {
-      FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindowFX.fxml")));
+      FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindow.fxml")));
       Stage stage = new Stage();
       try {
         AnchorPane root = (AnchorPane) loader.load();
