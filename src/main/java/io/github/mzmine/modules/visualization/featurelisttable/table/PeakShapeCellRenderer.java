@@ -86,9 +86,9 @@ class PeakShapeCellRenderer implements TableCellRenderer {
       }
       PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
-      newPanel.add(xic);
+      // newPanel.add(xic);
 
-      newPanel.setToolTipText(xic.getToolTipText());
+      // newPanel.setToolTipText(xic.getToolTipText());
 
     }
 
