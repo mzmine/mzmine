@@ -24,7 +24,6 @@ import java.awt.Paint;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -56,7 +55,6 @@ import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParamet
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -89,7 +87,6 @@ public class KendrickMassPlotTask extends AbstractTask {
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
   private PeakListRow rows[];
-  private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
 
   public KendrickMassPlotTask(ParameterSet parameters) {
@@ -130,7 +127,6 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
 
-    parameterSet = parameters;
   }
 
   @Override
@@ -162,10 +158,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     }
     chart.setBackgroundPaint(Color.white);
 
-    // create chart JPanel
+    // create chartViewer
     EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
-
-
 
     // set title properties
     TextTitle chartTitle = chart.getTitle();
@@ -184,13 +178,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     // frame.show();
 
     Platform.runLater(() -> {
-      if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
-        JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
-        return;
-      }
       FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindowFX.fxml")));
       Stage stage = new Stage();
-
       try {
         AnchorPane root = (AnchorPane) loader.load();
         Scene scene = new Scene(root, 1080, 600);
@@ -205,9 +194,9 @@ public class KendrickMassPlotTask extends AbstractTask {
         return;
       }
 
-
       // Get controller
       KendrickMassPlotWindowController controller = loader.getController();
+      controller.initialize(parameters);
       BorderPane plotPane = controller.getPlotPane();
       plotPane.setCenter(chartViewer);
 
@@ -233,7 +222,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       appliedSteps++;
 
       // load dataset
-      dataset2D = new KendrickMassPlotXYDataset(parameterSet);
+      dataset2D = new KendrickMassPlotXYDataset(parameters);
 
       // create chart
       chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset2D,
@@ -283,7 +272,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     logger.info("Creating new 3D chart instance");
     appliedSteps++;
     // load dataseta
-    dataset3D = new KendrickMassPlotXYZDataset(parameterSet);
+    dataset3D = new KendrickMassPlotXYZDataset(parameters);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3D.getItemCount(0)];
