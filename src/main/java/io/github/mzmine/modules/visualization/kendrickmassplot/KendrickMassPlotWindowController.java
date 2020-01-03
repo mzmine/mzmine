@@ -23,6 +23,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Logger;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.PaintScaleLegend;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
@@ -515,14 +516,14 @@ public class KendrickMassPlotWindowController {
     XYPlot plot = getChart().getXYPlot();
     if (useRKM_Y) {
       useRKM_Y = false;
-      plot.getDomainAxis().setLabel("KMD(" + customYAxisKMBase + ")");
+      plot.getRangeAxis().setLabel("KMD(" + customYAxisKMBase + ")");
       imageViewKMDRKMY.setImage(iconKMD);
     } else {
       useRKM_Y = true;
 
       // if the divisor is round(R) switch to round(R)-1 for RKM plot
       yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
-      plot.getDomainAxis().setLabel("RKM(" + customYAxisKMBase + ")");
+      plot.getRangeAxis().setLabel("RKM(" + customYAxisKMBase + ")");
       imageViewKMDRKMY.setImage(iconRKM);
     }
     kendrickVariableChanged(plot);
@@ -551,19 +552,21 @@ public class KendrickMassPlotWindowController {
   void toggleKMDRKMZ(ActionEvent event) {
     logger.finest("Toggle KMD and RKM Z-Axis");
     XYPlot plot = getChart().getXYPlot();
-    if (useRKM_Z) {
-      useRKM_Z = false;
-      plot.getDomainAxis().setLabel("KMD(" + customZAxisKMBase + ")");
-      imageViewKMDRKMZ.setImage(iconKMD);
-    } else {
-      useRKM_Z = true;
+    if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
+      if (useRKM_Z) {
+        useRKM_Z = false;
+        PaintScaleLegend legend = (PaintScaleLegend) getChart().getSubtitle(1);
+        legend.getAxis().setLabel("KMD(" + customZAxisKMBase + ")");
+      } else {
+        useRKM_Z = true;
 
-      // if the divisor is round(R) switch to round(R)-1 for RKM plot
-      zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
-      plot.getDomainAxis().setLabel("RKM(" + customZAxisKMBase + ")");
-      imageViewKMDRKMZ.setImage(iconRKM);
+        // if the divisor is round(R) switch to round(R)-1 for RKM plot
+        zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
+        PaintScaleLegend legend = (PaintScaleLegend) getChart().getSubtitle(1);
+        legend.getAxis().setLabel("RKM(" + customZAxisKMBase + ")");
+      }
+      kendrickVariableChanged(plot);
     }
-    kendrickVariableChanged(plot);
   }
 
   public BorderPane getPlotPane() {
