@@ -21,8 +21,10 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -48,11 +50,19 @@ import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Task to create a Kendrick mass plot of selected features of a selected feature list
@@ -153,7 +163,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     chart.setBackgroundPaint(Color.white);
 
     // create chart JPanel
-    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+    EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
 
 
 
@@ -170,8 +180,44 @@ public class KendrickMassPlotTask extends AbstractTask {
     // frame.pack();
 
     // Create Kendrick mass plot Window
-    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
-    frame.show();
+    // KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
+    // frame.show();
+
+    Platform.runLater(() -> {
+      if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
+        JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
+        return;
+      }
+      FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindowFX.fxml")));
+      Stage stage = new Stage();
+
+      try {
+        AnchorPane root = (AnchorPane) loader.load();
+        Scene scene = new Scene(root, 1080, 600);
+
+        // Use main CSS
+        scene.getStylesheets()
+            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+        stage.setScene(scene);
+        logger.finest("Stage has been successfully loaded from the FXML loader.");
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+
+
+      // Get controller
+      KendrickMassPlotWindowController controller = loader.getController();
+      BorderPane plotPane = controller.getPlotPane();
+      plotPane.setCenter(chartViewer);
+
+      stage.setTitle("Kendrick Mass Plot");
+      stage.show();
+      stage.setMinWidth(stage.getWidth());
+      stage.setMinHeight(stage.getHeight());
+    });
+
+
 
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating Kendrick mass plot of " + peakList);

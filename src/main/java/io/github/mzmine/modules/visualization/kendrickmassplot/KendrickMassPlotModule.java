@@ -19,9 +19,8 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import java.util.Collection;
-
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -35,6 +34,8 @@ import io.github.mzmine.util.ExitCode;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotModule implements MZmineRunnableModule {
+
+  private static final Logger logger = Logger.getLogger(KendrickMassPlotModule.class.getName());
 
   private static final String MODULE_NAME = "Kendrick mass plot";
   private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
