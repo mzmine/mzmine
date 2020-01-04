@@ -26,26 +26,28 @@ package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Adducts parameter.
  *
- * @author $Author$
- * @version $Revision$
  */
-public class AdductsParameter extends MultiChoiceParameter<AdductType> {
+public class AdductsParameter implements UserParameter<List<AdductType>, AdductsComponent> {
 
   // Logger.
   private static final Logger logger = Logger.getLogger(AdductsParameter.class.getName());
+
+  private final String name, description;
+  private List<AdductType> choices = new ArrayList<>();
+  private List<AdductType> value = new ArrayList<>();
 
   // XML tags.
   private static final String ADDUCTS_TAG = "adduct";
@@ -60,21 +62,21 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
    * @param description description of the parameter.
    */
   public AdductsParameter(final String name, final String description) {
+    this.name = name;
+    this.description = description;
 
-    super(name, description, AdductType.getDefaultValues());
+    this.choices.addAll(Arrays.asList(AdductType.getDefaultValues()));
   }
 
   @Override
-  public MultiChoiceComponent createEditingComponent() {
-
-    return new AdductsComponent(getChoices());
+  public AdductsComponent createEditingComponent() {
+    return new AdductsComponent(choices);
   }
 
   @Override
-  public void setValueFromComponent(final MultiChoiceComponent component) {
-
-    super.setValueFromComponent(component);
-    setChoices((AdductType[]) component.getChoices());
+  public void setValueFromComponent(final AdductsComponent component) {
+    this.value = component.getValue();
+    this.choices = component.getChoices();
   }
 
   @Override
@@ -84,9 +86,8 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
     final NodeList items = xmlElement.getElementsByTagName(ADDUCTS_TAG);
     final int length = items.getLength();
 
-    // Start with current choices and empty selections.
-    final ArrayList<AdductType> newChoices = new ArrayList<AdductType>(Arrays.asList(getChoices()));
-    final ArrayList<AdductType> selections = new ArrayList<AdductType>(length);
+    choices.clear();
+    value.clear();
 
     // Process each adduct.
     for (int i = 0; i < length; i++) {
@@ -108,49 +109,36 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
               new AdductType(nameNode.getNodeValue(), Double.parseDouble(massNode.getNodeValue()));
 
           // A new choice?
-          if (!newChoices.contains(adduct)) {
-
-            newChoices.add(adduct);
+          if (!choices.contains(adduct)) {
+            choices.add(adduct);
           }
 
           // Selected?
-          if (!selections.contains(adduct) && selectedNode != null
+          if (!value.contains(adduct) && selectedNode != null
               && Boolean.parseBoolean(selectedNode.getNodeValue())) {
-
-            selections.add(adduct);
+            value.add(adduct);
           }
         } catch (NumberFormatException ex) {
-
           // Ignore.
           logger.warning("Illegal mass difference attribute in " + item.getNodeValue());
         }
       }
     }
 
-    // Set choices and selections (value).
-    setChoices(newChoices.toArray(new AdductType[newChoices.size()]));
-    setValue(selections.toArray(new AdductType[selections.size()]));
   }
 
   @Override
   public void saveValueToXML(final Element xmlElement) {
 
     // Get choices and selections.
-    final AdductType[] choices = getChoices();
-    final AdductType[] value = getValue();
-    final List<AdductType> selections = Arrays.asList(value == null ? new AdductType[] {} : value);
+    final Document parent = xmlElement.getOwnerDocument();
+    for (final AdductType item : choices) {
 
-    if (choices != null) {
-
-      final Document parent = xmlElement.getOwnerDocument();
-      for (final AdductType item : choices) {
-
-        final Element element = parent.createElement(ADDUCTS_TAG);
-        element.setAttribute(NAME_ATTRIBUTE, item.getName());
-        element.setAttribute(MASS_ATTRIBUTE, Double.toString(item.getMassDifference()));
-        element.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(selections.contains(item)));
-        xmlElement.appendChild(element);
-      }
+      final Element element = parent.createElement(ADDUCTS_TAG);
+      element.setAttribute(NAME_ATTRIBUTE, item.getName());
+      element.setAttribute(MASS_ATTRIBUTE, Double.toString(item.getMassDifference()));
+      element.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(value.contains(item)));
+      xmlElement.appendChild(element);
     }
   }
 
@@ -158,8 +146,42 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
   public AdductsParameter cloneParameter() {
 
     final AdductsParameter copy = new AdductsParameter(getName(), getDescription());
-    copy.setChoices(getChoices());
-    copy.setValue(getValue());
+    copy.setChoices(new ArrayList<>(choices));
+    copy.setValue(new ArrayList<>(value));
     return copy;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public List<AdductType> getValue() {
+    return value;
+  }
+
+  @Override
+  public void setValue(List<AdductType> newValue) {
+    this.value = newValue;
+  }
+
+  public void setChoices(List<AdductType> newChoices) {
+    this.choices = newChoices;
+  }
+
+  @Override
+  public boolean checkValue(Collection<String> errorMessages) {
+    return true;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public void setValueToComponent(AdductsComponent component, List<AdductType> newValue) {
+    component.setValue(newValue);
   }
 }

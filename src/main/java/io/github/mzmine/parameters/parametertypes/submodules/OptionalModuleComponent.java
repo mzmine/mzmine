@@ -61,6 +61,10 @@ public class OptionalModuleComponent extends FlowPane {
     checkBox.setTooltip(new Tooltip(toolTip));
   }
 
+  public CheckBox getCheckbox() {
+    return checkBox;
+  }
+
   /*
    * public void addItemListener(ItemListener il) { checkBox.addItemListener(il); }
    */

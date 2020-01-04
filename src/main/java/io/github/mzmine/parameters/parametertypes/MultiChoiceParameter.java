@@ -38,7 +38,7 @@ import javafx.collections.ObservableList;
 public class MultiChoiceParameter<ValueType>
     implements UserParameter<ValueType[], CheckListView<ValueType>> {
 
-  private String name, description;
+  private final String name, description;
   private ValueType choices[], values[];
   private int minNumber;
 
