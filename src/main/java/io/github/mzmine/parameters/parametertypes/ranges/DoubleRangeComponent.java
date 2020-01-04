@@ -59,6 +59,14 @@ public class DoubleRangeComponent extends HBox {
     setNumberFormat(format);
   }
 
+  public TextField getMinTxtField() {
+    return minTxtField;
+  }
+
+  public TextField getMaxTxtField() {
+    return maxTxtField;
+  }
+
   public void setNumberFormat(NumberFormat format) {
     this.format = format;
     this.formatConverter = new NumberStringConverter(format);

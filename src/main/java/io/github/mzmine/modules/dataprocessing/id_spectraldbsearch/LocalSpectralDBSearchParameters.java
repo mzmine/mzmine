@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import java.util.Collection;
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -140,7 +139,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
     IntegerComponent msLevelComp = dialog.getComponentForParameter(msLevel);
     Node mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
     mzTolPrecursor.setDisable(level < 2);
-    msLevelComp.addDocumentListener(new DelayedDocumentListener(e -> {
+    msLevelComp.getTextField().setOnKeyTyped(e -> {
       try {
         int level2 = Integer.parseInt(msLevelComp.getText());
         mzTolPrecursor.setDisable(level2 < 2);
@@ -148,7 +147,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
         // do nothing user might be still typing
         mzTolPrecursor.setDisable(true);
       }
-    }));
+    });
 
     dialog.showAndWait();
     return dialog.getExitCode();
