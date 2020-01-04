@@ -18,37 +18,31 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -56,10 +50,21 @@ import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Task to create a Van Krevelen Diagram of selected features of a selected feature list
@@ -132,35 +137,95 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       chart.setBackgroundPaint(Color.white);
 
       // create chart JPanel
-      EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+      EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
+
+      // get plot
+      XYPlot plot = (XYPlot) chart.getPlot();
+
+      // mouse listener
+      chartViewer.addChartMouseListener(new ChartMouseListenerFX() {
+
+        @Override
+        public void chartMouseMoved(ChartMouseEventFX event) {}
+
+        @Override
+        public void chartMouseClicked(ChartMouseEventFX event) {
+          double xValue = plot.getDomainCrosshairValue();
+          double yValue = plot.getRangeCrosshairValue();
+          if (plot.getDataset() instanceof VanKrevelenDiagramXYZDataset) {
+            VanKrevelenDiagramXYZDataset dataset = (VanKrevelenDiagramXYZDataset) plot.getDataset();
+            double[] xValues = new double[dataset.getItemCount(0)];
+            for (int i = 0; i < xValues.length; i++) {
+              if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                  && (event.getTrigger().getClickCount() == 2)) {
+                if (dataset.getX(0, i).doubleValue() == xValue
+                    && dataset.getY(0, i).doubleValue() == yValue) {
+                  new FeatureOverviewWindow(rows[i]);
+                }
+              }
+            }
+          }
+          if (plot.getDataset() instanceof VanKrevelenDiagramXYDataset) {
+            VanKrevelenDiagramXYDataset dataset = (VanKrevelenDiagramXYDataset) plot.getDataset();
+            double[] xValues = new double[dataset.getItemCount(0)];
+            for (int i = 0; i < xValues.length; i++) {
+              if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                  && (event.getTrigger().getClickCount() == 2)) {
+                if (dataset.getX(0, i).doubleValue() == xValue
+                    && dataset.getY(0, i).doubleValue() == yValue) {
+                  new FeatureOverviewWindow(rows[i]);
+                }
+              }
+            }
+          }
+        }
+      });
 
       // Create Van Krevelen Diagram window
-      VanKrevelenDiagramWindow frame =
-          new VanKrevelenDiagramWindow(chart, chartPanel, filteredRows);
+      Platform.runLater(() -> {
+        FXMLLoader loader =
+            new FXMLLoader((getClass().getResource("VanKrevelenDiagramWindowFX.fxml")));
+        Stage stage = new Stage();
+        try {
+          AnchorPane root = (AnchorPane) loader.load();
+          Scene scene = new Scene(root, 1080, 600);
 
-      // create chart JPanel
-      frame.add(chartPanel, BorderLayout.CENTER);
+          // Use main CSS
+          scene.getStylesheets()
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+          stage.setScene(scene);
+          logger.finest("Stage has been successfully loaded from the FXML loader.");
+        } catch (IOException e) {
+          e.printStackTrace();
+          return;
+        }
 
-      // set title properties
-      TextTitle chartTitle = chart.getTitle();
-      chartTitle.setMargin(5, 0, 0, 0);
-      chartTitle.setFont(titleFont);
-      LegendTitle legend = chart.getLegend();
-      legend.setVisible(false);
-      frame.setTitle(title);
-      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      frame.setBackground(Color.white);
-      frame.setVisible(true);
-      frame.pack();
+        // Get controller
+        VanKrevelenDiagramWindowController controller = loader.getController();
+        BorderPane plotPane = controller.getPlotPane();
+        plotPane.setCenter(chartViewer);
+
+        stage.setTitle("Van-Krevelen Diagram");
+        stage.show();
+        stage.setMinWidth(stage.getWidth());
+        stage.setMinHeight(stage.getHeight());
+
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Results summary");
+        alert.setHeaderText(null);
+        alert.setContentText(displayedFeatures
+            + " feature list rows are displayed in the Van Krevelen diagram.\n"
+            + featuresWithFormulasWithoutCHO
+            + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
+            + featuresWithoutFormula
+            + " feature list rows are not displayed, because no molecular formula was assigned.");
+        alert.show();
+      });
       logger.info("Finished creating van Krevelen diagram of " + peakList);
-      JOptionPane.showMessageDialog(frame, "Results summary:\n" + displayedFeatures
-          + " feature list rows are displayed in the Van Krevelen diagram.\n"
-          + featuresWithFormulasWithoutCHO
-          + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
-          + featuresWithoutFormula
-          + " feature list rows are not displayed, because no molecular formula was assigned.");
       setStatus(TaskStatus.FINISHED);
-    } catch (Throwable t) {
+    } catch (
+
+    Throwable t) {
       setErrorMessage(
           "Nothing to plot here or some peaks have other identities than molecular formulas.\n"
               + "Have you annotated your features with molecular formulas?\n"
