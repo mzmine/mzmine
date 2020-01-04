@@ -27,7 +27,7 @@ import org.jfree.chart.entity.TitleEntity;
 import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.ChartLogics;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -132,7 +132,7 @@ public class ChartGestureHandler {
    * @param param Parameters for specific handlers
    */
   public static ChartGestureHandler createDragDiffHandler(DragHandler[] handler, Key[] key,
-      Entity entity, Button button, Orientation orient, Object[] param) {
+      Entity entity, GestureButton button, Orientation orient, Object[] param) {
     Consumer<ChartGestureDragDiffEvent>[] consumer = new Consumer[handler.length];
     // create all consumers for all keys
     try {
@@ -402,12 +402,12 @@ public class ChartGestureHandler {
               DragHandler.ZOOM_AXIS_CENTER, DragHandler.ZOOM_AXIS_CENTER,
               DragHandler.AUTO_ZOOM_OPPOSITE_AXIS},
           new Key[] {Key.NONE, Key.SHIFT, Key.CTRL, Key.CTRL_SHIFT, Key.CTRL_SHIFT},
-          Entity.DOMAIN_AXIS, Button.BUTTON1, null, null));
+          Entity.DOMAIN_AXIS, GestureButton.BUTTON1, null, null));
 
       // Zoom range axis (include zero): DRAG
       standardGestures
           .add(new DragGestureHandlerDef(new DragHandler[] {DragHandler.ZOOM_AXIS_INCLUDE_ZERO},
-              new Key[] {Key.ALL}, Entity.RANGE_AXIS, Button.BUTTON1, null, null));
+              new Key[] {Key.ALL}, Entity.RANGE_AXIS, GestureButton.BUTTON1, null, null));
     }
     if (axisWheel) {
       // MOUSE WHEEL on domain axis
@@ -433,21 +433,21 @@ public class ChartGestureHandler {
       // Previous zoom history: DOUBLE CLICK on plot
       // Next zoom history: CTRL + DOUBLE CLICK on plot
       standardGestures.add(new GestureHandlerDef(Handler.PREVIOUS_ZOOM_HISTORY, Entity.PLOT,
-          new Event[] {Event.DOUBLE_CLICK}, Button.BUTTON1, Key.NONE, null));
+          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.NONE, null));
       standardGestures.add(new GestureHandlerDef(Handler.NEXT_ZOOM_HISTORY, Entity.PLOT,
-          new Event[] {Event.DOUBLE_CLICK}, Button.BUTTON1, Key.CTRL, null));
+          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, Key.CTRL, null));
     }
     if (titleRemover) {
       // Remove titles, legends: CTRL + CLICK on titles
       standardGestures.add(new GestureHandlerDef(Handler.TITLE_REMOVER, Entity.TITLE,
-          new Event[] {Event.CLICK}, Button.BUTTON1, Key.CTRL, null));
+          new Event[] {Event.CLICK}, GestureButton.BUTTON1, Key.CTRL, null));
     }
     if (axisAutoRange) {
       // Auto zoom axes: DOUBLE CLICK on axis
       standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, Entity.DOMAIN_AXIS,
-          new Event[] {Event.DOUBLE_CLICK}, Button.BUTTON1, null, null));
+          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, null, null));
       standardGestures.add(new GestureHandlerDef(Handler.AUTO_ZOOM_AXIS, Entity.RANGE_AXIS,
-          new Event[] {Event.DOUBLE_CLICK}, Button.BUTTON1, null, null));
+          new Event[] {Event.DOUBLE_CLICK}, GestureButton.BUTTON1, null, null));
     }
     return standardGestures;
   }
