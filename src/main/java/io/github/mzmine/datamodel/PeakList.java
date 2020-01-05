@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -97,7 +98,7 @@ public interface PeakList {
   /**
    * Returns all feature list rows
    */
-  public PeakListRow[] getRows();
+  public ObservableList<PeakListRow> getRows();
 
   /**
    * Creates a stream of PeakListRows

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +30,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
@@ -131,11 +130,7 @@ public class FeatureOverviewWindow extends Stage {
     // labels
     labelsMap.put(feature, feature.toString());
 
-    List<FeatureSelection> featureSelection = new ArrayList<>();
-    for (Feature f : row.getPeaks()) {
-      FeatureSelection fs = new FeatureSelection(null, f, null, null);
-      featureSelection.add(fs);
-    }
+    List<Feature> featureSelection = Arrays.asList(row.getPeaks());
 
     TICVisualizerWindow window = new TICVisualizerWindow(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type

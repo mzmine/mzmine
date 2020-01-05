@@ -27,10 +27,8 @@ import org.controlsfx.glyphfont.Glyph;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
@@ -148,7 +146,7 @@ public class Fx3DStageController {
   private PerspectiveCamera camera = new PerspectiveCamera();
   private ScanSelection scanSel;
   private List<RawDataFile> allDataFiles;
-  private List<FeatureSelection> featureSelections;
+  private List<Feature> featureSelections;
   private Timeline rotateAnimationTimeline;
   boolean animationRunning = false;
   private Range<Double> rtRange;
@@ -333,13 +331,13 @@ public class Fx3DStageController {
   /**
    * @param selections Adds the list of FeatureSelection from the module class.
    */
-  public void addFeatureSelections(List<FeatureSelection> selections) {
+  public void addFeatureSelections(List<Feature> selections) {
     this.featureSelections = selections;
     addFeatures();
   }
 
   private void addFeatures() {
-    for (FeatureSelection featureSelection : featureSelections) {
+    for (Feature featureSelection : featureSelections) {
       Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(featureSelection, rtResolution,
           mzResolution, rtRange, mzRange, maxOfAllBinnedIntensity, Color.rgb(255, 255, 0, 0.35));
       addDataset(featureDataset);
@@ -404,12 +402,9 @@ public class Fx3DStageController {
                 public void handle(ActionEvent e) {
                   logger.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
                       + feature.toString() + " to the plot.");
-                  PeakListRow row = peakList.getPeakRow(feature);
-                  FeatureSelection featureSelection =
-                      new FeatureSelection(peakList, feature, row, dataFile);
                   Fx3DFeatureDataset featureDataset =
-                      new Fx3DFeatureDataset(featureSelection, rtResolution, mzResolution, rtRange,
-                          mzRange, maxOfAllBinnedIntensity, Color.rgb(165, 42, 42, 0.9));
+                      new Fx3DFeatureDataset(feature, rtResolution, mzResolution, rtRange, mzRange,
+                          maxOfAllBinnedIntensity, Color.rgb(165, 42, 42, 0.9));
                   addDataset(featureDataset);
                   addMenuItems();
                 }

@@ -95,7 +95,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
     PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
-      PeakListRow plRows[] = selectedPeakLists[0].getRows();
+      PeakListRow plRows[] = selectedPeakLists[0].getRows().toArray(PeakListRow[]::new);
       Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
     }
 

@@ -78,7 +78,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
     selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    selectedRows = peakList.getRows();
+    selectedRows = peakList.getRows().toArray(PeakListRow[]::new);
 
     datasetTitle = "Sammon's projection";
 

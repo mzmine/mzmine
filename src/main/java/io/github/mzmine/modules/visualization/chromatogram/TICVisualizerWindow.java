@@ -49,7 +49,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -110,7 +109,7 @@ public class TICVisualizerWindow extends Stage {
    * Constructor for total ion chromatogram visualizer
    */
   public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
-      ScanSelection scanSelection, Range<Double> mzRange, List<FeatureSelection> peaks,
+      ScanSelection scanSelection, Range<Double> mzRange, List<Feature> peaks,
       Map<Feature, String> peakLabels) {
 
     assert mzRange != null;
@@ -194,8 +193,7 @@ public class TICVisualizerWindow extends Stage {
     // add all peaks
     if (peaks != null) {
 
-      for (FeatureSelection selectedPeak : peaks) {
-        Feature peak = selectedPeak.getFeature();
+      for (Feature peak : peaks) {
         if (peakLabels != null && peakLabels.containsKey(peak)) {
 
           final String label = peakLabels.get(peak);

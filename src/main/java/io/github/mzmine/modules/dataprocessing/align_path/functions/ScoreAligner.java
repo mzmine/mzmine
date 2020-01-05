@@ -29,7 +29,6 @@ import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CyclicBarrier;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -61,6 +60,7 @@ public class ScoreAligner implements Aligner {
   private void copyAndSort(List<PeakList> dataToAlign) {
     Comparator<PeakList> c = new Comparator<PeakList>() {
 
+      @Override
       public int compare(PeakList o1, PeakList o2) {
         return o2.getNumberOfRows() - o1.getNumberOfRows();
       }
@@ -71,7 +71,7 @@ public class ScoreAligner implements Aligner {
       java.util.Collections.sort(copyOfData, c);
       peakList = new ArrayList<List<PeakListRow>>();
       for (int i = 0; i < copyOfData.size(); i++) {
-        PeakListRow[] peakData = copyOfData.get(i).getRows();
+        PeakListRow[] peakData = copyOfData.get(i).getRows().toArray(PeakListRow[]::new);
         List<PeakListRow> peaksInOneFile = new LinkedList<PeakListRow>();
         peaksInOneFile.addAll(Arrays.asList(peakData));
         peakList.add(peaksInOneFile);
@@ -90,6 +90,7 @@ public class ScoreAligner implements Aligner {
 
     Runnable barrierTask = new Runnable() {
 
+      @Override
       public void run() {
         Collections.sort(paths);
         while (paths.size() > 0) {
@@ -219,6 +220,7 @@ public class ScoreAligner implements Aligner {
     return threadInfos;
   }
 
+  @Override
   public double getProgress() {
     return ((double) this.peaksDone / (double) this.peaksTotal);
   }
@@ -231,9 +233,10 @@ public class ScoreAligner implements Aligner {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.AbstractAligner#align()
    */
+  @Override
   public PeakList align() {
 
     if (alignment == null) // Do the actual alignment if we already do not
@@ -258,7 +261,7 @@ public class ScoreAligner implements Aligner {
         // Convert alignments to original order of files and add them to
         // final
         // Alignment data structure
-        PeakListRow row = (PeakListRow) p.convertToAlignmentRow(ID++);
+        PeakListRow row = p.convertToAlignmentRow(ID++);
         alignment.addRow(row);
 
       }
@@ -268,10 +271,12 @@ public class ScoreAligner implements Aligner {
     return curAlignment;
   }
 
+  @Override
   public String toString() {
     return getName();
   }
 
+  @Override
   public String getName() {
     return calc == null ? name : calc.name();
   }
@@ -316,6 +321,7 @@ public class ScoreAligner implements Aligner {
       readyPaths.addAll(myPaths);
     }
 
+    @Override
     public void run() {
       while (!aligningDone()) {
         align();

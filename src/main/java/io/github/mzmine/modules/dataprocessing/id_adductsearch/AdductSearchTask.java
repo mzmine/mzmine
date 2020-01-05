@@ -121,7 +121,7 @@ public class AdductSearchTask extends AbstractTask {
   private void searchAdducts() {
 
     // Get rows.
-    final PeakListRow[] rows = peakList.getRows();
+    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
 
     // Start with the highest peaks.

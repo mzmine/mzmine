@@ -146,8 +146,8 @@ class Ms2SearchTask extends AbstractTask {
         + " with mz tolerance:" + mzTolerance.getPpmTolerance());
 
     Ms2SearchResult searchResult;
-    PeakListRow rows1[] = peakList1.getRows();
-    PeakListRow rows2[] = peakList2.getRows();
+    PeakListRow rows1[] = peakList1.getRows().toArray(PeakListRow[]::new);
+    PeakListRow rows2[] = peakList2.getRows().toArray(PeakListRow[]::new);
 
     int rows1Length = rows1.length;
     int rows2Length = rows2.length;

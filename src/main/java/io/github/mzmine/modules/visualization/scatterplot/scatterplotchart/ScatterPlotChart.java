@@ -50,7 +50,6 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SaveImage;
@@ -258,10 +257,9 @@ public class ScatterPlotChart extends EChartViewer implements ComponentToolTipPr
 
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-      FeatureSelection sel = new FeatureSelection(peakList, bestPeak, selectedRow, null);
-
       ChromatogramVisualizerModule.showNewTICVisualizerWindow(peakList.getRawDataFiles(),
-          Collections.singletonList(sel), labelMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
+          Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEPEAK,
+          mzRange);
     }
 
     if ("SAVE_EMF".equals(command)) {

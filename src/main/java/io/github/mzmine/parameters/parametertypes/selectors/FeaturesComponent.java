@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -37,8 +36,8 @@ import javafx.scene.layout.VBox;
  */
 public class FeaturesComponent extends HBox {
 
-  public ObservableList<FeatureSelection> currentValue = FXCollections.observableArrayList();
-  private ListView<FeatureSelection> featuresList = new ListView<>(currentValue);
+  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
+  private ListView<Feature> featuresList = new ListView<>(currentValue);
   private final Button addButton = new Button("Add");;
   private final Button removeButton = new Button("Remove");
   private VBox buttonPane = new VBox();
@@ -60,21 +59,15 @@ public class FeaturesComponent extends HBox {
       currentValue.clear();
       logger.finest("Add Button Clicked!");
       FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
-      featuresSelectionDialog.setModal(true);
-      featuresSelectionDialog.setVisible(true);
+      featuresSelectionDialog.showAndWait();
       if (featuresSelectionDialog.getReturnState() == true) {
         // jlist.setVisible(true);
         PeakList selectedPeakList = featuresSelectionDialog.getSelectedPeakList();
         RawDataFile selectedRawDataFile = featuresSelectionDialog.getSelectedRawDataFile();
         logger.finest("Selected PeakList is:" + selectedPeakList.getName());
         logger.finest("Selected RawDataFile is:" + selectedRawDataFile.getName());
-        currentValue.clear();
-        for (Feature feature : featuresSelectionDialog.getSelectedFeatures()) {
-          PeakListRow selectedRow = selectedPeakList.getPeakRow(feature);
-          FeatureSelection featureSelection =
-              new FeatureSelection(selectedPeakList, feature, selectedRow, selectedRawDataFile);
-          currentValue.add(featureSelection);
-        }
+        // currentValue.clear();
+        currentValue.addAll(featuresSelectionDialog.getSelectedFeatures());
       }
     });
 
@@ -86,12 +79,12 @@ public class FeaturesComponent extends HBox {
 
   }
 
-  public void setValue(List<FeatureSelection> newValue) {
+  public void setValue(List<Feature> newValue) {
     currentValue = FXCollections.observableArrayList(newValue);
     featuresList.setItems(currentValue);
   }
 
-  public List<FeatureSelection> getValue() {
+  public List<Feature> getValue() {
     return currentValue;
   }
 

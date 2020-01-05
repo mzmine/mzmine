@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -31,14 +31,14 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
@@ -46,9 +46,6 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.ScanType;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.autocarbon.AutoCarbonParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -73,9 +70,9 @@ import io.github.mzmine.util.SortingProperty;
  * better that the previous one the peak will be added as a candidate (by Candidates.java). If the
  * algorithm was able to find a peak inside the feature list for every expected isotope peak the
  * result will be added to a result feature list including a description.
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- * 
+ *
  */
 public class IsotopePeakScannerTask extends AbstractTask {
 
@@ -201,6 +198,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0.0;
@@ -210,6 +208,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return message;
   }
@@ -236,7 +235,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     logger.info("maxPatternSize: " + maxPatternSize);
 
     // get all rows and sort by m/z
-    PeakListRow[] rows = peakList.getRows();
+    PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     PeakListHandler plh = new PeakListHandler();
@@ -558,7 +557,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param b
    * @return true if every b[i].getFoundCount != 0
    */
@@ -578,7 +577,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
   /**
    * Extracts a feature list row from a Candidates array.
-   * 
+   *
    * @param candidates
    * @param bestPatternIndex The index of the isotope pattern that was found to be the best fit for
    *        the detected pattern
@@ -610,7 +609,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * This calculates the isotope pattern using ExtendedIsotopePattern and creates an
    * ArrayList<Double> that will contain the mass shift for every expected isotope peak relative to
    * the one with the lowest mass.
-   * 
+   *
    * @return
    */
   private double[][] setUpDiffAutoCarbon() {
@@ -707,7 +706,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param pL
    * @param parentIndex index of possible parent peak
    * @param maxMass
@@ -774,7 +773,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param pattern IsotopePattern to calculate intensity ratios of
    * @param index DataPoint index to normalize the intesitys to
    * @return String of intensity ratios seperated by ":"
@@ -801,7 +800,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
   /**
    * adds a comment to a PeakListRow without deleting the current comment
-   * 
+   *
    * @param row PeakListRow to add the comment to
    * @param str comment to be added
    */

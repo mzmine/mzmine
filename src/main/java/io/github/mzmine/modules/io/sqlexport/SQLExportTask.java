@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,7 +24,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -34,7 +33,6 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.mztabexport.MzTabExportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -66,6 +64,7 @@ class SQLExportTask extends AbstractTask {
 
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0;
@@ -73,10 +72,12 @@ class SQLExportTask extends AbstractTask {
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting feature list \"" + peakList + "\" to SQL table " + tableName;
   }
 
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
@@ -91,7 +92,7 @@ class SQLExportTask extends AbstractTask {
       return;
     }
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
 
     try {
       dbConnection.setAutoCommit(false);

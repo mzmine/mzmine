@@ -96,7 +96,7 @@ public class FragmentSearchTask extends AbstractTask {
 
     logger.info("Starting fragments search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
 
     // Start with the highest peaks

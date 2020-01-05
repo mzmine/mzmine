@@ -167,7 +167,7 @@ class InfoVisualizerWindow extends Stage {
 
   /*
    * public String getToolTipText(MouseEvent e) {
-   * 
+   *
    * int index = locationToIndex(e.getPoint()); if (index > -1) { parameters =
    * ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameters(); } if (parameters !=
    * null) { String toolTipText = parameters.toString().replace(", ", "\n"); return toolTipText; }
@@ -175,7 +175,7 @@ class InfoVisualizerWindow extends Stage {
    */
 
   void getInfoRange(PeakList peakList) {
-    PeakListRow[] rows = peakList.getRows();
+    PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
 
     mzRange = peakList.getRowsMZRange();
     rtRange = peakList.getRowsRTRange();

@@ -78,7 +78,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    selectedRows = peakList.getRows();
+    selectedRows = peakList.getRows().toArray(PeakListRow[]::new);
 
     datasetTitle = "Principal component analysis";
 
