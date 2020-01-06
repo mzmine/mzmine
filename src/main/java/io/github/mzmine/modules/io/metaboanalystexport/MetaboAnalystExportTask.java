@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
@@ -61,6 +60,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0;
@@ -68,11 +68,13 @@ class MetaboAnalystExportTask extends AbstractTask {
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(peakLists)
         + " to MetaboAnalyst CSV file(s)";
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -135,7 +137,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private boolean checkPeakList(PeakList peakList) {
 
     // Check if each sample group has at least 3 samples
-    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
     for (RawDataFile file : rawDataFiles) {
       final String fileValue = String.valueOf(project.getParameterValue(groupParameter, file));
       int count = 0;
@@ -153,7 +155,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
   private void exportPeakList(PeakList peakList, FileWriter writer) throws IOException {
 
-    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Buffer for writing
     StringBuffer line = new StringBuffer();

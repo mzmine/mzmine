@@ -123,7 +123,8 @@ public class GraphicsExportDialog extends JFrame {
     chartParam = new ChartThemeParameters();
     parametersAndComponents = new HashMap<String, JComponent>();
 
-    String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices();
+    String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices()
+        .toArray(String[]::new);
     chooser.addChoosableFileFilter(new FileTypeFilter(formats, "Export images"));
     chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     //

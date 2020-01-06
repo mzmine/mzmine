@@ -21,7 +21,6 @@ package io.github.mzmine.util.javafx;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListCell;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -30,8 +29,6 @@ import javafx.scene.input.TransferMode;
  * A modified ListCell to reorder ListView items by dragging with the mouse.
  */
 public class DraggableListCell<Type> extends ListCell<Type> {
-
-  private static final DataFormat dragDataFormat = new DataFormat("application/octet-stream");
 
   public DraggableListCell() {
 
@@ -44,27 +41,28 @@ public class DraggableListCell<Type> extends ListCell<Type> {
 
       Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
       ClipboardContent content = new ClipboardContent();
-      content.put(dragDataFormat, getItem());
+      int itemIndex = getListView().getItems().indexOf(getItem());
+      content.putString(String.valueOf(itemIndex));
       // dragboard.setDragView();
       dragboard.setContent(content);
       event.consume();
     });
 
     setOnDragOver(event -> {
-      if (event.getGestureSource() != thisCell && event.getDragboard().hasContent(dragDataFormat)) {
+      if (event.getGestureSource() != thisCell && event.getDragboard().hasString()) {
         event.acceptTransferModes(TransferMode.MOVE);
       }
       event.consume();
     });
 
     setOnDragEntered(event -> {
-      if (event.getGestureSource() != thisCell && event.getDragboard().hasContent(dragDataFormat)) {
+      if (event.getGestureSource() != thisCell && event.getDragboard().hasString()) {
         setOpacity(0.3);
       }
     });
 
     setOnDragExited(event -> {
-      if (event.getGestureSource() != thisCell && event.getDragboard().hasContent(dragDataFormat)) {
+      if (event.getGestureSource() != thisCell && event.getDragboard().hasString()) {
         setOpacity(1);
       }
     });
@@ -77,17 +75,16 @@ public class DraggableListCell<Type> extends ListCell<Type> {
       Dragboard db = event.getDragboard();
       boolean success = false;
 
-      if (db.hasContent(dragDataFormat)) {
+      if (db.hasString()) {
         ObservableList<Type> items = getListView().getItems();
 
-        int draggedIdx = items.indexOf(db.getString());
+        int draggedIdx = Integer.valueOf(db.getString());
         int thisIdx = items.indexOf(getItem());
 
-        @SuppressWarnings("unchecked")
-        Type temp = (Type) db.getContent(dragDataFormat);
+        Type draggedItem = getListView().getItems().get(draggedIdx);
 
         items.set(draggedIdx, getItem());
-        items.set(thisIdx, temp);
+        items.set(thisIdx, draggedItem);
 
         // List<Object> itemscopy = new ArrayList<>(getListView().getItems());
         // getListView().getItems().setAll(itemscopy);

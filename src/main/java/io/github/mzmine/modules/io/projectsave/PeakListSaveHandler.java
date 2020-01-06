@@ -37,16 +37,15 @@ import javax.xml.transform.stream.StreamResult;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import com.Ostermiller.util.Base64;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 
 public class PeakListSaveHandler {
@@ -68,7 +67,7 @@ public class PeakListSaveHandler {
 
   /**
    * Create an XML document with the feature list information an save it into the project zip file
-   * 
+   *
    * @param peakList
    * @param peakListSavedName name of the feature list
    * @throws java.io.IOException
@@ -140,7 +139,7 @@ public class PeakListSaveHandler {
     atts.clear();
 
     // <RAWFILE>
-    RawDataFile[] dataFiles = peakList.getRawDataFiles();
+    RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     for (int i = 0; i < dataFiles.length; i++) {
 
@@ -182,7 +181,7 @@ public class PeakListSaveHandler {
 
   /**
    * Add the row information into the XML document
-   * 
+   *
    * @param row
    * @param element
    * @throws IOException
@@ -260,7 +259,7 @@ public class PeakListSaveHandler {
 
   /**
    * Add the peak identity information into the XML document
-   * 
+   *
    * @param identity
    * @param element
    */
@@ -306,7 +305,7 @@ public class PeakListSaveHandler {
 
   /**
    * Add the peaks information into the XML document
-   * 
+   *
    * @param peak
    * @param element
    * @param dataFileID

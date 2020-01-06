@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import java.awt.Window;
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -113,7 +111,8 @@ public class HeatMapParameters extends SimpleParameterSet {
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     UserParameter<?, ?> newChoices[] = project.getParameters();
-    getParameter(HeatMapParameters.selectionData).setChoices(newChoices);
+    getParameter(HeatMapParameters.selectionData).getChoices().clear();
+    getParameter(HeatMapParameters.selectionData).getChoices().addAll(newChoices);
     if (newChoices.length > 0) {
       ArrayList<Object> values = new ArrayList<Object>();
       for (RawDataFile dataFile : project.getDataFiles()) {
@@ -125,8 +124,8 @@ public class HeatMapParameters extends SimpleParameterSet {
           values.add(paramValue);
         }
       }
-      Object newValues[] = values.toArray();
-      getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
+      getParameter(HeatMapParameters.referenceGroup).getChoices().clear();
+      getParameter(HeatMapParameters.referenceGroup).getChoices().addAll(values);
     }
     HeatmapSetupDialog dialog = new HeatmapSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();

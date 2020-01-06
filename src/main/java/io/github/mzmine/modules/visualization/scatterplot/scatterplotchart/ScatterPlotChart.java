@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -257,7 +258,8 @@ public class ScatterPlotChart extends EChartViewer implements ComponentToolTipPr
 
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-      ChromatogramVisualizerModule.showNewTICVisualizerWindow(peakList.getRawDataFiles(),
+      ChromatogramVisualizerModule.showNewTICVisualizerWindow(
+          peakList.getRawDataFiles().toArray(RawDataFile[]::new),
           Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEPEAK,
           mzRange);
     }

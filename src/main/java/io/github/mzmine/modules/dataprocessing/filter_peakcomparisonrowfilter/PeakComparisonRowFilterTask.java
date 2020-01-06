@@ -171,7 +171,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     Feature peak1;
     Feature peak2;
     totalRows = rows.length;
-    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     boolean allCriteriaMatched = true;
 

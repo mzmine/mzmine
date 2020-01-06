@@ -143,7 +143,7 @@ public class DuplicateFilterTask extends AbstractTask {
       FilterMode mode) {
     final PeakListRow[] peakListRows = origPeakList.getRows().toArray(PeakListRow[]::new);
     final int rowCount = peakListRows.length;
-    RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
+    RawDataFile[] rawFiles = origPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create the new feature list.
     final PeakList newPeakList =

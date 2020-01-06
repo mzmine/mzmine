@@ -160,7 +160,7 @@ class SQLExportTask extends AbstractTask {
             statement.setString(i + 1, dataValue);
             break;
           case RAWFILE:
-            RawDataFile rawdatafiles[] = peakList.getRawDataFiles();
+            RawDataFile rawdatafiles[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
             statement.setString(i + 1, rawdatafiles[0].getName());
             break;
           default:

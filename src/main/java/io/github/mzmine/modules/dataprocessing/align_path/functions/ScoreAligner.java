@@ -244,7 +244,7 @@ public class ScoreAligner implements Aligner {
     {
       Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
       for (PeakList list : this.originalPeakList) {
-        allDataFiles.addAll(Arrays.asList(list.getRawDataFiles()));
+        allDataFiles.addAll(list.getRawDataFiles());
       }
 
       peaksTotal = 0;

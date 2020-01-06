@@ -18,7 +18,6 @@
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
 import java.text.NumberFormat;
-
 import dulab.adap.workflow.AlignmentParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -28,6 +27,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import javafx.collections.FXCollections;
 
 /**
  * @author aleksandrsmirnov
@@ -67,7 +67,7 @@ public class ADAP3AlignerParameters extends SimpleParameterSet {
       "Retention time similarity",
       "Method used for calculating the retention time similarity. The retention time difference "
           + "(fast) is preferred method.",
-      EIC_SCORE_TYPES, AlignmentParameters.RT_DIFFERENCE);
+      FXCollections.observableArrayList(EIC_SCORE_TYPES), AlignmentParameters.RT_DIFFERENCE);
 
   public ADAP3AlignerParameters() {
     super(new Parameter[] {PEAK_LISTS, SAMPLE_COUNT_RATIO, RET_TIME_RANGE, MZ_RANGE,

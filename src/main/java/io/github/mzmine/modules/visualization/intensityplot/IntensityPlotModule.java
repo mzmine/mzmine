@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -69,9 +70,10 @@ public class IntensityPlotModule implements MZmineRunnableModule {
         .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS, new PeakList[] {peakList});
 
     parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setChoices(peakList.getRawDataFiles());
+        .setChoices(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
 
-    parameters.getParameter(IntensityPlotParameters.dataFiles).setValue(peakList.getRawDataFiles());
+    parameters.getParameter(IntensityPlotParameters.dataFiles)
+        .setValue(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
 
     parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(rows);
 

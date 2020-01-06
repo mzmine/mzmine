@@ -80,7 +80,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
         Element docElement = (Element) doc;
         for (PeakList peakList : allPeakLists) {
           PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
-          RawDataFile[] dataFiles = peakList.getRawDataFiles();
+          RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
           if (peakList.getName()
               .equals(docElement.getElementsByTagName("peaklist_name").item(0).getNodeValue())) {
             int rownum = 0;

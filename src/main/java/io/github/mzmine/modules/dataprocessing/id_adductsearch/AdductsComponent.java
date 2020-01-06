@@ -175,13 +175,13 @@ public class AdductsComponent extends BorderPane {
   }
 
   public List<AdductType> getValue() {
-    return new ArrayList<>(adductsView.getSelectionModel().getSelectedItems());
+    return new ArrayList<>(adductsView.getCheckModel().getCheckedItems());
   }
 
   public void setValue(List<AdductType> newValue) {
-    adductsView.getSelectionModel().clearSelection();
+    adductsView.getCheckModel().clearChecks();;
     for (AdductType adduct : newValue)
-      adductsView.getSelectionModel().select(adduct);
+      adductsView.getCheckModel().check(adduct);
   }
 
   /**

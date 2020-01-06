@@ -632,7 +632,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     // Build reference RDFs index: We need an ordered reference here, to be
     // able to parse
     // correctly while reading back stored info
-    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().clone();
+    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
     Arrays.sort(rdf_sorted, new RawDataFileSorter(SortingDirection.Ascending));
 
     // Process

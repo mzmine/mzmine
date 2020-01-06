@@ -93,9 +93,11 @@ public class MultiChoiceParameter<ValueType>
 
   @Override
   public CheckListView<ValueType> createEditingComponent() {
-    ObservableList<ValueType> choicesList =
+    final ObservableList<ValueType> choicesList =
         FXCollections.observableArrayList(Arrays.asList(choices));
-    return new CheckListView<>(choicesList);
+    final CheckListView<ValueType> comp = new CheckListView<>(choicesList);
+    comp.setPrefHeight(150);
+    return comp;
   }
 
   @Override
@@ -119,7 +121,7 @@ public class MultiChoiceParameter<ValueType>
   @SuppressWarnings("unchecked")
   @Override
   public void setValueFromComponent(CheckListView<ValueType> component) {
-    ObservableList<ValueType> selectedList = component.getSelectionModel().getSelectedItems();
+    ObservableList<ValueType> selectedList = component.getCheckModel().getCheckedItems();
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
     this.values = CollectionUtils.changeArrayType(selectedList.toArray(), arrayType);
   }

@@ -864,7 +864,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         return false;
       }
 
-      RawDataFile[] raws = peakList.getRawDataFiles();
+      RawDataFile[] raws = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       boolean foundMassList = false;
       for (RawDataFile raw : raws) {
         int scanNumbers[] = raw.getScanNumbers();

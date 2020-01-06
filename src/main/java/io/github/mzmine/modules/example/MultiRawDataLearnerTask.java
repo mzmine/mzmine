@@ -115,7 +115,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
     Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // number of rawFiles is 1 prior to peaklist alignment
-    RawDataFile[] rawFiles = peakList.getRawDataFiles();
+    RawDataFile[] rawFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
     boolean isAlignedPeakList = rawFiles.length > 1;
 
     totalRows = rows.length;

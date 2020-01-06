@@ -33,6 +33,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import javafx.collections.FXCollections;
 
 /*
  * Van Krevelen diagram class
@@ -46,10 +47,10 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
       "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
-      new String[] {"none", "Retention time", "Intensity", "Area", "Tailing factor",
-          "Asymmetry factor", "FWHM", "m/z"});
+      FXCollections.observableArrayList("none", "Retention time", "Intensity", "Area",
+          "Tailing factor", "Asymmetry factor", "FWHM", "m/z"));
   public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
-      "Select Z-Axis scale", new String[] {"percentile", "custom"});
+      "Select Z-Axis scale", FXCollections.observableArrayList("percentile", "custom"));
 
   public static final DoubleRangeParameter zScaleRange = new DoubleRangeParameter(
       "Range for z-Axis scale",
@@ -61,8 +62,8 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
       new DecimalFormat("##0.00"));
 
   public static final ComboParameter<String> paintScale = new ComboParameter<>("Heatmap style",
-      "Select the style for the third dimension", new String[] {"Rainbow", "Monochrome red",
-          "Monochrome green", "Monochrome yellow", "Monochrome cyan"});
+      "Select the style for the third dimension", FXCollections.observableArrayList("Rainbow",
+          "Monochrome red", "Monochrome green", "Monochrome yellow", "Monochrome cyan"));
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 

@@ -193,7 +193,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
   private boolean checkBlankSelection(PeakList aligned, RawDataFile[] blankRaws) {
 
-    RawDataFile[] flRaws = aligned.getRawDataFiles();
+    RawDataFile[] flRaws = aligned.getRawDataFiles().toArray(RawDataFile[]::new);
 
     for (int i = 0; i < blankRaws.length; i++) {
       boolean contained = false;

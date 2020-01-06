@@ -384,11 +384,11 @@ public class Fx3DStageController {
     for (PeakList peakList : allPeakLists) {
       Menu peakListMenu = new Menu(peakList.getName());
       addFeatureMenu.getItems().add(peakListMenu);
-      RawDataFile[] dataFiles = peakList.getRawDataFiles();
+      RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       for (RawDataFile dataFile : dataFiles) {
         Menu dataFileMenu = new Menu(dataFile.getName());
         peakListMenu.getItems().add(dataFileMenu);
-        Feature[] features = peakList.getPeaks(dataFile);
+        Feature[] features = peakList.getPeaks(dataFile).toArray(Feature[]::new);
         for (Feature feature : features) {
           if (feature.getRawDataPointsRTRange().lowerEndpoint() >= rtRange.lowerEndpoint()
               && feature.getRawDataPointsRTRange().upperEndpoint() <= mzRange.upperEndpoint()
