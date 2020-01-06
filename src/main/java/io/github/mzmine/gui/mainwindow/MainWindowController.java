@@ -19,21 +19,26 @@
 package io.github.mzmine.gui.mainwindow;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.controlsfx.control.StatusBar;
-import io.github.mzmine.datamodel.MZmineProject;
+import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
@@ -267,35 +272,61 @@ public class MainWindowController {
   public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ChromatogramVisualizerModule.setupNewTICVisualizer(selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
+    parameters.getParameter(TICVisualizerParameters.DATA_FILES).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode == ExitCode.OK)
+      MZmineCore.runMZmineModule(ChromatogramVisualizerModule.class, parameters);
   }
 
   public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");
-
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    SpectraVisualizerModule module = MZmineCore.getModuleInstance(SpectraVisualizerModule.class);
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
     parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
         RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
-    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     if (exitCode == ExitCode.OK)
-      module.runModule(project, parameters, new ArrayList<Task>());
+      MZmineCore.runMZmineModule(SpectraVisualizerModule.class, parameters);
   }
 
   public void handleShow2DPlot(Event event) {
     logger.finest("Activated Show 2D plot menu item");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
+    parameters.getParameter(TwoDVisualizerParameters.dataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode == ExitCode.OK)
+      MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
+
   }
 
   public void handleShow3DPlot(Event event) {
     logger.finest("Activated Show 3D plot menu item");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);
+    parameters.getParameter(Fx3DVisualizerParameters.dataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ExitCode exitCode = parameters.showSetupDialog(true);
+    if (exitCode == ExitCode.OK)
+      MZmineCore.runMZmineModule(Fx3DVisualizerModule.class, parameters);
   }
 
   public void handleShowMsMsPlot(Event event) {}
 
-  public void handleSortRawDataFiles(Event event) {}
+  public void handleSort(Event event) {
+    if (!(event.getSource() instanceof ListView))
+      return;
+    ListView<?> sourceList = (ListView<?>) event.getSource();
+    List<?> files = sourceList.getItems();
+    files.sort(Ordering.usingToString());
+  }
 
   public void handleRemoveFileExtension(Event event) {}
 
@@ -331,23 +362,47 @@ public class MainWindowController {
 
   public void handleShowScatterPlot(Event event) {}
 
-  public void handleSortFeatureLists(Event event) {}
-
   public void handleRenameFeatureList(Event event) {}
 
+  @FXML
   public void handleRemoveFeatureList(Event event) {
     PeakList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
     for (PeakList fl : selectedFeatureLists)
       MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
   }
 
-  public void handleCancelTask(Event event) {}
+  @FXML
+  public void handleCancelTask(Event event) {
+    var selectedTasks = tasksView.getSelectionModel().getSelectedItems();
+    for (WrappedTask t : selectedTasks) {
+      t.getActualTask().cancel();
+    }
+  }
 
-  public void handleCancelAllTasks(Event event) {}
+  @FXML
+  public void handleCancelAllTasks(Event event) {
+    for (WrappedTask t : tasksView.getItems()) {
+      t.getActualTask().cancel();
+    }
+  }
 
-  public void handleSetHighPriority(Event event) {}
+  @FXML
+  public void handleSetHighPriority(Event event) {
+    TaskController taskController = MZmineCore.getTaskController();
+    var selectedTasks = tasksView.getSelectionModel().getSelectedItems();
+    for (WrappedTask t : selectedTasks) {
+      taskController.setTaskPriority(t.getActualTask(), TaskPriority.HIGH);
+    }
+  }
 
-  public void handleSetNormalPriority(Event event) {}
+  @FXML
+  public void handleSetNormalPriority(Event event) {
+    TaskController taskController = MZmineCore.getTaskController();
+    var selectedTasks = tasksView.getSelectionModel().getSelectedItems();
+    for (WrappedTask t : selectedTasks) {
+      taskController.setTaskPriority(t.getActualTask(), TaskPriority.NORMAL);
+    }
+  }
 
   @FXML
   public void handleMemoryBarClick(Event e) {

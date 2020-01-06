@@ -121,15 +121,15 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
       Element peakListElement = parentDocument.createElement("peaklist_name");
       if (item.getPeakList() != null) {
         peakListElement.setNodeValue(item.getPeakList().getName());
-      }
-      featureElement.appendChild(peakListElement);
+        featureElement.appendChild(peakListElement);
 
-      PeakListRow row = item.getPeakList().getPeakRow(item);
-      Element peakListRowElement = parentDocument.createElement("peaklist_row_id");
-      if (row != null) {
-        peakListRowElement.setNodeValue(row.toString());
+        PeakListRow row = item.getPeakList().getPeakRow(item);
+        Element peakListRowElement = parentDocument.createElement("peaklist_row_id");
+        if (row != null) {
+          peakListRowElement.setNodeValue(row.toString());
+        }
+        featureElement.appendChild(peakListRowElement);
       }
-      featureElement.appendChild(peakListRowElement);
 
       Element rawDataFileElement = parentDocument.createElement("rawdatafile_name");
       if (item.getDataFile() != null) {

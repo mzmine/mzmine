@@ -20,6 +20,7 @@ package io.github.mzmine.util.javafx;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListCell;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -43,7 +44,8 @@ public class DraggableListCell<Type> extends ListCell<Type> {
       ClipboardContent content = new ClipboardContent();
       int itemIndex = getListView().getItems().indexOf(getItem());
       content.putString(String.valueOf(itemIndex));
-      // dragboard.setDragView();
+      WritableImage snapshot = this.snapshot(null, null);
+      dragboard.setDragView(snapshot);
       dragboard.setContent(content);
       event.consume();
     });
@@ -73,7 +75,6 @@ public class DraggableListCell<Type> extends ListCell<Type> {
       }
 
       Dragboard db = event.getDragboard();
-      boolean success = false;
 
       if (db.hasString()) {
         ObservableList<Type> items = getListView().getItems();
@@ -85,13 +86,10 @@ public class DraggableListCell<Type> extends ListCell<Type> {
 
         items.set(draggedIdx, getItem());
         items.set(thisIdx, draggedItem);
+        getListView().getSelectionModel().clearAndSelect(thisIdx);
 
-        // List<Object> itemscopy = new ArrayList<>(getListView().getItems());
-        // getListView().getItems().setAll(itemscopy);
-
-        success = true;
       }
-      event.setDropCompleted(success);
+      event.setDropCompleted(true);
 
       event.consume();
     });
