@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.swing.JOptionPane;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -88,7 +87,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     int mzRes = myParameters.getParameter(Fx3DVisualizerParameters.mzResolution).getValue();
 
     if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
-      JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
+      MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
     }
     FXMLLoader loader = new FXMLLoader((getClass().getResource("Fx3DStage.fxml")));

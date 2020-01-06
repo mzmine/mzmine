@@ -31,11 +31,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import com.google.common.io.CountingInputStream;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -58,6 +56,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.StreamCopy;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 
 public class ProjectOpeningTask extends AbstractTask {
 
@@ -127,14 +128,16 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = MZmineCore.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        int dialogResult = JOptionPane.showConfirmDialog(null,
+        Alert alert = new Alert(AlertType.CONFIRMATION,
             "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
-            "Warning", JOptionPane.YES_NO_OPTION);
+            ButtonType.YES, ButtonType.NO);
+        alert.showAndWait();
 
-        if (dialogResult != JOptionPane.YES_OPTION) {
+        if (alert.getResult() != ButtonType.YES) {
           cancel();
           return;
         }
+
       }
 
       logger.info("Started opening project " + openFile);
