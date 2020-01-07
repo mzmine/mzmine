@@ -24,14 +24,15 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 
-public class MassListComponent extends BorderPane {
+public class MassListComponent extends FlowPane {
 
   private TextField nameField;
   private Button lookupButton;
@@ -39,12 +40,12 @@ public class MassListComponent extends BorderPane {
 
   public MassListComponent() {
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    setHgap(5.0);
+
     lookupMenu = new ContextMenu();
 
     nameField = new TextField();
     nameField.setPrefColumnCount(15);
-
 
     lookupButton = new Button("Choose...");
     lookupButton.setOnAction(e -> {
@@ -58,8 +59,8 @@ public class MassListComponent extends BorderPane {
         });
         lookupMenu.getItems().add(item);
       }
-
-      lookupMenu.show(lookupButton, 0, 0);
+      final Bounds boundsInScreen = lookupButton.localToScreen(lookupButton.getBoundsInLocal());
+      lookupMenu.show(lookupButton, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
     });
 
     getChildren().addAll(nameField, lookupButton);
