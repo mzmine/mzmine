@@ -33,7 +33,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -65,14 +64,9 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
         selectedObjects = LipidSearchParameters.lipidClasses.getValue();
 
         // Convert Objects to LipidClasses
-        // LipidClasses[] selectedLipids =
-        // Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-        // .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-
-        LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
-            .filter(o -> o instanceof TreeItem<?>).map(o -> o).toArray(LipidClasses[]::new);
-
-        System.out.println(selectedObjects[0].toString());
+        LipidClasses[] selectedLipids =
+            Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
+                .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
 
         Platform.runLater(() -> {
           FXMLLoader loader =
@@ -101,8 +95,6 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
           stage.setMinHeight(stage.getHeight());
         });
 
-        // LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
-        // databaseTable.show();
       } catch (Exception t) {
         logger.log(Level.WARNING, "Cannot show database table", t);
       }

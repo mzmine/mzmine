@@ -110,7 +110,7 @@ public class LipidClassComponent extends BorderPane {
     var checkedItems = lipidChoices.getCheckModel().getCheckedItems();
     Object[] checkedLipidClasses =
         checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
-            .collect(Collectors.toList()).toArray();
+            .map(item -> item.getValue()).collect(Collectors.toList()).toArray();
 
     return checkedLipidClasses;
   }

@@ -1,16 +1,28 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import java.awt.Color;
 import java.text.NumberFormat;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYDotRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -75,7 +87,7 @@ public class LipidDatabaseTableController {
   private MZTolerance mzTolerance;
 
   public void initialize(ParameterSet parameters, LipidClasses[] selectedLipids) {
-    System.out.println(selectedLipids.length);
+
     this.minChainLength =
         parameters.getParameter(LipidSearchParameters.chainLength).getValue().lowerEndpoint();
     this.maxChainLength =
@@ -138,28 +150,28 @@ public class LipidDatabaseTableController {
                                                                                            // fragments
                                                                                            // negative
           id++;
-          // if (lipidModification.length > 0) {
-          // for (int j = 0; j < lipidModification.length; j++) {
-          // model.addRow(new Object[] {id, // id
-          // selectedLipids[i].getCoreClass().getName(), // core class
-          // selectedLipids[i].getMainClass().getName(), // main class
-          // selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
-          // // class
-          // lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
-          // // formula
-          // selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"// abbr
-          // + lipidModification[j].getLipidModificatio(),
-          // ionizationType, // ionization type
-          // numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
-          // // mass
-          // + lipidModification[j].getModificationMass()),
-          // "", // info
-          // "", // status
-          // "", // msms fragments postive
-          // ""}); // msms fragments negative
-          // id++;
-          // }
-          // }
+          if (useModification) {
+            for (int j = 0; j < lipidModification.length; j++) {
+              tableData.add(new TableModel(String.valueOf(id), // id
+                  selectedLipids[i].getCoreClass().getName(), // core class
+                  selectedLipids[i].getMainClass().getName(), // main class
+                  selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
+                  // class
+                  lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
+                  // formula
+                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"// abbr
+                      + lipidModification[j].getLipidModificatio(),
+                  ionizationType.toString(), // ionization type
+                  numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
+                  // mass
+                      + lipidModification[j].getModificationMass()),
+                  "", // info
+                  "", // status
+                  "", // msms fragments postive
+                  "")); // msms fragments negative
+              id++;
+            }
+          }
         }
       }
     }
@@ -170,15 +182,139 @@ public class LipidDatabaseTableController {
     lipidClassColumn.setCellValueFactory(new PropertyValueFactory<>("lipidClass"));
     formulaColumn.setCellValueFactory(new PropertyValueFactory<>("molecularFormula"));
     abbreviationColumn.setCellValueFactory(new PropertyValueFactory<>("abbreviation"));
-    abbreviationColumn.setCellValueFactory(new PropertyValueFactory<>("ionization"));
+    ionizationColumn.setCellValueFactory(new PropertyValueFactory<>("ionization"));
     exactMassColumn.setCellValueFactory(new PropertyValueFactory<>("exactMass"));
     infoColumn.setCellValueFactory(new PropertyValueFactory<>("info"));
     statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
     fragmentsPosColumn.setCellValueFactory(new PropertyValueFactory<>("msmsFragmentsPos"));
     fragmentsNegColumn.setCellValueFactory(new PropertyValueFactory<>("msmsFragmentsNeg"));
 
+    // check for interferences
+    checkInterferences();
+
+    // create cell factory
+    statusColumn.setCellFactory(e -> new TableCell<TableModel, String>() {
+      @Override
+      public void updateItem(String item, boolean empty) {
+        // Always invoke super constructor.
+        super.updateItem(item, empty);
+        if (tableData.get(getIndex() + 1).getInfo().toString().contains("Possible interference")) {
+          this.setStyle("-fx-background-color:yellow;");
+        } else if (tableData.get(getIndex() + 1).getInfo().contains("Interference")) {
+          this.setStyle("-fx-background-color:red;");
+        } else {
+          this.setStyle("-fx-background-color:lightgreen;");
+        }
+      }
+
+    });
+
     lipidDatabaseTableView.setItems(tableData);
 
+    // add plots
+    EChartViewer kendrickChartCH2 =
+        new EChartViewer(create2DKendrickMassDatabasePlot("CH2"), true, true, true, true, false);
+    kendrickPlotPanelCH2.setCenter(kendrickChartCH2);
+    EChartViewer kendrickChartH =
+        new EChartViewer(create2DKendrickMassDatabasePlot("H"), true, true, true, true, false);
+    kendrickPlotPanelH.setCenter(kendrickChartH);
   }
 
+  /**
+   * This method checks for m/z interferences in the generated database table using the user set m/z
+   * window
+   */
+  private void checkInterferences() {
+    for (int i = 0; i < tableData.size(); i++) {
+      for (int j = 0; j < tableData.size(); j++) {
+        double valueOne = Double.parseDouble(tableData.get(j).getExactMass());
+        double valueTwo = Double.parseDouble(tableData.get(i).getExactMass());
+        if (valueOne == valueTwo && j != i) {
+          tableData.get(j).setInfo("Interference with: " + tableData.get(i).getAbbreviation());
+        } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && j != i) {
+          tableData.get(j)
+              .setInfo("Possible interference with: " + tableData.get(i).getAbbreviation());
+        }
+      }
+    }
+  }
+
+  /**
+   * This method creates Kendrick database plots to visualize the database and possible
+   * interferences
+   */
+  private JFreeChart create2DKendrickMassDatabasePlot(String base) {
+
+    XYSeriesCollection datasetCollection = new XYSeriesCollection();
+    XYSeries noInterferenceSeries = new XYSeries("No interference");
+    XYSeries possibleInterferenceSeries = new XYSeries("Possible interference");
+    XYSeries interferenceSeries = new XYSeries("Isomeric interference");
+
+    // add data to all series
+    double yValue = 0;
+    double xValue = 0;
+
+    for (int i = 0; i < tableData.size(); i++) {
+
+      // calc y value depending on KMD base
+      if (base.equals("CH2")) {
+        double exactMassFormula = FormulaUtils.calculateExactMass("CH2");
+        yValue =
+            ((int) (Double.parseDouble(tableData.get(i).getExactMass()) * (14 / exactMassFormula)
+                + 1))
+                - Double.parseDouble(tableData.get(i).getExactMass()) * (14 / exactMassFormula);
+      } else if (base.equals("H")) {
+        double exactMassFormula = FormulaUtils.calculateExactMass("H");
+        yValue =
+            ((int) (Double.parseDouble(tableData.get(i).getExactMass()) * (1 / exactMassFormula)
+                + 1))
+                - Double.parseDouble(tableData.get(i).getExactMass()) * (1 / exactMassFormula);
+      } else {
+        yValue = 0;
+      }
+
+      // get x value from table
+      xValue = Double.parseDouble(tableData.get(i).getExactMass());
+
+      // add xy values to series based on interference status
+      if (tableData.get(i).getInfo().toString().contains("Possible interference")) {
+        possibleInterferenceSeries.add(xValue, yValue);
+      } else if (tableData.get(i).getInfo().toString().contains("Interference")) {
+        interferenceSeries.add(xValue, yValue);
+      } else {
+        noInterferenceSeries.add(xValue, yValue);
+      }
+    }
+
+    datasetCollection.addSeries(noInterferenceSeries);
+    datasetCollection.addSeries(possibleInterferenceSeries);
+    datasetCollection.addSeries(interferenceSeries);
+
+    // create chart
+    JFreeChart chart = ChartFactory.createScatterPlot("Database plot KMD base " + base, "m/z",
+        "KMD (" + base + ")", datasetCollection, PlotOrientation.VERTICAL, true, true, false);
+
+    chart.setBackgroundPaint(null);
+    chart.getLegend().setBackgroundPaint(null);
+    // create plot
+    XYPlot plot = (XYPlot) chart.getPlot();
+    plot.setBackgroundPaint(Color.BLACK);
+    plot.setRangeGridlinesVisible(false);
+    plot.setDomainGridlinesVisible(false);
+
+    // set axis
+    NumberAxis range = (NumberAxis) plot.getRangeAxis();
+    range.setRange(0, 1);
+
+    // set renderer
+    XYDotRenderer renderer = new XYDotRenderer();
+    renderer.setSeriesPaint(0, Color.GREEN);
+    renderer.setSeriesPaint(1, Color.YELLOW);
+    renderer.setSeriesPaint(2, Color.RED);
+    renderer.setDotHeight(3);
+    renderer.setDotWidth(3);
+    plot.setRenderer(renderer);
+
+    return chart;
+  }
 }

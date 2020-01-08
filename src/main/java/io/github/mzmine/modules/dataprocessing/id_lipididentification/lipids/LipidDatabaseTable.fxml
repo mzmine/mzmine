@@ -8,8 +8,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-
-<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidDatabaseTableController">
+<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidDatabaseTableController">
    <center>
       <SplitPane dividerPositions="0.8276553106212425" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
@@ -30,6 +29,9 @@
                         <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0" text="MS/MS fragments positive ionization" />
                         <TableColumn fx:id="fragmentsNegColumn" editable="false" prefWidth="75.0" text="MS/MS fragments negative ionization" />
                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
                   </TableView>
                </children>
             </AnchorPane>
