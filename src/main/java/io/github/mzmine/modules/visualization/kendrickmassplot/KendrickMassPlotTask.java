@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
@@ -28,6 +29,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
@@ -48,11 +51,20 @@ import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * Task to create a Kendrick mass plot of selected features of a selected feature list
@@ -79,7 +91,6 @@ public class KendrickMassPlotTask extends AbstractTask {
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
   private PeakListRow rows[];
-  private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
 
   public KendrickMassPlotTask(ParameterSet parameters) {
@@ -120,7 +131,6 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
 
-    parameterSet = parameters;
   }
 
   @Override
@@ -142,6 +152,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       return;
 
     JFreeChart chart = null;
+
     // 2D, if no third dimension was selected
     if (zAxisLabel.equals("none")) {
       chart = create2DKendrickMassPlot();
@@ -152,9 +163,50 @@ public class KendrickMassPlotTask extends AbstractTask {
     }
     chart.setBackgroundPaint(Color.white);
 
-    // create chart JPanel
-    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+    // create chartViewer
+    EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
 
+    // get plot
+    XYPlot plot = (XYPlot) chart.getPlot();
+
+    // mouse listener
+    chartViewer.addChartMouseListener(new ChartMouseListenerFX() {
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {}
+
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        double xValue = plot.getDomainCrosshairValue();
+        double yValue = plot.getRangeCrosshairValue();
+        if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
+          KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(rows[i]);
+              }
+            }
+          }
+        }
+        if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
+          KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(rows[i]);
+              }
+            }
+          }
+        }
+      }
+    });
 
 
     // set title properties
@@ -163,15 +215,36 @@ public class KendrickMassPlotTask extends AbstractTask {
     chartTitle.setFont(titleFont);
     LegendTitle legend = chart.getLegend();
     legend.setVisible(false);
-    // frame.setTitle(title);
-    // frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    // frame.setBackground(Color.white);
-    // frame.setVisible(true);
-    // frame.pack();
 
     // Create Kendrick mass plot Window
-    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
-    frame.show();
+    Platform.runLater(() -> {
+      FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindow.fxml")));
+      Stage stage = new Stage();
+      try {
+        AnchorPane root = (AnchorPane) loader.load();
+        Scene scene = new Scene(root, 1080, 600);
+
+        // Use main CSS
+        scene.getStylesheets()
+            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+        stage.setScene(scene);
+        logger.finest("Stage has been successfully loaded from the FXML loader.");
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+
+      // Get controller
+      KendrickMassPlotWindowController controller = loader.getController();
+      controller.initialize(parameters);
+      BorderPane plotPane = controller.getPlotPane();
+      plotPane.setCenter(chartViewer);
+
+      stage.setTitle("Kendrick Mass Plot");
+      stage.show();
+      stage.setMinWidth(stage.getWidth());
+      stage.setMinHeight(stage.getHeight());
+    });
 
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating Kendrick mass plot of " + peakList);
@@ -187,7 +260,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       appliedSteps++;
 
       // load dataset
-      dataset2D = new KendrickMassPlotXYDataset(parameterSet);
+      dataset2D = new KendrickMassPlotXYDataset(parameters);
 
       // create chart
       chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset2D,
@@ -237,7 +310,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     logger.info("Creating new 3D chart instance");
     appliedSteps++;
     // load dataseta
-    dataset3D = new KendrickMassPlotXYZDataset(parameterSet);
+    dataset3D = new KendrickMassPlotXYZDataset(parameters);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3D.getItemCount(0)];
