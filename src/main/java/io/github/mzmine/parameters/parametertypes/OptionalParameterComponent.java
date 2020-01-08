@@ -68,6 +68,10 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
     }
   }
 
+  public CheckBox getCheckBox() {
+    return checkBox;
+  }
+
   public void setToolTipText(String toolTip) {
     checkBox.setTooltip(new Tooltip(toolTip));
   }

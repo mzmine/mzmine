@@ -18,23 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Box;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
@@ -42,15 +30,22 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.PeakDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
-import io.github.mzmine.modules.visualization.chromatogram.TICToolBar;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 
 /**
  * This class extends ParameterSetupDialog class.
@@ -73,12 +68,13 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
   private static final int PREFERRED_PEAK_COMBO_WIDTH = 250;
 
   // Dialog components.
-  private JPanel pnlPlotXY;
-  private JPanel pnlVisible;
-  private JPanel pnlLabelsFields;
-  private JComboBox<PeakList> comboPeakList;
-  private JComboBox<PeakListRow> comboPeak;
-  private JCheckBox preview;
+  private BorderPane pnlPlotXY;
+  private BorderPane pnlVisible;
+  private GridPane pnlLabelsFields;
+  private BorderPane previewPanel;
+  private ComboBox<PeakList> comboPeakList;
+  private ComboBox<PeakListRow> comboPeak;
+  private CheckBox preview;
 
   private TICPlot ticPlot;
 
@@ -120,72 +116,133 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
     parameters = resolverParameters;
 
-  }
+    final PeakList[] peakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
-  public void actionPerformed(final ActionEvent ae) {
-
-    super.actionPerformed(ae);
-
-    final Object src = ae.getSource();
-
-    if (src.equals(comboPeakList)) {
-
-      // Remove current peaks (suspend listener).
-      comboPeak.removeActionListener(this);
-      comboPeak.removeAllItems();
-
-      // Add peaks to menu.
-      for (final PeakListRow peak : ((PeakList) comboPeakList.getSelectedItem()).getRows()) {
-
-        comboPeak.addItem(peak);
-      }
-
-      // Resume listener.
-      comboPeak.addActionListener(this);
-
-      // Select first item.
-      if (comboPeak.getItemCount() > 0 && comboPeak.getSelectedIndex() != -1) {
-
-        comboPeak.setSelectedIndex(0);
-      }
-    } else if (src.equals(preview)) {
+    // Elements of panel.
+    preview = new CheckBox("Show preview");
+    preview.setOnAction(e -> {
 
       if (preview.isSelected()) {
-
         // Set the height of the preview to 200 cells, so it will span
         // the whole vertical length of the dialog (buttons are at row
         // no 100). Also, we set the weight to 10, so the preview
         // component will consume most of the extra available space.
-        paramsPane.add(pnlPlotXY, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
-        pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
-        updateMinimumSize();
-        pack();
+        paramsPane.add(pnlPlotXY, 3, 0);
+        pnlVisible.setCenter(pnlLabelsFields);
+        // updateMinimumSize();
+        // pack();
 
         // Set selections.
         final PeakList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
         if (selected.length > 0) {
-
-          comboPeakList.setSelectedItem(selected[0]);
+          comboPeakList.getSelectionModel().select(selected[0]);
         } else {
 
-          comboPeakList.setSelectedIndex(0);
+          comboPeakList.getSelectionModel().select(0);
         }
         // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
       } else {
 
-        paramsPane.remove(pnlPlotXY);
-        pnlVisible.remove(pnlLabelsFields);
-        updateBounds();
+        paramsPane.getChildren().remove(pnlPlotXY);
+        pnlVisible.getChildren().remove(pnlLabelsFields);
+      }
+    });
+    // preview.setHorizontalAlignment(SwingConstants.CENTER);
+    preview.setDisable(peakLists.length == 0);
+
+    // Preview panel.
+    previewPanel = new BorderPane();
+    previewPanel.setTop(new Separator());
+    previewPanel.setCenter(preview);
+    // previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+
+    // Feature list combo-box.
+    comboPeakList = new ComboBox<PeakList>();
+    // comboPeakList.setFont(COMBO_FONT);
+    for (
+
+    final PeakList peakList : peakLists) {
+      if (peakList.getNumberOfRawDataFiles() == 1) {
+        comboPeakList.getItems().add(peakList);
       }
     }
+    comboPeakList.setOnAction(e -> {
+      // Remove current peaks (suspend listener).
+
+      ObservableList<PeakListRow> newItems = FXCollections
+          .observableArrayList(comboPeakList.getSelectionModel().getSelectedItem().getRows());
+      comboPeak.setItems(newItems);
+
+      // Select first item.
+      if (newItems.size() > 0) {
+
+        comboPeak.getSelectionModel().select(0);
+      }
+    });
+
+    // Peaks combo box.
+    comboPeak = new ComboBox<PeakListRow>();
+    // comboPeak.setFont(COMBO_FONT);
+
+    comboPeak.setCellFactory(p -> {
+      return new ListCell<PeakListRow>() {
+        @Override
+        protected void updateItem(PeakListRow item, boolean empty) {
+          super.updateItem(item, empty);
+
+          if (item == null || empty) {
+            setGraphic(null);
+          } else {
+            setGraphic(new PeakPreviewComboRenderer(item));
+          }
+        }
+      };
+    });
+
+
+    // comboPeak.setPreferredSize(
+    // new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
+
+    pnlLabelsFields = new GridPane();
+    pnlLabelsFields.add(new Label("Feature list"), 0, 0);
+    pnlLabelsFields.add(comboPeakList, 0, 1);
+    pnlLabelsFields.add(new Label("Chromatogram"), 1, 0);
+    pnlLabelsFields.add(comboPeak, 1, 1);
+
+    // Put all together.
+    pnlVisible = new BorderPane();
+    pnlVisible.setTop(previewPanel);
+
+    // TIC plot.
+    ticPlot = new TICPlot();
+    // ticPlot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
+
+    // Tool bar.
+    // final TICToolBar toolBar = new TICToolBar(ticPlot);
+    // toolBar.getComponentAtIndex(0).setVisible(false);
+
+    // Panel for XYPlot.
+    pnlPlotXY = new BorderPane();
+    // pnlPlotXY.setBackground(Color.white);
+    pnlPlotXY.setCenter(ticPlot);
+    // pnlPlotXY.setRight(toolBar);
+    // GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
+
+    paramsPane.add(pnlVisible, 0,
+
+        getNumberOfParameters() + 3);
+
+
   }
+
+
 
   @Override
   public void parametersChanged() {
 
     if (preview != null && preview.isSelected()) {
 
-      final PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
+      final PeakListRow previewRow = comboPeak.getSelectionModel().getSelectedItem();
       if (previewRow != null) {
 
         logger.finest("Loading new preview peak " + previewRow);
@@ -270,74 +327,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     }
   }
 
-  /**
-   * This function add all the additional components for this dialog over the original
-   * ParameterSetupDialog.
-   */
-  @Override
-  protected void addDialogComponents() {
-
-    super.addDialogComponents();
-
-    final PeakList[] peakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
-
-    // Elements of panel.
-    preview = new JCheckBox("Show preview");
-    preview.addActionListener(this);
-    preview.setHorizontalAlignment(SwingConstants.CENTER);
-    preview.setEnabled(peakLists.length > 0);
-
-    // Preview panel.
-    final JPanel previewPanel = new JPanel(new BorderLayout());
-    previewPanel.add(new JSeparator(), BorderLayout.NORTH);
-    previewPanel.add(preview, BorderLayout.CENTER);
-    previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
-
-    // Feature list combo-box.
-    comboPeakList = new JComboBox<PeakList>();
-    comboPeakList.setFont(COMBO_FONT);
-    for (final PeakList peakList : peakLists) {
-      if (peakList.getNumberOfRawDataFiles() == 1) {
-        comboPeakList.addItem(peakList);
-      }
-    }
-    comboPeakList.addActionListener(this);
-
-    // Peaks combo box.
-    comboPeak = new JComboBox<PeakListRow>();
-    comboPeak.setFont(COMBO_FONT);
-    comboPeak.setRenderer(new PeakPreviewComboRenderer());
-    comboPeak.setPreferredSize(
-        new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
-
-    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Feature list"),
-        comboPeakList, new JLabel("Chromatogram"), comboPeak});
-
-    // Put all together.
-    pnlVisible = new JPanel(new BorderLayout());
-    pnlVisible.add(previewPanel, BorderLayout.NORTH);
-
-    // TIC plot.
-    ticPlot = new TICPlot(this);
-    ticPlot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
-
-    // Tool bar.
-    final TICToolBar toolBar = new TICToolBar(ticPlot);
-    toolBar.getComponentAtIndex(0).setVisible(false);
-
-    // Panel for XYPlot.
-    pnlPlotXY = new JPanel(new BorderLayout());
-    pnlPlotXY.setBackground(Color.white);
-    pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
-    pnlPlotXY.add(toolBar, BorderLayout.EAST);
-    GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
-
-    paramsPane.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0,
-        GridBagConstraints.HORIZONTAL);
-
-    // Layout and position.
-    // updateBounds();
-  }
 
 
 }

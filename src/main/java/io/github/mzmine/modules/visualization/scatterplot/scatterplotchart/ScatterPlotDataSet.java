@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,25 +19,23 @@
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
 import java.util.ArrayList;
-
 import org.jfree.data.xy.AbstractXYDataset;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.util.SearchDefinition;
 
 /**
- * 
+ *
  * This data set contains 2 series: first series (index 0) contains all feature list rows. Second
  * series (index 1) contains those feature list rows which conform to current search definition
  * (currentSearch).
- * 
+ *
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -51,7 +49,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   private double defaultValue;
 
   public ScatterPlotDataSet(PeakList peakList) {
-    this.displayedRows = peakList.getRows();
+    this.displayedRows = peakList.getRows().toArray(PeakListRow[]::new);
   }
 
   void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY) {
@@ -97,8 +95,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public int getItemCount(int series) {
     if (series == 0)
       return displayedRows.length;
@@ -107,8 +106,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public Number getX(int series, int item) {
     double value;
     if (series == 0)
@@ -123,8 +123,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * 
+   *
    */
+  @Override
   public Number getY(int series, int item) {
     double value;
     if (series == 0)

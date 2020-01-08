@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -37,12 +37,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -53,24 +53,22 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPMSLevelTreeNode;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPModuleCategoryTreeNode;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPModuleTreeNode;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DisableableTreeCellRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
+import javafx.embed.swing.SwingNode;
 
-public class ProcessingComponent extends JPanel implements ActionListener {
+public class ProcessingComponent extends SwingNode implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(ProcessingComponent.class.getName());
 
+  private JPanel mainPanel;
   private JTree tvProcessing;
   private JTree tvAllModules;
   private final JSplitPane split;
@@ -88,11 +86,11 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   DPPMSLevelTreeNode tiLastTarget;
 
   public ProcessingComponent() {
-    super(new BorderLayout());
+    mainPanel = new JPanel(new BorderLayout());
 
-    setPreferredSize(new Dimension(600, 400));
+    mainPanel.setPreferredSize(new Dimension(600, 400));
 
-    cbDiffMSn = GUIUtils.addCheckbox(this,
+    cbDiffMSn = GUIUtils.addCheckbox(mainPanel,
         "Use different settings for " + MSLevel.MSONE.toString() + " and "
             + MSLevel.MSMS.toString(),
         this, "CBX_DIFFMSN",
@@ -100,12 +98,12 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     cbDiffMSn.setSelected(
         DataPointProcessingManager.getInst().getProcessingParameters().isDifferentiateMSn());
 
-    add(cbDiffMSn, BorderLayout.NORTH);
+    mainPanel.add(cbDiffMSn, BorderLayout.NORTH);
 
     setupTreeViews();
     split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tvProcessing, tvAllModules);
     initTreeListeners();
-    add(split, BorderLayout.CENTER);
+    mainPanel.add(split, BorderLayout.CENTER);
     split.setDividerLocation(300);
 
     buttonPanel = new JPanel(new FlowLayout());
@@ -116,12 +114,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     GUIUtils.addButton(buttonPanel, "Save", null, this, "BTN_SAVE");
     // GUIUtils.addButton(buttonPanel, "Set Default...", null, this,
     // "BTN_SET_DEFAULT");
-    add(buttonPanel, BorderLayout.SOUTH);
+    mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
     chooser = new LoadSaveFileChooser("Select Processing Queue File");
     chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
 
-    super.repaint();
+    SwingUtilities.invokeLater(() -> {
+      this.setContent(mainPanel);
+    });
   }
 
   @Override
@@ -135,14 +135,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       if (item != null)
         setParameters(item);
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
-      final File file = chooser.getLoadFile(this);
+      final File file = chooser.getLoadFile(mainPanel);
       if (file != null) {
         DPPParameterValueWrapper value = new DPPParameterValueWrapper();
         value.loadFromFile(file);
         setValueFromValueWrapper(value);
       }
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
-      final File file = chooser.getSaveFile(this, XML_EXTENSION);
+      final File file = chooser.getSaveFile(mainPanel, XML_EXTENSION);
       if (file != null) {
         DPPParameterValueWrapper value = getValueFromComponent();
         value.saveToFile(file);
@@ -201,6 +201,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   private void initTreeListeners() {
     tvProcessing.addMouseListener(new MouseAdapter() {
+      @Override
       public void mousePressed(MouseEvent e) {
         if (e.getClickCount() == 2) {
           setParameters(getSelectedItem(tvProcessing));
@@ -209,6 +210,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     });
 
     tvAllModules.addMouseListener(new MouseAdapter() {
+      @Override
       public void mousePressed(MouseEvent e) {
         if (e.getClickCount() == 2) {
           addSelectedModule();
@@ -256,7 +258,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       if (target.isEnabled())
         addModule(node, target);
     } else {
-      logger.finest("Cannot add item " + selected.toString() + " to " + this.getName() + ".");
+      logger.finest("Cannot add item " + selected.toString() + " to " + mainPanel.getName() + ".");
     }
   }
 
@@ -266,8 +268,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   private void addModule(@Nonnull DPPModuleTreeNode node, @Nonnull DPPMSLevelTreeNode target) {
 
     if (nodeContains(target, node)) {
-      logger.finest("Cannot add module " + ((DPPModuleTreeNode) node).getModule().getName()
-          + " to processing list twice.");
+      logger
+          .finest("Cannot add module " + node.getModule().getName() + " to processing list twice.");
       return;
     }
     if (!moduleFitsMSLevel(node.getModule(), target)) {
@@ -321,7 +323,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   /**
    * Creates DataPointProcessingQueues from the items currently in the tree view.
-   * 
+   *
    * @return Instance of DataPointProcessingQueue.
    */
   public @Nonnull DataPointProcessingQueue getProcessingQueueFromNode(
@@ -346,7 +348,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   /**
    * Creates a MZmineProcessingStep<DataPointProcessingModule> from an DPPModuleTreeItem.
-   * 
+   *
    * @param item Tree item.
    * @return Instance of MZmineProcessingStep<DataPointProcessingModule>.
    */
@@ -376,7 +378,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   /**
    * Creates a collection of DPPModuleTreeItem from a queue. Can be used after loading a queue from
    * a file.
-   * 
+   *
    * @param queue The queue.
    * @return Collection<DPPModuleTreeItem>.
    */
@@ -397,7 +399,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   /**
    * Convenience method to publicly set the items of the processing list from the tree view. Used to
    * set the default queue, if set, loaded by the manager's constructor.
-   * 
+   *
    * @param queue
    */
   public void setTreeViewProcessingItemsFromQueue(@Nullable DataPointProcessingQueue queue,
@@ -416,7 +418,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   /**
    * Sets the values of the component.
-   * 
+   *
    * @param valueWrapper
    */
   public void setValueFromValueWrapper(DPPParameterValueWrapper valueWrapper) {
@@ -431,7 +433,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   /**
    * Convenience method to check if the module's ms level is applicable for this component.
-   * 
+   *
    * @param module
    * @return
    */

@@ -24,9 +24,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
-
 import dulab.adap.common.algorithms.machineleanring.OptimizationParameters;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
@@ -146,7 +144,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     List<RawDataFile> allDataFiles = new ArrayList<>(peakLists.length);
 
     for (final PeakList peakList : peakLists) {
-      RawDataFile[] dataFiles = peakList.getRawDataFiles();
+      RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       if (dataFiles.length != 1)
         throw new IllegalArgumentException(
             "Found more then one data " + "file in some of the peaks lists");
@@ -324,7 +322,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
   /**
    * Find the existing {@link PeakList} for a given feature list ID.
-   * 
+   *
    * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration
    *        starts with 0.
    * @return an instance of {@link PeakList} if a feature list is found, or null.

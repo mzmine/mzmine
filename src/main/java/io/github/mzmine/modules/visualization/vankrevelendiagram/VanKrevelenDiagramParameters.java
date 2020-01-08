@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,10 +18,8 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import java.awt.Window;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.Parameter;
@@ -35,10 +33,11 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import javafx.collections.FXCollections;
 
 /*
  * Van Krevelen diagram class
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class VanKrevelenDiagramParameters extends SimpleParameterSet {
@@ -48,10 +47,10 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
       "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
-      new String[] {"none", "Retention time", "Intensity", "Area", "Tailing factor",
-          "Asymmetry factor", "FWHM", "m/z"});
+      FXCollections.observableArrayList("none", "Retention time", "Intensity", "Area",
+          "Tailing factor", "Asymmetry factor", "FWHM", "m/z"));
   public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
-      "Select Z-Axis scale", new String[] {"percentile", "custom"});
+      "Select Z-Axis scale", FXCollections.observableArrayList("percentile", "custom"));
 
   public static final DoubleRangeParameter zScaleRange = new DoubleRangeParameter(
       "Range for z-Axis scale",
@@ -63,8 +62,8 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
       new DecimalFormat("##0.00"));
 
   public static final ComboParameter<String> paintScale = new ComboParameter<>("Heatmap style",
-      "Select the style for the third dimension", new String[] {"Rainbow", "Monochrome red",
-          "Monochrome green", "Monochrome yellow", "Monochrome cyan"});
+      "Select the style for the third dimension", FXCollections.observableArrayList("Rainbow",
+          "Monochrome red", "Monochrome green", "Monochrome yellow", "Monochrome cyan"));
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
@@ -78,7 +77,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
     PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
-      PeakListRow plRows[] = selectedPeakLists[0].getRows();
+      PeakListRow plRows[] = selectedPeakLists[0].getRows().toArray(PeakListRow[]::new);
       Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
     }
 

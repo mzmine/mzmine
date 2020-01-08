@@ -36,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.converter.NumberStringConverter;
@@ -74,6 +75,8 @@ public class AxesSetupDialog extends Stage {
 
     assert parent != null;
     assert plot != null;
+
+    initModality(Modality.APPLICATION_MODAL);
 
     mainPane = new DialogPane();
 

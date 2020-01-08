@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,16 +18,14 @@
 
 package io.github.mzmine.modules.example;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
@@ -63,7 +61,7 @@ class StreamPeakListRowLearnerTask extends AbstractTask {
 
   /**
    * Constructor to set all parameters and the project
-   * 
+   *
    * @param rawDataFile
    * @param parameters
    */
@@ -115,10 +113,9 @@ class StreamPeakListRowLearnerTask extends AbstractTask {
      */
 
     // use streams to filter, sort and create list
-    List<PeakListRow> rowList =
-        Arrays.stream(peakList.getRows()).filter(r -> r.getAverageHeight() > 5000)
-            .sorted(new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
-            .collect(Collectors.toList());
+    List<PeakListRow> rowList = peakList.getRows().stream().filter(r -> r.getAverageHeight() > 5000)
+        .sorted(new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
+        .collect(Collectors.toList());
     totalRows = rowList.size();
 
     // ###########################################################

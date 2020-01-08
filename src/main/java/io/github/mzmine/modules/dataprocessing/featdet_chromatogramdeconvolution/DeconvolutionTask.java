@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,16 +23,14 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.RetentionTimeMSMS;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.SUFFIX;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionParameters.mzRangeMSMS;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
@@ -73,7 +71,7 @@ public class DeconvolutionTask extends AbstractTask {
 
   /**
    * Create the task.
-   * 
+   *
    * @param list feature list to operate on.
    * @param parameterSet task parameters.
    */
@@ -203,7 +201,7 @@ public class DeconvolutionTask extends AbstractTask {
 
   /**
    * Deconvolve a chromatogram into separate peaks.
-   * 
+   *
    * @param peakList holds the chromatogram to deconvolve.
    * @param mzCenterFunction2
    * @return a new feature list holding the resolved peaks.
@@ -252,7 +250,7 @@ public class DeconvolutionTask extends AbstractTask {
     int peakId = 1;
 
     // Process each chromatogram.
-    final PeakListRow[] peakListRows = peakList.getRows();
+    final PeakListRow[] peakListRows = peakList.getRows().toArray(PeakListRow[]::new);
     final int chromatogramCount = peakListRows.length;
     for (int index = 0; !isCanceled() && index < chromatogramCount; index++) {
 

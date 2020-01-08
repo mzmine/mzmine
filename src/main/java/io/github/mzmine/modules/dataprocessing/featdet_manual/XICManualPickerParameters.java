@@ -50,7 +50,7 @@ public class XICManualPickerParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    ParameterSetupDialog dialog = new XICManualPickerDialog(null, true, this);
+    ParameterSetupDialog dialog = new XICManualPickerDialog(true, this);
     dialog.showAndWait();
 
     return dialog.getExitCode();

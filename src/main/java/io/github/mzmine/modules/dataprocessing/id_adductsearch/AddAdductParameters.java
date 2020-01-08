@@ -24,45 +24,28 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.SwingUtilities;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 
 /**
- * An action to handle resetting the adducts list.
+ * Params to add custom adducts.
  *
- * @author $Author$
- * @version $Revision$
  */
-public class DefaultAdductsAction extends AbstractAction {
+public class AddAdductParameters extends SimpleParameterSet {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  // Adduct name.
+  public static final StringParameter NAME =
+      new StringParameter("Name", "A name to identify the new adduct");
 
-  /**
-   * Create the action.
-   */
-  public DefaultAdductsAction() {
+  // Adduct mass difference.
+  public static final DoubleParameter MASS_DIFFERENCE = new DoubleParameter("Mass difference",
+      "Mass difference for the new adduct", MZmineCore.getConfiguration().getMZFormat());
 
-    super("Reset");
-    putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
+  public AddAdductParameters() {
+    super(new Parameter[] {NAME, MASS_DIFFERENCE});
   }
 
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    // Parent component.
-    final AdductsComponent parent = (AdductsComponent) SwingUtilities
-        .getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
-
-    if (parent != null) {
-
-      // Reset default choices.
-      parent.setChoices(AdductType.getDefaultValues());
-    }
-  }
 }

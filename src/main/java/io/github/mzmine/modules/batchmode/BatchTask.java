@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
+import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MZmineProjectListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -54,8 +53,8 @@ public class BatchTask extends AbstractTask {
   private MZmineProject project;
   private final BatchQueue queue;
 
-  private final List<RawDataFile> createdDataFiles, previousCreatedDataFiles;
-  private final List<PeakList> createdPeakLists, previousCreatedPeakLists;
+  private List<RawDataFile> createdDataFiles, previousCreatedDataFiles;
+  private List<PeakList> createdPeakLists, previousCreatedPeakLists;
 
   BatchTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
@@ -73,19 +72,7 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    // Listen for new items in the project
-    MZmineProjectListener listener = new MZmineProjectListener() {
-      @Override
-      public void peakListAdded(PeakList newPeakList) {
-        createdPeakLists.add(newPeakList);
-      }
 
-      @Override
-      public void dataFileAdded(RawDataFile newFile) {
-        createdDataFiles.add(newFile);
-      }
-    };
-    project.addProjectListener(listener);
 
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -93,21 +80,12 @@ public class BatchTask extends AbstractTask {
       processQueueStep(i);
       processedSteps++;
 
-      // Update the project reference in case new project was loaded
-      if (project != MZmineCore.getProjectManager().getCurrentProject()) {
-        project.removeProjectListener(listener);
-        project = MZmineCore.getProjectManager().getCurrentProject();
-        project.addProjectListener(listener);
-      }
-
       // If we are canceled or ran into error, stop here
       if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {
         return;
       }
 
     }
-
-    project.removeProjectListener(listener);
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
@@ -123,12 +101,15 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
+    final List<PeakList> beforePeakLists = ImmutableList.copyOf(project.getFeatureLists());
+    final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
+
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
     if (createdDataFiles.isEmpty())
-      createdDataFiles.addAll(previousCreatedDataFiles);
+      createdDataFiles = previousCreatedDataFiles;
     if (createdPeakLists.isEmpty())
-      createdPeakLists.addAll(previousCreatedPeakLists);
+      createdPeakLists = previousCreatedPeakLists;
 
     // Update the RawDataFilesParameter parameters to reflect the current
     // state of the batch
@@ -146,6 +127,11 @@ public class BatchTask extends AbstractTask {
         selectedFiles.setBatchLastFiles(createdFiles);
       }
     }
+
+    createdDataFiles = new ArrayList<>(project.getRawDataFiles());
+    createdPeakLists = new ArrayList<>(project.getFeatureLists());
+    createdDataFiles.removeAll(beforeDataFiles);
+    createdPeakLists.removeAll(beforePeakLists);
 
     // Update the PeakListsParameter parameters to reflect the current
     // state of the batch
@@ -166,12 +152,10 @@ public class BatchTask extends AbstractTask {
 
     // Clear the saved data files and feature lists. Save them to the
     // "previous" lists, in case the next step does not produce any new data
-    previousCreatedDataFiles.clear();
-    previousCreatedDataFiles.addAll(createdDataFiles);
-    previousCreatedPeakLists.clear();
-    previousCreatedPeakLists.addAll(createdPeakLists);
-    createdDataFiles.clear();
-    createdPeakLists.clear();
+    if (!createdDataFiles.isEmpty())
+      previousCreatedDataFiles = createdDataFiles;
+    if (!createdPeakLists.isEmpty())
+      previousCreatedPeakLists = createdPeakLists;
 
     // Check if the parameter settings are valid
     ArrayList<String> messages = new ArrayList<String>();

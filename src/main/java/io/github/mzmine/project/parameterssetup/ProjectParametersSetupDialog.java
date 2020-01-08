@@ -330,7 +330,7 @@ public class ProjectParametersSetupDialog extends JDialog implements ActionListe
         0; columnIndex < (tablemodelParameterValues.getColumnCount() - 1); columnIndex++) {
       UserParameter<?, ?> parameter = tablemodelParameterValues.getParameter(columnIndex + 1);
       if (parameter instanceof ComboParameter) {
-        Object choices[] = ((ComboParameter<?>) parameter).getChoices();
+        Object choices[] = ((ComboParameter<?>) parameter).getChoices().toArray();
         tableParameterValues.getColumnModel().getColumn(columnIndex + 1)
             .setCellEditor(new DefaultCellEditor(new JComboBox<Object>(choices)));
       }

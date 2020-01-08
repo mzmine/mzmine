@@ -51,12 +51,12 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
 public class ChartGesture {
   // ########################################################################
   // statics
-  public static final ChartGesture ALL = new ChartGesture(Entity.ALL, Event.ALL, Button.ALL);
+  public static final ChartGesture ALL = new ChartGesture(Entity.ALL, Event.ALL, GestureButton.ALL);
   //
   private Entity entity;
   private Event[] event;
   private Key key;
-  private Button button = Button.BUTTON1;
+  private GestureButton button = GestureButton.BUTTON1;
 
   /**
    * Target ChartEntity and mouse Event Entity.All and Event.ALL do not filter BUTTON.BUTTON1 is
@@ -66,7 +66,7 @@ public class ChartGesture {
    * @param event
    */
   public ChartGesture(Entity entity, Event event) {
-    this(entity, event, Button.BUTTON1);
+    this(entity, event, GestureButton.BUTTON1);
   }
 
   /**
@@ -78,7 +78,7 @@ public class ChartGesture {
    * @param key
    */
   public ChartGesture(Entity entity, Event event, Key key) {
-    this(entity, event, Button.BUTTON1, key);
+    this(entity, event, GestureButton.BUTTON1, key);
   }
 
   /**
@@ -89,7 +89,7 @@ public class ChartGesture {
    * @param event
    */
   public ChartGesture(Entity entity, Event[] event) {
-    this(entity, event, Button.BUTTON1);
+    this(entity, event, GestureButton.BUTTON1);
   }
 
   /**
@@ -99,7 +99,7 @@ public class ChartGesture {
    * @param event
    * @param button MouseEvent.BUTTON...
    */
-  public ChartGesture(Entity entity, Event event, Button button) {
+  public ChartGesture(Entity entity, Event event, GestureButton button) {
     this(entity, new Event[] {event}, button);
   }
 
@@ -110,7 +110,7 @@ public class ChartGesture {
    * @param event
    * @param button MouseEvent.BUTTON...
    */
-  public ChartGesture(Entity entity, Event event, Button button, Key key) {
+  public ChartGesture(Entity entity, Event event, GestureButton button, Key key) {
     this(entity, new Event[] {event}, button, key);
   }
 
@@ -121,7 +121,7 @@ public class ChartGesture {
    * @param event
    * @param button MouseEvent.BUTTON...
    */
-  public ChartGesture(Entity entity, Event[] event, Button button) {
+  public ChartGesture(Entity entity, Event[] event, GestureButton button) {
     this(entity, event, button, null);
   }
 
@@ -132,7 +132,7 @@ public class ChartGesture {
    * @param event
    * @param button MouseEvent.BUTTON...
    */
-  public ChartGesture(Entity entity, Event[] event, Button button, Key key) {
+  public ChartGesture(Entity entity, Event[] event, GestureButton button, Key key) {
     this.entity = entity;
     this.event = event;
     this.button = button;
@@ -206,15 +206,15 @@ public class ChartGesture {
    * @param mouseeventbutton
    * @return
    */
-  public static Button getButton(int mouseeventbutton) {
-    return Button.getButton(mouseeventbutton);
+  public static GestureButton getButton(int mouseeventbutton) {
+    return GestureButton.getButton(mouseeventbutton);
   }
 
-  public Button getButton() {
+  public GestureButton getButton() {
     return button;
   }
 
-  public void setButton(Button button) {
+  public void setButton(GestureButton button) {
     this.button = button;
   }
 
@@ -325,7 +325,7 @@ public class ChartGesture {
     }
   }
 
-  public enum Button {
+  public enum GestureButton {
     ALL, BUTTON1, BUTTON2, BUTTON3;
 
     /**
@@ -334,7 +334,7 @@ public class ChartGesture {
      * @param e
      * @return
      */
-    public boolean filter(Button e) {
+    public boolean filter(GestureButton e) {
       if (this.equals(ALL))
         return true;
       else
@@ -347,7 +347,7 @@ public class ChartGesture {
      * @param mouseeventbutton
      * @return
      */
-    public static Button getButton(int mouseeventbutton) {
+    public static GestureButton getButton(int mouseeventbutton) {
       switch (mouseeventbutton) {
         case MouseEvent.BUTTON1:
           return BUTTON1;

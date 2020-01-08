@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -84,13 +85,13 @@ public class ScanSelectionComponent extends FlowPane {
           "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
           scanDefinition, false);
       final String polarityTypes[] = {"Any", "+", "-"};
-      final ComboParameter<String> polarityParameter =
-          new ComboParameter<>("Polarity", "Include only scans of this polarity", polarityTypes);
+      final ComboParameter<String> polarityParameter = new ComboParameter<>("Polarity",
+          "Include only scans of this polarity", FXCollections.observableArrayList(polarityTypes));
       if ((polarity == PolarityType.POSITIVE) || (polarity == PolarityType.NEGATIVE))
         polarityParameter.setValue(polarity.asSingleChar());
       final String spectraTypes[] = {"Any", "Centroided", "Profile", "Thresholded"};
-      final ComboParameter<String> spectrumTypeParameter =
-          new ComboParameter<>("Spectrum type", "Include only spectra of this type", spectraTypes);
+      final ComboParameter<String> spectrumTypeParameter = new ComboParameter<>("Spectrum type",
+          "Include only spectra of this type", FXCollections.observableArrayList(spectraTypes));
       if (spectrumType != null) {
         switch (spectrumType) {
           case CENTROIDED:

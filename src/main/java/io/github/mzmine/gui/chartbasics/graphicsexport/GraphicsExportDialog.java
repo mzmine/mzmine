@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -41,40 +40,34 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
-
 import org.apache.commons.io.FilenameUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
 import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.framework.fontspecs.FontSpecs;
-import io.github.mzmine.gui.framework.fontspecs.JFontSpecs;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.FontParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
-import io.github.mzmine.parameters.parametertypes.StringComponent;
+import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.components.GridBagPanel;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.files.FileTypeFilter;
+import javafx.scene.control.TextField;
 import net.miginfocom.swing.MigLayout;
 
 /**
  * A graphics export dialog with preview and a panel for {@link GraphicsExportParameters} and
  * {@link ChartThemeParameters} to set teh chart theme previous to export
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class GraphicsExportDialog extends JFrame {
@@ -130,7 +123,8 @@ public class GraphicsExportDialog extends JFrame {
     chartParam = new ChartThemeParameters();
     parametersAndComponents = new HashMap<String, JComponent>();
 
-    String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices();
+    String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices()
+        .toArray(String[]::new);
     chooser.addChoosableFileFilter(new FileTypeFilter(formats, "Export images"));
     chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
     //
@@ -141,13 +135,14 @@ public class GraphicsExportDialog extends JFrame {
     contentPanel.setLayout(new MigLayout("", "[][][grow]", "[][][][grow]"));
     {
       StringParameter p = parameters.getParameter(GraphicsExportParameters.path);
-      StringComponent txtPath = p.createEditingComponent();
-      contentPanel.add(txtPath, "flowx,cell 0 0,growx");
-      parametersAndComponents.put(p.getName(), txtPath);
+      TextField txtPath = p.createEditingComponent();
+      // contentPanel.add(txtPath, "flowx,cell 0 0,growx");
+      // parametersAndComponents.put(p.getName(), txtPath);
     }
     {
       btnPath = new JButton("Path");
       btnPath.addActionListener(new ActionListener() {
+        @Override
         public void actionPerformed(ActionEvent e) {
           choosePath();
         }
@@ -156,9 +151,9 @@ public class GraphicsExportDialog extends JFrame {
     }
     {
       StringParameter p = parameters.getParameter(GraphicsExportParameters.filename);
-      StringComponent txtFileName = p.createEditingComponent();
-      contentPanel.add(txtFileName, "cell 0 1,growx");
-      parametersAndComponents.put(p.getName(), txtFileName);
+      TextField txtFileName = p.createEditingComponent();
+      // contentPanel.add(txtFileName, "cell 0 1,growx");
+      // parametersAndComponents.put(p.getName(), txtFileName);
     }
     {
       JLabel lblFilename = new JLabel("filename");
@@ -177,8 +172,8 @@ public class GraphicsExportDialog extends JFrame {
           UserParameter p;
           JComponent comp;
           // add unit
-          p = (UserParameter) parameters.getParameter(GraphicsExportParameters.unit);
-          comp = p.createEditingComponent();
+          p = parameters.getParameter(GraphicsExportParameters.unit);
+          comp = null; // p.createEditingComponent();
           comp.setToolTipText(p.getDescription());
           comp.setEnabled(true);
           pn.add(comp, 2, 2);
@@ -189,7 +184,7 @@ public class GraphicsExportDialog extends JFrame {
           Parameter[] param = parameters.getParameters();
           for (int pi = 3; pi < param.length; pi++) {
             p = (UserParameter) param[pi];
-            comp = p.createEditingComponent();
+            comp = null; // p.createEditingComponent();
             comp.setToolTipText(p.getDescription());
             comp.setEnabled(true);
             pn.add(new JLabel(p.getName()), 0, i);
@@ -212,7 +207,7 @@ public class GraphicsExportDialog extends JFrame {
           param = chartParam.getParameters();
           for (int pi = 0; pi < param.length; pi++) {
             p = (UserParameter) param[pi];
-            comp = p.createEditingComponent();
+            comp = null; // p.createEditingComponent();
             comp.setToolTipText(p.getDescription());
             comp.setEnabled(true);
             pn.add(new JLabel(p.getName()), 0, i);
@@ -223,12 +218,12 @@ public class GraphicsExportDialog extends JFrame {
           }
 
           // add listener to master font
-          JFontSpecs master = (JFontSpecs) parametersAndComponents
-              .get(chartParam.getParameter(ChartThemeParameters.masterFont).getName());
-          master.addListener(fspec -> {
-            if (listenersEnabled)
-              handleMasterFontChanged(fspec);
-          });
+          // FontSpecs master =
+          // parametersAndComponents.get(chartParam.getParameter(ChartThemeParameters.masterFont).getName());
+          // master.addListener(fspec -> {
+          // if (listenersEnabled)
+          // handleMasterFontChanged(fspec);
+          // });
         }
 
         JScrollPane scrollPane = new JScrollPane(pn);
@@ -297,7 +292,7 @@ public class GraphicsExportDialog extends JFrame {
   // get Settings
   /**
    * Open Dialog with chart
-   * 
+   *
    * @param chart
    */
   public static void openDialog(JFreeChart chart) {
@@ -358,9 +353,9 @@ public class GraphicsExportDialog extends JFrame {
 
         DoubleParameter p =
             parameters.getParameter(GraphicsExportParameters.height).getEmbeddedParameter();
-        DoubleComponent c =
-            ((OptionalParameterComponent<DoubleComponent>) parametersAndComponents.get(p.getName()))
-                .getEmbeddedComponent();
+        DoubleComponent c = null;
+        // ((OptionalParameterComponent<DoubleComponent>) parametersAndComponents.get(p.getName()))
+        // .getEmbeddedComponent();
         p.setValueToComponent(c, height);
         p.setValueFromComponent(c);
 
@@ -384,25 +379,25 @@ public class GraphicsExportDialog extends JFrame {
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
       File file = chooser.getSelectedFile();
       //
-      StringComponent txtPath =
-          (StringComponent) parametersAndComponents.get(GraphicsExportParameters.path.getName());
-      StringComponent txtName = (StringComponent) parametersAndComponents
-          .get(GraphicsExportParameters.filename.getName());
-      ComboComponent<String> format = (ComboComponent<String>) parametersAndComponents
-          .get(GraphicsExportParameters.exportFormat.getName());
+      // StringComponent txtPath =
+      // (StringComponent) parametersAndComponents.get(GraphicsExportParameters.path.getName());
+      // StringComponent txtName = (StringComponent) parametersAndComponents
+      // .get(GraphicsExportParameters.filename.getName());
+      // ComboComponent<String> format = (ComboComponent<String>) parametersAndComponents
+      // .get(GraphicsExportParameters.exportFormat.getName());
       // only a folder? or also a file name > then split
       if (file.isDirectory()) {
         // only a folder
-        txtPath.setText(file.getAbsolutePath());
+        // txtPath.setText(file.getAbsolutePath());
       } else {
         // data file selected
         // get folder
-        txtPath.setText(FileAndPathUtil.getFolderOfFile(file).getAbsolutePath());
+        // txtPath.setText(FileAndPathUtil.getFolderOfFile(file).getAbsolutePath());
         // get filename
-        txtName.setText(FileAndPathUtil.getFileNameFromPath(file));
+        // txtName.setText(FileAndPathUtil.getFileNameFromPath(file));
         // get format without .
         String f = FilenameUtils.getExtension(file.getName()).toUpperCase();
-        format.setSelectedItem(f);
+        // format.setSelectedItem(f);
       }
     }
   }
@@ -426,7 +421,7 @@ public class GraphicsExportDialog extends JFrame {
 
   /**
    * changes the components of all fonts to the master font
-   * 
+   *
    * @param font
    */
   private void handleMasterFontChanged(FontSpecs font) {
@@ -435,13 +430,13 @@ public class GraphicsExportDialog extends JFrame {
       if (!(p instanceof FontParameter) || master.equals(p.getName()))
         continue;
       FontParameter up = (FontParameter) p;
-      JFontSpecs component = (JFontSpecs) parametersAndComponents.get(p.getName());
-      up.setValueToComponent(component, font);
+      // FontSpecs component = (FontSpecs) parametersAndComponents.get(p.getName());
+      // up.setValueToComponent(component, font);
     }
   }
 
   /**
-   * 
+   *
    * @param p
    * @return
    */
@@ -456,7 +451,7 @@ public class GraphicsExportDialog extends JFrame {
         continue;
       UserParameter up = (UserParameter) p;
       JComponent component = parametersAndComponents.get(p.getName());
-      up.setValueFromComponent(component);
+      // up.setValueFromComponent(component);
     }
 
     for (Parameter<?> p : chartParam.getParameters()) {
@@ -464,7 +459,7 @@ public class GraphicsExportDialog extends JFrame {
         continue;
       UserParameter up = (UserParameter) p;
       JComponent component = parametersAndComponents.get(p.getName());
-      up.setValueFromComponent(component);
+      // up.setValueFromComponent(component);
     }
   }
 
@@ -475,7 +470,7 @@ public class GraphicsExportDialog extends JFrame {
         continue;
       UserParameter up = (UserParameter) p;
       JComponent component = parametersAndComponents.get(p.getName());
-      up.setValueToComponent(component, up.getValue());
+      // up.setValueToComponent(component, up.getValue());
     }
 
     for (Parameter<?> p : chartParam.getParameters()) {
@@ -483,17 +478,18 @@ public class GraphicsExportDialog extends JFrame {
         continue;
       UserParameter up = (UserParameter) p;
       JComponent component = parametersAndComponents.get(p.getName());
-      if (component instanceof JFontSpecs) {
-        // stop listeners from changing all fonts to master
-        JFontSpecs f = (JFontSpecs) component;
-        setListenersEnabled(false);
-        up.setValueToComponent(f, up.getValue());
-        f.stopListener();
-        setListenersEnabled(true);
-      } else
-        up.setValueToComponent(component, up.getValue());
-    }
+      // if (component instanceof FontSpecs) {
+      // stop listeners from changing all fonts to master
+      // FontSpecs f = (FontSpecs) component;
+      // setListenersEnabled(false);
+      // up.setValueToComponent(f, up.getValue());
+      // f.stopListener();
+      // setListenersEnabled(true);
+    } // else
+      // up.setValueToComponent(component, up.getValue());
   }
+
+
 
   private void setListenersEnabled(boolean state) {
     listenersEnabled = state;

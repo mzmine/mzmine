@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -39,7 +39,6 @@ import javax.swing.JSplitPane;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -50,7 +49,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
  * Window to show all MS/MS scans of a feature list row
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class MultiSpectraVisualizerWindow extends JFrame {
@@ -66,7 +65,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
   /**
    * Shows best fragmentation scan raw data file first
-   * 
+   *
    * @param row
    */
   public MultiSpectraVisualizerWindow(PeakListRow row) {
@@ -152,7 +151,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
   /**
    * Set data and create charts
-   * 
+   *
    * @param row
    * @param raw
    */
@@ -164,7 +163,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
   /**
    * Set the raw data file and create all chromatograms and MS2 spectra
-   * 
+   *
    * @param raw
    * @return true if row has peak with MS2 spectrum in RawDataFile raw
    */
@@ -229,12 +228,13 @@ public class MultiSpectraVisualizerWindow extends JFrame {
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
-        new Feature[] {peak}, // selected features
+        null,
+        // new Feature[] {peak}, // selected features
         labelsMap); // labels
 
     // get EIC Plot
     TICPlot ticPlot = window.getTICPlot();
-    ticPlot.setPreferredSize(new Dimension(600, 200));
+    // ticPlot.setPreferredSize(new Dimension(600, 200));
     ticPlot.getChart().getLegend().setVisible(false);
 
     // add a retention time Marker to the EIC
@@ -244,7 +244,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
     plot.addDomainMarker(marker);
-    bottomPane.add(ticPlot);
+    // bottomPane.add(ticPlot);
     bottomPane.setResizeWeight(0.5);
     bottomPane.setEnabled(true);
     bottomPane.setDividerSize(5);
@@ -259,9 +259,9 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     // get MS/MS spectra plot
     SpectraPlot spectrumPlot = spectraWindow.getSpectrumPlot();
     spectrumPlot.getChart().getLegend().setVisible(false);
-    spectrumPlot.setPreferredSize(new Dimension(600, 400));
-    spectrumPane.add(spectrumPlot);
-    spectrumPane.add(spectraWindow.getToolBar());
+    // spectrumPlot.setPreferredSize(new Dimension(600, 400));
+    // spectrumPane.add(spectrumPlot);
+    // spectrumPane.add(spectraWindow.getToolBar());
     spectrumPane.setResizeWeight(1);
     spectrumPane.setEnabled(false);
     spectrumPane.setDividerSize(0);

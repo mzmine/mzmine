@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,16 +23,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,9 +48,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.RangeUtils;
-
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 class RansacAlignerTask extends AbstractTask {
 
@@ -94,6 +90,7 @@ class RansacAlignerTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Ransac aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
@@ -101,6 +98,7 @@ class RansacAlignerTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0f;
@@ -108,6 +106,7 @@ class RansacAlignerTask extends AbstractTask {
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -147,7 +146,7 @@ class RansacAlignerTask extends AbstractTask {
 
       HashMap<PeakListRow, PeakListRow> alignmentMapping = this.getAlignmentMap(peakList);
 
-      PeakListRow allRows[] = peakList.getRows();
+      PeakListRow allRows[] = peakList.getRows().toArray(PeakListRow[]::new);
 
       // Align all rows using mapping
       for (PeakListRow row : allRows) {
@@ -208,7 +207,7 @@ class RansacAlignerTask extends AbstractTask {
   }
 
   /**
-   * 
+   *
    * @param peakList
    * @return
    */
@@ -228,7 +227,7 @@ class RansacAlignerTask extends AbstractTask {
     List<AlignStructMol> list = ransacPeakLists(alignedPeakList, peakList);
     PolynomialFunction function = this.getPolynomialFunction(list);
 
-    PeakListRow allRows[] = peakList.getRows();
+    PeakListRow allRows[] = peakList.getRows().toArray(PeakListRow[]::new);
 
     for (PeakListRow row : allRows) {
       // Calculate limits for a row with which the row can be aligned
@@ -296,7 +295,7 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * RANSAC
-   * 
+   *
    * @param alignedPeakList
    * @param peakList
    * @return
@@ -310,7 +309,7 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * Return the corrected RT of the row
-   * 
+   *
    * @param row
    * @param list
    * @return
@@ -374,7 +373,7 @@ class RansacAlignerTask extends AbstractTask {
 
   /**
    * Create the vector which contains all the possible aligned peaks.
-   * 
+   *
    * @param peakListX
    * @param peakListY
    * @return vector which contains all the possible aligned peaks.

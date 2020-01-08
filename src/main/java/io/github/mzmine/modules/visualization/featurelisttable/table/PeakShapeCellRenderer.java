@@ -86,9 +86,9 @@ class PeakShapeCellRenderer implements TableCellRenderer {
       }
       PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
-      newPanel.add(xic);
+      // newPanel.add(xic);
 
-      newPanel.setToolTipText(xic.getToolTipText());
+      // newPanel.setToolTipText(xic.getToolTipText());
 
     }
 
@@ -96,7 +96,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
       PeakListRow plRow = (PeakListRow) value;
 
-      RawDataFile[] dataFiles = peakList.getRawDataFiles();
+      RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       Feature[] peaks = new Feature[dataFiles.length];
       for (int i = 0; i < dataFiles.length; i++) {
         peaks[i] = plRow.getPeak(dataFiles[i]);

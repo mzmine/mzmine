@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -50,7 +51,6 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SaveImage;
@@ -258,10 +258,10 @@ public class ScatterPlotChart extends EChartViewer implements ComponentToolTipPr
 
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-      FeatureSelection sel = new FeatureSelection(peakList, bestPeak, selectedRow, null);
-
-      ChromatogramVisualizerModule.showNewTICVisualizerWindow(peakList.getRawDataFiles(),
-          Collections.singletonList(sel), labelMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
+      ChromatogramVisualizerModule.showNewTICVisualizerWindow(
+          peakList.getRawDataFiles().toArray(RawDataFile[]::new),
+          Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEPEAK,
+          mzRange);
     }
 
     if ("SAVE_EMF".equals(command)) {

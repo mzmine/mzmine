@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
@@ -46,7 +45,6 @@ import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -291,7 +289,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Fragment scan with adduct, precursor mz and charge or MS1
-   * 
+   *
    * @param isFragmentScan
    */
   public void setFragmentScan(boolean isFragmentScan) {
@@ -314,7 +312,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   /**
-   * 
+   *
    */
   public void setMZandChargeFromScan() {
     // MS1
@@ -344,7 +342,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   /**
    * Show the exclude from export button (check button). This button is usually hidden when only one
    * ScanSelectPanel is shown in the {@link MSMSLibrarySubmissionWindow}
-   * 
+   *
    * @param state linked to the visibility of the exclude button
    */
   public void setShowExcludeButton(boolean state) {
@@ -400,7 +398,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * minimum is >=1
-   * 
+   *
    * @param minNumberOfSignals
    */
   public void setMinNumberOfSignals(int minNumberOfSignals) {
@@ -409,7 +407,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   private void applySelectionState() {
     boolean selected = btnToggleUse.isSelected();
-    EChartPanel chart = getChart();
+    SpectraPlot chart = getChart();
     if (chart != null) {
       chart.getChart().getXYPlot().setBackgroundPaint(selected ? Color.WHITE : errorColor);
     }
@@ -515,10 +513,11 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       // create dataset
 
       if (spectrumPlot == null) {
-        spectrumPlot = new SpectraPlot(this, false);
-        if (listener != null)
+        spectrumPlot = new SpectraPlot();
+        if (listener != null) {
           // chart has changed
-          listener.accept(spectrumPlot);
+          // listener.accept(spectrumPlot);
+        }
       }
       spectrumPlot.removeAllDataSets();
 
@@ -532,9 +531,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
         spectrumPlot.addDataSet(dataRemoved, colorRemovedData, false);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
-      spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
-      spectrumPlot.setPreferredSize(chartSize);
-      pnChart.add(spectrumPlot, BorderLayout.CENTER);
+      // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
+      // spectrumPlot.setPreferredSize(chartSize);
+      // pnChart.add(spectrumPlot, BorderLayout.CENTER);
 
       Scan scan = scans.get(selectedScanI);
       analyzeScan(scan);
@@ -585,7 +584,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Remaining data points after filtering
-   * 
+   *
    * @return
    */
   @Nullable
@@ -601,7 +600,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Removed data points
-   * 
+   *
    * @return
    */
   @Nullable
@@ -620,7 +619,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   @Nullable
-  public EChartPanel getChart() {
+  public SpectraPlot getChart() {
     return spectrumPlot;
   }
 
@@ -638,7 +637,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * This will check adduct pattern and enforce it.
-   * 
+   *
    * @return The adduct or an empty String for wrong input
    */
   @Nonnull
@@ -668,7 +667,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   /**
    * Valid spectrum and is selected? Still check for correct adduct
-   * 
+   *
    * @return
    */
   public boolean isValidAndSelected() {

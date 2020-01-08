@@ -79,7 +79,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
     coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
     selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    selectedRows = peakList.getRows();
+    selectedRows = peakList.getRows().toArray(PeakListRow[]::new);
 
     datasetTitle = "Curvilinear distance analysis";
 

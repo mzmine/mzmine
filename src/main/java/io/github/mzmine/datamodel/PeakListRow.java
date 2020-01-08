@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface PeakListRow {
 
@@ -114,7 +115,7 @@ public interface PeakListRow {
 
   /**
    * Add a new identity candidate (result of identification method)
-   * 
+   *
    * @param identity New peak identity
    * @param preffered boolean value to define this identity as preferred identity
    */
@@ -122,38 +123,38 @@ public interface PeakListRow {
 
   /**
    * Remove identity candidate
-   * 
+   *
    * @param identity Peak identity
    */
   public void removePeakIdentity(PeakIdentity identity);
 
   /**
    * Returns all candidates for this peak's identity
-   * 
+   *
    * @return Identity candidates
    */
   public PeakIdentity[] getPeakIdentities();
 
   /**
    * Returns preferred peak identity among candidates
-   * 
+   *
    * @return Preferred identity
    */
   public PeakIdentity getPreferredPeakIdentity();
 
   /**
    * Sets a preferred peak identity among candidates
-   * 
+   *
    * @param identity Preferred identity
    */
   public void setPreferredPeakIdentity(PeakIdentity identity);
 
   /**
    * Adds a new PeakInformation object.
-   * 
+   *
    * PeakInformation is used to keep extra information about peaks in the form of a map
    * <propertyName, propertyValue>
-   * 
+   *
    * @param information object
    */
 
@@ -161,7 +162,7 @@ public interface PeakListRow {
 
   /**
    * Returns PeakInformation
-   * 
+   *
    * @return
    */
 
@@ -169,7 +170,7 @@ public interface PeakListRow {
 
   /**
    * Returns maximum raw data point intensity among all peaks in this row
-   * 
+   *
    * @return Maximum intensity
    */
   public double getDataPointMaxIntensity();
@@ -201,6 +202,11 @@ public interface PeakListRow {
    * reset the rowID
    */
   public void setID(int id);
+
+  @Nullable
+  PeakList getPeakList();
+
+  void setPeakList(@Nonnull PeakList peakList);
 
   // End DorresteinLab edit
 }

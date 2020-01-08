@@ -92,7 +92,7 @@ public class ComplexSearchTask extends AbstractTask {
 
     logger.info("Starting complex search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
 
     // Sort the array by m/z so we start with biggest peak (possible
