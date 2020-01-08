@@ -106,6 +106,7 @@ public class FeatureOverviewWindow extends Stage {
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
+    this.show();
 
   }
 
@@ -139,11 +140,7 @@ public class FeatureOverviewWindow extends Stage {
         featureSelection, // selected features
         labelsMap); // labels
 
-    pane.getItems().add(window.getTICPlot());
-    pane.getItems().add(window.getToolBar());
-    // pane.setResizeWeight(1);
-    // pane.setDividerSize(1);
-    // pane.setBorder(BorderFactory.createLineBorder(Color.black));
+    pane.getItems().add(window.getScene().getRoot());
     return pane;
   }
 
@@ -179,12 +176,7 @@ public class FeatureOverviewWindow extends Stage {
     pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerWindow spectraWindowMS1 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS1.loadRawData(rawFiles[0].getScan(feature.getRepresentativeScanNumber()));
-
-    // pane.add(spectraWindowMS1.getSpectrumPlot());
-    pane.getItems().add(spectraWindowMS1.getToolBar());
-    // pane.setResizeWeight(1);
-    pane.setDisable(true);
-    // pane.setDividerSize(0);
+    pane.getItems().add(spectraWindowMS1.getScene().getRoot());
     return pane;
   }
 
@@ -193,12 +185,7 @@ public class FeatureOverviewWindow extends Stage {
     pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerWindow spectraWindowMS2 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS2.loadRawData(rawFiles[0].getScan(feature.getMostIntenseFragmentScanNumber()));
-
-    // pane.add(spectraWindowMS2.getSpectrumPlot());
-    pane.getItems().add(spectraWindowMS2.getToolBar());
-    // pane.setResizeWeight(1);
-    pane.setDisable(true);
-    // pane.setDividerSize(0);
+    pane.getItems().add(spectraWindowMS2.getScene().getRoot());
     return pane;
   }
 }

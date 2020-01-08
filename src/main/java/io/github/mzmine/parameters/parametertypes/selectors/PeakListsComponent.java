@@ -59,6 +59,7 @@ public class PeakListsComponent extends BorderPane {
           && (type != PeakListsSelectionType.SPECIFIC_PEAKLISTS));
       updateNumPeakLists();
     });
+    typeCombo.getSelectionModel().selectFirst();
     setCenter(typeCombo);
 
     detailsButton.setOnAction(e -> {

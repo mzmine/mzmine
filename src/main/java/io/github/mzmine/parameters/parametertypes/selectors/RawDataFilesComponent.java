@@ -59,6 +59,7 @@ public class RawDataFilesComponent extends GridPane {
           && (type != RawDataFilesSelectionType.SPECIFIC_FILES));
       updateNumFiles();
     });
+    typeCombo.getSelectionModel().selectFirst();
     add(typeCombo, 1, 0);
 
 

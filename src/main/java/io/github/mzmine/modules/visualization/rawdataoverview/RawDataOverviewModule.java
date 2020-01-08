@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.kendrickmassplot;
+package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -27,15 +27,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-/**
- * Kendrick mass plot module
+/*
+ * Raw data overview module class
  * 
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class KendrickMassPlotModule implements MZmineRunnableModule {
+public class RawDataOverviewModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Kendrick mass plot";
-  private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
+  private static final String MODULE_NAME = "Raw data overview";
+  private static final String MODULE_DESCRIPTION = "Raw data overview";
 
   @Override
   public @Nonnull String getName() {
@@ -48,23 +48,23 @@ public class KendrickMassPlotModule implements MZmineRunnableModule {
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return RawDataOverviewParameters.class;
+  }
 
-    Task newTask = new KendrickMassPlotTask(parameters);
+  @Override
+  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
+      Collection<Task> tasks) {
+
+    Task newTask = new RawDataOverviewTask(parameters);
     tasks.add(newTask);
 
     return ExitCode.OK;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+  public MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
-  @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return KendrickMassPlotParameters.class;
-  }
 }

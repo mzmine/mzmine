@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -39,12 +40,12 @@ public class MassListComponent extends FlowPane {
 
   public MassListComponent() {
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    setHgap(5.0);
+
     lookupMenu = new ContextMenu();
 
     nameField = new TextField();
     nameField.setPrefColumnCount(15);
-
 
     lookupButton = new Button("Choose...");
     lookupButton.setOnAction(e -> {
@@ -58,8 +59,8 @@ public class MassListComponent extends FlowPane {
         });
         lookupMenu.getItems().add(item);
       }
-
-      lookupMenu.show(lookupButton, 0, 0);
+      final Bounds boundsInScreen = lookupButton.localToScreen(lookupButton.getBoundsInLocal());
+      lookupMenu.show(lookupButton, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
     });
 
     getChildren().addAll(nameField, lookupButton);
