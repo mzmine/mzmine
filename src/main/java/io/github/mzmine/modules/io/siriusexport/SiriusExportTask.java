@@ -99,7 +99,7 @@ public class SiriusExportTask extends AbstractTask {
 
     for (PeakList l : peakLists) {
       this.totalRows += l.getNumberOfRows();
-      prefillStatistics(l.getRows());
+      prefillStatistics(l.getRows().toArray(PeakListRow[]::new));
     }
 
     // Process feature lists

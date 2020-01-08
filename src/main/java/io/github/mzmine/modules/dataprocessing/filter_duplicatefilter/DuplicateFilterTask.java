@@ -141,9 +141,9 @@ public class DuplicateFilterTask extends AbstractTask {
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
       FilterMode mode) {
-    final PeakListRow[] peakListRows = origPeakList.getRows();
+    final PeakListRow[] peakListRows = origPeakList.getRows().toArray(PeakListRow[]::new);
     final int rowCount = peakListRows.length;
-    RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
+    RawDataFile[] rawFiles = origPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create the new feature list.
     final PeakList newPeakList =
@@ -227,7 +227,7 @@ public class DuplicateFilterTask extends AbstractTask {
   /**
    * Turns firstRow to consensus row. With all features with highest FeatureStatus:
    * DETECTED>ESTIMATED>UNKNOWN Or the highest feature when comparing two ESTIMATED features
-   * 
+   *
    * @param rawFiles
    * @param firstRow
    * @param secondRow
@@ -259,7 +259,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
   /**
    * Has one feature within RT and mzTolerance in at least one raw data file
-   * 
+   *
    * @param rawFiles
    * @param firstRow
    * @param secondRow
@@ -283,7 +283,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
   /**
    * Shares the same RT and mz
-   * 
+   *
    * @param firstRow
    * @param secondRow
    * @param mzTolerance

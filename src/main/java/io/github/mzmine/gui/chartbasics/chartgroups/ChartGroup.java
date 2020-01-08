@@ -30,7 +30,7 @@ import org.jfree.data.Range;
 
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -108,7 +108,7 @@ public class ChartGroup {
     GestureMouseAdapter m = chart.getGestureAdapter();
     if (m != null) {
       m.addGestureHandler(new ChartGestureHandler(
-          new ChartGesture(Entity.PLOT, Event.MOVED, Button.ALL, Key.ALL), e -> {
+          new ChartGesture(Entity.PLOT, Event.MOVED, GestureButton.ALL, Key.ALL), e -> {
             setCrosshair(e.getCoordinates());
           }));
     }

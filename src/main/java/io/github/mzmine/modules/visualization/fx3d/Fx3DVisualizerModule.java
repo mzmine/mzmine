@@ -20,11 +20,10 @@ package io.github.mzmine.modules.visualization.fx3d;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.swing.JOptionPane;
-import org.apache.commons.compress.utils.Lists;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -33,7 +32,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
@@ -65,23 +63,18 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     return MODULE_DESCRIPTION;
   }
 
-  @SuppressWarnings("null")
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
     final RawDataFile[] currentDataFiles = parameters
         .getParameter(Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
 
     final ScanSelection scanSel =
         parameters.getParameter(Fx3DVisualizerParameters.scanSelection).getValue();
-    final List<FeatureSelection> featureSelList =
+    final List<Feature> featureSelList =
         parameters.getParameter(Fx3DVisualizerParameters.features).getValue();
     logger.finest("Feature selection is:" + featureSelList.toString());
-    for (FeatureSelection selection : featureSelList) {
-      logger.finest("Selected features are:" + selection.getFeature().toString());
-    }
 
     Range<Double> rtRange = ScanUtils.findRtRange(scanSel
         .getMatchingScans(MZmineCore.getProjectManager().getCurrentProject().getDataFiles()[0]));
@@ -94,7 +87,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     int mzRes = myParameters.getParameter(Fx3DVisualizerParameters.mzResolution).getValue();
 
     if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
-      JOptionPane.showMessageDialog(null, "The platform does not provide 3D support.");
+      MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
     }
     FXMLLoader loader = new FXMLLoader((getClass().getResource("Fx3DStage.fxml")));
@@ -150,14 +143,9 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
         .setValue(new ScanSelection(rtRange, 1));
     myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
+    myParameters.getParameter(Fx3DVisualizerParameters.features)
+        .setValue(Collections.singletonList(featureToShow));
 
-    List<FeatureSelection> featuresList = Lists.newArrayList();
-    if (featureToShow != null) {
-      FeatureSelection selectedFeature = new FeatureSelection(null, featureToShow, null, null);
-      featuresList.add(selectedFeature);
-    }
-
-    myParameters.getParameter(Fx3DVisualizerParameters.features).setValue(featuresList);
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
           myParameters.cloneParameterSet(), new ArrayList<Task>());

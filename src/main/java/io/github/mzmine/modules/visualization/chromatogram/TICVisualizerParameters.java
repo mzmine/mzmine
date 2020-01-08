@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.compress.utils.Lists;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.Parameter;
@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeaturesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -119,11 +118,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 
     getParameter(DATA_FILES).setValue(RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
     // getParameter(PEAKS).setChoices(allPeaks);
-    List<FeatureSelection> selectedFeatures = Lists.newArrayList();
-    for (Feature f : selectedPeaks) {
-      FeatureSelection fs = new FeatureSelection(null, f, null, f.getDataFile());
-      selectedFeatures.add(fs);
-    }
+    List<Feature> selectedFeatures = Arrays.asList(allPeaks);
     getParameter(PEAKS).setValue(selectedFeatures);
     return super.showSetupDialog(valueCheckRequired);
   }

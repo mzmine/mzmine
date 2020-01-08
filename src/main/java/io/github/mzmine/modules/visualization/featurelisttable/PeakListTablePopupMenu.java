@@ -454,8 +454,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       final Map<Feature, String> labelsMap =
           new HashMap<Feature, String>(allClickedPeakListRows.length);
 
-      final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList.getRawDataFiles()
-          : new RawDataFile[] {clickedDataFile};
+      final RawDataFile[] selectedDataFiles =
+          clickedDataFile == null ? peakList.getRawDataFiles().toArray(RawDataFile[]::new)
+              : new RawDataFile[] {clickedDataFile};
 
       Range<Double> mzRange = null;
       final ArrayList<Feature> allClickedPeaks =
@@ -550,7 +551,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
         // show multi msms window of multiple rows
         MultiMSMSWindow multi = new MultiMSMSWindow();
-        multi.setData(allClickedPeakListRows, peakList.getRawDataFiles(), clickedDataFile, true,
+        multi.setData(allClickedPeakListRows,
+            peakList.getRawDataFiles().toArray(RawDataFile[]::new), clickedDataFile, true,
             SortingProperty.MZ, SortingDirection.Ascending);
         multi.setVisible(true);
       } else {
@@ -699,8 +701,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       // create a new row
       final PeakListRow newRow = new SimplePeakListRow(newID);
-      ManualPeakPickerModule.runManualDetection(peakList.getRawDataFiles(), newRow, peakList,
-          table);
+      ManualPeakPickerModule.runManualDetection(
+          peakList.getRawDataFiles().toArray(RawDataFile[]::new), newRow, peakList, table);
 
     }
 

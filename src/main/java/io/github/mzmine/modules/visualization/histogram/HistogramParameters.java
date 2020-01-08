@@ -59,7 +59,7 @@ public class HistogramParameters extends SimpleParameterSet {
     if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
       dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     } else {
-      dataFiles = selectedPeaklists[0].getRawDataFiles();
+      dataFiles = selectedPeaklists[0].getRawDataFiles().toArray(RawDataFile[]::new);
     }
     getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
     return super.showSetupDialog(valueCheckRequired);

@@ -114,11 +114,11 @@ public class PeakListIdentificationTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
 
         // Create database gateway.
-        gateway = db.getModule().getGatewayClass().newInstance();
+        gateway = db.getModule().getGatewayClass().getDeclaredConstructor().newInstance();
 
         // Identify the feature list rows starting from the biggest
         // peaks.
-        final PeakListRow[] rows = peakList.getRows();
+        final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
         Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.

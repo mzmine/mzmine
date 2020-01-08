@@ -256,7 +256,7 @@ public class NistMsSearchTask extends AbstractTask {
         final Map<PeakListRow, Set<PeakListRow>> rowHoods;
         if (peakListRow == null) {
 
-          peakListRows = peakList.getRows();
+          peakListRows = peakList.getRows().toArray(PeakListRow[]::new);
           rowHoods = groupPeakRows();
 
         } else {

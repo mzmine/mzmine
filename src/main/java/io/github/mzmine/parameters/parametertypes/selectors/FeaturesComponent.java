@@ -20,13 +20,22 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import java.util.List;
 import java.util.logging.Logger;
+import org.controlsfx.control.CheckListView;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -37,8 +46,8 @@ import javafx.scene.layout.VBox;
  */
 public class FeaturesComponent extends HBox {
 
-  public ObservableList<FeatureSelection> currentValue = FXCollections.observableArrayList();
-  private ListView<FeatureSelection> featuresList = new ListView<>(currentValue);
+  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
+  private ListView<Feature> featuresList = new ListView<>(currentValue);
   private final Button addButton = new Button("Add");;
   private final Button removeButton = new Button("Remove");
   private VBox buttonPane = new VBox();
@@ -54,27 +63,53 @@ public class FeaturesComponent extends HBox {
 
     getChildren().addAll(featuresList, buttonPane);
 
-    featuresList.setPrefHeight(120.0);
+    featuresList.setPrefHeight(100.0);
 
     addButton.setOnAction(e -> {
-      currentValue.clear();
-      logger.finest("Add Button Clicked!");
-      FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
-      featuresSelectionDialog.setModal(true);
-      featuresSelectionDialog.setVisible(true);
-      if (featuresSelectionDialog.getReturnState() == true) {
-        // jlist.setVisible(true);
-        PeakList selectedPeakList = featuresSelectionDialog.getSelectedPeakList();
-        RawDataFile selectedRawDataFile = featuresSelectionDialog.getSelectedRawDataFile();
-        logger.finest("Selected PeakList is:" + selectedPeakList.getName());
-        logger.finest("Selected RawDataFile is:" + selectedRawDataFile.getName());
-        currentValue.clear();
-        for (Feature feature : featuresSelectionDialog.getSelectedFeatures()) {
-          PeakListRow selectedRow = selectedPeakList.getPeakRow(feature);
-          FeatureSelection featureSelection =
-              new FeatureSelection(selectedPeakList, feature, selectedRow, selectedRawDataFile);
-          currentValue.add(featureSelection);
-        }
+      logger.finest("Add button clicked!");
+
+      ComboParameter<PeakList> featureListsParam =
+          new ComboParameter<>("Feature list", "Feature list selection",
+              MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+      ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
+          "Raw data file selection", FXCollections.observableArrayList());
+      MultiChoiceParameter<Feature> featuresParam =
+          new MultiChoiceParameter<>("Features", "Feature selection", new Feature[0]);
+      SimpleParameterSet paramSet = new SimpleParameterSet(
+          new Parameter[] {featureListsParam, dataFilesParam, featuresParam});
+
+      ParameterSetupDialog dialog = new ParameterSetupDialog(true, paramSet);
+      ComboBox<PeakList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
+      ComboBox<RawDataFile> dataFilesCombo = dialog.getComponentForParameter(dataFilesParam);
+      CheckListView<Feature> featuresSelection = dialog.getComponentForParameter(featuresParam);
+      featureListsCombo.setOnAction(e2 -> {
+        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        if (featureList == null)
+          return;
+        dataFilesCombo.setItems(featureList.getRawDataFiles());
+        dataFilesCombo.getSelectionModel().selectFirst();
+      });
+      dataFilesCombo.setOnAction(e3 -> {
+        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        RawDataFile dataFile = dataFilesCombo.getSelectionModel().getSelectedItem();
+        if (featureList == null || dataFile == null)
+          return;
+        var features = FXCollections.observableArrayList(featureList.getPeaks(dataFile));
+        featuresSelection.setItems(features);
+      });
+      featureListsCombo.getSelectionModel().selectFirst();
+      dataFilesCombo.getSelectionModel().selectFirst();
+
+      /*
+       * Load features into featuresSelection. Events don't trigger automatically until the Stage is
+       * shown.
+       */
+      featureListsCombo.fireEvent(new ActionEvent());
+      dataFilesCombo.fireEvent(new ActionEvent());
+
+      dialog.showAndWait();
+      if (dialog.getExitCode() == ExitCode.OK) {
+        currentValue.addAll(featuresSelection.getCheckModel().getCheckedItems());
       }
     });
 
@@ -86,12 +121,12 @@ public class FeaturesComponent extends HBox {
 
   }
 
-  public void setValue(List<FeatureSelection> newValue) {
+  public void setValue(List<Feature> newValue) {
     currentValue = FXCollections.observableArrayList(newValue);
     featuresList.setItems(currentValue);
   }
 
-  public List<FeatureSelection> getValue() {
+  public List<Feature> getValue() {
     return currentValue;
   }
 

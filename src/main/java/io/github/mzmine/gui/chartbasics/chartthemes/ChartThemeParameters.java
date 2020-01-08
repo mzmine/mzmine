@@ -31,8 +31,11 @@ import io.github.mzmine.parameters.parametertypes.FontParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.javafx.FxFontUtil;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
@@ -57,13 +60,13 @@ public class ChartThemeParameters extends SimpleParameterSet {
 
   public static final FontParameter masterFont =
       new FontParameter("Master", "Master font changes all fonts",
-          new FontSpecs(Color.BLACK, new Font("Arial", Font.PLAIN, 11)));
+          new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.BOLD, 11)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter captionFont = new FontParameter("Captions", "Caption font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.BOLD, 11)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter labelFont = new FontParameter("Labels", "Label font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.PLAIN, 9)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
 
   public static final OptionalParameter<ColorParameter> xGridPaint =
       new OptionalParameter<ColorParameter>(new ColorParameter("X grid",
@@ -123,9 +126,9 @@ public class ChartThemeParameters extends SimpleParameterSet {
       Color cygrid =
           this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
       p.setDomainGridlinesVisible(xgrid);
-      p.setDomainGridlinePaint(cxgrid);
+      p.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
       p.setRangeGridlinesVisible(ygrid);
-      p.setRangeGridlinePaint(cygrid);
+      p.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
 
       p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
       p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
@@ -155,29 +158,28 @@ public class ChartThemeParameters extends SimpleParameterSet {
 
     Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
 
-    theme.setChartBackgroundPaint(gbColor);
-    theme.setPlotBackgroundPaint(gbColor);
+    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
+    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
 
-    theme.setMasterFont(master.getFont());
-    theme.setExtraLargeFont(large.getFont());
-    theme.setLargeFont(medium.getFont());
-    theme.setRegularFont(small.getFont());
-    theme.setSmallFont(small.getFont());
+    theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
+    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(large.getFont()));
+    theme.setLargeFont(FxFontUtil.fxFontToAWT(medium.getFont()));
+    theme.setRegularFont(FxFontUtil.fxFontToAWT(small.getFont()));
+    theme.setSmallFont(FxFontUtil.fxFontToAWT(small.getFont()));
 
-    theme.setMasterFontColor(master.getColor());
-    theme.setAxisLabelPaint(medium.getColor());
-    theme.setTickLabelPaint(small.getColor());
-    theme.setTitlePaint(large.getColor());
-    theme.setItemLabelPaint(small.getColor());
-    theme.setLegendItemPaint(medium.getColor());
-
-    theme.setAxisLinePaint(medium.getColor());
+    theme.setMasterFontColor(FxColorUtil.fxColorToAWT(master.getColor()));
+    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
+    theme.setTitlePaint(FxColorUtil.fxColorToAWT(large.getColor()));
+    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
+    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(medium.getColor()));
 
     theme.setShowXAxis(showXAxis);
     theme.setShowYAxis(showYAxis);
     theme.setShowXGrid(xgrid);
     theme.setShowYGrid(ygrid);
-    theme.setDomainGridlinePaint(cxgrid);
-    theme.setRangeGridlinePaint(cygrid);
+    theme.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
+    theme.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
   }
 }

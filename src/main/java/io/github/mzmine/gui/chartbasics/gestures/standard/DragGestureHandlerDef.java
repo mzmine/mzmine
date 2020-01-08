@@ -20,7 +20,7 @@ package io.github.mzmine.gui.chartbasics.gestures.standard;
 
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
@@ -42,11 +42,11 @@ public class DragGestureHandlerDef implements GestureHandlerFactory {
   protected DragHandler[] handler;
   protected Key[] key;
   protected Entity entity;
-  protected Button button;
+  protected GestureButton button;
   protected Orientation orient;
   protected Object[] param;
 
-  public DragGestureHandlerDef(DragHandler[] handler, Key[] key, Entity entity, Button button,
+  public DragGestureHandlerDef(DragHandler[] handler, Key[] key, Entity entity, GestureButton button,
       Orientation orient, Object[] param) {
     super();
     this.handler = handler;
@@ -74,7 +74,7 @@ public class DragGestureHandlerDef implements GestureHandlerFactory {
     return entity;
   }
 
-  public Button getButton() {
+  public GestureButton getButton() {
     return button;
   }
 
@@ -98,7 +98,7 @@ public class DragGestureHandlerDef implements GestureHandlerFactory {
     this.entity = entity;
   }
 
-  public void setButton(Button button) {
+  public void setButton(GestureButton button) {
     this.button = button;
   }
 

@@ -122,7 +122,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         // Identify the feature list rows starting from the biggest
         // peaks.
-        final PeakListRow[] rows = peakList.getRows();
+        PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
         Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
         // Initialize counters.

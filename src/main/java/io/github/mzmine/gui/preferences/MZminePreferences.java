@@ -30,13 +30,14 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.Vision;
+import javafx.collections.FXCollections;
 
 public class MZminePreferences extends SimpleParameterSet {
 
   public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
       "Color palettes (color blindness mode)",
       "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
-      Vision.values(), Vision.DEUTERANOPIA);
+      FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));

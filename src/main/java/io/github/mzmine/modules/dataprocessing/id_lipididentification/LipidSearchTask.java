@@ -127,7 +127,7 @@ public class LipidSearchTask extends AbstractTask {
 
     logger.info("Starting lipid search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
 
     // Check if lipids should be modified
     if (searchForModifications == true) {

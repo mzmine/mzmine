@@ -18,9 +18,11 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -55,7 +57,7 @@ public interface PeakList {
   /**
    * Returns all raw data files participating in the feature list
    */
-  public RawDataFile[] getRawDataFiles();
+  public ObservableList<RawDataFile> getRawDataFiles();
 
 
   /**
@@ -87,7 +89,7 @@ public interface PeakList {
   /**
    * Returns all peaks for a raw data file
    */
-  public Feature[] getPeaks(RawDataFile rawDataFile);
+  public List<Feature> getPeaks(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
@@ -97,7 +99,7 @@ public interface PeakList {
   /**
    * Returns all feature list rows
    */
-  public PeakListRow[] getRows();
+  public ObservableList<PeakListRow> getRows();
 
   /**
    * Creates a stream of PeakListRows

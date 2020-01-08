@@ -244,7 +244,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
     // Convert peakList into ranges
     List<RetTimeClusterer.Interval> ranges =
-        Arrays.stream(peakList.getRows()).map(PeakListRow::getBestPeak)
+        peakList.getRows().stream().map(PeakListRow::getBestPeak)
             .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
             .collect(Collectors.toList());
 

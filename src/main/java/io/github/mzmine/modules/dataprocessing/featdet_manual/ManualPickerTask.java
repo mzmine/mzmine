@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -136,7 +137,7 @@ class ManualPickerTask extends AbstractTask {
       // Check if the feature list row has been added to the feature list,
       // and
       // if it has not, add it
-      List<PeakListRow> rows = Arrays.asList(peakList.getRows());
+      List<PeakListRow> rows = new ArrayList<>(peakList.getRows());
       if (!rows.contains(peakListRow)) {
         peakList.addRow(peakListRow);
       }

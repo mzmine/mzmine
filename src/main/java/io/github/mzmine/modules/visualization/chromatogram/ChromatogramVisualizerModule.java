@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -67,7 +67,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(TICVisualizerParameters.scanSelection).getValue();
     final TICPlotType plotType =
         parameters.getParameter(TICVisualizerParameters.PLOT_TYPE).getValue();
-    final List<FeatureSelection> selectionPeaks =
+    final List<Feature> selectionPeaks =
         parameters.getParameter(TICVisualizerParameters.PEAKS).getValue();
 
     // Add the window to the desktop only if we actually have any raw
@@ -142,19 +142,13 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final Feature[] selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
-    List<FeatureSelection> featureSelection = new ArrayList<>();
-    if (selectionPeaks != null)
-      for (Feature f : selectionPeaks) {
-        FeatureSelection fs = new FeatureSelection(null, f, null, null);
-        featureSelection.add(fs);
-      }
     TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
-        mzRange, featureSelection, peakLabels);
+        mzRange, Arrays.asList(selectionPeaks), peakLabels);
     window.show();
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
-      final List<FeatureSelection> selectionPeaks, final Map<Feature, String> peakLabels,
+      final List<Feature> selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
     TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,

@@ -18,7 +18,7 @@
 package io.github.mzmine.gui.chartbasics.gui.wrapper;
 
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -34,7 +34,7 @@ public interface GestureMouseAdapter {
    * @param g
    * @param handler
    */
-  public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, Button button,
+  public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, GestureButton button,
       Orientation orient, Object[] param);
 
   /**
@@ -43,7 +43,7 @@ public interface GestureMouseAdapter {
    * @param g
    * @param handler
    */
-  public void addGestureHandler(Handler handler, Entity entity, Event[] event, Button button,
+  public void addGestureHandler(Handler handler, Entity entity, Event[] event, GestureButton button,
       Key key, Object[] param);
 
   /**

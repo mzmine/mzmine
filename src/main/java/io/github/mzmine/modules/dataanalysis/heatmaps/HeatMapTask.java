@@ -304,7 +304,7 @@ public class HeatMapTask extends AbstractTask {
 
     // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-    allDataFiles.addAll(Arrays.asList(peakList.getRawDataFiles()));
+    allDataFiles.addAll(peakList.getRawDataFiles());
 
     // Determine the reference group and non reference group (the rest of
     // the samples) for raw data files
@@ -461,7 +461,7 @@ public class HeatMapTask extends AbstractTask {
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
     DescriptiveStatistics meanControlStats = new DescriptiveStatistics();
     DescriptiveStatistics meanGroupStats = new DescriptiveStatistics();
-    allDataFiles.addAll(Arrays.asList(peakList.getRawDataFiles()));
+    allDataFiles.addAll(peakList.getRawDataFiles());
 
     // Determine the reference group and non reference group (the rest of
     // the samples) for raw data files

@@ -59,7 +59,7 @@
 
 													<SeparatorMenuItem />
 													<MenuItem text="Sort alphabetically"
-														onAction="#handleSortRawDataFiles" />
+														onAction="#handleSort" />
 													<MenuItem text="Remove file extension"
 														onAction="#handleRemoveFileExtension" />
 
@@ -103,7 +103,7 @@
 
 													<SeparatorMenuItem />
 													<MenuItem text="Sort alphabetically"
-														onAction="#handleSortFeatureLists" />
+														onAction="#handleSort" />
 													<MenuItem text="Rename feature list"
 														onAction="#handleRenameFeatureList" />
 													<MenuItem text="Remove feature list"
