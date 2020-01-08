@@ -19,9 +19,6 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -30,9 +27,6 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakListRowSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import javafx.collections.FXCollections;
 
 /*
@@ -74,13 +68,6 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
-    if (selectedPeakLists.length > 0) {
-      PeakListRow plRows[] = selectedPeakLists[0].getRows().toArray(PeakListRow[]::new);
-      Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-    }
-
     return super.showSetupDialog(valueCheckRequired);
   }
 

@@ -19,9 +19,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.ArrayList;
-
 import org.jfree.data.xy.AbstractXYZDataset;
-
 import io.github.mzmine.datamodel.PeakListRow;
 
 /*
@@ -100,7 +98,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
   private int getNumberOfCAtoms(PeakListRow row) {
     int numberOfCAtoms = 0;
     if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getName();
+      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
       int indexC = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -146,7 +144,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
   private int getNumberOfOAtoms(PeakListRow row) {
     int numberOfOAtoms = 0;
     if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getName();
+      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
       int indexO = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -192,7 +190,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
   private int getNumberOfHAtoms(PeakListRow row) {
     int numberOfHAtoms = 0;
     if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getName();
+      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
       int indexH = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
