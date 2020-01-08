@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+
+<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidDatabaseTableController">
+   <center>
+      <SplitPane dividerPositions="0.8276553106212425" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <TableView fx:id="lipidDatabaseTableView" layoutX="47.0" layoutY="292.0" prefHeight="798.0" prefWidth="822.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <columns>
+                      <TableColumn fx:id="idColumn" editable="false" prefWidth="75.0" text="ID" />
+                      <TableColumn fx:id="lipidCoreClassColumn" editable="false" prefWidth="75.0" text="Lipid core class" />
+                        <TableColumn fx:id="lipidMainClassColumn" editable="false" prefWidth="75.0" text="Lipid main class" />
+                        <TableColumn fx:id="lipidClassColumn" editable="false" prefWidth="75.0" text="Lipid class" />
+                        <TableColumn fx:id="formulaColumn" editable="false" prefWidth="75.0" text="Molecular formula" />
+                        <TableColumn fx:id="abbreviationColumn" editable="false" prefWidth="75.0" text="Abbreviation" />
+                        <TableColumn fx:id="ionizationColumn" editable="false" prefWidth="75.0" text="Ionozation" />
+                        <TableColumn fx:id="exactMassColumn" editable="false" prefWidth="75.0" text="Exact mass" />
+                        <TableColumn fx:id="infoColumn" editable="false" prefWidth="75.0" text="Info" />
+                        <TableColumn fx:id="statusColumn" editable="false" prefWidth="75.0" text="Status" />
+                        <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0" text="MS/MS fragments positive ionization" />
+                        <TableColumn fx:id="fragmentsNegColumn" editable="false" prefWidth="75.0" text="MS/MS fragments negative ionization" />
+                    </columns>
+                  </TableView>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <SplitPane dividerPositions="0.5" layoutX="156.0" layoutY="255.0" orientation="VERTICAL" prefHeight="798.0" prefWidth="495.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                        <BorderPane fx:id="kendrickPlotPanelCH2" prefHeight="200.0" prefWidth="200.0" />
+                        <BorderPane fx:id="kendrickPlotPanelH" prefHeight="200.0" prefWidth="200.0" />
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </center>
+   <bottom>
+      <AnchorPane prefHeight="48.0" prefWidth="1000.0" BorderPane.alignment="CENTER">
+         <children>
+            <HBox prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Label text="Legend" />
+               </children>
+            </HBox>
+         </children>
+      </AnchorPane>
+   </bottom>
+</BorderPane>

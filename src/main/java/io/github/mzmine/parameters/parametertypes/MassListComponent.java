@@ -29,9 +29,9 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 
-public class MassListComponent extends BorderPane {
+public class MassListComponent extends FlowPane {
 
   private TextField nameField;
   private Button lookupButton;
@@ -63,7 +63,6 @@ public class MassListComponent extends BorderPane {
     });
 
     getChildren().addAll(nameField, lookupButton);
-
 
   }
 
