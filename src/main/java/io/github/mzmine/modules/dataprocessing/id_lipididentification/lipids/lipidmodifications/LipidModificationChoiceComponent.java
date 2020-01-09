@@ -161,7 +161,6 @@ public class LipidModificationChoiceComponent extends BorderPane {
       checkList.getItems().clear();
     });
 
-    System.out.println(checkList.getSelectionModel().getSelectedItems().size());
     buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
     setRight(buttonsPane);
 

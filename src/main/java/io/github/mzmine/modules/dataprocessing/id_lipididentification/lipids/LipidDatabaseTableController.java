@@ -54,43 +54,43 @@ import javafx.scene.paint.Color;
 public class LipidDatabaseTableController {
 
   @FXML
-  private TableView<TableModel> lipidDatabaseTableView;
+  private TableView<LipidClassDescription> lipidDatabaseTableView;
 
   @FXML
-  private TableColumn<TableModel, String> idColumn;
+  private TableColumn<LipidClassDescription, String> idColumn;
 
   @FXML
-  private TableColumn<TableModel, String> lipidCoreClassColumn;
+  private TableColumn<LipidClassDescription, String> lipidCoreClassColumn;
 
   @FXML
-  private TableColumn<TableModel, String> lipidMainClassColumn;
+  private TableColumn<LipidClassDescription, String> lipidMainClassColumn;
 
   @FXML
-  private TableColumn<TableModel, String> lipidClassColumn;
+  private TableColumn<LipidClassDescription, String> lipidClassColumn;
 
   @FXML
-  private TableColumn<TableModel, String> formulaColumn;
+  private TableColumn<LipidClassDescription, String> formulaColumn;
 
   @FXML
-  private TableColumn<TableModel, String> abbreviationColumn;
+  private TableColumn<LipidClassDescription, String> abbreviationColumn;
 
   @FXML
-  private TableColumn<TableModel, String> ionizationColumn;
+  private TableColumn<LipidClassDescription, String> ionizationColumn;
 
   @FXML
-  private TableColumn<TableModel, String> exactMassColumn;
+  private TableColumn<LipidClassDescription, String> exactMassColumn;
 
   @FXML
-  private TableColumn<TableModel, String> infoColumn;
+  private TableColumn<LipidClassDescription, String> infoColumn;
 
   @FXML
-  private TableColumn<TableModel, String> statusColumn;
+  private TableColumn<LipidClassDescription, String> statusColumn;
 
   @FXML
-  private TableColumn<TableModel, String> fragmentsPosColumn;
+  private TableColumn<LipidClassDescription, String> fragmentsPosColumn;
 
   @FXML
-  private TableColumn<TableModel, String> fragmentsNegColumn;
+  private TableColumn<LipidClassDescription, String> fragmentsNegColumn;
 
   @FXML
   private BorderPane kendrickPlotPanelCH2;
@@ -110,7 +110,7 @@ public class LipidDatabaseTableController {
   @FXML
   private Label interLabel;
 
-  ObservableList<TableModel> tableData = FXCollections.observableArrayList();
+  ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
   private int minChainLength;
   private int maxChainLength;
@@ -173,7 +173,7 @@ public class LipidDatabaseTableController {
           LipidIdentity lipidChain = new LipidIdentity(selectedLipids[i], chainLength,
               chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
 
-          tableData.add(new TableModel(String.valueOf(id), // id
+          tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipids[i].getCoreClass().getName(), // core class
               selectedLipids[i].getMainClass().getName(), // main class
               selectedLipids[i].getName(), // lipid class
@@ -193,7 +193,7 @@ public class LipidDatabaseTableController {
           id++;
           if (useModification) {
             for (int j = 0; j < lipidModification.length; j++) {
-              tableData.add(new TableModel(String.valueOf(id), // id
+              tableData.add(new LipidClassDescription(String.valueOf(id), // id
                   selectedLipids[i].getCoreClass().getName(), // core class
                   selectedLipids[i].getMainClass().getName(), // main class
                   selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
@@ -247,7 +247,7 @@ public class LipidDatabaseTableController {
     interSwing = Colors.getNegativeColor(vision);
 
     // create cell factory
-    statusColumn.setCellFactory(e -> new TableCell<TableModel, String>() {
+    statusColumn.setCellFactory(e -> new TableCell<LipidClassDescription, String>() {
       @Override
       public void updateItem(String item, boolean empty) {
         // Always invoke super constructor.
