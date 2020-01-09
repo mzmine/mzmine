@@ -89,7 +89,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
             e.printStackTrace();
             return;
           }
-          stage.setTitle("Raw data overview");
+          stage.setTitle("Lipid database");
           stage.show();
           stage.setMinWidth(stage.getWidth());
           stage.setMinHeight(stage.getHeight());

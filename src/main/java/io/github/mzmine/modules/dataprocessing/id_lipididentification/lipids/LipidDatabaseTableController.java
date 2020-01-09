@@ -1,6 +1,23 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
-import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -12,6 +29,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
@@ -19,14 +37,19 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.util.color.Vision;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 
 public class LipidDatabaseTableController {
 
@@ -75,6 +98,18 @@ public class LipidDatabaseTableController {
   @FXML
   private BorderPane kendrickPlotPanelH;
 
+  @FXML
+  private Label statusLabel;
+
+  @FXML
+  private Label noInterLabel;
+
+  @FXML
+  private Label possibleInterLabel;
+
+  @FXML
+  private Label interLabel;
+
   ObservableList<TableModel> tableData = FXCollections.observableArrayList();
 
   private int minChainLength;
@@ -85,6 +120,13 @@ public class LipidDatabaseTableController {
   private boolean useModification;
   private LipidModification[] lipidModification;
   private MZTolerance mzTolerance;
+
+  private Color noInterFX;
+  private Color possibleInterFX;
+  private Color interFX;
+  private java.awt.Color noInterSwing;
+  private java.awt.Color possibleInterSwing;
+  private java.awt.Color interSwing;
 
   public void initialize(ParameterSet parameters, LipidClasses[] selectedLipids) {
 
@@ -192,21 +234,35 @@ public class LipidDatabaseTableController {
     // check for interferences
     checkInterferences();
 
+    // set colors depending on colors
+    Vision vision = MZminePreferences.colorPalettes.getValue();
+
+    // fx colors
+    noInterFX = ColorsFX.getPositiveColor(vision);
+    possibleInterFX = ColorsFX.getNeutralColor();
+    interFX = ColorsFX.getNegativeColor(vision);
+
+    // awt/swing colors or jfreechart
+    noInterSwing = Colors.getPositiveColor(vision);
+    possibleInterSwing = Colors.getNeutralColor();
+    interSwing = Colors.getNegativeColor(vision);
+
     // create cell factory
     statusColumn.setCellFactory(e -> new TableCell<TableModel, String>() {
       @Override
       public void updateItem(String item, boolean empty) {
         // Always invoke super constructor.
         super.updateItem(item, empty);
-        if (tableData.get(getIndex() + 1).getInfo().toString().contains("Possible interference")) {
-          this.setStyle("-fx-background-color:yellow;");
-        } else if (tableData.get(getIndex() + 1).getInfo().contains("Interference")) {
-          this.setStyle("-fx-background-color:red;");
-        } else {
-          this.setStyle("-fx-background-color:lightgreen;");
+        if (getIndex() >= 0) {
+          if (tableData.get(getIndex()).getInfo().toString().contains("Possible interference")) {
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
+          } else if (tableData.get(getIndex()).getInfo().contains("Interference")) {
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
+          } else {
+            this.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
+          }
         }
       }
-
     });
 
     lipidDatabaseTableView.setItems(tableData);
@@ -218,6 +274,12 @@ public class LipidDatabaseTableController {
     EChartViewer kendrickChartH =
         new EChartViewer(create2DKendrickMassDatabasePlot("H"), true, true, true, true, false);
     kendrickPlotPanelH.setCenter(kendrickChartH);
+
+    // legend
+    statusLabel.setStyle("-fx-font-weight: bold");
+    noInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(noInterFX));
+    possibleInterLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(possibleInterFX));
+    interLabel.setStyle("-fx-background-color:#" + ColorsFX.toHexString(interFX));
   }
 
   /**
@@ -298,7 +360,7 @@ public class LipidDatabaseTableController {
     chart.getLegend().setBackgroundPaint(null);
     // create plot
     XYPlot plot = (XYPlot) chart.getPlot();
-    plot.setBackgroundPaint(Color.BLACK);
+    plot.setBackgroundPaint(java.awt.Color.BLACK);
     plot.setRangeGridlinesVisible(false);
     plot.setDomainGridlinesVisible(false);
 
@@ -308,9 +370,9 @@ public class LipidDatabaseTableController {
 
     // set renderer
     XYDotRenderer renderer = new XYDotRenderer();
-    renderer.setSeriesPaint(0, Color.GREEN);
-    renderer.setSeriesPaint(1, Color.YELLOW);
-    renderer.setSeriesPaint(2, Color.RED);
+    renderer.setSeriesPaint(0, noInterSwing);
+    renderer.setSeriesPaint(1, possibleInterSwing);
+    renderer.setSeriesPaint(2, interSwing);
     renderer.setDotHeight(3);
     renderer.setDotWidth(3);
     plot.setRenderer(renderer);
