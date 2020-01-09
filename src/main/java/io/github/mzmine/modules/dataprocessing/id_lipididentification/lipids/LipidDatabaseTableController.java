@@ -144,8 +144,7 @@ public class LipidDatabaseTableController {
         parameters.getParameter(LipidSearchParameters.searchForModifications).getValue();
     if (useModification) {
       this.lipidModification = parameters.getParameter(LipidSearchParameters.searchForModifications)
-          .getEmbeddedParameters().getParameter(LipidSearchModificationsParamters.modification)
-          .getValue();
+          .getEmbeddedParameter().getValue();
     }
     this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
 

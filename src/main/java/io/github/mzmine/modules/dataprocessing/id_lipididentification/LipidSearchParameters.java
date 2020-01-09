@@ -21,10 +21,12 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.AllLipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClassParameter;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidSearchModificationsParamters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModificationChoiceParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -57,14 +59,16 @@ public class LipidSearchParameters extends SimpleParameterSet {
       new ComboParameter<IonizationType>("Ionization method",
           "Type of ion used to calculate the ionized mass", IonizationType.values());
 
-  public static final OptionalModuleParameter searchForMSMSFragments =
-      new OptionalModuleParameter("Search for lipid class specific fragments in MS/MS spectra",
+  public static final OptionalModuleParameter<LipidSearchMSMSParameters> searchForMSMSFragments =
+      new OptionalModuleParameter<LipidSearchMSMSParameters>(
+          "Search for lipid class specific fragments in MS/MS spectra",
           "Search for lipid class specific fragments in MS/MS spectra",
           new LipidSearchMSMSParameters());
 
-  public static final OptionalModuleParameter searchForModifications = new OptionalModuleParameter(
-      "Search for lipid modification", "If checked the algorithm searches for lipid modifications",
-      new LipidSearchModificationsParamters());
+  public static final OptionalParameter<LipidModificationChoiceParameter> searchForModifications =
+      new OptionalParameter<LipidModificationChoiceParameter>(new LipidModificationChoiceParameter(
+          "Search for lipid modification",
+          "If checked the algorithm searches for lipid modifications", new LipidModification[0]));
 
   public LipidSearchParameters() {
     super(new Parameter[] {peakLists, lipidClasses, chainLength, doubleBonds, ionizationMethod,

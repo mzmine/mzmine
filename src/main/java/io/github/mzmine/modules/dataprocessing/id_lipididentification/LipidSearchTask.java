@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidSearchModificationsParamters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidIdentity;
 import io.github.mzmine.parameters.ParameterSet;
@@ -93,9 +92,8 @@ public class LipidSearchTask extends AbstractTask {
     searchForModifications =
         parameters.getParameter(LipidSearchParameters.searchForModifications).getValue();
     if (searchForModifications) {
-      this.lipidModification = parameters.getParameter(LipidSearchParameters.searchForModifications)
-          .getEmbeddedParameters().getParameter(LipidSearchModificationsParamters.modification)
-          .getValue();
+      this.lipidModification =
+          LipidSearchParameters.searchForModifications.getEmbeddedParameter().getValue();
     }
     if (searchForMSMSFragments) {
       mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)

@@ -50,7 +50,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
   // Logger.
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final CheckListView<LipidModification> checkList = new CheckListView<>();
+  private final CheckListView<LipidModification> checkList = new CheckListView<LipidModification>();
   private final FlowPane buttonsPane = new FlowPane(Orientation.VERTICAL);
   private final Button addButton = new Button("Add...");
   private final Button importButton = new Button("Import...");
@@ -82,8 +82,6 @@ public class LipidModificationChoiceComponent extends BorderPane {
       if (!checkList.getItems().contains(lipidModification)) {
         checkList.getItems().add(lipidModification);
       }
-
-
     });
 
     importButton.setTooltip(new Tooltip("Import lipid modifications from a CSV file"));
@@ -163,7 +161,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
       checkList.getItems().clear();
     });
 
-
+    System.out.println(checkList.getSelectionModel().getSelectedItems().size());
     buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
     setRight(buttonsPane);
 
