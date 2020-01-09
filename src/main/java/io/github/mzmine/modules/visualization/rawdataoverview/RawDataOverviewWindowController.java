@@ -293,14 +293,24 @@ public class RawDataOverviewWindowController {
           // add new marker
           plot.addDomainMarker(marker);
 
-          // add EIC of scan base peak if slected scan is MS1 level
+          // add EIC of scan base peak if selected scan is MS1 level, when MS2 show base peak of
+          // precursor
+
           // get MS1 scan selection to draw tic plot
-          if (scan.getMSLevel() == 1) {
+          if (scan.getMSLevel() == 1 || scan.getMSLevel() == 2) {
             ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
 
             // mz range for 10 ppm window
             Range<Double> mzRange = null;
-            double mzHighestDataPoint = scan.getHighestDataPoint().getMZ();
+            double mzHighestDataPoint = 0.0;
+            if (scan.getMSLevel() == 1) {
+              mzHighestDataPoint = scan.getHighestDataPoint().getMZ();
+            } else if (scan.getMSLevel() == 2) {
+              mzHighestDataPoint = scan.getPrecursorMZ();
+            } else {
+              plot.setDataset(1, null);
+            }
+
             double tenppm = (mzHighestDataPoint * 10E-6);
             double upper = mzHighestDataPoint + tenppm;
             double lower = mzHighestDataPoint - tenppm;
@@ -319,7 +329,6 @@ public class RawDataOverviewWindowController {
           } else {
             plot.setDataset(1, null);
           }
-
         } catch (Exception e) {
           e.getStackTrace();
         }
