@@ -62,31 +62,31 @@ public class RawDataOverviewWindowController {
   private Label rawDataLabel;
 
   @FXML
-  private TableView<TableModel> rawDataTableView;
+  private TableView<ScanDescription> rawDataTableView;
 
   @FXML
-  private TableColumn<TableModel, String> scanColumn;
+  private TableColumn<ScanDescription, String> scanColumn;
 
   @FXML
-  private TableColumn<TableModel, String> rtColumn;
+  private TableColumn<ScanDescription, String> rtColumn;
 
   @FXML
-  private TableColumn<TableModel, String> msLevelColumn;
+  private TableColumn<ScanDescription, String> msLevelColumn;
 
   @FXML
-  private TableColumn<TableModel, String> precursorMzColumn;
+  private TableColumn<ScanDescription, String> precursorMzColumn;
 
   @FXML
-  private TableColumn<TableModel, String> mzRangeColumn;
+  private TableColumn<ScanDescription, String> mzRangeColumn;
 
   @FXML
-  private TableColumn<TableModel, String> scanTypeColumn;
+  private TableColumn<ScanDescription, String> scanTypeColumn;
 
   @FXML
-  private TableColumn<TableModel, String> polarityColumn;
+  private TableColumn<ScanDescription, String> polarityColumn;
 
   @FXML
-  private TableColumn<TableModel, String> definitionColumn;
+  private TableColumn<ScanDescription, String> definitionColumn;
 
   @FXML
   private GridPane metaDataGridPane;
@@ -97,7 +97,7 @@ public class RawDataOverviewWindowController {
   @FXML
   private BorderPane spectraPane;
 
-  ObservableList<TableModel> tableData = FXCollections.observableArrayList();
+  ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
 
   public void initialize(RawDataFile rawDataFile) {
 
@@ -163,7 +163,7 @@ public class RawDataOverviewWindowController {
               + "-" + MZminePreferences.mzFormat.getValue()
                   .format(scan.getDataPointMZRange().upperEndpoint());
 
-      tableData.add(new TableModel(Integer.toString(i), // scan number
+      tableData.add(new ScanDescription(Integer.toString(i), // scan number
           MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
           Integer.toString(scan.getMSLevel()), // MS level
           precursor, // precursor mz
