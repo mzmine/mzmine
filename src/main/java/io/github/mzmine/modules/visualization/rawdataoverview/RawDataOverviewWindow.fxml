@@ -17,13 +17,10 @@
    <top>
       <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" style="-fx-background-color: darkgrey;" BorderPane.alignment="CENTER">
          <children>
-            <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0" text="Overview of raw data file: " textFill="#f8f8f8" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0" text="Overview of raw data file: " textFill="#f8f8f8" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" style="-fx-font-weight: bold;">
                <padding>
                   <Insets left="5.0" />
                </padding>
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
             </Label>
          </children>
       </AnchorPane>
@@ -67,34 +64,22 @@
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 </rowConstraints>
                                  <children>
-                                    <Label text="Total number of scans:">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
+                                    <Label text="Total number of scans:" style="-fx-font-weight: bold;" >
                                        <GridPane.margin>
                                           <Insets left="5.0" />
                                        </GridPane.margin>
                                     </Label>
-                                    <Label text="Retention time range:" GridPane.rowIndex="1">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
+                                    <Label text="Retention time range:" GridPane.rowIndex="1" style="-fx-font-weight: bold;" >
                                        <GridPane.margin>
                                           <Insets left="5.0" />
                                        </GridPane.margin>
                                     </Label>
-                                    <Label text="m/z range:" GridPane.rowIndex="2">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
+                                    <Label text="m/z range:" GridPane.rowIndex="2" style="-fx-font-weight: bold;" >
                                        <GridPane.margin>
                                           <Insets left="5.0" />
                                        </GridPane.margin>
                                     </Label>
-                                    <Label text="Maximum TIC:" GridPane.rowIndex="3">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
+                                    <Label text="Maximum TIC:" GridPane.rowIndex="3" style="-fx-font-weight: bold;" >
                                        <GridPane.margin>
                                           <Insets left="5.0" />
                                        </GridPane.margin>
