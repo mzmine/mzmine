@@ -55,7 +55,7 @@ public class LipidModificationChoiceParameter
 
   @Override
   public void setValueFromComponent(final LipidModificationChoiceComponent component) {
-    values = component.getValue().toArray(new LipidModification[0]);
+    values = component.getValue().toArray(new LipidModification[component.getValue().size()]);
   }
 
   @Override

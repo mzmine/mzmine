@@ -65,7 +65,6 @@ public class MassListComponent extends FlowPane {
 
     getChildren().addAll(nameField, lookupButton);
 
-
   }
 
   public String getValue() {

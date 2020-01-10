@@ -19,18 +19,17 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.AllLipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModificationChoiceParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 
@@ -46,17 +45,11 @@ public class LipidSearchParameters extends SimpleParameterSet {
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<Object>(
       "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
-  public static final IntegerParameter minChainLength = new IntegerParameter(
-      "Minimum number of carbon in chains", "Minimum number of carbon in chains");
+  public static final IntRangeParameter chainLength =
+      new IntRangeParameter("Number of carbon atoms in chains", "Number of carbon atoms in chains");
 
-  public static final IntegerParameter maxChainLength = new IntegerParameter(
-      "Maximum number of carbon in chains", "Maximum number of carbon in chains");
-
-  public static final IntegerParameter minDoubleBonds = new IntegerParameter(
-      "Minimum number of double bonds", "Minumum number of double bonds in all chains");
-
-  public static final IntegerParameter maxDoubleBonds = new IntegerParameter(
-      "Maximum number of double bonds", "Maximum number of double bonds in all chains");
+  public static final IntRangeParameter doubleBonds =
+      new IntRangeParameter("Number of double bonds in chains", "Number of double bonds in chains");
 
   public static final MZToleranceParameter mzTolerance =
       new MZToleranceParameter("m/z tolerance MS1 level:",
@@ -66,29 +59,20 @@ public class LipidSearchParameters extends SimpleParameterSet {
       new ComboParameter<IonizationType>("Ionization method",
           "Type of ion used to calculate the ionized mass", IonizationType.values());
 
-  public static final BooleanParameter searchForMSMSFragments =
-      new BooleanParameter("Search for lipid class specific fragments in MS/MS spectra",
-          "Search for lipid class specific fragments in MS/MS spectra");
+  public static final OptionalModuleParameter<LipidSearchMSMSParameters> searchForMSMSFragments =
+      new OptionalModuleParameter<LipidSearchMSMSParameters>(
+          "Search for lipid class specific fragments in MS/MS spectra",
+          "Search for lipid class specific fragments in MS/MS spectra",
+          new LipidSearchMSMSParameters());
 
-  public static final MZToleranceParameter mzToleranceMS2 =
-      new MZToleranceParameter("m/z tolerance MS2 level:",
-          "Enter m/z tolerance for exact mass database matching on MS2 level");
-
-  public static final DoubleParameter noiseLevel = new DoubleParameter(
-      "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise",
-      MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
-
-  public static final BooleanParameter useModification = new BooleanParameter(
-      "Search for lipid modification", "If checked the algorithm searches for lipid modifications");
-
-  public static final LipidModificationChoiceParameter modification =
-      new LipidModificationChoiceParameter("Lipid modifications", "Add lipid modifications",
-          new LipidModification[0]);
+  public static final OptionalParameter<LipidModificationChoiceParameter> searchForModifications =
+      new OptionalParameter<LipidModificationChoiceParameter>(new LipidModificationChoiceParameter(
+          "Search for lipid modification",
+          "If checked the algorithm searches for lipid modifications", new LipidModification[0]));
 
   public LipidSearchParameters() {
-    super(new Parameter[] {peakLists, lipidClasses, minChainLength, maxChainLength, minDoubleBonds,
-        maxDoubleBonds, ionizationMethod, mzTolerance, searchForMSMSFragments, mzToleranceMS2,
-        noiseLevel, useModification, modification});
+    super(new Parameter[] {peakLists, lipidClasses, chainLength, doubleBonds, ionizationMethod,
+        mzTolerance, searchForMSMSFragments, searchForModifications});
 
   }
 
