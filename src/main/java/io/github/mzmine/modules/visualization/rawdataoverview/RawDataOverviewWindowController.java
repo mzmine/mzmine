@@ -37,6 +37,8 @@ import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.Vision;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -57,6 +59,10 @@ public class RawDataOverviewWindowController {
   private RawDataFile rawDataFile;
   private TICPlot ticPlot;
   private TICVisualizerWindow ticWindow;
+  private Color posColor;
+  private Color negColor;
+  private Color neuColor;
+  private Vision vision;
 
   @FXML
   private Label rawDataLabel;
@@ -103,6 +109,12 @@ public class RawDataOverviewWindowController {
 
     this.rawDataFile = rawDataFile;
     int numberOfScans = rawDataFile.getNumOfScans();
+
+    // set colors depending on vision
+    vision = MZminePreferences.colorPalettes.getValue();
+    posColor = Colors.getPositiveColor(vision);
+    negColor = Colors.getNegativeColor(vision);
+    neuColor = Colors.getNeutralColor();
 
     // add meta data
     rawDataLabel.setText(rawDataLabel.getText() + " " + rawDataFile.getName());
@@ -257,6 +269,8 @@ public class RawDataOverviewWindowController {
         }
       }
     });
+
+    updatePlots();
   }
 
   private void updatePlots() {
@@ -272,26 +286,35 @@ public class RawDataOverviewWindowController {
           SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(rawDataFile);
           spectraWindow.loadRawData(scan);
 
+          // set color
+          XYPlot plotSpectra = (XYPlot) spectraWindow.getSpectrumPlot().getChart().getPlot();
+
+          // set color
+          plotSpectra.getRenderer().setSeriesPaint(0, posColor);
+
           // add mass list
           MassList[] massLists = rawDataFile.getScan(scanNumber).getMassLists();
           for (MassList massList : massLists) {
             MassListDataSet dataset = new MassListDataSet(massList);
-            spectraWindow.getSpectrumPlot().addDataSet(dataset, Color.green, true);
+            spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
           }
 
           spectraPane.setCenter(spectraWindow.getScene().getRoot());
 
           // add a retention time Marker to the TIC
           ValueMarker marker = new ValueMarker(rawDataFile.getScan(scanNumber).getRetentionTime());
-          marker.setPaint(Color.RED);
+          marker.setPaint(negColor);
           marker.setStroke(new BasicStroke(3.0f));
-          XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+          XYPlot plotTic = (XYPlot) ticPlot.getChart().getPlot();
+
+          // set color
+          plotTic.getRenderer().setSeriesPaint(0, posColor);
 
           // delete old marker
-          plot.clearDomainMarkers();
+          plotTic.clearDomainMarkers();
 
           // add new marker
-          plot.addDomainMarker(marker);
+          plotTic.addDomainMarker(marker);
 
           // add EIC of scan base peak if selected scan is MS1 level, when MS2 show base peak of
           // precursor
@@ -308,7 +331,7 @@ public class RawDataOverviewWindowController {
             } else if (scan.getMSLevel() == 2) {
               mzHighestDataPoint = scan.getPrecursorMZ();
             } else {
-              plot.setDataset(1, null);
+              plotTic.setDataset(1, null);
             }
 
             double tenppm = (mzHighestDataPoint * 10E-6);
@@ -321,13 +344,14 @@ public class RawDataOverviewWindowController {
                 scanSelection.getMatchingScans(rawDataFile), mzRange, ticWindow);
 
             XYAreaRenderer renderer = new XYAreaRenderer();
+            renderer.setSeriesPaint(0, neuColor);
 
-            plot.setRenderer(1, renderer);
-            plot.setDataset(1, dataset);
+            plotTic.setRenderer(1, renderer);
+            plotTic.setDataset(1, dataset);
 
             chromatogramPane.setCenter(ticPlot.getParent());
           } else {
-            plot.setDataset(1, null);
+            plotTic.setDataset(1, null);
           }
         } catch (Exception e) {
           e.getStackTrace();
