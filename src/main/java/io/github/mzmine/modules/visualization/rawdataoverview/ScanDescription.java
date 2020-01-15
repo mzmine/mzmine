@@ -23,7 +23,7 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class TableModel {
+public class ScanDescription {
 
   private String scanNumber;
   private String retentionTime;
@@ -35,7 +35,7 @@ public class TableModel {
   private String definition;
 
 
-  public TableModel(String scanNumber, String retentionTime, String msLevel, String precursorMz,
+  public ScanDescription(String scanNumber, String retentionTime, String msLevel, String precursorMz,
       String mzRange, String scanType, String polarity, String definition) {
     this.scanNumber = scanNumber;
     this.retentionTime = retentionTime;
