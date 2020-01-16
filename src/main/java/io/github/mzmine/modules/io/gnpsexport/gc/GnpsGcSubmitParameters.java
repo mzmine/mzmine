@@ -119,7 +119,7 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
     // at least one raw data file in project
     RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     if (raw == null || raw.length <= 0) {
-      DialogLoggerUtil.showMessageDialogForTime(null, "No RAW data files",
+      DialogLoggerUtil.showMessageDialogForTime("No RAW data files",
           "Cannot use Kovats extraction without raw data files in this project", 3500);
       return;
     }

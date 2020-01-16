@@ -414,7 +414,7 @@ public class GraphicsExportDialog extends JFrame {
       } catch (Exception e) {
         e.printStackTrace();
         logger.log(Level.SEVERE, "File not written (" + path + ")", e);
-        DialogLoggerUtil.showErrorDialog(this, "File not written. ", e);
+        DialogLoggerUtil.showErrorDialog("File not written. ", e);
       }
     }
   }

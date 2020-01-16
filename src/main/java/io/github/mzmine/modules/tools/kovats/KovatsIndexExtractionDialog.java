@@ -854,7 +854,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       // save file
       saveToFile();
     } else {
-      DialogLoggerUtil.showMessageDialogForTime(null, "Select multiple files",
+      DialogLoggerUtil.showMessageDialogForTime("Select multiple files",
           "Please select multiple files for combination", 3500);
     }
   }
