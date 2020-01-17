@@ -38,7 +38,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -56,15 +55,12 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 import javafx.embed.swing.SwingNode;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProcessingComponent extends SwingNode implements ActionListener {
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = 1L;
 
   private static final Logger logger = Logger.getLogger(ProcessingComponent.class.getName());
 
@@ -76,8 +72,8 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
   private final JCheckBox cbDiffMSn;
 
   // File chooser
-  private final LoadSaveFileChooser chooser;
-  private static final String XML_EXTENSION = "xml";
+  private final FileChooser chooser;
+  private static final String XML_EXTENSION = "*.xml";
 
   DefaultMutableTreeNode tiProcessingRoot;
   DefaultMutableTreeNode tiAllModulesRoot;
@@ -116,8 +112,9 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     // "BTN_SET_DEFAULT");
     mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-    chooser = new LoadSaveFileChooser("Select Processing Queue File");
-    chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
+    chooser = new FileChooser();
+    chooser.setTitle("Select Processing Queue File");
+    chooser.getExtensionFilters().add(new ExtensionFilter("XML files", XML_EXTENSION));
 
     SwingUtilities.invokeLater(() -> {
       this.setContent(mainPanel);
@@ -135,14 +132,14 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
       if (item != null)
         setParameters(item);
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
-      final File file = chooser.getLoadFile(mainPanel);
+      final File file = chooser.showOpenDialog(this.getScene().getWindow());
       if (file != null) {
         DPPParameterValueWrapper value = new DPPParameterValueWrapper();
         value.loadFromFile(file);
         setValueFromValueWrapper(value);
       }
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
-      final File file = chooser.getSaveFile(mainPanel, XML_EXTENSION);
+      final File file = chooser.showSaveDialog(this.getScene().getWindow());
       if (file != null) {
         DPPParameterValueWrapper value = getValueFromComponent();
         value.saveToFile(file);

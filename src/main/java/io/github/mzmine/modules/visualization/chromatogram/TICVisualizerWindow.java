@@ -29,7 +29,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
@@ -54,7 +53,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
@@ -65,6 +63,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 
 /**
@@ -85,7 +85,7 @@ public class TICVisualizerWindow extends Stage {
       FxIconUtil.loadImageFromResources("icons/bgicon.png");
 
   // CSV extension.
-  private static final String CSV_EXTENSION = "csv";
+  private static final String CSV_EXTENSION = "*.csv";
 
   private final Scene mainScene;
   private final BorderPane mainPane;
@@ -102,7 +102,7 @@ public class TICVisualizerWindow extends Stage {
   private Desktop desktop;
 
   // Export file chooser.
-  private static LoadSaveFileChooser exportChooser = null;
+  private static FileChooser exportChooser = null;
 
 
   /**
@@ -431,13 +431,15 @@ public class TICVisualizerWindow extends Stage {
       // Create the chooser if necessary.
       if (exportChooser == null) {
 
-        exportChooser = new LoadSaveFileChooser("Select Chromatogram File");
-        exportChooser.addChoosableFileFilter(
-            new FileNameExtensionFilter("Comma-separated values files", CSV_EXTENSION));
+        exportChooser = new FileChooser();
+        exportChooser.setTitle("Select Chromatogram File");
+        exportChooser.getExtensionFilters()
+            .add(new ExtensionFilter("Comma-separated values files", CSV_EXTENSION));
       }
 
+      exportChooser.setInitialFileName(file.getName());
       // Choose an export file.
-      final File exportFile = exportChooser.getSaveFile(null, file.getName(), CSV_EXTENSION);
+      final File exportFile = exportChooser.showSaveDialog(this);
       if (exportFile != null) {
 
         MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));

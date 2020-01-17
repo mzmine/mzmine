@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.controlsfx.control.CheckListView;
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
@@ -36,7 +35,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -44,6 +42,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class LipidModificationChoiceComponent extends BorderPane {
 
@@ -58,7 +58,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
   private final Button removeButton = new Button("Remove");
 
   // Filename extension.
-  private static final String FILENAME_EXTENSION = "csv";
+  private static final String FILENAME_EXTENSION = "*.csv";
 
   public LipidModificationChoiceComponent(LipidModification[] choices) {
 
@@ -87,12 +87,13 @@ public class LipidModificationChoiceComponent extends BorderPane {
     importButton.setTooltip(new Tooltip("Import lipid modifications from a CSV file"));
     importButton.setOnAction(e -> {
       // Create the chooser if necessary.
-      LoadSaveFileChooser chooser = new LoadSaveFileChooser("Select lipid modification file");
-      chooser.addChoosableFileFilter(
-          new FileNameExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
+      FileChooser chooser = new FileChooser();
+      chooser.setTitle("Select lipid modification file");
+      chooser.getExtensionFilters()
+          .add(new ExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
 
       // Select a file.
-      final File file = chooser.getLoadFile(null);
+      final File file = chooser.showOpenDialog(this.getScene().getWindow());
       if (file == null)
         return;
 
@@ -129,12 +130,13 @@ public class LipidModificationChoiceComponent extends BorderPane {
     exportButton.setOnAction(e -> {
       // Create the chooser if necessary.
 
-      LoadSaveFileChooser chooser = new LoadSaveFileChooser("Select lipid modifications File");
-      chooser.addChoosableFileFilter(
-          new FileNameExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
+      FileChooser chooser = new FileChooser();
+      chooser.setTitle("Select lipid modification file");
+      chooser.getExtensionFilters()
+          .add(new ExtensionFilter("Comma-separated values files", FILENAME_EXTENSION));
 
       // Choose the file.
-      final File file = chooser.getSaveFile(null, FILENAME_EXTENSION);
+      final File file = chooser.showSaveDialog(this.getScene().getWindow());
       if (file == null)
         return;
 
