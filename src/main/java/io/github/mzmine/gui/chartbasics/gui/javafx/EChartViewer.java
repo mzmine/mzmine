@@ -38,6 +38,8 @@ import org.jfree.data.xy.XYZDataset;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportDialog;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToClipboard;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToExcel;
 import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
@@ -45,6 +47,8 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -90,8 +94,8 @@ public class EChartViewer extends ChartViewer {
    *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds data export menu
+   * @param standardGestures   adds the standard ChartGestureHandlers
+   * @param dataExportMenu     adds data export menu
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
@@ -102,9 +106,9 @@ public class EChartViewer extends ChartViewer {
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
-   * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu     adds graphics export menu
+   * @param dataExportMenu         adds data export menu
+   * @param standardGestures       adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
@@ -116,9 +120,9 @@ public class EChartViewer extends ChartViewer {
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
-   * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
-   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu     adds graphics export menu
+   * @param dataExportMenu         adds data export menu
+   * @param standardGestures       adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
@@ -256,8 +260,14 @@ public class EChartViewer extends ChartViewer {
   protected void addExportMenu(boolean graphics, boolean data) {
     if (graphics) {
       // Graphics Export
-      addMenuItem(getContextMenu(), "Export graphics...",
-          e -> GraphicsExportDialog.openDialog(getChart()));
+      addMenuItem(getContextMenu(), "Export graphics...", e -> {
+        
+        GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
+            .getConfiguration().getModuleParameters(GraphicsExportModule.class);
+        
+        MZmineCore.getModuleInstance(GraphicsExportModule.class)
+            .openDialog(getChart(), parameters);
+      });
     }
     if (data) {
       // General data export

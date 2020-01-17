@@ -101,7 +101,7 @@ public class ParameterSetComponent extends GridPane {
 
   private void updateLabel() {
     // Update text for lblParameters
-    StringBuilder builder = new StringBuilder().append("<html>");
+    /*StringBuilder builder = new StringBuilder().append("<html>");
     Parameter[] params = parameters.getParameters();
     for (int i = 0; i < params.length; ++i) {
       builder.append(params[i].getName()).append(" = ").append(params[i].getValue());
@@ -110,6 +110,6 @@ public class ParameterSetComponent extends GridPane {
     }
     builder.append("</html>");
 
-    lblParameters.setText(builder.toString());
+    lblParameters.setText(builder.toString());*/
   }
 }

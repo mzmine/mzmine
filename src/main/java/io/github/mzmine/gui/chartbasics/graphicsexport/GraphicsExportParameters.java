@@ -21,16 +21,24 @@ package io.github.mzmine.gui.chartbasics.graphicsexport;
 import java.awt.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
+import org.jfree.chart.JFreeChart;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
@@ -39,8 +47,9 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     Chart, Plot;
   }
 
-  public static final StringParameter path = new StringParameter("Path", "The file path");
-  public static final StringParameter filename = new StringParameter("Filename", "The file name");
+  public static final DirectoryParameter path = new DirectoryParameter("Path", "The file path");
+  public static final StringParameter filename =
+      new StringParameter("Filename", "The file name");
 
   public static final DoubleParameter width = new DoubleParameter("Width",
       "Uses fixed width for the chart or plot", DecimalFormat.getInstance(), 15.0);
@@ -70,12 +79,27 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final ComboParameter<DimUnit> unit = new ComboParameter<>("Unit",
       "Unit for width and height dimensions", DimUnit.values(), DimUnit.CM);
 
+  public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
+      "Chart parameters", "Manually set the chart parameters", new ChartThemeParameters());
+
   public GraphicsExportParameters() {
     super(new Parameter[] {path, filename, unit, exportFormat, fixedSize, width, height, dpi, color,
-        alpha});
+        alpha, chartParameters});
     height.setValue(true);
   }
 
+
+  public ExitCode showSetupDialog(boolean valueCheckRequired, JFreeChart chart) {
+
+    assert Platform.isFxApplicationThread();
+
+    if ((getParameters() == null) || (getParameters().length == 0))
+      return ExitCode.OK;
+    GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(valueCheckRequired, this, chart);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+  
   /**
    * height is unchecked - use only width for size calculations
    *
@@ -144,7 +168,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   public Color getColorWithAlpha() {
     Color c = getColor();
-    return new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (255 * getTransparency()));
+    return new Color(c.getRed(), c.getGreen(), c.getBlue(), getTransparency());
   }
 
   public DimUnit getUnit() {
@@ -161,11 +185,11 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   // file
   public String getPath() {
-    return this.getParameter(path).getValue();
+    return this.getParameter(path).getValue().getPath();
   }
 
   public File getPathAsFile() {
-    return new File(this.getParameter(path).getValue());
+    return this.getParameter(path).getValue();
   }
 
   public String getFilename() {
