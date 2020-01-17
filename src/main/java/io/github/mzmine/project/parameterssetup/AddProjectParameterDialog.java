@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,7 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
@@ -30,23 +29,22 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import javafx.scene.control.TextInputDialog;
 
 public class AddProjectParameterDialog extends JDialog implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private JPanel panelAddNewParameter;
@@ -189,6 +187,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
     buttonRemoveCategory.setEnabled(enabled);
   }
 
+  @Override
   public void actionPerformed(ActionEvent actionEvent) {
 
     Object src = actionEvent.getSource();
@@ -220,7 +219,7 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
           return;
         }
         for (int valueIndex = 0; valueIndex < categories.size(); valueIndex++)
-          possibleValues[valueIndex] = (String) categories.get(valueIndex);
+          possibleValues[valueIndex] = categories.get(valueIndex);
         parameter = new ComboParameter<String>(paramName, null, possibleValues);
       }
 
@@ -243,7 +242,10 @@ public class AddProjectParameterDialog extends JDialog implements ActionListener
     }
 
     if (src == buttonAddCategory) {
-      String inputValue = JOptionPane.showInputDialog("Please input a new value");
+      TextInputDialog inputDialog = new TextInputDialog();
+      inputDialog.setContentText("Please input a new value");
+      String inputValue = inputDialog.showAndWait().get();
+
       if ((inputValue == null) || (inputValue.trim().length() == 0))
         return;
       if (((DefaultListModel<String>) listCategories.getModel()).contains(inputValue)) {

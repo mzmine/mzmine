@@ -198,7 +198,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
     JButton btnCheck = new JButton("Check");
     btnCheck.addActionListener(e -> {
       if (checkParameters())
-        DialogLoggerUtil.showMessageDialogForTime(this, "Check OK", "All parameters are set", 1500);
+        DialogLoggerUtil.showMessageDialogForTime("Check OK", "All parameters are set", 1500);
     });
     pnButtons.add(btnCheck);
 
@@ -509,8 +509,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
       //
       if (ions == 0) {
         log.info("No MS/MS spectrum selected or valid");
-        DialogLoggerUtil.showMessageDialogForTime(this, "Error",
-            "No MS/MS spectrum selected or valid", 1500);
+        DialogLoggerUtil.showMessageDialogForTime("Error", "No MS/MS spectrum selected or valid",
+            1500);
       } else {
         String message = ions + " MS/MS spectra were selected. Submit?";
         if (mslevel > 1) {
@@ -521,7 +521,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
           message += " (MS1)";
         }
         // show accept dialog
-        if (DialogLoggerUtil.showDialogYesNo(this, "Submission?", message)) {
+        if (DialogLoggerUtil.showDialogYesNo("Submission?", message)) {
           // create library / submit to GNPS
           HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
           for (ScanSelectPanel ion : pnScanSelect) {

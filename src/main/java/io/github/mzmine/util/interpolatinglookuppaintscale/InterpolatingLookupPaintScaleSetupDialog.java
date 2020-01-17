@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -26,28 +26,26 @@ import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 
 public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
     implements ActionListener, ListSelectionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -143,6 +141,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
 
   }
 
+  @Override
   public void valueChanged(ListSelectionEvent event) {
 
     if (event.getValueIsAdjusting())
@@ -161,6 +160,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
     Object src = event.getSource();
     if (src == buttonColor) {
@@ -171,7 +171,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
 
     if (src == buttonAddModify) {
       if (fieldValue.getValue() == null) {
-        displayMessage("Please enter value first.");
+        MZmineCore.getDesktop().displayMessage("Please enter value first.");
         return;
       }
 
@@ -213,14 +213,6 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
       paintScale.add(value, lookupTable.get(value));
     }
     return paintScale;
-  }
-
-  private void displayMessage(String msg) {
-    try {
-      logger.info(msg);
-      JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    } catch (Exception exce) {
-    }
   }
 
 }

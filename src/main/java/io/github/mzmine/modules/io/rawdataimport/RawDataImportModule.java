@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,19 +21,12 @@ package io.github.mzmine.modules.io.rawdataimport;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 import com.google.common.base.Strings;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.main.MZmineCore;
@@ -50,6 +43,12 @@ import io.github.mzmine.modules.io.rawdataimport.fileformats.ZipReadTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 /**
  * Raw data import module
@@ -94,28 +93,39 @@ public class RawDataImportModule implements MZmineProcessingModule {
       if (!Strings.isNullOrEmpty(commonPrefix)) {
 
         // Show a dialog to allow user to remove common prefix
-        Object[] options1 = {"Remove", "Do not remove", "Cancel"};
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("The files you have chosen have a common prefix."));
-        panel.add(new JLabel(
-            "Would you like to remove some or all of this prefix to shorten the names?"));
-        panel.add(new JLabel(" "));
-        panel.add(new JLabel("Prefix to remove:"));
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        JTextField textField = new JTextField(6);
-        textField.setText(commonPrefix);
-        panel.add(textField);
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Common prefix");
+        dialog.setContentText(
+            "The files you have chosen have a common prefix. Would you like to remove some or all of this prefix to shorten the names?");
 
-        int result = JOptionPane.showOptionDialog(null, panel, "Common prefix",
-            JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options1, null);
+        TextField textField = new TextField();
+        textField.setText(commonPrefix);
+
+        VBox panel = new VBox(10.0);
+        panel.getChildren().add(new Label("The files you have chosen have a common prefix."));
+        panel.getChildren().add(
+            new Label("Would you like to remove some or all of this prefix to shorten the names?"));
+        panel.getChildren().add(new Label(" "));
+        panel.getChildren().add(new Label("Prefix to remove:"));
+        panel.getChildren().add(textField);
+
+        ButtonType removeButtonType = new ButtonType("Remove", ButtonData.YES);
+        ButtonType notRemoveButtonType = new ButtonType("Do not remove", ButtonData.NO);
+        dialog.getDialogPane().getButtonTypes().addAll(removeButtonType, notRemoveButtonType,
+            ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(panel);
+        Optional<ButtonType> result = dialog.showAndWait();
+
+        if (!result.isPresent())
+          return ExitCode.CANCEL;
 
         // Cancel import if user clicked cancel
-        if (result == 2) {
-          return ExitCode.ERROR;
+        if (result.get() == ButtonType.CANCEL) {
+          return ExitCode.CANCEL;
         }
 
         // Only remove if user selected to do so
-        if (result == 0) {
+        if (result.get() == removeButtonType) {
           commonPrefix = textField.getText();
         } else {
           commonPrefix = null;
