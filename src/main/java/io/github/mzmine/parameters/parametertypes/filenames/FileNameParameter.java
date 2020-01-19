@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.parameters.UserParameter;
 
 /**
@@ -42,25 +41,61 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   private List<File> lastFiles;
   private String extension;
   private int textfield_columns = 15;
+  private FileSelectionType type;
 
-  public FileNameParameter(String name, String description) {
-    this(name, description, null);
+//  /**
+//   * Creates a parameter for opening a file. To save a file specify FileSelectionType.SAVE in
+//   * another constructor.
+//   * 
+//   * @param name
+//   * @param description
+//   */
+//  public FileNameParameter(String name, String description) {
+//    this(name, description, FileSelectionType.OPEN);
+//  }
+
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, FileSelectionType type) {
+    this(name, description, null, type);
   }
 
-  public FileNameParameter(String name, String description, String extension) {
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param extension
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, String extension,
+      FileSelectionType type) {
     this.name = name;
     this.description = description;
     this.extension = extension;
     lastFiles = new ArrayList<>();
+    this.type = type;
   }
 
-  public FileNameParameter(String name, String description, String extension,
-      int textfield_columns) {
+  /**
+   * 
+   * @param name
+   * @param description
+   * @param extension
+   * @param textfield_columns
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   */
+  public FileNameParameter(String name, String description, String extension, int textfield_columns,
+      FileSelectionType type) {
     this.name = name;
     this.description = description;
     this.extension = extension;
     this.textfield_columns = textfield_columns;
     lastFiles = new ArrayList<>();
+    this.type = type;
   }
 
   /**
@@ -81,7 +116,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameComponent createEditingComponent() {
-    return new FileNameComponent(textfield_columns, lastFiles);
+    return new FileNameComponent(textfield_columns, lastFiles, type);
   }
 
   @Override
@@ -104,7 +139,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description);
+    FileNameParameter copy = new FileNameParameter(name, description, type);
     copy.setValue(this.getValue());
     copy.setLastFiles(new ArrayList<>(lastFiles));
     return copy;

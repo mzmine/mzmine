@@ -18,6 +18,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
@@ -40,7 +41,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
-      "mgf");
+      "mgf", FileSelectionType.SAVE);
 
   // public static final BooleanParameter FRACTIONAL_MZ = new
   // BooleanParameter(

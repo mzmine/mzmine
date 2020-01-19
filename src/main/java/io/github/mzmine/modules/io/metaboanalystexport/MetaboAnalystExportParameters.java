@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 
@@ -35,7 +36,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.",
-      "csv");
+      "csv", FileSelectionType.SAVE);
 
   public static final ComboParameter<UserParameter<?, ?>> groupParameter =
       new ComboParameter<UserParameter<?, ?>>("Grouping parameter",

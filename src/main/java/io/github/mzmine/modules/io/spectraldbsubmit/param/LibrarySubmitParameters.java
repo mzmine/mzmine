@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 
@@ -62,8 +63,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
 
   // submission and creation of libraries
   // save to local file
-  public static final OptionalParameter<FileNameParameter> LOCALFILE =
-      new OptionalParameter<>(new FileNameParameter("Local file", "Local library file"), false);
+  public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
+      new FileNameParameter("Local file", "Local library file", FileSelectionType.SAVE), false);
   public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
       "Export GNPS json file", "The GNPS library submission json format", true);
   public static final BooleanParameter EXPORT_MSP =

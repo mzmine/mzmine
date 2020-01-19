@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
@@ -46,8 +47,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter(1);
 
-  public static final FileNameParameter FILENAME =
-      new FileNameParameter("Filename", "Base name of the output files (.MGF and .CSV).", "mgf");
+  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
+      "Base name of the output files (.MGF and .CSV).", "mgf", FileSelectionType.SAVE);
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
       new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",

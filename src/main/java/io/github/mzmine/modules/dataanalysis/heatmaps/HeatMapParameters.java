@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.R.REngineType;
@@ -39,8 +40,8 @@ public class HeatMapParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
 
-  public static final FileNameParameter fileName =
-      new FileNameParameter("Output name", "Select the path and name of the output file.");
+  public static final FileNameParameter fileName = new FileNameParameter("Output name",
+      "Select the path and name of the output file.", FileSelectionType.SAVE);
 
   public static final ComboParameter<String> fileTypeSelection =
       new ComboParameter<String>("Output file type", "Output file type", fileTypes, fileTypes[0]);

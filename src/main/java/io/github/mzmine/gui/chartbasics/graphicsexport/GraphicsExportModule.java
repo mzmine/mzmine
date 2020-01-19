@@ -44,7 +44,7 @@ public class GraphicsExportModule implements MZmineRunnableModule {
 
   @Override
   public String getDescription() {
-    return null;
+    return MODULE_DESCR;
   }
 
   public ExitCode openDialog(JFreeChart chart, ParameterSet parameters) {
@@ -59,7 +59,6 @@ public class GraphicsExportModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
-    // TODO Auto-generated method stub
     return null;
   }
 

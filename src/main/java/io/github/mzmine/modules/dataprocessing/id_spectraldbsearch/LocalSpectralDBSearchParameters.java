@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -46,7 +47,8 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter(
       "Spectral database file",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
+      FileSelectionType.OPEN);
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
       new OptionalModuleParameter<>("13C deisotoping",

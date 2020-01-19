@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 /**
  * 
@@ -54,8 +55,8 @@ public class GnpsFbmnSubmitParameters extends SimpleParameterSet {
    * Optional: Select meta data file
    */
   public static final OptionalParameter<FileNameParameter> META_FILE =
-      new OptionalParameter<FileNameParameter>(
-          new FileNameParameter("Meta data file", "Optional meta file for GNPS"), false);
+      new OptionalParameter<FileNameParameter>(new FileNameParameter("Meta data file",
+          "Optional meta file for GNPS", FileSelectionType.OPEN), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),

@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -66,7 +67,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new FileNameParameter("Output netCDF filename (optional)",
           "If selected, centroided spectra will be written to this file netCDF file. "
               + "If the file already exists, it will be overwritten.",
-          "cdf");
+          "cdf", FileSelectionType.SAVE);
 
   public static final OptionalParameter<FileNameParameter> outFilenameOption =
       new OptionalParameter<>(outFilename);

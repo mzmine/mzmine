@@ -22,6 +22,7 @@ import java.io.File;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -33,8 +34,8 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
       new ExtensionFilter("All Files", "*.*") //
   };
 
-  public static final FileNameParameter projectFile =
-      new FileNameParameter("Project file", "File name of project to be loaded");
+  public static final FileNameParameter projectFile = new FileNameParameter("Project file",
+      "File name of project to be loaded", FileSelectionType.OPEN);
 
   public ProjectLoaderParameters() {
     super(new Parameter[] {projectFile});

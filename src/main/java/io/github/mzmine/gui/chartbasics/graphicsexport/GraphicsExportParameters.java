@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
@@ -47,9 +48,8 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     Chart, Plot;
   }
 
-  public static final DirectoryParameter path = new DirectoryParameter("Path", "The file path");
-  public static final StringParameter filename =
-      new StringParameter("Filename", "The file name");
+  public static final FileNameParameter path =
+      new FileNameParameter("Path", "The file path", FileSelectionType.SAVE);
 
   public static final DoubleParameter width = new DoubleParameter("Width",
       "Uses fixed width for the chart or plot", DecimalFormat.getInstance(), 15.0);
@@ -83,8 +83,8 @@ public class GraphicsExportParameters extends SimpleParameterSet {
       "Chart parameters", "Manually set the chart parameters", new ChartThemeParameters());
 
   public GraphicsExportParameters() {
-    super(new Parameter[] {path, filename, unit, exportFormat, fixedSize, width, height, dpi, color,
-        alpha, chartParameters});
+    super(new Parameter[] {path, unit, exportFormat, fixedSize, width, height, dpi, color, alpha,
+        chartParameters});
     height.setValue(true);
   }
 
@@ -99,7 +99,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
     dialog.showAndWait();
     return dialog.getExitCode();
   }
-  
+
   /**
    * height is unchecked - use only width for size calculations
    *
@@ -185,15 +185,15 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   // file
   public String getPath() {
-    return this.getParameter(path).getValue().getPath();
+    return this.getParameter(path).getValue().getParent();
   }
 
   public File getPathAsFile() {
-    return this.getParameter(path).getValue();
+    return this.getParameter(path).getValue().getParentFile();
   }
 
   public String getFilename() {
-    return this.getParameter(filename).getValue();
+    return this.getParameter(path).getValue().getName();
   }
 
   /**
