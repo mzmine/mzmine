@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -48,7 +49,8 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
+      FileSelectionType.OPEN);
 
   public static final MassListParameter massList = new MassListParameter();
 

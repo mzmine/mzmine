@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -114,7 +115,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
       " Requires \"Export dendrogram as TXT\" checked."
           + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
           + " If the file already exists, it will be overwritten.",
-      "txt");
+      "txt", FileSelectionType.SAVE);
 
   /**
    * GLG HACK: temporarily removed for clarity public static final BooleanParameter

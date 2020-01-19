@@ -21,11 +21,12 @@ package io.github.mzmine.modules.visualization.featurelisttable.export;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 public class IsotopePatternExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter outputFile =
-      new FileNameParameter("Output file", "Please set the path and name of the output text file");
+  public static final FileNameParameter outputFile = new FileNameParameter("Output file",
+      "Please set the path and name of the output text file", FileSelectionType.SAVE);
 
   public IsotopePatternExportParameters() {
     super(new Parameter[] {outputFile});

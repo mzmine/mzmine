@@ -21,6 +21,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import javafx.collections.FXCollections;
 
@@ -62,7 +63,7 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
-      "mgf");
+      "mgf", FileSelectionType.SAVE);
 
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);

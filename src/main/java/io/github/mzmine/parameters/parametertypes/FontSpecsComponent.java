@@ -44,7 +44,7 @@ public class FontSpecsComponent extends FlowPane {
       var dialog = new FontSelectorDialog(currentFont);
       var result = dialog.showAndWait();
       if (result.isPresent())
-        currentFont = result.get();
+        setFont(result.get());
     });
 
     colorPicker = new ColorPicker(Color.BLACK);

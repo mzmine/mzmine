@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class XMLExportParameters extends SimpleParameterSet {
@@ -32,7 +33,7 @@ public class XMLExportParameters extends SimpleParameterSet {
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mpl\" would become \"blahSourcePeakListNameblah.mpl\"). "
           + "If the file already exists, it will be overwritten.",
-      "mpl");
+      "mpl", FileSelectionType.SAVE);
 
   public static final BooleanParameter compression =
       new BooleanParameter("Compressed file", "Generates a compressed file (.zip)");

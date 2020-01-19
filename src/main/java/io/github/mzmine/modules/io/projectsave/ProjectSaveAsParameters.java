@@ -24,6 +24,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -34,8 +35,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter projectFile =
-      new FileNameParameter("Project file", "File name of project to be saved");
+  public static final FileNameParameter projectFile = new FileNameParameter("Project file",
+      "File name of project to be saved", FileSelectionType.SAVE);
 
   public ProjectSaveAsParameters() {
     super(new Parameter[] {projectFile});

@@ -56,7 +56,9 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters.FixedSize;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import net.sf.epsgraphics.ColorMode;
@@ -123,6 +125,50 @@ public class ChartExportUtil {
       chart.repaint();
     }
     writeChartToImage(chart.getChart(), sett, chart.getChartRenderingInfo());
+    // reset size
+    sett.setPixelSize(oldW, oldH);
+  }
+  
+  /**
+   * takes Only Width in account
+   *
+   * @param chart
+   * @param sett
+   * @throws Exception
+   */
+  public static void writeChartToImageFX(EChartViewer chart, GraphicsExportParameters sett)
+      throws Exception {
+    boolean repaint = false;
+    FixedSize fixed = sett.getFixedSize();
+
+    double oldW = sett.getWidthPixel();
+    double oldH = sett.getHeightPixel();
+
+    // Size only by width?
+    if (sett.isUseOnlyWidth()) {
+      // fixed size for chart or plot
+      if (fixed.equals(FixedSize.Chart)) {
+        sett.setHeightPixel(ChartLogicsFX.calcHeightToWidth(chart, oldW/*, false*/));
+      } else {
+        // fixed plot width
+        sett.setPixelSize(ChartLogicsFX.calcSizeForPlotWidth(chart, oldW));
+      }
+    } else if (fixed.equals(FixedSize.Plot)) {
+      // fixed plot size - width and height are given
+      sett.setPixelSize(ChartLogicsFX.calcSizeForPlotSize(chart, oldW, oldH));
+    }
+
+    Dimension size = sett.getPixelSize();
+    // resize
+    chart.setPrefSize(size.getWidth(), size.getHeight());
+    chart.setMaxSize(size.getWidth(), size.getHeight());
+    chart.setMinSize(size.getWidth(), size.getHeight());
+    // repaint TODO:
+//    if (repaint) {
+//      chart.revalidate();
+//      chart.repaint();
+//    }
+    writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
     // reset size
     sett.setPixelSize(oldW, oldH);
   }

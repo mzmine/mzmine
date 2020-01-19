@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -38,7 +39,8 @@ public class TargetedPeakDetectionParameters extends SimpleParameterSet {
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "detectedPeak");
   public static final FileNameParameter peakListFile = new FileNameParameter("Feature list file",
-      "Name of the file that contains a list of peaks for targeted feature detection.");
+      "Name of the file that contains a list of peaks for targeted feature detection.",
+      FileSelectionType.OPEN);
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file", ",");
   public static final BooleanParameter ignoreFirstLine =

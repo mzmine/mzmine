@@ -46,6 +46,7 @@ import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import javafx.scene.control.Button;
@@ -65,8 +66,9 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   /**
    * Optional: Select meta data file
    */
-  public static final OptionalParameter<FileNameParameter> KOVATS_FILE = new OptionalParameter<>(
-      new FileNameParameter("Kovats RI file", "File with Kovats retention indexes", "csv"), false);
+  public static final OptionalParameter<FileNameParameter> KOVATS_FILE =
+      new OptionalParameter<>(new FileNameParameter("Kovats RI file",
+          "File with Kovats retention indexes", "csv", FileSelectionType.OPEN), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),

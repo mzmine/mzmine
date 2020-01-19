@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.Vision;
@@ -55,7 +56,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Use proxy", "Use proxy for internet connection?", new ProxySettings());
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
-      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.");
+      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
+      FileSelectionType.OPEN);
 
   public static final BooleanParameter sendStatistics =
       new BooleanParameter("Send anonymous statistics",
