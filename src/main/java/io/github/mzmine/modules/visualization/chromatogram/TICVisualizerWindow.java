@@ -223,8 +223,7 @@ public class TICVisualizerWindow extends Stage {
         paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
     // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
-    // this.addComponentListener(settings);
+    settings.applySettingsToWindow(this);
 
     // Listen for clicks on legend items
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {

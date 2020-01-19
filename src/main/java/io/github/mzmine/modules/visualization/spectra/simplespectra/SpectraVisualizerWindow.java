@@ -258,8 +258,7 @@ public class SpectraVisualizerWindow extends Stage {
         paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
-    // this.addComponentListener(settings);
+    settings.applySettingsToWindow(this);
 
     dppmWindowOpen = false;
 
