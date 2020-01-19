@@ -46,6 +46,11 @@ import io.github.mzmine.util.color.Colors;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class GraphicsExportDialogFX extends ParameterSetupDialog {
 
   private static final Logger logger = Logger.getLogger(GraphicsExportDialogFX.class.getName());
@@ -195,22 +200,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
         logger.log(Level.SEVERE, "File not written (" + path + ")", e);
         // DialogLoggerUtil.showErrorDialog(this, "File not written. ", e); TODO
       }
-    }
-  }
-
-  /**
-   * changes the components of all fonts to the master font
-   *
-   * @param font
-   */
-  private void handleMasterFontChanged(FontSpecs font) {
-    String master = ChartThemeParameters.masterFont.getName();
-    for (Parameter<?> p : chartParam.getParameters()) {
-      if (!(p instanceof FontParameter) || master.equals(p.getName()))
-        continue;
-      FontParameter up = (FontParameter) p;
-//      FontSpecs component = (FontSpecs) parametersAndComponents.get(p.getName());
-      // up.setValueToComponent(component, font);
     }
   }
 

@@ -26,6 +26,11 @@ import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.FontSpecsComponent;
 import javafx.scene.text.Font;
 
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ChartThemeParametersSetupDialog extends ParameterSetupDialog {
 
   FontParameter masterFontParameter;
