@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ListDoubleParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -66,7 +67,7 @@ public class ProductIonFilterParameters extends SimpleParameterSet {
   public static final FileNameParameter fileName = new FileNameParameter("Peaklist output file",
       "Name of the output CSV file containing m/z and RT of selected precursor ions. "
           + "If the file already exists, it will be overwritten.",
-      "csv");
+      "csv", FileSelectionType.SAVE);
 
   /**
    * Windows size and position

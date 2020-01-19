@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -46,7 +47,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
   // last saved file
   public static final FileNameParameter lastSavedFile =
-      new FileNameParameter("Last file", "Last saved file", "csv");
+      new FileNameParameter("Last file", "Last saved file", "csv", FileSelectionType.SAVE);
 
   public static final StringParameter pickedKovatsValues =
       new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");

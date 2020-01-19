@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 /**
@@ -40,7 +41,7 @@ public class AdapMspExportParameters extends SimpleParameterSet {
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
           + "If the file already exists, it will be overwritten.",
-      "msp");
+      "msp", FileSelectionType.SAVE);
 
   public static final OptionalParameter<StringParameter> ADD_RET_TIME =
       new OptionalParameter<>(

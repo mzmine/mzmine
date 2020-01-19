@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
@@ -37,7 +38,7 @@ public class CSVExportParameters extends SimpleParameterSet {
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.",
-      "csv");
+      "csv", FileSelectionType.SAVE);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the exported file", ",");

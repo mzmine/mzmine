@@ -36,9 +36,12 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
 
   private TextField txtFilename;
   private LastFilesButton btnLastFiles;
+  private FileSelectionType type;
 
-  public FileNameComponent(int textfieldcolumns, List<File> lastFiles) {
+  public FileNameComponent(int textfieldcolumns, List<File> lastFiles, FileSelectionType type) {
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+
+    this.type = type;
 
     txtFilename = new TextField();
     txtFilename.setPrefColumnCount(textfieldcolumns);
@@ -66,7 +69,12 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
       }
 
       // Open chooser.
-      File selectedFile = fileChooser.showOpenDialog(null);
+      File selectedFile = null;
+      if(type == FileSelectionType.OPEN)
+        selectedFile = fileChooser.showOpenDialog(null);
+      else
+        selectedFile = fileChooser.showSaveDialog(null);
+      
       if (selectedFile == null)
         return;
       txtFilename.setText(selectedFile.getPath());

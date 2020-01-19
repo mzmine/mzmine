@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OrderParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -36,7 +37,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification");
+      "Name of file that contains information for peak identification", FileSelectionType.OPEN);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file", ",");

@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 /**
  * Saves the export paths of the SpectraIdentificationResultsWindow
@@ -32,7 +33,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 public class SpectraIdentificationResultsParameters extends SimpleParameterSet {
 
   public static final FileNameParameter file =
-      new FileNameParameter("file", "file without extension");
+      new FileNameParameter("file", "file without extension", FileSelectionType.SAVE);
 
   public static final BooleanParameter all =
       new BooleanParameter("Show export all", "Show button in panel", true);
