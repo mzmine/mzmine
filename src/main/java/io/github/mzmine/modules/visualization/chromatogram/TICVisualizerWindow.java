@@ -138,6 +138,7 @@ public class TICVisualizerWindow extends Stage {
     // setBackground(Color.white);
 
     ticPlot = new TICPlot();
+    ticPlot.setPlotType(plotType);
     mainPane.setCenter(ticPlot);
 
     toolBar = new ToolBar();
