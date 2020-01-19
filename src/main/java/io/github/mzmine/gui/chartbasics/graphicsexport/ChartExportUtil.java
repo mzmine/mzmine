@@ -59,6 +59,7 @@ import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters.FixedSize;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import net.sf.epsgraphics.ColorMode;
@@ -80,7 +81,14 @@ public class ChartExportUtil {
    */
   public static void addExportDialogToMenu(final ChartPanel cp) {
     JMenuItem exportGraphics = new JMenuItem("Export graphics...");
-    exportGraphics.addActionListener(e -> GraphicsExportDialog.openDialog(cp.getChart()));
+    exportGraphics.addActionListener(e -> {
+      
+      GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
+          .getConfiguration().getModuleParameters(GraphicsExportModule.class);
+      
+      MZmineCore.getModuleInstance(GraphicsExportModule.class)
+          .openDialog(cp.getChart(), parameters);
+    });
     // add to menu
     cp.getPopupMenu().add(exportGraphics);
   }
