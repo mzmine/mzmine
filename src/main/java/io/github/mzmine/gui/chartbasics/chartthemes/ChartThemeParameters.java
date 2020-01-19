@@ -24,6 +24,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.Title;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
@@ -31,8 +32,10 @@ import io.github.mzmine.parameters.parametertypes.FontParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxFontUtil;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -86,6 +89,18 @@ public class ChartThemeParameters extends SimpleParameterSet {
     ylabel.setValue(false);
     xGridPaint.setValue(false);
     yGridPaint.setValue(false);
+  }
+  
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0))
+      return ExitCode.OK;
+    ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 
   public void applyToChart(JFreeChart chart) {
