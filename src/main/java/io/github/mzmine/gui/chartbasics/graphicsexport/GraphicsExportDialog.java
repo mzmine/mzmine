@@ -57,11 +57,9 @@ import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.FontParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.components.GridBagPanel;
 import io.github.mzmine.util.files.FileTypeFilter;
-import javafx.scene.control.TextField;
 import net.miginfocom.swing.MigLayout;
 
 /**
@@ -134,8 +132,8 @@ public class GraphicsExportDialog extends JFrame {
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     contentPanel.setLayout(new MigLayout("", "[][][grow]", "[][][][grow]"));
     {
-      StringParameter p = parameters.getParameter(GraphicsExportParameters.path);
-      TextField txtPath = p.createEditingComponent();
+      // StringParameter p = parameters.getParameter(GraphicsExportParameters.path);
+      // TextField txtPath = p.createEditingComponent();
       // contentPanel.add(txtPath, "flowx,cell 0 0,growx");
       // parametersAndComponents.put(p.getName(), txtPath);
     }
@@ -150,8 +148,8 @@ public class GraphicsExportDialog extends JFrame {
       contentPanel.add(btnPath, "cell 1 0");
     }
     {
-      StringParameter p = parameters.getParameter(GraphicsExportParameters.filename);
-      TextField txtFileName = p.createEditingComponent();
+      // StringParameter p = parameters.getParameter(GraphicsExportParameters.path);
+      // TextField txtFileName = p.createEditingComponent();
       // contentPanel.add(txtFileName, "cell 0 1,growx");
       // parametersAndComponents.put(p.getName(), txtFileName);
     }
