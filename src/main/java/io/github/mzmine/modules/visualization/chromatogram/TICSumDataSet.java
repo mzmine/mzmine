@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,14 +24,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-import javax.swing.SwingUtilities;
-
 import org.jfree.data.xy.AbstractXYZDataset;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -40,6 +35,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
 
 /**
  * TIC visualizer data set. Sum of all TIC
@@ -306,7 +302,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
 
   /**
    * difference smaller than RT_BIN?
-   * 
+   *
    * @param a
    * @param b
    * @return
@@ -319,15 +315,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * Notify data set listener (on the EDT).
    */
   private void refresh() {
-
-    SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-
-        fireDatasetChanged();
-      }
-    });
+    Platform.runLater(() -> fireDatasetChanged());
   }
 
   @Override
