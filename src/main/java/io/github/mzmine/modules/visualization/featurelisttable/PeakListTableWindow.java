@@ -164,8 +164,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener, Mouse
         paramSet.getParameter(PeakListTableParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
 
   }
 

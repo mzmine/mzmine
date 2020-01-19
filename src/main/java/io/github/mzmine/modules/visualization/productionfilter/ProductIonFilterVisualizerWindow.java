@@ -121,8 +121,7 @@ public class ProductIonFilterVisualizerWindow extends JFrame implements ActionLi
         paramSet.getParameter(ProductIonFilterParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
 
   }
 

@@ -152,7 +152,7 @@ public class ResultWindow extends JFrame implements ActionListener {
       String name =
           compound.getName() + " (" + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
       MolStructureViewer viewer = new MolStructureViewer(name, url2D, url3D);
-      viewer.setVisible(true);
+      viewer.show();
 
     }
 

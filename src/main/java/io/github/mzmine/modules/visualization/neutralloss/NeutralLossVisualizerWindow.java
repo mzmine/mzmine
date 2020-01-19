@@ -89,8 +89,7 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
     WindowSettingsParameter settings = paramSet.getParameter(NeutralLossParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
 
   }
 

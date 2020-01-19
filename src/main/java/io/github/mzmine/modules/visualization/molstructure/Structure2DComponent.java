@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,16 +20,13 @@ package io.github.mzmine.modules.visualization.molstructure;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JComponent;
-
+import org.jfree.fx.FXGraphics2D;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -46,10 +43,9 @@ import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import javafx.scene.canvas.Canvas;
 
-public class Structure2DComponent extends JComponent {
-
-  private static final long serialVersionUID = 1L;
+public class Structure2DComponent extends Canvas {
 
   public static final Font FONT = new Font("Verdana", Font.PLAIN, 14);
 
@@ -92,6 +88,11 @@ public class Structure2DComponent extends JComponent {
     RendererModel rendererModel = renderer.getRenderer2DModel();
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
 
+    paint();
+
+    widthProperty().addListener(e -> paint());
+    heightProperty().addListener(e -> paint());
+
   }
 
   public Structure2DComponent(IAtomContainer container) throws CDKException {
@@ -124,14 +125,17 @@ public class Structure2DComponent extends JComponent {
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
   }
 
-  @Override
-  protected void paintComponent(Graphics g) {
+  private void paint() {
 
-    Graphics2D g2 = (Graphics2D) g;
+    Graphics2D g2 = new FXGraphics2D(this.getGraphicsContext2D());
+
+    int width = (int) getWidth();
+    int height = (int) getHeight();
+
     g2.setColor(Color.WHITE);
-    g2.fillRect(0, 0, getWidth(), getHeight());
+    g2.fillRect(0, 0, width, height);
 
-    final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
+    final Rectangle drawArea = new Rectangle(width, height);
     renderer.setup(molecule, drawArea);
     renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
   }
