@@ -160,7 +160,7 @@ public class WindowSettingsParameter implements Parameter<Object> {
     if (height != null)
       stage.setHeight(height);
 
-    if (isMaximized) {
+    if ((isMaximized != null) && isMaximized) {
       logger.finest("Setting window " + stage.getTitle() + " to maximized");
       stage.setMaximized(true);
     }
