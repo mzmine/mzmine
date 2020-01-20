@@ -44,7 +44,7 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
 
-  private Parameter<?> parameters[];
+  protected Parameter<?> parameters[];
   private boolean skipSensitiveParameters = false;
 
   public SimpleParameterSet() {
