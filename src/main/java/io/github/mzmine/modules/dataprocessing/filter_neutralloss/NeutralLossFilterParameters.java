@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -59,9 +60,11 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
       "auto");
 
+  public static final ColorPaletteParameter palettes = new ColorPaletteParameter("Color palette", "Test");
+  
   public NeutralLossFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
-        molecule, suffix});
+        molecule, suffix, palettes});
   }
 
   @Override
