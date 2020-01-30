@@ -35,7 +35,6 @@ public class ColorPaletteParameter
   protected SimpleColorPalette value;
 
   public ColorPaletteParameter(String name, String descr) {
-    System.out.println("creating parameter");
     this.name = name;
     this.descr = descr;
     value = new SimpleColorPalette();

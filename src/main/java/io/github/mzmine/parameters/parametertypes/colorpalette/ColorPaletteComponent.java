@@ -20,6 +20,7 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import java.util.List;
 import java.util.logging.Logger;
+import io.github.mzmine.util.ExitCode;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -28,7 +29,6 @@ public class ColorPaletteComponent extends FlowPane {
 
   private static final Logger logger = Logger.getLogger(ColorPaletteComponent.class.getName());
 
-  protected SimpleColorPalette value;
   protected ComboBox<SimpleColorPalette> box;
   protected Button addPalette;
   protected Button editPalette;
@@ -55,8 +55,17 @@ public class ColorPaletteComponent extends FlowPane {
 
     editPalette = new Button("Edit");
     editPalette.setOnAction(e -> {
-      ColorPalettePickerDialog d = new ColorPalettePickerDialog(null);
+      ColorPalettePickerDialog d = new ColorPalettePickerDialog(box.getValue().clone());
       d.show();
+
+      d.setOnHiding(f -> {
+        if (d.getExitCode() == ExitCode.OK) {
+          box.getItems().remove(box.getValue());
+          SimpleColorPalette newVal = d.getPalette();
+          box.getItems().add(newVal);
+          setValue(newVal);
+        }
+      });
     });
 
     deletePalette = new Button("Delete");

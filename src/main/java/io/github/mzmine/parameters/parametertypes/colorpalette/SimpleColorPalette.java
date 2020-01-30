@@ -18,17 +18,20 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.chart.ChartTheme;
+import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 
-public class SimpleColorPalette extends Vector<Color> {
+public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
 
   private static final Color defclr = Color.BLACK;
   private static final Logger logger = Logger.getLogger(SimpleColorPalette.class.getName());
-
+  private final List<Color> delegate;
+  
   private int next;
   private static final int MAIN_COLOR = 0;
   
@@ -39,10 +42,12 @@ public class SimpleColorPalette extends Vector<Color> {
   
   public SimpleColorPalette() {
     super();
+    delegate = new ArrayList<>();
     next = 0;
   }
   
   public SimpleColorPalette(Color[] clrs) {
+    this();
     for(Color clr : clrs) {
       add(clr);
     }
@@ -86,5 +91,39 @@ public class SimpleColorPalette extends Vector<Color> {
           return false;
        }
     return true;
+  }
+
+  @Override
+  public Color get(int index) {
+    return delegate.get(index);
+  }
+
+  @Override
+  public int size() {
+    return delegate.size();
+  }
+
+  @Override
+  protected void doAdd(int index, Color element) {
+    delegate.add(index, element);
+  }
+
+  @Override
+  protected Color doSet(int index, Color element) {
+    return delegate.set(index, element);
+  }
+
+  @Override
+  protected Color doRemove(int index) {
+    return delegate.remove(index);
+  }
+  
+  @Override
+  public SimpleColorPalette clone() {
+    SimpleColorPalette clone = new SimpleColorPalette();
+    for(Color clr : this) {
+      clone.add(clr);
+    }
+    return clone;
   }
 }
