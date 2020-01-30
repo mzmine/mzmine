@@ -18,8 +18,6 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.control.Button;
@@ -56,6 +54,10 @@ public class ColorPaletteComponent extends FlowPane {
     });
 
     editPalette = new Button("Edit");
+    editPalette.setOnAction(e -> {
+      ColorPalettePickerDialog d = new ColorPalettePickerDialog(null);
+      d.show();
+    });
 
     deletePalette = new Button("Delete");
 
