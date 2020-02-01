@@ -21,25 +21,39 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.Vision;
-import javafx.scene.Node;
 
+/**
+ * User parameter for color palette selection.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ColorPaletteParameter
     implements UserParameter<SimpleColorPalette, ColorPaletteComponent> {
+
+  private static final String MAIN_ELEMENT = "colorpalette";
+  private static final String PALETTE_ELEMENT = "palette";
+  private static final String SELECTED_INDEX = "selected";
 
   protected String name;
   protected String descr;
   protected SimpleColorPalette value;
+  protected List<SimpleColorPalette> palettes;
 
   public ColorPaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
     value = new SimpleColorPalette();
+    palettes = new ArrayList<>();
+    palettes.add(value);
   }
-  
+
   @Override
   public String getName() {
     return name;
@@ -52,7 +66,9 @@ public class ColorPaletteParameter
 
   @Override
   public void setValue(SimpleColorPalette newValue) {
-
+    if (!palettes.contains(newValue))
+      palettes.add(newValue);
+    value = newValue;
   }
 
   @Override
@@ -62,12 +78,29 @@ public class ColorPaletteParameter
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    int selected = Integer.valueOf(xmlElement.getAttribute(SELECTED_INDEX));
 
+    NodeList childs = xmlElement.getElementsByTagName(PALETTE_ELEMENT);
+    palettes.clear();
+    for (int i = 0; i < childs.getLength(); i++) {
+      Element p = (Element) childs.item(i);
+      if (p.getNodeName().equals(PALETTE_ELEMENT))
+        palettes.add(SimpleColorPalette.createFromXML(p));
+    }
+    setValue(palettes.get(selected));
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
+    Document doc = xmlElement.getOwnerDocument();
 
+    xmlElement.setAttribute(SELECTED_INDEX, Integer.toString(palettes.indexOf(value)));
+
+    for (SimpleColorPalette p : palettes) {
+      Element palElement = doc.createElement(PALETTE_ELEMENT);
+      p.saveToXML(palElement);
+      xmlElement.appendChild(palElement);
+    }
   }
 
   @Override
@@ -78,14 +111,13 @@ public class ColorPaletteParameter
   @Override
   public ColorPaletteComponent createEditingComponent() {
     ColorPaletteComponent comp = new ColorPaletteComponent();
-    
-    List<SimpleColorPalette> p = new ArrayList<SimpleColorPalette>();
-    for(Vision v : Vision.values()) {
-      p.add(new SimpleColorPalette(ColorsFX.getSevenColorPalette(v, true)));
+
+    for (Vision v : Vision.values()) {
+      palettes.add(new SimpleColorPalette(ColorsFX.getSevenColorPalette(v, true)));
     }
-      
-    comp.setPalettes(p);
-    
+
+    comp.setPalettes(palettes);
+
     return comp;
   }
 

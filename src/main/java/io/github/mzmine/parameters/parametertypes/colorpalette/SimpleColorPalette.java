@@ -21,42 +21,56 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import org.jfree.chart.ChartTheme;
+import org.w3c.dom.Element;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 
+/**
+ * Implementation of a color palette. It's an observable list to allow addition of listeners.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
+  private static final String NAME_ATTRIBUTE = "name";
 
   private static final Color defclr = Color.BLACK;
   private static final Logger logger = Logger.getLogger(SimpleColorPalette.class.getName());
-  private final List<Color> delegate;
-  
-  private int next;
   private static final int MAIN_COLOR = 0;
-  
+
+  private final List<Color> delegate;
+
+  protected String name;
+  protected int next;
+
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
-  
+
   public SimpleColorPalette() {
     super();
     delegate = new ArrayList<>();
     next = 0;
   }
-  
+
   public SimpleColorPalette(Color[] clrs) {
     this();
-    for(Color clr : clrs) {
+    for (Color clr : clrs) {
       add(clr);
     }
   }
-  
+
   public void applyToChartTheme(ChartTheme theme) {
-    
+    // TODO
   }
-  
+
   /**
    * 
    * @return The next color in the color palette.
@@ -64,33 +78,41 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public Color getNextColor() {
     if (this.isEmpty())
       return defclr;
-    
+
     if (next >= this.size() - 1)
       next = 0;
     next++;
-    
+
     return get(next - 1);
   }
-  
+
   public @Nonnull Color getMainColor() {
-    if(isValidPalette())
+    if (isValidPalette())
       return get(MAIN_COLOR);
     return Color.BLACK;
   }
-  
+
   public boolean isValidPalette() {
-    if(this.isEmpty())
+    if (this.isEmpty())
       return false;
-    if(this.size() < 3)
+    if (this.size() < 3)
       return false;
-    for(Color clr : this)
+    for (Color clr : this)
       if (clr != null) {
-        if(indexOf(clr) > 2)
+        if (indexOf(clr) > 2)
           this.remove(indexOf(clr));
         else
           return false;
-       }
+      }
     return true;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
@@ -117,13 +139,50 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   protected Color doRemove(int index) {
     return delegate.remove(index);
   }
-  
+
   @Override
   public SimpleColorPalette clone() {
     SimpleColorPalette clone = new SimpleColorPalette();
-    for(Color clr : this) {
+    for (Color clr : this) {
       clone.add(clr);
     }
     return clone;
+  }
+
+  public void loadFromXML(Element xmlElement) {
+    this.setName(xmlElement.getAttribute(NAME_ATTRIBUTE));
+    String text = xmlElement.getTextContent();
+
+    if (text.length() < 10) {
+      this.clear();
+      this.addAll(
+          ColorsFX.getSevenColorPalette(MZmineCore.getConfiguration().getColorVision(), true));
+      return;
+    }
+    text = text.substring(1, text.length() - 1);
+    logger.info("loading palette from: " + text);
+    text = text.replaceAll("\\s", "");
+    String[] clrs = text.split(",");
+    for (String clr : clrs) {
+      logger.info("loading color " + clr);
+      delegate.add(Color.web(clr));
+    }
+  }
+
+  public static SimpleColorPalette createFromXML(Element xmlElement) {
+    SimpleColorPalette p = new SimpleColorPalette();
+    p.loadFromXML(xmlElement);
+    return p;
+  }
+
+  /**
+   * Saves this color palette to an xml element.
+   * 
+   * @param xmlElement The xml element this palette shall be saved into.
+   */
+  public void saveToXML(Element xmlElement) {
+    xmlElement.setAttribute(NAME_ATTRIBUTE, name);
+    xmlElement.setTextContent(delegate.toString());
+    logger.info(xmlElement.toString());
   }
 }

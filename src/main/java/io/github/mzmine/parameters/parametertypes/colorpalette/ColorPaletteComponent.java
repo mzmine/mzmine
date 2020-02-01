@@ -25,6 +25,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 
+/**
+ * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ColorPaletteComponent extends FlowPane {
 
   private static final Logger logger = Logger.getLogger(ColorPaletteComponent.class.getName());

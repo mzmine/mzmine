@@ -24,15 +24,21 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * A pane showing a color palette and allowing the selection of single colors within the palette.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ColorPalettePreviewField extends FlowPane {
-  
+
   private static final int RECT_HEIGHT = 17;
-  private static final Color OUTLINE_CLR= Color.BLACK;
-  
+  private static final Color OUTLINE_CLR = Color.BLACK;
+
   protected final List<Rectangle> rects;
   protected SimpleColorPalette palette;
   protected int selected;
-  
+
 
   public ColorPalettePreviewField(SimpleColorPalette palette) {
     super();
@@ -40,7 +46,7 @@ public class ColorPalettePreviewField extends FlowPane {
     setMaxWidth(400);
     setPalette(palette);
   }
-  
+
   private void setRectangles() {
     rects.clear();
 
@@ -52,32 +58,32 @@ public class ColorPalettePreviewField extends FlowPane {
       Rectangle rect = new Rectangle(RECT_HEIGHT, RECT_HEIGHT);
       rect.setFill(clr);
       rect.setOnMouseClicked(e -> {
-        if(e.getClickCount() == 1) {
+        if (e.getClickCount() == 1) {
           setSelected(rect);
         }
       });
       rects.add(rect);
     }
 
-    if(selected < rects.size()) {
+    if (selected < rects.size()) {
       rects.get(selected).setStroke(OUTLINE_CLR);
       rects.get(selected).setStrokeWidth(1.0);
     }
   }
-  
+
   private void setSelected(Rectangle rect) {
     setSelected(rects.indexOf(rect));
   }
-  
+
   private void setSelected(int i) {
     this.selected = i;
     updatePreview();
   }
-  
+
   public int getSelected() {
     return selected;
   }
-  
+
   public void updatePreview() {
     setRectangles();
     getChildren().clear();
@@ -92,6 +98,6 @@ public class ColorPalettePreviewField extends FlowPane {
     this.palette = palette;
     updatePreview();
   }
-  
-  
+
+
 }
