@@ -21,7 +21,9 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.color.Vision;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -54,7 +56,13 @@ public class ColorPaletteComponent extends FlowPane {
 
     addPalette = new Button("New palette");
     addPalette.setOnAction(e -> {
-      SimpleColorPalette pal = new SimpleColorPalette();
+      SimpleColorPalette pal;
+      if(!itemsContainDefaultPalette()) {
+        pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+        pal.setName("Deuternopia");
+      }
+      else
+        pal = new SimpleColorPalette();
       box.getItems().add(pal);
       box.getSelectionModel().select(box.getItems().indexOf(pal));
     });
@@ -106,6 +114,17 @@ public class ColorPaletteComponent extends FlowPane {
     box.getItems().clear();
     for (SimpleColorPalette p : list)
       box.getItems().add(p);
+  }
+
+  protected boolean itemsContainDefaultPalette() {
+    List<SimpleColorPalette> items = box.getItems();
+    SimpleColorPalette def = new SimpleColorPalette(
+        ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+    for(SimpleColorPalette p : items)
+      if(p.equals(def))
+        return true;
+    
+    return false;
   }
 }
 

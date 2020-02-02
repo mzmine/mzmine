@@ -44,12 +44,16 @@ public class ColorPalettePreviewField extends FlowPane {
   protected final List<Rectangle> rects;
   protected SimpleColorPalette palette;
   protected int selected;
+  
+  protected boolean validDrag;
 
   public ColorPalettePreviewField(SimpleColorPalette palette) {
     super();
     rects = new ArrayList<Rectangle>();
     setMaxWidth(400);
     setPalette(palette);
+    
+    validDrag = false;
     
     palette.addListener(new ListChangeListener<Color> () {
       @Override
@@ -69,31 +73,44 @@ public class ColorPalettePreviewField extends FlowPane {
       Color clr = palette.get(i);
       Rectangle rect = new Rectangle(RECT_HEIGHT, RECT_HEIGHT);
       rect.setFill(clr);
-      rect.setOnMouseClicked(e -> {
-        if (e.getClickCount() == 1) {
-          setSelected(rect);
-        }
-      });
+      
+//      rect.setOnMouseClicked(e -> {
+//        if (e.getClickCount() == 1) {
+//          setSelected(rect);
+//        }
+//      });
 
       rect.setOnMousePressed(e -> {
         rect.setOpacity(rect.getOpacity() / 2);
+        setSelected(rect);
       });
 
+      rect.setOnMouseDragged(e -> {
+        validDrag = true;
+      });
+      
       rect.setOnMouseReleased(e -> {
         rect.setOpacity(rect.getOpacity() * 2);
+        
+        if(!validDrag)
+          return;
+        
         Point2D exit = new Point2D(e.getSceneX(), e.getSceneY());
         
         double x = this.sceneToLocal(exit).getX();
         int newIndex = (int) (x / RECT_HEIGHT + .5);
 
         // we just have to move the color, the listener will update the preview
-        palette.moveColor(rects.indexOf(rect), newIndex);
+        palette.moveColor(getSelected(), newIndex);
+        setSelected(rect);
+        logger.fine("moving color to " + newIndex);
+        validDrag = false;
       });
       
       rects.add(rect);
     }
 
-    if (selected < rects.size()) {
+    if (selected < rects.size() && selected >= 0) {
       rects.get(selected).setStroke(OUTLINE_CLR);
       rects.get(selected).setStrokeWidth(1.0);
     }

@@ -94,7 +94,7 @@ public class ColorPalettePickerDialog extends Stage {
       if (colorPicker.getValue() != null) {
         int selected = pnPalette.getSelected();
         this.palette.set(selected, colorPicker.getValue());
-        pnPalette.updatePreview();
+//        pnPalette.updatePreview();
       }
     });
 
@@ -110,12 +110,12 @@ public class ColorPalettePickerDialog extends Stage {
 
   private void btnAddColorAction() {
     palette.add(colorPicker.getValue());
-    pnPalette.updatePreview();
+//    pnPalette.updatePreview();
   }
 
   private void btnRemoveColorAction() {
     palette.remove(pnPalette.getSelected());
-    pnPalette.updatePreview();
+//    pnPalette.updatePreview();
   }
 
   private void hideWindow(ExitCode exitCode) {

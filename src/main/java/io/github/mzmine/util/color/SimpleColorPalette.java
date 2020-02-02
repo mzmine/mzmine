@@ -126,8 +126,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   public void moveColor(int oldIndex, int newIndex) {
-    if (oldIndex < 0 || newIndex < 0 || oldIndex >= size() || newIndex >= size())
+    if (oldIndex < 0 || newIndex < 0 || oldIndex >= size() || newIndex >= size()) {
+      logger.info("move called with invalid parameters " + oldIndex + " to " + newIndex);
       return;
+    }
 
     List<Color> sublist = new ArrayList<>();
     delegate.subList(newIndex, delegate.size()).forEach(c -> sublist.add(c));
@@ -139,33 +141,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate.removeAll(sublist);
     delegate.add(clr);
     delegate.addAll(sublist);
+    
+    logger.fine("moved color from " + oldIndex + " to " + newIndex);
 
     fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
-  }
-
-  @Override
-  public Color get(int index) {
-    return delegate.get(index);
-  }
-
-  @Override
-  public int size() {
-    return delegate.size();
-  }
-
-  @Override
-  protected void doAdd(int index, Color element) {
-    delegate.add(index, element);
-  }
-
-  @Override
-  protected Color doSet(int index, Color element) {
-    return delegate.set(index, element);
-  }
-
-  @Override
-  protected Color doRemove(int index) {
-    return delegate.remove(index);
   }
 
   /**
@@ -200,6 +179,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     this.setName(xmlElement.getAttribute(NAME_ATTRIBUTE));
     String text = xmlElement.getTextContent();
 
+    // not a single color in the palette
     if (text.length() < 10) {
       this.clear();
       this.addAll(
@@ -229,5 +209,31 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     xmlElement.setAttribute(NAME_ATTRIBUTE, name);
     xmlElement.setTextContent(delegate.toString());
     logger.info(xmlElement.toString());
+  }
+
+  // --- super type
+  @Override
+  public Color get(int index) {
+    return delegate.get(index);
+  }
+
+  @Override
+  public int size() {
+    return delegate.size();
+  }
+
+  @Override
+  protected void doAdd(int index, Color element) {
+    delegate.add(index, element);
+  }
+
+  @Override
+  protected Color doSet(int index, Color element) {
+    return delegate.set(index, element);
+  }
+
+  @Override
+  protected Color doRemove(int index) {
+    return delegate.remove(index);
   }
 }

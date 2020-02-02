@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -47,14 +48,14 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   private final static int MAX_PREVIEW_COLORS = 15;
   private static final Color BORDER_CLR = Color.DARKGRAY;
   private static final Color TEXT_CLR = Color.BLACK;
-  
+
   private static final Logger logger = Logger.getLogger(ColorPaletteCell.class.getName());
 
   private final double height;
   private final List<Rectangle> rects;
   private final FlowPane clrPane;
   private final Label label;
-//  private final GridPane pane;
+  // private final GridPane pane;
   private final HBox hbox;
 
   /**
@@ -70,11 +71,20 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
     clrPane = new FlowPane();
     clrPane.setMaxSize((MAX_PREVIEW_COLORS + 1) * h, h);
+    clrPane.setAlignment(Pos.CENTER_LEFT);
 
     rects = new ArrayList<Rectangle>();
     label = new Label();
     label.setTextFill(TEXT_CLR);
-    
+
+    // nasty way to align the palettes in the dropdown menu
+    label.setMinWidth(80);
+    label.setMaxWidth(80);
+    label.setPrefWidth(80);
+    label.setAlignment(Pos.CENTER_LEFT);
+
+    // TODO usually this should result in a two line layout with the name in the first and the
+    // palette in the second row...
     hbox = new HBox();
     hbox.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
         new CornerRadii(2.0), new BorderWidths(1.0))));
@@ -114,17 +124,3 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     }
   }
 };
-
-
-/*
- * ComboBox<Color> cmb = new ComboBox<>(); cmb.getItems().addAll( Color.RED, Color.GREEN,
- * Color.BLUE);
- * 
- * cmb.setCellFactory(p -> { return new ListCell<>() { private final Rectangle rectangle; {
- * setContentDisplay(ContentDisplay.GRAPHIC_ONLY); rectangle = new Rectangle(10, 10); }
- * 
- * @Override protected void updateItem(Color item, boolean empty) { super.updateItem(item, empty);
- * 
- * if (item == null || empty) { setGraphic(null); } else { rectangle.setFill(item);
- * setGraphic(rectangle); } } }; });
- */
