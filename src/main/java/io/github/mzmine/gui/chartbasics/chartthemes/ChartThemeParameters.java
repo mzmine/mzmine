@@ -147,7 +147,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
 //
 //      p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
 //      p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
-    }
+//    }
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
