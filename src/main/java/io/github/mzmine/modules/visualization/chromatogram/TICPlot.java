@@ -343,6 +343,8 @@ public class TICPlot extends EChartViewer {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
+    
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
   }
 
   // @Override
@@ -544,9 +546,9 @@ public class TICPlot extends EChartViewer {
           + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-      final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
-      renderer.setSeriesPaint(0, rendererColor);
-      renderer.setSeriesFillPaint(0, rendererColor);
+//      final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
+//      renderer.setSeriesPaint(0, rendererColor);
+//      renderer.setSeriesFillPaint(0, rendererColor);
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
       addDataSetRenderer(dataSet, renderer);
@@ -565,7 +567,7 @@ public class TICPlot extends EChartViewer {
 
     final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-    renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
+//    renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
     addDataSetRenderer(dataSet, renderer);
     numOfPeaks++;
   }

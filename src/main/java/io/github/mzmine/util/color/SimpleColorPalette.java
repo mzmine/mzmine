@@ -101,15 +101,12 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public boolean isValidPalette() {
     if (this.isEmpty())
       return false;
+    for (Color clr : this)
+      if (clr == null) {
+        this.remove(indexOf(clr));
+      }
     if (this.size() < 3)
       return false;
-    for (Color clr : this)
-      if (clr != null) {
-        if (indexOf(clr) > 2)
-          this.remove(indexOf(clr));
-        else
-          return false;
-      }
     return true;
   }
 
@@ -141,7 +138,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate.removeAll(sublist);
     delegate.add(clr);
     delegate.addAll(sublist);
-    
+
     logger.fine("moved color from " + oldIndex + " to " + newIndex);
 
     fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
