@@ -31,6 +31,7 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.util.javafx.FxColorUtil;
 
 /**
  * More options for the StandardChartTheme
@@ -39,6 +40,8 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
  */
 public class EStandardChartTheme extends StandardChartTheme {
   private static final long serialVersionUID = 1L;
+
+  private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
 
   public static final String XML_DESC = "ChartTheme";
   // master font
@@ -53,14 +56,19 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected boolean subtitleVisible = false;
 
   protected Paint axisLinePaint = Color.black;
-  protected THEME themeID;
+  // protected THEME themeID;
 
   protected boolean showXGrid = false, showYGrid = false;
   protected boolean showXAxis = true, showYAxis = true;
 
-  public EStandardChartTheme(THEME themeID, String name) {
+  protected boolean useXLabel, useYLabel;
+  protected String xlabel, ylabel;
+  protected Color clrXGrid, clrYGrid;
+
+
+  public EStandardChartTheme(String name) {
     super(name);
-    this.themeID = themeID;
+    // this.themeID = themeID;
 
     setBarPainter(new StandardBarPainter());
     setXYBarPainter(new StandardXYBarPainter());
@@ -74,6 +82,16 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     masterFont = new Font("Arial", Font.PLAIN, 11);
     masterFontColor = Color.black;
+
+    setUseXLabel(false);
+    setUseYLabel(false);
+
+    setClrYGrid(DEFAULT_GRID_COLOR);
+    setClrXGrid(DEFAULT_GRID_COLOR);
+  }
+
+  public EStandardChartTheme(THEME id, String name) {
+    this(name);
   }
 
   public void setAll(boolean antiAlias, boolean showTitle, boolean noBG, Color cBG, Color cPlotBG,
@@ -107,19 +125,20 @@ public class EStandardChartTheme extends StandardChartTheme {
   @Override
   public void apply(JFreeChart chart) {
     super.apply(chart);
+    XYPlot p = chart.getXYPlot();
     //
-    chart.getXYPlot().setDomainGridlinesVisible(showXGrid);
-    chart.getXYPlot().setRangeGridlinesVisible(showYGrid);
+    p.setDomainGridlinesVisible(showXGrid);
+    p.setRangeGridlinesVisible(showYGrid);
     // all axes
-    for (int i = 0; i < chart.getXYPlot().getDomainAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) chart.getXYPlot().getDomainAxis(i);
+    for (int i = 0; i < p.getDomainAxisCount(); i++) {
+      NumberAxis a = (NumberAxis) p.getDomainAxis(i);
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
       a.setVisible(showXAxis);
     }
-    for (int i = 0; i < chart.getXYPlot().getRangeAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) chart.getXYPlot().getRangeAxis(i);
+    for (int i = 0; i < p.getRangeAxisCount(); i++) {
+      NumberAxis a = (NumberAxis) p.getRangeAxis(i);
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
@@ -140,11 +159,24 @@ public class EStandardChartTheme extends StandardChartTheme {
     if (chart.getLegend() != null)
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
 
+    if (useXLabel)
+      p.getDomainAxis().setLabel(xlabel);
+    if (useYLabel)
+      p.getRangeAxis().setLabel(ylabel);
+
+    p.getDomainAxis().setVisible(isShowXAxis());
+    p.getRangeAxis().setVisible(isShowYAxis());
+
+    p.setDomainGridlinesVisible(isShowXGrid());
+    p.setDomainGridlinePaint(getClrXGrid());
+    p.setRangeGridlinesVisible(isShowYGrid());
+    p.setRangeGridlinePaint(getClrYGrid());
+
     //
     chart.setAntiAlias(isAntiAliased());
     chart.getTitle().setVisible(isShowTitle());
-    chart.getPlot().setBackgroundAlpha(isNoBackground() ? 0 : 1);
-    
+    p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
+
     fixLegend(chart);
   }
 
@@ -173,14 +205,14 @@ public class EStandardChartTheme extends StandardChartTheme {
     LegendTitle oldLegend = chart.getLegend();
     RectangleEdge pos = oldLegend.getPosition();
     chart.removeLegend();
-    
+
     LegendTitle newLegend = new LegendTitle(plot);
     newLegend.setPosition(pos);
     newLegend.setItemFont(oldLegend.getItemFont());
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
   }
-  
+
   // GETTERS AND SETTERS
   public Paint getAxisLinePaint() {
     return axisLinePaint;
@@ -206,13 +238,13 @@ public class EStandardChartTheme extends StandardChartTheme {
     this.axisLinePaint = axisLinePaint;
   }
 
-  public THEME getID() {
-    return themeID;
-  }
-
-  public void setID(THEME themeID) {
-    this.themeID = themeID;
-  }
+  // public THEME getID() {
+  // return themeID;
+  // }
+  //
+  // public void setID(THEME themeID) {
+  // this.themeID = themeID;
+  // }
 
   public void setShowXGrid(boolean showXGrid) {
     this.showXGrid = showXGrid;
@@ -268,5 +300,53 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public boolean isShowSubtitles() {
     return subtitleVisible;
+  }
+
+  public boolean isUseXLabel() {
+    return useXLabel;
+  }
+
+  public void setUseXLabel(boolean useXLabel) {
+    this.useXLabel = useXLabel;
+  }
+
+  public boolean isUseYLabel() {
+    return useYLabel;
+  }
+
+  public void setUseYLabel(boolean useYLabel) {
+    this.useYLabel = useYLabel;
+  }
+
+  public String getXlabel() {
+    return xlabel;
+  }
+
+  public void setXlabel(String xlabel) {
+    this.xlabel = xlabel;
+  }
+
+  public String getYlabel() {
+    return ylabel;
+  }
+
+  public void setYlabel(String ylabel) {
+    this.ylabel = ylabel;
+  }
+
+  public Color getClrXGrid() {
+    return clrXGrid;
+  }
+
+  public void setClrXGrid(Color clrXGrid) {
+    this.clrXGrid = clrXGrid;
+  }
+
+  public Color getClrYGrid() {
+    return clrYGrid;
+  }
+
+  public void setClrYGrid(Color clrYGrid) {
+    this.clrYGrid = clrYGrid;
   }
 }

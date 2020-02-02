@@ -20,12 +20,15 @@ package io.github.mzmine.gui.preferences;
 
 import java.text.DecimalFormat;
 import org.w3c.dom.Element;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -69,9 +72,20 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
+  public static final ColorPaletteParameter stdColorPalette =
+      new ColorPaletteParameter("Main color palette",
+          "Defines the default color palette used to create charts throughout MZmine");
+
+  public static final ParameterSetParameter chartParam =
+      new ParameterSetParameter("Chart parameters",
+          "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
+
+  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
+  
   public MZminePreferences() {
     super(new Parameter[] {colorPalettes, mzFormat, rtFormat, intensityFormat, numOfThreads,
-        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
+        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
+        stdColorPalette, chartParam});
   }
 
   @Override

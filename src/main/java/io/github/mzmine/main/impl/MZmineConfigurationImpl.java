@@ -46,7 +46,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
@@ -57,6 +57,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 
 /**
@@ -331,6 +332,16 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Nonnull
   public FileNameListSilentParameter getLastProjectsParameter() {
     return lastProjects;
+  }
+
+  @Override
+  public SimpleColorPalette getDefaultColorPalette() {
+    return preferences.getParameter(MZminePreferences.stdColorPalette).getValue();
+  }
+
+  @Override
+  public ChartThemeParameters getDefaultChartThemeParameters() {
+    return (ChartThemeParameters) preferences.getParameter(MZminePreferences.chartParam).getValue();
   }
 
 }

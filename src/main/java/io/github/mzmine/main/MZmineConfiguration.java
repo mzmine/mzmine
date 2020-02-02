@@ -23,11 +23,13 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import javax.annotation.Nonnull;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 
 /**
@@ -79,6 +81,10 @@ public interface MZmineConfiguration {
    * @return
    */
   public Vision getColorVision();
+  
+  public SimpleColorPalette getDefaultColorPalette();
+  
+  public ChartThemeParameters getDefaultChartThemeParameters();
 
   public StringCrypter getEncrypter();
 }
