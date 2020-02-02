@@ -18,16 +18,28 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
+/**
+ * Dialog to pick colors for a color palette.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ColorPalettePickerDialog extends Stage {
 
   protected ExitCode exitCode;
@@ -41,11 +53,12 @@ public class ColorPalettePickerDialog extends Stage {
   protected Button btnAddColor;
   protected Button btnRemoveColor;
   protected ColorPicker colorPicker;
+  protected TextField txtName;
 
   protected SimpleColorPalette palette;
   protected int selected;
 
-  public ColorPalettePickerDialog(SimpleColorPalette palette) {
+  public ColorPalettePickerDialog(@Nullable SimpleColorPalette palette) {
     super();
 
     exitCode = ExitCode.CANCEL;
@@ -64,15 +77,17 @@ public class ColorPalettePickerDialog extends Stage {
     btnAddColor = new Button("Add color");
     btnRemoveColor = new Button("Remove color");
     colorPicker = new ColorPicker();
+    txtName = new TextField(palette.getName());
 
     // organize gui components
     pnSuper.setTop(pnPalette);
     pnSuper.setCenter(pnPicker);
     pnSuper.setBottom(pnButtons);
-    pnPicker.setBottom(pnButtons);
     pnPicker.setCenter(colorPicker);
+    pnPicker.setBottom(new FlowPane(new Label("Name "), txtName));
     pnButtons.getChildren().addAll(btnAddColor, btnRemoveColor, new Separator(Orientation.VERTICAL),
         btnAccept, btnCancel);
+    pnButtons.setAlignment(Pos.TOP_CENTER);
 
     // colorPicker.getStyleClass().add("split-button");
     colorPicker.setOnAction(e -> {
@@ -104,6 +119,10 @@ public class ColorPalettePickerDialog extends Stage {
   }
 
   private void hideWindow(ExitCode exitCode) {
+    String name = txtName.getText();
+    if(name == null)
+      name = "unnamed";
+    palette.setName(name);
     this.exitCode = exitCode;
     hide();
   }
@@ -112,7 +131,7 @@ public class ColorPalettePickerDialog extends Stage {
     return exitCode;
   }
 
-  public SimpleColorPalette getPalette() {
+  public @Nonnull SimpleColorPalette getPalette() {
     return palette;
   }
 }

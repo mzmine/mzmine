@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.parameters.parametertypes.colorpalette;
+package io.github.mzmine.util.color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +28,10 @@ import org.w3c.dom.Element;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 /**
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
@@ -115,6 +117,28 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     this.name = name;
   }
 
+  public void moveColor(Color color, int newIndex) {
+    moveColor(indexOf(color), newIndex);
+  }
+
+  public void moveColor(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || newIndex < 0 || oldIndex >= size() || newIndex >= size())
+      return;
+
+    List<Color> sublist = new ArrayList<>();
+    delegate.subList(newIndex, delegate.size()).forEach(c -> sublist.add(c));
+    Color clr = delegate.get(oldIndex);
+
+    sublist.remove(clr);
+    delegate.remove(clr);
+
+    delegate.removeAll(sublist);
+    delegate.add(clr);
+    delegate.addAll(sublist);
+    
+    fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
+  }
+  
   @Override
   public Color get(int index) {
     return delegate.get(index);
@@ -146,6 +170,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     for (Color clr : this) {
       clone.add(clr);
     }
+    clone.setName(getName());
     return clone;
   }
 
@@ -160,11 +185,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       return;
     }
     text = text.substring(1, text.length() - 1);
-    logger.info("loading palette from: " + text);
     text = text.replaceAll("\\s", "");
     String[] clrs = text.split(",");
     for (String clr : clrs) {
-      logger.info("loading color " + clr);
       delegate.add(Color.web(clr));
     }
   }

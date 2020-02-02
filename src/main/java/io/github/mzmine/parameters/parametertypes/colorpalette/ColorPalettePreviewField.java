@@ -20,6 +20,10 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import javafx.collections.ListChangeListener;
+import javafx.geometry.Point2D;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -32,6 +36,8 @@ import javafx.scene.shape.Rectangle;
  */
 public class ColorPalettePreviewField extends FlowPane {
 
+  private static final Logger logger = Logger.getLogger(ColorPalettePreviewField.class.getName());
+
   private static final int RECT_HEIGHT = 17;
   private static final Color OUTLINE_CLR = Color.BLACK;
 
@@ -39,12 +45,18 @@ public class ColorPalettePreviewField extends FlowPane {
   protected SimpleColorPalette palette;
   protected int selected;
 
-
   public ColorPalettePreviewField(SimpleColorPalette palette) {
     super();
     rects = new ArrayList<Rectangle>();
     setMaxWidth(400);
     setPalette(palette);
+    
+    palette.addListener(new ListChangeListener<Color> () {
+      @Override
+      public void onChanged(Change<? extends Color> c) {
+        updatePreview();
+      }
+    });
   }
 
   private void setRectangles() {
@@ -62,6 +74,22 @@ public class ColorPalettePreviewField extends FlowPane {
           setSelected(rect);
         }
       });
+
+      rect.setOnMousePressed(e -> {
+        rect.setOpacity(rect.getOpacity() / 2);
+      });
+
+      rect.setOnMouseReleased(e -> {
+        rect.setOpacity(rect.getOpacity() * 2);
+        Point2D exit = new Point2D(e.getSceneX(), e.getSceneY());
+        
+        double x = this.sceneToLocal(exit).getX();
+        int newIndex = (int) (x / RECT_HEIGHT + .5);
+
+        // we just have to move the color, the listener will update the preview
+        palette.moveColor(rects.indexOf(rect), newIndex);
+      });
+      
       rects.add(rect);
     }
 
@@ -98,6 +126,4 @@ public class ColorPalettePreviewField extends FlowPane {
     this.palette = palette;
     updatePreview();
   }
-
-
 }

@@ -20,10 +20,19 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -35,11 +44,18 @@ import javafx.scene.shape.Rectangle;
  */
 public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
-  private final static int MAX_PREVIEW_COLORS = 10;
+  private final static int MAX_PREVIEW_COLORS = 15;
+  private static final Color BORDER_CLR = Color.DARKGRAY;
+  private static final Color TEXT_CLR = Color.BLACK;
+  
+  private static final Logger logger = Logger.getLogger(ColorPaletteCell.class.getName());
 
   private final double height;
   private final List<Rectangle> rects;
-  private final FlowPane pane;
+  private final FlowPane clrPane;
+  private final Label label;
+//  private final GridPane pane;
+  private final HBox hbox;
 
   /**
    * 
@@ -48,12 +64,22 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
    */
   public ColorPaletteCell(double h) {
     super();
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    pane = new FlowPane();
-    pane.setMaxSize((MAX_PREVIEW_COLORS + 1) * h, h);
+
     height = h;
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+    clrPane = new FlowPane();
+    clrPane.setMaxSize((MAX_PREVIEW_COLORS + 1) * h, h);
+
     rects = new ArrayList<Rectangle>();
-    pane.setMaxWidth(h * MAX_PREVIEW_COLORS);
+    label = new Label();
+    label.setTextFill(TEXT_CLR);
+    
+    hbox = new HBox();
+    hbox.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
+        new CornerRadii(2.0), new BorderWidths(1.0))));
+
+    hbox.getChildren().addAll(label, clrPane);
   }
 
   private void setRectangles(@Nullable SimpleColorPalette palette) {
@@ -79,9 +105,12 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
       setGraphic(null);
     } else {
       setRectangles(palette);
-      pane.getChildren().clear();
-      pane.getChildren().addAll(rects);
-      setGraphic(pane);
+      clrPane.getChildren().clear();
+      label.setText(palette.getName());
+      clrPane.getChildren().add(label);
+      clrPane.getChildren().addAll(rects);
+
+      setGraphic(hbox);
     }
   }
 };

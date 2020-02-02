@@ -25,8 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.util.color.SimpleColorPalette;
 
 /**
  * User parameter for color palette selection.
@@ -37,7 +36,6 @@ import io.github.mzmine.util.color.Vision;
 public class ColorPaletteParameter
     implements UserParameter<SimpleColorPalette, ColorPaletteComponent> {
 
-  private static final String MAIN_ELEMENT = "colorpalette";
   private static final String PALETTE_ELEMENT = "palette";
   private static final String SELECTED_INDEX = "selected";
 
@@ -112,29 +110,45 @@ public class ColorPaletteParameter
   public ColorPaletteComponent createEditingComponent() {
     ColorPaletteComponent comp = new ColorPaletteComponent();
 
-    for (Vision v : Vision.values()) {
-      palettes.add(new SimpleColorPalette(ColorsFX.getSevenColorPalette(v, true)));
-    }
-
-    comp.setPalettes(palettes);
+//    for (Vision v : Vision.values()) {
+//      palettes.add(new SimpleColorPalette(ColorsFX.getSevenColorPalette(v, true)));
+//    }
+//
+//    comp.setPalettes(palettes);
 
     return comp;
   }
 
   @Override
   public void setValueFromComponent(ColorPaletteComponent component) {
-    component.getValue();
+    value = component.getValue();
+    palettes = component.getPalettes();
   }
 
   @Override
   public void setValueToComponent(ColorPaletteComponent component, SimpleColorPalette newValue) {
     component.setValue(newValue);
+    component.setPalettes(palettes);
+  }
+
+  protected List<SimpleColorPalette> getPalettes() {
+    return palettes;
+  }
+
+  protected void setPalettes(List<SimpleColorPalette> palettes) {
+    this.palettes = palettes;
   }
 
   @Override
   public UserParameter<SimpleColorPalette, ColorPaletteComponent> cloneParameter() {
-    // TODO Auto-generated method stub
-    return null;
+    ColorPaletteParameter clone = new ColorPaletteParameter(name, descr);
+    clone.setValue(getValue().clone());
+    
+    List<SimpleColorPalette> pals = new ArrayList<>();
+    palettes.forEach(p -> pals.add(p.clone()));
+    clone.setPalettes(pals);
+    
+    return clone;
   }
 
 }

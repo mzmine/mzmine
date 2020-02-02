@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -45,12 +46,11 @@ public class ColorPaletteComponent extends FlowPane {
 
     box = new ComboBox<>();
     box.setMinWidth(200);
-    box.setPrefWidth(200);
-    box.setMaxHeight(box.getHeight());
     box.setCellFactory(p -> {
       return new ColorPaletteCell(17);
     });
     box.setButtonCell(new ColorPaletteCell(15));
+    box.setMaxHeight(35);
 
     addPalette = new Button("New palette");
     addPalette.setOnAction(e -> {
@@ -75,6 +75,10 @@ public class ColorPaletteComponent extends FlowPane {
     });
 
     deletePalette = new Button("Delete");
+    deletePalette.setOnAction(e -> {
+      box.getItems().remove(box.getValue());
+      box.setValue(box.getItems().get(0));
+    });
 
     this.getChildren().addAll(box, addPalette, editPalette, deletePalette);
   }
@@ -88,6 +92,7 @@ public class ColorPaletteComponent extends FlowPane {
       logger.warning("Value of ColorPaletteComponent was set to a value not contained "
           + "in the items. This might lead to unexpected behaviour.");
     box.setValue(value);
+    box.autosize();
   }
 
   public List<SimpleColorPalette> getPalettes() {
