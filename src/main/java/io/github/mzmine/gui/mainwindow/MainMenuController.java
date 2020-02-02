@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -97,6 +98,11 @@ public class MainMenuController {
 
   public void showAbout(Event event) {
     MZmineGUI.showAboutWindow();
+  }
+
+  public void setSampleParams(Event event) {
+    ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
+    dialog.show();
   }
 
 
