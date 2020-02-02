@@ -60,11 +60,9 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
       "auto");
 
-  public static final ColorPaletteParameter palettes = new ColorPaletteParameter("Color palette", "Test");
-  
   public NeutralLossFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
-        molecule, suffix, palettes});
+        molecule, suffix});
   }
 
   @Override
