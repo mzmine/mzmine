@@ -93,7 +93,7 @@ public class MainMenuController {
   public void setPreferences(Event event) {
     // Show the Preferences dialog
     logger.info("Showing the Preferences dialog");
-    // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
+    MZmineCore.getConfiguration().getPreferences().showSetupDialog(true);
   }
 
   public void showAbout(Event event) {

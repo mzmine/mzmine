@@ -32,11 +32,12 @@ public class NumberFormatEditor extends FlowPane {
 
     decimalsSpinner = new Spinner<>(0, 20, 1, 1);
 
+    getChildren().addAll(new Label("Decimals"), decimalsSpinner);
+
     if (showExponentOption) {
       exponentCheckbox = new CheckBox("Show exponent");
+      getChildren().addAll(exponentCheckbox);
     }
-
-    getChildren().addAll(new Label("Decimals"), decimalsSpinner, exponentCheckbox);
 
   }
 
