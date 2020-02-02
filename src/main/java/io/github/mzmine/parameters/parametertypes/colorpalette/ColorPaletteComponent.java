@@ -24,9 +24,11 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 
 /**
  * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
@@ -34,7 +36,7 @@ import javafx.scene.layout.FlowPane;
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class ColorPaletteComponent extends FlowPane {
+public class ColorPaletteComponent extends GridPane {
 
   private static final Logger logger = Logger.getLogger(ColorPaletteComponent.class.getName());
 
@@ -42,6 +44,7 @@ public class ColorPaletteComponent extends FlowPane {
   protected Button addPalette;
   protected Button editPalette;
   protected Button deletePalette;
+  protected FlowPane pnButtons;
 
   public ColorPaletteComponent() {
     super();
@@ -88,7 +91,11 @@ public class ColorPaletteComponent extends FlowPane {
       box.setValue(box.getItems().get(0));
     });
 
-    this.getChildren().addAll(box, addPalette, editPalette, deletePalette);
+    pnButtons = new FlowPane();
+    pnButtons.getChildren().addAll(addPalette, editPalette, deletePalette);
+    
+    add(box, 0, 0);
+    add(pnButtons, 0, 1);
   }
 
   public SimpleColorPalette getValue() {

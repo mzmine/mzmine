@@ -33,6 +33,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -55,8 +56,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   private final List<Rectangle> rects;
   private final FlowPane clrPane;
   private final Label label;
-  // private final GridPane pane;
-  private final HBox hbox;
+  private final GridPane pane;
 
   /**
    * 
@@ -70,8 +70,11 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
     clrPane = new FlowPane();
-    clrPane.setMaxSize((MAX_PREVIEW_COLORS + 1) * h, h);
     clrPane.setAlignment(Pos.CENTER_LEFT);
+    clrPane.setMaxHeight(h);
+    clrPane.setMaxWidth(MAX_PREVIEW_COLORS * h);
+    clrPane.setPrefHeight(h);
+    clrPane.setPrefWidth(MAX_PREVIEW_COLORS * h);
 
     rects = new ArrayList<Rectangle>();
     label = new Label();
@@ -85,11 +88,11 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
     // TODO usually this should result in a two line layout with the name in the first and the
     // palette in the second row...
-    hbox = new HBox();
-    hbox.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
+    pane = new GridPane();
+    pane.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
         new CornerRadii(2.0), new BorderWidths(1.0))));
-
-    hbox.getChildren().addAll(label, clrPane);
+    pane.add(clrPane, 1, 0);
+    pane.add(label, 0, 0);
   }
 
   private void setRectangles(@Nullable SimpleColorPalette palette) {
@@ -117,10 +120,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
       setRectangles(palette);
       clrPane.getChildren().clear();
       label.setText(palette.getName());
-      clrPane.getChildren().add(label);
       clrPane.getChildren().addAll(rects);
-
-      setGraphic(hbox);
+      setGraphic(pane);
     }
   }
 };
