@@ -21,17 +21,14 @@ package io.github.mzmine.util.color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import org.jfree.chart.ChartTheme;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 /**
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
@@ -69,8 +66,15 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     }
   }
 
-  public void applyToChartTheme(ChartTheme theme) {
-    // TODO
+  public void applyToChartTheme(EStandardChartTheme theme) {
+    List<java.awt.Color> awtColors = new ArrayList<>();
+    this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
+    java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
+
+    theme.setDrawingSupplier(new DefaultDrawingSupplier(colors, colors, colors,
+        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
   }
 
   /**
@@ -135,10 +139,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate.removeAll(sublist);
     delegate.add(clr);
     delegate.addAll(sublist);
-    
+
     fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
   }
-  
+
   @Override
   public Color get(int index) {
     return delegate.get(index);
@@ -162,6 +166,24 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   protected Color doRemove(int index) {
     return delegate.remove(index);
+  }
+
+  /**
+   * Checks for equality between two color palettes. Does not take the name into account.
+   * 
+   * @param palette The palette.
+   * @return true or false.
+   */
+  public boolean equals(SimpleColorPalette palette) {
+    if (size() != palette.size())
+      return false;
+
+    for (int i = 0; i < size(); i++) {
+      if (!get(i).toString().equals(palette.get(i).toString())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

@@ -24,6 +24,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -85,6 +86,8 @@ public interface MZmineConfiguration {
   public SimpleColorPalette getDefaultColorPalette();
   
   public ChartThemeParameters getDefaultChartThemeParameters();
+  
+  public EStandardChartTheme getDefaultChartTheme();
 
   public StringCrypter getEncrypter();
 }

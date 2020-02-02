@@ -1,6 +1,7 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.SimpleColorPalette;
 
 public class ChartThemeFactory2 {
   
@@ -9,9 +10,15 @@ public class ChartThemeFactory2 {
   public static EStandardChartTheme createDefaultTheme(String name) {
     EStandardChartTheme theme = new EStandardChartTheme(name);
     
-    ChartThemeParameters cp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
+    ChartThemeParameters ctp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
 
-    cp.applyToChartTheme(theme);
+    ctp.applyToChartTheme(theme);
+    
+    SimpleColorPalette scp = MZmineCore.getConfiguration().getDefaultColorPalette();
+    
+    scp.applyToChartTheme(theme);
+    
+    return theme;
   }
   
 }

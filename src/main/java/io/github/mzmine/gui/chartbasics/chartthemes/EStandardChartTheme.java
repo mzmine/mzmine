@@ -159,10 +159,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     if (chart.getLegend() != null)
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
 
-    if (useXLabel)
-      p.getDomainAxis().setLabel(xlabel);
-    if (useYLabel)
-      p.getRangeAxis().setLabel(ylabel);
+    if (isUseXLabel())
+      p.getDomainAxis().setLabel(getXlabel());
+    if (isUseYLabel())
+      p.getRangeAxis().setLabel(getYlabel());
 
     p.getDomainAxis().setVisible(isShowXAxis());
     p.getRangeAxis().setVisible(isShowYAxis());
