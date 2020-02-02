@@ -139,8 +139,6 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate.add(clr);
     delegate.addAll(sublist);
 
-    logger.fine("moved color from " + oldIndex + " to " + newIndex);
-
     fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
   }
 

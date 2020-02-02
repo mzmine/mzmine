@@ -103,7 +103,6 @@ public class ColorPalettePreviewField extends FlowPane {
         // we just have to move the color, the listener will update the preview
         palette.moveColor(getSelected(), newIndex);
         setSelected(rect);
-        logger.fine("moving color to " + newIndex);
         validDrag = false;
       });
       
