@@ -48,8 +48,8 @@
 			userData="io.github.mzmine.modules.batchmode.BatchModeModule" />
 
 		<SeparatorMenuItem />
-		<MenuItem text="Set sample parameters" onAction="#runModule"
-			userData="" />
+		<MenuItem text="Set sample parameters"
+			onAction="#setSampleParams" />
 
 		<SeparatorMenuItem />
 		<MenuItem text="Set preferences" onAction="#setPreferences" />
@@ -332,7 +332,7 @@
 			userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule" />
 		<MenuItem text="Raw data overview" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule" />
-		
+
 
 		<SeparatorMenuItem />
 		<MenuItem text="Scatter plot" onAction="#runModule"

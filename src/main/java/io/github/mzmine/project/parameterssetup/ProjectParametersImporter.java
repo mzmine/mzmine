@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -37,9 +36,6 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 
 /**
  * This class imports project parameters and their values from a CSV file to the main project
@@ -238,30 +234,26 @@ public class ProjectParametersImporter {
 
     // Warn user if main dialog already contains a parameter with same name
     for (UserParameter<?, ?> parameter : parameters) {
-      UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
-      if (p != null) {
-        Alert alert =
-            new Alert(AlertType.CONFIRMATION, "Overwrite previous parameter(s) with same name?");
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-          break;
-        } else {
-          return false;
-        }
-      }
+      /*
+       * UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName()); if (p != null) {
+       * Alert alert = new Alert(AlertType.CONFIRMATION,
+       * "Overwrite previous parameter(s) with same name?"); Optional<ButtonType> result =
+       * alert.showAndWait(); if (result.isPresent() && result.get() == ButtonType.OK) { break; }
+       * else { return false; } }
+       */
     }
 
     // Remove parameters with same name
     for (UserParameter<?, ?> parameter : parameters) {
-      UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
-      if (p != null) {
-        mainDialog.removeParameter(p);
-      }
+      // UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+      // if (p != null) {
+      // mainDialog.removeParameter(p);
+      // }
     }
 
     // Add new parameters to the main dialog
     for (UserParameter<?, ?> parameter : parameters) {
-      mainDialog.addParameter(parameter);
+      // mainDialog.addParameter(parameter);
     }
 
     // Open reader
@@ -299,11 +291,11 @@ public class ProjectParametersImporter {
           String parameterValue = st.nextToken();
           UserParameter<?, ?> parameter = parameters[parameterIndex];
 
-          if (parameter instanceof DoubleParameter)
-            mainDialog.setParameterValue(parameter, fileName, Double.parseDouble(parameterValue));
-          else
-            mainDialog.setParameterValue(parameter, fileName, parameterValue);
-
+          /*
+           * if (parameter instanceof DoubleParameter) mainDialog.setParameterValue(parameter,
+           * fileName, Double.parseDouble(parameterValue)); else
+           * mainDialog.setParameterValue(parameter, fileName, parameterValue);
+           */
           parameterIndex++;
 
         }
