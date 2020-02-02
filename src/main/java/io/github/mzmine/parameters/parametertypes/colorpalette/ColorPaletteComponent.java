@@ -55,6 +55,7 @@ public class ColorPaletteComponent extends GridPane {
       return new ColorPaletteCell(17);
     });
     box.setButtonCell(new ColorPaletteCell(15));
+    box.setMinHeight(35);
     box.setMaxHeight(35);
 
     addPalette = new Button("New palette");

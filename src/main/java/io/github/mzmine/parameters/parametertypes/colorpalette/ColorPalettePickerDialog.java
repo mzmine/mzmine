@@ -109,6 +109,8 @@ public class ColorPalettePickerDialog extends Stage {
   }
 
   private void btnAddColorAction() {
+    if(palette.size() == 0)
+      this.setHeight(this.getHeight() + 17);
     palette.add(colorPicker.getValue());
 //    pnPalette.updatePreview();
   }
