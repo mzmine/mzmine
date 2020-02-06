@@ -46,7 +46,8 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
@@ -57,6 +58,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
+import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 
 /**
@@ -75,11 +78,14 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   private final Map<Class<? extends MZmineModule>, ParameterSet> moduleParameters;
 
+  private final EStandardChartTheme standardChartTheme;
+
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<Class<? extends MZmineModule>, ParameterSet>();
     preferences = new MZminePreferences();
     lastProjects = new FileNameListSilentParameter("Last projets");
     globalEncrypter = new EncryptionKeyParameter();
+    standardChartTheme = new EStandardChartTheme("default");
   }
 
   @Override
@@ -331,6 +337,35 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Nonnull
   public FileNameListSilentParameter getLastProjectsParameter() {
     return lastProjects;
+  }
+
+  @Override
+  public SimpleColorPalette getDefaultColorPalette() {
+    SimpleColorPalette p = preferences.getParameter(MZminePreferences.stdColorPalette).getValue();
+    if (!p.isValidPalette()) {
+      logger.warning(
+          "Current default color palette set in preferences is invalid. Returning standard "
+              + "colors.");
+      p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+      p.setName("default-deuternopia");
+    }
+    return p;
+  }
+
+  @Override
+  public ChartThemeParameters getDefaultChartThemeParameters() {
+    return (ChartThemeParameters) preferences.getParameter(MZminePreferences.chartParam).getValue();
+  }
+
+  @Override
+  public EStandardChartTheme getDefaultChartTheme() {
+    // update the theme settings first
+    ChartThemeParameters ctp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
+    ctp.applyToChartTheme(standardChartTheme);
+    SimpleColorPalette scp = MZmineCore.getConfiguration().getDefaultColorPalette();
+    scp.applyToChartTheme(standardChartTheme);
+
+    return standardChartTheme;
   }
 
 }
