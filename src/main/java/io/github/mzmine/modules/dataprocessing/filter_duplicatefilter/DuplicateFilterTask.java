@@ -49,7 +49,7 @@ import io.github.mzmine.util.SortingProperty;
 public class DuplicateFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(DuplicateFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(DuplicateFilterTask.class.getName());
 
   // Original and resultant feature lists.
   private final MZmineProject project;
@@ -93,7 +93,7 @@ public class DuplicateFilterTask extends AbstractTask {
     if (!isCanceled()) {
       try {
 
-        LOG.info("Filtering duplicate peaks list rows of " + peakList);
+        logger.info("Filtering duplicate peaks list rows of " + peakList);
         setStatus(TaskStatus.PROCESSING);
 
         // Filter out duplicates..
@@ -116,12 +116,12 @@ public class DuplicateFilterTask extends AbstractTask {
           }
 
           // Finished.
-          LOG.info("Finished filtering duplicate feature list rows on " + peakList);
+          logger.info("Finished filtering duplicate feature list rows on " + peakList);
           setStatus(TaskStatus.FINISHED);
         }
       } catch (Throwable t) {
 
-        LOG.log(Level.SEVERE, "Duplicate filter error", t);
+        logger.log(Level.SEVERE, "Duplicate filter error", t);
         setErrorMessage(t.getMessage());
         setStatus(TaskStatus.ERROR);
       }
@@ -141,9 +141,9 @@ public class DuplicateFilterTask extends AbstractTask {
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
       FilterMode mode) {
-    final PeakListRow[] peakListRows = origPeakList.getRows();
+    final PeakListRow[] peakListRows = origPeakList.getRows().toArray(PeakListRow[]::new);
     final int rowCount = peakListRows.length;
-    RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
+    RawDataFile[] rawFiles = origPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create the new feature list.
     final PeakList newPeakList =
@@ -218,7 +218,7 @@ public class DuplicateFilterTask extends AbstractTask {
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
           new SimplePeakListAppliedMethod("Duplicate feature list rows filter", parameters));
-      LOG.info("Removed " + n + " duplicate rows");
+      logger.info("Removed " + n + " duplicate rows");
     }
 
     return newPeakList;
@@ -227,7 +227,7 @@ public class DuplicateFilterTask extends AbstractTask {
   /**
    * Turns firstRow to consensus row. With all features with highest FeatureStatus:
    * DETECTED>ESTIMATED>UNKNOWN Or the highest feature when comparing two ESTIMATED features
-   * 
+   *
    * @param rawFiles
    * @param firstRow
    * @param secondRow
@@ -259,7 +259,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
   /**
    * Has one feature within RT and mzTolerance in at least one raw data file
-   * 
+   *
    * @param rawFiles
    * @param firstRow
    * @param secondRow
@@ -283,7 +283,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
   /**
    * Shares the same RT and mz
-   * 
+   *
    * @param firstRow
    * @param secondRow
    * @param mzTolerance

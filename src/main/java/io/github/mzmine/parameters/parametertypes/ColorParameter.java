@@ -18,20 +18,19 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Color;
 import java.util.Collection;
-import javax.swing.BorderFactory;
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.paint.Color;
 
-public class ColorParameter implements UserParameter<Color, ColorComponent> {
+public class ColorParameter implements UserParameter<Color, ColorPicker> {
 
   private String name, description;
   private Color value = Color.BLACK;
 
   public ColorParameter(String name, String description) {
-    this(name, description, Color.black);
+    this(name, description, Color.BLACK);
   }
 
   public ColorParameter(String name, String description, Color defaultValue) {
@@ -57,10 +56,10 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   @Override
-  public ColorComponent createEditingComponent() {
-    ColorComponent colorComponent = new ColorComponent(value);
-    colorComponent.setBorder(BorderFactory.createCompoundBorder(colorComponent.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+  public ColorPicker createEditingComponent() {
+    ColorPicker colorComponent = new ColorPicker(value);
+    // colorComponent.setBorder(BorderFactory.createCompoundBorder(colorComponent.getBorder(),
+    // BorderFactory.createEmptyBorder(0, 4, 0, 0)));
     return colorComponent;
   }
 
@@ -86,13 +85,13 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
   }
 
   @Override
-  public void setValueFromComponent(ColorComponent component) {
-    value = component.getColor();
+  public void setValueFromComponent(ColorPicker component) {
+    value = component.getValue();
   }
 
   @Override
-  public void setValueToComponent(ColorComponent component, Color newValue) {
-    component.setColor(newValue);
+  public void setValueToComponent(ColorPicker component, Color newValue) {
+    component.setValue(newValue);
   }
 
   @Override
@@ -122,7 +121,7 @@ public class ColorParameter implements UserParameter<Color, ColorComponent> {
     s.append(",");
     s.append(value.getBlue());
     s.append(",");
-    s.append(value.getAlpha());
+    s.append(value.getOpacity());
     xmlElement.setTextContent(s.toString());
   }
 

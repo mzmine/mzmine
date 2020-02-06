@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,28 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Vector;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -47,135 +28,88 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
  * how the selected mass detector and his parameters works over the raw data file.
  */
-public class RansacAlignerSetupDialog extends ParameterSetupDialog implements ActionListener {
-
-  private static final long serialVersionUID = 1L;
+public class RansacAlignerSetupDialog extends ParameterSetupDialog {
 
   // Dialog components
-  private JPanel pnlPlotXY, peakListsPanel;
-  private JCheckBox previewCheckBox;
-  private AlignmentRansacPlot chart;
-  private JComboBox<PeakList> peakListsComboX, peakListsComboY;
-  private JButton alignmentPreviewButton;
+  private final BorderPane pnlPlotXY;
+  private final GridPane comboPanel;
+  private final FlowPane peakListsPanel;
+  private final CheckBox previewCheckBox;
+  private final AlignmentRansacPlot chart;
+  private final ComboBox<PeakList> peakListsComboX, peakListsComboY;
+  private final Button alignmentPreviewButton;
 
-  public RansacAlignerSetupDialog(Window parent, boolean valueCheckRequired,
-      RansacAlignerParameters parameters) {
-    super(parent, valueCheckRequired, parameters);
-  }
+  public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
+    super(valueCheckRequired, parameters);
 
-  /**
-   * @see io.github.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
-   */
-  public void actionPerformed(ActionEvent event) {
-
-    super.actionPerformed(event);
-    Object src = event.getSource();
-
-    if (src == previewCheckBox) {
-      if (previewCheckBox.isSelected()) {
-        // Set the height of the preview to 200 cells, so it will span
-        // the whole vertical length of the dialog (buttons are at row
-        // no 100). Also, we set the weight to 10, so the preview
-        // component will consume most of the extra available space.
-        mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
-        peakListsPanel.setVisible(true);
-        updateMinimumSize();
-        pack();
-        // // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-      } else {
-        mainPanel.remove(pnlPlotXY);
-        peakListsPanel.setVisible(false);
-        updateMinimumSize();
-        pack();
-        // // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-      }
-    }
-
-    if ((src == alignmentPreviewButton)) {
-      updatePreview();
-    }
-
-  }
-
-  /**
-   * This function add all the additional components for this dialog over the original
-   * ParameterSetupDialog.
-   * 
-   */
-  @Override
-  protected void addDialogComponents() {
-
-    super.addDialogComponents();
-
-    PeakList peakLists[] = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
-    if (peakLists.length < 2)
-      return;
+    var featureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists();
 
     PeakList selectedPeakLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
 
     // Preview check box
-    previewCheckBox = new JCheckBox("Show preview of RANSAC alignment");
-    previewCheckBox.addActionListener(this);
-    previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+    previewCheckBox = new CheckBox("Show preview of RANSAC alignment");
 
-    mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1, 3, 1, 0, 0,
-        GridBagConstraints.HORIZONTAL);
-    mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1, 0, 0,
-        GridBagConstraints.HORIZONTAL);
+    peakListsPanel = new FlowPane();
+    peakListsPanel.visibleProperty().bind(previewCheckBox.selectedProperty());
+    // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+
+    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
+    paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
 
     // Panel for the combo boxes with the feature lists
-    JPanel comboPanel = new JPanel(new GridLayout(3, 1));
+    comboPanel = new GridPane();
 
-    peakListsComboX = new JComboBox<PeakList>(peakLists);
-    peakListsComboX.addActionListener(this);
-    peakListsComboY = new JComboBox<PeakList>(peakLists);
-    peakListsComboY.addActionListener(this);
-    comboPanel.add(peakListsComboX);
-    comboPanel.add(peakListsComboY);
+    peakListsComboX = new ComboBox<PeakList>(featureLists);
+    // peakListsComboX.addActionListener(this);
+    peakListsComboY = new ComboBox<PeakList>(featureLists);
+    // peakListsComboY.addActionListener(this);
 
-    alignmentPreviewButton = new JButton("Preview alignment");
-    alignmentPreviewButton.addActionListener(this);
-    comboPanel.add(alignmentPreviewButton);
+    alignmentPreviewButton = new Button("Preview alignment");
+    alignmentPreviewButton.setOnAction(e -> updatePreview());
+    comboPanel.getChildren().addAll(peakListsComboX, peakListsComboY, alignmentPreviewButton);
 
     if (selectedPeakLists.length >= 2) {
-      peakListsComboX.setSelectedItem(selectedPeakLists[0]);
-      peakListsComboY.setSelectedItem(selectedPeakLists[1]);
+      peakListsComboX.getSelectionModel().select(selectedPeakLists[0]);
+      peakListsComboY.getSelectionModel().select(selectedPeakLists[1]);
     } else {
-      peakListsComboX.setSelectedItem(peakLists[0]);
-      peakListsComboY.setSelectedItem(peakLists[1]);
+      peakListsComboX.getSelectionModel().select(featureLists.get(0));
+      peakListsComboY.getSelectionModel().select(featureLists.get(1));
     }
 
-    peakListsPanel = new JPanel();
-    peakListsPanel.add(comboPanel);
+    peakListsPanel.getChildren().add(comboPanel);
     peakListsPanel.setVisible(false);
 
     // Panel for XYPlot
-    pnlPlotXY = new JPanel(new BorderLayout());
-    Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-    pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
-    pnlPlotXY.setBackground(Color.white);
+    pnlPlotXY = new BorderPane();
+    // Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+    // Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+    // pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
+    // pnlPlotXY.setBackground(Color.white);
 
     chart = new AlignmentRansacPlot();
-    pnlPlotXY.add(chart, BorderLayout.CENTER);
+    pnlPlotXY.setCenter(chart);
 
-    mainPanel.add(peakListsPanel, 0, getNumberOfParameters() + 3, 3, 1, 0, 0,
-        GridBagConstraints.BOTH);
-
-    updateMinimumSize();
-    pack();
-    // // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+    paramsPane.add(peakListsPanel, 0, getNumberOfParameters() + 3);
 
   }
 
+
+
   /**
    * Create the vector which contains all the possible aligned peaks.
-   * 
+   *
    * @return vector which contains all the possible aligned peaks.
    */
   private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY,
@@ -211,8 +145,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements Ac
 
   private void updatePreview() {
 
-    PeakList peakListX = (PeakList) peakListsComboX.getSelectedItem();
-    PeakList peakListY = (PeakList) peakListsComboY.getSelectedItem();
+    PeakList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
+    PeakList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
 
     if ((peakListX == null) || (peakListY == null))
       return;
@@ -223,15 +157,15 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements Ac
     RawDataFile file2 = null;
 
     for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-      if (peakListX.getPeaks(rfile).length > numPeaks) {
-        numPeaks = peakListX.getPeaks(rfile).length;
+      if (peakListX.getPeaks(rfile).size() > numPeaks) {
+        numPeaks = peakListX.getPeaks(rfile).size();
         file = rfile;
       }
     }
     numPeaks = 0;
     for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-      if (peakListY.getPeaks(rfile).length > numPeaks) {
-        numPeaks = peakListY.getPeaks(rfile).length;
+      if (peakListY.getPeaks(rfile).size() > numPeaks) {
+        numPeaks = peakListY.getPeaks(rfile).size();
         file2 = rfile;
       }
     }

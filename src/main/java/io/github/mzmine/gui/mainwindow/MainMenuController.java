@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
@@ -33,13 +32,12 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * The controller class for MainMenu.fxml
@@ -50,7 +48,7 @@ public class MainMenuController {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @FXML
-  private Menu windowsMenu, recentProjectsMenu;
+  private Menu recentProjectsMenu;
 
   public void closeProject(Event event) {
     MZmineGUI.requestCloseProject();
@@ -95,34 +93,18 @@ public class MainMenuController {
   public void setPreferences(Event event) {
     // Show the Preferences dialog
     logger.info("Showing the Preferences dialog");
-    // MZmineCore.getConfiguration().getPreferences().showSetupDialog(null);
+    MZmineCore.getConfiguration().getPreferences().showSetupDialog(true);
   }
 
   public void showAbout(Event event) {
     MZmineGUI.showAboutWindow();
   }
 
-  public void fillWindowsMenu(Event event) {
-    final var windowsMenuItems = windowsMenu.getItems();
-    while (windowsMenuItems.size() > 2)
-      windowsMenuItems.remove(2);
-    for (Window win : Window.getWindows()) {
-      if (win instanceof Stage) {
-        Stage stage = (Stage) win;
-        final MenuItem item = new MenuItem(stage.getTitle());
-        windowsMenuItems.add(item);
-      }
-    }
+  public void setSampleParams(Event event) {
+    ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
+    dialog.show();
   }
 
-  public void closeAllWindows(Event event) {
-    for (Window win : Window.getWindows()) {
-      if (win == MZmineCore.getDesktop().getMainWindow())
-        continue;
-      win.hide();
-    }
-
-  }
 
   @SuppressWarnings("unchecked")
   public void runModule(Event event) {
@@ -153,15 +135,13 @@ public class MainMenuController {
 
     logger.info("Setting parameters for module " + module.getName());
 
-    SwingUtilities.invokeLater(() -> {
-      ExitCode exitCode = moduleParameters.showSetupDialog(null, true);
-      if (exitCode != ExitCode.OK)
-        return;
+    ExitCode exitCode = moduleParameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK)
+      return;
 
-      ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-      logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
-      MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
-    });
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
   }
 
   public void fillRecentProjects(Event event) {

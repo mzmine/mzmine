@@ -59,7 +59,7 @@ public class LipidSpectraSearchModule implements MZmineModule {
             .getModuleParameters(LipidSpectraSearchModule.class);;
 
     // Run task.
-    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationLipidSearchTask(
           parameters.cloneParameterSet(), scan, spectraPlot));

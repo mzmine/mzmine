@@ -21,11 +21,12 @@ package io.github.mzmine.modules.io.xmlimport;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 public class XMLImportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter filename =
-      new FileNameParameter("Filename", "Name of imported feature list file name", "mpl");
+  public static final FileNameParameter filename = new FileNameParameter("Filename",
+      "Name of imported feature list file name", "mpl", FileSelectionType.OPEN);
 
   public XMLImportParameters() {
     super(new Parameter[] {filename});

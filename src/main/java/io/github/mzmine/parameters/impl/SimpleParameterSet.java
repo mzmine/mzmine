@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,22 +18,20 @@
 
 package io.github.mzmine.parameters.impl;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.util.ExitCode;
-
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.application.Platform;
 
 /**
  * Simple storage for the parameters. A typical MZmine module will inherit this class and define the
@@ -46,7 +44,7 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
 
-  private Parameter<?> parameters[];
+  protected Parameter<?> parameters[];
   private boolean skipSensitiveParameters = false;
 
   public SimpleParameterSet() {
@@ -57,10 +55,12 @@ public class SimpleParameterSet implements ParameterSet {
     this.parameters = parameters;
   }
 
+  @Override
   public Parameter<?>[] getParameters() {
     return parameters;
   }
 
+  @Override
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     this.skipSensitiveParameters = skipSensitiveParameters;
     for (Parameter<?> parameter : parameters) {
@@ -69,6 +69,7 @@ public class SimpleParameterSet implements ParameterSet {
     }
   }
 
+  @Override
   public void loadValuesFromXML(Element xmlElement) {
     NodeList list = xmlElement.getElementsByTagName(parameterElement);
     for (int i = 0; i < list.getLength(); i++) {
@@ -87,6 +88,7 @@ public class SimpleParameterSet implements ParameterSet {
     }
   }
 
+  @Override
   public void saveValuesToXML(Element xmlElement) {
     Document parentDocument = xmlElement.getOwnerDocument();
     for (Parameter<?> param : parameters) {
@@ -103,6 +105,7 @@ public class SimpleParameterSet implements ParameterSet {
   /**
    * Represent method's parameters and their values in human-readable format
    */
+  @Override
   public String toString() {
 
     StringBuilder s = new StringBuilder();
@@ -130,6 +133,7 @@ public class SimpleParameterSet implements ParameterSet {
   /**
    * Make a deep copy
    */
+  @Override
   public ParameterSet cloneParameterSet() {
 
     // Make a deep copy of the parameters
@@ -139,22 +143,23 @@ public class SimpleParameterSet implements ParameterSet {
     }
 
     try {
-      // Do not make a new instance of SimpleParameterSet, but instead
-      // clone the runtime class of this instance - runtime type may be
-      // inherited class. This is important in order to keep the proper
-      // behavior of showSetupDialog(xxx) method for cloned classes
-
-      SimpleParameterSet newSet = this.getClass().newInstance();
+      /*
+       * Do not create a new instance of SimpleParameterSet, but instead clone the runtime class of
+       * this instance - runtime type may be inherited class. This is important in order to keep the
+       * proper behavior of showSetupDialog(xxx) method for cloned classes.
+       */
+      SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
       newSet.parameters = newParameters;
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
 
       return newSet;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       e.printStackTrace();
       return null;
     }
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public <T extends Parameter<?>> T getParameter(T parameter) {
     for (Parameter<?> p : parameters) {
@@ -165,11 +170,14 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+
+    assert Platform.isFxApplicationThread();
+
     if ((parameters == null) || (parameters.length == 0))
       return ExitCode.OK;
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

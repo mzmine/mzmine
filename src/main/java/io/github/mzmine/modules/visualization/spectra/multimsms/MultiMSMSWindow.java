@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -34,12 +34,10 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -54,10 +52,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import javafx.scene.control.TextInputDialog;
 
 /**
  * Holds more charts for data reviewing
- * 
+ *
  * @author Robin Schmid
  *
  */
@@ -155,7 +154,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * Show best for missing MSMS in raw (if not selected none is shown)
-   * 
+   *
    * @param selected
    */
   public void setUseBestForMissing(boolean selected) {
@@ -193,7 +192,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * any row contains fragment scan in raw data file
-   * 
+   *
    * @param raw
    * @return
    */
@@ -209,7 +208,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * set raw data file and update
-   * 
+   *
    * @param raw
    */
   public void setRaw(RawDataFile raw) {
@@ -240,17 +239,21 @@ public class MultiMSMSWindow extends JFrame {
     JMenu settings = new JMenu("Settings");
     menu.add(settings);
 
-    JFrame thisframe = this;
-
     // set columns
     JMenuItem setCol = new JMenuItem("set columns");
     menu.add(setCol);
     setCol.addActionListener(e -> {
       try {
-        col = Integer.parseInt(JOptionPane.showInputDialog("Columns", col));
-        setAutoColumns(false);
-        setColumns(col);
+        TextInputDialog inputDialog = new TextInputDialog(String.valueOf(col));
+        inputDialog.setContentText("Columns");
+        var result = inputDialog.showAndWait();
+        if (result.isPresent()) {
+          col = Integer.parseInt(result.get());
+          setAutoColumns(false);
+          setColumns(col);
+        }
       } catch (Exception e2) {
+        e2.printStackTrace();
       }
     });
 
@@ -321,7 +324,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * Sort rows
-   * 
+   *
    * @param rows
    * @param raw
    * @param sorting
@@ -335,7 +338,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * Create charts and show
-   * 
+   *
    * @param rows
    * @param raw
    */
@@ -405,7 +408,7 @@ public class MultiMSMSWindow extends JFrame {
   }
 
   /**
-   * 
+   *
    * @param group
    */
   public void renewCharts(ChartGroup group) {
@@ -463,7 +466,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * To flag annotations in spectra
-   * 
+   *
    * @param mzTolerance
    */
   public void setMzTolerance(MZTolerance mzTolerance) {
@@ -510,7 +513,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * all charts (ms1 and MS2)
-   * 
+   *
    * @param op
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
@@ -520,7 +523,7 @@ public class MultiMSMSWindow extends JFrame {
 
   /**
    * only ms2 charts
-   * 
+   *
    * @param op
    */
   public void forAllMSMSCharts(Consumer<JFreeChart> op) {

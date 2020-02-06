@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,330 +18,327 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-
+import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.converter.NumberStringConverter;
 
-public class AxesSetupDialog extends JDialog implements ActionListener {
+public class AxesSetupDialog extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private ValueAxis xAxis;
-  private ValueAxis yAxis;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private final ValueAxis xAxis;
+  private final ValueAxis yAxis;
 
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final DialogPane mainPane;
+  private final Scene mainScene;
 
   // Buttons
-  private JButton btnOK, btnApply, btnCancel;
+  private final Button btnOK, btnApply, btnCancel;
 
-  private JFormattedTextField fieldXMin;
-  private JFormattedTextField fieldXMax;
-  private JFormattedTextField fieldXTick;
+  private final GridPane pnlLabelsAndFields;
+  private final TextField fieldXMin;
+  private final TextField fieldXMax;
+  private final TextField fieldXTick;
 
-  private JFormattedTextField fieldYMin;
-  private JFormattedTextField fieldYMax;
-  private JFormattedTextField fieldYTick;
+  private final TextField fieldYMin;
+  private final TextField fieldYMax;
+  private final TextField fieldYTick;
 
-  private JCheckBox checkXAutoRange, checkXAutoTick;
-  private JCheckBox checkYAutoRange, checkYAutoTick;
+  private final CheckBox checkXAutoRange, checkXAutoTick;
+  private final CheckBox checkYAutoRange, checkYAutoTick;
 
   /**
    * Constructor
    */
-  public AxesSetupDialog(JFrame parent, XYPlot plot) {
+  public AxesSetupDialog(@Nonnull Stage parent, @Nonnull XYPlot plot) {
 
-    // Make dialog modal
-    super(parent, true);
+    assert parent != null;
+    assert plot != null;
+
+    initModality(Modality.APPLICATION_MODAL);
+
+    mainPane = new DialogPane();
+
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    initOwner(parent);
 
     xAxis = plot.getDomainAxis();
     yAxis = plot.getRangeAxis();
 
-    NumberFormat defaultFormatter = NumberFormat.getNumberInstance();
-    NumberFormat xAxisFormatter = defaultFormatter;
+    NumberStringConverter xConverter = new NumberStringConverter();
+    NumberStringConverter yConverter = new NumberStringConverter();
+
     if (xAxis instanceof NumberAxis)
-      xAxisFormatter = ((NumberAxis) xAxis).getNumberFormatOverride();
-    NumberFormat yAxisFormatter = defaultFormatter;
+      xConverter = new NumberStringConverter(((NumberAxis) xAxis).getNumberFormatOverride());
     if (yAxis instanceof NumberAxis)
-      yAxisFormatter = ((NumberAxis) yAxis).getNumberFormatOverride();
+      yConverter = new NumberStringConverter(((NumberAxis) yAxis).getNumberFormatOverride());
 
     // Create labels and fields
-    JLabel lblXTitle = new JLabel(xAxis.getLabel());
-    JLabel lblXAutoRange = new JLabel("Auto range");
-    JLabel lblXMin = new JLabel("Minimum");
-    JLabel lblXMax = new JLabel("Maximum");
-    JLabel lblXAutoTick = new JLabel("Auto tick size");
-    JLabel lblXTick = new JLabel("Tick size");
+    Label lblXTitle = new Label(xAxis.getLabel());
+    lblXTitle.setStyle("-fx-font-size: 10pt; -fx-font-weight: bold;");
+    lblXTitle.getStylesheets().clear();
+    Label lblXAutoRange = new Label("Auto range");
+    Label lblXMin = new Label("Minimum");
+    Label lblXMax = new Label("Maximum");
+    Label lblXAutoTick = new Label("Auto tick size");
+    Label lblXTick = new Label("Tick size");
 
-    JLabel lblYTitle = new JLabel(yAxis.getLabel());
-    JLabel lblYAutoRange = new JLabel("Auto range");
-    JLabel lblYMin = new JLabel("Minimum");
-    JLabel lblYMax = new JLabel("Maximum");
-    JLabel lblYAutoTick = new JLabel("Auto tick size");
-    JLabel lblYTick = new JLabel("Tick size");
+    Label lblYTitle = new Label(yAxis.getLabel());
+    lblYTitle.setStyle("-fx-font-size: 10pt; -fx-font-weight: bold;");
+    Label lblYAutoRange = new Label("Auto range");
+    Label lblYMin = new Label("Minimum");
+    Label lblYMax = new Label("Maximum");
+    Label lblYAutoTick = new Label("Auto tick size");
+    Label lblYTick = new Label("Tick size");
 
-    checkXAutoRange = new JCheckBox();
-    checkXAutoRange.addActionListener(this);
-    checkXAutoTick = new JCheckBox();
-    checkXAutoTick.addActionListener(this);
-    fieldXMin = new JFormattedTextField(xAxisFormatter);
-    fieldXMax = new JFormattedTextField(xAxisFormatter);
-    fieldXTick = new JFormattedTextField(xAxisFormatter);
 
-    checkYAutoRange = new JCheckBox();
-    checkYAutoRange.addActionListener(this);
-    checkYAutoTick = new JCheckBox();
-    checkYAutoTick.addActionListener(this);
-    fieldYMin = new JFormattedTextField(yAxisFormatter);
-    fieldYMax = new JFormattedTextField(yAxisFormatter);
-    fieldYTick = new JFormattedTextField(yAxisFormatter);
+    checkXAutoRange = new CheckBox();
+    checkXAutoTick = new CheckBox();
+    fieldXMin = new TextField();
+    fieldXMin.setTextFormatter(new TextFormatter<>(xConverter));
+    fieldXMax = new TextField();
+    fieldXMax.setTextFormatter(new TextFormatter<>(xConverter));
+    fieldXTick = new TextField();
+    fieldXTick.setTextFormatter(new TextFormatter<>(xConverter));
+
+    fieldXMin.disableProperty().bind(checkXAutoRange.selectedProperty());
+    fieldXMax.disableProperty().bind(checkXAutoRange.selectedProperty());
+    fieldXTick.disableProperty().bind(checkXAutoTick.selectedProperty());
+
+
+    checkYAutoRange = new CheckBox();
+    checkYAutoTick = new CheckBox();
+    fieldYMin = new TextField();
+    fieldYMin.setTextFormatter(new TextFormatter<>(yConverter));
+    fieldYMax = new TextField();
+    fieldYMax.setTextFormatter(new TextFormatter<>(yConverter));
+    fieldYTick = new TextField();
+    fieldYTick.setTextFormatter(new TextFormatter<>(yConverter));
+
+    fieldYMin.disableProperty().bind(checkYAutoRange.selectedProperty());
+    fieldYMax.disableProperty().bind(checkYAutoRange.selectedProperty());
+    fieldYTick.disableProperty().bind(checkYAutoTick.selectedProperty());
 
     // Create a panel for labels and fields
-    JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
+    pnlLabelsAndFields = new GridPane();
+    pnlLabelsAndFields.setHgap(5);
+    pnlLabelsAndFields.setVgap(10);
+    int row = 0;
+    pnlLabelsAndFields.add(lblXTitle, 0, row);
 
-    pnlLabelsAndFields.add(lblXTitle);
-    pnlLabelsAndFields.add(new JPanel());
-    pnlLabelsAndFields.add(lblXAutoRange);
-    pnlLabelsAndFields.add(checkXAutoRange);
-    pnlLabelsAndFields.add(lblXMin);
-    pnlLabelsAndFields.add(fieldXMin);
-    pnlLabelsAndFields.add(lblXMax);
-    pnlLabelsAndFields.add(fieldXMax);
+    row++;
+    pnlLabelsAndFields.add(lblXAutoRange, 0, row);
+    pnlLabelsAndFields.add(checkXAutoRange, 1, row);
+
+    row++;
+    pnlLabelsAndFields.add(lblXMin, 0, row);
+    pnlLabelsAndFields.add(fieldXMin, 1, row);
+
+    row++;
+    pnlLabelsAndFields.add(lblXMax, 0, row);
+    pnlLabelsAndFields.add(fieldXMax, 1, row);
     if (xAxis instanceof NumberAxis) {
-      pnlLabelsAndFields.add(lblXAutoTick);
-      pnlLabelsAndFields.add(checkXAutoTick);
-      pnlLabelsAndFields.add(lblXTick);
-      pnlLabelsAndFields.add(fieldXTick);
+      row++;
+      pnlLabelsAndFields.add(lblXAutoTick, 0, row);
+      pnlLabelsAndFields.add(checkXAutoTick, 1, row);
+
+      row++;
+      pnlLabelsAndFields.add(lblXTick, 0, row);
+      pnlLabelsAndFields.add(fieldXTick, 1, row);
     }
 
-    // Empty row
-    pnlLabelsAndFields.add(new JPanel());
-    pnlLabelsAndFields.add(new JPanel());
+    // One empty row
+    row++;
+    row++;
+    pnlLabelsAndFields.add(lblYTitle, 0, row);
 
-    pnlLabelsAndFields.add(lblYTitle);
-    pnlLabelsAndFields.add(new JPanel());
-    pnlLabelsAndFields.add(lblYAutoRange);
-    pnlLabelsAndFields.add(checkYAutoRange);
-    pnlLabelsAndFields.add(lblYMin);
-    pnlLabelsAndFields.add(fieldYMin);
-    pnlLabelsAndFields.add(lblYMax);
-    pnlLabelsAndFields.add(fieldYMax);
+    row++;
+    pnlLabelsAndFields.add(lblYAutoRange, 0, row);
+    pnlLabelsAndFields.add(checkYAutoRange, 1, row);
+
+    row++;
+    pnlLabelsAndFields.add(lblYMin, 0, row);
+    pnlLabelsAndFields.add(fieldYMin, 1, row);
+
+    row++;
+    pnlLabelsAndFields.add(lblYMax, 0, row);
+    pnlLabelsAndFields.add(fieldYMax, 1, row);
+
     if (yAxis instanceof NumberAxis) {
-      pnlLabelsAndFields.add(lblYAutoTick);
-      pnlLabelsAndFields.add(checkYAutoTick);
-      pnlLabelsAndFields.add(lblYTick);
-      pnlLabelsAndFields.add(fieldYTick);
+      row++;
+      pnlLabelsAndFields.add(lblYAutoTick, 0, row);
+      pnlLabelsAndFields.add(checkYAutoTick, 1, row);
+
+      row++;
+      pnlLabelsAndFields.add(lblYTick, 0, row);
+      pnlLabelsAndFields.add(fieldYTick, 1, row);
     }
 
     // Create buttons
-    JPanel pnlButtons = new JPanel();
-    btnOK = new JButton("OK");
-    btnOK.addActionListener(this);
-    btnApply = new JButton("Apply");
-    btnApply.addActionListener(this);
-    btnCancel = new JButton("Cancel");
-    btnCancel.addActionListener(this);
+    mainPane.getButtonTypes().add(ButtonType.OK);
+    mainPane.getButtonTypes().add(ButtonType.APPLY);
+    mainPane.getButtonTypes().add(ButtonType.CANCEL);
 
-    pnlButtons.add(btnOK);
-    pnlButtons.add(btnApply);
-    pnlButtons.add(btnCancel);
+    btnOK = (Button) mainPane.lookupButton(ButtonType.OK);
+    btnOK.setOnAction(e -> {
+      if (setValuesToPlot())
+        hide();
+    });
+    btnApply = (Button) mainPane.lookupButton(ButtonType.APPLY);
+    btnApply.setOnAction(e -> {
+      setValuesToPlot();
+    });
+    btnCancel = (Button) mainPane.lookupButton(ButtonType.CANCEL);
+    btnCancel.setOnAction(e -> hide());
 
-    // Put everything into a main panel
-    JPanel pnlAll = new JPanel(new BorderLayout());
-    pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    add(pnlAll);
+    mainPane.setContent(pnlLabelsAndFields);
 
-    pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
-    pnlAll.add(pnlButtons, BorderLayout.SOUTH);
-
-    pack();
+    sizeToScene();
+    centerOnScreen();
 
     setTitle("Please set ranges for axes");
     setResizable(false);
-    setLocationRelativeTo(parent);
 
-    getValuesToControls();
-
-  }
-
-  /**
-   * Implementation for ActionListener interface
-   */
-  public void actionPerformed(ActionEvent ae) {
-
-    Object src = ae.getSource();
-
-    if (src == btnOK) {
-      if (setValuesToPlot()) {
-        exitCode = ExitCode.OK;
-        dispose();
-      }
-    }
-
-    if (src == btnApply) {
-      if (setValuesToPlot())
-        getValuesToControls();
-    }
-
-    if (src == btnCancel) {
-      exitCode = ExitCode.CANCEL;
-      dispose();
-    }
-
-    if ((src == checkXAutoRange) || (src == checkYAutoRange) | (src == checkXAutoTick)
-        || (src == checkYAutoTick))
-      updateAutoRangeAvailability();
+    loadValuesToControls();
 
   }
 
-  private void getValuesToControls() {
+
+
+  private void loadValuesToControls() {
 
     checkXAutoRange.setSelected(xAxis.isAutoRange());
-    fieldXMin.setValue(xAxis.getRange().getLowerBound());
-    fieldXMax.setValue(xAxis.getRange().getUpperBound());
+    fieldXMin.setText(String.valueOf(xAxis.getRange().getLowerBound()));
+    fieldXMax.setText(String.valueOf(xAxis.getRange().getUpperBound()));
     if (xAxis instanceof NumberAxis) {
       checkXAutoTick.setSelected(xAxis.isAutoTickUnitSelection());
-      fieldXTick.setValue(((NumberAxis) xAxis).getTickUnit().getSize());
+      fieldXTick.setText(String.valueOf(((NumberAxis) xAxis).getTickUnit().getSize()));
     }
 
     checkYAutoRange.setSelected(yAxis.isAutoRange());
-    fieldYMin.setValue(yAxis.getRange().getLowerBound());
-    fieldYMax.setValue(yAxis.getRange().getUpperBound());
+    fieldYMin.setText(String.valueOf(yAxis.getRange().getLowerBound()));
+    fieldYMax.setText(String.valueOf(yAxis.getRange().getUpperBound()));
     if (yAxis instanceof NumberAxis) {
       checkYAutoTick.setSelected(yAxis.isAutoTickUnitSelection());
-      fieldYTick.setValue(((NumberAxis) yAxis).getTickUnit().getSize());
-    }
-
-    updateAutoRangeAvailability();
-  }
-
-  private void updateAutoRangeAvailability() {
-    if (checkXAutoRange.isSelected()) {
-      fieldXMax.setEnabled(false);
-      fieldXMin.setEnabled(false);
-    } else {
-      fieldXMax.setEnabled(true);
-      fieldXMin.setEnabled(true);
-    }
-
-    if (checkXAutoTick.isSelected()) {
-      fieldXTick.setEnabled(false);
-    } else {
-      fieldXTick.setEnabled(true);
-    }
-
-    if (checkYAutoRange.isSelected()) {
-      fieldYMax.setEnabled(false);
-      fieldYMin.setEnabled(false);
-    } else {
-      fieldYMax.setEnabled(true);
-      fieldYMin.setEnabled(true);
-    }
-
-    if (checkYAutoTick.isSelected()) {
-      fieldYTick.setEnabled(false);
-    } else {
-      fieldYTick.setEnabled(true);
+      fieldYTick.setText(String.valueOf(((NumberAxis) yAxis).getTickUnit().getSize()));
     }
 
   }
+
+
 
   private boolean setValuesToPlot() {
     if (checkXAutoRange.isSelected()) {
-
       xAxis.setAutoRange(true);
-
     } else {
-
-      double lower = ((Number) fieldXMin.getValue()).doubleValue();
-      double upper = ((Number) fieldXMax.getValue()).doubleValue();
-      if (lower > upper) {
-        displayMessage("Invalid " + xAxis.getLabel() + " range.");
+      try {
+        double lower = Double.parseDouble(fieldXMin.getText());
+        double upper = Double.parseDouble(fieldXMax.getText());
+        if (lower > upper) {
+          displayMessage("Invalid " + xAxis.getLabel() + " range.");
+          return false;
+        }
+        xAxis.setRange(lower, upper);
+      } catch (NumberFormatException e) {
+        displayMessage("Could not parse number " + e);
         return false;
       }
-      xAxis.setRange(lower, upper);
-
     }
 
     if (xAxis instanceof NumberAxis) {
-
       if (checkXAutoTick.isSelected()) {
         xAxis.setAutoTickUnitSelection(true);
-
       } else {
-        double tickSize = ((Number) fieldXTick.getValue()).doubleValue();
-        ((NumberAxis) xAxis).setTickUnit(new NumberTickUnit(tickSize));
+        try {
+          double tickSize = Double.valueOf(fieldXTick.getText());
+          ((NumberAxis) xAxis).setTickUnit(new NumberTickUnit(tickSize));
+        } catch (NumberFormatException e) {
+          displayMessage("Could not parse number " + e);
+          return false;
+        }
       }
 
     }
 
     if (checkYAutoRange.isSelected()) {
-
       yAxis.setAutoRange(true);
-
     } else {
-
-      double lower = ((Number) fieldYMin.getValue()).doubleValue();
-      double upper = ((Number) fieldYMax.getValue()).doubleValue();
-      if (lower > upper) {
-        displayMessage("Invalid " + yAxis.getLabel() + " range.");
+      try {
+        double lower = Double.parseDouble(fieldYMin.getText());
+        double upper = Double.parseDouble(fieldYMax.getText());
+        if (lower > upper) {
+          displayMessage("Invalid " + yAxis.getLabel() + " range.");
+          return false;
+        }
+        yAxis.setRange(lower, upper);
+      } catch (NumberFormatException e) {
+        displayMessage("Could not parse number " + e);
         return false;
       }
-      yAxis.setRange(lower, upper);
+
     }
 
     if (yAxis instanceof NumberAxis) {
-
       if (checkYAutoTick.isSelected()) {
         yAxis.setAutoTickUnitSelection(true);
-
       } else {
-        double tickSize = ((Number) fieldYTick.getValue()).doubleValue();
-        ((NumberAxis) yAxis).setTickUnit(new NumberTickUnit(tickSize));
+        try {
+          double tickSize = Double.parseDouble(fieldYTick.getText());
+          ((NumberAxis) yAxis).setTickUnit(new NumberTickUnit(tickSize));
+        } catch (NumberFormatException e) {
+          displayMessage("Could not parse number " + e);
+          return false;
+        }
       }
-
     }
 
     return true;
   }
 
   private void displayMessage(String msg) {
-    try {
-      logger.info(msg);
-      JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    } catch (Exception exce) {
-    }
+    logger.info(msg);
+    final Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.initStyle(StageStyle.UTILITY);
+    alert.setTitle("Information");
+    alert.setHeaderText("Error");
+    alert.setContentText(msg);
+    alert.showAndWait();
   }
 
   /**
    * Method for reading exit code
-   * 
+   *
    */
   public ExitCode getExitCode() {
     return exitCode;
   }
 
 }
+

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,42 +18,31 @@
 
 package io.github.mzmine.gui.preferences;
 
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.layout.FlowPane;
 
-public class NumberFormatEditor extends JPanel {
+public class NumberFormatEditor extends FlowPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private SpinnerNumberModel spinnerModel;
-  private JSpinner decimalsSpinner;
-  private JCheckBox exponentCheckbox;
+  private Spinner<Integer> decimalsSpinner;
+  private CheckBox exponentCheckbox;
 
   public NumberFormatEditor(boolean showExponentOption) {
 
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    decimalsSpinner = new Spinner<>(0, 20, 1, 1);
 
-    add(new JLabel("Decimals"));
-
-    spinnerModel = new SpinnerNumberModel(1, 0, 20, 1);
-    decimalsSpinner = new JSpinner(spinnerModel);
-    add(decimalsSpinner);
+    getChildren().addAll(new Label("Decimals"), decimalsSpinner);
 
     if (showExponentOption) {
-      exponentCheckbox = new JCheckBox("Show exponent");
-      add(exponentCheckbox);
+      exponentCheckbox = new CheckBox("Show exponent");
+      getChildren().addAll(exponentCheckbox);
     }
 
   }
 
   public int getDecimals() {
-    return ((Number) spinnerModel.getValue()).intValue();
+    return decimalsSpinner.getValue();
   }
 
   public boolean getShowExponent() {
@@ -64,7 +53,7 @@ public class NumberFormatEditor extends JPanel {
   }
 
   public void setValue(int decimals, boolean showExponent) {
-    spinnerModel.setValue(decimals);
+    decimalsSpinner.getValueFactory().setValue(decimals);
     if (exponentCheckbox != null)
       exponentCheckbox.setSelected(showExponent);
   }

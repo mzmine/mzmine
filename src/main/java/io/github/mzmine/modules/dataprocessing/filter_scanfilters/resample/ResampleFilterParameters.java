@@ -36,10 +36,10 @@ public class ResampleFilterParameters extends SimpleParameterSet {
     super(new Parameter[] {binSize});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     ScanFilterSetupDialog dialog =
-        new ScanFilterSetupDialog(parent, valueCheckRequired, this, ResampleFilter.class);
-    dialog.setVisible(true);
+        new ScanFilterSetupDialog(valueCheckRequired, this, ResampleFilter.class);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

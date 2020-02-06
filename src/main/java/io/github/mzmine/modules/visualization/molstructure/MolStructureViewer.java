@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,41 +18,37 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
+
 import java.net.URL;
-
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-
 import org.openscience.cdk.interfaces.IAtomContainer;
-
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
-import io.github.mzmine.util.components.MultiLineLabel;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 
-public class MolStructureViewer extends JFrame {
+public class MolStructureViewer extends Stage {
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = 1L;
-  private JSplitPane splitPane;
-  private JLabel loading2Dlabel, loading3Dlabel;
+  private final Font labelNameFont = Font.font("Arial", FontWeight.BOLD, 18.0);
+  private final BorderPane mainPanel = new BorderPane();
+  private final Scene mainScene = new Scene(mainPanel);
+  private final SplitPane splitPane = new SplitPane();
+  private final Label loading2Dlabel = new Label("Loading 2D structure...");
+  private final Label loading3Dlabel = new Label("Loading 3D structure...");
 
   /**
    * Constructor of MolStructureViewer, loads 2d and 3d structures into JPanel specified by urls
-   * 
+   *
    * @param name
    * @param structure2DAddress
    * @param structure3DAddress
@@ -60,15 +56,12 @@ public class MolStructureViewer extends JFrame {
   public MolStructureViewer(String name, final URL structure2DAddress,
       final URL structure3DAddress) {
 
-    super("Structure of " + name);
+    setTitle("Structure of " + name);
     setupViewer(name);
 
     if (structure2DAddress != null) {
-      Thread loading2DThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          load2DStructure(structure2DAddress);
-        }
+      Thread loading2DThread = new Thread(() -> {
+        load2DStructure(structure2DAddress);
       }, "Structure loading thread");
       loading2DThread.start();
     } else {
@@ -76,11 +69,8 @@ public class MolStructureViewer extends JFrame {
     }
 
     if (structure3DAddress != null) {
-      Thread loading3DThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          load3DStructure(structure3DAddress);
-        }
+      Thread loading3DThread = new Thread(() -> {
+        load3DStructure(structure3DAddress);
       }, "Structure loading thread");
       loading3DThread.start();
     } else {
@@ -92,12 +82,12 @@ public class MolStructureViewer extends JFrame {
   /**
    * Constructor for MolStructureViewer from AtomContainer and only for 2D object The 3D view will
    * be unavailable
-   * 
+   *
    * @param name
    * @param structure2D AtomContainer
    */
   public MolStructureViewer(String name, final IAtomContainer structure2D) {
-    super("Structure of " + name);
+    setTitle("Structure of " + name);
     setupViewer(name);
 
     if (structure2D != null) {
@@ -114,51 +104,40 @@ public class MolStructureViewer extends JFrame {
 
   /**
    * Load initial parameters for JPanel
-   * 
+   *
    * @param name
    */
   private void setupViewer(String name) {
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
     // Main panel - contains a title (compound name) in the top, 2D
     // structure on the left, 3D structure on the right
-    JPanel mainPanel = new JPanel(new BorderLayout());
 
-    JLabel labelName = new JLabel(name, SwingConstants.CENTER);
-    labelName.setOpaque(true);
-    labelName.setBackground(Color.white);
-    labelName.setForeground(Color.BLUE);
-    Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-    Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-    labelName.setBorder(BorderFactory.createCompoundBorder(one, two));
-    labelName.setFont(new Font("SansSerif", Font.BOLD, 18));
-    mainPanel.add(labelName, BorderLayout.NORTH);
+    Label labelName = new Label(name);
+    labelName.setAlignment(Pos.CENTER);
+    labelName.setTextFill(Color.BLUE);
+    labelName.setPadding(new Insets(10.0));
+    labelName.setFont(labelNameFont);
+    mainPanel.setTop(labelName);
 
-    loading2Dlabel = new JLabel("Loading 2D structure...", SwingConstants.CENTER);
-    loading2Dlabel.setOpaque(true);
-    loading2Dlabel.setBackground(Color.white);
-    loading3Dlabel = new JLabel("Loading 3D structure...", SwingConstants.CENTER);
-    loading3Dlabel.setOpaque(true);
-    loading3Dlabel.setBackground(Color.white);
+    loading2Dlabel.setAlignment(Pos.CENTER);
 
-    splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, loading2Dlabel, loading3Dlabel);
-    splitPane.setResizeWeight(0.5);
+    loading3Dlabel.setAlignment(Pos.CENTER);
 
-    mainPanel.add(splitPane, BorderLayout.CENTER);
+    splitPane.getItems().addAll(loading2Dlabel, loading3Dlabel);
+    // splitPane.setResizeWeight(0.5);
 
-    add(mainPanel);
+    splitPane.setOrientation(Orientation.HORIZONTAL);
+    mainPanel.setCenter(splitPane);
 
-    setPreferredSize(new Dimension(900, 500));
+    setMinWidth(600.0);
+    setMinHeight(400.0);
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    WindowsMenu.addWindowsMenu(mainScene);
 
-    pack();
+    setScene(mainScene);
 
-    // Set the initial splitter location, after the window is packed
-    splitPane.setDividerLocation(500);
   }
 
   /**
@@ -166,7 +145,7 @@ public class MolStructureViewer extends JFrame {
    */
   private void load2DStructure(URL url) {
 
-    JComponent newComponent;
+    Node newComponent;
     try {
       String structure2D = InetUtils.retrieveData(url);
       if (structure2D.length() < 10) {
@@ -177,28 +156,28 @@ public class MolStructureViewer extends JFrame {
     } catch (Exception e) {
       String errorMessage =
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-      newComponent = new MultiLineLabel(errorMessage);
+      newComponent = new Label(errorMessage);
     }
-    splitPane.setLeftComponent(newComponent);
-    splitPane.setDividerLocation(500);
+    splitPane.getItems().set(0, newComponent);
+    // splitPane.setDividerLocation(500);
   }
 
   /**
    * Load the AtomContainer passed as parameter in JChemViewer
-   * 
+   *
    * @param container
    */
   private void load2DStructure(IAtomContainer container) {
-    JComponent newComponent;
+    Node newComponent;
     try {
       newComponent = new Structure2DComponent(container);
     } catch (Exception e) {
       String errorMessage =
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-      newComponent = new MultiLineLabel(errorMessage);
+      newComponent = new Label(errorMessage);
     }
-    splitPane.setLeftComponent(newComponent);
-    splitPane.setDividerLocation(500);
+    splitPane.getItems().set(0, newComponent);
+    // splitPane.setDividerLocation(500);
   }
 
   /**
@@ -223,8 +202,8 @@ public class MolStructureViewer extends JFrame {
       }
 
       Structure3DComponent new3DComponent = new Structure3DComponent();
-      splitPane.setRightComponent(new3DComponent);
-      splitPane.setDividerLocation(500);
+      splitPane.getItems().set(1, new3DComponent);
+      // splitPane.setDividerLocation(500);
 
       // loadStructure must be called after the component is added,
       // otherwise Jmol will freeze waiting for repaint (IMHO this is a
@@ -234,9 +213,9 @@ public class MolStructureViewer extends JFrame {
     } catch (Exception e) {
       String errorMessage =
           "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-      MultiLineLabel label = new MultiLineLabel(errorMessage, 10);
-      splitPane.setRightComponent(label);
-      splitPane.setDividerLocation(500);
+      Label label = new Label(errorMessage);
+      splitPane.getItems().set(1, label);
+      // splitPane.setDividerLocation(500);
     }
 
   }

@@ -47,11 +47,11 @@ public abstract class Similarity {
    * 
    * 
    */
-  public static final Similarity LOG_VAR_PROPORTIONALITY = new Similarity() {
+  public static final Similarity logger_VAR_PROPORTIONALITY = new Similarity() {
     @Override
     public double calc(double[][] data) {
-      double[] logratioXY = transform(ratio(data, 0, 1), Transform.LOG);
-      double[] logx = transform(col(data, 0), Transform.LOG);
+      double[] logratioXY = transform(ratio(data, 0, 1), Transform.logger);
+      double[] logx = transform(col(data, 0), Transform.logger);
       return var(logratioXY) / var(logx);
     }
   };
@@ -62,11 +62,11 @@ public abstract class Similarity {
    * 
    * 
    */
-  public static final Similarity LOG_VAR_CONCORDANCE = new Similarity() {
+  public static final Similarity logger_VAR_CONCORDANCE = new Similarity() {
     @Override
     public double calc(double[][] data) {
-      double[] logx = transform(col(data, 0), Transform.LOG);
-      double[] logy = transform(col(data, 1), Transform.LOG);
+      double[] logx = transform(col(data, 0), Transform.logger);
+      double[] logy = transform(col(data, 1), Transform.logger);
       return 2 * covar(logx, logy) / (var(logx) + var(logy));
     }
   };

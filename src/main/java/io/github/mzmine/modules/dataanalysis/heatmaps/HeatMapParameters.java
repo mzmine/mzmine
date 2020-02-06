@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import java.awt.Window;
 import java.util.ArrayList;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -31,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.R.REngineType;
@@ -41,8 +40,8 @@ public class HeatMapParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
 
-  public static final FileNameParameter fileName =
-      new FileNameParameter("Output name", "Select the path and name of the output file.");
+  public static final FileNameParameter fileName = new FileNameParameter("Output name",
+      "Select the path and name of the output file.", FileSelectionType.SAVE);
 
   public static final ComboParameter<String> fileTypeSelection =
       new ComboParameter<String>("Output file type", "Output file type", fileTypes, fileTypes[0]);
@@ -108,12 +107,13 @@ public class HeatMapParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     UserParameter<?, ?> newChoices[] = project.getParameters();
-    getParameter(HeatMapParameters.selectionData).setChoices(newChoices);
+    getParameter(HeatMapParameters.selectionData).getChoices().clear();
+    getParameter(HeatMapParameters.selectionData).getChoices().addAll(newChoices);
     if (newChoices.length > 0) {
       ArrayList<Object> values = new ArrayList<Object>();
       for (RawDataFile dataFile : project.getDataFiles()) {
@@ -125,11 +125,11 @@ public class HeatMapParameters extends SimpleParameterSet {
           values.add(paramValue);
         }
       }
-      Object newValues[] = values.toArray();
-      getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
+      getParameter(HeatMapParameters.referenceGroup).getChoices().clear();
+      getParameter(HeatMapParameters.referenceGroup).getChoices().addAll(values);
     }
-    HeatmapSetupDialog dialog = new HeatmapSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    HeatmapSetupDialog dialog = new HeatmapSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

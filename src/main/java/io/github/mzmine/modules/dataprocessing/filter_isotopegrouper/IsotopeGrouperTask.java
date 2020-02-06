@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,15 +21,14 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -47,7 +46,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
 /**
- * 
+ *
  */
 class IsotopeGrouperTask extends AbstractTask {
 
@@ -101,6 +100,7 @@ class IsotopeGrouperTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Isotopic peaks grouper on " + peakList;
   }
@@ -108,6 +108,7 @@ class IsotopeGrouperTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalPeaks == 0)
       return 0.0f;
@@ -117,6 +118,7 @@ class IsotopeGrouperTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -134,7 +136,7 @@ class IsotopeGrouperTask extends AbstractTask {
       charges[i] = i + 1;
 
     // Sort peaks by descending height
-    Feature[] sortedPeaks = peakList.getPeaks(dataFile);
+    Feature[] sortedPeaks = peakList.getPeaks(dataFile).toArray(Feature[]::new);
     Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Loop through all peaks
@@ -251,7 +253,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
   /**
    * Fits isotope pattern around one peak.
-   * 
+   *
    * @param p Pattern is fitted around this peak
    * @param charge Charge state of the fitted pattern
    */
@@ -274,7 +276,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
   /**
    * Helper method for fitPattern. Fits only one half of the pattern.
-   * 
+   *
    * @param p Pattern is fitted around this peak
    * @param charge Charge state of the fitted pattern
    * @param direction Defines which half to fit: -1=fit to peaks before start M/Z, +1=fit to peaks
@@ -316,7 +318,7 @@ class IsotopeGrouperTask extends AbstractTask {
         // - within tolerances from the expected location (M/Z and RT)
         // - not already a fitted peak (only necessary to avoid
         // conflicts when parameters are set too wide)
-        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / (double) charge;
+        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
 
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
             && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)

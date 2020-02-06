@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,27 +18,30 @@
 
 package io.github.mzmine.gui.preferences;
 
-import java.awt.Window;
 import java.text.DecimalFormat;
 import org.w3c.dom.Element;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.Vision;
+import javafx.collections.FXCollections;
 
 public class MZminePreferences extends SimpleParameterSet {
 
   public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
       "Color palettes (color blindness mode)",
       "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
-      Vision.values(), Vision.DEUTERANOPIA);
+      FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -56,7 +59,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Use proxy", "Use proxy for internet connection?", new ProxySettings());
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
-      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.");
+      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
+      FileSelectionType.OPEN);
 
   public static final BooleanParameter sendStatistics =
       new BooleanParameter("Send anonymous statistics",
@@ -68,15 +72,26 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
+  public static final ColorPaletteParameter stdColorPalette =
+      new ColorPaletteParameter("Main color palette",
+          "Defines the default color palette used to create charts throughout MZmine");
+
+  public static final ParameterSetParameter chartParam =
+      new ParameterSetParameter("Chart parameters",
+          "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
+
+  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
+  
   public MZminePreferences() {
     super(new Parameter[] {colorPalettes, mzFormat, rtFormat, intensityFormat, numOfThreads,
-        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
+        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
+        stdColorPalette, chartParam});
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
+    ExitCode retVal = super.showSetupDialog(valueCheckRequired);
 
     if (retVal == ExitCode.OK) {
 

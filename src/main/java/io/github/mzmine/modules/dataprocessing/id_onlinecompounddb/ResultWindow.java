@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -25,7 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.logging.Logger;
-
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -36,7 +35,6 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
@@ -52,7 +50,7 @@ import io.github.mzmine.util.GUIUtils;
 public class ResultWindow extends JFrame implements ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -115,6 +113,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     String command = e.getActionCommand();
@@ -132,9 +131,6 @@ public class ResultWindow extends JFrame implements ActionListener {
       index = IDList.convertRowIndexToModel(index);
 
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index), false);
-
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakListRow, false);
 
       dispose();
     }
@@ -156,7 +152,7 @@ public class ResultWindow extends JFrame implements ActionListener {
       String name =
           compound.getName() + " (" + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
       MolStructureViewer viewer = new MolStructureViewer(name, url2D, url3D);
-      viewer.setVisible(true);
+      viewer.show();
 
     }
 
@@ -223,6 +219,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     // Update the model in swing thread to avoid exceptions
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run() {
         listElementModel.addElement(compound);
       }
@@ -230,6 +227,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   }
 
+  @Override
   public void dispose() {
 
     // Cancel the search task if it is still running

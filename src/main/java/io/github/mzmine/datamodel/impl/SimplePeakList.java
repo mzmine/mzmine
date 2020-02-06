@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,19 +20,21 @@ package io.github.mzmine.datamodel.impl;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Simple implementation of the PeakList interface.
@@ -40,8 +42,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 public class SimplePeakList implements PeakList {
 
   private String name;
-  private RawDataFile[] dataFiles;
-  private ArrayList<PeakListRow> peakListRows;
+  private ObservableList<RawDataFile> dataFiles = FXCollections.observableArrayList();
+  private final ObservableList<PeakListRow> peakListRows = FXCollections.observableArrayList();
   private double maxDataPointIntensity = 0;
   private Vector<PeakListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
@@ -54,18 +56,16 @@ public class SimplePeakList implements PeakList {
   }
 
   public SimplePeakList(String name, RawDataFile[] dataFiles) {
-    if ((dataFiles == null) || (dataFiles.length == 0)) {
+    this(name, Arrays.asList(dataFiles));
+  }
+
+  public SimplePeakList(String name, Collection<RawDataFile> dataFiles) {
+    if ((dataFiles == null) || (dataFiles.size() == 0)) {
       throw (new IllegalArgumentException("Cannot create a feature list with no data files"));
     }
     this.name = name;
-    this.dataFiles = new RawDataFile[dataFiles.length];
+    this.dataFiles.addAll(dataFiles);
 
-    RawDataFile dataFile;
-    for (int i = 0; i < dataFiles.length; i++) {
-      dataFile = dataFiles[i];
-      this.dataFiles[i] = dataFile;
-    }
-    peakListRows = new ArrayList<PeakListRow>();
     descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
 
     dateCreated = dateFormat.format(new Date());
@@ -87,20 +87,20 @@ public class SimplePeakList implements PeakList {
    */
   @Override
   public int getNumberOfRawDataFiles() {
-    return dataFiles.length;
+    return dataFiles.size();
   }
 
   /**
    * Returns all raw data files participating in the alignment
    */
   @Override
-  public RawDataFile[] getRawDataFiles() {
+  public ObservableList<RawDataFile> getRawDataFiles() {
     return dataFiles;
   }
 
   @Override
   public RawDataFile getRawDataFile(int position) {
-    return dataFiles[position];
+    return dataFiles.get(position);
   }
 
   /**
@@ -113,7 +113,7 @@ public class SimplePeakList implements PeakList {
 
   /**
    * Returns the peak of a given raw data file on a give row of the alignment result
-   * 
+   *
    * @param row Row of the alignment result
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
@@ -126,14 +126,12 @@ public class SimplePeakList implements PeakList {
    * Returns all peaks for a raw data file
    */
   @Override
-  public Feature[] getPeaks(RawDataFile rawDataFile) {
-    Vector<Feature> peakSet = new Vector<Feature>();
-    for (int row = 0; row < getNumberOfRows(); row++) {
-      Feature p = peakListRows.get(row).getPeak(rawDataFile);
-      if (p != null)
-        peakSet.add(p);
-    }
-    return peakSet.toArray(new Feature[0]);
+  public List<Feature> getPeaks(final RawDataFile rawDataFile) {
+    var result = peakListRows.stream() //
+        .map(row -> row.getPeak(rawDataFile)) //
+        .filter(Objects::nonNull) //
+        .collect(Collectors.toList());
+    return result;
   }
 
   /**
@@ -145,8 +143,8 @@ public class SimplePeakList implements PeakList {
   }
 
   @Override
-  public PeakListRow[] getRows() {
-    return peakListRows.toArray(new PeakListRow[0]);
+  public ObservableList<PeakListRow> getRows() {
+    return peakListRows;
   }
 
   @Override
@@ -175,9 +173,8 @@ public class SimplePeakList implements PeakList {
 
   @Override
   public void addRow(PeakListRow row) {
-    List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
     for (RawDataFile testFile : row.getRawDataFiles()) {
-      if (!myFiles.contains(testFile))
+      if (!dataFiles.contains(testFile))
         throw (new IllegalArgumentException(
             "Data file " + testFile + " is not in this feature list"));
     }
@@ -194,11 +191,13 @@ public class SimplePeakList implements PeakList {
       mzRange = mzRange.span(Range.singleton(row.getAverageMZ()));
       rtRange = rtRange.span(Range.singleton(row.getAverageRT()));
     }
+
+    row.setPeakList(this);
   }
 
   /**
    * Returns all peaks overlapping with a retention time range
-   * 
+   *
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    * @return
@@ -227,7 +226,7 @@ public class SimplePeakList implements PeakList {
       Range<Double> mzRange) {
     Vector<Feature> peaksInside = new Vector<Feature>();
 
-    Feature[] peaks = getPeaks(file);
+    Feature[] peaks = getPeaks(file).toArray(Feature[]::new);
     for (Feature p : peaks) {
       if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
         peaksInside.add(p);
@@ -288,14 +287,13 @@ public class SimplePeakList implements PeakList {
   @Override
   public int getPeakRowNum(Feature peak) {
 
-    PeakListRow rows[] = getRows();
+    PeakListRow row = getPeakRow(peak);
 
-    for (int i = 0; i < rows.length; i++) {
-      if (rows[i].hasPeak(peak))
-        return i;
-    }
+    if (row == null)
+      return -1;
+    else
+      return row.getID();
 
-    return -1;
   }
 
   /**
@@ -313,11 +311,10 @@ public class SimplePeakList implements PeakList {
 
   @Override
   public PeakListRow getPeakRow(Feature peak) {
-    PeakListRow rows[] = getRows();
 
-    for (int i = 0; i < rows.length; i++) {
-      if (rows[i].hasPeak(peak))
-        return rows[i];
+    for (PeakListRow row : peakListRows) {
+      if (row.hasPeak(peak))
+        return row;
     }
 
     return null;

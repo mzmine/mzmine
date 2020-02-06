@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -55,16 +55,19 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
-
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters.FixedSize;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import net.sf.epsgraphics.ColorMode;
 import net.sf.epsgraphics.EpsGraphics;
 
 /**
  * Graphics export of JFreeCharts to different vector and pixel graphics formats.
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartExportUtil {
@@ -73,19 +76,26 @@ public class ChartExportUtil {
 
   /**
    * Add export dialog to popup menu of a chartpanel
-   * 
+   *
    * @param plotChartPanel
    */
   public static void addExportDialogToMenu(final ChartPanel cp) {
     JMenuItem exportGraphics = new JMenuItem("Export graphics...");
-    exportGraphics.addActionListener(e -> GraphicsExportDialog.openDialog(cp.getChart()));
+    exportGraphics.addActionListener(e -> {
+      
+      GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
+          .getConfiguration().getModuleParameters(GraphicsExportModule.class);
+      
+      MZmineCore.getModuleInstance(GraphicsExportModule.class)
+          .openDialog(cp.getChart(), parameters);
+    });
     // add to menu
     cp.getPopupMenu().add(exportGraphics);
   }
 
   /**
    * takes Only Width in account
-   * 
+   *
    * @param chart
    * @param sett
    * @throws Exception
@@ -126,11 +136,55 @@ public class ChartExportUtil {
     // reset size
     sett.setPixelSize(oldW, oldH);
   }
+  
+  /**
+   * takes Only Width in account
+   *
+   * @param chart
+   * @param sett
+   * @throws Exception
+   */
+  public static void writeChartToImageFX(EChartViewer chart, GraphicsExportParameters sett)
+      throws Exception {
+    boolean repaint = false;
+    FixedSize fixed = sett.getFixedSize();
+
+    double oldW = sett.getWidthPixel();
+    double oldH = sett.getHeightPixel();
+
+    // Size only by width?
+    if (sett.isUseOnlyWidth()) {
+      // fixed size for chart or plot
+      if (fixed.equals(FixedSize.Chart)) {
+        sett.setHeightPixel(ChartLogicsFX.calcHeightToWidth(chart, oldW/*, false*/));
+      } else {
+        // fixed plot width
+        sett.setPixelSize(ChartLogicsFX.calcSizeForPlotWidth(chart, oldW));
+      }
+    } else if (fixed.equals(FixedSize.Plot)) {
+      // fixed plot size - width and height are given
+      sett.setPixelSize(ChartLogicsFX.calcSizeForPlotSize(chart, oldW, oldH));
+    }
+
+    Dimension size = sett.getPixelSize();
+    // resize
+    chart.setPrefSize(size.getWidth(), size.getHeight());
+    chart.setMaxSize(size.getWidth(), size.getHeight());
+    chart.setMinSize(size.getWidth(), size.getHeight());
+    // repaint TODO:
+//    if (repaint) {
+//      chart.revalidate();
+//      chart.repaint();
+//    }
+    writeChartToImage(chart.getChart(), sett, chart.getRenderingInfo());
+    // reset size
+    sett.setPixelSize(oldW, oldH);
+  }
 
   /**
    * This method is used to save all image formats. it uses the specific methods for each file
    * format
-   * 
+   *
    * @param chart
    * @param sett
    * @param chartRenderingInfo
@@ -139,17 +193,18 @@ public class ChartExportUtil {
       ChartRenderingInfo info) throws Exception {
     // Background color
     Paint saved = chart.getBackgroundPaint();
-    chart.setBackgroundPaint(sett.getColorWithAlpha());
+    Color awtColor = FxColorUtil.fxColorToAWT(sett.getColorWithAlpha());
+    chart.setBackgroundPaint(awtColor);
     chart.setBackgroundImageAlpha((float) sett.getTransparency());
     if (chart.getLegend() != null)
-      chart.getLegend().setBackgroundPaint(sett.getColorWithAlpha());
+      chart.getLegend().setBackgroundPaint(awtColor);
     // legends and stuff
     for (int i = 0; i < chart.getSubtitleCount(); i++)
       if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
-        ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(sett.getColorWithAlpha());
+        ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(awtColor);
 
     // apply bg
-    chart.getPlot().setBackgroundPaint(sett.getColorWithAlpha());
+    chart.getPlot().setBackgroundPaint(awtColor);
 
     // create folder
     File f = sett.getFullpath();
@@ -197,7 +252,7 @@ public class ChartExportUtil {
 
   /**
    * This method saves a chart as a PDF with given dimensions
-   * 
+   *
    * @param chart
    * @param width
    * @param height
@@ -297,7 +352,7 @@ public class ChartExportUtil {
 
   /**
    * Paints a chart with scaling options
-   * 
+   *
    * @param chart
    * @param info
    * @param out
@@ -384,7 +439,7 @@ public class ChartExportUtil {
       g = new EpsGraphics("EpsTools Drawable Export", new FileOutputStream(name), 0, 0, width,
           height, ColorMode.COLOR_RGB);
       Rectangle2D rectangle2d = new Rectangle2D.Double(0, 0, width, height);
-      chart.draw((Graphics2D) g, rectangle2d);
+      chart.draw(g, rectangle2d);
       g.close();
     } catch (IOException e) {
       // TODO Auto-generated catch block
@@ -399,7 +454,7 @@ public class ChartExportUtil {
       VectorGraphics g = new EMFGraphics2D(name, new Dimension(width, height));
       g.startExport();
       Rectangle2D rectangle2d = new Rectangle2D.Double(0, 0, width, height);
-      chart.draw((Graphics2D) g, rectangle2d);
+      chart.draw(g, rectangle2d);
       g.endExport();
     } catch (IOException e) {
       // TODO Auto-generated catch block

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,15 +19,10 @@
 package io.github.mzmine.modules.visualization.intensityplot;
 
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -39,27 +34,43 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
- * 
+ *
  */
-public class IntensityPlotWindow extends JFrame {
+public class IntensityPlotWindow extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  private static final Image pointsIcon = FxIconUtil.loadImageFromResources("icons/pointsicon.png");
+  private static final Image linesIcon = FxIconUtil.loadImageFromResources("icons/linesicon.png");
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
   static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
@@ -69,6 +80,14 @@ public class IntensityPlotWindow extends JFrame {
   private JFreeChart chart;
 
   public IntensityPlotWindow(ParameterSet parameters) {
+
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
 
     PeakList peakList = parameters.getParameter(IntensityPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
@@ -105,7 +124,7 @@ public class IntensityPlotWindow extends JFrame {
       CategoryToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
       renderer.setDefaultToolTipGenerator(toolTipGenerator);
 
-      CategoryAxis xAxis = (CategoryAxis) plot.getDomainAxis();
+      CategoryAxis xAxis = plot.getDomainAxis();
       xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
     } else {
@@ -129,15 +148,66 @@ public class IntensityPlotWindow extends JFrame {
     chart.setBackgroundPaint(Color.white);
 
     // create chart JPanel
-    EChartPanel chartPanel = new EChartPanel(chart);
-    add(chartPanel, BorderLayout.CENTER);
+    EChartViewer chartPanel = new EChartViewer(chart);
+    mainPane.setCenter(chartPanel);
 
-    IntensityPlotToolBar toolBar = new IntensityPlotToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    ToolBar toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
+    mainPane.setRight(toolBar);
+
+    Button linesVisibleButton = new Button(null, new ImageView(linesIcon));
+    linesVisibleButton.setTooltip(new Tooltip("Switch lines on/off"));
+    linesVisibleButton.setOnAction(e -> {
+      Plot plot = chart.getPlot();
+
+      Boolean linesVisible;
+
+      if (plot instanceof CategoryPlot) {
+        LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
+        linesVisible = renderer.getDefaultLinesVisible();
+      } else {
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
+        linesVisible = renderer.getDefaultLinesVisible();
+        renderer.setDrawSeriesLineAsPath(true);
+      }
+
+      // check for null value
+      if (linesVisible == null)
+        linesVisible = false;
+
+      // update the icon
+      if (linesVisible) {
+        linesVisibleButton.setGraphic(new ImageView(linesIcon));
+      } else {
+        linesVisibleButton.setGraphic(new ImageView(pointsIcon));
+      }
+
+      // switch the button
+      linesVisible = !linesVisible;
+
+      if (plot instanceof CategoryPlot) {
+        LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
+        renderer.setDefaultLinesVisible(linesVisible);
+      } else {
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
+        renderer.setDefaultLinesVisible(linesVisible);
+        renderer.setDrawSeriesLineAsPath(true);
+      }
+    });
+
+    if (chart.getPlot() instanceof XYPlot) {
+      Button setupAxesButton = new Button(null, new ImageView(axesIcon));
+      setupAxesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+      setupAxesButton.setOnAction(e -> {
+        AxesSetupDialog dialog = new AxesSetupDialog(this, chart.getXYPlot());
+        dialog.show();
+      });
+      toolBar.getItems().add(setupAxesButton);
+    }
 
     // disable maximum size (we don't want scaling)
-    chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
-    chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
+    // chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
+    // chartPanel.setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set title properties
     TextTitle chartTitle = chart.getTitle();
@@ -167,15 +237,13 @@ public class IntensityPlotWindow extends JFrame {
     yAxis.setNumberFormatOverride(yAxisFormat);
 
     setTitle(title);
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
 
-    // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
 
-    pack();
+    WindowsMenu.addWindowsMenu(mainScene);
+
+    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -184,8 +252,8 @@ public class IntensityPlotWindow extends JFrame {
         paramSet.getParameter(IntensityPlotParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
 
   }
 

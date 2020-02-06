@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import java.awt.Window;
 import java.util.Arrays;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -66,18 +64,19 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     PeakList selectedPeakLists[] = getParameter(peakList).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
-      RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-      PeakListRow plRows[] = selectedPeakLists[0].getRows();
+      RawDataFile plDataFiles[] =
+          selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+      PeakListRow plRows[] = selectedPeakLists[0].getRows().toArray(PeakListRow[]::new);
       Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
       getParameter(dataFiles).setChoices(plDataFiles);
       getParameter(dataFiles).setValue(plDataFiles);
     }
 
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return super.showSetupDialog(valueCheckRequired);
   }
 
 }

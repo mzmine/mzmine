@@ -43,7 +43,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
  */
 class RawFileMergeTask extends AbstractTask {
 
-  private Logger LOG = Logger.getLogger(getClass().getName());
+  private Logger logger = Logger.getLogger(getClass().getName());
 
   private double perc = 0;
   private RawDataFile[] raw;
@@ -86,7 +86,7 @@ class RawFileMergeTask extends AbstractTask {
         s.append(", ");
       }
 
-      LOG.info(s.toString());
+      logger.info(s.toString());
 
       // put all in a list and sort by rt
       List<Scan> scans = new ArrayList<>();

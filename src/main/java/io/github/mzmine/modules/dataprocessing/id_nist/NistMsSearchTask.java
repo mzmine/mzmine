@@ -31,7 +31,6 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.SAME_IDENTITIES;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.SPECTRUM_RT_WIDTH;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,16 +52,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -77,7 +72,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class NistMsSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(NistMsSearchModule.class.getName());
+  private static final Logger logger = Logger.getLogger(NistMsSearchModule.class.getName());
 
   // Command-line arguments passed to executable.
   private static final String COMMAND_LINE_ARGS = "/par=2 /instrument";
@@ -209,12 +204,12 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Finished.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("NIST MS Search completed");
+        logger.info("NIST MS Search completed");
       }
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "NIST MS Search error", t);
+      logger.log(Level.SEVERE, "NIST MS Search error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
@@ -261,7 +256,7 @@ public class NistMsSearchTask extends AbstractTask {
         final Map<PeakListRow, Set<PeakListRow>> rowHoods;
         if (peakListRow == null) {
 
-          peakListRows = peakList.getRows();
+          peakListRows = peakList.getRows().toArray(PeakListRow[]::new);
           rowHoods = groupPeakRows();
 
         } else {
@@ -340,8 +335,6 @@ public class NistMsSearchTask extends AbstractTask {
               row.addPeakIdentity(id, isPreferred);
             }
 
-            // Notify the GUI about the change in the project
-            MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
           }
           progress++;
         }
@@ -597,7 +590,7 @@ public class NistMsSearchTask extends AbstractTask {
     }
 
     // Execute NIS MS Search.
-    LOG.finest("Executing " + command);
+    logger.finest("Executing " + command);
     Runtime.getRuntime().exec(command);
 
     // Wait for the search to finish by polling the results file.
@@ -627,7 +620,7 @@ public class NistMsSearchTask extends AbstractTask {
     spectraFile.deleteOnExit();
     final BufferedWriter writer = new BufferedWriter(new FileWriter(spectraFile));
     try {
-      LOG.finest("Writing spectra to file " + spectraFile);
+      logger.finest("Writing spectra to file " + spectraFile);
 
       // Write header.
       final PeakIdentity identity = peakRow.getPreferredPeakIdentity();
@@ -687,7 +680,7 @@ public class NistMsSearchTask extends AbstractTask {
 
     // Check for the primary locator file.
     if (!primaryLocatorFile.exists()) {
-      LOG.warning("Primary locator file not found - writing new " + primaryLocatorFile);
+      logger.warning("Primary locator file not found - writing new " + primaryLocatorFile);
 
       // Write the primary locator file.
       final BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile));

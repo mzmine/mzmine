@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,29 +20,17 @@ package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -61,29 +49,25 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import javafx.scene.Cursor;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * TIC plot.
- * 
+ *
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
-public class TICPlot extends EChartPanel implements MouseWheelListener {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+public class TICPlot extends EChartViewer {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(TICPlot.class.getName());
+  private static final Logger logger = Logger.getLogger(TICPlot.class.getName());
 
   // Zoom factor.
   private static final double ZOOM_FACTOR = 1.2;
@@ -92,20 +76,20 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
   private static final Color[] PLOT_COLORS = {new Color(0, 0, 192), // blue
       new Color(192, 0, 0), // red
       new Color(0, 192, 0), // green
-      Color.magenta, Color.cyan, Color.orange};
+      Color.MAGENTA, Color.CYAN, Color.ORANGE};
 
   // Peak colours.
-  private static final Color[] PEAK_COLORS =
-      {Color.pink, Color.red, Color.yellow, Color.blue, Color.lightGray, Color.orange, Color.green};
+  private static final Color[] PEAK_COLORS = {Color.PINK, Color.RED, Color.YELLOW, Color.BLUE,
+      Color.LIGHT_GRAY, Color.ORANGE, Color.GREEN};
 
   // peak labels color
-  private static final Color LABEL_COLOR = Color.darkGray;
+  private static final Color LABEL_COLOR = Color.DARK_GRAY;
 
   // grid color
-  private static final Color GRID_COLOR = Color.lightGray;
+  private static final Color GRID_COLOR = Color.LIGHT_GRAY;
 
   // Cross-hair (selection) color.
-  private static final Color CROSS_HAIR_COLOR = Color.gray;
+  private static final Color CROSS_HAIR_COLOR = Color.GRAY;
 
   // Cross-hair stroke.
   private static final Stroke CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
@@ -130,11 +114,13 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
 
   // Plot type.
   private TICPlotType plotType;
+
+  private final JFreeChart chart;
   // The plot.
   private final XYPlot plot;
 
   // TICVisualizerWindow visualizer.
-  private final ActionListener visualizer;
+  // private final ActionListener visualizer;
 
   // Titles.
   private final TextTitle chartTitle;
@@ -147,7 +133,7 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
   private int numOfDataSets;
   private int numOfPeaks;
 
-  public JMenuItem RemoveFilePopupMenu;
+  private MenuItem RemoveFilePopupMenu;
 
   /**
    * Indicates whether we have a request to show spectra visualizer for selected data point. Since
@@ -161,44 +147,44 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
   private int labelsVisible;
   private boolean havePeakLabels;
 
-  public TICPlot(final ActionListener listener) {
+  public TICPlot() {
 
-    super(null, true);
+    super(ChartFactory.createXYLineChart("", // title
+        "Retention time", // x-axis label
+        "Y", // y-axis label
+        null, // data set
+        PlotOrientation.VERTICAL, // orientation
+        true, // create legend?
+        true, // generate tooltips?
+        false // generate URLs?
+    ));
 
     // Initialize.
-    visualizer = listener;
+    // visualizer = listener;
     labelsVisible = 1;
     havePeakLabels = false;
     numOfDataSets = 0;
     numOfPeaks = 0;
     showSpectrumRequest = false;
 
-    // Set cursor.
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    setMinWidth(300.0);
+    setMinHeight(300.0);
+
+    setPrefWidth(600.0);
+    setPrefHeight(400.0);
 
     // Plot type
-    if (visualizer instanceof TICVisualizerWindow) {
-      this.plotType = ((TICVisualizerWindow) visualizer).getPlotType();
-    } else {
-
-      this.plotType = TICPlotType.BASEPEAK;
-    }
     // Y-axis label.
     final String yAxisLabel =
         (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
 
     // Initialize the chart by default time series chart from factory.
-    final JFreeChart chart = ChartFactory.createXYLineChart("", // title
-        "Retention time", // x-axis label
-        yAxisLabel, // y-axis label
-        null, // data set
-        PlotOrientation.VERTICAL, // orientation
-        true, // create legend?
-        true, // generate tooltips?
-        false // generate URLs?
-    );
+    chart = getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
+    chart.getXYPlot().getRangeAxis().setLabel(yAxisLabel);
+    // setChart(chart);
+
+
 
     // Title.
     chartTitle = chart.getTitle();
@@ -212,8 +198,8 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     chart.addSubtitle(chartSubTitle);
 
     // Disable maximum size (we don't want scaling).
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // Legend constructed by ChartFactory.
     final LegendTitle legend = chart.getLegend();
@@ -231,15 +217,23 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     plot.setRangeGridlinePaint(GRID_COLOR);
 
     // Set cross-hair (selection) properties.
-    if (listener instanceof TICVisualizerWindow) {
+    // if (listener instanceof TICVisualizerWindow) {
 
-      plot.setDomainCrosshairVisible(true);
-      plot.setRangeCrosshairVisible(true);
-      plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
-      plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
-      plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
-      plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
-    }
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
+    plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
+    plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
+    plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
+    plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
+
+    // Set cursor.
+    setCursor(Cursor.CROSSHAIR);
+
+    setPlotType(TICPlotType.BASEPEAK);
+
+    // }
+
+
 
     // Set the x-axis (retention time) properties.
     final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
@@ -268,88 +262,100 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     defaultRenderer.setDefaultToolTipGenerator(toolTipGenerator);
 
     // Set focus state to receive key events.
-    setFocusable(true);
+    // setFocusable(true);
 
     // Register key handlers.
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), listener, "MOVE_CURSOR_LEFT");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), listener,
-        "MOVE_CURSOR_RIGHT");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), listener, "SHOW_SPECTRUM");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('*'), this, "ZOOM_AUTO");
-
+    /*
+     * TODO: GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), listener,
+     * "MOVE_CURSOR_LEFT");
+     *
+     * GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), listener,
+     * "MOVE_CURSOR_RIGHT"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
+     * listener, "SHOW_SPECTRUM"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
+     * this, "ZOOM_IN"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
+     * "ZOOM_OUT"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('*'), this,
+     * "ZOOM_AUTO");
+     */
     // Add items to popup menu.
-    final JPopupMenu popupMenu = getPopupMenu();
-    popupMenu.addSeparator();
+    final ContextMenu popupMenu = getContextMenu();
+    popupMenu.getItems().add(new MenuItem("gagaga"));
+    popupMenu.getItems().add(new SeparatorMenuItem());
+
+
 
     // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
+    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
-    if (listener instanceof TICVisualizerWindow) {
+    // if (listener instanceof TICVisualizerWindow) {
 
-      popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
-      popupMenu.addSeparator();
-      popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
-      RemoveFilePopupMenu = popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
-      popupMenu.addSeparator();
-      RemoveFilePopupMenu.setEnabled(false);
+    // popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
+    // popupMenu.addSeparator();
+    // popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
+    // RemoveFilePopupMenu = popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
+    // popupMenu.addSeparator();
+    // RemoveFilePopupMenu.setEnabled(false);
+
+
+    // GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
+    // GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
+
+    // if(listener instanceof TICVisualizerWindow)
+
+    {
+      // popupMenu.addSeparator();
+      // GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan", listener,
+      // "SHOW_SPECTRUM");
     }
 
-    GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
-    GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
+    // popupMenu.addSeparator();
 
-    if (listener instanceof TICVisualizerWindow) {
-      popupMenu.addSeparator();
-      GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan", listener, "SHOW_SPECTRUM");
-    }
+    // GUIUtils.addMenuItem(popupMenu,"Set axes range",this,"SETUP_AXES");
 
-    popupMenu.addSeparator();
+    // if(listener instanceof TICVisualizerWindow)
+    {
 
-    GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
-
-    if (listener instanceof TICVisualizerWindow) {
-
-      GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", this, "SET_SAME_RANGE");
+      // GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", this, "SET_SAME_RANGE");
     }
 
     // Register for mouse-wheel events
-    addMouseWheelListener(this);
+    // addMouseWheelListener(this);
+
+    chart.addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+
+        Window myWindow = this.getScene().getWindow();
+        if (myWindow instanceof TICVisualizerWindow) {
+          ((TICVisualizerWindow) myWindow).updateTitle();
+        }
+
+        if (showSpectrumRequest) {
+
+          showSpectrumRequest = false;
+          // visualizer.actionPerformed(
+          // new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+        }
+      }
+    });
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
+    
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
   }
 
-  @Override
+  // @Override
   public void actionPerformed(final ActionEvent event) {
 
-    super.actionPerformed(event);
+    // super.actionPerformed(event);
 
     final String command = event.getActionCommand();
 
-    if ("SHOW_DATA_POINTS".equals(command)) {
-
-      switchDataPointsVisible();
-    }
-
-    if ("SHOW_ANNOTATIONS".equals(command)) {
-
-      switchItemLabelsVisible();
-    }
-
-    if ("SETUP_AXES".equals(command)) {
-      JFrame parent = null;
-      if (visualizer instanceof JFrame)
-        parent = (JFrame) visualizer;
-      new AxesSetupDialog(parent, getXYPlot()).setVisible(true);
-    }
 
     if ("ZOOM_IN".equals(command)) {
-
       getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
       getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
     }
@@ -376,8 +382,8 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     if ("ZOOM_AUTO".equals(command)) {
       getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
       getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-      restoreAutoDomainBounds();
-      restoreAutoRangeBounds();
+      // restoreAutoDomainBounds();
+      // restoreAutoRangeBounds();
     }
 
     if ("SET_SAME_RANGE".equals(command)) {
@@ -393,87 +399,19 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
       final double yTick = yAxis.getTickUnit().getSize();
 
       // Set the range of these frames
-      for (final Window frame : JFrame.getWindows()) {
+      for (final Window frame : Stage.getWindows()) {
         if (frame instanceof TICVisualizerWindow) {
-
           final TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;
           ticFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
         }
       }
     }
 
-    if ("SHOW_SPECTRUM".equals(command)) {
 
-      visualizer.actionPerformed(event);
-    }
 
-    if ("SHOW_LEGEND".equals(command)) {
-      // Toggle legend visibility.
-      final LegendTitle legend = getChart().getLegend();
-      legend.setVisible(!legend.isVisible());
-    }
-
-    if ("GRAY_BACKGROUND".equals(command)) {
-      // Toggle background color
-      final Paint color = getChart().getPlot().getBackgroundPaint();
-      Color bgColor, liColor;
-      if (color.equals(Color.lightGray)) {
-        bgColor = Color.white;
-        liColor = Color.lightGray;
-      } else {
-        bgColor = Color.lightGray;
-        liColor = Color.white;
-      }
-      getChart().getPlot().setBackgroundPaint(bgColor);
-      getChart().getXYPlot().setDomainGridlinePaint(liColor);
-      getChart().getXYPlot().setRangeGridlinePaint(liColor);
-    }
-
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
-    }
-
-    if ("SAVE_EPS".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
   }
 
-  @Override
+  // @Override
   public void mouseWheelMoved(MouseWheelEvent event) {
     int notches = event.getWheelRotation();
     if (notches < 0) {
@@ -483,19 +421,19 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
-  @Override
+  // @Override
   public void restoreAutoBounds() {
     getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
     getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-    restoreAutoDomainBounds();
-    restoreAutoRangeBounds();
+    // restoreAutoDomainBounds();
+    // restoreAutoRangeBounds();
   }
 
-  @Override
+  // @Override
   public void mouseClicked(final MouseEvent event) {
 
     // Let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
+    // super.mouseClicked(event);
 
     // Request focus to receive key events.
     requestFocus();
@@ -503,6 +441,7 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     // Handle mouse click events
     if (event.getButton() == MouseEvent.BUTTON1) {
 
+      System.out.println("mouse " + event);
       if (event.getX() < 70) { // User clicked on Y-axis
         if (event.getClickCount() == 2) { // Reset zoom on Y-axis
           XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
@@ -512,11 +451,11 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
           getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
           getXYPlot().getRangeAxis().setAutoRange(true);
         }
-      } else if (event.getY() > this.getChartRenderingInfo().getPlotInfo().getPlotArea().getMaxY()
-          - 41 && event.getClickCount() == 2) {
+      } else if (event.getY() > this.getRenderingInfo().getPlotInfo().getPlotArea().getMaxY() - 41
+          && event.getClickCount() == 2) {
         // Reset zoom on X-axis
         getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-        restoreAutoDomainBounds();
+        // restoreAutoDomainBounds();
       } else if (event.getClickCount() == 2) { // If user double-clicked
         // left button, place a
         // request to open a
@@ -527,25 +466,13 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
 
   }
 
-  @Override
-  public void chartProgress(final ChartProgressEvent event) {
 
-    super.chartProgress(event);
 
-    if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+  public void switchLegendVisible() {
+    // Toggle legend visibility.
+    final LegendTitle legend = getChart().getLegend();
+    legend.setVisible(!legend.isVisible());
 
-      if (visualizer instanceof TICVisualizerWindow) {
-
-        ((TICVisualizerWindow) visualizer).updateTitle();
-      }
-
-      if (showSpectrumRequest) {
-
-        showSpectrumRequest = false;
-        visualizer.actionPerformed(
-            new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
-      }
-    }
   }
 
   public void switchItemLabelsVisible() {
@@ -592,8 +519,23 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
-  public XYPlot getXYPlot() {
+  public void switchBackground() {
+    // Toggle background color
+    final Paint color = getChart().getPlot().getBackgroundPaint();
+    Color bgColor, liColor;
+    if (color.equals(Color.lightGray)) {
+      bgColor = Color.white;
+      liColor = Color.lightGray;
+    } else {
+      bgColor = Color.lightGray;
+      liColor = Color.white;
+    }
+    getChart().getPlot().setBackgroundPaint(bgColor);
+    getChart().getXYPlot().setDomainGridlinePaint(liColor);
+    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+  }
 
+  public XYPlot getXYPlot() {
     return plot;
   }
 
@@ -604,20 +546,20 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
           + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-      final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
-      renderer.setSeriesPaint(0, rendererColor);
-      renderer.setSeriesFillPaint(0, rendererColor);
+//      final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
+//      renderer.setSeriesPaint(0, rendererColor);
+//      renderer.setSeriesFillPaint(0, rendererColor);
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
       addDataSetRenderer(dataSet, renderer);
       numOfDataSets++;
 
       // Enable remove plot menu
-      if (visualizer instanceof TICVisualizerWindow && numOfDataSets > 1) {
-        RemoveFilePopupMenu.setEnabled(true);
-      }
+      // if (visualizer instanceof TICVisualizerWindow && numOfDataSets > 1) {
+      // RemoveFilePopupMenu.setEnabled(true);
+      // }
     } catch (CloneNotSupportedException e) {
-      LOG.log(Level.WARNING, "Unable to clone renderer", e);
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
   }
 
@@ -625,7 +567,7 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
 
     final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-    renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
+//    renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
     addDataSetRenderer(dataSet, renderer);
     numOfPeaks++;
   }
@@ -658,10 +600,8 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
       addDataSetRenderer(dataSet, renderer);
       renderer.setDrawSeriesLineAsPath(true);
       renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
-
         @Override
         public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
-
           return ((PeakDataSet) xyDataSet).isPeak(item) ? label : null;
         }
       });
@@ -689,18 +629,18 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
 
   public void setPlotType(final TICPlotType plotType) {
 
-    if (this.plotType != plotType) {
-      // Plot type
-      if (visualizer instanceof TICVisualizerWindow) {
-        this.plotType = ((TICVisualizerWindow) visualizer).getPlotType();
-      } else {
-        this.plotType = plotType;
-      }
-      // Y-axis label.
-      String yAxisLabel =
-          (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
-      getXYPlot().getRangeAxis().setLabel(yAxisLabel);
-    }
+    if (this.plotType == plotType)
+      return;
+    /*
+     * // Plot type if (visualizer instanceof TICVisualizerWindow) { this.plotType =
+     * ((TICVisualizerWindow) visualizer).getPlotType(); } else { }
+     */
+    this.plotType = plotType;
+    // Y-axis label.
+    String yAxisLabel =
+        (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
+    getXYPlot().getRangeAxis().setLabel(yAxisLabel);
+
   }
 
   private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {

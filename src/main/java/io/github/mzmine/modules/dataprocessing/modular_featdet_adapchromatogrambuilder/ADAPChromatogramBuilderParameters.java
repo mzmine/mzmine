@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,8 +19,6 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
-
-import java.awt.Window;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -74,7 +72,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         startIntensity, mzTolerance, suffix});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>ADAP Module Disclaimer:"
         + "<br> If you use the ADAP Chromatogram Builder Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
@@ -82,9 +81,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
         + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
         + "</html>";
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

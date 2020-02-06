@@ -30,7 +30,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
@@ -43,7 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class ExportChromatogramTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ExportChromatogramTask.class.getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final File exportFile;
   private final TICDataSet dataSet;
@@ -87,12 +86,12 @@ public class ExportChromatogramTask extends AbstractTask {
       export();
 
       // Success.
-      LOG.info("Exported chromatogram for " + dataSet.getDataFile().getName());
+      logger.info("Exported chromatogram for " + dataSet.getDataFile().getName());
       setStatus(TaskStatus.FINISHED);
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Chromatogram export error", t);
+      logger.log(Level.SEVERE, "Chromatogram export error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
     }

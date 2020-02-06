@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,31 +20,29 @@ package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
-
 import io.github.mzmine.gui.chartbasics.ChartLogics;
-import io.github.mzmine.util.GUIUtils;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 
 /**
  * Enhanced version. Use arrows to jump to the next or previous distribution
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public class EHistogramDialog extends HistogramDialog implements ActionListener {
-  private static final long serialVersionUID = 1L;
-  private JCheckBox cbKeepSameXaxis;
+
+  private CheckBox cbKeepSameXaxis;
 
   /**
    * Create the dialog. Auto detect binWidth
-   * 
+   *
    * @wbp.parser.constructor
    */
   public EHistogramDialog(String title, String xLabel, HistogramData data) {
@@ -52,7 +50,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
   }
 
   /**
-   * 
+   *
    * @param title
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
@@ -64,29 +62,29 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
 
   private void addKeyBindings() {
     // set focusable state to receive key events
-    setFocusable(true);
+    // setFocusable(true);
 
     // register key handlers
-    JPanel pn = (JPanel) this.getContentPane();
-    pn.setRequestFocusEnabled(true);
-    GUIUtils.registerKeyHandler(pn, KeyStroke.getKeyStroke("LEFT"), this, "PREVIOUS_PEAK");
-    GUIUtils.registerKeyHandler(pn, KeyStroke.getKeyStroke("RIGHT"), this, "NEXT_PEAK");
+    // JPanel pn = (JPanel) this.getContentPane();
+    // pn.setRequestFocusEnabled(true);
+    // GUIUtils.registerKeyHandler(pn, KeyStroke.getKeyStroke("LEFT"), this, "PREVIOUS_PEAK");
+    // GUIUtils.registerKeyHandler(pn, KeyStroke.getKeyStroke("RIGHT"), this, "NEXT_PEAK");
 
-    JPanel pnJump = new JPanel();
-    getHistoPanel().getBoxSettings().add(pnJump);
+    FlowPane pnJump = new FlowPane();
+    // getHistoPanel().getBoxSettings().add(pnJump);
 
-    cbKeepSameXaxis = new JCheckBox("keep same x-axis length");
-    pnJump.add(cbKeepSameXaxis);
+    cbKeepSameXaxis = new CheckBox("keep same x-axis length");
+    pnJump.getChildren().add(cbKeepSameXaxis);
 
-    JButton btnPrevious = new JButton("<");
-    btnPrevious.setToolTipText("Jump to previous distribution (use left arrow");
-    btnPrevious.addActionListener(e -> jumpToPrevPeak());
-    pnJump.add(btnPrevious);
+    Button btnPrevious = new Button("<");
+    btnPrevious.setTooltip(new Tooltip("Jump to previous distribution (use left arrow"));
+    btnPrevious.setOnAction(e -> jumpToPrevPeak());
+    pnJump.getChildren().add(btnPrevious);
 
-    JButton btnNext = new JButton(">");
-    btnNext.setToolTipText("Jump to previous distribution (use right arrow");
-    btnNext.addActionListener(e -> jumpToNextPeak());
-    pnJump.add(btnNext);
+    Button btnNext = new Button(">");
+    btnNext.setTooltip(new Tooltip("Jump to previous distribution (use right arrow"));
+    btnNext.setOnAction(e -> jumpToNextPeak());
+    pnJump.getChildren().add(btnNext);
   }
 
   @Override
@@ -172,7 +170,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
 
   /**
    * Set zoom factor around peak at data point i
-   * 
+   *
    * @param i
    */
   private void setZoomAroundPeakAt(int i) {
@@ -233,7 +231,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
       return null;
   }
 
-  public JCheckBox getCbKeepSameXaxis() {
+  public CheckBox getCbKeepSameXaxis() {
     return cbKeepSameXaxis;
   }
 }

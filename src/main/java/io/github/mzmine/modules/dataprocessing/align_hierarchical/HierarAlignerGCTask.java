@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -36,7 +36,6 @@ import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
 import org.gnf.clustering.FloatSource1D;
 import org.gnf.clustering.LinkageMode;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
@@ -48,7 +47,6 @@ import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.ClustererType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -173,9 +171,9 @@ public class HierarAlignerGCTask extends AbstractTask {
     /**
      * GLG HACK: temporarily removed for clarity sameChargeRequired = parameters.getParameter(
      * JoinAlignerParameters.SameChargeRequired).getValue();
-     * 
+     *
      * sameIDRequired = parameters.getParameter( JoinAlignerParameters.SameIDRequired).getValue();
-     * 
+     *
      * compareIsotopePattern = parameters.getParameter(
      * JoinAlignerParameters.compareIsotopePattern).getValue();
      **/
@@ -217,6 +215,7 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Join aligner GC, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
@@ -224,13 +223,13 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0f;
     // return (double) processedRows / (double) totalRows;
     double progress =
-        (double) (processedRows + (clustProgress.getProgress() * (double) totalRows / 3.0d))
-            / (double) totalRows;
+        (processedRows + (clustProgress.getProgress() * totalRows / 3.0d)) / totalRows;
     // logger.info(">> THE progress: " + progress);
     // logger.info("Caught progress: " +
     // clustProgress.getProgress());
@@ -240,6 +239,7 @@ public class HierarAlignerGCTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     // Check options validity
@@ -338,7 +338,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
       PeakList peakList = peakLists[newIds[i]];
 
-      PeakListRow allRows[] = peakList.getRows();
+      PeakListRow allRows[] = peakList.getRows().toArray(PeakListRow[]::new);
       for (int j = 0; j < allRows.length; ++j) {
 
         PeakListRow row = allRows[j];
@@ -625,14 +625,14 @@ public class HierarAlignerGCTask extends AbstractTask {
     // WARN: Must be done before "Post processing" part to take advantage
     // of the "targetRow.update()" used down there
     for (SimpleFeature peak : rtPeaksBackup.keySet()) {
-      peak.setRT((double) rtPeaksBackup.get(peak));
+      peak.setRT(rtPeaksBackup.get(peak));
     }
 
     /** Post-processing... **/
     // Build reference RDFs index: We need an ordered reference here, to be
     // able to parse
     // correctly while reading back stored info
-    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().clone();
+    RawDataFile[] rdf_sorted = alignedPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
     Arrays.sort(rdf_sorted, new RawDataFileSorter(SortingDirection.Ascending));
 
     // Process

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,12 +19,11 @@
 package io.github.mzmine.modules.visualization.intensityplot;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -57,7 +56,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters);
-    newFrame.setVisible(true);
+    newFrame.show();
     return ExitCode.OK;
   }
 
@@ -71,9 +70,10 @@ public class IntensityPlotModule implements MZmineRunnableModule {
         .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS, new PeakList[] {peakList});
 
     parameters.getParameter(IntensityPlotParameters.dataFiles)
-        .setChoices(peakList.getRawDataFiles());
+        .setChoices(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
 
-    parameters.getParameter(IntensityPlotParameters.dataFiles).setValue(peakList.getRawDataFiles());
+    parameters.getParameter(IntensityPlotParameters.dataFiles)
+        .setValue(peakList.getRawDataFiles().toArray(RawDataFile[]::new));
 
     parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(rows);
 
@@ -87,7 +87,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 
     parameters.getParameter(IntensityPlotParameters.xAxisValueSource).setChoices(xAxisSources);
 
-    ExitCode exitCode = parameters.showSetupDialog(null, true);
+    ExitCode exitCode = parameters.showSetupDialog(true);
 
     if (exitCode == ExitCode.OK) {
       PeakListRow selectedRows[] =
@@ -98,7 +98,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
       }
 
       IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters.cloneParameterSet());
-      newFrame.setVisible(true);
+      newFrame.show();
     }
 
   }

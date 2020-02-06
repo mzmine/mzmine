@@ -9,6 +9,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -64,7 +65,7 @@ public class ExtendedPeak implements Feature {
 
   /**
    * This method adds a MzPeak to this ExtendedPeak.
-   * 
+   *
    * @param mzValue
    */
   public void addMzPeak(int scanNumber, DataPoint mzValue) {
@@ -93,7 +94,7 @@ public class ExtendedPeak implements Feature {
 
   /**
    * This method returns a string with the basic information that defines this peak
-   * 
+   *
    * @return String information
    */
   public String getName() {
@@ -117,7 +118,7 @@ public class ExtendedPeak implements Feature {
 
   /**
    * Overwrite the scan number of fragment scan
-   * 
+   *
    * @param scanNumber
    */
   public void setMostIntenseFragmentScanNumber(int scanNumber) {
@@ -337,5 +338,17 @@ public class ExtendedPeak implements Feature {
     setFragmentScanNumber(best);
   }
   // End dulab Edit
+
+  private PeakList peakList;
+
+  @Override
+  public PeakList getPeakList() {
+    return peakList;
+  }
+
+  @Override
+  public void setPeakList(PeakList peakList) {
+    this.peakList = peakList;
+  }
 
 }

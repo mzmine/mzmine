@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,17 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_merge;
 
-import java.awt.Window;
-
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.util.ExitCode;
 
 public class RawFileMergeParameters extends SimpleParameterSet {
 
@@ -76,20 +71,15 @@ public class RawFileMergeParameters extends SimpleParameterSet {
     super(new Parameter[] {dataFiles, mode, position, posMarker, MS2_marker, suffix});
   }
 
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
-      return ExitCode.OK;
-    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
-    //
-    ((ComboComponent) dialog.getComponentForParameter(mode)).addItemListener(e -> {
-      boolean pattern = (e.getItem().equals(MODE.MERGE_PATTERN));
-      dialog.getComponentForParameter(position).setVisible(pattern);
-      dialog.getComponentForParameter(posMarker).setVisible(pattern);
-    });
-
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+  /*
+   * @Override public ExitCode showSetupDialog( boolean valueCheckRequired) { if ((getParameters()
+   * == null) || (getParameters().length == 0)) return ExitCode.OK; ParameterSetupDialog dialog =
+   * new ParameterSetupDialog(valueCheckRequired, this); ((ComboBox)
+   * dialog.getComponentForParameter(mode)).addItemListener(e -> { boolean pattern =
+   * (e.getItem().equals(MODE.MERGE_PATTERN));
+   * dialog.getComponentForParameter(position).setVisible(pattern);
+   * dialog.getComponentForParameter(posMarker).setVisible(pattern); }); dialog.showAndWait();
+   * return dialog.getExitCode(); }
+   */
 
 }

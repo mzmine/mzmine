@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,38 +18,26 @@
 
 package io.github.mzmine.modules.tools.isotopepatternpreview;
 
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -60,22 +48,24 @@ import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentComponent;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.StringComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 
 /**
- * 
+ *
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -87,16 +77,16 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private PolarityType pol;
   private String formula;
 
-  private EChartPanel pnlChart;
+  private EChartViewer pnlChart;
   private JFreeChart chart;
   private XYPlot plot;
   private EIsotopePatternChartTheme theme;
-  private JPanel newMainPanel;
-  private JPanel pnlParameters;
-  private JScrollPane pnText;
-  private JTable table;
-  private JSplitPane pnSplit;
-  private JPanel pnlControl;
+  private BorderPane newMainPanel;
+  private FlowPane pnlParameters;
+  // private ScrollPane pnText;
+  private TableView table;
+  private SplitPane pnSplit;
+  private BorderPane pnlControl;
 
   private DoubleParameter pMergeWidth;
   private PercentParameter pMinIntensity;
@@ -105,10 +95,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   private DoubleComponent cmpMergeWidth;
   private PercentComponent cmpMinIntensity;
-  private StringComponent cmpFormula;
+  private TextField cmpFormula;
   private IntegerComponent cmpCharge;
 
-  private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge, lblStatus;
+  private Label lblMergeWidth, lblMinIntensity, lblFormula, lblCharge, lblStatus;
 
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
@@ -126,29 +116,18 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   ParameterSet customParameters;
 
-  public IsotopePatternPreviewDialog(Window parent, boolean valueCheckRequired,
-      ParameterSet parameters) {
-    super(parent, valueCheckRequired, parameters);
+  public IsotopePatternPreviewDialog(boolean valueCheckRequired, ParameterSet parameters) {
+    super(valueCheckRequired, parameters);
 
     aboveMin = new Color(30, 180, 30);
     belowMin = new Color(200, 30, 30);
 
     lastCalc = 0;
 
-    mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
     newParameters = false;
     // task = new IsotopePatternPreviewTask(formula, minIntensity,
     // mergeWidth, charge, pol, this);
     // thread = new Thread(task);
-
-    formatChart();
-    parametersChanged();
-  }
-
-  @Override
-  protected void addDialogComponents() {
-    super.addDialogComponents();
 
     pFormula = parameterSet.getParameter(IsotopePatternPreviewParameters.formula);
     pMinIntensity = parameterSet.getParameter(IsotopePatternPreviewParameters.minIntensity);
@@ -157,32 +136,30 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    cmpMinIntensity =
-        (PercentComponent) getComponentForParameter(IsotopePatternPreviewParameters.minIntensity);
-    cmpMergeWidth =
-        (DoubleComponent) getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
-    cmpCharge = (IntegerComponent) getComponentForParameter(IsotopePatternPreviewParameters.charge);
-    cmpFormula =
-        (StringComponent) getComponentForParameter(IsotopePatternPreviewParameters.formula);
+    cmpMinIntensity = getComponentForParameter(IsotopePatternPreviewParameters.minIntensity);
+    cmpMergeWidth = getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
+    cmpCharge = getComponentForParameter(IsotopePatternPreviewParameters.charge);
+    cmpFormula = getComponentForParameter(IsotopePatternPreviewParameters.formula);
 
     // panels
-    newMainPanel = new JPanel(new BorderLayout());
-    pnText = new JScrollPane();
-    pnlChart = new EChartPanel(chart);
-    pnSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnlChart, pnText);
-    table = new JTable();
-    pnlParameters = new JPanel(new FlowLayout());
-    pnlControl = new JPanel(new BorderLayout());
+    newMainPanel = new BorderPane();
+    // pnText = new ScrollPane();
+    pnlChart = new EChartViewer(chart);
+    table = new TableView<>();
+    pnSplit = new SplitPane(pnlChart, table);
+    pnSplit.setOrientation(Orientation.HORIZONTAL);
+    pnlParameters = new FlowPane();
+    pnlControl = new BorderPane();
 
-    pnText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-    pnText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    // pnText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    // pnText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-    pnText.setMinimumSize(new Dimension(350, 300));
-    pnlChart.setMinimumSize(new Dimension(350, 200));
-    pnlChart.setPreferredSize( // TODO: can you do this cleaner?
-        new Dimension((int) (screenSize.getWidth() / 3), (int) (screenSize.getHeight() / 3)));
-    table.setMinimumSize(new Dimension(350, 300));
-    table.setDefaultEditor(Object.class, null);
+    // pnText.setMinimumSize(new Dimension(350, 300));
+    // pnlChart.setMinimumSize(new Dimension(350, 200));
+    // pnlChart.setPreferredSize( // TODO: can you do this cleaner?
+    // new Dimension((int) (screenSize.getWidth() / 3), (int) (screenSize.getHeight() / 3)));
+    // table.setMinimumSize(new Dimension(350, 300));
+    // table.setDefaultEditor(Object.class, null);
 
     // controls
     ttGen = new SpectraToolTipGenerator();
@@ -190,36 +167,38 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     theme.initialize();
 
     // reorganize
-    getContentPane().remove(mainPanel);
+    mainPane.getChildren().remove(paramsPane);
     organizeParameterPanel();
-    pnlControl.add(pnlParameters, BorderLayout.CENTER);
-    pnlControl.add(pnlButtons, BorderLayout.SOUTH);
-    newMainPanel.add(pnSplit, BorderLayout.CENTER);
-    newMainPanel.add(pnlControl, BorderLayout.SOUTH);
-    getContentPane().add(newMainPanel);
-    pnlButtons.remove(super.btnCancel);
+    pnlControl.setCenter(pnlParameters);
+    pnlControl.setBottom(pnlButtons);
+    newMainPanel.setCenter(pnSplit);
+    newMainPanel.setBottom(pnlControl);
+    mainPane.setCenter(newMainPanel);
+    pnlButtons.getButtons().remove(super.btnCancel);
 
     chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         new XYSeriesCollection(new XYSeries("")));
     pnlChart.setChart(chart);
-    pnText.setViewportView(table);
+    // pnText.setViewportView(table);
 
-    updateMinimumSize();
-    pack();
+
+    formatChart();
+    parametersChanged();
   }
 
+
   private void organizeParameterPanel() {
-    lblMergeWidth = new JLabel(pMergeWidth.getName());
-    lblMinIntensity = new JLabel(pMinIntensity.getName());
-    lblFormula = new JLabel(pFormula.getName());
-    lblCharge = new JLabel(pCharge.getName());
-    lblStatus = new JLabel("Status");
+    lblMergeWidth = new Label(pMergeWidth.getName());
+    lblMinIntensity = new Label(pMinIntensity.getName());
+    lblFormula = new Label(pFormula.getName());
+    lblCharge = new Label(pCharge.getName());
+    lblStatus = new Label("Status");
     setStatus("Waiting.");
 
-    mainPanel.remove(cmpCharge);
-    mainPanel.remove(cmpMergeWidth);
-    mainPanel.remove(cmpMinIntensity);
-    mainPanel.remove(cmpFormula);
+    paramsPane.getChildren().remove(cmpCharge);
+    paramsPane.getChildren().remove(cmpMergeWidth);
+    paramsPane.getChildren().remove(cmpMinIntensity);
+    paramsPane.getChildren().remove(cmpFormula);
 
     lblFormula.setLabelFor(cmpFormula);
     lblMinIntensity.setLabelFor(cmpMinIntensity);
@@ -229,15 +208,15 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     // cmpCharge.setPreferredSize(new Dimension(30, cmpCharge.getHeight()));
     cmpCharge.setColumns(2);
 
-    pnlParameters.add(lblFormula);
-    pnlParameters.add(cmpFormula);
-    pnlParameters.add(lblMinIntensity);
-    pnlParameters.add(cmpMinIntensity);
-    pnlParameters.add(lblMergeWidth);
-    pnlParameters.add(cmpMergeWidth);
-    pnlParameters.add(lblCharge);
-    pnlParameters.add(cmpCharge);
-    pnlParameters.add(lblStatus);
+    pnlParameters.getChildren().add(lblFormula);
+    pnlParameters.getChildren().add(cmpFormula);
+    pnlParameters.getChildren().add(lblMinIntensity);
+    pnlParameters.getChildren().add(cmpMinIntensity);
+    pnlParameters.getChildren().add(lblMergeWidth);
+    pnlParameters.getChildren().add(cmpMergeWidth);
+    pnlParameters.getChildren().add(lblCharge);
+    pnlParameters.getChildren().add(cmpCharge);
+    pnlParameters.getChildren().add(lblStatus);
   }
 
   public void actionPerformed(ActionEvent ae) {
@@ -287,7 +266,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   /**
    * this is being called by the calculation task to update the pattern
-   * 
+   *
    * @param pattern
    */
   protected void updateChart(ExtendedIsotopePattern pattern) {
@@ -306,7 +285,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   /**
    * this is being called by the calculation task to update the table
-   * 
+   *
    * @param pattern
    */
   protected void updateTable(ExtendedIsotopePattern pattern) {
@@ -319,14 +298,12 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       data[i][2] = pattern.getIsotopeComposition(i);
     }
 
-    if (pol == PolarityType.NEUTRAL)
-      table = new JTable(data, columns[0]); // column 1 = "Exact mass /
-                                            // Da"
-    else
-      table = new JTable(data, columns[1]); // column 2 = "m/z"
-
-    pnText.setViewportView(table);
-    table.setDefaultEditor(Object.class, null); // make editing impossible
+    /*
+     * if (pol == PolarityType.NEUTRAL) table = new TableView(data, columns[0]); // column 1 =
+     * "Exact mass / // Da" else table = new JTable(data, columns[1]); // column 2 = "m/z"
+     */
+    // pnText.setViewportView(table);
+    // table.setDefaultEditor(Object.class, null); // make editing impossible
   }
 
   private void formatChart() {

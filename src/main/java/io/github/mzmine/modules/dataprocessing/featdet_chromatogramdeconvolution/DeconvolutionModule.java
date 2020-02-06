@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import java.util.Arrays;
 import java.util.Collection;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -74,14 +73,14 @@ public class DeconvolutionModule implements MZmineProcessingModule {
     CenterFunction mzCenterFunction =
         parameters.getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION).getValue();
 
-    // use a LOG weighted, noise corrected, maximum weight capped function
+    // use a logger weighted, noise corrected, maximum weight capped function
     if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
       // data point with lowest intensity
-      // weight = LOG(value) - LOG(noise) (maxed to maxWeight)
-      double noise = Arrays.stream(peakLists).flatMap(pkl -> Arrays.stream(pkl.getRows()))
-          .map(r -> r.getPeaks()[0])
-          .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
-          .filter(v -> v != 0).min().orElse(0);
+      // weight = logger(value) - logger(noise) (maxed to maxWeight)
+      double noise =
+          Arrays.stream(peakLists).flatMap(pkl -> pkl.getRows().stream()).map(r -> r.getPeaks()[0])
+              .mapToDouble(peak -> peak.getRawDataPointsIntensityRange().lowerEndpoint())
+              .filter(v -> v != 0).min().orElse(0);
 
       // maxWeight 4 corresponds to a linear range of 4 orders of
       // magnitude
@@ -90,9 +89,10 @@ public class DeconvolutionModule implements MZmineProcessingModule {
       // accuracy
       double maxWeight = 4;
 
-      // use a LOG weighted, noise corrected, maximum weight capped
+      // use a logger weighted, noise corrected, maximum weight capped
       // function
-      mzCenterFunction = new CenterFunction(CenterMeasure.AVG, Weighting.LOG10, noise, maxWeight);
+      mzCenterFunction =
+          new CenterFunction(CenterMeasure.AVG, Weighting.logger10, noise, maxWeight);
     }
 
     for (final PeakList peakList : peakLists) {

@@ -16,49 +16,36 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
-import com.google.common.collect.Range;
-
-import io.github.mzmine.util.components.GridBagPanel;
-
-import java.awt.Color;
-
 import java.util.List;
-import javax.swing.JLabel;
-
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import com.google.common.collect.Range;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
 
 /**
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-public class ListDoubleRangeComponent extends GridBagPanel {
-  private JTextField inputField;
-  private JLabel textField;
+public class ListDoubleRangeComponent extends GridPane {
+  private TextField inputField;
+  private Label textField;
 
   public ListDoubleRangeComponent() {
-    inputField = new JTextField();
-    inputField.setColumns(16);
-    inputField.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void changedUpdate(DocumentEvent e) {
-        update();
-      }
+    inputField = new TextField();
+    inputField.setPrefColumnCount(16);
+    /*
+     * inputField.getDocument().addDocumentListener(new DocumentListener() {
+     * 
+     * @Override public void changedUpdate(DocumentEvent e) { update(); }
+     * 
+     * @Override public void removeUpdate(DocumentEvent e) { update(); }
+     * 
+     * @Override public void insertUpdate(DocumentEvent e) { update(); } });
+     */
 
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        update();
-      }
-
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        update();
-      }
-    });
-
-    textField = new JLabel();
+    textField = new Label();
     // textField.setColumns(8);
 
     add(inputField, 0, 0);
@@ -76,33 +63,27 @@ public class ListDoubleRangeComponent extends GridBagPanel {
   public void setValue(List<Range<Double>> ranges) {
     String text = dulab.adap.common.algorithms.String.fromRanges(ranges);
 
-    textField.setForeground(Color.black);
+    // textField.setForeground(Color.black);
     textField.setText(text);
     inputField.setText(text);
   }
 
-  @Override
   public void setToolTipText(String toolTip) {
-    textField.setToolTipText(toolTip);
-    inputField.setToolTipText(toolTip);
+    textField.setTooltip(new Tooltip(toolTip));
+    inputField.setTooltip(new Tooltip(toolTip));
   }
 
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    textField.setEnabled(enabled);
-    inputField.setEnabled(enabled);
-  }
+
 
   private void update() {
     try {
       List<Range<Double>> ranges =
           dulab.adap.common.algorithms.String.toRanges(inputField.getText());
 
-      textField.setForeground(Color.black);
+      // textField.setForeground(Color.black);
       textField.setText(dulab.adap.common.algorithms.String.fromRanges(ranges));
     } catch (IllegalArgumentException e) {
-      textField.setForeground(Color.red);
+      // textField.setForeground(Color.red);
       textField.setText(e.getMessage());
     }
   }

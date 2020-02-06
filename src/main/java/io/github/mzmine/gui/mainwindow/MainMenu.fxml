@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.text.*?>
 <?import io.github.mzmine.gui.mainwindow.*?>
+<?import io.github.mzmine.util.javafx.*?>
 
 <MenuBar useSystemMenuBar="true"
 	xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
@@ -47,8 +48,8 @@
 			userData="io.github.mzmine.modules.batchmode.BatchModeModule" />
 
 		<SeparatorMenuItem />
-		<MenuItem text="Set sample parameters" onAction="#runModule"
-			userData="" />
+		<MenuItem text="Set sample parameters"
+			onAction="#setSampleParams" />
 
 		<SeparatorMenuItem />
 		<MenuItem text="Set preferences" onAction="#setPreferences" />
@@ -329,6 +330,8 @@
 		<MenuItem text="Diagnostic fragmentation filtering"
 			onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule" />
+		<MenuItem text="Raw data overview" onAction="#runModule"
+			userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule" />
 
 
 		<SeparatorMenuItem />
@@ -356,13 +359,7 @@
 
 
 	<!-- WINDOWS -->
-	<Menu fx:id="windowsMenu" text="Windows"
-		onShowing="#fillWindowsMenu">
-		<MenuItem text="Close all windows"
-			onAction="#closeAllWindows" />
-		<SeparatorMenuItem />
-	</Menu>
-
+	<WindowsMenu />
 
 	<!-- HELP -->
 	<Menu text="Help">

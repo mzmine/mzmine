@@ -24,34 +24,37 @@
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -65,13 +68,6 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-
 /**
  * A task to perform a CAMERA search.
  *
@@ -79,7 +75,7 @@ import java.util.Map.Entry;
 public class CameraSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(CameraSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
 
   // Required version of CAMERA.
   private static final String CAMERA_VERSION = "1.12";
@@ -213,7 +209,7 @@ public class CameraSearchTask extends AbstractTask {
 
         // Finished.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("CAMERA Search completed");
+        logger.info("CAMERA Search completed");
       }
 
       // Repaint the window to reflect the change in the feature list
@@ -223,7 +219,7 @@ public class CameraSearchTask extends AbstractTask {
 
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "CAMERA Search error", t);
+      logger.log(Level.SEVERE, "CAMERA Search error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }
@@ -236,7 +232,7 @@ public class CameraSearchTask extends AbstractTask {
    */
   private void cameraSearch(final RawDataFile rawFile) {
 
-    LOG.finest("Detecting peaks.");
+    logger.finest("Detecting peaks.");
 
     errorMsg = null;
     try {
@@ -254,7 +250,7 @@ public class CameraSearchTask extends AbstractTask {
       this.rSession.eval("colnames(peaks) <- columnHeadings");
 
       // Initialize.
-      final Feature[] peaks = peakList.getPeaks(rawFile);
+      final Feature[] peaks = peakList.getPeaks(rawFile).toArray(Feature[]::new);
       progress = 0.0;
 
       // Initialize scan map.
@@ -276,7 +272,7 @@ public class CameraSearchTask extends AbstractTask {
 
       // Add peaks.
       // 80 percents for building peaks list.
-      double progressInc = 0.8 / (double) peaks.length;
+      double progressInc = 0.8 / peaks.length;
       for (final Feature peak : peaks) {
 
         // Get peak data.
@@ -535,7 +531,7 @@ public class CameraSearchTask extends AbstractTask {
 
           } else {
 
-            LOG.warning("Irregular isotope value: " + isotope);
+            logger.warning("Irregular isotope value: " + isotope);
           }
         }
       }
@@ -573,7 +569,7 @@ public class CameraSearchTask extends AbstractTask {
 
   /**
    * Uses Isotope-field in PeakIdentity to group isotopes and build spectrum
-   * 
+   *
    * @param peakList PeakList object
    * @return new PeakList object
    */
@@ -734,7 +730,7 @@ public class CameraSearchTask extends AbstractTask {
 
   /**
    * Uses PCGroup-field in PeakIdentity to group peaks and build spectrum
-   * 
+   *
    * @param peakList a PeakList object
    * @return a new PeakList object
    */

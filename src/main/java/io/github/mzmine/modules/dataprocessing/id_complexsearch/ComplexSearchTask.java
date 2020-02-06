@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,17 +20,12 @@ package io.github.mzmine.modules.dataprocessing.id_complexsearch;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -72,6 +67,7 @@ public class ComplexSearchTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0;
@@ -81,6 +77,7 @@ public class ComplexSearchTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Identification of complexes in " + peakList;
   }
@@ -88,13 +85,14 @@ public class ComplexSearchTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
 
     logger.info("Starting complex search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
 
     // Sort the array by m/z so we start with biggest peak (possible
@@ -144,7 +142,7 @@ public class ComplexSearchTask extends AbstractTask {
 
   /**
    * Check if candidate peak may be a possible complex of given two peaks
-   * 
+   *
    */
   private boolean checkComplex(PeakListRow complexRow, PeakListRow row1, PeakListRow row2) {
 
@@ -173,16 +171,13 @@ public class ComplexSearchTask extends AbstractTask {
 
   /**
    * Add new identity to the complex row
-   * 
+   *
    * @param mainRow
    * @param fragmentRow
    */
   private void addComplexInfo(PeakListRow complexRow, PeakListRow row1, PeakListRow row2) {
     ComplexIdentity newIdentity = new ComplexIdentity(row1, row2);
     complexRow.addPeakIdentity(newIdentity, false);
-
-    // Notify the GUI about the change in the project
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(complexRow, false);
   }
 
 }

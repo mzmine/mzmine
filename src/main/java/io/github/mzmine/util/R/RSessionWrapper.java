@@ -64,7 +64,7 @@ import io.github.mzmine.util.R.Rsession.Rsession;
 public class RSessionWrapper {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(RSessionWrapper.class.getName());
+  private static final Logger logger = Logger.getLogger(RSessionWrapper.class.getName());
 
   // Rsession semaphore - non-parallelizable operations must be synchronized
   // using this semaphore.
@@ -77,10 +77,10 @@ public class RSessionWrapper {
 
   private static final Level rsLogLvl = Level.FINEST;
   private static final Level logLvl = Level.FINEST;
-  private static PrintStream logStream = new LoggerStream(LOG, rsLogLvl);
+  private static PrintStream logStream = new LoggerStream(logger, rsLogLvl);
 
   // Enhanced remote security stuffs.
-  private static final String RS_LOGIN = "MZmineUser";
+  private static final String RS_loggerIN = "MZmineUser";
   private static final String RS_DYN_PWD = String.valueOf(UUID.randomUUID());
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
@@ -101,7 +101,7 @@ public class RSessionWrapper {
    * since R uses int data type and we use byte. Unlike its real equivalent this one can be used in
    * comparisons, although {@link #isNA(byte) } is provided for consistency.
    */
-  public static final byte NA_LOGICAL = -128;
+  public static final byte NA_loggerICAL = -128;
 
   // ----
 
@@ -281,13 +281,14 @@ public class RSessionWrapper {
                 // running several instances of MZmine
                 // concurrently.
                 int port = RserverConf.getNewAvailablePort();
-                RserverConf conf = new RserverConf("localhost", port, RS_LOGIN, RS_DYN_PWD, null); // props);
+                RserverConf conf =
+                    new RserverConf("localhost", port, RS_loggerIN, RS_DYN_PWD, null); // props);
                 RSessionWrapper.MASTER_PORT = port;
                 RSessionWrapper.MASTER_SESSION = Rsession.newInstanceTry(logStream, conf, TMP_DIR);
                 int masterPID =
                     RSessionWrapper.MASTER_SESSION.connection.eval("Sys.getpid()").asInteger();
 
-                LOG.log(logLvl, ">> MASTER Rserve instance created (pid: '" + masterPID
+                logger.log(logLvl, ">> MASTER Rserve instance created (pid: '" + masterPID
                     + "' | port '" + RSessionWrapper.MASTER_PORT + "').");
 
                 // Note: no need to 'register()' that particular
@@ -315,7 +316,7 @@ public class RSessionWrapper {
               if (isWindows) {
                 // Win: Need to get a new port every time.
                 int port = RserverConf.getNewAvailablePort();
-                conf = new RserverConf("localhost", port, RS_LOGIN, RS_DYN_PWD, null); // props);
+                conf = new RserverConf("localhost", port, RS_loggerIN, RS_DYN_PWD, null); // props);
               } else {
                 // *NUX: Just fit/target the MASTER instance.
                 conf = RSessionWrapper.MASTER_SESSION.rServeConf;
@@ -377,13 +378,13 @@ public class RSessionWrapper {
               // PID.
               this.rServePid = this.session.connection.eval("Sys.getpid()").asInteger();
               this.rEngine = this.session.connection;
-              LOG.log(logLvl, "Rserve: started instance (pid: '" + this.rServePid + "' | port: '"
+              logger.log(logLvl, "Rserve: started instance (pid: '" + this.rServePid + "' | port: '"
                   + this.session.rServeConf.port + "').");
 
               // Quick test
-              LOG.log(logLvl, ((RConnection) this.rEngine).eval("R.version.string").asString());
-              LOG.log(logLvl, ((RConnection) this.rEngine).getServerVersion() + "");
-              LOG.log(logLvl, RConnection.transferCharset);
+              logger.log(logLvl, ((RConnection) this.rEngine).eval("R.version.string").asString());
+              logger.log(logLvl, ((RConnection) this.rEngine).getServerVersion() + "");
+              logger.log(logLvl, RConnection.transferCharset);
             }
             if (this.userCanceled) {
               this.close(true);
@@ -407,9 +408,10 @@ public class RSessionWrapper {
 
           // Quick test
           ((RCaller) this.rEngine).getRCode().addRCode("r_version <- R.version.string");
-          LOG.log(logLvl, ((String[]) this.collect("r_version"/*
-                                                               * , RCallerResultType. STRING_ARRAY
-                                                               */))[0]);
+          logger.log(logLvl,
+              ((String[]) this.collect("r_version"/*
+                                                   * , RCallerResultType. STRING_ARRAY
+                                                   */))[0]);
           // Done: Refresh R code stack
           this.clearCode();
 
@@ -444,20 +446,20 @@ public class RSessionWrapper {
     if (this.rEngineType == REngineType.RSERVE) {
 
       if (this.session != null && !this.userCanceled) {
-        LOG.log(logLvl, "Loading package '" + packageName + "'...");
+        logger.log(logLvl, "Loading package '" + packageName + "'...");
         int loaded = 0;
         try {
 
           REXP r = ((RConnection) this.rEngine).eval(loadCode);
           if (r.inherits("try-error")) {
-            LOG.severe("R Error [0]: " + r.asString());
-            LOG.severe("R eval attempt [0]: " + loadCode);
+            logger.severe("R Error [0]: " + r.asString());
+            logger.severe("R eval attempt [0]: " + loadCode);
           }
           loaded = r.asInteger();
-          LOG.log(logLvl, "Load status: '" + (loaded != 0) + "'.");
+          logger.log(logLvl, "Load status: '" + (loaded != 0) + "'.");
 
         } catch (RserveException | REXPMismatchException e) {
-          LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
+          logger.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
           // Remain silent if eval KO ("server down").
           loaded = Integer.MIN_VALUE;
         }
@@ -469,7 +471,7 @@ public class RSessionWrapper {
           if (!this.userCanceled)
             throw new RSessionWrapperException(errorMsg);
 
-        LOG.log(logLvl, "Loaded package: '" + packageName + "'.");
+        logger.log(logLvl, "Loaded package: '" + packageName + "'.");
       }
 
     } else { // RCaller
@@ -499,7 +501,7 @@ public class RSessionWrapper {
         + "\" R package, which was found, but is too old? - please update '" + packageName
         + "' to version " + version + " or later.";
 
-    LOG.log(logLvl,
+    logger.log(logLvl,
         "Checking package version: '" + packageName + "' for version '" + version + "'...");
     if (this.rEngineType == REngineType.RSERVE) {
 
@@ -539,7 +541,7 @@ public class RSessionWrapper {
       }
 
     }
-    LOG.log(logLvl,
+    logger.log(logLvl,
         "Checked package version: '" + packageName + "' for version '" + version + "'.");
   }
 
@@ -784,16 +786,16 @@ public class RSessionWrapper {
         // ////((RConnection) this.rEngine).eval(rCode);
         // REXP r = ((RConnection) this.rEngine).eval(rCode);
         // if (r2.inherits("try-error")) {
-        // LOG.severe("R Error [1]: " + r.asString());
-        // LOG.severe("R eval attempt [1]: " + rCode);
-        // LOG.severe("Debug string" + r.toDebugString());
+        // logger.severe("R Error [1]: " + r.asString());
+        // logger.severe("R eval attempt [1]: " + rCode);
+        // logger.severe("Debug string" + r.toDebugString());
         // }
         // //else { /* success ... */ }
-        // LOG.severe("R error [3]: " + ((RConnection)
+        // logger.severe("R error [3]: " + ((RConnection)
         // this.rEngine).getLastError());
         // }
         // catch (RserveException e) {
-        // LOG.severe("R error [2]: " + getErrMessage());
+        // logger.severe("R error [2]: " + getErrMessage());
         // throw new RSessionWrapperException(msg);
         // } catch (Exception e) {
         // throw new RSessionWrapperException(e.getMessage());
@@ -879,7 +881,7 @@ public class RSessionWrapper {
 
         object = OutputObjectFactory.getObject(r);
       } catch (/* RserveException | */REXPMismatchException e) {
-        LOG.severe(this.getErrMessage());
+        logger.severe(this.getErrMessage());
         throw new RSessionWrapperException(msg);
       } catch (Exception e) {
         throw new RSessionWrapperException(e.getMessage());
@@ -1110,7 +1112,7 @@ public class RSessionWrapper {
 
         try {
 
-          LOG.log(logLvl,
+          logger.log(logLvl,
               "Rserve: try terminate " + ((this.rServePid == -1) ? "pending" : "") + " session"
                   + ((this.rServePid == -1) ? "..."
                       : " (pid: '" + this.rServePid + "' | port: '" + this.session.rServeConf.port
@@ -1129,7 +1131,7 @@ public class RSessionWrapper {
           }
           RSessionWrapper.unMuteStdOutErr();
 
-          LOG.log(logLvl,
+          logger.log(logLvl,
               "Rserve: terminated " + ((this.rServePid == -1) ? "pending" : "") + " session"
                   + ((this.rServePid == -1) ? "..."
                       : " (pid: '" + this.rServePid + "' | port: '" + this.session.rServeConf.port
@@ -1200,7 +1202,7 @@ public class RSessionWrapper {
   private static void unMuteStdOutErr() {
     System.setOut(System.out);
     System.setErr(System.err);
-    logStream = new LoggerStream(LOG, rsLogLvl);
+    logStream = new LoggerStream(logger, rsLogLvl);
   }
 
   public static void killRserveInstance(RSessionWrapper rSession) throws RSessionWrapperException {
@@ -1215,7 +1217,7 @@ public class RSessionWrapper {
           // // BEGIN OK
           // Rsession s = Rsession.newInstanceTry(logStream, null);
           // s.eval("tools::pskill("+ rSession.getPID() + ")");
-          // LOG.info("Eval: " + "tools::pskill("+ rSession.getPID() +
+          // logger.info("Eval: " + "tools::pskill("+ rSession.getPID() +
           // ")");
           // s.end();
           // // END OK
@@ -1306,7 +1308,7 @@ public class RSessionWrapper {
     for (int i = RSessionWrapper.R_SESSIONS_REG.size() - 1; i >= 0; --i) {
       try {
         if (RSessionWrapper.R_SESSIONS_REG.get(i) != null) {
-          LOG.info("CleanAll / instance: " + RSessionWrapper.R_SESSIONS_REG.get(i).getPID());
+          logger.info("CleanAll / instance: " + RSessionWrapper.R_SESSIONS_REG.get(i).getPID());
           RSessionWrapper.R_SESSIONS_REG.get(i).close(true);
         }
       } catch (RSessionWrapperException e) {

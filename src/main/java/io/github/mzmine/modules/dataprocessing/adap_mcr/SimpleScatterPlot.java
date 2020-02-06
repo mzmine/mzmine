@@ -13,22 +13,14 @@
  * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  */
+
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-
-import com.google.common.collect.Range;
-import dulab.adap.datamodel.BetterPeak;
-import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -39,20 +31,26 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import com.google.common.collect.Range;
+import dulab.adap.datamodel.BetterPeak;
+import dulab.adap.workflow.decomposition.RetTimeClusterer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import javafx.scene.Cursor;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-public class SimpleScatterPlot extends EChartPanel {
+public class SimpleScatterPlot extends EChartViewer {
   private final XYPlot plot;
   private final XYSeriesCollection xyDataset;
 
   SimpleScatterPlot(String xLabel, String yLabel) {
-    super(null, true);
+    super(null);
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     NumberAxis xAxis = new NumberAxis(xLabel);
     xAxis.setAutoRangeIncludesZero(false);

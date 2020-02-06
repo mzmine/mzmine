@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,7 +30,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -43,11 +42,10 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule.DPPLearnerModuleParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility.DynamicParameterUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -55,11 +53,12 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SpectraPlotUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
 
 /**
  * Predicts sum formulas just like
  * io.github.mzmine.modules.peaklistmethods.identification.formulaprediction
- * 
+ *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
@@ -119,7 +118,9 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     setDisplayResults(
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue());
-    setColor(parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue());
+    Color c = FxColorUtil.fxColorToAWT(
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue());
+    setColor(c);
 
     numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
         .getEmbeddedParameter().getValue();
@@ -215,7 +216,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   /**
    * Predicts sum formulas for a given m/z and parameters.
-   * 
+   *
    * @param mz m/z to generate sum formulas from
    * @param massRange Mass range for sum formulas
    * @param charge Charge of the molecule
@@ -263,7 +264,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   /**
    * Put additional evaluations here. E.g. adduct checks or so
-   * 
+   *
    * @param dp
    * @param possibleFormulas
    */

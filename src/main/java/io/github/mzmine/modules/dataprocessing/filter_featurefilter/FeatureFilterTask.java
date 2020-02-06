@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,7 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Booleans;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
@@ -43,7 +42,7 @@ import io.github.mzmine.util.PeakUtils;
 public class FeatureFilterTask extends AbstractTask {
 
   // Logger
-  private static final Logger LOG = Logger.getLogger(FeatureFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(FeatureFilterTask.class.getName());
 
   // Feature lists
   private final MZmineProject project;
@@ -93,7 +92,7 @@ public class FeatureFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list");
+      logger.info("Filtering feature list");
 
       // Filter the feature list
       filteredPeakList = filterPeakList(origPeakList);
@@ -108,13 +107,13 @@ public class FeatureFilterTask extends AbstractTask {
           project.removePeakList(origPeakList);
         }
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished feature list filter");
+        logger.info("Finished feature list filter");
       }
     } catch (Throwable t) {
 
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Feature list filter error", t);
+      logger.log(Level.SEVERE, "Feature list filter error", t);
     }
 
   }
@@ -151,7 +150,7 @@ public class FeatureFilterTask extends AbstractTask {
         parameters.getParameter(FeatureFilterParameters.MS2_Filter).getValue();
 
     // Loop through all rows in feature list
-    final PeakListRow[] rows = peakList.getRows();
+    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final PeakListRow row = rows[processedRows];

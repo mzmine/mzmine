@@ -21,9 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
 import java.awt.Font;
-import java.awt.Window;
 import java.util.logging.Logger;
-
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 
@@ -31,16 +29,16 @@ public class SNSetUpDialog extends ParameterSetupDialog {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Logger LOG = Logger.getLogger(SNSetUpDialog.class.getName());
+  private static final Logger logger = Logger.getLogger(SNSetUpDialog.class.getName());
 
   // Combo-box font.
   private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
 
   private final ParameterSet parameters;
 
-  public SNSetUpDialog(Window parent, boolean valueCheckRequired, final ParameterSet SNParameters) {
+  public SNSetUpDialog(boolean valueCheckRequired, final ParameterSet SNParameters) {
 
-    super(parent, valueCheckRequired, SNParameters);
+    super(valueCheckRequired, SNParameters);
 
     parameters = SNParameters;
   }

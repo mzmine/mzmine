@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -43,7 +43,6 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
-
 import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import net.miginfocom.swing.MigLayout;
 
@@ -133,6 +132,7 @@ public class JStrokeChooserDialog extends JDialog {
       {
         JButton btnDots = new JButton("dots");
         btnDots.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             String w = getTxtWidth().getText();
             getTxtArray().setText(w + " " + w);
@@ -156,6 +156,7 @@ public class JStrokeChooserDialog extends JDialog {
       {
         JButton btnDash = new JButton("dash");
         btnDash.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             getTxtArray().setText("7 3.5");
           }
@@ -165,6 +166,7 @@ public class JStrokeChooserDialog extends JDialog {
       {
         JButton btnDashdot = new JButton("dash-dot");
         btnDashdot.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             getTxtArray().setText("7 3.5 " + getTxtWidth().getText() + " 3.5");
           }
@@ -289,6 +291,7 @@ public class JStrokeChooserDialog extends JDialog {
       {
         JButton okButton = new JButton("OK");
         okButton.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             //
             settingsToStroke();
@@ -305,6 +308,7 @@ public class JStrokeChooserDialog extends JDialog {
       {
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             setVisible(false);
           }
@@ -312,6 +316,7 @@ public class JStrokeChooserDialog extends JDialog {
         {
           JButton btnApply = new JButton("Apply");
           btnApply.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
               //
               settingsToStroke();

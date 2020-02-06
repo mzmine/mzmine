@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -73,6 +72,7 @@ class SameRangeTask extends AbstractTask {
 
   }
 
+  @Override
   public void run() {
 
     logger.info("Started gap-filling " + peakList);
@@ -83,7 +83,7 @@ class SameRangeTask extends AbstractTask {
     totalRows = peakList.getNumberOfRows();
 
     // Get feature list columns
-    RawDataFile columns[] = peakList.getRawDataFiles();
+    RawDataFile columns[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create new feature list
     processedPeakList = new SimplePeakList(peakList + " " + suffix, columns);
@@ -136,7 +136,7 @@ class SameRangeTask extends AbstractTask {
     });
 
     outputList.stream().forEach(newRow -> {
-      processedPeakList.addRow((PeakListRow) newRow);
+      processedPeakList.addRow(newRow);
     });
 
     /* End Parallel Implementation */
@@ -227,6 +227,7 @@ class SameRangeTask extends AbstractTask {
     return null;
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0;
@@ -234,6 +235,7 @@ class SameRangeTask extends AbstractTask {
 
   }
 
+  @Override
   public String getTaskDescription() {
     return "Gap filling " + peakList + " using RT and m/z range";
   }

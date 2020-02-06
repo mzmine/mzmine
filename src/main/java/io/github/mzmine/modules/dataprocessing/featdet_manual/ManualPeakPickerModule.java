@@ -89,7 +89,7 @@ public class ManualPeakPickerModule implements MZmineModule {
       parameters.getParameter(ManualPickerParameters.mzRange).setValue(mzRange);
     }
 
-    ExitCode exitCode = parameters.showSetupDialog(null, true);
+    ExitCode exitCode = parameters.showSetupDialog(true);
 
     if (exitCode != ExitCode.OK)
       return exitCode;

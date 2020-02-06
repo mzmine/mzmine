@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.visualization.scatterplot;
 
 import java.util.Vector;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -32,7 +31,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
  * This class represents axis selected in the scatter plot visualizer. This can be either a
  * RawDataFile, or a project parameter value representing several RawDataFiles. In the second case,
  * the average peak area is calculated.
- * 
+ *
  */
 public class ScatterPlotAxisSelection {
 
@@ -49,6 +48,7 @@ public class ScatterPlotAxisSelection {
     this.parameterValue = parameterValue;
   }
 
+  @Override
   public String toString() {
     if (file != null)
       return file.getName();
@@ -100,7 +100,7 @@ public class ScatterPlotAxisSelection {
       if (!(parameter instanceof ComboParameter))
         continue;
 
-      Object possibleValues[] = ((ComboParameter<?>) parameter).getChoices();
+      var possibleValues = ((ComboParameter<?>) parameter).getChoices();
       for (Object value : possibleValues) {
         ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(parameter, value);
         options.add(newOption);

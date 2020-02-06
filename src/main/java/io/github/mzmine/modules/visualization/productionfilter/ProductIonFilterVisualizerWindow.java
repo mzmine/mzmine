@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,13 +24,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
-
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -124,8 +121,7 @@ public class ProductIonFilterVisualizerWindow extends JFrame implements ActionLi
         paramSet.getParameter(ProductIonFilterParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
+    // settings.applySettingsToWindow(this);
 
   }
 
@@ -152,6 +148,7 @@ public class ProductIonFilterVisualizerWindow extends JFrame implements ActionLi
   /**
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
@@ -171,8 +168,8 @@ public class ProductIonFilterVisualizerWindow extends JFrame implements ActionLi
   }
 
   public ProductIonFilterDataPoint getCursorPosition() {
-    double xValue = (double) ProductIonFilterPlot.getXYPlot().getDomainCrosshairValue();
-    double yValue = (double) ProductIonFilterPlot.getXYPlot().getRangeCrosshairValue();
+    double xValue = ProductIonFilterPlot.getXYPlot().getDomainCrosshairValue();
+    double yValue = ProductIonFilterPlot.getXYPlot().getRangeCrosshairValue();
 
     ProductIonFilterDataPoint point = dataset.getDataPoint(xValue, yValue);
     return point;

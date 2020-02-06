@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the im plied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,12 +18,14 @@
 
 package io.github.mzmine.datamodel;
 
+import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
+import javafx.collections.ObservableList;
 
 /**
- * 
+ *
  */
 public interface PeakList {
 
@@ -55,7 +57,8 @@ public interface PeakList {
   /**
    * Returns all raw data files participating in the feature list
    */
-  public RawDataFile[] getRawDataFiles();
+  public ObservableList<RawDataFile> getRawDataFiles();
+
 
   /**
    * Returns true if this feature list contains given file
@@ -64,7 +67,7 @@ public interface PeakList {
 
   /**
    * Returns a raw data file
-   * 
+   *
    * @param position Position of the raw data file in the matrix (running numbering from left
    *        0,1,2,...)
    */
@@ -77,7 +80,7 @@ public interface PeakList {
 
   /**
    * Returns the peak of a given raw data file on a give row of the feature list
-   * 
+   *
    * @param row Row of the feature list
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
@@ -86,7 +89,7 @@ public interface PeakList {
   /**
    * Returns all peaks for a raw data file
    */
-  public Feature[] getPeaks(RawDataFile rawDataFile);
+  public List<Feature> getPeaks(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
@@ -96,25 +99,25 @@ public interface PeakList {
   /**
    * Returns all feature list rows
    */
-  public PeakListRow[] getRows();
+  public ObservableList<PeakListRow> getRows();
 
   /**
    * Creates a stream of PeakListRows
-   * 
+   *
    * @return
    */
   public Stream<PeakListRow> stream();
 
   /**
    * Creates a parallel stream of PeakListRows
-   * 
+   *
    * @return
    */
   public Stream<PeakListRow> parallelStream();
 
   /**
    * Returns all rows with average retention time within given range
-   * 
+   *
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    */
@@ -122,7 +125,7 @@ public interface PeakList {
 
   /**
    * Returns all rows with average m/z within given range
-   * 
+   *
    * @param startMZ Start of the m/z range
    * @param endMZ End of the m/z range
    */
@@ -130,7 +133,7 @@ public interface PeakList {
 
   /**
    * Returns all rows with average m/z and retention time within given range
-   * 
+   *
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    * @param startMZ Start of the m/z range
@@ -140,7 +143,7 @@ public interface PeakList {
 
   /**
    * Returns all peaks overlapping with a retention time range
-   * 
+   *
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    */
@@ -148,7 +151,7 @@ public interface PeakList {
 
   /**
    * Returns all peaks in a given m/z range
-   * 
+   *
    * @param startMZ Start of the m/z range
    * @param endMZ End of the m/z range
    */
@@ -156,7 +159,7 @@ public interface PeakList {
 
   /**
    * Returns all peaks in a given m/z & retention time ranges
-   * 
+   *
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    * @param startMZ Start of the m/z range
@@ -167,7 +170,7 @@ public interface PeakList {
 
   /**
    * Returns maximum raw data point intensity among all peaks in this feature list
-   * 
+   *
    * @return Maximum intensity
    */
   public double getDataPointMaxIntensity();
@@ -179,13 +182,13 @@ public interface PeakList {
 
   /**
    * Removes a row from this feature list
-   * 
+   *
    */
   public void removeRow(int row);
 
   /**
    * Removes a row from this feature list
-   * 
+   *
    */
   public void removeRow(PeakListRow row);
 
@@ -218,7 +221,7 @@ public interface PeakList {
 
   /**
    * Find row by ID
-   * 
+   *
    * @param id
    * @return the peaklist row or null
    */

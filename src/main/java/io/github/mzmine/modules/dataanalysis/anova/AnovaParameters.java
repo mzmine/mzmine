@@ -42,7 +42,7 @@ public class AnovaParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
@@ -53,9 +53,8 @@ public class AnovaParameters extends SimpleParameterSet {
     String message = "<html>To view the results of ANOVA test, export the feature list to CSV file "
         + "and look for column ANOVA_P_VALUE. Click Help for details.</html>";
 
-    ParameterSetupDialog dialog =
-        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

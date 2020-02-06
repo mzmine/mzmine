@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,16 +21,9 @@ package io.github.mzmine.modules.visualization.msms;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.NumberFormat;
-import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -40,25 +33,17 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.general.DatasetUtils;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 
 /**
- * 
+ *
  */
-class MsMsPlot extends EChartPanel implements MouseWheelListener {
-
-  private static final long serialVersionUID = 1L;
+class MsMsPlot extends EChartViewer implements MouseWheelListener {
 
   private RawDataFile rawDataFile;
   private Range<Double> rtRange, mzRange;
@@ -71,7 +56,7 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
   private static final double ZOOM_FACTOR = 1.2;
 
   // VisualizerWindow visualizer.
-  private final ActionListener visualizer;
+  private final MsMsVisualizerWindow visualizer;
 
   private PeakDataRenderer peakDataRenderer;
 
@@ -98,10 +83,10 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  MsMsPlot(final ActionListener listener, RawDataFile rawDataFile, MsMsVisualizerWindow visualizer,
-      MsMsDataSet dataset, Range<Double> rtRange, Range<Double> mzRange) {
+  MsMsPlot(RawDataFile rawDataFile, MsMsVisualizerWindow visualizer, MsMsDataSet dataset,
+      Range<Double> rtRange, Range<Double> mzRange) {
 
-    super(null, true);
+    super(null);
 
     this.visualizer = visualizer;
     this.rawDataFile = rawDataFile;
@@ -123,8 +108,8 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
     setChart(chart);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -180,14 +165,15 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
 
     peakDataRenderer = new PeakDataRenderer();
 
-    // Add EMF and EPS options to the save as menu
-    JPopupMenu popupMenu = getPopupMenu();
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // Add EMF and EPS options to the save as menu TODO: this should be moved to EChartViewer
+    /*
+     * JPopupMenu popupMenu = getPopupMenu(); JMenuItem saveAsMenu = (JMenuItem)
+     * popupMenu.getComponent(3); GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+     * GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+     */
 
     // Register for mouse-wheel events
-    addMouseWheelListener(this);
+    // addMouseWheelListener(this);
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -195,56 +181,44 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
       history.clear();
   }
 
-  @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
-    }
-
-    if ("SAVE_EPS".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
-  }
+  /*
+   * 
+   * @Override public void actionPerformed(final ActionEvent event) {
+   * 
+   * super.actionPerformed(event);
+   * 
+   * final String command = event.getActionCommand();
+   * 
+   * if ("SAVE_EMF".equals(command)) {
+   * 
+   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
+   * FileNameExtensionFilter("EMF Image", "EMF"); chooser.setFileFilter(filter); int returnVal =
+   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
+   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
+   * 
+   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
+   * 
+   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF); new
+   * Thread(SI).start();
+   * 
+   * } }
+   * 
+   * if ("SAVE_EPS".equals(command)) {
+   * 
+   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
+   * FileNameExtensionFilter("EPS Image", "EPS"); chooser.setFileFilter(filter); int returnVal =
+   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
+   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
+   * 
+   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
+   * 
+   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS); new
+   * Thread(SI).start();
+   * 
+   * }
+   * 
+   * } }
+   */
 
   XYPlot getXYPlot() {
     return plot;
@@ -276,6 +250,7 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
+  @Override
   public void mouseWheelMoved(MouseWheelEvent event) {
     int notches = event.getWheelRotation();
     if (notches < 0) {
@@ -285,30 +260,21 @@ class MsMsPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
-  @Override
-  public void mouseClicked(final MouseEvent event) {
-
-    // Let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
-
-    if (event.getX() < 70) { // User clicked on Y-axis
-      if (event.getClickCount() == 2) { // Reset zoom on Y-axis
-        XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
-        Number maximum = DatasetUtils.findMaximumRangeValue(data);
-        getXYPlot().getRangeAxis().setRange(0, 1.05 * maximum.floatValue());
-      } else if (event.getClickCount() == 1) {
-        // Auto range on Y-axis
-        getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-        getXYPlot().getRangeAxis().setAutoRange(true);
-      }
-    } else if (event.getY() > this.getChartRenderingInfo().getPlotInfo().getPlotArea().getMaxY()
-        - 41 && event.getClickCount() == 2) {
-      // Reset zoom on X-axis
-      getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-      restoreAutoDomainBounds();
-    } else if (event.getClickCount() == 2) {
-      visualizer.actionPerformed(
-          new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
-    }
-  }
+  /*
+   * @Override public void mouseClicked(final MouseEvent event) {
+   * 
+   * // Let the parent handle the event (selection etc.) super.mouseClicked(event);
+   * 
+   * if (event.getX() < 70) { // User clicked on Y-axis if (event.getClickCount() == 2) { // Reset
+   * zoom on Y-axis XYDataset data = ((XYPlot) getChart().getPlot()).getDataset(); Number maximum =
+   * DatasetUtils.findMaximumRangeValue(data); getXYPlot().getRangeAxis().setRange(0, 1.05 *
+   * maximum.floatValue()); } else if (event.getClickCount() == 1) { // Auto range on Y-axis
+   * getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+   * getXYPlot().getRangeAxis().setAutoRange(true); } } else if (event.getY() >
+   * this.getChartRenderingInfo().getPlotInfo().getPlotArea().getMaxY() - 41 &&
+   * event.getClickCount() == 2) { // Reset zoom on X-axis
+   * getXYPlot().getDomainAxis().setAutoTickUnitSelection(true); restoreAutoDomainBounds(); } else
+   * if (event.getClickCount() == 2) { visualizer.actionPerformed( new
+   * ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM")); } }
+   */
 }

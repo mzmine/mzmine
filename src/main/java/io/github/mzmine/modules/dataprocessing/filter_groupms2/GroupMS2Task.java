@@ -41,7 +41,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 public class GroupMS2Task extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(GroupMS2Task.class.getName());
+  private static final Logger logger = Logger.getLogger(GroupMS2Task.class.getName());
   // Feature lists.
   private final MZmineProject project;
   // Processed rows counter
@@ -148,13 +148,13 @@ public class GroupMS2Task extends AbstractTask {
       }
 
       setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished adding all MS2 scans to their features in " + list.getName());
+      logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Error while adding all MS2 scans to their feautres", t);
+      logger.log(Level.SEVERE, "Error while adding all MS2 scans to their feautres", t);
     }
 
   }

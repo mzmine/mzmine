@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import org.jfree.data.xy.AbstractXYDataset;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -340,7 +339,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
       ProjectionPlotWindow newFrame =
           new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
-      newFrame.setVisible(true);
+      newFrame.show();
     }
     status = TaskStatus.FINISHED;
     logger.info("Finished computing Clustering visualization.");

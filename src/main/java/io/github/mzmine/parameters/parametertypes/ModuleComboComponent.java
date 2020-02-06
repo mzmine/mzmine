@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,89 +18,69 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
+import java.util.Arrays;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 
-public class ModuleComboComponent extends JPanel implements ActionListener {
+public class ModuleComboComponent extends BorderPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private JComboBox<MZmineProcessingStep<?>> comboBox;
-  private JButton setButton;
+  private ComboBox<MZmineProcessingStep<?>> comboBox;
+  private Button setButton;
 
   public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
 
-    super(new BorderLayout());
-
-    setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
     assert modules != null;
     assert modules.length > 0;
 
-    comboBox = new JComboBox<MZmineProcessingStep<?>>(modules);
-    comboBox.addActionListener(this);
-    add(comboBox, BorderLayout.CENTER);
+    var modulesList = FXCollections.observableArrayList(Arrays.asList(modules));
 
-    setButton = new JButton("...");
-    setButton.addActionListener(this);
-    boolean buttonEnabled = (modules[0].getParameterSet() != null);
-    setButton.setEnabled(buttonEnabled);
-    add(setButton, BorderLayout.EAST);
-
-  }
-
-  public int getSelectedIndex() {
-    return comboBox.getSelectedIndex();
-  }
-
-  public void setSelectedItem(Object selected) {
-    comboBox.setSelectedItem(selected);
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    MZmineProcessingStep<?> selected = (MZmineProcessingStep<?>) comboBox.getSelectedItem();
-
-    if (src == comboBox) {
+    comboBox = new ComboBox<MZmineProcessingStep<?>>(modulesList);
+    comboBox.setOnAction(e -> {
+      MZmineProcessingStep<?> selected = comboBox.getSelectionModel().getSelectedItem();
       if (selected == null) {
-        setButton.setEnabled(false);
+        setButton.setDisable(true);
         return;
       }
       ParameterSet parameterSet = selected.getParameterSet();
       int numOfParameters = parameterSet.getParameters().length;
-      setButton.setEnabled(numOfParameters > 0);
-    }
+      setButton.setDisable(numOfParameters == 0);
+    });
+    setCenter(comboBox);
 
-    if (src == setButton) {
+    setButton = new Button("...");
+    setButton.setOnAction(e -> {
+      MZmineProcessingStep<?> selected = comboBox.getSelectionModel().getSelectedItem();
       if (selected == null)
         return;
-      ParameterSetupDialog dialog = (ParameterSetupDialog) SwingUtilities
-          .getAncestorOfClass(ParameterSetupDialog.class, this);
+      ParameterSetupDialog dialog = (ParameterSetupDialog) getScene().getWindow();
       if (dialog == null)
         return;
       ParameterSet parameterSet = selected.getParameterSet();
-      parameterSet.showSetupDialog(dialog, dialog.isValueCheckRequired());
-    }
+      parameterSet.showSetupDialog(dialog.isValueCheckRequired());
+    });
+    boolean buttonEnabled = (modules[0].getParameterSet() != null);
+    setButton.setDisable(!buttonEnabled);
+    setRight(setButton);
 
   }
 
-  @Override
+  public int getSelectedIndex() {
+    return comboBox.getSelectionModel().getSelectedIndex();
+  }
+
+  public void setSelectedItem(MZmineProcessingStep<?> selected) {
+    comboBox.getSelectionModel().select(selected);
+  }
+
   public void setToolTipText(String toolTip) {
-    comboBox.setToolTipText(toolTip);
+    comboBox.setTooltip(new Tooltip(toolTip));
   }
 }

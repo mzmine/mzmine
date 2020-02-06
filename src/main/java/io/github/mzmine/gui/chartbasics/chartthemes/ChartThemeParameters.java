@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,25 +18,31 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
-import java.awt.Color;
-import java.awt.Font;
+
 import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.Title;
-
-import io.github.mzmine.gui.framework.fontspecs.FontSpecs;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ColorParameter;
 import io.github.mzmine.parameters.parametertypes.FontParameter;
+import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.javafx.FxFontUtil;
+import javafx.application.Platform;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartThemeParameters extends SimpleParameterSet {
@@ -57,20 +63,20 @@ public class ChartThemeParameters extends SimpleParameterSet {
 
   public static final FontParameter masterFont =
       new FontParameter("Master", "Master font changes all fonts",
-          new FontSpecs(Color.BLACK, new Font("Arial", Font.PLAIN, 11)));
+          new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.BOLD, 11)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter captionFont = new FontParameter("Captions", "Caption font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.BOLD, 11)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter labelFont = new FontParameter("Labels", "Label font",
-      new FontSpecs(Color.BLACK, new Font("Arial", Font.PLAIN, 9)));
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
 
   public static final OptionalParameter<ColorParameter> xGridPaint =
       new OptionalParameter<ColorParameter>(new ColorParameter("X grid",
-          "Enable/Disable the x grid and set the line color", Color.black));
+          "Enable/Disable the x grid and set the line color", Color.BLACK));
   public static final OptionalParameter<ColorParameter> yGridPaint =
       new OptionalParameter<ColorParameter>(new ColorParameter("Y grid",
-          "Enable/Disable the y grid and set the line color", Color.black));
+          "Enable/Disable the y grid and set the line color", Color.BLACK));
 
   public static final BooleanParameter showXAxis = new BooleanParameter("Show x axis", "", true);
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
@@ -85,51 +91,63 @@ public class ChartThemeParameters extends SimpleParameterSet {
     yGridPaint.setValue(false);
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0))
+      return ExitCode.OK;
+    ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
   public void applyToChart(JFreeChart chart) {
-    // apply chart settings
-    boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
-    boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
-    String title =
-        this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter().getValue();
-    boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
-
-    boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
-    boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
-    String xlabel =
-        this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
-    String ylabel =
-        this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
-
-    Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
-    chart.setBackgroundPaint(gbColor);
-    chart.getPlot().setBackgroundPaint(gbColor);
-
-    if (changeTitle)
-      chart.setTitle(title);
-    chart.getTitle().setVisible(showTitle);
-    ((List<Title>) chart.getSubtitles()).stream().forEach(t -> t.setVisible(showLegends));
-
-    if (chart.getXYPlot() != null) {
-      XYPlot p = chart.getXYPlot();
-      if (usexlabel)
-        p.getDomainAxis().setLabel(xlabel);
-      if (useylabel)
-        p.getRangeAxis().setLabel(ylabel);
-
-      boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
-      boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
-      Color cxgrid =
-          this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
-      Color cygrid =
-          this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
-      p.setDomainGridlinesVisible(xgrid);
-      p.setDomainGridlinePaint(cxgrid);
-      p.setRangeGridlinesVisible(ygrid);
-      p.setRangeGridlinePaint(cygrid);
-
-      p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
-      p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
-    }
+    // // apply chart settings
+    // boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
+    // boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
+    // String title =
+    // this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter().getValue();
+    // boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
+    //
+    // boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
+    // boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
+    // String xlabel =
+    // this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
+    // String ylabel =
+    // this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
+    //
+    // Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
+    // // chart.setBackgroundPaint(gbColor);
+    // // chart.getPlot().setBackgroundPaint(gbColor);
+    //
+    // if (changeTitle)
+    // chart.setTitle(title);
+    // chart.getTitle().setVisible(showTitle);
+    // ((List<Title>) chart.getSubtitles()).stream().forEach(t -> t.setVisible(showLegends));
+    //
+    // if (chart.getXYPlot() != null) {
+    // XYPlot p = chart.getXYPlot();
+    // if (usexlabel)
+    // p.getDomainAxis().setLabel(xlabel);
+    // if (useylabel)
+    // p.getRangeAxis().setLabel(ylabel);
+    //
+    // boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
+    // boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
+    // Color cxgrid =
+    // this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
+    // Color cygrid =
+    // this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
+    // p.setDomainGridlinesVisible(xgrid);
+    // p.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
+    // p.setRangeGridlinesVisible(ygrid);
+    // p.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
+    //
+    // p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
+    // p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
+    // }
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
@@ -144,40 +162,49 @@ public class ChartThemeParameters extends SimpleParameterSet {
         this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
     Color cygrid =
         this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
-
-    theme.setShowTitle(showTitle);
-    theme.getShowSubtitles(showLegends);
-
+    boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
+    boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
+    String xlabel =
+        this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
+    String ylabel =
+        this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
     FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
     FontSpecs large = this.getParameter(ChartThemeParameters.titleFont).getValue();
     FontSpecs medium = this.getParameter(ChartThemeParameters.captionFont).getValue();
     FontSpecs small = this.getParameter(ChartThemeParameters.labelFont).getValue();
-
     Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
 
-    theme.setChartBackgroundPaint(gbColor);
-    theme.setPlotBackgroundPaint(gbColor);
+    theme.setShowTitle(showTitle);
+    theme.getShowSubtitles(showLegends);
+    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
+    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
 
-    theme.setMasterFont(master.getFont());
-    theme.setExtraLargeFont(large.getFont());
-    theme.setLargeFont(medium.getFont());
-    theme.setRegularFont(small.getFont());
-    theme.setSmallFont(small.getFont());
+    theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
+    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(large.getFont()));
+    theme.setLargeFont(FxFontUtil.fxFontToAWT(medium.getFont()));
+    theme.setRegularFont(FxFontUtil.fxFontToAWT(small.getFont()));
+    theme.setSmallFont(FxFontUtil.fxFontToAWT(small.getFont()));
 
-    theme.setMasterFontColor(master.getColor());
-    theme.setAxisLabelPaint(medium.getColor());
-    theme.setTickLabelPaint(small.getColor());
-    theme.setTitlePaint(large.getColor());
-    theme.setItemLabelPaint(small.getColor());
-    theme.setLegendItemPaint(medium.getColor());
-
-    theme.setAxisLinePaint(medium.getColor());
+    theme.setMasterFontColor(FxColorUtil.fxColorToAWT(master.getColor()));
+    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
+    theme.setTitlePaint(FxColorUtil.fxColorToAWT(large.getColor()));
+    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
+    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(medium.getColor()));
 
     theme.setShowXAxis(showXAxis);
     theme.setShowYAxis(showYAxis);
     theme.setShowXGrid(xgrid);
     theme.setShowYGrid(ygrid);
-    theme.setDomainGridlinePaint(cxgrid);
-    theme.setRangeGridlinePaint(cygrid);
+    theme.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
+    theme.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
+
+    theme.setUseXLabel(usexlabel);
+    theme.setUseYLabel(useylabel);
+    theme.setXlabel(xlabel);
+    theme.setYlabel(ylabel);
+    theme.setClrXGrid(FxColorUtil.fxColorToAWT(cxgrid));
+    theme.setClrYGrid(FxColorUtil.fxColorToAWT(cygrid));
   }
 }

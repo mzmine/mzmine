@@ -17,38 +17,28 @@
  */
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import javax.swing.InputVerifier;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
+public class IntegerComponent extends FlowPane {
 
-public class IntegerComponent extends JPanel {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
 
   private final Integer minimum, maximum;
-  private final JTextField textField;
+  private final TextField textField;
 
   public IntegerComponent(int inputsize, Integer minimum, Integer maximum) {
     this.minimum = minimum;
     this.maximum = maximum;
 
-    textField = new JTextField();
-    textField.setPreferredSize(new Dimension(inputsize, textField.getPreferredSize().height));
+    textField = new TextField();
+    textField.setPrefWidth(inputsize);
     // Add an input verifier if any bounds are specified.
     if (minimum != null || maximum != null) {
-      textField.setInputVerifier(new MinMaxVerifier());
+      // textField.setInputVerifier(new MinMaxVerifier());
     }
 
-    add(textField);
+    getChildren().add(textField);
   }
 
   public void setText(String text) {
@@ -59,9 +49,8 @@ public class IntegerComponent extends JPanel {
     return textField.getText().trim();
   }
 
-  @Override
   public void setToolTipText(String toolTip) {
-    textField.setToolTipText(toolTip);
+    textField.setTooltip(new Tooltip(toolTip));
   }
 
   private boolean checkBounds(final int number) {
@@ -72,45 +61,37 @@ public class IntegerComponent extends JPanel {
    * Sets the number of columns in this TextField.
    */
   public void setColumns(int columns) {
-    textField.setColumns(columns);
+    textField.setPrefColumnCount(columns);
   }
 
   /**
    * Input verifier used when minimum or maximum bounds are defined.
    */
-  private class MinMaxVerifier extends InputVerifier {
+  /*
+   * private class MinMaxVerifier extends InputVerifier {
+   * 
+   * @Override public boolean shouldYieldFocus(final JComponent input) {
+   * 
+   * final boolean yield = super.shouldYieldFocus(input); if (!yield) {
+   * 
+   * // Beep and highlight. Toolkit.getDefaultToolkit().beep(); ((JTextComponent)
+   * input).selectAll(); }
+   * 
+   * return yield; }
+   * 
+   * @Override public boolean verify(final JComponent input) {
+   * 
+   * boolean verified = false; try {
+   * 
+   * verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText())); } catch (final
+   * NumberFormatException e) {
+   * 
+   * // not a number. }
+   * 
+   * return verified; } }
+   */
 
-    @Override
-    public boolean shouldYieldFocus(final JComponent input) {
-
-      final boolean yield = super.shouldYieldFocus(input);
-      if (!yield) {
-
-        // Beep and highlight.
-        Toolkit.getDefaultToolkit().beep();
-        ((JTextComponent) input).selectAll();
-      }
-
-      return yield;
-    }
-
-    @Override
-    public boolean verify(final JComponent input) {
-
-      boolean verified = false;
-      try {
-
-        verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText()));
-      } catch (final NumberFormatException e) {
-
-        // not a number.
-      }
-
-      return verified;
-    }
-  }
-
-  public JTextField getTextField() {
+  public TextField getTextField() {
     return textField;
   }
 
@@ -119,7 +100,8 @@ public class IntegerComponent extends JPanel {
    * 
    * @param dl
    */
-  public void addDocumentListener(DelayedDocumentListener dl) {
-    textField.getDocument().addDocumentListener(dl);
-  }
+  /*
+   * public void addDocumentListener(DelayedDocumentListener dl) {
+   * textField.getDocument().addDocumentListener(dl); }
+   */
 }

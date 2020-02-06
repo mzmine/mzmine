@@ -26,7 +26,7 @@ import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.plot.PlotOrientation;
 
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -53,17 +53,17 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
   // default orientation
   protected Orientation orient = Orientation.HORIZONTAL;
 
-  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
+  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler) {
     this(entity, button, key, new Consumer[] {dragDiffHandler});
   }
 
-  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
+  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler[]) {
     this(entity, button, key, dragDiffHandler, Orientation.HORIZONTAL);
   }
 
-  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
+  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler[], Orientation defaultOrientation) {
     super(new ChartGesture(entity, new Event[] {Event.RELEASED, Event.PRESSED, Event.DRAGGED},
         button, Key.ALL));

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,15 +24,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
@@ -52,7 +51,7 @@ import io.github.mzmine.util.RangeUtils;
 public class RowsFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(RowsFilterTask.class.getName());
+  private static final Logger logger = Logger.getLogger(RowsFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
@@ -100,7 +99,7 @@ public class RowsFilterTask extends AbstractTask {
 
       try {
         setStatus(TaskStatus.PROCESSING);
-        LOG.info("Filtering feature list rows");
+        logger.info("Filtering feature list rows");
 
         // Filter the feature list.
         filteredPeakList = filterPeakListRows(origPeakList);
@@ -116,13 +115,13 @@ public class RowsFilterTask extends AbstractTask {
             project.removePeakList(origPeakList);
           }
           setStatus(TaskStatus.FINISHED);
-          LOG.info("Finished feature list rows filter");
+          logger.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
 
         setErrorMessage(t.getMessage());
         setStatus(TaskStatus.ERROR);
-        LOG.log(Level.SEVERE, "Feature list row filter error", t);
+        logger.log(Level.SEVERE, "Feature list row filter error", t);
       }
     }
   }
@@ -199,7 +198,7 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final PeakListRow[] rows = peakList.getRows();
+    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 

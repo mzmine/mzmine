@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -30,17 +30,12 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.parameters.ParameterSet;
 
-public class ProjectionPlotPanel extends EChartPanel {
+public class ProjectionPlotPanel extends EChartViewer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   private static final Color gridColor = Color.lightGray;
   private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
@@ -74,8 +69,8 @@ public class ProjectionPlotPanel extends EChartPanel {
     chart.removeSubtitle(chartTitle);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set the plot properties
     plot = chart.getXYPlot();
@@ -132,7 +127,7 @@ public class ProjectionPlotPanel extends EChartPanel {
         }
         Color nextColor = (Color) spotRenderer.getGroupPaint(groupNumber);
         Color groupColor = new Color(nextColor.getRed(), nextColor.getGreen(), nextColor.getBlue(),
-            (int) Math.round(255 * dataPointAlpha));
+            Math.round(255 * dataPointAlpha));
         legendItemsCollection.add(new LegendItem(paramValue.toString(), "-", null, null,
             spotRenderer.getDataPointsShape(), groupColor));
       }

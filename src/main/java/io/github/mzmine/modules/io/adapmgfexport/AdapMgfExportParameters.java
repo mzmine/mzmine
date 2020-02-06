@@ -21,17 +21,19 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import javafx.collections.FXCollections;
 
 /**
  * Exports a feature cluster to mgf. Used for GC-GNPS
- * 
+ *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportParameters extends SimpleParameterSet {
   /**
    * Defines the representative m/z value for a cluster
-   * 
+   *
    * @author Robin Schmid (robinschmid@uni-muenster.de)
    *
    */
@@ -61,19 +63,19 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
-      "mgf");
+      "mgf", FileSelectionType.SAVE);
 
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);
 
   public static final ComboParameter<String> ROUND_MODE = new ComboParameter<>("Merging Mode",
       "Determines how to merge intensities with the same m/z values",
-      new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX);
+      FXCollections.observableArrayList(ROUND_MODE_MAX, ROUND_MODE_SUM), ROUND_MODE_MAX);
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
       new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
-          "Choose the representative m/z of a cluster.", MzMode.values(),
-          MzMode.AS_IN_FEATURE_TABLE);
+          "Choose the representative m/z of a cluster.",
+          FXCollections.observableArrayList(MzMode.values()), MzMode.AS_IN_FEATURE_TABLE);
 
   public AdapMgfExportParameters() {
     super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});

@@ -25,9 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -94,7 +92,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
     final ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
-    if (parameters.showSetupDialog(null, true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
     }

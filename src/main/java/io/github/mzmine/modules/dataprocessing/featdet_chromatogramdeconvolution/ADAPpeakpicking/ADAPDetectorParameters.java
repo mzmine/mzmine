@@ -88,7 +88,7 @@ public class ADAPDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>ADAP Module Disclaimer:"
         + "<br> If you use the  ADAP Chromatogram Deconvolution Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
@@ -98,18 +98,18 @@ public class ADAPDetectorParameters extends SimpleParameterSet {
         + "</html>";
 
     final PeakResolverSetupDialog dialog =
-        new PeakResolverSetupDialog(parent, valueCheckRequired, this, ADAPDetector.class, message);
-    dialog.setVisible(true);
+        new PeakResolverSetupDialog(valueCheckRequired, this, ADAPDetector.class, message);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 
-  // public ExitCode showSetupDialog(Window parent, boolean
+  // public ExitCode showSetupDialog( boolean
   // valueCheckRequired) {
   //
   // ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
   // valueCheckRequired, this,
   // message);
-  // dialog.setVisible(true);
+  // dialog.showAndWait();
   // return dialog.getExitCode();
   // }
 }

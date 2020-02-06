@@ -33,18 +33,13 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.AbstractXYZDataset;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
-public class RTMZPlot extends EChartPanel {
+public class RTMZPlot extends EChartViewer {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   private static final Color gridColor = Color.lightGray;
   private static final Color crossHairColor = Color.gray;
   private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -80,8 +75,8 @@ public class RTMZPlot extends EChartPanel {
     chart.removeSubtitle(chartTitle);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    // setMaximumDrawWidth(Integer.MAX_VALUE);
+    // setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set the plot properties
     plot = chart.getXYPlot();

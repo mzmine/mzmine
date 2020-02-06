@@ -54,7 +54,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 public class CentWaveDetector implements PeakResolver {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(CentWaveDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(CentWaveDetector.class.getName());
 
   // Name.
   private static final String NAME = "Wavelets (XCMS)";
@@ -134,7 +134,7 @@ public class CentWaveDetector implements PeakResolver {
 
     } else {
 
-      LOG.finest("Processing peak matrix...");
+      logger.finest("Processing peak matrix...");
 
       final Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
 
@@ -199,7 +199,7 @@ public class CentWaveDetector implements PeakResolver {
       final Range<Double> peakWidth, final PeakIntegrationMethod integrationMethod)
       throws RSessionWrapperException {
 
-    LOG.finest("Detecting peaks.");
+    logger.finest("Detecting peaks.");
 
     final double[][] peaks;
 

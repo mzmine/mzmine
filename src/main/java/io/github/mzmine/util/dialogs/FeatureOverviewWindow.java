@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,20 +18,11 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Label;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.SwingConstants;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,65 +31,88 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.stage.Stage;
 
 /**
  * Window to show an overview of a feature displayed in a plot
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class FeatureOverviewWindow extends JFrame {
+public class FeatureOverviewWindow extends Stage {
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
 
   private Feature feature;
   private RawDataFile[] rawFiles;
 
-  private static final long serialVersionUID = 1L;
-
   public FeatureOverviewWindow(PeakListRow row) {
+
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
 
     this.feature = row.getBestPeak();
     rawFiles = row.getRawDataFiles();
 
-    setBackground(Color.white);
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    JSplitPane splitPaneCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-    add(splitPaneCenter);
+    // setBackground(Color.white);
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    SplitPane splitPaneCenter = new SplitPane();
+    splitPaneCenter.setOrientation(Orientation.HORIZONTAL);
+    mainPane.setCenter(splitPaneCenter);
 
     // split pane left for plots
-    JSplitPane splitPaneLeftPlot = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPaneCenter.add(splitPaneLeftPlot);
+    SplitPane splitPaneLeftPlot = new SplitPane();
+    splitPaneLeftPlot.setOrientation(Orientation.VERTICAL);
+
+    splitPaneCenter.getItems().add(splitPaneLeftPlot);
 
     // add Tic plots
-    splitPaneLeftPlot.add(addTicPlot(row));
+    splitPaneLeftPlot.getItems().add(addTicPlot(row));
 
     // add feature data summary
-    splitPaneLeftPlot.add(addFeatureDataSummary(row));
+    splitPaneLeftPlot.getItems().add(addFeatureDataSummary(row));
 
     // split pane right
-    JSplitPane splitPaneRight = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPaneCenter.add(splitPaneRight);
+    SplitPane splitPaneRight = new SplitPane();
+    splitPaneRight.setOrientation(Orientation.VERTICAL);
+    splitPaneCenter.getItems().add(splitPaneRight);
 
     // add spectra MS1
-    splitPaneRight.add(addSpectraMS1());
+    splitPaneRight.getItems().add(addSpectraMS1());
 
     // add Spectra MS2
     if (feature.getMostIntenseFragmentScanNumber() > 0) {
-      splitPaneRight.add(addSpectraMS2());
+      splitPaneRight.getItems().add(addSpectraMS2());
     } else {
-      JPanel noMSMSPanel = new JPanel();
-      JLabel noMSMSScansFound = new JLabel("Sorry, no MS/MS scans found!");
-      noMSMSScansFound.setFont(new Font("Dialog", Font.BOLD, 16));
-      noMSMSScansFound.setForeground(Color.RED);
-      noMSMSPanel.add(noMSMSScansFound, SwingConstants.CENTER);
-      splitPaneRight.add(noMSMSPanel, SwingConstants.CENTER);
+      FlowPane noMSMSPanel = new FlowPane();
+      Label noMSMSScansFound = new Label("Sorry, no MS/MS scans found!");
+      // noMSMSScansFound.setFont(new Font("Dialog", Font.BOLD, 16));
+      // noMSMSScansFound.setForeground(Color.RED);
+      noMSMSPanel.getChildren().add(noMSMSScansFound);
+      splitPaneRight.getItems().add(noMSMSPanel);
     }
-    setVisible(true);
-    validate();
-    repaint();
-    pack();
+
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
+    this.show();
+
   }
 
-  private JSplitPane addTicPlot(PeakListRow row) {
-    JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+  private SplitPane addTicPlot(PeakListRow row) {
+    SplitPane pane = new SplitPane();
+    pane.setOrientation(Orientation.HORIZONTAL);
     // labels for TIC visualizer
     Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
 
@@ -117,24 +131,23 @@ public class FeatureOverviewWindow extends JFrame {
     // labels
     labelsMap.put(feature, feature.toString());
 
+    List<Feature> featureSelection = Arrays.asList(row.getPeaks());
+
     TICVisualizerWindow window = new TICVisualizerWindow(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
-        row.getPeaks(), // selected features
+        featureSelection, // selected features
         labelsMap); // labels
 
-    pane.add(window.getTICPlot());
-    pane.add(window.getToolBar());
-    pane.setResizeWeight(1);
-    pane.setDividerSize(1);
-    pane.setBorder(BorderFactory.createLineBorder(Color.black));
+    pane.getItems().add(window.getScene().getRoot());
     return pane;
   }
 
-  private JPanel addFeatureDataSummary(PeakListRow row) {
-    JPanel featureDataSummary = new JPanel(new GridLayout(0, 1));
-    featureDataSummary.setBackground(Color.WHITE);
+  private FlowPane addFeatureDataSummary(PeakListRow row) {
+    var featureDataNode = new FlowPane(Orientation.VERTICAL);
+    // featureDataSummary.setBackground(Color.WHITE);
+    var featureDataSummary = featureDataNode.getChildren();
     featureDataSummary.add(new Label("Feature: " + row.getID()));
     if (row.getPreferredPeakIdentity() != null)
       featureDataSummary.add(new Label("Identity: " + row.getPreferredPeakIdentity().getName()));
@@ -155,32 +168,24 @@ public class FeatureOverviewWindow extends JFrame {
     featureDataSummary.add(new Label("Tailing Factor factor "
         + MZmineCore.getConfiguration().getRTFormat().format(feature.getTailingFactor())));
     featureDataSummary.add(new Label("Status: " + feature.getFeatureStatus()));
-    return featureDataSummary;
+    return featureDataNode;
   }
 
-  private JSplitPane addSpectraMS1() {
-    JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+  private SplitPane addSpectraMS1() {
+    SplitPane pane = new SplitPane();
+    pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerWindow spectraWindowMS1 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS1.loadRawData(rawFiles[0].getScan(feature.getRepresentativeScanNumber()));
-
-    pane.add(spectraWindowMS1.getSpectrumPlot());
-    pane.add(spectraWindowMS1.getToolBar());
-    pane.setResizeWeight(1);
-    pane.setEnabled(false);
-    pane.setDividerSize(0);
+    pane.getItems().add(spectraWindowMS1.getScene().getRoot());
     return pane;
   }
 
-  private JSplitPane addSpectraMS2() {
-    JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+  private SplitPane addSpectraMS2() {
+    SplitPane pane = new SplitPane();
+    pane.setOrientation(Orientation.HORIZONTAL);
     SpectraVisualizerWindow spectraWindowMS2 = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindowMS2.loadRawData(rawFiles[0].getScan(feature.getMostIntenseFragmentScanNumber()));
-
-    pane.add(spectraWindowMS2.getSpectrumPlot());
-    pane.add(spectraWindowMS2.getToolBar());
-    pane.setResizeWeight(1);
-    pane.setEnabled(false);
-    pane.setDividerSize(0);
+    pane.getItems().add(spectraWindowMS2.getScene().getRoot());
     return pane;
   }
 }

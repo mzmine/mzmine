@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -28,11 +28,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
@@ -43,30 +40,30 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 /**
  * This class imports project parameters and their values from a CSV file to the main project
  * parameter setup dialog.
- * 
- * 
+ *
+ *
  * Description of input file format:
- * 
+ *
  * First column of the comma-separated file must contain file names matching to names of raw data
  * files opened in MZmine. Each other column corresponds to one project parameter.
- * 
+ *
  * First row in the file must contain column headers. Header for the first column (filename) is
  * ignored but must exists. Rest of the column headers are used as names for project parameters. All
  * column names in the file must be be unique. If main dialog already contains a parameter with the
  * same name, a warning is shown to the user before overwriting previous parameter.
- * 
- * 
+ *
+ *
  * Rules for deciding type of parameter:
- * 
+ *
  * 1. If all values in a column (except column header on the first row) are numeric, then the
  * parameter type is set to Double.
- * 
+ *
  * 2. If there are at least some duplicate strings among values for a parameter, then the parameter
  * type is String and possible parameter values are all unique strings.
- * 
+ *
  * 3. Otherwise it is a free text parameter of type String.
- * 
- * 
+ *
+ *
  */
 public class ProjectParametersImporter {
 
@@ -237,29 +234,26 @@ public class ProjectParametersImporter {
 
     // Warn user if main dialog already contains a parameter with same name
     for (UserParameter<?, ?> parameter : parameters) {
-      UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
-      if (p != null) {
-        int res = JOptionPane.showConfirmDialog(mainDialog,
-            "Overwrite previous parameter(s) with same name?", "Overwrite?",
-            JOptionPane.OK_CANCEL_OPTION);
-        if (res == JOptionPane.CANCEL_OPTION)
-          return false;
-        else
-          break;
-      }
+      /*
+       * UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName()); if (p != null) {
+       * Alert alert = new Alert(AlertType.CONFIRMATION,
+       * "Overwrite previous parameter(s) with same name?"); Optional<ButtonType> result =
+       * alert.showAndWait(); if (result.isPresent() && result.get() == ButtonType.OK) { break; }
+       * else { return false; } }
+       */
     }
 
     // Remove parameters with same name
     for (UserParameter<?, ?> parameter : parameters) {
-      UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
-      if (p != null) {
-        mainDialog.removeParameter(p);
-      }
+      // UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+      // if (p != null) {
+      // mainDialog.removeParameter(p);
+      // }
     }
 
     // Add new parameters to the main dialog
     for (UserParameter<?, ?> parameter : parameters) {
-      mainDialog.addParameter(parameter);
+      // mainDialog.addParameter(parameter);
     }
 
     // Open reader
@@ -297,11 +291,11 @@ public class ProjectParametersImporter {
           String parameterValue = st.nextToken();
           UserParameter<?, ?> parameter = parameters[parameterIndex];
 
-          if (parameter instanceof DoubleParameter)
-            mainDialog.setParameterValue(parameter, fileName, Double.parseDouble(parameterValue));
-          else
-            mainDialog.setParameterValue(parameter, fileName, parameterValue);
-
+          /*
+           * if (parameter instanceof DoubleParameter) mainDialog.setParameterValue(parameter,
+           * fileName, Double.parseDouble(parameterValue)); else
+           * mainDialog.setParameterValue(parameter, fileName, parameterValue);
+           */
           parameterIndex++;
 
         }

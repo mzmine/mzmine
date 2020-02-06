@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,15 +20,13 @@ package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
@@ -44,7 +42,8 @@ import io.github.mzmine.util.PeakUtils;
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
@@ -89,7 +88,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering feature list rows");
+      logger.info("Filtering feature list rows");
 
       // Filter the feature list.
       filteredPeakList = filterPeakListRows(origPeakList);
@@ -109,13 +108,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
       }
 
       setStatus(TaskStatus.FINISHED);
-      LOG.info("Finished peak comparison rows filter");
+      logger.info("Finished peak comparison rows filter");
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+      logger.log(Level.SEVERE, "Peak comparison row filter error", t);
     }
 
   }
@@ -166,13 +165,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             .getEmbeddedParameter().getValue();
 
     // Setup variables
-    final PeakListRow[] rows = peakList.getRows();
+    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     RawDataFile rawDataFile1;
     RawDataFile rawDataFile2;
     Feature peak1;
     Feature peak2;
     totalRows = rows.length;
-    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+    final RawDataFile[] rawDataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     boolean allCriteriaMatched = true;
 

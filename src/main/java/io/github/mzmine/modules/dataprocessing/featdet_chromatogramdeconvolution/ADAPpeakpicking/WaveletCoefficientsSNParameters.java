@@ -20,9 +20,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
-import java.awt.Window;
 import java.text.NumberFormat;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -46,10 +44,10 @@ public class WaveletCoefficientsSNParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    final SNSetUpDialog dialog = new SNSetUpDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    final SNSetUpDialog dialog = new SNSetUpDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,10 +23,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
@@ -34,14 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
@@ -53,7 +44,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Task to search and annotate lipids in feature list
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidSearchTask extends AbstractTask {
@@ -68,9 +59,11 @@ public class LipidSearchTask extends AbstractTask {
   private IonizationType ionizationType;
   private Boolean searchForMSMSFragments;
   private Boolean searchForModifications;
-  private double noiseLevelMSMS;
+  private String massListName;
   private double[] lipidModificationMasses;
   private LipidModification[] lipidModification;
+
+
 
   private ParameterSet parameters;
 
@@ -83,20 +76,32 @@ public class LipidSearchTask extends AbstractTask {
     this.peakList = peakList;
     this.parameters = parameters;
 
-    minChainLength = parameters.getParameter(LipidSearchParameters.minChainLength).getValue();
-    maxChainLength = parameters.getParameter(LipidSearchParameters.maxChainLength).getValue();
-    maxDoubleBonds = parameters.getParameter(LipidSearchParameters.maxDoubleBonds).getValue();
-    minDoubleBonds = parameters.getParameter(LipidSearchParameters.minDoubleBonds).getValue();
+    this.minChainLength =
+        parameters.getParameter(LipidSearchParameters.chainLength).getValue().lowerEndpoint();
+    this.maxChainLength =
+        parameters.getParameter(LipidSearchParameters.chainLength).getValue().upperEndpoint();
+    this.minDoubleBonds =
+        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().lowerEndpoint();
+    this.maxDoubleBonds =
+        parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().upperEndpoint();
     mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
     selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
     ionizationType = parameters.getParameter(LipidSearchParameters.ionizationMethod).getValue();
     searchForMSMSFragments =
         parameters.getParameter(LipidSearchParameters.searchForMSMSFragments).getValue();
     searchForModifications =
-        parameters.getParameter(LipidSearchParameters.useModification).getValue();
-    mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
-    noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
-    lipidModification = parameters.getParameter(LipidSearchParameters.modification).getValue();
+        parameters.getParameter(LipidSearchParameters.searchForModifications).getValue();
+    if (searchForModifications) {
+      this.lipidModification =
+          LipidSearchParameters.searchForModifications.getEmbeddedParameter().getValue();
+    }
+    if (searchForMSMSFragments) {
+      mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
+          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.mzToleranceMS2)
+          .getValue();
+      massListName = parameters.getParameter(LipidSearchParameters.searchForMSMSFragments)
+          .getEmbeddedParameters().getParameter(LipidSearchMSMSParameters.massList).getValue();
+    }
 
     // Convert Objects to LipidClasses
     selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
@@ -130,7 +135,7 @@ public class LipidSearchTask extends AbstractTask {
 
     logger.info("Starting lipid search in " + peakList);
 
-    PeakListRow rows[] = peakList.getRows();
+    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
 
     // Check if lipids should be modified
     if (searchForModifications == true) {
@@ -184,7 +189,7 @@ public class LipidSearchTask extends AbstractTask {
 
   /**
    * Check if candidate peak may be a possible adduct of a given main peak
-   * 
+   *
    * @param mainPeak
    * @param possibleFragment
    */
@@ -210,9 +215,6 @@ public class LipidSearchTask extends AbstractTask {
         if (searchForMSMSFragments == true) {
           searchMsmsFragments(rows[rowIndex], lipidIonMass, lipid);
         }
-        // Notify the GUI about the change in the project
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
-            false);
         logger.info("Found lipid: " + lipid.getName() + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
       }
@@ -232,7 +234,6 @@ public class LipidSearchTask extends AbstractTask {
    */
   private void searchMsmsFragments(PeakListRow row, double lipidIonMass, LipidIdentity lipid) {
 
-    MassDetector massDetector = null;
     // Check if selected feature has MSMS spectra
     if (row.getAllMS2Fragmentations() != null) {
       Scan[] msmsScans = row.getAllMS2Fragmentations();
@@ -240,23 +241,7 @@ public class LipidSearchTask extends AbstractTask {
 
         DataPoint[] massList = null;
         // check if MS/MS scan already has a mass list
-        if (msmsScan.getMassLists().length != 0) {
-          massList = msmsScan.getMassLists()[0].getDataPoints();
-        } else {
-          // Create a new mass list for MS/MS scan. Check if sprectrum
-          // is profile or centroid mode
-          if (msmsScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-            massDetector = new CentroidMassDetector();
-            CentroidMassDetectorParameters parametersMSMS = new CentroidMassDetectorParameters();
-            CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
-          } else {
-            massDetector = new ExactMassDetector();
-            ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
-            ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
-          }
-        }
+        massList = msmsScan.getMassList(massListName).getDataPoints();
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
 
         // check for negative polarity
@@ -391,8 +376,6 @@ public class LipidSearchTask extends AbstractTask {
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
-        // Notify the GUI about the change in the project
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows, false);
       }
     }
   }

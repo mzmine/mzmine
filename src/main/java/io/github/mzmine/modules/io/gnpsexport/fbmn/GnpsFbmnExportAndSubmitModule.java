@@ -50,7 +50,7 @@ import io.github.mzmine.util.ExitCode;
  *
  */
 public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
-  private final Logger LOG = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private static final String MODULE_NAME = "Export/Submit to GNPS-FBMN";
   private static final String MODULE_DESCRIPTION =

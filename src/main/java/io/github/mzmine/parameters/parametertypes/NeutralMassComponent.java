@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,58 +18,54 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.components.GridBagPanel;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
 
-public class NeutralMassComponent extends GridBagPanel implements DocumentListener, ActionListener {
+public class NeutralMassComponent extends GridPane {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-
-  private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
-
-  private JComboBox<IonizationType> ionTypeCombo;
-  private JTextField ionMassField, chargeField, neutralMassField;
+  private ComboBox<IonizationType> ionTypeCombo;
+  private TextField ionMassField, chargeField, neutralMassField;
 
   public NeutralMassComponent() {
 
-    add(new JLabel("m/z:"), 0, 0);
+    add(new Label("m/z:"), 0, 0);
 
-    ionMassField = new JTextField();
-    ionMassField.getDocument().addDocumentListener(this);
-    ionMassField.setColumns(8);
+    ionMassField = new TextField();
+    ionMassField.textProperty().addListener((observable, oldValue, newValue) -> {
+      updateNeutralMass();
+    });
+    ionMassField.setPrefColumnCount(8);
     add(ionMassField, 1, 0);
 
-    add(new JLabel("Charge:"), 2, 0);
+    add(new Label("Charge:"), 2, 0);
 
-    chargeField = new JTextField();
-    chargeField.getDocument().addDocumentListener(this);
-    chargeField.setColumns(2);
+    chargeField = new TextField();
+    chargeField.textProperty().addListener((observable, oldValue, newValue) -> {
+      updateNeutralMass();
+    });
+    chargeField.setPrefColumnCount(2);
     add(chargeField, 3, 0);
 
-    add(new JLabel("Ionization type:"), 0, 1, 2, 1);
-    ionTypeCombo = new JComboBox<IonizationType>(IonizationType.values());
-    ionTypeCombo.addActionListener(this);
+    add(new Label("Ionization type:"), 0, 1, 2, 1);
+    ionTypeCombo =
+        new ComboBox<IonizationType>(FXCollections.observableArrayList(IonizationType.values()));
+    ionTypeCombo.setOnAction(e -> {
+      updateNeutralMass();
+    });
     add(ionTypeCombo, 2, 1, 2, 1);
 
-    add(new JLabel("Calculated mass:"), 0, 2, 2, 1);
+    add(new Label("Calculated mass:"), 0, 2, 2, 1);
 
-    neutralMassField = new JTextField();
-    neutralMassField.setColumns(8);
-    neutralMassField.setBackground(BACKGROUND_COLOR);
+    neutralMassField = new TextField();
+    neutralMassField.setPrefColumnCount(8);
+    neutralMassField.setStyle("-fx-background-color: rgb(192, 224, 240);");
     neutralMassField.setEditable(false);
     add(neutralMassField, 2, 2, 2, 1);
 
@@ -86,7 +82,7 @@ public class NeutralMassComponent extends GridBagPanel implements DocumentListen
   }
 
   public void setIonType(IonizationType ionType) {
-    ionTypeCombo.setSelectedItem(ionType);
+    ionTypeCombo.getSelectionModel().select(ionType);
     updateNeutralMass();
   }
 
@@ -121,12 +117,7 @@ public class NeutralMassComponent extends GridBagPanel implements DocumentListen
   }
 
   public IonizationType getIonType() {
-    return (IonizationType) ionTypeCombo.getSelectedItem();
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    updateNeutralMass();
+    return ionTypeCombo.getSelectionModel().getSelectedItem();
   }
 
   private void updateNeutralMass() {
@@ -146,23 +137,7 @@ public class NeutralMassComponent extends GridBagPanel implements DocumentListen
     neutralMassField.setText(MZmineCore.getConfiguration().getMZFormat().format(neutral));
   }
 
-  @Override
-  public void changedUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
-
-  @Override
-  public void insertUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
-
-  @Override
-  public void removeUpdate(DocumentEvent e) {
-    updateNeutralMass();
-  }
-
-  @Override
   public void setToolTipText(String toolTip) {
-    ionMassField.setToolTipText(toolTip);
+    ionMassField.setTooltip(new Tooltip(toolTip));
   }
 }

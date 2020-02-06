@@ -20,7 +20,7 @@ package io.github.mzmine.gui.chartbasics.gestures.standard;
 
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Button;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
@@ -38,11 +38,11 @@ public class GestureHandlerDef implements GestureHandlerFactory {
   protected Handler handler;
   protected Entity entity;
   protected Event[] event;
-  protected Button button;
+  protected GestureButton button;
   protected Key key;
   protected Object[] param;
 
-  public GestureHandlerDef(Handler handler, Entity entity, Event[] event, Button button, Key key,
+  public GestureHandlerDef(Handler handler, Entity entity, Event[] event, GestureButton button, Key key,
       Object[] param) {
     super();
     this.handler = handler;
@@ -71,7 +71,7 @@ public class GestureHandlerDef implements GestureHandlerFactory {
     return event;
   }
 
-  public Button getButton() {
+  public GestureButton getButton() {
     return button;
   }
 
@@ -95,7 +95,7 @@ public class GestureHandlerDef implements GestureHandlerFactory {
     this.event = event;
   }
 
-  public void setButton(Button button) {
+  public void setButton(GestureButton button) {
     this.button = button;
   }
 

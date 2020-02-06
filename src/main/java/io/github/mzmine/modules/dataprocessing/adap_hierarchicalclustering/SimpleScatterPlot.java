@@ -16,7 +16,6 @@
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Paint;
 import org.jfree.chart.JFreeChart;
@@ -24,16 +23,17 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.data.xy.DefaultXYZDataset;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import javafx.scene.Cursor;
 
 /**
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-public class SimpleScatterPlot extends EChartPanel {
+public class SimpleScatterPlot extends EChartViewer {
+
   private static final int SERIES_ID = 0;
 
   private final JFreeChart chart;
@@ -47,10 +47,10 @@ public class SimpleScatterPlot extends EChartPanel {
 
   public SimpleScatterPlot(double[] xValues, double[] yValues, double[] colors, String xLabel,
       String yLabel) {
-    super(null, true);
+    super(null);
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    // setBackground(Color.white);
+    setCursor(Cursor.CROSSHAIR);
 
     xAxis = new NumberAxis(xLabel);
     xAxis.setAutoRangeIncludesZero(false);

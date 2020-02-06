@@ -18,50 +18,69 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.FutureTask;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
-import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 
 /**
  */
-public class FileNameComponent extends JPanel implements ActionListener, LastFilesComponent {
+public class FileNameComponent extends FlowPane implements LastFilesComponent {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+  public static final Font smallFont = new Font("SansSerif", 10);
 
-  private JTextField txtFilename;
-  private JLastFilesButton btnLastFiles;
+  private TextField txtFilename;
+  private LastFilesButton btnLastFiles;
+  private FileSelectionType type;
 
-  public FileNameComponent(int textfieldcolumns, List<File> lastFiles) {
-    setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+  public FileNameComponent(int textfieldcolumns, List<File> lastFiles, FileSelectionType type) {
+    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
-    txtFilename = new JTextField();
-    txtFilename.setColumns(textfieldcolumns);
+    this.type = type;
+
+    txtFilename = new TextField();
+    txtFilename.setPrefColumnCount(textfieldcolumns);
     txtFilename.setFont(smallFont);
-    add(txtFilename);
 
     // last used files chooser button
     // on click - set file name to textField
-    btnLastFiles = new JLastFilesButton("last", file -> txtFilename.setText(file.getPath()));
-    add(btnLastFiles);
+    btnLastFiles = new LastFilesButton("last", file -> txtFilename.setText(file.getPath()));
 
-    JButton btnFileBrowser = new JButton("...");
-    btnFileBrowser.addActionListener(this);
-    add(btnFileBrowser);
+    Button btnFileBrowser = new Button("...");
+    btnFileBrowser.setOnAction(e -> {
+      // Create chooser.
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setTitle("Select file");
+
+      // Set current directory.
+      final String currentPath = txtFilename.getText();
+      if (currentPath.length() > 0) {
+
+        final File currentFile = new File(currentPath);
+        final File currentDir = currentFile.getParentFile();
+        if (currentDir != null && currentDir.exists()) {
+          fileChooser.setInitialDirectory(currentDir);
+        }
+      }
+
+      // Open chooser.
+      File selectedFile = null;
+      if(type == FileSelectionType.OPEN)
+        selectedFile = fileChooser.showOpenDialog(null);
+      else
+        selectedFile = fileChooser.showSaveDialog(null);
+      
+      if (selectedFile == null)
+        return;
+      txtFilename.setText(selectedFile.getPath());
+    });
+
+    getChildren().addAll(txtFilename, btnLastFiles, btnFileBrowser);
 
     setLastFiles(lastFiles);
   }
@@ -81,41 +100,8 @@ public class FileNameComponent extends JPanel implements ActionListener, LastFil
     txtFilename.setText(value.getPath());
   }
 
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    // Create chooser.
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Select file");
-
-    // Set current directory.
-    final String currentPath = txtFilename.getText();
-    if (currentPath.length() > 0) {
-
-      final File currentFile = new File(currentPath);
-      final File currentDir = currentFile.getParentFile();
-      if (currentDir != null && currentDir.exists()) {
-        fileChooser.setInitialDirectory(currentDir);
-      }
-    }
-
-    // Open chooser.
-    final FutureTask<File> task = new FutureTask<>(() -> fileChooser.showOpenDialog(null));
-    Platform.runLater(task);
-    try {
-      File selectedFile = task.get();
-      if (selectedFile == null)
-        return;
-      txtFilename.setText(selectedFile.getPath());
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-  }
-
-  @Override
   public void setToolTipText(String toolTip) {
-    txtFilename.setToolTipText(toolTip);
+    txtFilename.setTooltip(new Tooltip(toolTip));
   }
 
 }

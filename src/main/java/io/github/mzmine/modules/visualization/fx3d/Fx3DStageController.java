@@ -1,20 +1,21 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
+
 package io.github.mzmine.modules.visualization.fx3d;
 
 import java.util.ArrayList;
@@ -22,22 +23,18 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-
 import org.controlsfx.glyphfont.Glyph;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import io.github.mzmine.util.components.SliderCell;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -130,7 +127,7 @@ public class Fx3DStageController {
   private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
   private final Translate translateX = new Translate();
   private final Translate translateY = new Translate();
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private int rtResolution, mzResolution;
   private double mousePosX, mousePosY;
   private double mouseOldX, mouseOldY;
@@ -149,7 +146,7 @@ public class Fx3DStageController {
   private PerspectiveCamera camera = new PerspectiveCamera();
   private ScanSelection scanSel;
   private List<RawDataFile> allDataFiles;
-  private List<FeatureSelection> featureSelections;
+  private List<Feature> featureSelections;
   private Timeline rotateAnimationTimeline;
   boolean animationRunning = false;
   private Range<Double> rtRange;
@@ -167,6 +164,11 @@ public class Fx3DStageController {
   private int axesPosition = 0;
 
   public void initialize() {
+
+    // Use main CSS
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
     rotateX.setPivotZ(SIZE / 2);
     rotateX.setPivotX(SIZE / 2);
     rotateY.setPivotZ(SIZE / 2);
@@ -204,6 +206,10 @@ public class Fx3DStageController {
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
     scene3D.setPickOnBounds(true);
+
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(scene);
+
   }
 
   private void addLights() {
@@ -294,9 +300,9 @@ public class Fx3DStageController {
       int red = (int) (newValue.getRed() * 255);
       int green = (int) (newValue.getGreen() * 255);
       int blue = (int) (newValue.getBlue() * 255);
-      dataset.setNodeColor(Color.rgb(red, green, blue, (double) dataset.opacityProperty().get()));
-      dataset.getNode().setOpacity((double) dataset.opacityProperty().get());
-      LOG.finest("Color is changed from " + oldValue + " to " + newValue + " for the dataset "
+      dataset.setNodeColor(Color.rgb(red, green, blue, dataset.opacityProperty().get()));
+      dataset.getNode().setOpacity(dataset.opacityProperty().get());
+      logger.finest("Color is changed from " + oldValue + " to " + newValue + " for the dataset "
           + dataset.getFileName());
     });
   }
@@ -325,13 +331,13 @@ public class Fx3DStageController {
   /**
    * @param selections Adds the list of FeatureSelection from the module class.
    */
-  public void addFeatureSelections(List<FeatureSelection> selections) {
+  public void addFeatureSelections(List<Feature> selections) {
     this.featureSelections = selections;
     addFeatures();
   }
 
   private void addFeatures() {
-    for (FeatureSelection featureSelection : featureSelections) {
+    for (Feature featureSelection : featureSelections) {
       Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(featureSelection, rtResolution,
           mzResolution, rtRange, mzRange, maxOfAllBinnedIntensity, Color.rgb(255, 255, 0, 0.35));
       addDataset(featureDataset);
@@ -344,8 +350,9 @@ public class Fx3DStageController {
       MenuItem menuItem = new MenuItem(dataset.getFileName());
       removeMenu.getItems().add(menuItem);
       menuItem.setOnAction(new EventHandler<ActionEvent>() {
+        @Override
         public void handle(ActionEvent e) {
-          LOG.finest("Context menu invoked. Remove Data file button clicked. Removing dataset "
+          logger.finest("Context menu invoked. Remove Data file button clicked. Removing dataset "
               + dataset.getFileName() + " from the plot.");
           visualizedFiles.remove(dataset.getFile());
           visualizedMeshPlots.remove(dataset);
@@ -361,8 +368,9 @@ public class Fx3DStageController {
         addDatafileMenu.getItems().add(menuItem);
         final Fx3DStageController controller = this;
         menuItem.setOnAction(new EventHandler<ActionEvent>() {
+          @Override
           public void handle(ActionEvent e) {
-            LOG.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
+            logger.finest("Context menu invoked. Add Data file button clicked. Adding dataset "
                 + file.getName() + " to the plot.");
             MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(file, scanSel, mzRange,
                 rtResolution, mzResolution, controller), TaskPriority.HIGH);
@@ -376,11 +384,11 @@ public class Fx3DStageController {
     for (PeakList peakList : allPeakLists) {
       Menu peakListMenu = new Menu(peakList.getName());
       addFeatureMenu.getItems().add(peakListMenu);
-      RawDataFile[] dataFiles = peakList.getRawDataFiles();
+      RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
       for (RawDataFile dataFile : dataFiles) {
         Menu dataFileMenu = new Menu(dataFile.getName());
         peakListMenu.getItems().add(dataFileMenu);
-        Feature[] features = peakList.getPeaks(dataFile);
+        Feature[] features = peakList.getPeaks(dataFile).toArray(Feature[]::new);
         for (Feature feature : features) {
           if (feature.getRawDataPointsRTRange().lowerEndpoint() >= rtRange.lowerEndpoint()
               && feature.getRawDataPointsRTRange().upperEndpoint() <= mzRange.upperEndpoint()
@@ -390,15 +398,13 @@ public class Fx3DStageController {
               MenuItem menuItem = new MenuItem(feature.toString());
               dataFileMenu.getItems().add(menuItem);
               menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
                 public void handle(ActionEvent e) {
-                  LOG.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
+                  logger.finest("Context menu invoked. Add Feature button clicked. Adding dataset "
                       + feature.toString() + " to the plot.");
-                  PeakListRow row = peakList.getPeakRow(feature);
-                  FeatureSelection featureSelection =
-                      new FeatureSelection(peakList, feature, row, dataFile);
                   Fx3DFeatureDataset featureDataset =
-                      new Fx3DFeatureDataset(featureSelection, rtResolution, mzResolution, rtRange,
-                          mzRange, maxOfAllBinnedIntensity, Color.rgb(165, 42, 42, 0.9));
+                      new Fx3DFeatureDataset(feature, rtResolution, mzResolution, rtRange, mzRange,
+                          maxOfAllBinnedIntensity, Color.rgb(165, 42, 42, 0.9));
                   addDataset(featureDataset);
                   addMenuItems();
                 }
@@ -469,7 +475,7 @@ public class Fx3DStageController {
       tickLineZ.setTranslateY(-4);
       tickLineZ.setTranslateX(y - 2);
       float roundOff = (float) (Math.round(mzScaleValue * 100.0) / 100.0);
-      Text text = new Text("" + (float) roundOff);
+      Text text = new Text("" + roundOff);
       text.setRotationAxis(Rotate.X_AXIS);
       text.setRotate(-45);
       text.setTranslateY(8);
@@ -505,7 +511,7 @@ public class Fx3DStageController {
       tickLineX.setTranslateX(y);
       tickLineX.setTranslateZ(-3.5);
       float roundOff = (float) (Math.round(rtScaleValue * 10.0) / 10.0);
-      Text text = new Text("" + (float) roundOff);
+      Text text = new Text("" + roundOff);
       text.setRotationAxis(Rotate.X_AXIS);
       text.setRotate(-45);
       text.setTranslateY(9);
@@ -602,34 +608,34 @@ public class Fx3DStageController {
       plot.getTransforms().addAll(pivot, yRotate, new Translate(-250, 0, -250));
       rotateAnimationTimeline.play();
       animationRunning = true;
-      LOG.finest("ANIMATE button clicked.Starting animation.");
+      logger.finest("ANIMATE button clicked.Starting animation.");
     } else {
       plot.getTransforms().remove(yRotate);
       rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
       deltaAngle = yRotate.getAngle();
       rotateAnimationTimeline.stop();
       animationRunning = false;
-      LOG.finest("ANIMATE button clicked.Stopping animation.");
+      logger.finest("ANIMATE button clicked.Stopping animation.");
     }
   }
 
   public void handleAxis(Event event) {
     if (axes.isVisible()) {
       axes.setVisible(false);
-      LOG.finest("Axes ON/OFF button clicked.Setting axes to invisible.");
+      logger.finest("Axes ON/OFF button clicked.Setting axes to invisible.");
     } else {
       axes.setVisible(true);
-      LOG.finest("Axes ON/OFF button clicked.Setting axes to visible.");
+      logger.finest("Axes ON/OFF button clicked.Setting axes to visible.");
     }
   }
 
   public void handleLights() {
     if (lightsBtn.isSelected()) {
       top.setLightOn(true);
-      LOG.finest("Lights ON/OFF button clicked.Switching lights ON.");
+      logger.finest("Lights ON/OFF button clicked.Switching lights ON.");
     } else {
       top.setLightOn(false);
-      LOG.finest("Lights ON/OFF button clicked.Switching lights OFF.");
+      logger.finest("Lights ON/OFF button clicked.Switching lights OFF.");
     }
   }
 

@@ -65,10 +65,10 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(parent, valueCheckRequired,
-        this, MinimumSearchPeakDetector.class);
-    dialog.setVisible(true);
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final PeakResolverSetupDialog dialog =
+        new PeakResolverSetupDialog(valueCheckRequired, this, MinimumSearchPeakDetector.class);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

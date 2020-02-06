@@ -1,34 +1,22 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
-
-import java.awt.BorderLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
@@ -37,54 +25,45 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 
-public class PeakListsComponent extends JPanel implements ActionListener {
+public class PeakListsComponent extends BorderPane {
 
-  private static final long serialVersionUID = 1L;
 
-  private final JComboBox<PeakListsSelectionType> typeCombo;
-  private final JButton detailsButton;
-  private final JLabel numPeakListsLabel;
+  private final ComboBox<PeakListsSelectionType> typeCombo;
+  private final Button detailsButton;
+  private final Label numPeakListsLabel;
   private PeakListsSelection currentValue = new PeakListsSelection();
 
   public PeakListsComponent() {
 
-    super(new BorderLayout());
+    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    numPeakListsLabel = new Label();
+    setLeft(numPeakListsLabel);
 
-    numPeakListsLabel = new JLabel();
-    add(numPeakListsLabel, BorderLayout.WEST);
+    detailsButton = new Button("...");
+    detailsButton.setDisable(true);
+    setRight(detailsButton);
 
-    typeCombo = new JComboBox<>(PeakListsSelectionType.values());
-    typeCombo.addActionListener(this);
-    add(typeCombo, BorderLayout.CENTER);
+    typeCombo = new ComboBox<>(FXCollections.observableArrayList(PeakListsSelectionType.values()));
+    typeCombo.setOnAction(e -> {
+      PeakListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
+      currentValue.setSelectionType(type);
+      detailsButton.setDisable((type != PeakListsSelectionType.NAME_PATTERN)
+          && (type != PeakListsSelectionType.SPECIFIC_PEAKLISTS));
+      updateNumPeakLists();
+    });
+    typeCombo.getSelectionModel().selectFirst();
+    setCenter(typeCombo);
 
-    detailsButton = new JButton("...");
-    detailsButton.setEnabled(false);
-    detailsButton.addActionListener(this);
-    add(detailsButton, BorderLayout.EAST);
-
-  }
-
-  void setValue(PeakListsSelection newValue) {
-    currentValue = newValue.clone();
-    PeakListsSelectionType type = newValue.getSelectionType();
-    if (type != null)
-      typeCombo.setSelectedItem(type);
-    updateNumPeakLists();
-  }
-
-  PeakListsSelection getValue() {
-    return currentValue;
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == detailsButton) {
-      PeakListsSelectionType type = (PeakListsSelectionType) typeCombo.getSelectedItem();
+    detailsButton.setOnAction(e -> {
+      PeakListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
       if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
         final MultiChoiceParameter<PeakList> plsParameter =
@@ -92,8 +71,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
                 MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
                 currentValue.getSpecificPeakLists());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});
-        final Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-        final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
+        final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           PeakList pls[] = paramSet.getParameter(plsParameter).getValue();
           currentValue.setSpecificPeakLists(pls);
@@ -106,37 +84,41 @@ public class PeakListsComponent extends JPanel implements ActionListener {
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
             currentValue.getNamePattern());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {nameParameter});
-        final Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-        final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
+        final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           String namePattern = paramSet.getParameter(nameParameter).getValue();
           currentValue.setNamePattern(namePattern);
         }
 
       }
+      updateNumPeakLists();
+    });
 
-    }
-
-    if (src == typeCombo) {
-      PeakListsSelectionType type = (PeakListsSelectionType) typeCombo.getSelectedItem();
-      currentValue.setSelectionType(type);
-      detailsButton.setEnabled((type == PeakListsSelectionType.NAME_PATTERN)
-          || (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS));
-    }
-
-    updateNumPeakLists();
 
   }
 
-  @Override
+  void setValue(PeakListsSelection newValue) {
+    currentValue = newValue.clone();
+    PeakListsSelectionType type = newValue.getSelectionType();
+    if (type != null)
+      typeCombo.getSelectionModel().select(type);
+    updateNumPeakLists();
+  }
+
+  PeakListsSelection getValue() {
+    return currentValue;
+  }
+
+
+
   public void setToolTipText(String toolTip) {
-    typeCombo.setToolTipText(toolTip);
+    typeCombo.setTooltip(new Tooltip(toolTip));
   }
 
   private void updateNumPeakLists() {
     if (currentValue.getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
       numPeakListsLabel.setText("");
-      numPeakListsLabel.setToolTipText("");
+      numPeakListsLabel.setTooltip(null);
     } else {
       PeakList pls[] = currentValue.getMatchingPeakLists();
       if (pls.length == 1) {
@@ -147,7 +129,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
       } else {
         numPeakListsLabel.setText(pls.length + " selected");
       }
-      numPeakListsLabel.setToolTipText(currentValue.toString());
+      numPeakListsLabel.setTooltip(new Tooltip(currentValue.toString()));
     }
   }
 }

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -51,14 +51,12 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
-
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.framework.CustomTextPane;
 import io.github.mzmine.gui.framework.ScrollablePanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -195,7 +193,7 @@ public class SpectralMatchPanel extends JPanel {
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule, FONT);
+        // newComponent = new Structure2DComponent(molecule, FONT);
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -270,7 +268,7 @@ public class SpectralMatchPanel extends JPanel {
   }
 
   /**
-   * 
+   *
    * @param param {@link SpectraIdentificationResultsParameters}
    */
   private void addExportButtons(ParameterSet param) {
@@ -323,7 +321,7 @@ public class SpectralMatchPanel extends JPanel {
 
   /**
    * Export the whole panel to pdf, emf, eps or all
-   * 
+   *
    * @param format
    */
   public void exportToGraphics(String format) {
@@ -383,7 +381,7 @@ public class SpectralMatchPanel extends JPanel {
 
   /**
    * Apply changes to all other charts
-   * 
+   *
    * @param range
    */
   private void rangeHasChanged(Range range) {
@@ -465,7 +463,7 @@ public class SpectralMatchPanel extends JPanel {
 
   /**
    * The mirror chart panel
-   * 
+   *
    * @return
    */
   public EChartPanel getMirrorChart() {
@@ -474,7 +472,7 @@ public class SpectralMatchPanel extends JPanel {
 
   /**
    * Couple y zoom of both XYPlots
-   * 
+   *
    * @param selected
    */
   public void setCoupleZoomY(boolean selected) {

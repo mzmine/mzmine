@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -33,7 +33,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
-
 import io.github.mzmine.gui.framework.listener.ColorChangedListener;
 
 public class JColorPickerButton extends JButton {
@@ -68,7 +67,7 @@ public class JColorPickerButton extends JButton {
 
   /**
    * Changes the color and calls all listeners
-   * 
+   *
    * @param color
    */
   public void colorChanged(Color color) {
@@ -100,7 +99,7 @@ public class JColorPickerButton extends JButton {
       };
 
       if (dialog == null)
-        dialog = JColorChooser.createDialog(parent, // parent comp
+        dialog = JColorChooser.createDialog(null, // parent comp
             "Pick A Color", // dialog title
             false, // modality
             chooser, okListener, cancelListener);
@@ -127,7 +126,7 @@ public class JColorPickerButton extends JButton {
 
   /**
    * The selected color (which is also the background color)
-   * 
+   *
    * @return
    */
   public Color getColor() {
@@ -136,7 +135,7 @@ public class JColorPickerButton extends JButton {
 
   /**
    * Same as color changed
-   * 
+   *
    * @param c
    */
   public void setColor(Color c) {
@@ -145,7 +144,7 @@ public class JColorPickerButton extends JButton {
 
   /**
    * same as color changed
-   * 
+   *
    * @param c
    */
   public void setColor(Paint c) {

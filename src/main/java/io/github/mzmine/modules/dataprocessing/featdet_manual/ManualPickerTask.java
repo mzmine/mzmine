@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,14 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
 import javax.swing.table.AbstractTableModel;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
@@ -66,16 +64,19 @@ class ManualPickerTask extends AbstractTask {
 
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0;
     return (double) processedScans / totalScans;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Manually picking peaks from " + Arrays.toString(dataFiles);
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -136,7 +137,7 @@ class ManualPickerTask extends AbstractTask {
       // Check if the feature list row has been added to the feature list,
       // and
       // if it has not, add it
-      List<PeakListRow> rows = Arrays.asList(peakList.getRows());
+      List<PeakListRow> rows = new ArrayList<>(peakList.getRows());
       if (!rows.contains(peakListRow)) {
         peakList.addRow(peakListRow);
       }
@@ -144,7 +145,7 @@ class ManualPickerTask extends AbstractTask {
       // Add quality parameters to peaks
       QualityParameters.calculateQualityParameters(peakList);
 
-      project.notifyObjectChanged(peakList, true);
+      // project.notifyObjectChanged(peakList, true);
     }
     if (table != null) {
       ((AbstractTableModel) table.getModel()).fireTableDataChanged();

@@ -37,7 +37,6 @@ public class ColorsFX {
   private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
   private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
 
-
   /**
    * Color palette with black+7colors for color blindness: <br>
    * Black, orange, sky blue, bluish green, yellow, blue, vermillion (darker orange), reddish purple

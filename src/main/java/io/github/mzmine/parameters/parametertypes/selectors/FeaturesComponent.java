@@ -1,128 +1,133 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
+
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-
+import org.controlsfx.control.CheckListView;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import io.github.mzmine.util.ExitCode;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * @author akshaj This class represents the component which shows Features in the parameter setup
  *         dialog of Fx3DVisualizer.
  */
-public class FeaturesComponent extends JPanel implements ActionListener {
+public class FeaturesComponent extends HBox {
 
-  private static final long serialVersionUID = 1L;
-  public List<FeatureSelection> currentValue = new ArrayList<FeatureSelection>();
-  final DefaultListModel<String> model = new DefaultListModel<>();
-  private JList<String> jlist = new JList<String>(model);
-  private final JButton addButton;
-  private final JButton removeButton;
-  private JPanel buttonPane;
+  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
+  private ListView<Feature> featuresList = new ListView<>(currentValue);
+  private final Button addButton = new Button("Add");;
+  private final Button removeButton = new Button("Remove");
+  private VBox buttonPane = new VBox();
 
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeaturesComponent() {
-    super(new BorderLayout());
-    setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
-    JScrollPane scrollPane = new JScrollPane(jlist);
-    scrollPane.setPreferredSize(new Dimension(300, 60));
-    add(scrollPane, BorderLayout.CENTER);
+    setSpacing(8.0);
 
-    buttonPane = new JPanel();
-    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.Y_AXIS));
-    addButton = GUIUtils.addButton(buttonPane, "Add", null, this);
-    removeButton = GUIUtils.addButton(buttonPane, "Remove", null, this);
-    this.add(buttonPane, BorderLayout.EAST);
+    buttonPane.setSpacing(8.0);
+    buttonPane.getChildren().addAll(addButton, removeButton);
 
-    for (FeatureSelection features : currentValue) {
-      model.addElement(features.getFeature().toString());
-    }
+    getChildren().addAll(featuresList, buttonPane);
+
+    featuresList.setPrefHeight(100.0);
+
+    addButton.setOnAction(e -> {
+      logger.finest("Add button clicked!");
+
+      ComboParameter<PeakList> featureListsParam =
+          new ComboParameter<>("Feature list", "Feature list selection",
+              MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+      ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
+          "Raw data file selection", FXCollections.observableArrayList());
+      MultiChoiceParameter<Feature> featuresParam =
+          new MultiChoiceParameter<>("Features", "Feature selection", new Feature[0]);
+      SimpleParameterSet paramSet = new SimpleParameterSet(
+          new Parameter[] {featureListsParam, dataFilesParam, featuresParam});
+
+      ParameterSetupDialog dialog = new ParameterSetupDialog(true, paramSet);
+      ComboBox<PeakList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
+      ComboBox<RawDataFile> dataFilesCombo = dialog.getComponentForParameter(dataFilesParam);
+      CheckListView<Feature> featuresSelection = dialog.getComponentForParameter(featuresParam);
+      featureListsCombo.setOnAction(e2 -> {
+        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        if (featureList == null)
+          return;
+        dataFilesCombo.setItems(featureList.getRawDataFiles());
+        dataFilesCombo.getSelectionModel().selectFirst();
+      });
+      dataFilesCombo.setOnAction(e3 -> {
+        PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
+        RawDataFile dataFile = dataFilesCombo.getSelectionModel().getSelectedItem();
+        if (featureList == null || dataFile == null)
+          return;
+        var features = FXCollections.observableArrayList(featureList.getPeaks(dataFile));
+        featuresSelection.setItems(features);
+      });
+      featureListsCombo.getSelectionModel().selectFirst();
+      dataFilesCombo.getSelectionModel().selectFirst();
+
+      /*
+       * Load features into featuresSelection. Events don't trigger automatically until the Stage is
+       * shown.
+       */
+      featureListsCombo.fireEvent(new ActionEvent());
+      dataFilesCombo.fireEvent(new ActionEvent());
+
+      dialog.showAndWait();
+      if (dialog.getExitCode() == ExitCode.OK) {
+        currentValue.addAll(featuresSelection.getCheckModel().getCheckedItems());
+      }
+    });
+
+    removeButton.setOnAction(e -> {
+      logger.finest("Remove Button Clicked!");
+      var sel = featuresList.getSelectionModel().getSelectedItems();
+      currentValue.removeAll(sel);
+    });
 
   }
 
-  public void setValue(List<FeatureSelection> newValue) {
-    currentValue = newValue;
-    for (FeatureSelection featureSelection : newValue) {
-      model.addElement(featureSelection.getFeature().toString());
-    }
+  public void setValue(List<Feature> newValue) {
+    currentValue = FXCollections.observableArrayList(newValue);
+    featuresList.setItems(currentValue);
   }
 
-  public List<FeatureSelection> getValue() {
+  public List<Feature> getValue() {
     return currentValue;
-  }
-
-  /*
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    Object src = event.getSource();
-    if (src == addButton) {
-      currentValue.clear();
-      LOG.finest("Add Button Clicked!");
-      FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
-      featuresSelectionDialog.setModal(true);
-      featuresSelectionDialog.setVisible(true);
-      if (featuresSelectionDialog.getReturnState() == true) {
-        jlist.setVisible(true);
-        PeakList selectedPeakList = featuresSelectionDialog.getSelectedPeakList();
-        RawDataFile selectedRawDataFile = featuresSelectionDialog.getSelectedRawDataFile();
-        LOG.finest("Selected PeakList is:" + selectedPeakList.getName());
-        LOG.finest("Selected RawDataFile is:" + selectedRawDataFile.getName());
-        for (Feature feature : featuresSelectionDialog.getSelectedFeatures()) {
-          PeakListRow selectedRow = selectedPeakList.getPeakRow(feature);
-          FeatureSelection featureSelection =
-              new FeatureSelection(selectedPeakList, feature, selectedRow, selectedRawDataFile);
-          currentValue.add(featureSelection);
-          model.addElement(feature.toString());
-        }
-      }
-    }
-    if (src == removeButton) {
-      LOG.finest("Remove Button Clicked!");
-      int[] indices = jlist.getSelectedIndices();
-      int k = 0;
-      for (int i : indices) {
-        model.remove(i - k);
-        currentValue.remove(i - k);
-        k++;
-      }
-    }
   }
 
 }

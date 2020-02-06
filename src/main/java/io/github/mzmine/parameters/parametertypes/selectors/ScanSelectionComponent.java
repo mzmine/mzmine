@@ -18,23 +18,11 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.text.NumberFormat;
 import java.util.Arrays;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
@@ -46,15 +34,17 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.GUIUtils;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 
-public class ScanSelectionComponent extends JPanel implements ActionListener {
+public class ScanSelectionComponent extends FlowPane {
 
-  private static final long serialVersionUID = 1L;
+  private final Button setButton, clearButton;
 
-  private final JButton setButton, clearButton;
-
-  private final JLabel restrictionsList;
+  private final Label restrictionsList;
 
   private Range<Integer> scanNumberRange;
   private Integer baseFilteringInteger;
@@ -66,48 +56,19 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
 
   public ScanSelectionComponent() {
 
-    BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
-    setLayout(layout);
+    // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+    setHgap(5.0);
 
-    restrictionsList = new JLabel();
-    add(restrictionsList);
+    restrictionsList = new Label();
     updateRestrictionList();
 
-    add(Box.createHorizontalStrut(10));
+    // add(Box.createHorizontalStrut(10));
 
-    setButton = GUIUtils.addButton(this, "Set filters", null, this);
-    clearButton = GUIUtils.addButton(this, "Clear filters", null, this);
-
-  }
-
-  void setValue(ScanSelection newValue) {
-    scanNumberRange = newValue.getScanNumberRange();
-    baseFilteringInteger = newValue.getBaseFilteringInteger();
-    scanRTRange = newValue.getScanRTRange();
-    polarity = newValue.getPolarity();
-    spectrumType = newValue.getSpectrumType();
-    msLevel = newValue.getMsLevel();
-    scanDefinition = newValue.getScanDefinition();
-
-    updateRestrictionList();
-  }
-
-  public ScanSelection getValue() {
-    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
-    Object src = event.getSource();
-
-    if (src == setButton) {
-
+    setButton = new Button("Set filters");
+    setButton.setOnAction(e -> {
       SimpleParameterSet paramSet;
       ExitCode exitCode;
-      Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
 
       final IntRangeParameter scanNumParameter = new IntRangeParameter("Scan number",
           "Range of included scan numbers", false, scanNumberRange);
@@ -124,13 +85,13 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
           "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
           scanDefinition, false);
       final String polarityTypes[] = {"Any", "+", "-"};
-      final ComboParameter<String> polarityParameter =
-          new ComboParameter<>("Polarity", "Include only scans of this polarity", polarityTypes);
+      final ComboParameter<String> polarityParameter = new ComboParameter<>("Polarity",
+          "Include only scans of this polarity", FXCollections.observableArrayList(polarityTypes));
       if ((polarity == PolarityType.POSITIVE) || (polarity == PolarityType.NEGATIVE))
         polarityParameter.setValue(polarity.asSingleChar());
       final String spectraTypes[] = {"Any", "Centroided", "Profile", "Thresholded"};
-      final ComboParameter<String> spectrumTypeParameter =
-          new ComboParameter<>("Spectrum type", "Include only spectra of this type", spectraTypes);
+      final ComboParameter<String> spectrumTypeParameter = new ComboParameter<>("Spectrum type",
+          "Include only spectra of this type", FXCollections.observableArrayList(spectraTypes));
       if (spectrumType != null) {
         switch (spectrumType) {
           case CENTROIDED:
@@ -148,7 +109,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
       paramSet = new SimpleParameterSet(
           new Parameter[] {scanNumParameter, baseFilteringIntegerParameter, rtParameter,
               msLevelParameter, scanDefinitionParameter, polarityParameter, spectrumTypeParameter});
-      exitCode = paramSet.showSetupDialog(parent, true);
+      exitCode = paramSet.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         scanNumberRange = paramSet.getParameter(scanNumParameter).getValue();
         this.baseFilteringInteger = paramSet.getParameter(baseFilteringIntegerParameter).getValue();
@@ -186,9 +147,13 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         }
 
       }
-    }
+      updateRestrictionList();
 
-    if (src == clearButton) {
+    });
+
+
+    clearButton = new Button("Clear filters");
+    clearButton.setOnAction(e -> {
       scanNumberRange = null;
       baseFilteringInteger = null;
       scanRTRange = null;
@@ -196,15 +161,34 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
       spectrumType = null;
       msLevel = null;
       scanDefinition = null;
-    }
+      updateRestrictionList();
 
-    updateRestrictionList();
+    });
+
+    getChildren().addAll(restrictionsList, setButton, clearButton);
 
   }
 
-  @Override
+  void setValue(ScanSelection newValue) {
+    scanNumberRange = newValue.getScanNumberRange();
+    baseFilteringInteger = newValue.getBaseFilteringInteger();
+    scanRTRange = newValue.getScanRTRange();
+    polarity = newValue.getPolarity();
+    spectrumType = newValue.getSpectrumType();
+    msLevel = newValue.getMsLevel();
+    scanDefinition = newValue.getScanDefinition();
+
+    updateRestrictionList();
+  }
+
+  public ScanSelection getValue() {
+    return new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
+        spectrumType, msLevel, scanDefinition);
+  }
+
+
   public void setToolTipText(String toolTip) {
-    restrictionsList.setToolTipText(toolTip);
+    restrictionsList.setTooltip(new Tooltip(toolTip));
   }
 
   private void updateRestrictionList() {
@@ -216,30 +200,30 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
       return;
     }
 
-    StringBuilder newText = new StringBuilder("<html>");
+    StringBuilder newText = new StringBuilder();
     if (scanNumberRange != null) {
       int upperEndpoint = scanNumberRange.upperEndpoint();
       String maxCountText =
           upperEndpoint == Integer.MAX_VALUE ? "Max" : Integer.toString(upperEndpoint);
-      newText.append(
-          "Scan number: " + scanNumberRange.lowerEndpoint() + " - " + maxCountText + "<br>");
+      newText
+          .append("Scan number: " + scanNumberRange.lowerEndpoint() + " - " + maxCountText + "\n");
     }
     if (baseFilteringInteger != null) {
-      newText.append("Base Filtering Integer: " + baseFilteringInteger + "<br>");
+      newText.append("Base Filtering Integer: " + baseFilteringInteger + "\n");
     }
     if (scanRTRange != null) {
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
       newText.append("Retention time: " + rtFormat.format(scanRTRange.lowerEndpoint()) + " - "
-          + rtFormat.format(scanRTRange.upperEndpoint()) + " min.<br>");
+          + rtFormat.format(scanRTRange.upperEndpoint()) + " min.\n");
     }
     if (msLevel != null) {
-      newText.append("MS level: " + msLevel + "<br>");
+      newText.append("MS level: " + msLevel + "\n");
     }
     if (!Strings.isNullOrEmpty(scanDefinition)) {
-      newText.append("Scan definition: " + scanDefinition + "<br>");
+      newText.append("Scan definition: " + scanDefinition + "\n");
     }
     if (polarity != null) {
-      newText.append("Polarity: " + polarity.asSingleChar() + "<br>");
+      newText.append("Polarity: " + polarity.asSingleChar() + "\n");
     }
     if (spectrumType != null) {
       newText.append("Spectrum type: " + spectrumType.toString().toLowerCase());

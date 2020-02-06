@@ -37,7 +37,7 @@ import io.github.mzmine.modules.dataprocessing.align_hierarchical.SimilarityMeth
 public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(RowVsRowScoreGC.class.getName());
+  private static final Logger logger = Logger.getLogger(RowVsRowScoreGC.class.getName());
 
   private PeakListRow peakListRow, alignedRow;
   double score;
@@ -60,7 +60,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
   ) {
 
     if (DEBUG) {
-      LOG.info("RowVsRowScoreGC = \n" + "\t" + project + "\n" +
+      logger.info("RowVsRowScoreGC = \n" + "\t" + project + "\n" +
       // "\t" + useOldestRDFancestor + "\n" +
       // "\t" + rtAdjustementMapping + "\n" +
           "\t" + peakListRow + "\n" + "\t" + alignedRow + "\n" + "\t" + mzMaxDiff + "\n" + "\t"
@@ -202,7 +202,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
       Scan apexScan = refRDF.getScan(peakListRow.getBestPeak().getRepresentativeScanNumber());
       //
       // Get scan m/z vector.
-      // LOG.info("DPs MZ Range: " + apexScan.getMZRange());
+      // logger.info("DPs MZ Range: " + apexScan.getMZRange());
       DataPoint[] dataPoints;
       // if (useDetectedMzOnly &&
       // peakListRow.getBestPeak().getIsotopePattern() != null)
@@ -362,7 +362,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
     try {
       simScore = RowVsRowScoreGC.computeSimilarityScore(vec1, vec2, SimilarityMethodType.DOT);
     } catch (IllegalArgumentException e) {
-      LOG.severe(e.getMessage());
+      logger.severe(e.getMessage());
     }
 
     return simScore;

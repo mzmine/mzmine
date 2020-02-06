@@ -25,9 +25,9 @@ public enum Weighting {
   NONE("NONE", v -> 1),
   // linear -> no transform
   LINEAR("LINEAR", v -> v),
-  // LOG: put to zero weight if it was zero
-  LOG10("LOG10", v -> v == 0 ? 0 : Math.log10(v)), //
-  LOG2("LOG2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
+  // logger: put to zero weight if it was zero
+  logger10("logger10", v -> v == 0 ? 0 : Math.log10(v)), //
+  logger2("logger2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
   /**
    * Sqare-root
    */
@@ -63,7 +63,7 @@ public enum Weighting {
   }
 
   /**
-   * e.g., lOG(weight)-LOG(noise)
+   * e.g., lOG(weight)-logger(noise)
    * 
    * @param weight
    * @param noiseLevel
@@ -71,7 +71,7 @@ public enum Weighting {
    * @return
    */
   public double transform(double weight, Double noiseLevel, Double maxWeight) {
-    // e.g., lOG(weight)-LOG(noise)
+    // e.g., lOG(weight)-logger(noise)
     double real = 0;
     if (noiseLevel != null)
       real = f.transform(weight) - f.transform(noiseLevel);

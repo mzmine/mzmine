@@ -19,17 +19,15 @@
 package io.github.mzmine.project.impl;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Vector;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MZmineProjectListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.application.Platform;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -41,17 +39,26 @@ public class MZmineProjectImpl implements MZmineProject {
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
-  private final ObservableList<RawDataFile> rawDataFiles =
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  private final SimpleListProperty<RawDataFile> rawDataFilesProperty = //
+      new SimpleListProperty<>(//
+          FXCollections.synchronizedObservableList(//
+              FXCollections.observableArrayList()//
+          ));
 
-  private final ObservableList<PeakList> featureLists =
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+
+  private final SimpleListProperty<PeakList> featureListsProperty = //
+      new SimpleListProperty<>(//
+          FXCollections.synchronizedObservableList(//
+              FXCollections.observableArrayList()//
+          ));
+
 
   private File projectFile;
 
-  private Collection<MZmineProjectListener> listeners =
-      Collections.synchronizedCollection(new LinkedList<MZmineProjectListener>());
-
+  /*
+   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
+   * LinkedList<MZmineProjectListener>());
+   */
   public MZmineProjectImpl() {
 
     projectParametersAndValues =
@@ -111,7 +118,7 @@ public class MZmineProjectImpl implements MZmineProject {
     assert newFile != null;
 
     Platform.runLater(() -> {
-      rawDataFiles.add(newFile);
+      rawDataFilesProperty.get().add(newFile);
     });
 
   }
@@ -122,7 +129,7 @@ public class MZmineProjectImpl implements MZmineProject {
     assert file != null;
 
     Platform.runLater(() -> {
-      rawDataFiles.remove(file);
+      rawDataFilesProperty.get().remove(file);
     });
 
     // Close the data file, which also removed the temporary data
@@ -132,12 +139,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public RawDataFile[] getDataFiles() {
-    return rawDataFiles.toArray(new RawDataFile[0]);
+    return rawDataFilesProperty.get().toArray(new RawDataFile[0]);
   }
 
   @Override
   public PeakList[] getPeakLists() {
-    return featureLists.toArray(new PeakList[0]);
+    return featureListsProperty.get().toArray(new PeakList[0]);
   }
 
   @Override
@@ -145,7 +152,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert peakList != null;
     Platform.runLater(() -> {
-      featureLists.add(peakList);
+      featureListsProperty.get().add(peakList);
     });
 
   }
@@ -156,7 +163,7 @@ public class MZmineProjectImpl implements MZmineProject {
     assert peakList != null;
 
     Platform.runLater(() -> {
-      featureLists.remove(peakList);
+      featureListsProperty.get().remove(peakList);
     });
   }
 
@@ -198,30 +205,32 @@ public class MZmineProjectImpl implements MZmineProject {
     return projectName;
   }
 
+  /*
+   * @Override public void addProjectListener(MZmineProjectListener newListener) {
+   * listeners.add(newListener); }
+   * 
+   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
+   * listeners.remove(newListener); }
+   */
+
   @Override
-  public void notifyObjectChanged(Object object, boolean structureChanged) {
-    // peakListTreeModel.notifyObjectChanged(object, structureChanged);
-    // awDataTreeModel.notifyObjectChanged(object, structureChanged);
+  public ObservableList<RawDataFile> getRawDataFiles() {
+    return rawDataFilesProperty.get();
   }
 
   @Override
-  public void addProjectListener(MZmineProjectListener newListener) {
-    listeners.add(newListener);
+  public ListProperty<RawDataFile> rawDataFilesProperty() {
+    return rawDataFilesProperty;
   }
 
   @Override
-  public void removeProjectListener(MZmineProjectListener newListener) {
-    listeners.remove(newListener);
+  public ObservableList<PeakList> getFeatureLists() {
+    return featureListsProperty.get();
   }
 
   @Override
-  public ObservableList<RawDataFile> rawDataFiles() {
-    return rawDataFiles;
-  }
-
-  @Override
-  public ObservableList<PeakList> featureLists() {
-    return featureLists;
+  public ListProperty<PeakList> featureListsProperty() {
+    return featureListsProperty;
   }
 
 }

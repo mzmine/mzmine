@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors;
 
-import java.awt.Window;
 import java.text.DecimalFormat;
-
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -30,7 +28,7 @@ import io.github.mzmine.util.ExitCode;
 
 /**
  * @description Feature Detection baseline corrector parameters.
- * 
+ *
  */
 public class PeakDetectionCorrectorParameters extends SimpleParameterSet {
 
@@ -82,10 +80,11 @@ public class PeakDetectionCorrectorParameters extends SimpleParameterSet {
     super(new UserParameter[] {LEFT, RIGHT, LWIN, RWIN, SNMINIMUM, MONO, MULTIPLIER});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(parent,
-        valueCheckRequired, this, PeakDetectionCorrector.class);
-    dialog.setVisible(true);
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    BaselineCorrectorSetupDialog dialog =
+        new BaselineCorrectorSetupDialog(valueCheckRequired, this, PeakDetectionCorrector.class);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

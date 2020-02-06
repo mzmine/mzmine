@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,24 +18,14 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
-
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -46,138 +36,92 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 /**
  * MS/MS visualizer using JFreeChart library
  */
-public class MsMsVisualizerWindow extends JFrame implements ActionListener {
+public class MsMsVisualizerWindow extends Stage {
 
-  private static final long serialVersionUID = 1L;
-  private MsMsToolBar toolBar;
-  private MsMsPlot IDAPlot;
-  private MsMsBottomPanel bottomPanel;
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image dataPointsIcon =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
+  private static final Image tooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/tooltips2dploticon.png");
+  private static final Image notooltipsIcon =
+      FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
+  private static final Image findIcon = FxIconUtil.loadImageFromResources("icons/search.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+  private final ToolBar toolBar;
+  private final Button toggleContinuousModeButton, findButton;
+  private final ToggleButton toggleTooltipButton;
+  private final MsMsPlot IDAPlot;
+  private final MsMsBottomPanel bottomPanel;
   private MsMsDataSet dataset;
   private RawDataFile dataFile;
-  private boolean tooltipMode;
 
   public MsMsVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
       IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
       ParameterSet parameters) {
 
-    super("MS/MS visualizer: [" + dataFile.getName() + "]");
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    // setBackground(Color.white);
 
     this.dataFile = dataFile;
-    this.tooltipMode = true;
 
     dataset = new MsMsDataSet(dataFile, rtRange, mzRange, intensityType, normalizationType,
         minPeakInt, this);
 
-    toolBar = new MsMsToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    IDAPlot = new MsMsPlot(dataFile, this, dataset, rtRange, mzRange);
+    mainPane.setCenter(IDAPlot);
 
-    IDAPlot = new MsMsPlot(this, dataFile, this, dataset, rtRange, mzRange);
-    add(IDAPlot, BorderLayout.CENTER);
+    toolBar = new ToolBar();
+    toolBar.setOrientation(Orientation.VERTICAL);
 
-    bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
-    add(bottomPanel, BorderLayout.SOUTH);
-
-    updateTitle();
-
-    // After we have constructed everything, load the feature lists into the
-    // bottom panel
-    bottomPanel.rebuildPeakListSelector();
-
-    // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
-
-    // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
-
-    pack();
-
-    // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
-
-    // update the window and listen for changes
-    settings.applySettingsToWindow(this);
-    this.addComponentListener(settings);
-  }
-
-  public void dispose() {
-    super.dispose();
-    // MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
-  }
-
-  void updateTitle() {
-    StringBuffer title = new StringBuffer();
-    title.append("Time vs. m/z for precursor ions\n");
-    title.append(dataFile.getName());
-    IDAPlot.setTitle(title.toString());
-  }
-
-  /**
-   * @return current cursor position
-   */
-  public CursorPosition getCursorPosition() {
-    double selectedRT = (double) IDAPlot.getXYPlot().getDomainCrosshairValue();
-    double selectedMZ = (double) IDAPlot.getXYPlot().getRangeCrosshairValue();
-
-    int index = dataset.getIndex(selectedRT, selectedMZ);
-
-    if (index >= 0) {
-      double intensity = (double) dataset.getZ(0, index);
-      CursorPosition pos = new CursorPosition(selectedRT, selectedMZ, intensity,
-          dataset.getDataFile(), dataset.getScanNumber(index));
-      return pos;
-    }
-
-    return null;
-  }
-
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SHOW_SPECTRUM")) {
-      CursorPosition pos = getCursorPosition();
-      if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
-      }
-    }
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, IDAPlot.getXYPlot());
-      dialog.setVisible(true);
-    }
-
-    if (command.equals("SHOW_DATA_POINTS")) {
+    toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
+    toggleContinuousModeButton
+        .setTooltip(new Tooltip("Toggle displaying of data points for the peaks"));
+    toggleContinuousModeButton.setOnAction(e -> {
       IDAPlot.switchDataPointsVisible();
-    }
+    });
 
-    if (command.equals("SWITCH_TOOLTIPS")) {
-      if (tooltipMode) {
+    toggleTooltipButton = new ToggleButton(null, new ImageView(tooltipsIcon));
+    toggleTooltipButton.setSelected(true);
+    toggleTooltipButton.setTooltip(new Tooltip("Toggle displaying of tool tips on the peaks"));
+    toggleTooltipButton.setOnAction(e -> {
+      if (toggleTooltipButton.isSelected()) {
         IDAPlot.showPeaksTooltips(false);
-        toolBar.setTooltipButton(false);
-        tooltipMode = false;
+        toggleTooltipButton.setSelected(false);
       } else {
         IDAPlot.showPeaksTooltips(true);
-        toolBar.setTooltipButton(true);
-        tooltipMode = true;
+        toggleTooltipButton.setSelected(true);
       }
-    }
+    });
 
-    if (command.equals("FIND_SPECTRA")) {
-
+    findButton = new Button(null, new ImageView(findIcon));
+    findButton.setTooltip(new Tooltip("Search for MS/MS spectra with specific ions"));
+    findButton.setOnAction(e -> {
       // Parameters
       final DoubleParameter inputMZ =
           new DoubleParameter("Ion m/z", "m/z value of ion to search for.");
@@ -194,15 +138,15 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
       final ComboParameter<Colors> inputColors = new ComboParameter<Colors>("Color",
           "The color which the data points will be marked with.", Colors.values());
 
-      Parameter<?>[] parameters = new Parameter<?>[5];
-      parameters[0] = inputMZ;
-      parameters[1] = inputMZTolerance;
-      parameters[2] = inputIntensity;
-      parameters[3] = inputNL;
-      parameters[4] = inputColors;
+      Parameter<?>[] findParams = new Parameter<?>[5];
+      findParams[0] = inputMZ;
+      findParams[1] = inputMZTolerance;
+      findParams[2] = inputIntensity;
+      findParams[3] = inputNL;
+      findParams[4] = inputColors;
 
-      final ParameterSet parametersSearch = new SimpleParameterSet(parameters);
-      ExitCode exitCode = parametersSearch.showSetupDialog(this, true);
+      final ParameterSet parametersSearch = new SimpleParameterSet(findParams);
+      ExitCode exitCode = parametersSearch.showSetupDialog(true);
 
       if (exitCode != ExitCode.OK)
         return;
@@ -231,9 +175,61 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
               + searchMZTolerance.toString() + "\nMin intensity: " + minIntensity,
           "", new Ellipse2D.Double(0, 0, 7, 7), highligtColor));
       IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);
+    });
+
+
+    toolBar.getItems().addAll(toggleContinuousModeButton, toggleTooltipButton, findButton);
+    mainPane.setRight(toolBar);
+
+
+    bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
+    mainPane.setBottom(bottomPanel);
+
+    updateTitle();
+
+    // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
+
+    // pack();
+
+    // get the window settings parameter
+    ParameterSet paramSet =
+        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
+    WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
+
+    // update the window and listen for changes
+    // settings.applySettingsToWindow(this);
+    // this.addComponentListener(settings);
+  }
+
+  void updateTitle() {
+    StringBuffer title = new StringBuffer();
+    title.append("Time vs. m/z for precursor ions\n");
+    title.append(dataFile.getName());
+    IDAPlot.setTitle(title.toString());
+  }
+
+  /**
+   * @return current cursor position
+   */
+  public CursorPosition getCursorPosition() {
+    double selectedRT = IDAPlot.getXYPlot().getDomainCrosshairValue();
+    double selectedMZ = IDAPlot.getXYPlot().getRangeCrosshairValue();
+
+    int index = dataset.getIndex(selectedRT, selectedMZ);
+
+    if (index >= 0) {
+      double intensity = (double) dataset.getZ(0, index);
+      CursorPosition pos = new CursorPosition(selectedRT, selectedMZ, intensity,
+          dataset.getDataFile(), dataset.getScanNumber(index));
+      return pos;
     }
 
+    return null;
   }
+
 
   MsMsPlot getPlot() {
     return IDAPlot;

@@ -18,35 +18,30 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import java.awt.Window;
 import java.util.ArrayList;
-
-import javax.swing.DefaultComboBoxModel;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.parametertypes.ComboComponent;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 
 public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-  private static final long serialVersionUID = 1L;
-  private ComboComponent<?> selDataCombo, refGroupCombo;
+  private ComboBox<UserParameter<?, ?>> selDataCombo;
+  private ComboBox<Object> refGroupCombo;
   private UserParameter<?, ?> previousParameterSelection;
 
-  public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
-      HeatMapParameters parameters) {
-    super(parent, valueCheckRequired, parameters);
+  public HeatmapSetupDialog(boolean valueCheckRequired, HeatMapParameters parameters) {
+    super(valueCheckRequired, parameters);
 
     // Get a reference to the combo boxes
-    selDataCombo =
-        (ComboComponent<?>) this.getComponentForParameter(HeatMapParameters.selectionData);
-    refGroupCombo =
-        (ComboComponent<?>) this.getComponentForParameter(HeatMapParameters.referenceGroup);
+    selDataCombo = this.getComponentForParameter(HeatMapParameters.selectionData);
+    refGroupCombo = this.getComponentForParameter(HeatMapParameters.referenceGroup);
 
     // Save a reference to current "Sample parameter" value
-    previousParameterSelection = (UserParameter<?, ?>) selDataCombo.getSelectedItem();
+    previousParameterSelection = selDataCombo.getSelectionModel().getSelectedItem();
 
     // Call parametersChanged() to rebuild the reference group combo
     parametersChanged();
@@ -59,7 +54,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 
     // Get the current value of the "Sample parameter" combo
     UserParameter<?, ?> currentParameterSelection =
-        (UserParameter<?, ?>) selDataCombo.getSelectedItem();
+        selDataCombo.getSelectionModel().getSelectedItem();
     if (currentParameterSelection == null)
       return;
 
@@ -81,7 +76,10 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
       // Update the parameter and combo model
       Object newValues[] = values.toArray();
       super.parameterSet.getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
-      refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
+
+      ObservableList<Object> newItems = FXCollections.observableArrayList(newValues);
+      refGroupCombo.setItems(newItems);
+
 
       previousParameterSelection = currentParameterSelection;
     }

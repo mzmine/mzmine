@@ -53,7 +53,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class SmoothingTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(SmoothingTask.class.getName());
+  private static final Logger logger = Logger.getLogger(SmoothingTask.class.getName());
 
   // Feature lists: original and processed.
   private final MZmineProject project;
@@ -230,13 +230,13 @@ public class SmoothingTask extends AbstractTask {
         newPeakList.addDescriptionOfAppliedTask(
             new SimplePeakListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
 
-        LOG.finest("Finished peak smoothing: " + progress + " rows processed");
+        logger.finest("Finished peak smoothing: " + progress + " rows processed");
 
         setStatus(TaskStatus.FINISHED);
       }
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Smoothing error", t);
+      logger.log(Level.SEVERE, "Smoothing error", t);
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
     }

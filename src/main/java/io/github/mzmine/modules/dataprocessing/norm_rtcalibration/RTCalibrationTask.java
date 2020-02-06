@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,16 +20,14 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
@@ -73,16 +71,19 @@ class RTCalibrationTask extends AbstractTask {
 
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0f;
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Retention time normalization of " + originalPeakLists.length + " feature lists";
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -173,7 +174,7 @@ class RTCalibrationTask extends AbstractTask {
       double rtAverage = 0;
       for (PeakListRow row : goodStandards.get(i))
         rtAverage += row.getAverageRT();
-      rtAverage /= (double) originalPeakLists.length;
+      rtAverage /= originalPeakLists.length;
       averagedRTs[i] = rtAverage;
     }
 
@@ -225,7 +226,7 @@ class RTCalibrationTask extends AbstractTask {
   /**
    * Normalize retention time of all rows in given feature list and save normalized rows into new
    * peak list.
-   * 
+   *
    * @param originalPeakList Feature list to be normalized
    * @param normalizedPeakList New feature list, where normalized rows are to be saved
    * @param standards Standard rows in same feature list
@@ -234,7 +235,7 @@ class RTCalibrationTask extends AbstractTask {
   private void normalizePeakList(PeakList originalPeakList, PeakList normalizedPeakList,
       PeakListRow standards[], double normalizedStdRTs[]) {
 
-    PeakListRow originalRows[] = originalPeakList.getRows();
+    PeakListRow originalRows[] = originalPeakList.getRows().toArray(PeakListRow[]::new);
 
     // Iterate feature list rows
     for (PeakListRow originalRow : originalRows) {
@@ -264,7 +265,7 @@ class RTCalibrationTask extends AbstractTask {
 
   /**
    * Normalize retention time of given row using selected standards
-   * 
+   *
    * @param originalRow Feature list row to be normalized
    * @param standards Standard rows in same feature list
    * @param normalizedStdRTs Normalized retention times of standard rows

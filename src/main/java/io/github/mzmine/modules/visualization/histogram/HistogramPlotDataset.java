@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,15 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.statistics.HistogramBin;
 import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -73,7 +70,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     Feature[] peaks;
     double[] values = null;
     for (RawDataFile dataFile : rawDataFiles) {
-      peaks = peakList.getPeaks(dataFile);
+      peaks = peakList.getPeaks(dataFile).toArray(Feature[]::new);
       values = new double[peaks.length];
       for (int i = 0; i < peaks.length; i++) {
         switch (dataType) {
@@ -129,7 +126,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the histogram type.
-   * 
+   *
    * @return The type (never <code>null</code>).
    */
   public HistogramType getType() {
@@ -138,7 +135,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Sets the histogram type and sends a {@link DatasetChangeEvent} to all registered listeners.
-   * 
+   *
    * @param type the type (<code>null</code> not permitted).
    */
   public void setType(HistogramType type) {
@@ -153,7 +150,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
    * Adds a series to the dataset. Any data value less than minimum will be assigned to the first
    * bin, and any data value greater than maximum will be assigned to the last bin. Values falling
    * on the boundary of adjacent bins will be assigned to the higher indexed bin.
-   * 
+   *
    * @param key the series key (<code>null</code> not permitted).
    * @param values the raw observations.
    * @param numOfBins the number of bins (must be at least 1).
@@ -202,7 +199,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
           binIndex = numOfBins - 1;
         }
       }
-      HistogramBin bin = (HistogramBin) binList.get(binIndex);
+      HistogramBin bin = binList.get(binIndex);
       bin.incrementCount();
 
     }
@@ -218,9 +215,9 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the minimum value in an array of values.
-   * 
+   *
    * @param values the values (<code>null</code> not permitted and zero-length array not permitted).
-   * 
+   *
    * @return The minimum value.
    */
   private double getMinimum(double[] values) {
@@ -238,9 +235,9 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the maximum value in an array of values.
-   * 
+   *
    * @param values the values (<code>null</code> not permitted and zero-length array not permitted).
-   * 
+   *
    * @return The maximum value.
    */
   private double getMaximum(double[] values) {
@@ -258,16 +255,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the bins for a series.
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
-   * 
+   *
    * @return A list of bins.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
   private List<?> getBins(int series) {
-    HashMap<?, ?> map = (HashMap<?, ?>) this.list.get(series);
+    HashMap<?, ?> map = this.list.get(series);
     return (List<?>) map.get("bins");
   }
 
@@ -276,69 +273,72 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
    * @return
    */
   private double[] getValues(int series) {
-    HashMap<?, ?> map = (HashMap<?, ?>) this.list.get(series);
+    HashMap<?, ?> map = this.list.get(series);
     return (double[]) map.get("values");
   }
 
   /**
    * Returns the total number of observations for a series.
-   * 
+   *
    * @param series the series index.
-   * 
+   *
    * @return The total.
    */
   private int getTotal(int series) {
-    Map<?, ?> map = (Map<?, ?>) this.list.get(series);
+    Map<?, ?> map = this.list.get(series);
     return ((Integer) map.get("values.length")).intValue();
   }
 
   /**
    * Returns the bin width for a series.
-   * 
+   *
    * @param series the series index (zero based).
-   * 
+   *
    * @return The bin width.
    */
   private double getBinWidth(int series) {
-    Map<?, ?> map = (Map<?, ?>) this.list.get(series);
+    Map<?, ?> map = this.list.get(series);
     return ((Double) map.get("bin width")).doubleValue();
   }
 
   /**
    * Returns the number of series in the dataset.
-   * 
+   *
    * @return The series count.
    */
+  @Override
   public int getSeriesCount() {
     return this.list.size();
   }
 
   /**
    * Returns the key for a series.
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
-   * 
+   *
    * @return The series key.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Comparable<?> getSeriesKey(int series) {
-    Map<?, ?> map = (Map<?, ?>) this.list.get(series);
+    Map<?, ?> map = this.list.get(series);
     return (Comparable<?>) map.get("key");
   }
 
   /**
    * Returns the number of data items for a series.
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
-   * 
+   *
    * @return The item count.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
 
+  @Override
   public int getItemCount(int series) {
     return getBins(series).size();
   }
@@ -347,15 +347,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
    * Returns the X value for a bin. This value won't be used for plotting histograms, since the
    * renderer will ignore it. But other renderers can use it (for example, you could use the dataset
    * to create a line chart).
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The start value.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getX(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
@@ -365,15 +366,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the y-value for a bin (calculated to take into account the histogram type).
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The y-value.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getY(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
@@ -393,15 +395,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the start value for a bin.
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The start value.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getStartX(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
@@ -410,15 +413,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
   /**
    * Returns the end value for a bin.
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The end value.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getEndX(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
@@ -428,15 +432,16 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   /**
    * Returns the start y-value for a bin (which is the same as the y-value, this method exists only
    * to support the general form of the {@link IntervalXYDataset} interface).
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The y-value.
-   * 
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getStartY(int series, int item) {
     return getY(series, item);
   }
@@ -444,16 +449,17 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   /**
    * Returns the end y-value for a bin (which is the same as the y-value, this method exists only to
    * support the general form of the {@link IntervalXYDataset} interface).
-   * 
+   *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).
    * @param item the item index (zero based).
-   * 
+   *
    * @return The Y value.
-   * 
-   * 
+   *
+   *
    * @throws IndexOutOfBoundsException if <code>series</code> is outside the specified range.
    */
+  @Override
   public Number getEndY(int series, int item) {
     return getY(series, item);
   }

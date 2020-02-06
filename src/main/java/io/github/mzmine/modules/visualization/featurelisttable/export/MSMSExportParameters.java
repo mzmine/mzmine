@@ -22,11 +22,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 public class MSMSExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter outputFile =
-      new FileNameParameter("Output file", "Please set the path and name of the output text file");
+  public static final FileNameParameter outputFile = new FileNameParameter("Output file",
+      "Please set the path and name of the output text file", FileSelectionType.SAVE);
 
   public static final MassListParameter massList = new MassListParameter();
 

@@ -25,7 +25,6 @@
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
 import java.text.NumberFormat;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -37,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.R.REngineType;
+import javafx.collections.FXCollections;
 
 /**
  * Parameters for a <code>CameraSearchTask</code>.
@@ -83,7 +83,7 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   // Ionization Polarity
   public static final ComboParameter POLARITY = new ComboParameter("Ionization Polarity",
-      "Ionization Polarity", new Object[] {"positive", "negative"}, "positive");
+      "Ionization Polarity", FXCollections.observableArrayList("positive", "negative"), "positive");
 
   public static final BooleanParameter DONT_SPLIT_ISOTOPES =
       new BooleanParameter("Do not split isotopes",
@@ -95,7 +95,8 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> ORDER =
       new ComboParameter<>("Order", "Order of Isotope search and Shape correlation steps",
-          new String[] {FIND_ISOTOPES_FIRST, GROUP_CORR_FIRST}, FIND_ISOTOPES_FIRST);
+          FXCollections.observableArrayList(FIND_ISOTOPES_FIRST, GROUP_CORR_FIRST),
+          FIND_ISOTOPES_FIRST);
 
   public static final BooleanParameter CREATE_NEW_LIST =
       new BooleanParameter("Create new list", "If checked, a new list will be created", true);
@@ -105,7 +106,7 @@ public class CameraSearchParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> GROUP_BY =
       new ComboParameter<>("Group peaks by", "Order of Isotope search and Shape correlation steps",
-          new String[] {GROUP_BY_ISOTOPE, GROUP_BY_PCGROUP}, GROUP_BY_ISOTOPE);
+          FXCollections.observableArrayList(GROUP_BY_ISOTOPE, GROUP_BY_PCGROUP), GROUP_BY_ISOTOPE);
 
   public static final BooleanParameter INCLUDE_SINGLETONS =
       new BooleanParameter("Include singletons",
@@ -118,8 +119,8 @@ public class CameraSearchParameters extends SimpleParameterSet {
    * R engine type.
    */
   public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R.", REngineType.values(),
-      REngineType.RCALLER);
+      "R engine", "The R engine to be used for communicating with R.",
+      FXCollections.observableArrayList(REngineType.values()), REngineType.RCALLER);
 
   public CameraSearchParameters() {
 

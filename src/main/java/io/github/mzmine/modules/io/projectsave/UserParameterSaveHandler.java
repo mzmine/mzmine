@@ -22,17 +22,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.logging.Logger;
-
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
-
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -117,7 +114,7 @@ class UserParameterSaveHandler {
 
   /**
    * Create the part of the XML document related to the scans
-   * 
+   *
    * @param scan
    * @param element
    */
@@ -129,7 +126,7 @@ class UserParameterSaveHandler {
     RawDataFile dataFiles[] = project.getDataFiles();
 
     if (parameter instanceof ComboParameter) {
-      Object choices[] = ((ComboParameter<?>) parameter).getChoices();
+      Object choices[] = ((ComboParameter<?>) parameter).getChoices().toArray();
 
       for (Object choice : choices) {
         hd.startElement("", "", UserParameterElementName.OPTION.getElementName(), atts);
@@ -165,7 +162,7 @@ class UserParameterSaveHandler {
   }
 
   /**
-   * 
+   *
    * @return the progress of these functions saving the raw data information to the zip file.
    */
   double getProgress() {

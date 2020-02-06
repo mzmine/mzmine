@@ -45,10 +45,10 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
     super(new Parameter[] {noiseLevel, scaleLevel, waveletWindow});
   }
 
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     MassDetectorSetupDialog dialog =
-        new MassDetectorSetupDialog(parent, valueCheckRequired, WaveletMassDetector.class, this);
-    dialog.setVisible(true);
+        new MassDetectorSetupDialog(valueCheckRequired, WaveletMassDetector.class, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,19 +21,14 @@ package io.github.mzmine.modules.dataprocessing.id_ms2search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -124,6 +119,7 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0;
@@ -133,6 +129,7 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "MS2 similarity comparison between " + peakList1 + " and " + peakList2;
   }
@@ -140,6 +137,7 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -148,8 +146,8 @@ class Ms2SearchTask extends AbstractTask {
         + " with mz tolerance:" + mzTolerance.getPpmTolerance());
 
     Ms2SearchResult searchResult;
-    PeakListRow rows1[] = peakList1.getRows();
-    PeakListRow rows2[] = peakList2.getRows();
+    PeakListRow rows1[] = peakList1.getRows().toArray(PeakListRow[]::new);
+    PeakListRow rows2[] = peakList2.getRows().toArray(PeakListRow[]::new);
 
     int rows1Length = rows1.length;
     int rows2Length = rows2.length;
@@ -282,7 +280,7 @@ class Ms2SearchTask extends AbstractTask {
 
   /**
    * Add new identity based on fragmentation similarity to the row
-   * 
+   *
    * @param mainRow
    * @param fragmentRow
    */
@@ -290,8 +288,5 @@ class Ms2SearchTask extends AbstractTask {
       Ms2SearchResult searchResult) {
     Ms2Identity newIdentity = new Ms2Identity(featureA, featureB, searchResult);
     row1.addPeakIdentity(newIdentity, false);
-
-    // Notify the GUI about the change in the project
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row1, false);
   }
 }

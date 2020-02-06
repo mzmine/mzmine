@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,28 +18,37 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Arrays;
 import java.util.Collection;
-
 import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 
 /**
  * Combo Parameter implementation
- * 
+ *
  */
-public class ComboParameter<ValueType>
-    implements UserParameter<ValueType, ComboComponent<ValueType>> {
+public class ComboParameter<ValueType> implements UserParameter<ValueType, ComboBox<ValueType>> {
 
   private String name, description;
-  private ValueType choices[], value;
+  private ObservableList<ValueType> choices;
+  private ValueType value;
 
   public ComboParameter(String name, String description, ValueType choices[]) {
     this(name, description, choices, null);
   }
 
-  public ComboParameter(String name, String description, ValueType choices[],
+  public ComboParameter(String name, String description, ValueType[] choices,
+      ValueType defaultValue) {
+    this(name, description, FXCollections.observableArrayList(choices), defaultValue);
+  }
+
+  public ComboParameter(String name, String description, ObservableList<ValueType> choices) {
+    this(name, description, choices, null);
+  }
+
+  public ComboParameter(String name, String description, ObservableList<ValueType> choices,
       ValueType defaultValue) {
     this.name = name;
     this.description = description;
@@ -56,8 +65,9 @@ public class ComboParameter<ValueType>
   }
 
   @Override
-  public ComboComponent<ValueType> createEditingComponent() {
-    ComboComponent<ValueType> comboComponent = new ComboComponent<ValueType>(choices);
+  public ComboBox<ValueType> createEditingComponent() {
+    ComboBox<ValueType> comboComponent = new ComboBox<ValueType>(choices);
+    comboComponent.getSelectionModel().selectFirst();
     return comboComponent;
   }
 
@@ -66,12 +76,13 @@ public class ComboParameter<ValueType>
     return value;
   }
 
-  public ValueType[] getChoices() {
+  public ObservableList<ValueType> getChoices() {
     return choices;
   }
 
   public void setChoices(ValueType newChoices[]) {
-    this.choices = newChoices;
+    choices.clear();
+    choices.addAll(newChoices);
   }
 
   @Override
@@ -87,26 +98,13 @@ public class ComboParameter<ValueType>
   }
 
   @Override
-  public void setValueFromComponent(ComboComponent<ValueType> component) {
-    Object selectedItem = component.getSelectedItem();
-    if (selectedItem == null) {
-      value = null;
-      return;
-    }
-    if (!Arrays.asList(choices).contains(selectedItem)) {
-      throw new IllegalArgumentException(
-          "Invalid value for parameter " + name + ": " + selectedItem);
-    }
-    int index = component.getSelectedIndex();
-    if (index < 0)
-      return;
-
-    value = choices[index];
+  public void setValueFromComponent(ComboBox<ValueType> component) {
+    value = component.getSelectionModel().getSelectedItem();
   }
 
   @Override
-  public void setValueToComponent(ComboComponent<ValueType> component, ValueType newValue) {
-    component.setSelectedItem(newValue);
+  public void setValueToComponent(ComboBox<ValueType> component, ValueType newValue) {
+    component.getSelectionModel().select(newValue);
   }
 
   @Override

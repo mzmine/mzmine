@@ -15,6 +15,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import java.text.NumberFormat;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -26,10 +27,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
-
-import java.awt.Window;
-
-import java.text.NumberFormat;
+import javafx.collections.FXCollections;
 
 /**
  *
@@ -87,9 +85,9 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public static final ComboParameter<String> MODEL_PEAK_CHOICE = new ComboParameter<>(
       "Choice of Model Peak based on",
       "Criterion to choose a model peak in a cluster: either peak with the highest m/z-value or with the highest sharpness",
-      new String[] {TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS,
+      FXCollections.observableArrayList(TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS,
           TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_MZ,
-          TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY},
+          TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY),
       TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS);
 
   public static final ListDoubleRangeParameter MZ_VALUES = new ListDoubleRangeParameter(
@@ -114,7 +112,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>Module Disclaimer:"
         + "<br> If you use this Spectral Deconvolution Module, please cite the "
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
@@ -124,9 +122,9 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
         + "</html>";
 
     final ADAP3DecompositionV1_5SetupDialog dialog =
-        new ADAP3DecompositionV1_5SetupDialog(parent, valueCheckRequired, this, message);
+        new ADAP3DecompositionV1_5SetupDialog(valueCheckRequired, this, message);
 
-    dialog.setVisible(true);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 }

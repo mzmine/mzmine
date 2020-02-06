@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class GNPSResultsImportParameters extends SimpleParameterSet {
@@ -28,7 +29,8 @@ public class GNPSResultsImportParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LIST = new PeakListsParameter(1, 1);
 
   public static final FileNameParameter FILE = new FileNameParameter("GNPS graphml file",
-      "GNPS results in the graphml file (download cytoscape data)", "graphml");
+      "GNPS results in the graphml file (download cytoscape data)", "graphml",
+      FileSelectionType.OPEN);
 
   public GNPSResultsImportParameters() {
     super(new Parameter[] {PEAK_LIST, FILE});

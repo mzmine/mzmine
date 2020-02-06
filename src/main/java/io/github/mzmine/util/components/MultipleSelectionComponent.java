@@ -50,7 +50,7 @@ public class MultipleSelectionComponent<ValueType> extends JPanel implements Act
   private ExtendedCheckBox<Object> checkBoxes[];
 
   private JButton selectAllButton, selectNoneButton;
-  private Logger LOG = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   @SuppressWarnings("unchecked")
   public MultipleSelectionComponent(Object multipleValues[]) {

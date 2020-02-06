@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,32 +18,14 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import java.awt.BorderLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -55,7 +37,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -64,7 +45,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.JLastFilesButton;
+import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
@@ -73,20 +54,29 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.components.DragOrderedJList;
-import io.github.mzmine.util.dialogs.LoadSaveFileChooser;
+import io.github.mzmine.util.javafx.DraggableListCell;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
-public class BatchSetupComponent extends JPanel
-    implements ActionListener, MouseListener, LastFilesComponent {
+public class BatchSetupComponent extends BorderPane implements LastFilesComponent {
 
-  private static final long serialVersionUID = 1L;
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(BatchSetupComponent.class.getName());
+  private static final Logger logger = Logger.getLogger(BatchSetupComponent.class.getName());
 
   // XML extension.
-  private static final String XML_EXTENSION = "xml";
+  private static final ExtensionFilter xmlExtensionFilter =
+      new ExtensionFilter("XML files", "*.xml");
 
   // Queue operations.
   private enum QueueOperations {
@@ -97,42 +87,39 @@ public class BatchSetupComponent extends JPanel
   private BatchQueue batchQueue;
 
   // Widgets.
-  private final JComboBox<Object> methodsCombo;
-  private final JList<Object> currentStepsList;
-  private final JButton btnAdd;
-  private final JButton btnConfig;
-  private final JButton btnRemove;
-  private final JButton btnClear;
-  private final JButton btnLoad;
-  private final JButton btnSave;
+  private final ComboBox<Object> methodsCombo;
+  private final ListView<MZmineProcessingStep<MZmineProcessingModule>> currentStepsList;
+  private final Button btnAdd, btnConfig, btnRemove, btnClear, btnLoad, btnSave;
 
   Object[] queueListModel;
 
   // File chooser.
-  private LoadSaveFileChooser chooser;
+  private FileChooser chooser;
 
-  private JLastFilesButton btnLoadLastFiles;
+  private LastFilesButton btnLoadLastFiles;
 
   /**
    * Create the component.
    */
   public BatchSetupComponent() {
 
-    super(new BorderLayout());
-
     batchQueue = new BatchQueue();
 
     // Create file chooser.
-    chooser = new LoadSaveFileChooser("Select Batch Queue File");
-    chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
+    chooser = new FileChooser();
+    chooser.setTitle("Select Batch Queue File");
+    chooser.getExtensionFilters().add(xmlExtensionFilter);
+
 
     // The steps list.
-    currentStepsList = new DragOrderedJList(this);
-    currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    currentStepsList = new ListView<>();
+    currentStepsList.setCellFactory(
+        param -> new DraggableListCell<MZmineProcessingStep<MZmineProcessingModule>>());
+    currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
     // Methods combo box.
-    methodsCombo = new JComboBox<Object>();
-    methodsCombo.setMaximumRowCount(14);
+    methodsCombo = new ComboBox<Object>();
+    // methodsCombo.setMaximumRowCount(14);
 
     // Add processing modules to combo box by category.
     final Collection<MZmineModule> allModules = MZmineCore.getAllModules();
@@ -153,67 +140,52 @@ public class BatchSetupComponent extends JPanel
 
             // Add category item?
             if (!categoryItemAdded) {
-              methodsCombo.addItem(category);
+              methodsCombo.getItems().add(category);
               categoryItemAdded = true;
             }
 
             // Add method item.
             BatchModuleWrapper wrappedModule = new BatchModuleWrapper(step);
-            methodsCombo.addItem(wrappedModule);
+            methodsCombo.getItems().add(wrappedModule);
           }
         }
       }
     }
 
     // Create Load/Save buttons.
-    final JPanel panelTop = new JPanel();
-    panelTop.setLayout(new BoxLayout(panelTop, BoxLayout.X_AXIS));
     // button to load one of the last used files
-    btnLoadLastFiles = new JLastFilesButton("Load last...", file -> {
+    btnLoadLastFiles = new LastFilesButton("Load last...", file -> {
       try {
         loadBatchSteps(file);
       } catch (ParserConfigurationException | IOException | SAXException e) {
-        LOG.log(Level.WARNING, "Could not load last file " + file.getAbsolutePath(), e);
+        logger.log(Level.WARNING, "Could not load last file " + file.getAbsolutePath(), e);
       }
     });
-    panelTop.add(btnLoadLastFiles);
 
-    btnLoad = GUIUtils.addButton(panelTop, "Load...", null, this, "LOAD",
-        "Loads a batch queue from a file");
-    btnSave = GUIUtils.addButton(panelTop, "Save...", null, this, "SAVE",
-        "Saves a batch queue to a file");
+    btnLoad = new Button("Load...");
+    btnLoad.setTooltip(new Tooltip("Loads a batch queue from a file"));
+    btnSave = new Button("Save...");
+    btnSave.setTooltip(new Tooltip("Saves a batch queue to a file"));
+    final HBox panelTop = new HBox(10.0, btnLoadLastFiles, btnLoad, btnSave);
 
-    final JPanel pnlRight = new JPanel();
-    pnlRight.setLayout(new BoxLayout(pnlRight, BoxLayout.Y_AXIS));
-    btnConfig = GUIUtils.addButton(pnlRight, "Configure", null, this, "CONFIG",
-        "Configure the selected batch step");
-    btnRemove = GUIUtils.addButton(pnlRight, "Remove", null, this, "REMOVE",
-        "Remove the selected batch step");
-    btnClear =
-        GUIUtils.addButton(pnlRight, "Clear", null, this, "CLEAR", "Removes all batch steps");
+    btnConfig = new Button("Configure");
+    btnConfig.setTooltip(new Tooltip("Configure the selected batch step"));
+    btnRemove = new Button("Remove");
+    btnRemove.setTooltip(new Tooltip("Remove the selected batch step"));
+    btnClear = new Button("Clear");
+    btnClear.setTooltip(new Tooltip("Removes all batch steps"));
+    final VBox pnlRight = new VBox(10.0, btnConfig, btnRemove, btnClear);
 
-    final JPanel pnlBottom = new JPanel(new BorderLayout());
-    btnAdd = GUIUtils.addButton(pnlBottom, "Add", null, this, "ADD",
-        "Adds the selected method to the batch queue");
-    pnlBottom.add(btnAdd, BorderLayout.EAST);
-    pnlBottom.add(methodsCombo, BorderLayout.CENTER);
+    final BorderPane pnlBottom = new BorderPane();
+    btnAdd = new Button("Add");
+    btnAdd.setTooltip(new Tooltip("Adds the selected method to the batch queue"));
+    pnlBottom.setRight(btnAdd);
+    pnlBottom.setCenter(methodsCombo);
 
-    // Layout sub-panels.
-    add(panelTop, BorderLayout.NORTH);
-    add(new JScrollPane(currentStepsList), BorderLayout.CENTER);
-    add(pnlBottom, BorderLayout.SOUTH);
-    add(pnlRight, BorderLayout.EAST);
 
-    this.addMouseListener(this);
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-    final Object src = e.getSource();
-    if (btnAdd.equals(src)) {
-
+    btnAdd.setOnAction(e -> {
       // Processing module selected?
-      final Object selectedItem = methodsCombo.getSelectedItem();
+      final Object selectedItem = methodsCombo.getSelectionModel().getSelectedItem();
       if (selectedItem instanceof BatchModuleWrapper) {
         // Show method's set-up dialog.
         final BatchModuleWrapper wrappedModule = (BatchModuleWrapper) selectedItem;
@@ -246,8 +218,7 @@ public class BatchSetupComponent extends JPanel
 
         // Configure parameters
         if (stepParams.getParameters().length > 0) {
-          Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-          ExitCode exitCode = stepParams.showSetupDialog(parent, false);
+          ExitCode exitCode = stepParams.showSetupDialog(false);
           if (exitCode != ExitCode.OK)
             return;
         }
@@ -258,63 +229,51 @@ public class BatchSetupComponent extends JPanel
 
         // Add step to queue.
         batchQueue.add(step);
-        currentStepsList.setListData(batchQueue);
-        currentStepsList.setSelectedIndex(currentStepsList.getModel().getSize() - 1);
+        currentStepsList.setItems(FXCollections.observableArrayList(batchQueue));
+        currentStepsList.getSelectionModel().select(batchQueue.size() - 1);
 
       }
-    }
+    });
 
-    if (btnRemove.equals(src)) {
-
+    btnRemove.setOnAction(e -> {
       // Remove selected step.
-      final MZmineProcessingStep<?> selected =
-          (MZmineProcessingStep<?>) currentStepsList.getSelectedValue();
+      var selected = currentStepsList.getSelectionModel().getSelectedItem();
       if (selected != null) {
-        final int index = currentStepsList.getSelectedIndex();
         batchQueue.remove(selected);
-        currentStepsList.setListData(batchQueue);
-        selectStep(index);
       }
-    }
+    });
 
-    if (btnClear.equals(src)) {
-
+    btnClear.setOnAction(e -> {
       // Clear the queue.
       batchQueue.clear();
-      currentStepsList.setListData(batchQueue);
-    }
+    });
 
-    if (btnConfig.equals(src)) {
-
+    btnConfig.setOnAction(e -> {
       // Configure the selected item.
-      final MZmineProcessingStep<?> selected =
-          (MZmineProcessingStep<?>) currentStepsList.getSelectedValue();
+      var selected = currentStepsList.getSelectionModel().getSelectedItem();
       final ParameterSet parameters = selected == null ? null : selected.getParameterSet();
       if (parameters != null) {
-        Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
-        parameters.showSetupDialog(parent, false);
+        parameters.showSetupDialog(false);
       }
-    }
+    });
 
-    if (btnSave.equals(src)) {
-
+    btnSave.setOnAction(e -> {
       try {
-        final File file = chooser.getSaveFile(this, XML_EXTENSION);
+        final File file = chooser.showSaveDialog(this.getScene().getWindow());
         if (file != null) {
           saveBatchSteps(file);
         }
       } catch (Exception ex) {
 
-        JOptionPane.showMessageDialog(this,
-            "A problem occurred saving the file.\n" + ex.getMessage(), "Saving Failed",
-            JOptionPane.ERROR_MESSAGE);
+        MZmineCore.getDesktop()
+            .displayErrorMessage("A problem occurred saving the file.\n" + ex.getMessage());
       }
-    }
+    });
 
-    if (btnLoad.equals(src)) {
+    btnLoad.setOnAction(e -> {
       try {
         // Load the steps.
-        final File file = chooser.getLoadFile(this);
+        final File file = chooser.showOpenDialog(this.getScene().getWindow());
         if (file != null) {
 
           // Load the batch steps.
@@ -322,12 +281,18 @@ public class BatchSetupComponent extends JPanel
         }
       } catch (Exception ex) {
 
-        JOptionPane.showMessageDialog(this,
-            "A problem occurred loading the file.\n" + ex.getMessage(), "Loading Failed",
-            JOptionPane.ERROR_MESSAGE);
+        MZmineCore.getDesktop()
+            .displayErrorMessage("A problem occurred loading the file.\n" + ex.getMessage());
       }
-    }
+    });
+    // Layout sub-panels.
+    setTop(panelTop);
+    setCenter(currentStepsList);
+    setBottom(pnlBottom);
+    setRight(pnlRight);
+
   }
+
 
   @Override
   public void setLastFiles(List<File> lastFiles) {
@@ -336,7 +301,7 @@ public class BatchSetupComponent extends JPanel
 
   /**
    * Add a file to the last files button if not already added
-   * 
+   *
    * @param f
    */
   public void addLastUsedFile(File f) {
@@ -345,7 +310,7 @@ public class BatchSetupComponent extends JPanel
 
   /**
    * Get the queue.
-   * 
+   *
    * @return the queue.
    */
   public BatchQueue getValue() {
@@ -354,33 +319,33 @@ public class BatchSetupComponent extends JPanel
 
   /**
    * Sets the queue.
-   * 
+   *
    * @param newValue the new queue.
    */
   public void setValue(final BatchQueue newValue) {
 
     batchQueue = newValue;
-    currentStepsList.setListData(batchQueue);
+    currentStepsList.setItems(batchQueue);
     selectStep(0);
   }
 
   /**
    * Select a step of the batch queue.
-   * 
+   *
    * @param step the step's index in the queue.
    */
   private void selectStep(final int step) {
-    final int size = currentStepsList.getModel().getSize();
+    final int size = currentStepsList.getItems().size();
     if (size > 0 && step >= 0) {
       final int index = Math.min(step, size - 1);
-      currentStepsList.setSelectedIndex(index);
-      currentStepsList.ensureIndexIsVisible(index);
+      currentStepsList.getSelectionModel().select(index);
+      // currentStepsList.ensureIndexIsVisible(index);
     }
   }
 
   /**
    * Save the batch queue to a file.
-   * 
+   *
    * @param file the file to save in.
    * @throws ParserConfigurationException if there is a parser problem.
    * @throws TransformerException if there is a transformation problem.
@@ -408,14 +373,14 @@ public class BatchSetupComponent extends JPanel
     // Write to file and transform.
     transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
 
-    LOG.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
+    logger.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
     // add to last used files
     addLastUsedFile(file);
   }
 
   /**
    * Load a batch queue from a file.
-   * 
+   *
    * @param file the file to read.
    * @throws ParserConfigurationException if there is a parser problem.
    * @throws SAXException if there is a SAX problem.
@@ -427,73 +392,47 @@ public class BatchSetupComponent extends JPanel
     final BatchQueue queue = BatchQueue.loadFromXml(
         DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement());
 
-    LOG.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
+    logger.info("Loaded " + queue.size() + " batch step(s) from " + file.getName());
 
     // Append, prepend, insert or replace.
-    final int option = JOptionPane.showOptionDialog(this,
-        "How should the loaded batch steps be added to the queue?", "Add Batch Steps",
-        JOptionPane.NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, QueueOperations.values(),
-        QueueOperations.Replace);
+    List<QueueOperations> operations = List.of(QueueOperations.values());
+    ChoiceDialog<QueueOperations> choiceDialog =
+        new ChoiceDialog<>(QueueOperations.Replace, operations);
+    choiceDialog.setTitle("Add Batch Steps");
+    choiceDialog.setContentText("How should the loaded batch steps be added to the queue?");
+    choiceDialog.showAndWait();
+    QueueOperations option = choiceDialog.getResult();
+    if (option == null)
+      return;
 
-    int index = currentStepsList.getSelectedIndex();
-    if (option >= 0) {
-      switch (QueueOperations.values()[option]) {
-        case Replace:
-          index = 0;
-          batchQueue = queue;
-          break;
-        case Prepend:
-          index = 0;
-          batchQueue.addAll(0, queue);
-          break;
-        case Insert:
-          index = index < 0 ? 0 : index;
-          batchQueue.addAll(index, queue);
-          break;
-        case Append:
-          index = batchQueue.size();
-          batchQueue.addAll(queue);
-          break;
-      }
+
+    int index = currentStepsList.getSelectionModel().getSelectedIndex();
+    switch (option) {
+      case Replace:
+        index = 0;
+        batchQueue.clear();
+        batchQueue.addAll(queue);
+        break;
+      case Prepend:
+        index = 0;
+        batchQueue.addAll(0, queue);
+        break;
+      case Insert:
+        index = index < 0 ? 0 : index;
+        batchQueue.addAll(index, queue);
+        break;
+      case Append:
+        index = batchQueue.size();
+        batchQueue.addAll(queue);
+        break;
     }
-    currentStepsList.setListData(batchQueue);
+
     selectStep(index);
 
     // add to last used files
     addLastUsedFile(file);
   }
 
-  // Handle mouse events
-  @Override
-  public void mousePressed(MouseEvent e) {
-    queueListModel = ((DefaultListModel<?>) currentStepsList.getModel()).toArray();
-  }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public void mouseReleased(MouseEvent e) {
-    Object[] listModel = ((DefaultListModel<?>) currentStepsList.getModel()).toArray();
-    // Model changed => apply on queue
-    if (!Arrays.deepEquals(listModel, queueListModel)) {
-      for (int i = 0; i < listModel.length; ++i) {
-        batchQueue.set(i, (MZmineProcessingStep<MZmineProcessingModule>) listModel[i]);
-      }
-    }
-  }
-
-  @Override
-  public void mouseClicked(MouseEvent arg0) {
-
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent arg0) {
-
-  }
-
-  @Override
-  public void mouseExited(MouseEvent arg0) {
-
-  }
 
 }

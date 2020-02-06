@@ -15,6 +15,18 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import java.awt.Dimension;
+import java.awt.Font;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.Random;
+import java.util.Set;
+import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import dulab.adap.common.algorithms.FeatureTools;
@@ -25,37 +37,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.util.GUIUtils;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.Random;
-import java.util.Set;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-
-import org.apache.commons.lang3.ArrayUtils;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 /**
  *
@@ -90,21 +80,23 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     }
   }
 
-  private JPanel pnlVisible;
-  private JPanel pnlLabelsFields;
-  private JPanel pnlTabs;
-  private JCheckBox preview;
-  private JComboBox<PeakList> comboPeakList;
-  private DefaultComboBoxModel<ComboClustersItem> comboClustersModel;
-  private JComboBox<ComboClustersItem> comboClusters;
+  private BorderPane pnlVisible;
+  private GridPane pnlLabelsFields;
+  private HBox pnlTabs;
+  private CheckBox preview;
+  private ComboBox<PeakList> comboPeakList;
+
+  private final ObservableList<ComboClustersItem> comboClustersModel =
+      FXCollections.observableArrayList();
+  private final ComboBox<ComboClustersItem> comboClusters = new ComboBox<>(comboClustersModel);
   private SimpleScatterPlot retTimeMZPlot;
   private EICPlot retTimeIntensityPlot;
 
   private Object[] currentValues;
 
-  public ADAP3DecompositionV1_5SetupDialog(Window parent, boolean valueCheckRequired,
+  public ADAP3DecompositionV1_5SetupDialog(boolean valueCheckRequired,
       final ParameterSet parameters, String message) {
-    super(parent, valueCheckRequired, parameters, message);
+    super(valueCheckRequired, parameters, message);
 
     Parameter[] params = parameters.getParameters();
     int size = params.length;
@@ -113,114 +105,14 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
     for (int i = 0; i < size; ++i)
       currentValues[i] = params[i].getValue();
-  }
 
-  @Override
-  protected void addDialogComponents() {
-    super.addDialogComponents();
-
-    comboPeakList = new JComboBox<>();
-    comboClustersModel = new DefaultComboBoxModel<>();
-    comboClusters = new JComboBox<>(comboClustersModel);
-    retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
-    retTimeIntensityPlot = new EICPlot();
-
-    PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
-
-    // -----------------------------
-    // Panel with preview parameters
-    // -----------------------------
-
-    preview = new JCheckBox("Show preview");
-    preview.addActionListener(this);
-    preview.setHorizontalAlignment(SwingConstants.CENTER);
-
-    if (peakLists == null || peakLists.length == 0)
-      preview.setEnabled(false);
-    else
-      preview.setEnabled(true);
-
-    final JPanel previewPanel = new JPanel(new BorderLayout());
-    previewPanel.add(new JSeparator(), BorderLayout.NORTH);
-    previewPanel.add(preview, BorderLayout.CENTER);
-    previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
-
-    comboPeakList.setFont(COMBO_FONT);
-    for (final PeakList peakList : peakLists)
-      if (peakList.getNumberOfRawDataFiles() == 1)
-        comboPeakList.addItem(peakList);
-    comboPeakList.addActionListener(this);
-
-    comboClusters.setFont(COMBO_FONT);
-    comboClusters.addActionListener(this);
-
-    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Feature list"),
-        comboPeakList, new JLabel("Cluster list"), comboClusters});
-
-    pnlVisible = new JPanel(new BorderLayout());
-    pnlVisible.add(previewPanel, BorderLayout.NORTH);
-
-    // --------------------------------------------------------------------
-    // ----- Tabbed panel with plots --------------------------------------
-    // --------------------------------------------------------------------
-
-    // pnlTabs = new JTabbedPane();
-    pnlTabs = new JPanel();
-    pnlTabs.setLayout(new BoxLayout(pnlTabs, BoxLayout.Y_AXIS));
-
-    retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
-
-    JPanel pnlPlotRetTimeClusters = new JPanel(new BorderLayout());
-    pnlPlotRetTimeClusters.setBackground(Color.white);
-    pnlPlotRetTimeClusters.add(retTimeMZPlot, BorderLayout.CENTER);
-    GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
-
-    pnlTabs.add(pnlPlotRetTimeClusters);
-
-    retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
-
-    JPanel pnlPlotShapeClusters = new JPanel(new BorderLayout());
-    pnlPlotShapeClusters.setBackground(Color.white);
-    pnlPlotShapeClusters.add(retTimeIntensityPlot, BorderLayout.CENTER);
-    GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
-
-    pnlTabs.add(pnlPlotShapeClusters);
-
-    super.mainPanel.add(pnlVisible, 0, super.getNumberOfParameters() + 3, 2, 1, 0, 0,
-        GridBagConstraints.HORIZONTAL);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    super.actionPerformed(e);
-
-    final Object source = e.getSource();
-
-    if (source.equals(preview)) {
-      if (preview.isSelected()) {
-        // Set the height of the preview to 200 cells, so it will span
-        // the whole vertical length of the dialog (buttons are at row
-        // no 100). Also, we set the weight to 10, so the preview
-        // component will consume most of the extra available space.
-        mainPanel.add(pnlTabs, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
-        pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
-        comboPeakList.setSelectedIndex(0);
-      } else {
-        mainPanel.remove(pnlTabs);
-        pnlVisible.remove(pnlLabelsFields);
-      }
-
-      updateMinimumSize();
-      pack();
-      // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-    }
-
-    else if (source.equals(comboPeakList)) {
+    comboPeakList = new ComboBox<>();
+    comboPeakList.setOnAction(e -> {
       // -------------------------
       // Retrieve current PeakList
       // -------------------------
 
-      final PeakList peakList = (PeakList) comboPeakList.getSelectedItem();
+      final PeakList peakList = comboPeakList.getSelectionModel().getSelectedItem();
 
       final List<Peak> peaks = ADAP3DecompositionV1_5Task.getPeaks(peakList,
           parameterSet.getParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO)
@@ -238,17 +130,17 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
       retTimeCluster(peaks, retTimeValues, mzValues, colorValues);
 
-      final int size = retTimeValues.size();
+      final int size2 = retTimeValues.size();
 
-      retTimeMZPlot.updateData(ArrayUtils.toPrimitive(retTimeValues.toArray(new Double[size])),
-          ArrayUtils.toPrimitive(mzValues.toArray(new Double[size])),
-          ArrayUtils.toPrimitive(colorValues.toArray(new Double[size])));
+      retTimeMZPlot.updateData(ArrayUtils.toPrimitive(retTimeValues.toArray(new Double[size2])),
+          ArrayUtils.toPrimitive(mzValues.toArray(new Double[size2])),
+          ArrayUtils.toPrimitive(colorValues.toArray(new Double[size2])));
 
       // ------------------------
       // Calculate shape clusters
       // ------------------------
 
-      final ComboClustersItem item = (ComboClustersItem) comboClusters.getSelectedItem();
+      final ComboClustersItem item = comboClusters.getSelectionModel().getSelectedItem();
 
       if (item != null) {
         final List<List<NavigableMap<Double, Double>>> shapeClusters = new ArrayList<>();
@@ -259,14 +151,39 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
         retTimeIntensityPlot.updateData(shapeClusters, colors, texts, null);
       }
-    }
+    });
 
-    else if (source.equals(comboClusters)) {
+    retTimeMZPlot = new SimpleScatterPlot("Retention time", "m/z");
+    retTimeIntensityPlot = new EICPlot();
+
+    PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
+
+    // -----------------------------
+    // Panel with preview parameters
+    // -----------------------------
+
+    preview = new CheckBox("Show preview");
+    preview.setOnAction(e -> {
+      if (preview.isSelected()) {
+        // Set the height of the preview to 200 cells, so it will span
+        // the whole vertical length of the dialog (buttons are at row
+        // no 100). Also, we set the weight to 10, so the preview
+        // component will consume most of the extra available space.
+        paramsPane.add(pnlTabs, 3, 0);
+        pnlVisible.setCenter(pnlLabelsFields);
+        comboPeakList.getSelectionModel().select(0);
+      } else {
+        paramsPane.getChildren().remove(pnlTabs);
+        pnlVisible.getChildren().remove(pnlLabelsFields);
+      }
+    });
+
+    comboClusters.setOnAction(e -> {
       // ------------------------
       // Calculate shape clusters
       // ------------------------
 
-      final ComboClustersItem item = (ComboClustersItem) comboClusters.getSelectedItem();
+      final ComboClustersItem item = comboClusters.getSelectionModel().getSelectedItem();
 
       if (item != null) {
         final List<List<NavigableMap<Double, Double>>> shapeClusters = new ArrayList<>();
@@ -277,30 +194,72 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
         retTimeIntensityPlot.updateData(shapeClusters, colors, texts, null);
       }
-    }
+
+    });
+    // preview.setHorizontalAlignment(SwingConstants.CENTER);
+
+    if (peakLists == null || peakLists.length == 0)
+      preview.setDisable(true);
+    else
+      preview.setDisable(false);
+
+    final BorderPane previewPanel = new BorderPane();
+    previewPanel.setTop(new Separator());
+    previewPanel.setCenter(preview);
+    // previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+
+    // comboPeakList.setFont(COMBO_FONT);
+    for (final PeakList peakList : peakLists)
+      if (peakList.getNumberOfRawDataFiles() == 1)
+        comboPeakList.getItems().add(peakList);
+    // comboPeakList.addActionListener(this);
+
+    // comboClusters.setFont(COMBO_FONT);
+    // comboClusters.addActionListener(this);
+
+    pnlLabelsFields = new GridPane();
+    pnlLabelsFields.add(new Label("Feature list"), 0, 0);
+    pnlLabelsFields.add(comboPeakList, 0, 1);
+    pnlLabelsFields.add(new Label("Cluster list"), 1, 0);
+    pnlLabelsFields.add(comboClusters, 1, 1);
+
+    pnlVisible = new BorderPane();
+    pnlVisible.setTop(previewPanel);
+
+    // --------------------------------------------------------------------
+    // ----- Tabbed panel with plots --------------------------------------
+    // --------------------------------------------------------------------
+
+    // pnlTabs = new JTabbedPane();
+    pnlTabs = new HBox();
+    // pnlTabs.setLayout(new BoxLayout(pnlTabs, BoxLayout.Y_AXIS));
+
+    // retTimeMZPlot.setMinimumSize(MIN_DIMENSIONS);
+
+    BorderPane pnlPlotRetTimeClusters = new BorderPane();
+    // pnlPlotRetTimeClusters.setBackground(Color.white);
+    pnlPlotRetTimeClusters.setCenter(retTimeMZPlot);
+    // GUIUtils.addMarginAndBorder(pnlPlotRetTimeClusters, 10);
+
+    pnlTabs.getChildren().add(pnlPlotRetTimeClusters);
+
+    // retTimeIntensityPlot.setMinimumSize(MIN_DIMENSIONS);
+
+    BorderPane pnlPlotShapeClusters = new BorderPane();
+    // pnlPlotShapeClusters.setBackground(Color.white);
+    pnlPlotShapeClusters.setCenter(retTimeIntensityPlot);
+    // GUIUtils.addMarginAndBorder(pnlPlotShapeClusters, 10);
+
+    pnlTabs.getChildren().add(pnlPlotShapeClusters);
+
+    super.paramsPane.add(pnlVisible, 0, super.getNumberOfParameters() + 3);
   }
 
-  @Override
-  public void parametersChanged() {
-    super.updateParameterSetFromComponents();
 
-    if (!preview.isSelected())
-      return;
-
-    switch (compareParameters(parameterSet.getParameters())) {
-      case FIRST_PHASE_CHANGE:
-        comboPeakList.setSelectedIndex(comboPeakList.getSelectedIndex());
-        break;
-
-      case SECOND_PHASE_CHANGE:
-        comboClusters.setSelectedIndex(comboClusters.getSelectedIndex());
-        break;
-    }
-  }
 
   /**
    * Cluster all peaks in PeakList based on retention time
-   * 
+   *
    * @param peaks list od ADAP peaks
    * @param retTimeValues output of retention times
    * @param mzValues output of m/z-values
@@ -328,12 +287,12 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     for (int i = 0; i < numColors; ++i)
       colors[i] = (double) i / numColors;
 
-    comboClustersModel.removeAllElements();
+    comboClustersModel.clear();;
 
     // Disable action listeners
-    ActionListener[] comboListeners = comboClusters.getActionListeners();
-    for (ActionListener l : comboListeners)
-      comboClusters.removeActionListener(l);
+    // ActionListener[] comboListeners = comboClusters.getActionListeners();
+    // for (ActionListener l : comboListeners)
+    // comboClusters.removeActionListener(l);
 
     for (List<Peak> cluster : retTimeClusters) {
       for (Peak peak : cluster) {
@@ -348,26 +307,26 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
 
       int i;
 
-      for (i = 0; i < comboClustersModel.getSize(); ++i) {
-        double retTime = comboClustersModel.getElementAt(i).aveRetTime;
+      for (i = 0; i < comboClustersModel.size(); ++i) {
+        double retTime = comboClustersModel.get(i).aveRetTime;
         if (newItem.aveRetTime < retTime) {
-          comboClustersModel.insertElementAt(newItem, i);
+          comboClustersModel.add(i, newItem);
           break;
         }
       }
 
-      if (i == comboClustersModel.getSize())
-        comboClustersModel.addElement(newItem);
+      if (i == comboClustersModel.size())
+        comboClustersModel.add(newItem);
     }
 
     // Enable action listeners
-    for (ActionListener l : comboListeners)
-      comboClusters.addActionListener(l);
+    // for (ActionListener l : comboListeners)
+    // comboClusters.addActionListener(l);
   }
 
   /**
    * Cluster list of PeakInfo based on the chromatographic shapes
-   * 
+   *
    * @param peaks list of ADAP peaks
    * @param outClusters output of clusters
    * @param outText output of tooltip text

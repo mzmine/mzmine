@@ -52,7 +52,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class ADAP3DecompositionV2Task extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
+  private static final Logger logger = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
 
   private final ADAP3DecompositionV2Utils utils = new ADAP3DecompositionV2Utils();
 
@@ -91,7 +91,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       String errorMsg = null;
 
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Started ADAP Peak Decomposition on " + originalLists);
+      logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
       // Check raw data files.
       if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
@@ -120,7 +120,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             }
 
             setStatus(TaskStatus.FINISHED);
-            LOG.info("Finished peak decomposition on " + originalLists);
+            logger.info("Finished peak decomposition on " + originalLists);
           }
 
         } catch (IllegalArgumentException e) {
@@ -137,7 +137,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(t.getMessage());
           t.printStackTrace();
-          LOG.log(Level.SEVERE, "Peak decompostion error", t);
+          logger.log(Level.SEVERE, "Peak decompostion error", t);
         }
 
         // Report error.

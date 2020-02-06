@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,22 +18,19 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.util.Collection;
-import javax.swing.BorderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import io.github.mzmine.gui.framework.fontspecs.FontSpecs;
-import io.github.mzmine.gui.framework.fontspecs.JFontSpecs;
 import io.github.mzmine.parameters.UserParameter;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
-public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
+public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponent> {
 
   private String name, description;
-  private FontSpecs value = new FontSpecs(Color.BLACK, new Font("Arial", Font.PLAIN, 11));
+  private FontSpecs value = new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0));
 
   public FontParameter(String name, String description) {
     this(name, description, null);
@@ -62,13 +59,14 @@ public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
   }
 
   @Override
-  public JFontSpecs createEditingComponent() {
-    JFontSpecs f = new JFontSpecs();
-    f.setBorder(BorderFactory.createCompoundBorder(f.getBorder(),
-        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+  public FontSpecsComponent createEditingComponent() {
+    FontSpecsComponent f = new FontSpecsComponent();
+    // f.setBorder(BorderFactory.createCompoundBorder(f.getBorder(),BorderFactory.createEmptyBorder(0,
+    // 4, 0, 0)));
     return f;
   }
 
+  @Override
   public FontSpecs getValue() {
     return value;
   }
@@ -91,13 +89,16 @@ public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
   }
 
   @Override
-  public void setValueFromComponent(JFontSpecs component) {
-    value = component.getFontSpecs();
+  public void setValueFromComponent(FontSpecsComponent component) {
+    Font font = component.getFont();
+    Color color = component.getColor();
+    value = new FontSpecs(color, font);
   }
 
   @Override
-  public void setValueToComponent(JFontSpecs component, FontSpecs newValue) {
-    component.setFontSpecs(newValue);
+  public void setValueToComponent(FontSpecsComponent component, FontSpecs newValue) {
+    component.setFont(newValue.getFont());
+    component.setColor(newValue.getColor());
   }
 
   @Override
@@ -115,9 +116,9 @@ public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
       // font
       String[] s = sfont.split(",");
       String name = s[0];
-      int style = Integer.valueOf(s[1]);
-      int size = Integer.valueOf(s[2]);
-      Font f = new Font(name, style, size);
+      FontWeight style = FontWeight.valueOf(s[1]);
+      double size = Double.valueOf(s[2]);
+      Font f = Font.font(name, style, size);
 
       // color
       s = scolor.split(",");
@@ -139,7 +140,7 @@ public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
       return;
     Font f = value.getFont();
     StringBuilder s = new StringBuilder();
-    s.append(f.getFontName());
+    s.append(f.getName());
     s.append(",");
     s.append(f.getStyle());
     s.append(",");
@@ -158,7 +159,7 @@ public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {
     s.append(",");
     s.append(c.getBlue());
     s.append(",");
-    s.append(c.getAlpha());
+    s.append(c.getOpacity());
 
     newElement = parentDocument.createElement("color");
     newElement.setTextContent(s.toString());

@@ -146,14 +146,14 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
    * Use an InstantUpdateSetupDialog setup dialog instead of the regular one.
    */
   @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
     Parameter<?>[] parameters = this.getParameters();
     if ((parameters == null) || (parameters.length == 0))
       return ExitCode.OK;
 
     thisParameters = this;
-    ParameterSetupDialog dialog = new InstantUpdateSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
+    ParameterSetupDialog dialog = new InstantUpdateSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
     return dialog.getExitCode();
   }
 

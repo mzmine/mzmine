@@ -18,32 +18,24 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
-import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.FutureTask;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
 import com.google.common.collect.ImmutableList;
-
-import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FileNamesComponent extends JPanel implements ActionListener {
+public class FileNamesComponent extends FlowPane {
 
-  private static final long serialVersionUID = 1L;
-  public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+  public static final Font smallFont = new Font("SansSerif", 10);
 
-  private JTextArea txtFilename;
+  private TextArea txtFilename;
 
   private final List<ExtensionFilter> filters;
 
@@ -51,17 +43,36 @@ public class FileNamesComponent extends JPanel implements ActionListener {
 
     this.filters = ImmutableList.copyOf(filters);
 
-    setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
-    txtFilename = new JTextArea();
-    txtFilename.setColumns(40);
-    txtFilename.setRows(6);
+    txtFilename = new TextArea();
+    txtFilename.setPrefColumnCount(40);
+    txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
-    add(new JScrollPane(txtFilename));
 
-    JButton btnFileBrowser = new JButton("...");
-    btnFileBrowser.addActionListener(this);
-    add(btnFileBrowser);
+    Button btnFileBrowser = new Button("...");
+    btnFileBrowser.setOnAction(e -> {
+      // Create chooser.
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setTitle("Select files");
+
+      fileChooser.getExtensionFilters().addAll(this.filters);
+
+      String currentPaths[] = txtFilename.getText().split("\n");
+      if (currentPaths.length > 0) {
+        File currentFile = new File(currentPaths[0].trim());
+        File currentDir = currentFile.getParentFile();
+        if (currentDir != null && currentDir.exists())
+          fileChooser.setInitialDirectory(currentDir);
+      }
+
+      // Open chooser.
+      List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+      if (selectedFiles == null)
+        return;
+      setValue(selectedFiles.toArray(new File[0]));
+    });
+    getChildren().addAll(txtFilename, btnFileBrowser);
 
   }
 
@@ -89,38 +100,12 @@ public class FileNamesComponent extends JPanel implements ActionListener {
 
   public void actionPerformed(ActionEvent event) {
 
-    // Create chooser.
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Select files");
 
-    fileChooser.getExtensionFilters().addAll(filters);
-
-    String currentPaths[] = txtFilename.getText().split("\n");
-    if (currentPaths.length > 0) {
-      File currentFile = new File(currentPaths[0].trim());
-      File currentDir = currentFile.getParentFile();
-      if (currentDir != null && currentDir.exists())
-        fileChooser.setInitialDirectory(currentDir);
-    }
-
-    // Open chooser.
-    final FutureTask<List<File>> task =
-        new FutureTask<>(() -> fileChooser.showOpenMultipleDialog(null));
-    Platform.runLater(task);
-    try {
-      List<File> selectedFiles = task.get();
-      if (selectedFiles == null)
-        return;
-      setValue(selectedFiles.toArray(new File[0]));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
 
   }
 
-  @Override
   public void setToolTipText(String toolTip) {
-    txtFilename.setToolTipText(toolTip);
+    txtFilename.setTooltip(new Tooltip(toolTip));
   }
 
 }

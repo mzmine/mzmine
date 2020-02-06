@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -22,17 +22,13 @@ import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSear
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.MAX_ADDUCT_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchParameters.RT_TOLERANCE;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -45,7 +41,7 @@ import io.github.mzmine.util.SortingProperty;
 public class AdductSearchTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(AdductSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(AdductSearchTask.class.getName());
 
   private int finishedRows;
   private int totalRows;
@@ -54,7 +50,7 @@ public class AdductSearchTask extends AbstractTask {
   private final RTTolerance rtTolerance;
   private final MZTolerance mzTolerance;
   private final double maxAdductHeight;
-  private final AdductType[] selectedAdducts;
+  private final List<AdductType> selectedAdducts;
 
   private final ParameterSet parameters;
 
@@ -94,7 +90,7 @@ public class AdductSearchTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    LOG.info("Starting adducts search in " + peakList);
+    logger.info("Starting adducts search in " + peakList);
 
     try {
 
@@ -107,18 +103,13 @@ public class AdductSearchTask extends AbstractTask {
         peakList.addDescriptionOfAppliedTask(
             new SimplePeakListAppliedMethod("Identification of adducts", parameters));
 
-        // Repaint the window to reflect the change in the feature list
-        Desktop desktop = MZmineCore.getDesktop();
-        // if (!(desktop instanceof HeadLessDesktop))
-        // desktop.getMainWindow().repaint();
-
         // Done.
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished adducts search in " + peakList);
+        logger.info("Finished adducts search in " + peakList);
       }
     } catch (Throwable t) {
 
-      LOG.log(Level.SEVERE, "Adduct search error", t);
+      logger.log(Level.SEVERE, "Adduct search error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
     }
@@ -130,7 +121,7 @@ public class AdductSearchTask extends AbstractTask {
   private void searchAdducts() {
 
     // Get rows.
-    final PeakListRow[] rows = peakList.getRows();
+    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
     totalRows = rows.length;
 
     // Start with the highest peaks.
@@ -164,8 +155,6 @@ public class AdductSearchTask extends AbstractTask {
 
         // Add adduct identity and notify GUI.
         possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow, adduct), false);
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(possibleAdduct,
-            false);
       }
     }
   }

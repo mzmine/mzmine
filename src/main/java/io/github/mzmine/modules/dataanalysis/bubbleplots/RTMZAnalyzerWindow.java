@@ -18,66 +18,86 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JFrame;
-
+import javax.swing.SwingUtilities;
 import org.jfree.data.xy.AbstractXYZDataset;
-
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
+import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.geometry.Orientation;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
-public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
+public class RTMZAnalyzerWindow extends Stage {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  private RTMZToolbar toolbar;
-  private RTMZPlot plot;
+  private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
+  private static final Image colorbarIcon =
+      FxIconUtil.loadImageFromResources("icons/colorbaricon.png");
+
+  private final Scene mainScene;
+  private final BorderPane mainPane;
+
+  private final ToolBar toolbar;
+  private final RTMZPlot plot;
 
   public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
       InterpolatingLookupPaintScale paintScale) {
-    super("");
 
-    toolbar = new RTMZToolbar(this);
-    add(toolbar, BorderLayout.EAST);
+    mainPane = new BorderPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    toolbar = new ToolBar();
+    toolbar.setOrientation(Orientation.VERTICAL);
+    Button axesButton = new Button(null, new ImageView(axesIcon));
+    axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
+    Button colorButton = new Button(null, new ImageView(colorbarIcon));
+    colorButton.setTooltip(new Tooltip("Setup color palette"));
+    toolbar.getItems().addAll(axesButton, colorButton);
+    mainPane.setRight(toolbar);
 
     plot = new RTMZPlot(this, dataset, paintScale);
-    add(plot, BorderLayout.CENTER);
+    mainPane.setCenter(plot);
+
+    axesButton.setOnAction(e -> {
+      AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
+      dialog.showAndWait();
+    });
+
+    colorButton.setOnAction(e -> {
+      SwingUtilities.invokeLater(() -> {
+        InterpolatingLookupPaintScaleSetupDialog colorDialog =
+            new InterpolatingLookupPaintScaleSetupDialog(null, plot.getPaintScale());
+        colorDialog.setVisible(true);
+
+        if (colorDialog.getExitCode() == ExitCode.OK)
+          plot.setPaintScale(colorDialog.getPaintScale());
+      });
+    });
 
     String title = peakList.getName();
     title = title.concat(" : ");
     title = title.concat(dataset.toString());
     this.setTitle(title);
 
-    pack();
+    // Add the Windows menu
+    WindowsMenu.addWindowsMenu(mainScene);
 
   }
 
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("SETUP_AXES")) {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart().getXYPlot());
-      dialog.setVisible(true);
-    }
-
-    if (command.equals("SETUP_COLORS")) {
-      InterpolatingLookupPaintScaleSetupDialog colorDialog =
-          new InterpolatingLookupPaintScaleSetupDialog(this, plot.getPaintScale());
-      colorDialog.setVisible(true);
-
-      if (colorDialog.getExitCode() == ExitCode.OK)
-        plot.setPaintScale(colorDialog.getPaintScale());
-    }
-
-  }
 
 }

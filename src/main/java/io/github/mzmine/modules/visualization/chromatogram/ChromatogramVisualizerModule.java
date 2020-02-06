@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,13 +19,12 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
-import javax.swing.SwingUtilities;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -68,7 +67,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(TICVisualizerParameters.scanSelection).getValue();
     final TICPlotType plotType =
         parameters.getParameter(TICVisualizerParameters.PLOT_TYPE).getValue();
-    final Feature[] selectionPeaks =
+    final List<Feature> selectionPeaks =
         parameters.getParameter(TICVisualizerParameters.PEAKS).getValue();
 
     // Add the window to the desktop only if we actually have any raw
@@ -83,7 +82,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     if (weHaveData) {
       TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
           mzRange, selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap());
-      window.setVisible(true);
+      window.show();
 
     } else {
 
@@ -124,22 +123,19 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       myParameters.getParameter(TICVisualizerParameters.MZ_RANGE).setValue(mzRange);
     }
 
+    if (myParameters.showSetupDialog(true, allFiles, selectedFiles, allPeaks,
+        selectedPeaks) == ExitCode.OK) {
 
-    SwingUtilities.invokeLater(() -> {
-      if (myParameters.showSetupDialog(null, true, allFiles, selectedFiles, allPeaks,
-          selectedPeaks) == ExitCode.OK) {
+      final TICVisualizerParameters p = (TICVisualizerParameters) myParameters.cloneParameterSet();
 
-        final TICVisualizerParameters p =
-            (TICVisualizerParameters) myParameters.cloneParameterSet();
-
-        if (peakLabels != null) {
-          p.setPeakLabelMap(peakLabels);
-        }
-
-        myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), p,
-            new ArrayList<Task>());
+      if (peakLabels != null) {
+        p.setPeakLabelMap(peakLabels);
       }
-    });
+
+      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), p,
+          new ArrayList<Task>());
+    }
+
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
@@ -147,8 +143,17 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
     TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
+        mzRange, Arrays.asList(selectionPeaks), peakLabels);
+    window.show();
+  }
+
+  public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
+      final List<Feature> selectionPeaks, final Map<Feature, String> peakLabels,
+      final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
+
+    TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
         mzRange, selectionPeaks, peakLabels);
-    window.setVisible(true);
+    window.show();
   }
 
   @Override

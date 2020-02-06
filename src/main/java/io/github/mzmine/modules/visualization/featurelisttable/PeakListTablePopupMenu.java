@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -32,16 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
@@ -59,8 +56,8 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationMod
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.io.siriusexport.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.featurelisttable.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable.table.CommonColumnType;
@@ -84,7 +81,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
  * Peak-list table pop-up menu.
- * 
+ *
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener {
 
@@ -332,7 +329,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   }
 
   /**
-   * 
+   *
    * @param clickedRow
    * @return true if any peakidentity is instance of {@link SpectralDBPeakIdentity}
    */
@@ -346,7 +343,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   }
 
   /**
-   * 
+   *
    * @param modelIndex the row index in the table model
    * @return
    */
@@ -457,8 +454,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       final Map<Feature, String> labelsMap =
           new HashMap<Feature, String>(allClickedPeakListRows.length);
 
-      final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList.getRawDataFiles()
-          : new RawDataFile[] {clickedDataFile};
+      final RawDataFile[] selectedDataFiles =
+          clickedDataFile == null ? peakList.getRawDataFiles().toArray(RawDataFile[]::new)
+              : new RawDataFile[] {clickedDataFile};
 
       Range<Double> mzRange = null;
       final ArrayList<Feature> allClickedPeaks =
@@ -553,7 +551,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
         // show multi msms window of multiple rows
         MultiMSMSWindow multi = new MultiMSMSWindow();
-        multi.setData(allClickedPeakListRows, peakList.getRawDataFiles(), clickedDataFile, true,
+        multi.setData(allClickedPeakListRows,
+            peakList.getRawDataFiles().toArray(RawDataFile[]::new), clickedDataFile, true,
             SortingProperty.MZ, SortingDirection.Ascending);
         multi.setVisible(true);
       } else {
@@ -702,8 +701,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       // create a new row
       final PeakListRow newRow = new SimplePeakListRow(newID);
-      ManualPeakPickerModule.runManualDetection(peakList.getRawDataFiles(), newRow, peakList,
-          table);
+      ManualPeakPickerModule.runManualDetection(
+          peakList.getRawDataFiles().toArray(RawDataFile[]::new), newRow, peakList, table);
 
     }
 
@@ -782,12 +781,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
    */
   private void updateTableGUI() {
     ((AbstractTableModel) table.getModel()).fireTableDataChanged();
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakList, true);
+    // MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakList, true);
   }
 
   /**
    * Get a peak's m/z range.
-   * 
+   *
    * @param peak the peak.
    * @return The peak's m/z range.
    */
@@ -812,7 +811,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
   /**
    * Get a peak's RT range.
-   * 
+   *
    * @param peak the peak.
    * @return The peak's RT range.
    */
@@ -826,7 +825,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
   /**
    * Get the selected peak.
-   * 
+   *
    * @return the peak.
    */
   private Feature getSelectedPeak() {
@@ -836,7 +835,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
   /**
    * Get the selected peak. If no specific raw data file was clicked return highest peak with MS/MS
-   * 
+   *
    * @return the peak.
    */
   private Feature getSelectedPeakForMSMS() {

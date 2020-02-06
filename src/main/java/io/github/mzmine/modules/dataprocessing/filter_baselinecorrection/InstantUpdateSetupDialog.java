@@ -15,9 +15,8 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Window;
+package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -26,14 +25,12 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
  * @description Same as "ParameterSetupDialog", but any change on the parameters is immediately
  *              recorded to the related ParameterSet, such that those parameters can be obtained at
  *              any time, even before having started running the module.
- * 
+ *
  */
-@SuppressWarnings("serial")
 public class InstantUpdateSetupDialog extends ParameterSetupDialog {
 
-  public InstantUpdateSetupDialog(Window parent, boolean valueCheckRequired,
-      ParameterSet parameters) {
-    super(parent, valueCheckRequired, parameters);
+  public InstantUpdateSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
+    super(valueCheckRequired, parameters);
   }
 
   @Override
