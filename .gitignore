@@ -3,7 +3,9 @@
 .classpath
 .gradle
 .settings
+.idea
 .temp*
+/*.iml
 mzmine.log*
 /target
 /build
