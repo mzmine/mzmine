@@ -343,8 +343,7 @@ public class TICPlot extends EChartViewer {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
-    
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
+
   }
 
   // @Override
