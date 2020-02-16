@@ -73,35 +73,35 @@ public class TICPlot extends EChartViewer {
   private static final double ZOOM_FACTOR = 1.2;
 
   // Plot colors for plotted files.
-  private static final Color[] PLOT_COLORS = {new Color(0, 0, 192), // blue
-      new Color(192, 0, 0), // red
-      new Color(0, 192, 0), // green
-      Color.MAGENTA, Color.CYAN, Color.ORANGE};
+//  private static final Color[] PLOT_COLORS = {new Color(0, 0, 192), // blue
+//      new Color(192, 0, 0), // red
+//      new Color(0, 192, 0), // green
+//      Color.MAGENTA, Color.CYAN, Color.ORANGE};
 
   // Peak colours.
-  private static final Color[] PEAK_COLORS = {Color.PINK, Color.RED, Color.YELLOW, Color.BLUE,
-      Color.LIGHT_GRAY, Color.ORANGE, Color.GREEN};
+//  private static final Color[] PEAK_COLORS = {Color.PINK, Color.RED, Color.YELLOW, Color.BLUE,
+//      Color.LIGHT_GRAY, Color.ORANGE, Color.GREEN};
 
-  // peak labels color
+  // peak labels color - moved to EStandardChartTheme ~SteffenHeu
   private static final Color LABEL_COLOR = Color.DARK_GRAY;
 
-  // grid color
-  private static final Color GRID_COLOR = Color.LIGHT_GRAY;
+  // grid color - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Color GRID_COLOR = Color.LIGHT_GRAY;
 
-  // Cross-hair (selection) color.
-  private static final Color CROSS_HAIR_COLOR = Color.GRAY;
+  // Cross-hair (selection) color. - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Color CROSS_HAIR_COLOR = Color.GRAY;
 
-  // Cross-hair stroke.
-  private static final Stroke CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
-      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
+  // Cross-hair stroke. - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Stroke CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
+//      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
 
   // data points shape
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
 
-  // Fonts.
-  private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 12);
-  private static final Font SUBTITLE_FONT = new Font("SansSerif", Font.PLAIN, 11);
-  private static final Font LEGEND_FONT = new Font("SansSerif", Font.PLAIN, 11);
+  // Fonts. - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 12);
+//  private static final Font SUBTITLE_FONT = new Font("SansSerif", Font.PLAIN, 11);
+//  private static final Font LEGEND_FONT = new Font("SansSerif", Font.PLAIN, 11);
 
   // Axis offsets.
   private static final RectangleInsets AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
@@ -188,12 +188,12 @@ public class TICPlot extends EChartViewer {
 
     // Title.
     chartTitle = chart.getTitle();
-    chartTitle.setFont(TITLE_FONT);
+//    chartTitle.setFont(TITLE_FONT);
     chartTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
 
     // Subtitle.
     chartSubTitle = new TextTitle();
-    chartSubTitle.setFont(SUBTITLE_FONT);
+//    chartSubTitle.setFont(SUBTITLE_FONT);
     chartSubTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
     chart.addSubtitle(chartSubTitle);
 
@@ -203,7 +203,7 @@ public class TICPlot extends EChartViewer {
 
     // Legend constructed by ChartFactory.
     final LegendTitle legend = chart.getLegend();
-    legend.setItemFont(LEGEND_FONT);
+//    legend.setItemFont(LEGEND_FONT);
     legend.setFrame(BlockBorder.NONE);
 
     // Set the plot properties.
@@ -213,18 +213,18 @@ public class TICPlot extends EChartViewer {
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
     // Set grid properties.
-    plot.setDomainGridlinePaint(GRID_COLOR);
-    plot.setRangeGridlinePaint(GRID_COLOR);
+//    plot.setDomainGridlinePaint(GRID_COLOR);
+//    plot.setRangeGridlinePaint(GRID_COLOR);
 
     // Set cross-hair (selection) properties.
     // if (listener instanceof TICVisualizerWindow) {
 
     plot.setDomainCrosshairVisible(true);
     plot.setRangeCrosshairVisible(true);
-    plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
-    plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
-    plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
-    plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
+//    plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
+//    plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
+//    plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
+//    plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
 
     // Set cursor.
     setCursor(Cursor.CROSSHAIR);
