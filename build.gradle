@@ -148,6 +148,7 @@ dependencies {
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
     implementation "org.json:json:20190722"
+    implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
 }
 
 /* 
