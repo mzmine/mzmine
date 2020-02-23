@@ -131,6 +131,8 @@ public class NeutralMassComponent extends GridPane {
       return;
 
     IonizationType ionType = getIonType();
+    if (ionType == null)
+      return;
 
     double neutral = (ionMass.doubleValue() - ionType.getAddedMass()) * charge.intValue();
 

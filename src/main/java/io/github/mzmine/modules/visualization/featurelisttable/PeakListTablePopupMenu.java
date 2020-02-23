@@ -36,7 +36,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
@@ -78,6 +77,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import javafx.application.Platform;
 
 /**
  * Peak-list table pop-up menu.
@@ -387,13 +387,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         selectedRows[i] = getPeakListRow(table.convertRowIndexToModel(selectedTableRows[i]));
       }
 
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
-              peakList, selectedRows);
-        }
-      });
+      IntensityPlotModule.showIntensityPlot(MZmineCore.getProjectManager().getCurrentProject(),
+          peakList, selectedRows);
     }
 
     if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
@@ -621,29 +616,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     }
 
     if (showIsotopePatternItem.equals(src)) {
-
       final Feature showPeak = getSelectedPeak();
       if (showPeak != null && showPeak.getIsotopePattern() != null) {
-
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
-                showPeak.getRepresentativeScanNumber(), showPeak.getIsotopePattern());
-          }
-        });
+        Platform
+            .runLater(() -> SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
+                showPeak.getRepresentativeScanNumber(), showPeak.getIsotopePattern()));
       }
     }
 
     if (formulaItem != null && formulaItem.equals(src)) {
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          FormulaPredictionModule.showSingleRowIdentificationDialog(clickedPeakListRow);
-        }
-      });
-
+      Platform.runLater(
+          () -> FormulaPredictionModule.showSingleRowIdentificationDialog(clickedPeakListRow));
     }
 
     // //TODO: what is going on here?
@@ -651,42 +634,21 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // with spectrum, not 1
     // peak.
     if (siriusItem != null && siriusItem.equals(src)) {
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow);
-        }
-      });
-
+      SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow);
     }
 
     if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
-        }
-      });
-
+      Platform.runLater(
+          () -> OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow));
     }
 
     if (spectralDbSearchItem != null && spectralDbSearchItem.equals(src)) {
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(allClickedPeakListRows,
-              table);
-        }
-      });
-
+      Platform.runLater(() -> LocalSpectralDBSearchModule
+          .showSelectedRowsIdentificationDialog(allClickedPeakListRows, table));
     }
 
     if (nistSearchItem != null && nistSearchItem.equals(src)) {
-
-      NistMsSearchModule.singleRowSearch(peakList, clickedPeakListRow);
+      Platform.runLater(() -> NistMsSearchModule.singleRowSearch(peakList, clickedPeakListRow));
     }
 
     if (addNewRowItem.equals(src)) {
