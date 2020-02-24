@@ -69,13 +69,13 @@ public class SpectraPlot extends EChartViewer {
   // grid color
   private static final Color gridColor = Color.lightGray;
 
-  // title font
-  private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-  private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
+  // title font - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+//  private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
   private TextTitle chartTitle, chartSubTitle;
 
-  // legend
-  private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+  // legend - moved to EStandardChartTheme ~SteffenHeu
+//  private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true,
       dataPointsVisible = false;
@@ -114,16 +114,16 @@ public class SpectraPlot extends EChartViewer {
     // title
     chartTitle = chart.getTitle();
     chartTitle.setMargin(5, 0, 0, 0);
-    chartTitle.setFont(titleFont);
+//    chartTitle.setFont(titleFont);
 
     chartSubTitle = new TextTitle();
-    chartSubTitle.setFont(subTitleFont);
+//    chartSubTitle.setFont(subTitleFont);
     chartSubTitle.setMargin(5, 0, 0, 0);
     chart.addSubtitle(chartSubTitle);
 
     // legend constructed by ChartFactory
     LegendTitle legend = chart.getLegend();
-    legend.setItemFont(legendFont);
+//    legend.setItemFont(legendFont);
     legend.setFrame(BlockBorder.NONE);
 
     // disable maximum size (we don't want scaling)
@@ -139,7 +139,7 @@ public class SpectraPlot extends EChartViewer {
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    // set grid properties
+    // set grid properties - TODO: do we want gridlines in spectra?
     plot.setDomainGridlinePaint(gridColor);
     plot.setRangeGridlinePaint(gridColor);
 

@@ -209,6 +209,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   // --- super type
   @Override
   public Color get(int index) {
+    next = index + 1;
     return delegate.get(index);
   }
 
