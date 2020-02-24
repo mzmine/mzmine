@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.tools.qualityparameters;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
@@ -108,6 +109,7 @@ public class QualityParameters {
           for (int dp = 0; dp < scanNumbers.length; dp++) {
             dps[dp] = peak.getDataPoint(scanNumbers[dp]);
           }
+          @Nonnull
           Range<Double> rtRange = peak.getRawDataPointsRTRange();
 
           height = peak.getHeight();
@@ -152,6 +154,11 @@ public class QualityParameters {
 
   private static double[] peakFindRTs(double intensity, double featureRT, int[] scanNumbers,
       DataPoint[] dps, RawDataFile dataFile, Range<Double> rtRange) {
+
+    assert scanNumbers != null;
+    assert dps != null;
+    assert dataFile != null;
+    assert rtRange != null;
 
     double x1 = 0, x2 = 0, x3 = 0, x4 = 0, y1 = 0, y2 = 0, y3 = 0, y4 = 0;
     double lastDiff1 = intensity;
