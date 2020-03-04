@@ -634,7 +634,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // with spectrum, not 1
     // peak.
     if (siriusItem != null && siriusItem.equals(src)) {
-      SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+      Platform.runLater(() -> SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow));
     }
 
     if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
