@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MassListComponent;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
 
 public class SiriusIdentificationModule implements MZmineProcessingModule {
 
@@ -68,6 +69,8 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
    * @param row the feature list row.
    */
   public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+
+    assert Platform.isFxApplicationThread();
 
     final ParameterSet parameters = new SingleRowIdentificationParameters();
 
