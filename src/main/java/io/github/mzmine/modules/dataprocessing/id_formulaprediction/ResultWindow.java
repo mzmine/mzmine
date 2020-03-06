@@ -31,6 +31,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.Map;
 import java.util.logging.Logger;
+// swing to javafx: )
+import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
