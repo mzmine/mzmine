@@ -105,7 +105,8 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   public XICManualPickerDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
-    Color l = new Color(50, 255, 50, 150), u = new Color(255, 50, 50, 150);
+    Color l = Color.rgb(50, 255, 50, 0.6);
+    Color u = l;
     Stroke stroke = new BasicStroke(1.0f);
 
     // make new panel, put tic into the middle of a border layout.

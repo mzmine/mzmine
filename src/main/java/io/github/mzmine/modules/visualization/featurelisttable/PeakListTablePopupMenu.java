@@ -516,8 +516,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       // ManualPeakPickerModule.runManualDetection(clickedDataFile,
       // clickedPeakListRow, peakList,
       // table);
-      XICManualPickerModule.runManualDetection(clickedDataFile, clickedPeakListRow, peakList,
-          table);
+      Platform.runLater(() -> XICManualPickerModule.runManualDetection(clickedDataFile,
+          clickedPeakListRow, peakList, table));
     }
 
     if (showSpectrumItem.equals(src)) {
@@ -634,7 +634,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // with spectrum, not 1
     // peak.
     if (siriusItem != null && siriusItem.equals(src)) {
-      Platform.runLater(() -> SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow));
+      Platform.runLater(
+          () -> SiriusIdentificationModule.showSingleRowIdentificationDialog(clickedPeakListRow));
     }
 
     if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
