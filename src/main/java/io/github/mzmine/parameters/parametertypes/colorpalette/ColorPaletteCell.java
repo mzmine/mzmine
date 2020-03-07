@@ -86,7 +86,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     label.setPrefWidth(80);
     label.setAlignment(Pos.CENTER_LEFT);
 
-    // TODO usually this should result in a two line layout with the name in the first and the
     // palette in the second row...
     pane = new GridPane();
     pane.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,

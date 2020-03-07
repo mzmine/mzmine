@@ -18,14 +18,13 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import java.util.List;
-import java.util.logging.Logger;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -61,14 +60,17 @@ public class ColorPaletteComponent extends GridPane {
     box.setMaxHeight(35);
 
     box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
-        logger.info("Item " + e.hashCode()));
+        logger.info("Item added" + e.toString()));
+
+    box.valueProperty().addListener(
+        (observable, oldValue, newValue) -> logger.info("value " + newValue.toString()));
 
     addPalette = new Button("New");
     addPalette.setOnAction(e -> {
       SimpleColorPalette pal = new SimpleColorPalette();
       box.getItems().add(pal);
 //      box.getSelectionModel().select(box.getItems().indexOf(pal));
-      box.setValue(pal);
+//      box.setValue(pal);
     });
 
     duplicatePalette = new Button("Duplicate");
@@ -79,9 +81,13 @@ public class ColorPaletteComponent extends GridPane {
         return;
       }
 
-      SimpleColorPalette newPal = new SimpleColorPalette(pal);
+      SimpleColorPalette newPal = pal.clone();
       box.getItems().add(newPal);
-      box.setValue(newPal);
+
+      logger.info("index of new value: " + box.getItems().indexOf(newPal));
+      logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
+
+//      box.setValue(newPal);
     });
 
     editPalette = new Button("Edit");
@@ -108,7 +114,6 @@ public class ColorPaletteComponent extends GridPane {
       }
       box.getItems().remove(box.getValue());
       box.setValue(box.getItems().get(0));
-
     });
 
     addDefault = new Button("Add default");
@@ -117,11 +122,12 @@ public class ColorPaletteComponent extends GridPane {
       pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       pal.setName("Deuternopia");
       box.getItems().add(pal);
-      setValue(pal);
+//      setValue(pal);
     });
 
     pnButtons = new FlowPane();
-    pnButtons.getChildren().addAll(addPalette, duplicatePalette, editPalette, deletePalette, addDefault);
+    pnButtons.getChildren()
+        .addAll(addPalette, duplicatePalette, editPalette, deletePalette, addDefault);
 
     add(box, 0, 0);
     add(pnButtons, 0, 1);
