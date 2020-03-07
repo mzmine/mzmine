@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -24,6 +24,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -32,9 +33,8 @@ import javafx.scene.layout.GridPane;
 
 /**
  * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class ColorPaletteComponent extends GridPane {
 
@@ -44,6 +44,8 @@ public class ColorPaletteComponent extends GridPane {
   protected Button addPalette;
   protected Button editPalette;
   protected Button deletePalette;
+  protected Button duplicatePalette;
+  protected Button addDefault;
   protected FlowPane pnButtons;
 
   public ColorPaletteComponent() {
@@ -58,17 +60,28 @@ public class ColorPaletteComponent extends GridPane {
     box.setMinHeight(35);
     box.setMaxHeight(35);
 
-    addPalette = new Button("New palette");
+    box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
+        logger.info("Item " + e.hashCode()));
+
+    addPalette = new Button("New");
     addPalette.setOnAction(e -> {
-      SimpleColorPalette pal;
-      if(!itemsContainDefaultPalette()) {
-        pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
-        pal.setName("Deuternopia");
-      }
-      else
-        pal = new SimpleColorPalette();
+      SimpleColorPalette pal = new SimpleColorPalette();
       box.getItems().add(pal);
-      box.getSelectionModel().select(box.getItems().indexOf(pal));
+//      box.getSelectionModel().select(box.getItems().indexOf(pal));
+      box.setValue(pal);
+    });
+
+    duplicatePalette = new Button("Duplicate");
+    duplicatePalette.setOnAction(e -> {
+      SimpleColorPalette pal = box.getValue();
+      if (pal == null) {
+        logger.warning("No color palette selected. Cannot duplicate.");
+        return;
+      }
+
+      SimpleColorPalette newPal = new SimpleColorPalette(pal);
+      box.getItems().add(newPal);
+      box.setValue(newPal);
     });
 
     editPalette = new Button("Edit");
@@ -88,13 +101,28 @@ public class ColorPaletteComponent extends GridPane {
 
     deletePalette = new Button("Delete");
     deletePalette.setOnAction(e -> {
+      if (box.getItems().size() <= 1) {
+        logger.warning(
+            "Cannot remove palettes. Only 1 palette present. Please add a new palette first.");
+        return;
+      }
       box.getItems().remove(box.getValue());
       box.setValue(box.getItems().get(0));
+
+    });
+
+    addDefault = new Button("Add default");
+    addDefault.setOnAction(e -> {
+      SimpleColorPalette pal;
+      pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+      pal.setName("Deuternopia");
+      box.getItems().add(pal);
+      setValue(pal);
     });
 
     pnButtons = new FlowPane();
-    pnButtons.getChildren().addAll(addPalette, editPalette, deletePalette);
-    
+    pnButtons.getChildren().addAll(addPalette, duplicatePalette, editPalette, deletePalette, addDefault);
+
     add(box, 0, 0);
     add(pnButtons, 0, 1);
   }
@@ -104,9 +132,10 @@ public class ColorPaletteComponent extends GridPane {
   }
 
   public void setValue(SimpleColorPalette value) {
-    if (box.getItems().indexOf(value) == -1)
+    if (box.getItems().indexOf(value) == -1) {
       logger.warning("Value of ColorPaletteComponent was set to a value not contained "
           + "in the items. This might lead to unexpected behaviour.");
+    }
     box.setValue(value);
     box.autosize();
   }
@@ -116,22 +145,26 @@ public class ColorPaletteComponent extends GridPane {
   }
 
   public void setPalettes(List<SimpleColorPalette> list) {
-    if (list.isEmpty())
+    if (list.isEmpty()) {
       return;
+    }
 
     box.getItems().clear();
-    for (SimpleColorPalette p : list)
+    for (SimpleColorPalette p : list) {
       box.getItems().add(p);
+    }
   }
 
   protected boolean itemsContainDefaultPalette() {
     List<SimpleColorPalette> items = box.getItems();
     SimpleColorPalette def = new SimpleColorPalette(
         ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
-    for(SimpleColorPalette p : items)
-      if(p.equals(def))
+    for (SimpleColorPalette p : items) {
+      if (p.equals(def)) {
         return true;
-    
+      }
+    }
+
     return false;
   }
 }

@@ -66,7 +66,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     }
   }
 
+  public SimpleColorPalette(SimpleColorPalette p) {
+    this();
+    p.forEach(c -> add(c));
+    name = p.getName() + " copy";
+  }
+
   public void applyToChartTheme(EStandardChartTheme theme) {
+
     List<java.awt.Color> awtColors = new ArrayList<>();
     this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
     java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
@@ -149,7 +156,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
    * @return true or false.
    */
   public boolean equals(SimpleColorPalette palette) {
-    if (size() != palette.size())
+    if (size() != palette.size() || !getName().equals(palette.getName()))
       return false;
 
     for (int i = 0; i < size(); i++) {
@@ -168,6 +175,11 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     }
     clone.setName(getName());
     return clone;
+  }
+
+  @Override
+  public String toString() {
+    return getName() + " " + super.toString();
   }
 
   public void loadFromXML(Element xmlElement) {
