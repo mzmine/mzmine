@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -72,45 +73,18 @@ public class TICPlot extends EChartViewer {
   // Zoom factor.
   private static final double ZOOM_FACTOR = 1.2;
 
-  // Plot colors for plotted files.
-//  private static final Color[] PLOT_COLORS = {new Color(0, 0, 192), // blue
-//      new Color(192, 0, 0), // red
-//      new Color(0, 192, 0), // green
-//      Color.MAGENTA, Color.CYAN, Color.ORANGE};
-
-  // Peak colours.
-//  private static final Color[] PEAK_COLORS = {Color.PINK, Color.RED, Color.YELLOW, Color.BLUE,
-//      Color.LIGHT_GRAY, Color.ORANGE, Color.GREEN};
-
   // peak labels color - moved to EStandardChartTheme ~SteffenHeu
-  private static final Color LABEL_COLOR = Color.DARK_GRAY;
-
-  // grid color - moved to EStandardChartTheme ~SteffenHeu
-//  private static final Color GRID_COLOR = Color.LIGHT_GRAY;
-
-  // Cross-hair (selection) color. - moved to EStandardChartTheme ~SteffenHeu
-//  private static final Color CROSS_HAIR_COLOR = Color.GRAY;
-
-  // Cross-hair stroke. - moved to EStandardChartTheme ~SteffenHeu
-//  private static final Stroke CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
-//      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
 
   // data points shape
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
 
   // Fonts. - moved to EStandardChartTheme ~SteffenHeu
-//  private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 12);
-//  private static final Font SUBTITLE_FONT = new Font("SansSerif", Font.PLAIN, 11);
-//  private static final Font LEGEND_FONT = new Font("SansSerif", Font.PLAIN, 11);
-
-  // Axis offsets.
-  private static final RectangleInsets AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
 
   // Axis margins.
   private static final double AXIS_MARGINS = 0.001;
 
   // Title margin.
-  private static final double TITLE_TOP_MARGIN = 5.0;
+//  private static final double TITLE_TOP_MARGIN = 5.0;
 
   // Plot type.
   private TICPlotType plotType;
@@ -134,6 +108,8 @@ public class TICPlot extends EChartViewer {
   private int numOfPeaks;
 
   private MenuItem RemoveFilePopupMenu;
+
+  EStandardChartTheme theme;
 
   /**
    * Indicates whether we have a request to show spectra visualizer for selected data point. Since
@@ -159,6 +135,8 @@ public class TICPlot extends EChartViewer {
         false // generate URLs?
     ));
 
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+
     // Initialize.
     // visualizer = listener;
     labelsVisible = 1;
@@ -180,51 +158,26 @@ public class TICPlot extends EChartViewer {
 
     // Initialize the chart by default time series chart from factory.
     chart = getChart();
-    chart.setBackgroundPaint(Color.white);
     chart.getXYPlot().getRangeAxis().setLabel(yAxisLabel);
     // setChart(chart);
 
-
-
     // Title.
     chartTitle = chart.getTitle();
-//    chartTitle.setFont(TITLE_FONT);
-    chartTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
 
     // Subtitle.
     chartSubTitle = new TextTitle();
-//    chartSubTitle.setFont(SUBTITLE_FONT);
-    chartSubTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
     chart.addSubtitle(chartSubTitle);
 
     // Disable maximum size (we don't want scaling).
     // setMaximumDrawWidth(Integer.MAX_VALUE);
     // setMaximumDrawHeight(Integer.MAX_VALUE);
 
-    // Legend constructed by ChartFactory.
-    final LegendTitle legend = chart.getLegend();
-//    legend.setItemFont(LEGEND_FONT);
-    legend.setFrame(BlockBorder.NONE);
-
     // Set the plot properties.
     plot = chart.getXYPlot();
-    plot.setBackgroundPaint(Color.white);
-    plot.setAxisOffset(AXIS_OFFSET);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-
-    // Set grid properties.
-//    plot.setDomainGridlinePaint(GRID_COLOR);
-//    plot.setRangeGridlinePaint(GRID_COLOR);
 
     // Set cross-hair (selection) properties.
     // if (listener instanceof TICVisualizerWindow) {
-
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-//    plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
-//    plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
-//    plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
-//    plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
 
     // Set cursor.
     setCursor(Cursor.CROSSHAIR);
@@ -250,7 +203,6 @@ public class TICPlot extends EChartViewer {
     defaultRenderer.setDefaultShapesFilled(true);
     defaultRenderer.setDrawOutlines(false);
     defaultRenderer.setUseFillPaint(true);
-    defaultRenderer.setDefaultItemLabelPaint(LABEL_COLOR);
 
     // Set label generator
     final XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
@@ -344,6 +296,7 @@ public class TICPlot extends EChartViewer {
     if (history != null)
       history.clear();
 
+    theme.apply(this.getChart());
   }
 
   // @Override
@@ -595,7 +548,7 @@ public class TICPlot extends EChartViewer {
       // Add peak label renderer and data set.
       final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
-      renderer.setDefaultItemLabelPaint(LABEL_COLOR);
+      renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
       addDataSetRenderer(dataSet, renderer);
       renderer.setDrawSeriesLineAsPath(true);
       renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {

@@ -175,7 +175,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
     Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setShowTitle(showTitle);
-    theme.getShowSubtitles(showLegends);
+    theme.getShowSubtitles(showTitle);
     theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
     theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
 
