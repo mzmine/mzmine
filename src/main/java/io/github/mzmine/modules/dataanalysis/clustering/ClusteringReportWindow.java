@@ -18,34 +18,44 @@
 
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Scene;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
-public class ClusteringReportWindow extends JFrame {
+public class ClusteringReportWindow extends Stage {
 
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
-  private JTable table;
+  private final Scene mainScene;
+  private TableView tableView;
 
   public ClusteringReportWindow(String[] samplesOrVariables, Integer[] clusteringData,
       String title) {
-    super(title);
-    String[] columnNames = {"Variables", "Cluster number"};
-    Object[][] data = new Object[samplesOrVariables.length][2];
+    super();
+    this.setTitle(title);
+
+    SampleClusters[] data = new SampleClusters[samplesOrVariables.length];
     for (int i = 0; i < samplesOrVariables.length; i++) {
-      data[i][0] = samplesOrVariables[i];
-      data[i][1] = clusteringData[i];
+      data[i] = new SampleClusters(samplesOrVariables[i], clusteringData[i]);
     }
 
-    table = new JTable(data, columnNames);
+    ObservableList<SampleClusters> dataList = FXCollections.observableArrayList(data);
+    tableView = new TableView<SampleClusters>(dataList);
 
-    JScrollPane scrollPane = new JScrollPane(table);
-    table.setFillsViewportHeight(true);
-    this.add(scrollPane);
+    TableColumn sampleColumn = new TableColumn("Variables");
+    sampleColumn.setCellValueFactory(new PropertyValueFactory<>("sampleOrVariable"));
+    TableColumn clusterColumn = new TableColumn("Cluster number");
+    clusterColumn.setCellValueFactory(new PropertyValueFactory<>("cluster"));
 
-    pack();
+    tableView.getColumns().addAll(sampleColumn, clusterColumn);
+
+    mainScene = new Scene(tableView);
+    setScene(mainScene);
   }
+  
 }
