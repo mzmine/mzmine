@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -62,9 +63,6 @@ public class ColorPaletteComponent extends GridPane {
     box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
         logger.info("Item added" + e.toString()));
 
-    box.valueProperty().addListener(
-        (observable, oldValue, newValue) -> logger.info("value " + newValue.toString()));
-
     addPalette = new Button("New");
     addPalette.setOnAction(e -> {
       SimpleColorPalette pal = new SimpleColorPalette();
@@ -82,12 +80,14 @@ public class ColorPaletteComponent extends GridPane {
       }
 
       SimpleColorPalette newPal = pal.clone();
-      box.getItems().add(newPal);
+      newPal.setName(pal.getName() + " (cpy)");
+      if (addPalette(newPal)) {
+        box.setValue(newPal);
+      }
 
       logger.info("index of new value: " + box.getItems().indexOf(newPal));
       logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
 
-//      box.setValue(newPal);
     });
 
     editPalette = new Button("Edit");
@@ -97,9 +97,22 @@ public class ColorPaletteComponent extends GridPane {
 
       d.setOnHiding(f -> {
         if (d.getExitCode() == ExitCode.OK) {
-          box.getItems().remove(box.getValue());
+          // remove old
+          SimpleColorPalette oldVal = box.getValue();
+          box.getItems().remove(oldVal);
+
+          // check for existing duplicates, if present add old value again
           SimpleColorPalette newVal = d.getPalette();
-          box.getItems().add(newVal);
+          if (!addPalette(newVal)) {
+            addPalette(oldVal);
+            setValue(oldVal);
+            MZmineCore.getDesktop().displayErrorMessage(
+                "Cannot add duplicates. Palette with same name and colors already exists.");
+
+            d.show();
+//          return;
+          }
+
           setValue(newVal);
         }
       });
@@ -121,8 +134,7 @@ public class ColorPaletteComponent extends GridPane {
       SimpleColorPalette pal;
       pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       pal.setName("Deuternopia");
-      box.getItems().add(pal);
-//      setValue(pal);
+      addPalette(pal);
     });
 
     pnButtons = new FlowPane();
@@ -172,6 +184,15 @@ public class ColorPaletteComponent extends GridPane {
     }
 
     return false;
+  }
+
+  public boolean addPalette(SimpleColorPalette pal) {
+    if (box.getItems().contains(pal)) {
+      logger.fine("Cannot add duplicates. A palette with same name and colors already exists.");
+      return false;
+    }
+
+    return box.getItems().add(pal);
   }
 }
 

@@ -60,7 +60,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
   /**
    * 
-   * @param w The width of the combo box.
    * @param h The height of the combo box.
    */
   public ColorPaletteCell(double h) {
@@ -82,15 +81,15 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
     // nasty way to align the palettes in the dropdown menu
     label.setMinWidth(80);
-    label.setMaxWidth(80);
-    label.setPrefWidth(80);
+    label.setMaxWidth(150);
+    label.setPrefWidth(150);
     label.setAlignment(Pos.CENTER_LEFT);
 
     // palette in the second row...
     pane = new GridPane();
     pane.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
         new CornerRadii(2.0), new BorderWidths(1.0))));
-    pane.add(clrPane, 1, 0);
+    pane.add(clrPane, 0, 1);
     pane.add(label, 0, 0);
   }
 
