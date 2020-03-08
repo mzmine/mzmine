@@ -172,12 +172,12 @@ public class ChartThemeParameters extends SimpleParameterSet {
     FontSpecs large = this.getParameter(ChartThemeParameters.titleFont).getValue();
     FontSpecs medium = this.getParameter(ChartThemeParameters.captionFont).getValue();
     FontSpecs small = this.getParameter(ChartThemeParameters.labelFont).getValue();
-    Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
+    Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setShowTitle(showTitle);
     theme.getShowSubtitles(showLegends);
-    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
-    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(gbColor));
+    theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
+    theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
 
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
     theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(large.getFont()));
