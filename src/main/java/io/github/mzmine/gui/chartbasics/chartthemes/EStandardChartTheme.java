@@ -214,17 +214,14 @@ public class EStandardChartTheme extends StandardChartTheme {
       if(s instanceof TextTitle){
         ((TextTitle) s).setFont(getLargeFont());
         ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+        ((TextTitle) s).setVisible(isShowTitle());
+
+        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+          ((PaintScaleLegend) s)
+              .setBackgroundPaint(this.getChartBackgroundPaint());
+        }
       }
     });
-
-    for (int i = 0; i < chart.getSubtitleCount(); i++) {
-      // visible?
-      chart.getSubtitle(i).setVisible(subtitleVisible);
-      //
-      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
-        ((PaintScaleLegend) chart.getSubtitle(i))
-            .setBackgroundPaint(this.getChartBackgroundPaint());
-    }
 
     chart.getTitle().setVisible(isShowTitle());
     chart.getTitle().setFont(getLargeFont());
