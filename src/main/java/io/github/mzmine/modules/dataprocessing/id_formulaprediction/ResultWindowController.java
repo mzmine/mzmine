@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,7 +33,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.application.Platform;
+import javafx.stage.FileChooser;
 
+
+import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
@@ -119,8 +127,54 @@ public class ResultWindowController {
     }
 
     @FXML
-    private void exportClick(ActionEvent ae){
+    private void exportClick(ActionEvent ae) throws IOException {
 // TODO: handle Button event
+        // Ask for filename
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setApproveButtonText("Export");
+
+        int result = fileChooser.showSaveDialog(null);
+        if (result != JFileChooser.APPROVE_OPTION)
+            return;
+        File outputFile = fileChooser.getSelectedFile();
+        try {
+            FileWriter fileWriter = new FileWriter(outputFile);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+            writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
+            writer.newLine();
+
+
+            resultTable.getItems().forEach(cell -> {
+                try {
+                    writer.write(cell.getFormulaAsString());
+                    writer.write(",");
+                    writer.write(String.valueOf(cell.getExactMass()));
+                    writer.write(String.valueOf(cell.getRDBE()));
+                    writer.write(String.valueOf(cell.getIsotopeScore()));
+                    writer.write(String.valueOf(cell.getMSMSScore()));
+                    writer.newLine();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception ex) {
+                    MZmineCore.getDesktop().displayErrorMessage(
+                            "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(ex));
+                }
+
+            });
+
+
+        } finally {
+
+        }
+        return;
+
     }
 
     @FXML
