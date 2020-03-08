@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataanalysis.clustering;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -32,7 +31,6 @@ public class ClusteringReportWindow extends Stage {
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
   private final Scene mainScene;
   private TableView tableView;
 
@@ -56,26 +54,8 @@ public class ClusteringReportWindow extends Stage {
 
     tableView.getColumns().addAll(sampleColumn, clusterColumn);
 
-    ScrollPane scrollPane = new ScrollPane(tableView);
-
-    mainScene = new Scene(scrollPane);
+    mainScene = new Scene(tableView);
     setScene(mainScene);
-
-    show();
   }
-
-  /**
-   * Sets window visibility
-   * this method serves as an adapter of Stage to JFrame
-   * 
-   * @param visible
-   */
-  public void setVisible(boolean visible) {
-    if(visible) {
-      show();
-    }
-    else {
-      hide();
-    }
-  }
+  
 }

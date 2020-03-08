@@ -265,7 +265,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(sampleNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
       } else {
         String[] variableNames = new String[selectedRows.length];
         for (int i = 0; i < selectedRows.length; i++) {
@@ -279,7 +279,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(variableNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
 
       }
 
