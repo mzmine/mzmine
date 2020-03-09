@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane minHeight="400.0"  minWidth="700.0"  xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.ResultWindowController" style=" -fx-border-color:grey; -fx-border-width:3 ; -fx-border-style: solid;">
+
+    <top>
+        <Label text="List of possible identities"/>
+    </top>
+    <center>
+                <TableView fx:id="IDList" minHeight="100">
+                    <columns>
+                        <TableColumn fx:id="colID" minWidth="100" text="ID" reorderable="false" />
+                        <TableColumn fx:id="colName" minWidth="150" text="Common Name" reorderable="false" />
+                        <TableColumn fx:id="colFormula" minWidth="100" text="Formula" reorderable="false" />
+                        <TableColumn fx:id="colMassDiff" minWidth="150" text="Mass Difference" reorderable="false"/>
+                        <TableColumn fx:id="colIPS" minWidth="200" text="Isotope Pattern Score" reorderable="false"/>
+                    </columns>
+                </TableView>
+    </center>
+    <bottom>
+        <ButtonBar>
+            <buttons>
+                <Button onAction="#handleAddAction" text="Add Identity" ButtonBar.buttonData="LEFT"/>
+                <Button onAction="#handleViewStructureAction" text="View Structure" ButtonBar.buttonData="LEFT"/>
+                <Button onAction="#handleViewIPAction" text="View Isotope pattern" ButtonBar.buttonData="LEFT"/>
+                <Button onAction="#handleOpenBrowserAction" text="Open Browser" ButtonBar.buttonData="LEFT"/>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+
+
+
+
+</BorderPane>
