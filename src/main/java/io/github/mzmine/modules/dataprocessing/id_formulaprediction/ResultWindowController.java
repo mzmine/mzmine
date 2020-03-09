@@ -18,8 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -37,11 +40,15 @@ import javafx.stage.FileChooser;
 
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Map;
 import java.util.logging.Logger;
 
 
@@ -117,18 +124,24 @@ public class ResultWindowController {
     @FXML
     private Button Export;
 
+    int index = resultTable.getSelectionModel().getSelectedIndex();
+
+   ResultFormula formula = resultTable.getItems().get(index);
 
     @FXML
     private void AddIdentityClick(ActionEvent ae){
 // TODO: handle Button event
-        Button button = ( Button ) ae.getSource();
-        Alert a= new Alert(Alert.AlertType.CONFIRMATION);
-        a.show();
+
+
+        SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
+        peakListRow.addPeakIdentity(newIdentity, false);
+
+        dispose();
     }
 
     @FXML
     private void exportClick(ActionEvent ae) throws IOException {
-// TODO: handle Button event
+
         // Ask for filename
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setApproveButtonText("Export");
@@ -143,53 +156,83 @@ public class ResultWindowController {
             writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
             writer.newLine();
 
+            for (int row = 0; row < resultTable.getItems().size(); row++) {
+                ResultFormula formula = resultTable.getItems().get(row);
+                writer.write(formula.getFormulaAsString());
+                writer.write(",");
+                writer.write(String.valueOf(formula.getExactMass()));
+                writer.write(",");
+                if (formula.getRDBE() != null)
+                    writer.write(String.valueOf(formula.getRDBE()));
+                writer.write(",");
+                if (formula.getIsotopeScore() != null)
+                    writer.write(String.valueOf(formula.getIsotopeScore()));
+                writer.write(",");
+                if (formula.getMSMSScore() != null)
+                    writer.write(String.valueOf(formula.getMSMSScore()));
+                writer.newLine();
+            }
 
-            resultTable.getItems().forEach(cell -> {
-                try {
-                    writer.write(cell.getFormulaAsString());
-                    writer.write(",");
-                    writer.write(String.valueOf(cell.getExactMass()));
-                    writer.write(String.valueOf(cell.getRDBE()));
-                    writer.write(String.valueOf(cell.getIsotopeScore()));
-                    writer.write(String.valueOf(cell.getMSMSScore()));
-                    writer.newLine();
+            writer.close();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (Exception ex) {
-                    MZmineCore.getDesktop().displayErrorMessage(
-                            "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(ex));
-                }
-
-            });
-
-
-        } finally {
-
+        } catch (Exception ex) {
+            MZmineCore.getDesktop().displayErrorMessage(
+                    "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(ex));
         }
         return;
 
+
     }
+
+
 
     @FXML
     private void viewIsotopeClick(ActionEvent ae){
 // TODO: handle Button event
+        logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
+        IsotopePattern predictedPattern = formula.getPredictedIsotopes();
+
+        if (predictedPattern == null)
+            return;
+
+        Feature peak = peakListRow.getBestPeak();
+
+        RawDataFile dataFile = peak.getDataFile();
+        int scanNumber = peak.getRepresentativeScanNumber();
+        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
+                peak.getIsotopePattern(), predictedPattern);
     }
 
     @FXML
     private void copyClick(ActionEvent ae){
 // TODO: handle Button event
+        String formulaString = formula.getFormulaAsString();
+        StringSelection stringSelection = new StringSelection(formulaString);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
     }
 
     @FXML
     private void showsMSClick(ActionEvent ae){
 // TODO: handle Button event
+        Feature bestPeak = peakListRow.getBestPeak();
+
+        RawDataFile dataFile = bestPeak.getDataFile();
+        int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+
+        if (msmsScanNumber < 1)
+            return;
+
+        SpectraVisualizerWindow msmsPlot =
+                SpectraVisualizerModule.showNewSpectrumWindow(dataFile, msmsScanNumber);
+
+        if (msmsPlot == null)
+            return;
+        Map<DataPoint, String> annotation = formula.getMSMSannotation();
+
+        if (annotation == null)
+            return;
+        msmsPlot.addAnnotation(annotation);
     }
 
     public void dispose() {
