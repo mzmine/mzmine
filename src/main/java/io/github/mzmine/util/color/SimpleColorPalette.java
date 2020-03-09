@@ -20,8 +20,10 @@ package io.github.mzmine.util.color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -32,11 +34,12 @@ import javafx.scene.paint.Color;
 
 /**
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
- * 
+ *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
+
   private static final String NAME_ATTRIBUTE = "name";
 
   private static final Color defclr = Color.BLACK;
@@ -57,6 +60,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     super();
     delegate = new ArrayList<>();
     next = 0;
+    name = "";
   }
 
   public SimpleColorPalette(Color[] clrs) {
@@ -66,7 +70,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     }
   }
 
+  public SimpleColorPalette(SimpleColorPalette p) {
+    this();
+    p.forEach(c -> add(c));
+    name = p.getName() + " (cpy)";
+  }
+
   public void applyToChartTheme(EStandardChartTheme theme) {
+
     List<java.awt.Color> awtColors = new ArrayList<>();
     this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
     java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
@@ -82,39 +93,45 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
    * @return The next color in the color palette.
    */
   public Color getNextColor() {
-    if (this.isEmpty())
+    if (this.isEmpty()) {
       return defclr;
+    }
 
-    if (next >= this.size() - 1)
+    if (next >= this.size() - 1) {
       next = 0;
+    }
     next++;
 
     return get(next - 1);
   }
 
-  public @Nonnull Color getMainColor() {
-    if (isValidPalette())
+  @Nonnull public Color getMainColor() {
+    if (isValidPalette()) {
       return get(MAIN_COLOR);
+    }
     return Color.BLACK;
   }
 
   public boolean isValidPalette() {
-    if (this.isEmpty())
+    if (this.isEmpty()) {
       return false;
-    for (Color clr : this)
+    }
+    for (Color clr : this) {
       if (clr == null) {
-        this.remove(indexOf(clr));
+        return false;
       }
-    if (this.size() < 3)
+    }
+    if (this.size() < 3) {
       return false;
+    }
     return true;
   }
 
-  public String getName() {
+  @Nonnull public String getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(@Nonnull String name) {
     this.name = name;
   }
 
@@ -145,19 +162,39 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   /**
    * Checks for equality between two color palettes. Does not take the name into account.
    * 
-   * @param palette The palette.
+   * @param obj The palette.
    * @return true or false.
    */
-  public boolean equals(SimpleColorPalette palette) {
+  @Override public boolean equals(Object obj) {
+    if(obj == null)
+      return false;
+
+    if(obj == this)
+      return true;
+
+    if(!(obj instanceof SimpleColorPalette))
+      return false;
+
+    SimpleColorPalette palette = (SimpleColorPalette) obj;
+
     if (size() != palette.size())
       return false;
 
     for (int i = 0; i < size(); i++) {
-      if (!get(i).toString().equals(palette.get(i).toString())) {
+      if (!Objects.equals(get(i).toString(), palette.get(i).toString())) {
         return false;
       }
     }
+
+    if(!Objects.equals(getName(), palette.getName()))
+      return false;
+
     return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + name.hashCode();
   }
 
   @Override
@@ -168,6 +205,11 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     }
     clone.setName(getName());
     return clone;
+  }
+
+  @Override
+  public String toString() {
+    return getName() + " " + super.toString();
   }
 
   public void loadFromXML(Element xmlElement) {
@@ -197,7 +239,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   /**
    * Saves this color palette to an xml element.
-   * 
+   *
    * @param xmlElement The xml element this palette shall be saved into.
    */
   public void saveToXML(Element xmlElement) {
@@ -209,6 +251,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   // --- super type
   @Override
   public Color get(int index) {
+    next = index + 1;
     return delegate.get(index);
   }
 
@@ -231,4 +274,5 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   protected Color doRemove(int index) {
     return delegate.remove(index);
   }
+
 }

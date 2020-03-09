@@ -55,12 +55,7 @@ public class ColorPalettePreviewField extends FlowPane {
     
     validDrag = false;
     
-    palette.addListener(new ListChangeListener<Color> () {
-      @Override
-      public void onChanged(Change<? extends Color> c) {
-        updatePreview();
-      }
-    });
+    palette.addListener((ListChangeListener<Color>) c -> updatePreview());
   }
 
   private void setRectangles() {
