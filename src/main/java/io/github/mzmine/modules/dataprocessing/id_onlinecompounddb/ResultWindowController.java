@@ -41,7 +41,6 @@ import java.util.logging.Logger;
 
 public class ResultWindowController {
 
-    private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -52,7 +51,7 @@ public class ResultWindowController {
     private double searchedMass;
 
 
-    private ObservableList<DBCompound> listElements;
+    private ObservableList<DBCompound> compoundList;
 
     @FXML
     private TableView<DBCompound> IDList;
@@ -71,7 +70,7 @@ public class ResultWindowController {
 
     @FXML
     private void initialize(){
-        listElements = FXCollections.observableArrayList();;
+        compoundList = FXCollections.observableArrayList();;
         colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_ID)));
         colName.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getName()));
         colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_FORMULA)));
@@ -93,7 +92,7 @@ public class ResultWindowController {
                 cellVar = percentFormat.format(score);
             return new ReadOnlyObjectWrapper<>(cellVar);
         });
-        IDList.setItems(listElements);
+        IDList.setItems(compoundList);
     }
 
     public void initValues(PeakListRow peakListRow, Task searchTask, double searchedMass){
@@ -107,7 +106,7 @@ public class ResultWindowController {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                listElements.add(compound);
+                compoundList.add(compound);
             }
         });
 

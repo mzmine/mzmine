@@ -25,7 +25,6 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
 import java.text.NumberFormat;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -121,11 +120,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     Platform.runLater(() -> {
-              ResultWindowFX w = new ResultWindowFX(peakListRow, searchedMass, this);
-              resultWindowFX = w;
-              w.setMinWidth(700);
-              w.setMinHeight(550);
-              w.show();
+              resultWindowFX= new ResultWindowFX(peakListRow, searchedMass, this);
+              resultWindowFX.setMinWidth(700);
+              resultWindowFX.setMinHeight(550);
+              resultWindowFX.show();
     });
 
 
