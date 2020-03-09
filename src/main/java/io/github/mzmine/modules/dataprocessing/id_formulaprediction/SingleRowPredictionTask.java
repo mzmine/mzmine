@@ -138,11 +138,12 @@ public class SingleRowPredictionTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     Platform.runLater(()->{
-      ResultWindowFX rw = new ResultWindowFX(
+      resultWindowFX  = new ResultWindowFX(
               "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
               peakListRow, searchedMass, charge, this);
-              resultWindowFX = rw;
-              rw.show();
+              resultWindowFX.setMinHeight(800);
+              resultWindowFX.setMinWidth(800);
+              resultWindowFX.show();
     });
 
     logger.finest("Starting search for formulas for " + massRange + " Da");
@@ -169,7 +170,8 @@ public class SingleRowPredictionTask extends AbstractTask {
           return;
 
         // Mass is ok, so test other constraints
-        //checkConstraints(cdkFormula);
+        checkConstraints(cdkFormula);
+
 
       }
 
@@ -284,7 +286,7 @@ public class SingleRowPredictionTask extends AbstractTask {
         rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
 
     // Add the new formula entry
-    resultWindow.addNewListItem(resultEntry);
+    resultWindowFX.addNewListItem(resultEntry);
 
     foundFormulas++;
 

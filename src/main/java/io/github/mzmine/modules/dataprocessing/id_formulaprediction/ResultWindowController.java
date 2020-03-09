@@ -84,17 +84,6 @@ public class ResultWindowController {
         resultTable.setItems(formulas);
     }
 
-    public void addNewListItem(final ResultFormula formula)
-    {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                formulas.add(formula);
-
-            }
-        });
-
-    }
 
     private  PeakListRow peakListRow;
     private  Task searchTask;
@@ -234,7 +223,15 @@ public class ResultWindowController {
             return;
         msmsPlot.addAnnotation(annotation);
     }
-
+    public void addNewListItem(final ResultFormula formula)
+    {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                formulas.add(formula);
+            }
+        });
+    }
     public void dispose() {
 
         // Cancel the search task if it is still running

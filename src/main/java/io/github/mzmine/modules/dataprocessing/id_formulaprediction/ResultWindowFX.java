@@ -41,7 +41,7 @@ public class ResultWindowFX extends Stage {
 
             FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
             Parent rootPane = root.load();
-            Scene scene = new Scene(rootPane, 800, 800,Color.WHITE);
+            Scene scene = new Scene(rootPane);
             setScene(scene);
             controller = root.getController();
             controller.initValues(title, peakListRow, searchedMass, charge, searchTask);
@@ -51,6 +51,9 @@ public class ResultWindowFX extends Stage {
             e.printStackTrace();
         }
 
+    }
+    public void addNewListItem(final ResultFormula formula) {
+        controller.addNewListItem(formula);
     }
 
 }
