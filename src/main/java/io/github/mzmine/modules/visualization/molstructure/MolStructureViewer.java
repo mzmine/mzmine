@@ -24,6 +24,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -158,7 +159,8 @@ public class MolStructureViewer extends Stage {
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new Label(errorMessage);
     }
-    splitPane.getItems().set(0, newComponent);
+    final Node newComponentFinal = newComponent;
+    Platform.runLater(() -> splitPane.getItems().set(0, newComponentFinal));
     // splitPane.setDividerLocation(500);
   }
 
@@ -176,7 +178,8 @@ public class MolStructureViewer extends Stage {
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new Label(errorMessage);
     }
-    splitPane.getItems().set(0, newComponent);
+    final Node newComponentFinal = newComponent;
+    Platform.runLater(() -> splitPane.getItems().set(0, newComponentFinal));
     // splitPane.setDividerLocation(500);
   }
 
