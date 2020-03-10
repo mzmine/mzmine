@@ -64,7 +64,7 @@ public class ResultWindowController {
     @FXML
     private TableColumn<ResultFormula, String>MassDifference;
     @FXML
-    private TableColumn<ResultFormula, String>RDBE;
+    private TableColumn<ResultFormula, Double>RDBE;
     @FXML
     private TableColumn<ResultFormula, String>IsotopePattern;
     @FXML
@@ -75,7 +75,7 @@ public class ResultWindowController {
         formulas = FXCollections.observableArrayList();
         Formula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getFormulaAsString()));
 
-        RDBE.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getRDBE())));
+        RDBE.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
 
         MassDifference.setCellValueFactory(cell-> {
             String compFormula = String.valueOf(cell.getValue().getExactMass());
