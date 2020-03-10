@@ -107,6 +107,20 @@ public class ResultWindowController {
         Platform.runLater(() -> compoundList.add(compound));
 
     }
+    public void dispose() {
+
+        // Cancel the search task if it is still running
+        TaskStatus searchStatus = searchTask.getStatus();
+        if ((searchStatus == TaskStatus.WAITING) || (searchStatus == TaskStatus.PROCESSING)){
+            searchTask.cancel();
+        }
+        IDList.getScene().getWindow().hide();
+
+    }
+
+    public static void openWebpage(String url) {
+        MZmineCore.getDesktop().openWebPage(url);
+    }
 
     @FXML
     public void handleAddAction(ActionEvent actionEvent) {
@@ -190,18 +204,4 @@ public class ResultWindowController {
         openWebpage(urlString);
     }
 
-    public void dispose() {
-
-        // Cancel the search task if it is still running
-        TaskStatus searchStatus = searchTask.getStatus();
-        if ((searchStatus == TaskStatus.WAITING) || (searchStatus == TaskStatus.PROCESSING)){
-            searchTask.cancel();
-        }
-        IDList.getScene().getWindow().hide();
-
-    }
-
-    public static void openWebpage(String url) {
-        MZmineCore.getDesktop().openWebPage(url);
-    }
 }

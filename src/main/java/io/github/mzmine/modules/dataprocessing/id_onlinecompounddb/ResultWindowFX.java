@@ -31,9 +31,6 @@ import javafx.stage.Stage;
 
 
 public class ResultWindowFX extends Stage {
-    /**
-     *
-     */
 
     public ResultWindowController controller;
 
