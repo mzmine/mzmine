@@ -5,26 +5,26 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="516.0" prefWidth="1691.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
+<VBox minHeight="550" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
     <children>
-        <Label prefHeight="74.0" prefWidth="201.0" text="List of possible formulas" VBox.vgrow="ALWAYS">
+        <Label text="List of possible formulas">
             <font>
                 <Font name="System Bold" size="14.0" />
             </font>
         </Label>
-        <TableView fx:id="resultTable" prefHeight="432.0" prefWidth="1567.0" VBox.vgrow="ALWAYS">
+        <TableView fx:id="resultTable" minHeight="100">
             <columns>
-                <TableColumn fx:id="Formula" prefWidth="154.00003051757812" text="Formula" />
-                <TableColumn fx:id="MassDifference" minWidth="0.0" prefWidth="127.0" text="Mass difference" />
-                <TableColumn fx:id="RDBE" prefWidth="104.00003051757812" text="RDBE" />
-                <TableColumn fx:id="IsotopePattern" prefWidth="219.0" text="Isotope pattern " />
-                <TableColumn fx:id="MSScore" prefWidth="172.0" text="MS / MS Score" />
+                <TableColumn fx:id="Formula" minWidth="200" text="Formula" />
+                <TableColumn fx:id="MassDifference" minWidth="100" text="Mass difference" />
+                <TableColumn fx:id="RDBE" minWidth="150" text="RDBE" />
+                <TableColumn fx:id="IsotopePattern" minWidth="150" text="Isotope pattern " />
+                <TableColumn fx:id="MSScore" minWidth="100" text="MS / MS Score" />
             </columns>
             <VBox.margin>
-                <Insets top="30.0" />
+                <Insets top="10.0" />
             </VBox.margin>
         </TableView>
-        <ToolBar prefHeight="118.0" prefWidth="1257.0" VBox.vgrow="ALWAYS">
+        <ToolBar minWidth="700">
             <items>
                 <Button fx:id="addIdentity" mnemonicParsing="false" onAction="#AddIdentityClick" prefHeight="46.0" prefWidth="109.0" text="Add Identity">
                     <font>

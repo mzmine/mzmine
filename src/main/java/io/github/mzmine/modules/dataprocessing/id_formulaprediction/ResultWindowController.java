@@ -101,26 +101,12 @@ public class ResultWindowController {
         this.searchedMass = searchedMass;
     }
 
-
-    @FXML
-    private Button ShowMS;
-    @FXML
-    private Button Copy;
-    @FXML
-    private Button ViewIsotope;
-    @FXML
-    private Button addIdentity;
-    @FXML
-    private Button Export;
-
-    int index = resultTable.getSelectionModel().getSelectedIndex();
-
-   ResultFormula formula = resultTable.getItems().get(index);
-
     @FXML
     private void AddIdentityClick(ActionEvent ae){
 // TODO: handle Button event
 
+        int index = resultTable.getSelectionModel().getSelectedIndex();
+        ResultFormula formula = resultTable.getItems().get(index);
 
         SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
         peakListRow.addPeakIdentity(newIdentity, false);
@@ -178,6 +164,9 @@ public class ResultWindowController {
     @FXML
     private void viewIsotopeClick(ActionEvent ae){
 // TODO: handle Button event
+        int index = resultTable.getSelectionModel().getSelectedIndex();
+        ResultFormula formula = resultTable.getItems().get(index);
+
         logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
         IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
@@ -195,6 +184,9 @@ public class ResultWindowController {
     @FXML
     private void copyClick(ActionEvent ae){
 // TODO: handle Button event
+        int index = resultTable.getSelectionModel().getSelectedIndex();
+        ResultFormula formula = resultTable.getItems().get(index);
+
         String formulaString = formula.getFormulaAsString();
         StringSelection stringSelection = new StringSelection(formulaString);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -204,6 +196,9 @@ public class ResultWindowController {
     @FXML
     private void showsMSClick(ActionEvent ae){
 // TODO: handle Button event
+        int index = resultTable.getSelectionModel().getSelectedIndex();
+        ResultFormula formula = resultTable.getItems().get(index);
+
         Feature bestPeak = peakListRow.getBestPeak();
 
         RawDataFile dataFile = bestPeak.getDataFile();
