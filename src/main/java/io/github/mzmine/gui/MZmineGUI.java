@@ -310,6 +310,7 @@ public class MZmineGUI extends Application implements Desktop {
     return mainWindowController.getTasksView();
   }
 
+  @Override
   public void openWebPage(String url) {
     HostServices openWPService = getHostServices();
     openWPService.showDocument(url);

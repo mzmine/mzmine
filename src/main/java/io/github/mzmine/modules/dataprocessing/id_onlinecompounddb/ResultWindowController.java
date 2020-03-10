@@ -96,17 +96,31 @@ public class ResultWindowController {
         IDList.setItems(compoundList);
     }
 
+    /**
+     * Initialize values for calculations used in buttons
+     *
+     * @param peakListRow
+     * @param searchTask
+     * @param searchedMass
+     */
     public void initValues(PeakListRow peakListRow, Task searchTask, double searchedMass){
         this.peakListRow = peakListRow;
         this.searchTask = searchTask;
         this.searchedMass = searchedMass;
     }
 
+    /**
+     * Add compound to the list for viewing in the Table
+     *
+     * @param compound
+     */
     public void addNewListItem(final DBCompound compound) {
-
         Platform.runLater(() -> compoundList.add(compound));
-
     }
+
+    /**
+     * Hide the TableView, cancel Task
+     */
     public void dispose() {
 
         // Cancel the search task if it is still running
@@ -118,6 +132,11 @@ public class ResultWindowController {
 
     }
 
+    /**
+     * Open webpage
+     *
+     * @param url
+     */
     public static void openWebpage(String url) {
         MZmineCore.getDesktop().openWebPage(url);
     }
