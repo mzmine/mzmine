@@ -19,10 +19,7 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 
-import java.util.List;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.Title;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -82,7 +79,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
 
   public ChartThemeParameters() {
-    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
+    super(new Parameter[]{showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
         titleFont, captionFont, labelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -96,8 +93,9 @@ public class ChartThemeParameters extends SimpleParameterSet {
 
     assert Platform.isFxApplicationThread();
 
-    if ((parameters == null) || (parameters.length == 0))
+    if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
