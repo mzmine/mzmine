@@ -163,8 +163,13 @@ public class ResultWindowController {
     @FXML
     private void viewIsotopeClick(ActionEvent ae){
 // TODO: handle Button event
-        int index = resultTable.getSelectionModel().getSelectedIndex();
-        ResultFormula formula = resultTable.getItems().get(index);
+        ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
+        if(formula == null)
+        {
+            MZmineCore.getDesktop().displayMessage(null,
+                    "Select one result to copy");
+            return;
+        }
 
         logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
         IsotopePattern predictedPattern = formula.getPredictedIsotopes();
