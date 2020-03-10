@@ -91,23 +91,27 @@ public class ResultWindowController {
 
         IsotopePattern.setCellValueFactory(cell->{
             String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
-            String cellValue="";
-            if(isotopeScore!=null){
-                cellValue = isotopeScore;
-            }
 
-            return new ReadOnlyObjectWrapper<>(cellValue);
+            if(cell.getValue().getIsotopeScore() != null)
+            {
+                return new ReadOnlyObjectWrapper<>(isotopeScore);
+            }
+            return new ReadOnlyObjectWrapper<>();
+
+
+
         });
 
         MSScore.setCellValueFactory(cell-> {
             String Msscore = String.valueOf(cell.getValue().getMSMSScore());
-            String cellValue = "";
-            if(Msscore!=null)
-            {
-                cellValue = Msscore;
-            }
 
-            return new ReadOnlyObjectWrapper<>(cellValue);
+            if(cell.getValue().getMSMSScore() !=null)
+            {
+                return new ReadOnlyObjectWrapper<>(Msscore);
+            }
+            return new ReadOnlyObjectWrapper<>();
+
+
         });
 
         resultTable.setItems(formulas);
@@ -118,8 +122,6 @@ public class ResultWindowController {
     private  Task searchTask;
     private  String title;
     private double searchedMass;
-
-
 
     public void initValues(String title, PeakListRow peakListRow, double searchedMass, int charge,
                         Task searchTask) {
@@ -132,7 +134,6 @@ public class ResultWindowController {
 
     @FXML
     private void AddIdentityClick(ActionEvent ae){
-// TODO: handle Button event
 
         ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
 
@@ -197,7 +198,6 @@ public class ResultWindowController {
 
     @FXML
     private void viewIsotopeClick(ActionEvent ae){
-// TODO: handle Button event
         ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
         if(formula == null)
         {
@@ -222,7 +222,6 @@ public class ResultWindowController {
 
     @FXML
     private void copyClick(ActionEvent ae){
-// TODO: handle Button event
         ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
         if(formula == null)
         {
@@ -239,7 +238,6 @@ public class ResultWindowController {
 
     @FXML
     private void showsMSClick(ActionEvent ae){
-// TODO: handle Button event
         ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
         if(formula == null){
             MZmineCore.getDesktop().displayMessage(null,

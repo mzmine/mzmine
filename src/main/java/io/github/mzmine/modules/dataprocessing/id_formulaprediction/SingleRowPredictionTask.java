@@ -22,8 +22,6 @@ import javafx.application.Platform;
 import java.util.Map;
 import java.util.logging.Logger;
 
-//import javax.swing.SwingUtilities;
-
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -178,11 +176,9 @@ public class SingleRowPredictionTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      logger.finest(
-              "Finished formula search for " + massRange + " m/z, found " + foundFormulas + " formulas");
+      logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas + " formulas");
 
-      Platform.runLater(() -> {
-        resultWindowFX.setTitle("Finished searching for "
+      Platform.runLater(() -> { resultWindowFX.setTitle("Finished searching for "
                 + MZmineCore.getConfiguration().getMZFormat().format(searchedMass) + " amu, "
                 + foundFormulas + " formulas found");
       });
@@ -223,9 +219,6 @@ public class SingleRowPredictionTask extends AbstractTask {
     final String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
 
     final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
-
-    // final double isotopeNoiseLevel =
-    // isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;

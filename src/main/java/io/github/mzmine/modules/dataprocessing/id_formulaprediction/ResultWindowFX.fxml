@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox minHeight="550" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
-    <children>
-        <Label text="List of possible formulas">
-            <font>
-                <Font name="System Bold" size="14.0" />
-            </font>
-        </Label>
+<BorderPane minHeight="550" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
+    <top>
+        <Label text="List of possible formulas" VBox.vgrow="ALWAYS"></Label>
+    </top>
+
+    <center>
         <TableView fx:id="resultTable" minHeight="100">
             <columns>
                 <TableColumn fx:id="Formula" minWidth="200" text="Formula" />
@@ -20,39 +16,24 @@
                 <TableColumn fx:id="IsotopePattern" minWidth="150" text="Isotope pattern " />
                 <TableColumn fx:id="MSScore" minWidth="100" text="MS / MS Score" />
             </columns>
-            <VBox.margin>
-                <Insets top="10.0" />
-            </VBox.margin>
         </TableView>
-        <ToolBar minWidth="700">
-            <items>
-                <Button fx:id="addIdentity" mnemonicParsing="false" onAction="#AddIdentityClick" prefHeight="46.0" prefWidth="109.0" text="Add Identity">
-                    <font>
-                        <Font name="System Bold" size="13.0" />
-                    </font></Button>
-                <Button fx:id="Copy" mnemonicParsing="false" onAction="#copyClick" prefHeight="43.0" prefWidth="148.0" text="Copy to clipboard">
-                    <font>
-                        <Font name="System Bold" size="13.0" />
-                    </font></Button>
-                <Button fx:id="Export" mnemonicParsing="false" onAction="#exportClick" prefHeight="43.0" prefWidth="89.0" text="Export all">
-                    <font>
-                        <Font name="System Bold" size="13.0" />
-                    </font></Button>
-                <Button fx:id="ViewIsotope" mnemonicParsing="false" onAction="#viewIsotopeClick" prefHeight="48.0" prefWidth="172.0" text="View isotope pattern">
-                    <font>
-                        <Font name="System Bold" size="13.0" />
-                    </font></Button>
-                <Button fx:id="ShowMS" mnemonicParsing="false" onAction="#showsMSClick" prefHeight="49.0" prefWidth="128.0" text="Show MS / MS">
-                    <font>
-                        <Font name="System Bold" size="13.0" />
-                    </font></Button>
-            </items>
-            <VBox.margin>
-                <Insets top="20.0" />
-            </VBox.margin>
-        </ToolBar>
-    </children>
-    <padding>
-        <Insets top="20.0" />
-    </padding>
-</VBox>
+    </center>
+
+    <bottom>
+
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="addIdentity" onAction="#AddIdentityClick"  text="Add Identity">
+                </Button>
+                <Button fx:id="Copy"  onAction="#copyClick" text="Copy to clipboard">
+                </Button>
+                <Button fx:id="Export"  onAction="#exportClick" text="Export all">
+                </Button>
+                <Button fx:id="ViewIsotope" onAction="#viewIsotopeClick" text="View isotope pattern">
+                </Button>
+                <Button fx:id="ShowMS" onAction="#showsMSClick" text="Show MS / MS">
+                </Button>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+</BorderPane>
