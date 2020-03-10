@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+
+import javafx.application.HostServices;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -308,6 +310,11 @@ public class MZmineGUI extends Application implements Desktop {
     return mainWindowController.getTasksView();
   }
 
+  public void openWebPage(String url) {
+    HostServices openWPService = getHostServices();
+    openWPService.showDocument(url);
+  }
+
   @Override
   public void setStatusBarText(String message) {
     setStatusBarText(message, Color.BLACK);
@@ -370,4 +377,6 @@ public class MZmineGUI extends Application implements Desktop {
     requestQuit();
     return ExitCode.UNKNOWN;
   }
+
+
 }

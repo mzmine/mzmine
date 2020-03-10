@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.HostServices;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -101,6 +102,10 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public TableView<WrappedTask> getTasksView() {
     return null;
+  }
+
+  public void openWebPage(String url) {
+//    Do nothing
   }
 
 }

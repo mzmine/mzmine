@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.taskcontrol.Task;
@@ -103,12 +104,7 @@ public class ResultWindowController {
 
     public void addNewListItem(final DBCompound compound) {
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                compoundList.add(compound);
-            }
-        });
+        Platform.runLater(() -> compoundList.add(compound));
 
     }
 
@@ -206,10 +202,6 @@ public class ResultWindowController {
     }
 
     public static void openWebpage(String url) {
-        try {
-            new ProcessBuilder("x-www-browser", url).start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        MZmineCore.getDesktop().openWebPage(url);
     }
 }

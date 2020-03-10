@@ -104,4 +104,6 @@ public interface Desktop extends MZmineModule {
 
   public TableView<WrappedTask> getTasksView();
 
+  public void openWebPage(String url);
+
 }
