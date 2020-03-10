@@ -26,6 +26,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.FormulaUtils;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,8 +35,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.application.Platform;
+import javafx.stage.FileChooser;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -73,10 +74,42 @@ public class ResultWindowController {
     private void initialize(){
         formulas = FXCollections.observableArrayList();
         Formula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getFormulaAsString()));
+
         RDBE.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getRDBE())));
-        MassDifference.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getExactMass())));
-        IsotopePattern.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getIsotopeScore())));
-        MSScore.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getMSMSScore())));
+
+        MassDifference.setCellValueFactory(cell-> {
+            String compFormula = String.valueOf(cell.getValue().getExactMass());
+            String cellValue="";
+            if(compFormula!=null)
+            {
+                double compMass = FormulaUtils.calculateExactMass(compFormula);
+                double massDifference = Math.abs(searchedMass - compMass);
+                cellValue = massFormat.format(massDifference);
+            }
+            return new ReadOnlyObjectWrapper<>(cellValue);
+        });
+
+        IsotopePattern.setCellValueFactory(cell->{
+            String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
+            String cellValue="";
+            if(isotopeScore!=null){
+                cellValue = isotopeScore;
+            }
+
+            return new ReadOnlyObjectWrapper<>(cellValue);
+        });
+
+        MSScore.setCellValueFactory(cell-> {
+            String Msscore = String.valueOf(cell.getValue().getMSMSScore());
+            String cellValue = "";
+            if(Msscore!=null)
+            {
+                cellValue = Msscore;
+            }
+
+            return new ReadOnlyObjectWrapper<>(cellValue);
+        });
+
         resultTable.setItems(formulas);
     }
 
@@ -119,15 +152,16 @@ public class ResultWindowController {
     private void exportClick(ActionEvent ae) throws IOException {
 
         // Ask for filename
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setApproveButtonText("Export");
-
-        int result = fileChooser.showSaveDialog(null);
-        if (result != JFileChooser.APPROVE_OPTION)
+        FileChooser fileChooser = new FileChooser();
+        File result = fileChooser.showSaveDialog(null);
+        if(result==null)
+        {
             return;
-        File outputFile = fileChooser.getSelectedFile();
+        }
+        fileChooser.setTitle("Export");
+
         try {
-            FileWriter fileWriter = new FileWriter(outputFile);
+            FileWriter fileWriter = new FileWriter(result);
             BufferedWriter writer = new BufferedWriter(fileWriter);
             writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
             writer.newLine();
@@ -153,9 +187,10 @@ public class ResultWindowController {
 
         } catch (Exception ex) {
             MZmineCore.getDesktop().displayErrorMessage(
-                    "Error writing to file " + outputFile + ": " + ExceptionUtils.exceptionToString(ex));
+                    "Error writing to file " + result + ": " + ExceptionUtils.exceptionToString(ex));
         }
         return;
+
 
 
     }
