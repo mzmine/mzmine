@@ -115,6 +115,7 @@ public class SpectraPlot extends EChartViewer {
     chart.setBackgroundPaint(Color.white);
 
     plot = chart.getXYPlot();
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     // title
     chartTitle = chart.getTitle();
