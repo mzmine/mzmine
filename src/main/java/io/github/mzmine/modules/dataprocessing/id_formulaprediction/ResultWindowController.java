@@ -26,7 +26,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.FormulaUtils;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -52,17 +51,15 @@ import java.util.logging.Logger;
 public class ResultWindowController {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
-    private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
-
-    private ObservableList<ResultFormula> formulas;
+    private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
 
     @FXML
     private TableView<ResultFormula>resultTable;
     @FXML
     private TableColumn<ResultFormula, String>Formula;
     @FXML
-    private TableColumn<ResultFormula, String>MassDifference;
+    private TableColumn<ResultFormula, Double>MassDifference;
     @FXML
     private TableColumn<ResultFormula, Double>RDBE;
     @FXML
@@ -72,21 +69,15 @@ public class ResultWindowController {
 
     @FXML
     private void initialize(){
-        formulas = FXCollections.observableArrayList();
         Formula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getFormulaAsString()));
 
         RDBE.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
 
         MassDifference.setCellValueFactory(cell-> {
-            String compFormula = String.valueOf(cell.getValue().getExactMass());
-            String cellValue="";
-            if(compFormula!=null)
-            {
-                double compMass = FormulaUtils.calculateExactMass(compFormula);
-                double massDifference = Math.abs(searchedMass - compMass);
-                cellValue = massFormat.format(massDifference);
-            }
-            return new ReadOnlyObjectWrapper<>(cellValue);
+            double ExactMass = cell.getValue().getExactMass();
+            double MassDiff = searchedMass - ExactMass;
+
+            return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(MassDiff)));
         });
 
         IsotopePattern.setCellValueFactory(cell->{

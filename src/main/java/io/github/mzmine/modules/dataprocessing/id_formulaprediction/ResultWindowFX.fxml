@@ -2,7 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane minHeight="550" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
+<BorderPane minHeight="100" minWidth="700" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
     <top>
         <Label text="List of possible formulas" VBox.vgrow="ALWAYS"></Label>
     </top>
@@ -21,7 +21,7 @@
 
     <bottom>
 
-        <ButtonBar>
+        <ButtonBar style ="-fx-padding: 5 0 5 0;">
             <buttons>
                 <Button fx:id="addIdentity" onAction="#AddIdentityClick"  text="Add Identity">
                 </Button>

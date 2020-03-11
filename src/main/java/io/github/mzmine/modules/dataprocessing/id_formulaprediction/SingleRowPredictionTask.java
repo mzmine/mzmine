@@ -56,8 +56,6 @@ import io.github.mzmine.util.FormulaUtils;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
-  private ResultWindow resultWindow;
-
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private Range<Double> massRange;
@@ -134,13 +132,13 @@ public class SingleRowPredictionTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
+    resultWindowFX  = new ResultWindowFX(
+            "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
+            peakListRow, searchedMass, charge, this);
+            resultWindowFX.setMinHeight(100);
+            resultWindowFX.setMinWidth(700);
 
     Platform.runLater(()->{
-      resultWindowFX  = new ResultWindowFX(
-              "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
-              peakListRow, searchedMass, charge, this);
-              resultWindowFX.setMinHeight(800);
-              resultWindowFX.setMinWidth(800);
               resultWindowFX.show();
     });
 
