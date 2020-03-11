@@ -19,13 +19,16 @@
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
 import javax.swing.SwingUtilities;
+
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController;
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController;
+import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
@@ -80,12 +83,20 @@ public class RTMZAnalyzerWindow extends Stage {
 
     colorButton.setOnAction(e -> {
       SwingUtilities.invokeLater(() -> {
-        InterpolatingLookupPaintScaleSetupDialog colorDialog =
-            new InterpolatingLookupPaintScaleSetupDialog(null, plot.getPaintScale());
-        colorDialog.setVisible(true);
 
-        if (colorDialog.getExitCode() == ExitCode.OK)
-          plot.setPaintScale(colorDialog.getPaintScale());
+        Platform.runLater(new Runnable() {
+          @Override
+          public void run() {
+            InterpolatingLookupPaintScaleSetupDialogController colorDialog =
+                    new InterpolatingLookupPaintScaleSetupDialogController(null, plot.getPaintScale());
+            colorDialog.show();
+
+
+            if (colorDialog.getExitCode() == ExitCode.OK)
+              plot.setPaintScale(colorDialog.getPaintScale());
+          }
+        });
+
       });
     });
 

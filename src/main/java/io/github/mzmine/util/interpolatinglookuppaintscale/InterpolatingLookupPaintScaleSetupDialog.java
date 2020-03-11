@@ -42,7 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 
 public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
-    implements ActionListener, ListSelectionListener {
+        implements ActionListener, ListSelectionListener {
 
   /**
    *
@@ -70,7 +70,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
   private ExitCode exitCode = ExitCode.CANCEL;
 
   public InterpolatingLookupPaintScaleSetupDialog(JFrame parent,
-      InterpolatingLookupPaintScale paintScale) {
+                                                  InterpolatingLookupPaintScale paintScale) {
     super(parent, "Select colors for paint scale", true);
 
     Double[] lookupValues = paintScale.getLookupValues();
@@ -118,7 +118,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
     tableModel = new InterpolatingLookupPaintScaleSetupDialogTableModel(lookupTable);
     tableLookupValues = new JTable(tableModel);
     tableLookupValues.getColumnModel().getColumn(1).setCellRenderer(
-        new InterpolatingLookupPaintScaleSetupDialogTableCellRenderer(lookupTable));
+            new InterpolatingLookupPaintScaleSetupDialogTableCellRenderer(lookupTable));
     tableLookupValues.getSelectionModel().addListSelectionListener(this);
 
     panelControlsAndList.add(panelList, BorderLayout.CENTER);
@@ -165,7 +165,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog
     Object src = event.getSource();
     if (src == buttonColor) {
       Color newColor =
-          JColorChooser.showDialog(this, "Please select color", buttonColor.getBackground());
+              JColorChooser.showDialog(this, "Please select color", buttonColor.getBackground());
       buttonColor.setBackground(newColor);
     }
 

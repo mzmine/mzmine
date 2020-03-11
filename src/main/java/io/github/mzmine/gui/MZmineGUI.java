@@ -84,8 +84,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     try {
       // Load the main window
-      URL mainFXML = this.getClass().getResource(mzMineFXML);
-      FXMLLoader loader = new FXMLLoader(mainFXML);
+        URL mainFXML = this.getClass().getResource(mzMineFXML);
+        FXMLLoader loader = new FXMLLoader(mainFXML);
 
       rootScene = loader.load();
       mainWindowController = loader.getController();

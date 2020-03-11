@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="main" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController">
+
+   <children>
+      <AnchorPane fx:id="panelControlsAndList" layoutY="3.0" prefHeight="394.0" prefWidth="600.0">
+          <children>
+              <AnchorPane fx:id="panelOKCancelButton" layoutX="255.0" layoutY="311.0" prefHeight="40.0" prefWidth="200.0">
+              <children>
+                <Button fx:id="buttonOK" layoutX="50.0" layoutY="7.0" mnemonicParsing="false" onAction="#actionPerformed" text="Ok" />
+                  <Button fx:id="buttonCancel" layoutX="116.0" layoutY="7.0" mnemonicParsing="false" onAction="#actionPerformed" text="Cancel" />
+              </children>
+            </AnchorPane>
+            <AnchorPane fx:id="panelList" layoutX="55.0" layoutY="95.0" prefHeight="222.0" prefWidth="478.0">
+               <children>
+                  <ScrollPane fx:id="scrollpaneLookupValues" layoutX="14.0" layoutY="11.0" prefHeight="200.0" prefWidth="457.0">
+                     <content>
+                        <TableView fx:id="tableLookupValues" prefHeight="200.0" prefWidth="441.0">
+
+                        </TableView>
+                     </content></ScrollPane>
+               </children>
+            </AnchorPane>
+              <AnchorPane fx:id="panelValueAndColor" layoutX="34.0" layoutY="14.0" prefHeight="73.0" prefWidth="520.0">
+                  <children>
+                      <Label fx:id="labelValue" layoutX="48.0" layoutY="25.0" text="Value: " />
+                      <TextField fx:id="fieldValue" layoutX="92.0" layoutY="21.0" prefHeight="18.0" prefWidth="91.0" />
+                      <Button fx:id="buttonColor" layoutX="203.0" layoutY="21.0" mnemonicParsing="false" onAction="#actionPerformed" text="Select Color" />
+                      <Button fx:id="buttonAddModify" layoutX="312.0" layoutY="21.0" mnemonicParsing="false" onAction="#actionPerformed" text="Add/Modify" />
+                      <Button fx:id="buttonDelete" layoutX="427.0" layoutY="21.0" mnemonicParsing="false" onAction="#actionPerformed" text="Delete" />
+                  </children>
+              </AnchorPane>
+
+          </children>
+      </AnchorPane>
+
+
+   </children>
+</AnchorPane>
