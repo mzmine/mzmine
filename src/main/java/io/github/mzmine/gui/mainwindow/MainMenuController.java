@@ -178,7 +178,8 @@ public class MainMenuController {
   }
 
   public void runDialog() {
-    io.github.mzmine.util.dialogs.PeriodicTableDialog.launch();
+   io.github.mzmine.util.dialogs.PeriodicTableDialog dialog = new io.github.mzmine.util.dialogs.PeriodicTableDialog();
+   dialog.show();
   }
 }
 
