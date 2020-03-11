@@ -21,6 +21,7 @@ package io.github.mzmine.util.dialogs;
 import javafx.embed.swing.SwingNode;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -45,12 +46,15 @@ public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
 
   public void start(Stage primaryStage) throws Exception{
     Parent root = FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
+
     periodicTable = new PeriodicTablePanel();
     periodicTable.addCDKChangeListener(this);
     SwingNode sn = new SwingNode();
     sn.setContent(periodicTable);
-    BorderPaneArea.setCenter(sn);
+
+    BorderPaneArea.setAlignment(sn, Pos.CENTER);
     primaryStage.setScene(new Scene(root));
+    primaryStage.setTitle("Choose an element...");
     primaryStage.show();
   }
 
