@@ -28,6 +28,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.net.URL;
+
 /**
  * This interface represents the application GUI
  * 
@@ -104,6 +106,6 @@ public interface Desktop extends MZmineModule {
 
   public TableView<WrappedTask> getTasksView();
 
-  public void openWebPage(String url);
+  public void openWebPage(@Nonnull URL url);
 
 }

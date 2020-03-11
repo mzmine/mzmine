@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui;
 
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -104,8 +105,8 @@ public class HeadLessDesktop implements Desktop {
     return null;
   }
 
-  public void openWebPage(String url) {
-//    Do nothing
+  public void openWebPage(URL url) {
+    throw new UnsupportedOperationException();
   }
 
 }

@@ -121,8 +121,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     Platform.runLater(() -> {
               resultWindowFX= new ResultWindowFX(peakListRow, searchedMass, this);
-              resultWindowFX.setMinWidth(700);
-              resultWindowFX.setMinHeight(550);
               resultWindowFX.show();
     });
 

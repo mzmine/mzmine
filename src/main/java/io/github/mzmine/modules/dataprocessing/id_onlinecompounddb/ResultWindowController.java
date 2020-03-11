@@ -32,6 +32,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -52,11 +53,10 @@ public class ResultWindowController {
     private double searchedMass;
 
 
-    private ObservableList<DBCompound> compoundList;
+    private final ObservableList<DBCompound> compoundList = FXCollections.observableArrayList();
 
     @FXML
     private TableView<DBCompound> IDList;
-
     @FXML
     private TableColumn<DBCompound, String> colID;
     @FXML
@@ -71,7 +71,6 @@ public class ResultWindowController {
 
     @FXML
     private void initialize(){
-        compoundList = FXCollections.observableArrayList();;
         colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_ID)));
         colName.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getName()));
         colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(PeakIdentity.PROPERTY_FORMULA)));
@@ -115,7 +114,8 @@ public class ResultWindowController {
      * @param compound
      */
     public void addNewListItem(final DBCompound compound) {
-        Platform.runLater(() -> compoundList.add(compound));
+        assert Platform.isFxApplicationThread();
+        compoundList.add(compound);
     }
 
     /**
@@ -130,15 +130,6 @@ public class ResultWindowController {
         }
         IDList.getScene().getWindow().hide();
 
-    }
-
-    /**
-     * Open webpage
-     *
-     * @param url
-     */
-    public static void openWebpage(String url) {
-        MZmineCore.getDesktop().openWebPage(url);
     }
 
     @FXML
@@ -157,7 +148,7 @@ public class ResultWindowController {
             dispose();
         }
         catch (Exception e){
-            logger.finest(e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -220,7 +211,12 @@ public class ResultWindowController {
         if ((urlString == null) || (urlString.length() == 0))
             return;
 
-        openWebpage(urlString);
+        try{
+            MZmineCore.getDesktop().openWebPage(new URL(urlString));
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

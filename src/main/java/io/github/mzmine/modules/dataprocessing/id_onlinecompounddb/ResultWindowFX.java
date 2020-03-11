@@ -39,9 +39,10 @@ public class ResultWindowFX extends Stage {
         try {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("ResultWindow.fxml"));
-            Parent rootPane = loader.load();
-            Scene scene = new Scene (rootPane);
-            setScene(scene);
+            Scene rootScene = loader.load();
+            setScene(rootScene);
+            setMinWidth(700);
+            setMinHeight(550);
             controller =loader.getController();
             controller.initValues(peakListRow,searchTask,searchedMass);
         }

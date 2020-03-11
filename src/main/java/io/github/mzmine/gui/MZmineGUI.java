@@ -311,9 +311,9 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void openWebPage(String url) {
+  public void openWebPage(URL url) {
     HostServices openWPService = getHostServices();
-    openWPService.showDocument(url);
+    openWPService.showDocument(String.valueOf(url));
   }
 
   @Override
