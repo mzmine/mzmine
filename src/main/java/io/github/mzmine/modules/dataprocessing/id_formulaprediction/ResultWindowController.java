@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 public class ResultWindowController {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
+    private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
 
@@ -82,27 +83,22 @@ public class ResultWindowController {
 
         IsotopePattern.setCellValueFactory(cell->{
             String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
-
+            String cellVal = "";
             if(cell.getValue().getIsotopeScore() != null)
             {
-                return new ReadOnlyObjectWrapper<>(isotopeScore);
+                cellVal = percentFormat.format(Double.parseDouble(isotopeScore));
             }
-            return new ReadOnlyObjectWrapper<>();
-
-
-
+            return new ReadOnlyObjectWrapper<>(cellVal);
         });
 
         MSScore.setCellValueFactory(cell-> {
             String Msscore = String.valueOf(cell.getValue().getMSMSScore());
-
+            String cellVal = "";
             if(cell.getValue().getMSMSScore() !=null)
             {
-                return new ReadOnlyObjectWrapper<>(Msscore);
+                cellVal = percentFormat.format(Double.parseDouble(Msscore));
             }
-            return new ReadOnlyObjectWrapper<>();
-
-
+            return new ReadOnlyObjectWrapper<>(cellVal);
         });
 
         resultTable.setItems(formulas);

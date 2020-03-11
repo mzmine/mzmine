@@ -137,8 +137,6 @@ public class SingleRowPredictionTask extends AbstractTask {
               resultWindowFX  = new ResultWindowFX(
               "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
               peakListRow, searchedMass, charge, this);
-              resultWindowFX.setMinHeight(100);
-              resultWindowFX.setMinWidth(700);
       resultWindowFX.show();
 
     });
