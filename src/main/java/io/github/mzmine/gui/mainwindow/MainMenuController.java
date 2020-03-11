@@ -32,6 +32,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
 
 import java.awt.*;
 import java.io.File;
@@ -177,9 +178,10 @@ public class MainMenuController {
     });
   }
 
-  public void runDialog() {
+  public void runDialog() throws Exception {
    io.github.mzmine.util.dialogs.PeriodicTableDialog dialog = new io.github.mzmine.util.dialogs.PeriodicTableDialog();
-   dialog.show();
+   Stage stage = new Stage();
+   dialog.start(stage);
   }
 }
 
