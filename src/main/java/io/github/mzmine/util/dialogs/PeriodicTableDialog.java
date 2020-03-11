@@ -18,10 +18,11 @@
 
 package io.github.mzmine.util.dialogs;
 
-import javafx.application.Application;
 import javafx.embed.swing.SwingNode;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.openscience.cdk.config.IsotopeFactory;
@@ -31,7 +32,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 import java.util.EventObject;
 
-public class PeriodicTableDialog extends Application implements ICDKChangeListener {
+public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
 
   /**
    *
@@ -43,12 +44,14 @@ public class PeriodicTableDialog extends Application implements ICDKChangeListen
   private BorderPane BorderPaneArea;
 
   public void start(Stage primaryStage) throws Exception{
-    FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
+    Parent root = FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
     periodicTable = new PeriodicTablePanel();
     periodicTable.addCDKChangeListener(this);
     SwingNode sn = new SwingNode();
     sn.setContent(periodicTable);
     BorderPaneArea.setCenter(sn);
+    primaryStage.setScene(new Scene(root));
+    primaryStage.show();
   }
 
   public void stateChanged(EventObject event) {
