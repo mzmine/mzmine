@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,39 +18,37 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.awt.BorderLayout;
-import java.util.EventObject;
-
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-
+import javafx.application.Application;
+import javafx.embed.swing.SwingNode;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.event.ICDKChangeListener;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
+import java.util.EventObject;
+
+public class PeriodicTableDialog extends Application implements ICDKChangeListener {
 
   /**
-   * 
+   *
    */
-  private static final long serialVersionUID = 1L;
   private PeriodicTablePanel periodicTable;
   private IIsotope selectedIsotope;
 
-  public PeriodicTableDialog(JFrame parent) {
+  @FXML
+  private BorderPane BorderPaneArea;
 
-    super(parent, "Choose an element...", true);
-
-    setLayout(new BorderLayout());
-
+  public void start(Stage primaryStage) throws Exception{
+    FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
     periodicTable = new PeriodicTablePanel();
     periodicTable.addCDKChangeListener(this);
-    add(BorderLayout.CENTER, periodicTable);
-
-    pack();
-
-    setLocationRelativeTo(parent);
+    SwingNode sn = new SwingNode();
+    sn.setContent(periodicTable);
+    BorderPaneArea.setCenter(sn);
   }
 
   public void stateChanged(EventObject event) {
@@ -63,7 +61,7 @@ public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      dispose();
+      System.exit(0);
     }
   }
 
