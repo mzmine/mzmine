@@ -32,6 +32,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -130,6 +131,7 @@ public class MolStructureViewer extends Stage {
 
     splitPane.setOrientation(Orientation.HORIZONTAL);
     mainPanel.setCenter(splitPane);
+    splitPane.setDividerPosition(0, 0.5);
 
     setMinWidth(600.0);
     setMinHeight(400.0);
@@ -160,8 +162,10 @@ public class MolStructureViewer extends Stage {
       newComponent = new Label(errorMessage);
     }
     final Node newComponentFinal = newComponent;
-    Platform.runLater(() -> splitPane.getItems().set(0, newComponentFinal));
-    // splitPane.setDividerLocation(500);
+    Platform.runLater(() -> {
+      splitPane.getItems().set(0, newComponentFinal);
+
+    });
   }
 
   /**
@@ -174,13 +178,16 @@ public class MolStructureViewer extends Stage {
     try {
       newComponent = new Structure2DComponent(container);
     } catch (Exception e) {
+      e.printStackTrace();
       String errorMessage =
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new Label(errorMessage);
     }
     final Node newComponentFinal = newComponent;
-    Platform.runLater(() -> splitPane.getItems().set(0, newComponentFinal));
-    // splitPane.setDividerLocation(500);
+    Platform.runLater(() -> {
+      splitPane.getItems().set(0, newComponentFinal);
+    });
+
   }
 
   /**
@@ -205,8 +212,11 @@ public class MolStructureViewer extends Stage {
       }
 
       Structure3DComponent new3DComponent = new Structure3DComponent();
-      Platform.runLater(() -> splitPane.getItems().set(1, new3DComponent));
-      // splitPane.setDividerLocation(500);
+      final AnchorPane newComponentFinal = new AnchorPane();
+      newComponentFinal.getChildren().add(new3DComponent);
+      Platform.runLater(() -> {
+        splitPane.getItems().set(1, newComponentFinal);
+      });
 
       // loadStructure must be called after the component is added,
       // otherwise Jmol will freeze waiting for repaint (IMHO this is a
@@ -214,11 +224,11 @@ public class MolStructureViewer extends Stage {
       new3DComponent.loadStructure(structure3D);
 
     } catch (Exception e) {
+      e.printStackTrace();
       String errorMessage =
           "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       Label label = new Label(errorMessage);
       Platform.runLater(() -> splitPane.getItems().set(1, label));
-      // splitPane.setDividerLocation(500);
     }
 
   }
