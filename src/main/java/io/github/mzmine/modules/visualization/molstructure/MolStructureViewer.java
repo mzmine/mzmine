@@ -205,7 +205,7 @@ public class MolStructureViewer extends Stage {
       }
 
       Structure3DComponent new3DComponent = new Structure3DComponent();
-      splitPane.getItems().set(1, new3DComponent);
+      Platform.runLater(() -> splitPane.getItems().set(1, new3DComponent));
       // splitPane.setDividerLocation(500);
 
       // loadStructure must be called after the component is added,
@@ -217,7 +217,7 @@ public class MolStructureViewer extends Stage {
       String errorMessage =
           "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       Label label = new Label(errorMessage);
-      splitPane.getItems().set(1, label);
+      Platform.runLater(() -> splitPane.getItems().set(1, label));
       // splitPane.setDividerLocation(500);
     }
 
