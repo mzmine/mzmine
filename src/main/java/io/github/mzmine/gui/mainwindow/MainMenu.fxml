@@ -377,4 +377,10 @@
 		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
 
+<!--	my own test-->
+	<Menu text="test">
+		<MenuItem text="Dialog"
+				  onAction="#runDialog"
+				  userData="io.github.mzmine.util.dialogs.PeriodicTableDialog.java" />
+	</Menu>
 </MenuBar>
