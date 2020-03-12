@@ -11,11 +11,11 @@
         <TableView fx:id="resultTable" minHeight="100">
             <columns>
                 <TableColumn fx:id="Formula" minWidth="200" text="Formula" />
-                <TableColumn fx:id="MassDifference" minWidth="100" text="Mass difference(Da)" />
-                <TableColumn fx:id="MassDifferences" minWidth="100" text="Mass difference(ppm)" />
+                <TableColumn fx:id="absoluteMassDifference" minWidth="100" text="Mass difference(Da)" />
+                <TableColumn fx:id="massDifference" minWidth="100" text="Mass difference(ppm)" />
                 <TableColumn fx:id="RDBE" minWidth="100" text="RDBE" />
-                <TableColumn fx:id="IsotopePattern" minWidth="100" text="Isotope pattern " />
-                <TableColumn fx:id="MSScore" minWidth="100" text="MS / MS Score" />
+                <TableColumn fx:id="isotopePattern" minWidth="100" text="Isotope pattern " />
+                <TableColumn fx:id="msScore" minWidth="100" text="MS / MS Score" />
             </columns>
         </TableView>
     </center>
@@ -24,7 +24,7 @@
 
         <ButtonBar style ="-fx-padding: 5 5 5 5;">
             <buttons>
-                <Button fx:id="addIdentity" onAction="#AddIdentityClick"  text="Add Identity">
+                <Button fx:id="addIdentity" onAction="#addIdentityClick"  text="Add Identity">
                 </Button>
                 <Button fx:id="Copy"  onAction="#copyClick" text="Copy to clipboard">
                 </Button>

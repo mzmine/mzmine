@@ -62,29 +62,38 @@ public class ResultWindowController {
     @FXML
     private TableColumn<ResultFormula, String>Formula;
     @FXML
-    private TableColumn<ResultFormula, Double>MassDifference;
+    private TableColumn<ResultFormula, Double>absoluteMassDifference;
     @FXML
-    private TableColumn<ResultFormula, Double>MassDifferences;
+    private TableColumn<ResultFormula, Double>massDifference;
     @FXML
     private TableColumn<ResultFormula, Double>RDBE;
     @FXML
-    private TableColumn<ResultFormula, String>IsotopePattern;
+    private TableColumn<ResultFormula, String>isotopePattern;
     @FXML
-    private TableColumn<ResultFormula, String>MSScore;
+    private TableColumn<ResultFormula, String>msScore;
 
     @FXML
     private void initialize(){
-        Formula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getFormulaAsString()));
+        Formula.setCellValueFactory(cell-> {
+            String formula = cell.getValue().getFormulaAsString();
+            String cellVal = "";
+            if(cell.getValue().getFormulaAsString()!=null)
+            {
+                cellVal = formula;
+            }
+
+            return new ReadOnlyObjectWrapper<>(cellVal);
+        });
 
         RDBE.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
 
-        MassDifference.setCellValueFactory(cell-> {
-            double ExactMass = cell.getValue().getExactMass();
-            double MassDiff = searchedMass - ExactMass;
+        absoluteMassDifference.setCellValueFactory(cell-> {
+            double exactMass = cell.getValue().getExactMass();
+            double massDiff = searchedMass - exactMass;
 
-            return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(MassDiff)));
+            return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(massDiff)));
         });
-        MassDifferences.setCellValueFactory(cell-> {
+        massDifference.setCellValueFactory(cell-> {
             double ExactMass = cell.getValue().getExactMass();
             double MassDiff = searchedMass - ExactMass;
             MassDiff = ( MassDiff / ExactMass ) * 1E6;
@@ -93,7 +102,7 @@ public class ResultWindowController {
         });
 
 
-        IsotopePattern.setCellValueFactory(cell->{
+        isotopePattern.setCellValueFactory(cell->{
             String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
             String cellVal = "";
             if(cell.getValue().getIsotopeScore() != null)
@@ -103,12 +112,12 @@ public class ResultWindowController {
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
 
-        MSScore.setCellValueFactory(cell-> {
-            String Msscore = String.valueOf(cell.getValue().getMSMSScore());
+        msScore.setCellValueFactory(cell-> {
+            String msScore = String.valueOf(cell.getValue().getMSMSScore());
             String cellVal = "";
             if(cell.getValue().getMSMSScore() !=null)
             {
-                cellVal = percentFormat.format(Double.parseDouble(Msscore));
+                cellVal = percentFormat.format(Double.parseDouble(msScore));
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
 
@@ -133,7 +142,7 @@ public class ResultWindowController {
     }
 
     @FXML
-    private void AddIdentityClick(ActionEvent ae){
+    private void addIdentityClick(ActionEvent ae){
 
         ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
 
@@ -191,8 +200,6 @@ public class ResultWindowController {
                     "Error writing to file " + result + ": " + ExceptionUtils.exceptionToString(ex));
         }
         return;
-
-
 
     }
 
