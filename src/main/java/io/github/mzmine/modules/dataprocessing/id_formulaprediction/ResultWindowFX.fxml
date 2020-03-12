@@ -11,9 +11,10 @@
         <TableView fx:id="resultTable" minHeight="100">
             <columns>
                 <TableColumn fx:id="Formula" minWidth="200" text="Formula" />
-                <TableColumn fx:id="MassDifference" minWidth="100" text="Mass difference" />
-                <TableColumn fx:id="RDBE" minWidth="150" text="RDBE" />
-                <TableColumn fx:id="IsotopePattern" minWidth="150" text="Isotope pattern " />
+                <TableColumn fx:id="MassDifference" minWidth="100" text="Mass difference(Da)" />
+                <TableColumn fx:id="MassDifferences" minWidth="100" text="Mass difference(ppm)" />
+                <TableColumn fx:id="RDBE" minWidth="100" text="RDBE" />
+                <TableColumn fx:id="IsotopePattern" minWidth="100" text="Isotope pattern " />
                 <TableColumn fx:id="MSScore" minWidth="100" text="MS / MS Score" />
             </columns>
         </TableView>

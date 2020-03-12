@@ -43,6 +43,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -51,7 +52,8 @@ import java.util.logging.Logger;
 public class ResultWindowController {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
-    private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
+    private final NumberFormat ppmFormat = new DecimalFormat("0.0");
 
     private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
 
@@ -61,6 +63,8 @@ public class ResultWindowController {
     private TableColumn<ResultFormula, String>Formula;
     @FXML
     private TableColumn<ResultFormula, Double>MassDifference;
+    @FXML
+    private TableColumn<ResultFormula, Double>MassDifferences;
     @FXML
     private TableColumn<ResultFormula, Double>RDBE;
     @FXML
@@ -80,6 +84,14 @@ public class ResultWindowController {
 
             return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(MassDiff)));
         });
+        MassDifferences.setCellValueFactory(cell-> {
+            double ExactMass = cell.getValue().getExactMass();
+            double MassDiff = searchedMass - ExactMass;
+            MassDiff = ( MassDiff / ExactMass ) * 1E6;
+
+            return new ReadOnlyObjectWrapper<>(Double.parseDouble(ppmFormat.format(MassDiff)));
+        });
+
 
         IsotopePattern.setCellValueFactory(cell->{
             String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
@@ -99,6 +111,7 @@ public class ResultWindowController {
                 cellVal = percentFormat.format(Double.parseDouble(Msscore));
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
+
         });
 
         resultTable.setItems(formulas);
