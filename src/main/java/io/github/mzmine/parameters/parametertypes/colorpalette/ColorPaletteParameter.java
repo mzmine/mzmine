@@ -71,7 +71,7 @@ public class ColorPaletteParameter
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if(!getValue().isValidPalette()) {
+    if(getValue() == null || !getValue().isValidPalette()) {
       errorMessages.add("Not enough colors in color palette " + getName());
       return false;
     }

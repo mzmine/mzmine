@@ -94,7 +94,6 @@ public class ColorPalettePickerDialog extends Stage {
       if (colorPicker.getValue() != null) {
         int selected = pnPalette.getSelected();
         this.palette.set(selected, colorPicker.getValue());
-//        pnPalette.updatePreview();
       }
     });
 
@@ -122,7 +121,7 @@ public class ColorPalettePickerDialog extends Stage {
 
   private void hideWindow(ExitCode exitCode) {
     String name = txtName.getText();
-    if(name == null)
+    if(name == null || name == "")
       name = "unnamed";
     palette.setName(name);
     this.exitCode = exitCode;
