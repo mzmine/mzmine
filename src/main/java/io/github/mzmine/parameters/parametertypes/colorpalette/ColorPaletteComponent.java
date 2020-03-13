@@ -60,8 +60,8 @@ public class ColorPaletteComponent extends GridPane {
     box.setMinHeight(35);
     box.setMaxHeight(35);
 
-    box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
-        logger.info("Item added" + e.toString()));
+//    box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
+//        logger.info("Item added" + e.toString()));
 
     addPalette = new Button("New");
     addPalette.setOnAction(e -> {
@@ -85,8 +85,8 @@ public class ColorPaletteComponent extends GridPane {
         box.setValue(newPal);
       }
 
-      logger.info("index of new value: " + box.getItems().indexOf(newPal));
-      logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
+//      logger.info("index of new value: " + box.getItems().indexOf(newPal));
+//      logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
 
     });
 

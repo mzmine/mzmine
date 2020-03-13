@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,6 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import io.github.mzmine.main.MZmineCore;
+import java.util.regex.Pattern;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.util.ExitCode;
@@ -36,17 +40,16 @@ import javafx.stage.Stage;
 
 /**
  * Dialog to pick colors for a color palette.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class ColorPalettePickerDialog extends Stage {
 
   protected ExitCode exitCode;
 
-  protected BorderPane pnSuper;
-  protected BorderPane pnPicker;
-  protected FlowPane pnButtons;
+  //  protected BorderPane pnSuper;
+//  protected BorderPane pnPicker;
+  protected GridPane pnMain;
   protected ColorPalettePreviewField pnPalette;
   protected Button btnAccept;
   protected Button btnCancel;
@@ -63,31 +66,33 @@ public class ColorPalettePickerDialog extends Stage {
 
     exitCode = ExitCode.CANCEL;
 
-    if (palette == null)
+    if (palette == null) {
       palette = new SimpleColorPalette();
+    }
     this.palette = palette;
 
     // Create gui components
-    pnSuper = new BorderPane();
-    pnPicker = new BorderPane();
+    pnMain = new GridPane();
     pnPalette = new ColorPalettePreviewField(palette);
-    pnButtons = new FlowPane();
     btnAccept = new Button("Accept");
     btnCancel = new Button("Cancel");
     btnAddColor = new Button("Add color");
     btnRemoveColor = new Button("Remove color");
     colorPicker = new ColorPicker();
     txtName = new TextField(palette.getName());
+    txtName.setMaxWidth(250);
 
     // organize gui components
-    pnSuper.setTop(pnPalette);
-    pnSuper.setCenter(pnPicker);
-    pnSuper.setBottom(pnButtons);
-    pnPicker.setCenter(colorPicker);
-    pnPicker.setBottom(new FlowPane(new Label("Name "), txtName));
-    pnButtons.getChildren().addAll(btnAddColor, btnRemoveColor, new Separator(Orientation.VERTICAL),
-        btnAccept, btnCancel);
-    pnButtons.setAlignment(Pos.TOP_CENTER);
+    pnMain.add(new Label("Palette "), 0, 0);
+    pnMain.add(pnPalette, 1, 0, 4, 1);
+    pnMain.add(new Label("Color "), 0, 1);
+    pnMain.add(colorPicker, 1, 1, 3, 1);
+    pnMain.add(new Label("Name "), 0, 2);
+    pnMain.add(txtName, 1, 2, 4, 1);
+    pnMain.add(btnAddColor, 1, 3);
+    pnMain.add(btnRemoveColor, 2, 3);
+    pnMain.add(btnAccept, 3, 3);
+    pnMain.add(btnCancel, 4, 3);
 
     // colorPicker.getStyleClass().add("split-button");
     colorPicker.setOnAction(e -> {
@@ -96,6 +101,11 @@ public class ColorPalettePickerDialog extends Stage {
         this.palette.set(selected, colorPicker.getValue());
       }
     });
+    colorPicker.setValue(palette.get(pnPalette.getSelected()));
+
+    pnPalette.addListener((Color newColor, Color oldColor, int newIndex) -> {
+      colorPicker.setValue(newColor);
+    });
 
     // set button actions
     btnAddColor.setOnAction(e -> btnAddColorAction());
@@ -103,13 +113,14 @@ public class ColorPalettePickerDialog extends Stage {
     btnAccept.setOnAction(e -> hideWindow(ExitCode.OK));
     btnCancel.setOnAction(e -> hideWindow(ExitCode.CANCEL));
 
-    Scene scene = new Scene(pnSuper);
+    Scene scene = new Scene(pnMain);
     setScene(scene);
   }
 
   private void btnAddColorAction() {
-    if(palette.size() == 0)
+    if (palette.size() == 0) {
       this.setHeight(this.getHeight() + 17);
+    }
     palette.add(colorPicker.getValue());
 //    pnPalette.updatePreview();
   }
@@ -121,8 +132,10 @@ public class ColorPalettePickerDialog extends Stage {
 
   private void hideWindow(ExitCode exitCode) {
     String name = txtName.getText();
-    if(name == null || name == "")
-      name = "unnamed";
+    if (name == null || name == "" || name.replaceAll("\\s+", "").equals("")) {
+      MZmineCore.getDesktop().displayErrorMessage("Please set a name for the color palette.");
+      return;
+    }
     palette.setName(name);
     this.exitCode = exitCode;
     hide();
@@ -132,7 +145,8 @@ public class ColorPalettePickerDialog extends Stage {
     return exitCode;
   }
 
-  public @Nonnull SimpleColorPalette getPalette() {
+  public @Nonnull
+  SimpleColorPalette getPalette() {
     return palette;
   }
 }

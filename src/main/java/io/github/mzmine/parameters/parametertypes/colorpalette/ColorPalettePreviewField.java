@@ -19,6 +19,7 @@
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -44,7 +45,9 @@ public class ColorPalettePreviewField extends FlowPane {
   protected final List<Rectangle> rects;
   protected SimpleColorPalette palette;
   protected int selected;
-  
+
+  protected List<SelectionChangeListener> listeners;
+
   protected boolean validDrag;
 
   public ColorPalettePreviewField(SimpleColorPalette palette) {
@@ -52,9 +55,10 @@ public class ColorPalettePreviewField extends FlowPane {
     rects = new ArrayList<Rectangle>();
     setMaxWidth(400);
     setPalette(palette);
-    
+
     validDrag = false;
-    
+
+    listeners = new ArrayList<>();
     palette.addListener((ListChangeListener<Color>) c -> updatePreview());
   }
 
@@ -115,8 +119,10 @@ public class ColorPalettePreviewField extends FlowPane {
   }
 
   private void setSelected(int i) {
+    Color oldColor = palette.get(getSelected());
     this.selected = i;
     updatePreview();
+    listeners.forEach(l -> l.selectionChanged(palette.get(getSelected()), oldColor, getSelected()));
   }
 
   public int getSelected() {
@@ -136,5 +142,13 @@ public class ColorPalettePreviewField extends FlowPane {
   public void setPalette(SimpleColorPalette palette) {
     this.palette = palette;
     updatePreview();
+  }
+
+  public boolean addListener(SelectionChangeListener listener) {
+    return listeners.add(listener);
+  }
+
+  public boolean removeListener(SelectionChangeListener listener) {
+    return listeners.remove(listener);
   }
 }
