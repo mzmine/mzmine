@@ -43,6 +43,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
+import javafx.application.Platform;
+
 
 public class SingleRowIdentificationTask extends AbstractTask {
 
@@ -62,6 +64,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private boolean isotopeFilter = false;
   private ParameterSet isotopeFilterParameters;
   private DBGateway gateway;
+  private ResultWindowFX resultWindowFX;
 
   /**
    * Create the task.
@@ -116,29 +119,35 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    Platform.runLater(() -> {
+              resultWindowFX= new ResultWindowFX(peakListRow, searchedMass, this);
+              resultWindowFX.show();
+    });
 
-    ResultWindow window = new ResultWindow(peakListRow, searchedMass, this);
-    window.setTitle("Searching for " + massFormater.format(searchedMass) + " amu");
-    window.setVisible(true);
+
+    NumberFormat massFormatter = MZmineCore.getConfiguration().getMZFormat();
+
 
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     if ((isotopeFilter) && (detectedPattern == null)) {
       final String msg = "Cannot calculate isotope pattern scores, because selected"
-          + " peak does not have any isotopes. Have you run the isotope peak grouper?";
+              + " peak does not have any isotopes. Have you run the isotope peak grouper?";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
     try {
       String compoundIDs[] =
-          gateway.findCompounds(searchedMass, mzTolerance, numOfResults, db.getParameterSet());
+              gateway.findCompounds(searchedMass, mzTolerance, numOfResults, db.getParameterSet());
 
       // Get the number of results
       numItems = compoundIDs.length;
 
       if (numItems == 0) {
-        window.setTitle(
-            "Searching for " + massFormater.format(searchedMass) + " amu: no results found");
+        //
+        Platform.runLater(() -> {
+          resultWindowFX.setTitle(
+                  "Searching for " + massFormatter.format(searchedMass) + " amu: no results found");
+        });
       }
 
       // Process each one of the result ID's.
@@ -162,11 +171,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
           String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
 
           logger.finest("Calculating isotope pattern for compound formula " + formula
-              + " adjusted to " + adjustedFormula);
+                  + " adjusted to " + adjustedFormula);
 
           // Generate IsotopePattern for this compound
           IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-              .calculateIsotopePattern(adjustedFormula, 0.001, charge, ionType.getPolarity());
+                  .calculateIsotopePattern(adjustedFormula, 0.001, charge, ionType.getPolarity());
 
           compound.setIsotopePattern(compoundIsotopePattern);
 
@@ -174,15 +183,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
           // If required, check isotope score
           if (isotopeFilter && (rawDataIsotopePattern != null)
-              && (compoundIsotopePattern != null)) {
+                  && (compoundIsotopePattern != null)) {
 
             double score = IsotopePatternScoreCalculator.getSimilarityScore(rawDataIsotopePattern,
-                compoundIsotopePattern, isotopeFilterParameters);
+                    compoundIsotopePattern, isotopeFilterParameters);
             compound.setIsotopePatternScore(score);
 
             double minimumScore = isotopeFilterParameters
-                .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold)
-                .getValue();
+                    .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold)
+                    .getValue();
 
             if (score < minimumScore) {
               finishedItems++;
@@ -194,11 +203,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         // Add compound to the list of possible candidate and
         // display it in window of results.
-        window.addNewListItem(compound);
 
-        // Update window title
-        window.setTitle("Searching for " + massFormater.format(searchedMass) + " amu (" + (i + 1)
-            + "/" + numItems + ")");
+        int finalI = i;
+        Platform.runLater(() -> {
+          resultWindowFX.addNewListItem(compound);
+          // Update window title
+
+          resultWindowFX.setTitle("Searching for " + massFormatter.format(searchedMass) + " amu (" + (finalI + 1)
+                  + "/" + numItems + ")");
+        });
 
         finishedItems++;
 
@@ -213,7 +226,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-
   }
 
 }

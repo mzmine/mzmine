@@ -105,8 +105,8 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   public XICManualPickerDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
-    Color l = Color.rgb(50, 255, 50, 0.6);
-    Color u = l;
+    Color l = MZmineCore.getConfiguration().getDefaultColorPalette().get(1);
+    Color u = MZmineCore.getConfiguration().getDefaultColorPalette().get(2);
     Stroke stroke = new BasicStroke(1.0f);
 
     // make new panel, put tic into the middle of a border layout.
