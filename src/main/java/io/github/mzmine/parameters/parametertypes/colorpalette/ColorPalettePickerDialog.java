@@ -70,6 +70,7 @@ public class ColorPalettePickerDialog extends Stage {
       palette = new SimpleColorPalette();
     }
     this.palette = palette;
+    selected = 0;
 
     // Create gui components
     pnMain = new GridPane();
@@ -98,12 +99,14 @@ public class ColorPalettePickerDialog extends Stage {
     colorPicker.setOnAction(e -> {
       if (colorPicker.getValue() != null) {
         int selected = pnPalette.getSelected();
-        this.palette.set(selected, colorPicker.getValue());
+        if (selected > 0 && selected < this.palette.size()) {
+          this.palette.set(selected, colorPicker.getValue());
+        }
       }
     });
     colorPicker.setValue(palette.get(pnPalette.getSelected()));
 
-    pnPalette.addListener((Color newColor, Color oldColor, int newIndex) -> {
+    pnPalette.addListener((Color newColor, int newIndex) -> {
       colorPicker.setValue(newColor);
     });
 

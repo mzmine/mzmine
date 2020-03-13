@@ -90,18 +90,21 @@ public class ColorPalettePreviewField extends FlowPane {
       
       rect.setOnMouseReleased(e -> {
         rect.setOpacity(rect.getOpacity() * 2);
-        
-        if(!validDrag)
+
+        if (!validDrag) {
           return;
-        
+        }
+
         Point2D exit = new Point2D(e.getSceneX(), e.getSceneY());
-        
+
         double x = this.sceneToLocal(exit).getX();
+        x = (x < 0) ? 0 : x;
+
         int newIndex = (int) (x / RECT_HEIGHT + .5);
 
         // we just have to move the color, the listener will update the preview
         palette.moveColor(getSelected(), newIndex);
-        setSelected(rect);
+        setSelected(newIndex);
         validDrag = false;
       });
       
@@ -119,10 +122,12 @@ public class ColorPalettePreviewField extends FlowPane {
   }
 
   private void setSelected(int i) {
-    Color oldColor = palette.get(getSelected());
+    if (i < 0 || i >= palette.size()) {
+      return;
+    }
     this.selected = i;
     updatePreview();
-    listeners.forEach(l -> l.selectionChanged(palette.get(getSelected()), oldColor, getSelected()));
+    listeners.forEach(l -> l.selectionChanged(palette.get(getSelected()), getSelected()));
   }
 
   public int getSelected() {

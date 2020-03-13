@@ -25,7 +25,6 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.ListChangeListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -45,7 +44,6 @@ public class ColorPaletteComponent extends GridPane {
   protected Button editPalette;
   protected Button deletePalette;
   protected Button duplicatePalette;
-  protected Button addDefault;
   protected FlowPane pnButtons;
 
   public ColorPaletteComponent() {
@@ -60,15 +58,10 @@ public class ColorPaletteComponent extends GridPane {
     box.setMinHeight(35);
     box.setMaxHeight(35);
 
-//    box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
-//        logger.info("Item added" + e.toString()));
-
     addPalette = new Button("New");
     addPalette.setOnAction(e -> {
       SimpleColorPalette pal = new SimpleColorPalette();
       box.getItems().add(pal);
-//      box.getSelectionModel().select(box.getItems().indexOf(pal));
-//      box.setValue(pal);
     });
 
     duplicatePalette = new Button("Duplicate");
@@ -85,13 +78,15 @@ public class ColorPaletteComponent extends GridPane {
         box.setValue(newPal);
       }
 
-//      logger.info("index of new value: " + box.getItems().indexOf(newPal));
-//      logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
-
     });
 
     editPalette = new Button("Edit");
     editPalette.setOnAction(e -> {
+      if (box.getValue().equals(ColorPaletteParameter.DEFAULT_DEUTERNOPIA)) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot edit default palette.");
+        return;
+      }
+
       ColorPalettePickerDialog d = new ColorPalettePickerDialog(box.getValue().clone());
       d.show();
 
@@ -106,10 +101,9 @@ public class ColorPaletteComponent extends GridPane {
           if (!addPalette(newVal)) {
             addPalette(oldVal);
             setValue(oldVal);
+            d.show();
             MZmineCore.getDesktop().displayErrorMessage(
                 "Cannot add duplicates. Palette with same name and colors already exists.");
-
-            d.show();
 //          return;
           }
 
@@ -120,6 +114,11 @@ public class ColorPaletteComponent extends GridPane {
 
     deletePalette = new Button("Delete");
     deletePalette.setOnAction(e -> {
+      if (box.getValue().equals(ColorPaletteParameter.DEFAULT_DEUTERNOPIA)) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot delete default palette.");
+        return;
+      }
+
       if (box.getItems().size() <= 1) {
         logger.warning(
             "Cannot remove palettes. Only 1 palette present. Please add a new palette first.");
@@ -129,17 +128,9 @@ public class ColorPaletteComponent extends GridPane {
       box.setValue(box.getItems().get(0));
     });
 
-    addDefault = new Button("Add default");
-    addDefault.setOnAction(e -> {
-      SimpleColorPalette pal;
-      pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
-      pal.setName("Deuternopia");
-      addPalette(pal);
-    });
-
     pnButtons = new FlowPane();
     pnButtons.getChildren()
-        .addAll(addPalette, duplicatePalette, editPalette, deletePalette, addDefault);
+        .addAll(addPalette, duplicatePalette, editPalette, deletePalette);
 
     add(box, 0, 0);
     add(pnButtons, 0, 1);

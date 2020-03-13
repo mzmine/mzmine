@@ -5,5 +5,5 @@ import javafx.scene.paint.Color;
 
 public interface SelectionChangeListener extends EventListener {
 
-  void selectionChanged(Color newColor, Color oldColor, int newIndex);
+  void selectionChanged(Color newColor, int newIndex);
 }

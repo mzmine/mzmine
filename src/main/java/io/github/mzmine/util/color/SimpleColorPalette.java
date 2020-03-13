@@ -63,17 +63,16 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     name = "";
   }
 
-  public SimpleColorPalette(Color[] clrs) {
+  public SimpleColorPalette(@Nonnull Color[] clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
     }
   }
 
-  public SimpleColorPalette(SimpleColorPalette p) {
-    this();
-    p.forEach(c -> add(c));
-    name = p.getName() + " (cpy)";
+  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name) {
+    this(clrs);
+    setName(name);
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
