@@ -17,18 +17,7 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
-
-import java.awt.*;
-import java.awt.event.ActionListener;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -56,36 +45,10 @@ public class ElementsTableComponent extends JPanel{
 
   private static final long serialVersionUID = 1L;
 
-  private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
-
   private static ObservableList<ElementsValue> data = FXCollections.observableArrayList();
 
   public ElementsTableComponent() {
-    super(new BorderLayout());
-    JPanel frame = new JPanel();
-    final JFXPanel fxPanel = new JFXPanel();
-    frame.add(fxPanel);
-    frame.setSize(200, 200);
-    frame.setVisible(true);
 
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        initFX(fxPanel);
-      }
-    });
-
-
-
-  }
-
-  private static void initFX(JFXPanel fxPanel) {
-    // This method is invoked on the JavaFX thread
-    Scene scene = createScene();
-    fxPanel.setScene(scene);
-  }
-
-  private  static Scene createScene(){
     VBox vBox = new VBox();
     TableView<ElementsValue> table = new TableView();
     Scene scene  =  new  Scene(vBox, Color.ALICEBLUE);
@@ -140,7 +103,8 @@ public class ElementsTableComponent extends JPanel{
 
 
     vBox.getChildren().addAll(table,hBox);
-    return scene;
+
+
   }
 
 
