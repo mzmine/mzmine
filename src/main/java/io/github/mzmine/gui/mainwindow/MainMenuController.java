@@ -29,12 +29,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
+import io.github.mzmine.util.dialogs.PeriodicTableDialog_fx;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -180,14 +182,29 @@ public class MainMenuController {
   }
   @FXML
   public void runDialog() {
-//    SwingUtilities.invokeLater(() -> {
-//      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
-//      dialog.setVisible(true);
-//    });
-    PeriodicTableDialog dialog = new PeriodicTableDialog();
-    Stage stage = new Stage();
-    dialog.start(stage);
+    SwingUtilities.invokeLater(() -> {
+      JFrame frame = new JFrame();
+      PeriodicTableDialog dialog = new PeriodicTableDialog(frame);
+      frame.setVisible(true);
+      dialog.setVisible(true);
+    });
+//    PeriodicTableDialog dialog = new PeriodicTableDialog();
+//    Stage stage = new Stage();
+//    dialog.start(stage);
   }
+
+  @FXML
+  public void runNew() {
+    PeriodicTableDialog_fx dialog = new PeriodicTableDialog_fx();
+    Stage stage = new Stage();
+    try {
+      dialog.start(stage);
+    }catch (Exception e){
+
+    }
+
+  }
+
 }
 
 

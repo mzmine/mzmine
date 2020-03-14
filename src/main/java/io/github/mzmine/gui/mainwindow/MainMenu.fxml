@@ -380,8 +380,8 @@
 <!--	my own test-->
 	<Menu text="test">
 		<items>
-			<MenuItem text="Dialog"	onAction="#runDialog"/>
-			<SeparatorMenuItem/>
+			<MenuItem text="Old"	onAction="#runDialog"/>
+			<MenuItem text="New" onAction="#runNew"/>
 		</items>
 
 	</Menu>

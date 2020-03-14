@@ -80,7 +80,7 @@ public class ElementsTableComponent extends SwingNode implements ActionListener 
     Object src = event.getSource();
 
     if (src == addElementButton) {
-      PeriodicTableDialog dialog = new PeriodicTableDialog();
+      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
 //      dialog.setVisible(true);
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
