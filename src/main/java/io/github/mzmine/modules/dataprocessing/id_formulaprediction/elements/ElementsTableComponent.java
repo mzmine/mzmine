@@ -17,28 +17,18 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
-import javax.swing.JPanel;
-
-import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.embed.swing.JFXPanel;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.components.ComponentCellRenderer;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -52,20 +42,17 @@ public class ElementsTableComponent extends VBox{
 
   public ElementsTableComponent() {
 
-    Scene scene = new Scene(this);
+    this.maxWidth(200);
     this.maxHeight(200);
     table.setEditable(true);
 
     TableColumn<ElementsValue, IIsotope> elementCol = new TableColumn("Element");
-    elementCol.setMaxWidth(70);
     elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope()));
 
     TableColumn<ElementsValue, Integer> maxCol = new TableColumn("Max");
-    maxCol.setMaxWidth(70);
     maxCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMax()));
 
     TableColumn<ElementsValue, Integer> minCol = new TableColumn("Min");
-    minCol.setMaxWidth(70);
     minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
     table.setItems(data);
 
