@@ -52,10 +52,8 @@ public class ElementsTableComponent extends VBox{
 
   public ElementsTableComponent() {
 
-    VBox vBox = new VBox();
-    Scene scene  =  new  Scene(vBox);
-
-    table.maxWidth(200);
+    Scene scene = new Scene(this);
+    this.maxHeight(200);
     table.setEditable(true);
 
     TableColumn<ElementsValue, IIsotope> elementCol = new TableColumn("Element");
@@ -95,8 +93,8 @@ public class ElementsTableComponent extends VBox{
       }
     });
 
-    vBox.setPadding(new Insets(5, 0, 0, 5));
-    vBox.setSpacing(5);
+    this.setPadding(new Insets(5, 0, 0, 5));
+    this.setSpacing(5);
 
     table.getColumns().addAll(elementCol, maxCol, minCol);
     HBox hBox = new HBox();
@@ -104,7 +102,7 @@ public class ElementsTableComponent extends VBox{
     hBox.setSpacing(3);
 
 
-    vBox.getChildren().addAll(table,hBox);
+    this.getChildren().addAll(table,hBox);
 
   }
 
