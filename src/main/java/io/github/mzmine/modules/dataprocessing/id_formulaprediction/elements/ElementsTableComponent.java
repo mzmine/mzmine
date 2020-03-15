@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
 import javax.swing.JPanel;
 
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -26,6 +27,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
@@ -41,17 +44,16 @@ import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class ElementsTableComponent extends JPanel{
-
-  private static final long serialVersionUID = 1L;
+public class ElementsTableComponent extends VBox{
 
   private static ObservableList<ElementsValue> data = FXCollections.observableArrayList();
+  TableView<ElementsValue> table = new TableView();
+
 
   public ElementsTableComponent() {
 
     VBox vBox = new VBox();
-    TableView<ElementsValue> table = new TableView();
-    Scene scene  =  new  Scene(vBox, Color.ALICEBLUE);
+    Scene scene  =  new  Scene(vBox);
 
     table.maxWidth(200);
     table.setEditable(true);
@@ -104,7 +106,6 @@ public class ElementsTableComponent extends JPanel{
 
     vBox.getChildren().addAll(table,hBox);
 
-
   }
 
 
@@ -119,6 +120,22 @@ public class ElementsTableComponent extends JPanel{
       data.add(new ElementsValue(isotope, maxCount, minCount));
 
     }
+  }
+
+  public MolecularFormulaRange getElements() {
+
+    MolecularFormulaRange newValue = new MolecularFormulaRange();
+
+    for (int row = 0; row < table.getItems().size(); row++) {
+
+      ElementsValue elementsValue = table.getItems().get(row);
+
+      IIsotope isotope = elementsValue.getIsotope();
+      int minCount = elementsValue.getMin();
+      int maxCount = elementsValue.getMax();
+      newValue.addIsotope(isotope, minCount, maxCount);
+    }
+    return newValue;
   }
 
 }
