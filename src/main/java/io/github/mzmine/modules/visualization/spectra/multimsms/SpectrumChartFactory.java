@@ -1,22 +1,23 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.DecimalFormat;
@@ -92,7 +93,7 @@ public class SpectrumChartFactory {
 
   /**
    * Two scans as a mirror comparison
-   * 
+   *
    * @param scan
    * @param mirror gets reflected by *-1
    * @return
@@ -121,24 +122,51 @@ public class SpectrumChartFactory {
 
   /**
    * Also adds the label gen
-   * 
-   * @param row
-   * @param raw
+   *
    * @param showTitle
    * @param showLegend
    * @return
    */
   public static EChartPanel createMirrorChartPanel(Scan scan, Scan mirror, String labelA,
       String labelB, boolean showTitle, boolean showLegend) {
-    if (scan == null || mirror == null)
+    if (scan == null || mirror == null) {
       return null;
+    }
 
-    return createMirrorChartPanel(labelA, scan.getPrecursorMZ(), scan.getRetentionTime(),
+    return new EChartPanel(createMirrorChart(labelA, scan.getPrecursorMZ(), scan.getRetentionTime(),
         scan.getDataPoints(), labelB, mirror.getPrecursorMZ(), mirror.getRetentionTime(),
-        mirror.getDataPoints(), showTitle, showLegend);
+        mirror.getDataPoints(), showTitle, showLegend));
   }
 
   public static EChartPanel createMirrorChartPanel(String labelA, double precursorMZA, double rtA,
+      DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
+      boolean showTitle, boolean showLegend) {
+    return new EChartPanel(
+        SpectrumChartFactory.createMirrorChart(labelA, precursorMZA, rtA, dpsA, labelB,
+            precursorMZB, rtB, dpsB, showTitle, showLegend));
+  }
+
+  public static EChartViewer createMirrorChartViewer(Scan scan, Scan mirror, String labelA,
+      String labelB, boolean showTitle, boolean showLegend) {
+    if (scan == null || mirror == null) {
+      return null;
+    }
+
+    return new EChartViewer(
+        createMirrorChart(labelA, scan.getPrecursorMZ(), scan.getRetentionTime(),
+            scan.getDataPoints(), labelB, mirror.getPrecursorMZ(), mirror.getRetentionTime(),
+            mirror.getDataPoints(), showTitle, showLegend));
+  }
+
+  public static EChartViewer createMirrorChartViewer(String labelA, double precursorMZA, double rtA,
+      DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
+      boolean showTitle, boolean showLegend) {
+    return new EChartViewer(
+        SpectrumChartFactory.createMirrorChart(labelA, precursorMZA, rtA, dpsA, labelB,
+            precursorMZB, rtB, dpsB, showTitle, showLegend));
+  }
+
+  private static JFreeChart createMirrorChart(String labelA, double precursorMZA, double rtA,
       DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
       boolean showTitle, boolean showLegend) {
     PseudoSpectrumDataSet data =
@@ -207,7 +235,8 @@ public class SpectrumChartFactory {
     chart.getTitle().setVisible(showTitle);
     chart.getLegend().setVisible(showLegend);
 
-    return new EChartPanel(chart);
+//    return new EChartPanel(chart);
+    return chart;
   }
 
   public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
@@ -234,7 +263,7 @@ public class SpectrumChartFactory {
 
   /**
    * Also adds the label gen
-   * 
+   *
    * @param row
    * @param raw
    * @param showTitle
@@ -322,7 +351,7 @@ public class SpectrumChartFactory {
 
   /**
    * Precursor mass marker
-   * 
+   *
    * @param chart
    * @param scan
    */
