@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +35,7 @@ public class SQLColumnSettings extends AbstractTableModel {
   List<String> columnNames = new ArrayList<String>();
   List<SQLExportDataType> columnTypes = new ArrayList<SQLExportDataType>();
   List<String> columnValues = new ArrayList<String>();
+  ObservableList<SQLRowObject> list;
 
   @Override
   public int getColumnCount() {
@@ -99,11 +103,14 @@ public class SQLColumnSettings extends AbstractTableModel {
     fireTableRowsInserted(insertedRow, insertedRow);
   }
 
-  public synchronized void removeRow(int row) {
-    columnNames.remove(row);
-    columnTypes.remove(row);
-    columnValues.remove(row);
-    fireTableRowsDeleted(row, row);
+  public synchronized void removeRow(SQLRowObject row) {
+    int i=list.indexOf(row);
+    columnNames.remove(i);
+    columnTypes.remove(i);
+    columnValues.remove(i);
+    list.remove(i);
+    fireTableRowsDeleted(i, i);
+
   }
 
   public void setValueAt(Object val, int row, int col) {
@@ -121,6 +128,14 @@ public class SQLColumnSettings extends AbstractTableModel {
         columnValues.set(row, (String) val);
         break;
     }
+  }
+  public ObservableList<SQLRowObject> getlist(){
+
+    list= FXCollections.observableArrayList();
+    for(int i=0;i<columnNames.size();i++){
+      list.add(new SQLRowObject(columnNames.get(i), columnValues.get(i), columnTypes.get(i)));
+    }
+    return  list;
   }
 
 }
