@@ -377,12 +377,4 @@
 		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
 
-<!--	my own test-->
-	<Menu text="test">
-		<items>
-			<MenuItem text="Old"	onAction="#runDialog"/>
-			<MenuItem text="New" onAction="#runNew"/>
-		</items>
-
-	</Menu>
 </MenuBar>

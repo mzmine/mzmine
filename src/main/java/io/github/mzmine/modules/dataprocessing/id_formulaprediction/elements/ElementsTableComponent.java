@@ -22,6 +22,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.components.ComponentCellRenderer;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import javafx.embed.swing.SwingNode;
+import javafx.stage.Stage;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
@@ -80,8 +81,12 @@ public class ElementsTableComponent extends SwingNode implements ActionListener 
     Object src = event.getSource();
 
     if (src == addElementButton) {
-      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
-//      dialog.setVisible(true);
+      PeriodicTableDialog dialog = new PeriodicTableDialog();
+      try {
+        dialog.start(new Stage());
+      }catch (Exception e){
+        System.out.println(e.getMessage());
+      }
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;

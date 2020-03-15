@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
-import io.github.mzmine.util.dialogs.PeriodicTableDialog_fx;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
@@ -180,31 +179,6 @@ public class MainMenuController {
       recentProjectsMenu.getItems().add(item);
     });
   }
-  @FXML
-  public void runDialog() {
-    SwingUtilities.invokeLater(() -> {
-      JFrame frame = new JFrame();
-      PeriodicTableDialog dialog = new PeriodicTableDialog(frame);
-      frame.setVisible(true);
-      dialog.setVisible(true);
-    });
-//    PeriodicTableDialog dialog = new PeriodicTableDialog();
-//    Stage stage = new Stage();
-//    dialog.start(stage);
-  }
-
-  @FXML
-  public void runNew() {
-    PeriodicTableDialog_fx dialog = new PeriodicTableDialog_fx();
-    Stage stage = new Stage();
-    try {
-      dialog.start(stage);
-    }catch (Exception e){
-
-    }
-
-  }
-
 }
 
 
