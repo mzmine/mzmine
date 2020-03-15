@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.web.WebView?>
 
-<AnchorPane prefHeight="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.dialogs.PeriodicTableDialog_fx">
+<AnchorPane prefHeight="400.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.dialogs.DialogController">
    <children>
       <GridPane layoutY="124.0" prefHeight="269.0" prefWidth="698.0">
         <columnConstraints>
@@ -389,7 +389,7 @@
                <tooltip>
                   <Tooltip onShowing="#Infunc" text="Indium" />
                </tooltip></Button>
-             <Button mnemonicParsing="false" onMouseEntered="#MouseArrive" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Yl" GridPane.columnIndex="13" GridPane.rowIndex="6">
+             <Button mnemonicParsing="false" onMouseEntered="#MouseArrive" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Tl" GridPane.columnIndex="13" GridPane.rowIndex="6">
                <tooltip>
                   <Tooltip onShowing="#Ylfunc" text="Thallium" />
                </tooltip></Button>
