@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
@@ -128,12 +129,20 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return get(next - 1);
   }
 
+  public java.awt.Color getNextColorAWT(int index) {
+    return FxColorUtil.fxColorToAWT(getNextColor());
+  }
+
   @Nonnull
   public Color getMainColor() {
     if (isValidPalette()) {
       return get(MAIN_COLOR);
     }
     return Color.BLACK;
+  }
+
+  public java.awt.Color getMainColor(int index) {
+    return FxColorUtil.fxColorToAWT(getMainColor());
   }
 
   public boolean isValidPalette() {
@@ -326,6 +335,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return positiveColor;
   }
 
+  public java.awt.Color getPositiveColorAWT() {
+    return FxColorUtil.fxColorToAWT(getPositiveColor());
+  }
+
   public void setPositiveColor(Color positiveColor) {
     this.positiveColor = positiveColor;
   }
@@ -334,12 +347,20 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return negativeColor;
   }
 
+  public java.awt.Color getNegativeColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNegativeColor());
+  }
+
   public void setNegativeColor(Color negativeColor) {
     this.negativeColor = negativeColor;
   }
 
   public Color getNeutralColor() {
     return neutralColor;
+  }
+
+  public java.awt.Color getNeutralColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNeutralColor());
   }
 
   public void setNeutralColor(Color neutralColor) {
@@ -351,6 +372,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public Color get(int index) {
     next = index + 1;
     return delegate.get(index);
+  }
+
+  public java.awt.Color getAWT(int index) {
+    return FxColorUtil.fxColorToAWT(get(index));
   }
 
   @Override
