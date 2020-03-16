@@ -21,10 +21,10 @@ import org.openscience.cdk.interfaces.IIsotope;
 public final class ElementsValue {
 
     IIsotope chosenIsotope;
-    int max;
-    int min;
+    String max;
+    String min;
 
-    ElementsValue(IIsotope iisotope, int max, int min)
+    ElementsValue(IIsotope iisotope, String max, String min)
     {
 
         this.chosenIsotope = iisotope;
@@ -32,8 +32,11 @@ public final class ElementsValue {
         this.min = min;
     }
 
-    int getMax(){return max;}
-    int getMin(){return min;}
+    String getMax(){return max;}
+    String getMin(){return min;}
     IIsotope getIsotope(){return chosenIsotope;}
+     void  setMax(String max){this.max = max;}
+     void setMin(String min){ this.min = min;}
+    void setIsotope(IIsotope iisotope){ this.chosenIsotope = iisotope;}
 
 }

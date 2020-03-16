@@ -17,13 +17,14 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
+import com.panemu.tiwulfx.control.NumberField;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
@@ -42,16 +43,34 @@ public class ElementsTableComponent extends VBox{
     elementsValueTable.setEditable(true);
     this.maxWidth(200);
     this.maxHeight(200);
-    elementsValueTable.setEditable(true);
-
+// allows the individual cells to be selected
+    elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
     TableColumn<ElementsValue, IIsotope> elementCol = new TableColumn("Element");
+    TableColumn<ElementsValue, String> maxCol = new TableColumn("Max");
+    TableColumn<ElementsValue, String> minCol = new TableColumn("Min");
+
+    // Make Column editibale
+    maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    maxCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMax(event.getNewValue()));
+    minCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMin(event.getNewValue()));
+
     elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope()));
+    maxCol.setCellValueFactory(col-> {
+      String max = String.valueOf(col.getValue().getMax());
+      return new ReadOnlyObjectWrapper<>(max);
+    });
 
-    TableColumn<ElementsValue, Integer> maxCol = new TableColumn("Max");
-    maxCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMax()));
 
-    TableColumn<ElementsValue, Integer> minCol = new TableColumn("Min");
+
+
     minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
+
+    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMin(event.getNewValue()));
+
     elementsValueTable.setItems(elementsValues);
 
     final Button addButton = new javafx.scene.control.Button("Add");
@@ -63,7 +82,7 @@ public class ElementsTableComponent extends VBox{
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;
-      elementsValues.add(new ElementsValue(chosenIsotope, 100, 0));
+      elementsValues.add(new ElementsValue(chosenIsotope, "100", "0"));
     });
 
     // Remove event
@@ -94,7 +113,7 @@ public class ElementsTableComponent extends VBox{
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      elementsValues.add(new ElementsValue(isotope, maxCount, minCount));
+      elementsValues.add(new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount)));
 
     }
   }
@@ -108,9 +127,9 @@ public class ElementsTableComponent extends VBox{
       ElementsValue elementsValue = elementsValueTable.getItems().get(row);
 
       IIsotope isotope = elementsValue.getIsotope();
-      int minCount = elementsValue.getMin();
-      int maxCount = elementsValue.getMax();
-      newValue.addIsotope(isotope, minCount, maxCount);
+      String minCount = elementsValue.getMin();
+      String maxCount = elementsValue.getMax();
+      newValue.addIsotope(isotope, Integer.parseInt(minCount), Integer.parseInt(maxCount));
     }
     return newValue;
   }
