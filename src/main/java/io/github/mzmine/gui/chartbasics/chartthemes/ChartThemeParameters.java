@@ -101,6 +101,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Deprecated
   public void applyToChart(JFreeChart chart) {
     // // apply chart settings
     // boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
