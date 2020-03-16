@@ -42,48 +42,18 @@ public class SQLColumnSettingsComponent extends BorderPane {
 
         value = new SQLColumnSettings();
         TableColumn<SQLRowObject,String> columnName=new TableColumn<SQLRowObject,String> (value.getColumnName(0));
-        TableColumn<SQLRowObject,String>  columnType=new TableColumn<SQLRowObject,String> (value.getColumnName(1));
-        TableColumn<SQLRowObject,SQLExportDataType>  columnValue= new TableColumn<SQLRowObject,SQLExportDataType> (value.getColumnName(2));
+        TableColumn<SQLRowObject,SQLExportDataType>  columnType=new TableColumn<SQLRowObject,SQLExportDataType> (value.getColumnName(1));
+        TableColumn<SQLRowObject,String>  columnValue= new TableColumn<SQLRowObject,String> (value.getColumnName(2));
 
         columnName.setCellValueFactory(new PropertyValueFactory<>("Name")); //this is needed during connection to a database
-        columnValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
         columnType.setCellValueFactory(new PropertyValueFactory<>("Type"));
+        columnValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
+
 
         columnsTable.getColumns().addAll(columnName,columnType,columnValue);  //added all the columns in the table
-        columnsTable.setItems(value.getlist());
+        setValue(value);
         columnsTable.setStyle("-fx-selection-bar: #3399FF; -fx-selection-bar-non-focused: #E3E3E3;"); //CSS color change on selection of row
-        columnsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if(newSelection!=null){
 
-            }
-
-        });
-
-//        columnsTable = new JTable(value) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-//                Component c = super.prepareRenderer(renderer, row, column);
-//                if (!isCellEditable(row, column)) {
-//                    if (isCellSelected(row, column)) {
-//                        c.setBackground(Color.decode("#3399FF"));
-//                        c.setForeground(Color.white);
-//                    } else {
-//                        c.setBackground(Color.decode("#E3E3E3"));
-//                    }
-//                } else {
-//                    if (isCellSelected(row, column)) {
-//                        c.setBackground(Color.decode("#3399FF"));
-//                        c.setForeground(Color.white);
-//                    } else {
-//                        c.setBackground(Color.white);
-//                        c.setForeground(Color.black);
-//                    }
-//                }
-//                return c;
-//            }
-//        };
 
         columnsTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         columnName.setSortable(false);
@@ -100,7 +70,19 @@ public class SQLColumnSettingsComponent extends BorderPane {
 
         ObservableList<SQLExportDataType> list= FXCollections.observableArrayList(SQLExportDataType.values());
         ChoiceBox<SQLExportDataType> dataTypeChoice=new ChoiceBox<SQLExportDataType>(list);
+        dataTypeChoice.setValue(list.get(0));  //default value of choicebox
 
+        //Setting action event on cells
+        columnsTable.getSelectionModel().setCellSelectionEnabled(true);  //individual cell selection enabled
+        columnsTable.setEditable(true);
+        columnsTable.setOnKeyPressed(event -> {
+            if (event.getCode().isLetterKey()) {
+                editFocusedCell();
+            }
+        });
+
+
+        //Todo: change the below swing code to JavaFX
 //        DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
 //        columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
 
@@ -128,13 +110,12 @@ public class SQLColumnSettingsComponent extends BorderPane {
         }
 
         if (src == removeColumnButton) {
-
-
             SQLRowObject selectedRow= columnsTable.getSelectionModel().getSelectedItem();
             if (selectedRow ==null)
                 return;
             value.removeRow(selectedRow);
         }
+        setValue(value);
 
     }
 
@@ -149,5 +130,10 @@ public class SQLColumnSettingsComponent extends BorderPane {
     synchronized SQLColumnSettings getValue() {
         return value;
     }
-
+    private void editFocusedCell() {
+        TablePosition < SQLRowObject, ? > focusedCell = columnsTable.focusModelProperty().get().focusedCellProperty().get();
+        columnsTable.edit(focusedCell.getRow(), focusedCell.getTableColumn()); //This is not working as expected, need to know how the "value" variable is getting its data
+    }
 }
+
+
