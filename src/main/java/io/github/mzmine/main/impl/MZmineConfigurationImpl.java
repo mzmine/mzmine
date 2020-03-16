@@ -140,10 +140,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   // color palettes
-  @Override
-  public Vision getColorVision() {
-    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
-  }
+//  @Override
+//  public Vision getColorVision() {
+//    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
+//  }
 
   // Number formatting functions
   @Override
