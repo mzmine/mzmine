@@ -1,41 +1,59 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.io.sqlexport;
 
 public class SQLRowObject {
-    String Name;
-    SQLExportDataType Type;
-    String Value;
+    String name;
+    SQLExportDataType type;
+    String value;
 
     SQLRowObject(String name , String value, SQLExportDataType type){
-        this.Name=name;
-        this.Value=value;
-        this.Type=type;
+        this.name =name;
+        this.value =value;
+        this.type =type;
     }
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 
     public SQLExportDataType getType() {
-        return Type;
+        return type;
     }
 
     public void setType(SQLExportDataType type) {
-        Type = type;
+        this.type = type;
     }
 
     public String getValue() {
-        return Value;
+        return value;
     }
 
     public void setValue(String value) {
-        Value = value;
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return "Name:"+Name+" Value:"+Value+" Type:"+Type;
+        return "Name:"+ name +" Value:"+ value +" Type:"+ type;
     }
 }

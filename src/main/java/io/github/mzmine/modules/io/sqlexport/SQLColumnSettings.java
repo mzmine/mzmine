@@ -32,10 +32,7 @@ public class SQLColumnSettings extends AbstractTableModel {
    * 
    */
   private static final long serialVersionUID = 1L;
-  List<String> columnNames = new ArrayList<String>();
-  List<SQLExportDataType> columnTypes = new ArrayList<SQLExportDataType>();
-  List<String> columnValues = new ArrayList<String>();
-  ObservableList<SQLRowObject> list;
+  private final ObservableList<SQLRowObject> list= FXCollections.observableArrayList();;
 
   @Override
   public int getColumnCount() {
@@ -69,46 +66,42 @@ public class SQLColumnSettings extends AbstractTableModel {
 
   @Override
   public synchronized int getRowCount() {
-    return columnNames.size();
+    return list.size();
   }
 
   @Override
   public boolean isCellEditable(int row, int col) {
     if ((col == 0) || (col == 1))
       return true;
-    SQLExportDataType dataType = columnTypes.get(row);
+    SQLExportDataType dataType = list.get(row).getType();
     return dataType.hasAdditionalValue();
   }
 
   @Override
   public synchronized Object getValueAt(int row, int col) {
-    if (row >= columnNames.size())
+    if (row >= list.size())
       return null;
     switch (col) {
       case 0:
-        return columnNames.get(row);
+        return list.get(row).getName();
       case 1:
-        return columnTypes.get(row);
+        return list.get(row).getType();
       case 2:
-        return columnValues.get(row);
+        return list.get(row).getValue();
     }
     return null;
   }
 
   public synchronized void addNewRow() {
-    columnNames.add("");
-    columnTypes.add(SQLExportDataType.CONSTANT);
-    columnValues.add("");
-    int insertedRow = columnNames.size() - 1;
+  	list.add(new SQLRowObject("", "",SQLExportDataType.CONSTANT));
+
+    int insertedRow = list.size() - 1;
     fireTableRowsInserted(insertedRow, insertedRow);
   }
 
   public synchronized void removeRow(SQLRowObject row) {
     int i=list.indexOf(row);
-    columnNames.remove(i);
-    columnTypes.remove(i);
-    columnValues.remove(i);
-    list.remove(i);
+    list.remove(row);
     fireTableRowsDeleted(i, i);
 
   }
@@ -116,25 +109,20 @@ public class SQLColumnSettings extends AbstractTableModel {
   public void setValueAt(Object val, int row, int col) {
     switch (col) {
       case 0:
-        columnNames.set(row, (String) val);
+        list.get(row).setName((String) val);
         break;
       case 1:
         SQLExportDataType dataTypeVal = (SQLExportDataType) val;
-        columnTypes.set(row, dataTypeVal);
+        list.get(row).setType(dataTypeVal);
         if (!dataTypeVal.hasAdditionalValue())
-          columnValues.set(row, dataTypeVal.valueType());
+        	list.get(row).setValue(dataTypeVal.valueType());
         break;
       case 2:
-        columnValues.set(row, (String) val);
+      	list.get(row).setValue((String) val);
         break;
     }
   }
-  public ObservableList<SQLRowObject> getlist(){
-
-    list= FXCollections.observableArrayList();
-    for(int i=0;i<columnNames.size();i++){
-      list.add(new SQLRowObject(columnNames.get(i), columnValues.get(i), columnTypes.get(i)));
-    }
+  public ObservableList<SQLRowObject> getList(){
     return  list;
   }
 
