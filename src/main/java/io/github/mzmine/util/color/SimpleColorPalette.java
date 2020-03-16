@@ -24,11 +24,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
@@ -57,6 +55,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
           Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
 
   private static final String NAME_ATTRIBUTE = "name";
+  private static final String POS_ATTRIBUTE = "positive_color";
+  private static final String NEG_ATTRIBUTE = "negative_color";
 
   private static final Color defclr = Color.BLACK;
   private static final Logger logger = Logger.getLogger(SimpleColorPalette.class.getName());
@@ -66,6 +66,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   protected String name;
   protected int next;
+
+  protected Color positiveColor;
+  protected Color negativeColor;
 
   /**
    *
@@ -77,6 +80,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate = new ArrayList<>();
     next = 0;
     name = "";
+    positiveColor = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
+    negativeColor = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
   }
 
   public SimpleColorPalette(@Nonnull Color[] clrs) {
@@ -211,12 +216,18 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       return false;
     }
 
+    if (!Objects.equals(getPositiveColor(),
+        palette.getPositiveColor()) || !Objects.equals(getNegativeColor(), palette.getNegativeColor())) {
+      return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + name.hashCode();
+    return super.hashCode() + name.hashCode() + getPositiveColor().hashCode() + getNegativeColor()
+        .hashCode();
   }
 
   @Override
@@ -226,12 +237,15 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       clone.add(clr);
     }
     clone.setName(getName());
+    clone.setNegativeColor(getNegativeColor());
+    clone.setPositiveColor(getPositiveColor());
     return clone;
   }
 
   @Override
   public String toString() {
-    return getName() + " " + super.toString();
+    return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
+        + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {
@@ -239,18 +253,44 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     String text = xmlElement.getTextContent();
 
     // not a single color in the palette
-    if (text.length() < 10) {
-      this.clear();
-      this.addAll(
-          ColorsFX.getSevenColorPalette(MZmineCore.getConfiguration().getColorVision(), true));
-      return;
-    }
-    text = text.substring(1, text.length() - 1);
-    text = text.replaceAll("\\s", "");
+//    if (text.length() < 10) {
+//      this.clear();
+//      this.addAll(
+//          ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true));
+//      return;
+//    }
+
     String[] clrs = text.split(",");
-    for (String clr : clrs) {
-      delegate.add(Color.web(clr));
+    String pos = xmlElement.getAttribute(POS_ATTRIBUTE);
+    String neg = xmlElement.getAttribute(NEG_ATTRIBUTE);
+
+    Color clrPos, clrNeg;
+
+    try {
+      text = text.substring(1, text.length() - 1);
+      text = text.replaceAll("\\s", "");
+      for (String clr : clrs) {
+        delegate.add(Color.web(clr));
+      }
+    } catch (Exception e) {
+      logger.warning(e.toString());
+      logger.warning("Could not load color palette " + name + ". Setting default colors");
+      this.addAll(
+          ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
     }
+
+    try {
+      clrPos = Color.web(pos);
+      clrNeg = Color.web(neg);
+    } catch (Exception e) {
+      logger.warning(e.toString());
+      logger.warning("Could not positve/negative colors of " + name + ". Setting default colors");
+      clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
+      clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
+    }
+
+    setPositiveColor(clrPos);
+    setNegativeColor(clrNeg);
   }
 
   public static SimpleColorPalette createFromXML(Element xmlElement) {
@@ -267,7 +307,25 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public void saveToXML(Element xmlElement) {
     xmlElement.setAttribute(NAME_ATTRIBUTE, name);
     xmlElement.setTextContent(delegate.toString());
-    logger.info(xmlElement.toString());
+    xmlElement.setAttribute(POS_ATTRIBUTE, positiveColor.toString());
+    xmlElement.setAttribute(NEG_ATTRIBUTE, negativeColor.toString());
+//    logger.info(xmlElement.toString());
+  }
+
+  public Color getPositiveColor() {
+    return positiveColor;
+  }
+
+  public void setPositiveColor(Color positiveColor) {
+    this.positiveColor = positiveColor;
+  }
+
+  public Color getNegativeColor() {
+    return negativeColor;
+  }
+
+  public void setNegativeColor(Color negativeColor) {
+    this.negativeColor = negativeColor;
   }
 
   // --- super type

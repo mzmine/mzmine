@@ -54,6 +54,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
   private final double height;
   private final List<Rectangle> rects;
+  private final Rectangle positiveRect, negativeRect;
   private final FlowPane clrPane;
   private final Label label;
   private final GridPane pane;
@@ -76,6 +77,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     clrPane.setPrefWidth(MAX_PREVIEW_COLORS * h);
 
     rects = new ArrayList<Rectangle>();
+    positiveRect = new Rectangle(height, height);
+    negativeRect = new Rectangle(height, height);
     label = new Label();
     label.setTextFill(TEXT_CLR);
 
@@ -87,10 +90,16 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
     // palette in the second row...
     pane = new GridPane();
+    pane.setHgap(5);
+    pane.setVgap(5);
     pane.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
         new CornerRadii(2.0), new BorderWidths(1.0))));
-    pane.add(clrPane, 0, 1);
     pane.add(label, 0, 0);
+    pane.add(clrPane, 0, 1);
+    pane.add(new Label("Positive:"), 1, 0);
+    pane.add(positiveRect, 2, 0);
+    pane.add(new Label("Negative:"), 3, 0);
+    pane.add(negativeRect, 4, 0);
   }
 
   private void setRectangles(@Nullable SimpleColorPalette palette) {
@@ -106,6 +115,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
       rects.add(rect);
     }
 
+    positiveRect.setFill(palette.getPositiveColor());
+    negativeRect.setFill(palette.getNegativeColor());
   }
 
   @Override

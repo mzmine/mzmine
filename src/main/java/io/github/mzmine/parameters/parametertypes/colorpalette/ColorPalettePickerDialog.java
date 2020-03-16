@@ -55,7 +55,9 @@ public class ColorPalettePickerDialog extends Stage {
   protected Button btnCancel;
   protected Button btnAddColor;
   protected Button btnRemoveColor;
-  protected ColorPicker colorPicker;
+  protected ColorPicker colorPickerPalette;
+  protected ColorPicker colorPickerPositive;
+  protected ColorPicker colorPickerNegative;
   protected TextField txtName;
 
   protected SimpleColorPalette palette;
@@ -81,38 +83,56 @@ public class ColorPalettePickerDialog extends Stage {
     btnCancel = new Button("Cancel");
     btnAddColor = new Button("Add");
     btnRemoveColor = new Button("Remove");
-    colorPicker = new ColorPicker();
+    colorPickerPalette = new ColorPicker();
+    colorPickerPositive = new ColorPicker();
+    colorPickerNegative = new ColorPicker();
     txtName = new TextField(palette.getName());
     txtName.setMaxWidth(250);
 
     // organize gui components
-    pnMain.add(new Label("Name "), 0, 0);
+    pnMain.add(new Label("Name"), 0, 0);
     pnMain.add(txtName, 1, 0, 4, 1);
 
-    pnMain.add(new Label("Palette "), 0, 1);
+    pnMain.add(new Label("Palette"), 0, 1);
     pnMain.add(pnPalette, 1, 1, 4, 1);
 
-    pnMain.add(new Label("Color "), 0, 2);
-    pnMain.add(colorPicker, 1, 2, 2, 1);
+    pnMain.add(new Label("Color"), 0, 2);
+    pnMain.add(colorPickerPalette, 1, 2, 2, 1);
     pnMain.add(btnAddColor, 3, 2);
     pnMain.add(btnRemoveColor, 4, 2);
+
+    pnMain.add(new Label("Positive"), 0, 3);
+    pnMain.add(colorPickerPositive, 1, 3, 2, 1);
+    pnMain.add(new Label("Negative"), 0, 4);
+    pnMain.add(colorPickerNegative, 1, 4, 2, 1);
 
     pnMain.add(btnAccept, 1, 3);
     pnMain.add(btnCancel, 2, 3);
 
-    // colorPicker.getStyleClass().add("split-button");
-    colorPicker.setOnAction(e -> {
-      if (colorPicker.getValue() != null) {
+    colorPickerPalette.setOnAction(e -> {
+      if (colorPickerPalette.getValue() != null) {
         int selected = pnPalette.getSelected();
         if (selected > 0 && selected < this.palette.size()) {
-          this.palette.set(selected, colorPicker.getValue());
+          this.palette.set(selected, colorPickerPalette.getValue());
         }
       }
     });
-    colorPicker.setValue(palette.get(pnPalette.getSelected()));
+    colorPickerPalette.setValue(palette.get(pnPalette.getSelected()));
+
+    colorPickerPositive.setOnAction(e -> {
+      if (colorPickerPositive.getValue() != null) {
+        this.palette.setPositiveColor(colorPickerPositive.getValue());
+      }
+    });
+
+    colorPickerNegative.setOnAction(e -> {
+      if (colorPickerNegative.getValue() != null) {
+        this.palette.setNegativeColor(colorPickerNegative.getValue());
+      }
+    });
 
     pnPalette.addListener((Color newColor, int newIndex) -> {
-      colorPicker.setValue(newColor);
+      colorPickerPalette.setValue(newColor);
     });
 
     // set button actions
@@ -129,7 +149,7 @@ public class ColorPalettePickerDialog extends Stage {
     if (palette.size() == 0) {
       this.setHeight(this.getHeight() + 17);
     }
-    palette.add(colorPicker.getValue());
+    palette.add(colorPickerPalette.getValue());
 //    pnPalette.updatePreview();
   }
 
