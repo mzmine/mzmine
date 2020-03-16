@@ -20,10 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -36,15 +33,16 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class ElementsTableComponent extends VBox{
 
-  private static ObservableList<ElementsValue> data = FXCollections.observableArrayList();
-  TableView<ElementsValue> table = new TableView();
+  private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
+  private final TableView<ElementsValue> elementsValueTable = new TableView();
 
 
   public ElementsTableComponent() {
 
+    elementsValueTable.setEditable(true);
     this.maxWidth(200);
     this.maxHeight(200);
-    table.setEditable(true);
+    elementsValueTable.setEditable(true);
 
     TableColumn<ElementsValue, IIsotope> elementCol = new TableColumn("Element");
     elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope()));
@@ -54,42 +52,36 @@ public class ElementsTableComponent extends VBox{
 
     TableColumn<ElementsValue, Integer> minCol = new TableColumn("Min");
     minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
-    table.setItems(data);
+    elementsValueTable.setItems(elementsValues);
 
     final Button addButton = new javafx.scene.control.Button("Add");
     final Button removeButton = new Button("Remove");
     // Add event
-    addButton.setOnAction(new EventHandler<javafx.event.ActionEvent>() {
-      @Override
-      public void handle(ActionEvent t){
-        PeriodicTableDialog dialog = new PeriodicTableDialog(null);
-        dialog.setVisible(true);
-        IIsotope chosenIsotope = dialog.getSelectedIsotope();
-        if (chosenIsotope == null)
-          return;
-        data.add(new ElementsValue(chosenIsotope, 100, 0));
-      }
+    addButton.setOnAction(t -> {
+      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
+      dialog.setVisible(true);
+      IIsotope chosenIsotope = dialog.getSelectedIsotope();
+      if (chosenIsotope == null)
+        return;
+      elementsValues.add(new ElementsValue(chosenIsotope, 100, 0));
     });
 
     // Remove event
-    removeButton.setOnAction(new EventHandler<ActionEvent>() {
-      @Override
-      public void handle(ActionEvent t){
-        ElementsValue element = table.getSelectionModel().getSelectedItem();
-        data.remove(element);
-      }
+    removeButton.setOnAction(t -> {
+      ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
+      elementsValues.remove(element);
     });
 
     this.setPadding(new Insets(5, 0, 0, 5));
     this.setSpacing(5);
 
-    table.getColumns().addAll(elementCol, maxCol, minCol);
+    elementsValueTable.getColumns().addAll(elementCol, maxCol, minCol);
     HBox hBox = new HBox();
     hBox.getChildren().addAll(addButton, removeButton);
     hBox.setSpacing(3);
 
 
-    this.getChildren().addAll(table,hBox);
+    this.getChildren().addAll(elementsValueTable,hBox);
 
   }
 
@@ -102,7 +94,7 @@ public class ElementsTableComponent extends VBox{
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      data.add(new ElementsValue(isotope, maxCount, minCount));
+      elementsValues.add(new ElementsValue(isotope, maxCount, minCount));
 
     }
   }
@@ -111,9 +103,9 @@ public class ElementsTableComponent extends VBox{
 
     MolecularFormulaRange newValue = new MolecularFormulaRange();
 
-    for (int row = 0; row < table.getItems().size(); row++) {
+    for (int row = 0; row < elementsValueTable.getItems().size(); row++) {
 
-      ElementsValue elementsValue = table.getItems().get(row);
+      ElementsValue elementsValue = elementsValueTable.getItems().get(row);
 
       IIsotope isotope = elementsValue.getIsotope();
       int minCount = elementsValue.getMin();

@@ -18,22 +18,22 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
 import org.openscience.cdk.interfaces.IIsotope;
-public class ElementsValue {
+public final class ElementsValue {
 
     IIsotope chosenIsotope;
-    int Max = 100;
-    int Min = 0;
+    int max;
+    int min;
 
     ElementsValue(IIsotope iisotope, int max, int min)
     {
 
         this.chosenIsotope = iisotope;
-        this.Max = max;
-        this.Min = min;
+        this.max = max;
+        this.min = min;
     }
 
-    int getMax(){return Max;}
-    int getMin(){return Min;}
+    int getMax(){return max;}
+    int getMin(){return min;}
     IIsotope getIsotope(){return chosenIsotope;}
 
 }
