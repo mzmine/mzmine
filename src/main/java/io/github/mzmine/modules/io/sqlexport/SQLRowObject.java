@@ -19,11 +19,11 @@
 package io.github.mzmine.modules.io.sqlexport;
 
 public class SQLRowObject {
-    String name;
-    SQLExportDataType type;
-    String value;
+    private String name;
+    private SQLExportDataType type;
+    private String value;
 
-    SQLRowObject(String name , String value, SQLExportDataType type){
+    SQLRowObject(String name , SQLExportDataType type, String value ){
         this.name =name;
         this.value =value;
         this.type =type;

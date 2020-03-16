@@ -87,12 +87,12 @@ public class SQLColumnSettingsComponent extends BorderPane {
 //        columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
 
         // Add buttons
-        ButtonBar buttonsPanel=new ButtonBar();
+        VBox buttonsPanel=new VBox(20);
         addColumnButton=new Button("Add");
         removeColumnButton=new Button("Remove");
         addColumnButton.setOnAction(this::actionPerformed);
         removeColumnButton.setOnAction(this::actionPerformed);
-        buttonsPanel.getButtons().addAll(addColumnButton,removeColumnButton);
+        buttonsPanel.getChildren().addAll(addColumnButton,removeColumnButton);
 
 
         this.setRight(buttonsPanel);
@@ -124,7 +124,7 @@ public class SQLColumnSettingsComponent extends BorderPane {
 
         // Clear the table
         this.value = newValue;
-        columnsTable.setItems(value.getList());
+        columnsTable.setItems(value.getTableData());
     }
 
     @Nonnull
