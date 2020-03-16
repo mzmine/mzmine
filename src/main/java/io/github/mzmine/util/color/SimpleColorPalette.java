@@ -57,6 +57,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   private static final String NAME_ATTRIBUTE = "name";
   private static final String POS_ATTRIBUTE = "positive_color";
   private static final String NEG_ATTRIBUTE = "negative_color";
+  private static final String NEU_ATTRIBUTE = "neutral_color";
 
   private static final Color defclr = Color.BLACK;
   private static final Logger logger = Logger.getLogger(SimpleColorPalette.class.getName());
@@ -70,6 +71,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   protected Color positiveColor;
   protected Color negativeColor;
 
+  protected Color neutralColor;
+
   /**
    *
    */
@@ -82,6 +85,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     name = "";
     positiveColor = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
     negativeColor = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
+    neutralColor = ColorsFX.getNeutralColor();
   }
 
   public SimpleColorPalette(@Nonnull Color[] clrs) {
@@ -216,8 +220,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       return false;
     }
 
-    if (!Objects.equals(getPositiveColor(),
-        palette.getPositiveColor()) || !Objects.equals(getNegativeColor(), palette.getNegativeColor())) {
+    if (!Objects.equals(getPositiveColor(), palette.getPositiveColor())
+        || !Objects.equals(getNegativeColor(), palette.getNegativeColor())
+        || !Objects.equals(getNeutralColor(), palette.getNeutralColor())) {
       return false;
     }
 
@@ -263,8 +268,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     String[] clrs = text.split(",");
     String pos = xmlElement.getAttribute(POS_ATTRIBUTE);
     String neg = xmlElement.getAttribute(NEG_ATTRIBUTE);
+    String neu = xmlElement.getAttribute(NEU_ATTRIBUTE);
 
-    Color clrPos, clrNeg;
+    Color clrPos, clrNeg, clrNeu;
 
     try {
       text = text.substring(1, text.length() - 1);
@@ -282,15 +288,18 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     try {
       clrPos = Color.web(pos);
       clrNeg = Color.web(neg);
+      clrNeu = Color.web(neu);
     } catch (Exception e) {
       logger.warning(e.toString());
       logger.warning("Could not positve/negative colors of " + name + ". Setting default colors");
       clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
       clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
+      clrNeu = ColorsFX.getNeutralColor();
     }
 
     setPositiveColor(clrPos);
     setNegativeColor(clrNeg);
+    setNeutralColor(clrNeu);
   }
 
   public static SimpleColorPalette createFromXML(Element xmlElement) {
@@ -307,8 +316,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public void saveToXML(Element xmlElement) {
     xmlElement.setAttribute(NAME_ATTRIBUTE, name);
     xmlElement.setTextContent(delegate.toString());
-    xmlElement.setAttribute(POS_ATTRIBUTE, positiveColor.toString());
-    xmlElement.setAttribute(NEG_ATTRIBUTE, negativeColor.toString());
+    xmlElement.setAttribute(POS_ATTRIBUTE, getPositiveColor().toString());
+    xmlElement.setAttribute(NEG_ATTRIBUTE, getNegativeColor().toString());
+    xmlElement.setAttribute(NEU_ATTRIBUTE, getNeutralColor().toString());
 //    logger.info(xmlElement.toString());
   }
 
@@ -326,6 +336,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setNegativeColor(Color negativeColor) {
     this.negativeColor = negativeColor;
+  }
+
+  public Color getNeutralColor() {
+    return neutralColor;
+  }
+
+  public void setNeutralColor(Color neutralColor) {
+    this.neutralColor = neutralColor;
   }
 
   // --- super type

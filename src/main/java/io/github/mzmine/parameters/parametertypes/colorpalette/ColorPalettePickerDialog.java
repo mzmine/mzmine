@@ -58,6 +58,7 @@ public class ColorPalettePickerDialog extends Stage {
   protected ColorPicker colorPickerPalette;
   protected ColorPicker colorPickerPositive;
   protected ColorPicker colorPickerNegative;
+  protected ColorPicker colorPickerNeutral;
   protected TextField txtName;
 
   protected SimpleColorPalette palette;
@@ -86,6 +87,7 @@ public class ColorPalettePickerDialog extends Stage {
     colorPickerPalette = new ColorPicker();
     colorPickerPositive = new ColorPicker();
     colorPickerNegative = new ColorPicker();
+    colorPickerNeutral = new ColorPicker();
     txtName = new TextField(palette.getName());
     txtName.setMaxWidth(250);
 
@@ -103,8 +105,10 @@ public class ColorPalettePickerDialog extends Stage {
 
     pnMain.add(new Label("Positive"), 0, 3);
     pnMain.add(colorPickerPositive, 1, 3, 2, 1);
-    pnMain.add(new Label("Negative"), 0, 4);
-    pnMain.add(colorPickerNegative, 1, 4, 2, 1);
+    pnMain.add(new Label("Neutral"), 0, 4);
+    pnMain.add(colorPickerNeutral, 1, 4, 2, 1);
+    pnMain.add(new Label("Negative"), 0, 5);
+    pnMain.add(colorPickerNegative, 1, 5, 2, 1);
 
     pnMain.add(btnAccept, 1, 3);
     pnMain.add(btnCancel, 2, 3);
@@ -122,6 +126,12 @@ public class ColorPalettePickerDialog extends Stage {
     colorPickerPositive.setOnAction(e -> {
       if (colorPickerPositive.getValue() != null) {
         this.palette.setPositiveColor(colorPickerPositive.getValue());
+      }
+    });
+
+    colorPickerNeutral.setOnAction(e -> {
+      if (colorPickerNeutral.getValue() != null) {
+        this.palette.setNeutralColor(colorPickerNeutral.getValue());
       }
     });
 

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -40,9 +40,8 @@ import javafx.scene.shape.Rectangle;
 
 /**
  * Implementation of ListCell to display color palettes and select between them.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
@@ -54,13 +53,12 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
   private final double height;
   private final List<Rectangle> rects;
-  private final Rectangle positiveRect, negativeRect;
+  private final Rectangle positiveRect, negativeRect, neutralRect;
   private final FlowPane clrPane;
   private final Label label;
   private final GridPane pane;
 
   /**
-   * 
    * @param h The height of the combo box.
    */
   public ColorPaletteCell(double h) {
@@ -79,6 +77,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     rects = new ArrayList<Rectangle>();
     positiveRect = new Rectangle(height, height);
     negativeRect = new Rectangle(height, height);
+    neutralRect = new Rectangle(height, height);
     label = new Label();
     label.setTextFill(TEXT_CLR);
 
@@ -96,17 +95,20 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
         new CornerRadii(2.0), new BorderWidths(1.0))));
     pane.add(label, 0, 0);
     pane.add(clrPane, 0, 1);
-    pane.add(new Label("Positive:"), 1, 0);
+    pane.add(new Label("Pos.:"), 1, 0);
     pane.add(positiveRect, 2, 0);
-    pane.add(new Label("Negative:"), 3, 0);
-    pane.add(negativeRect, 4, 0);
+    pane.add(new Label("Neu.:"), 3, 0);
+    pane.add(neutralRect, 4, 0);
+    pane.add(new Label("Neg.:"), 5, 0);
+    pane.add(negativeRect, 6, 0);
   }
 
   private void setRectangles(@Nullable SimpleColorPalette palette) {
     rects.clear();
 
-    if (palette == null || palette.isEmpty())
+    if (palette == null || palette.isEmpty()) {
       return;
+    }
 
     for (int i = 0; i < palette.size(); i++) {
       Color clr = palette.get(i);
@@ -116,6 +118,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     }
 
     positiveRect.setFill(palette.getPositiveColor());
+    neutralRect.setFill(palette.getNeutralColor());
     negativeRect.setFill(palette.getNegativeColor());
   }
 
