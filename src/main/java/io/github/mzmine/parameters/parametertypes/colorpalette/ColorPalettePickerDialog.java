@@ -74,26 +74,31 @@ public class ColorPalettePickerDialog extends Stage {
 
     // Create gui components
     pnMain = new GridPane();
+    pnMain.setHgap(5);
+    pnMain.setVgap(5);
     pnPalette = new ColorPalettePreviewField(palette);
     btnAccept = new Button("Accept");
     btnCancel = new Button("Cancel");
-    btnAddColor = new Button("Add color");
-    btnRemoveColor = new Button("Remove color");
+    btnAddColor = new Button("Add");
+    btnRemoveColor = new Button("Remove");
     colorPicker = new ColorPicker();
     txtName = new TextField(palette.getName());
     txtName.setMaxWidth(250);
 
     // organize gui components
-    pnMain.add(new Label("Palette "), 0, 0);
-    pnMain.add(pnPalette, 1, 0, 4, 1);
-    pnMain.add(new Label("Color "), 0, 1);
-    pnMain.add(colorPicker, 1, 1, 3, 1);
-    pnMain.add(new Label("Name "), 0, 2);
-    pnMain.add(txtName, 1, 2, 4, 1);
-    pnMain.add(btnAddColor, 1, 3);
-    pnMain.add(btnRemoveColor, 2, 3);
-    pnMain.add(btnAccept, 3, 3);
-    pnMain.add(btnCancel, 4, 3);
+    pnMain.add(new Label("Name "), 0, 0);
+    pnMain.add(txtName, 1, 0, 4, 1);
+
+    pnMain.add(new Label("Palette "), 0, 1);
+    pnMain.add(pnPalette, 1, 1, 4, 1);
+
+    pnMain.add(new Label("Color "), 0, 2);
+    pnMain.add(colorPicker, 1, 2, 2, 1);
+    pnMain.add(btnAddColor, 3, 2);
+    pnMain.add(btnRemoveColor, 4, 2);
+
+    pnMain.add(btnAccept, 1, 3);
+    pnMain.add(btnCancel, 2, 3);
 
     // colorPicker.getStyleClass().add("split-button");
     colorPicker.setOnAction(e -> {

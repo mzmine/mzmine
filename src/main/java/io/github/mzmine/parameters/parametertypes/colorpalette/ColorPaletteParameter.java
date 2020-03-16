@@ -18,12 +18,12 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
-import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.Vision;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -43,9 +43,6 @@ public class ColorPaletteParameter
 
   private static final Logger logger = Logger.getLogger(ColorPaletteParameter.class.getName());
 
-  protected static final SimpleColorPalette DEFAULT_DEUTERNOPIA = new SimpleColorPalette(
-      ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true), "Deuternopia");
-
   protected String name;
   protected String descr;
   protected SimpleColorPalette value;
@@ -54,7 +51,7 @@ public class ColorPaletteParameter
   public ColorPaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
-    value = DEFAULT_DEUTERNOPIA;
+    value = SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
     palettes = new ArrayList<>();
     palettes.add(value);
   }
@@ -99,12 +96,18 @@ public class ColorPaletteParameter
         palettes.add(SimpleColorPalette.createFromXML(p));
       }
     }
-    if (!palettes.contains(DEFAULT_DEUTERNOPIA)) {
-      logger.info("Loaded color palettes did not contain default palette. Adding...");
-      palettes.add(0, DEFAULT_DEUTERNOPIA);
-      selected++; // increment since we inserted at 0
-    }
+
     setValue(palettes.get(selected));
+
+    int index = 0;
+    for (SimpleColorPalette def : SimpleColorPalette.DEFAULT.values()) {
+      if (!palettes.contains(def)) {
+        palettes.add(index, def);
+        logger.info("Loaded color palettes did not contain default " + def.getName()
+            + " palette. Adding...");
+      }
+      index++;
+    }
   }
 
   @Override
@@ -144,14 +147,23 @@ public class ColorPaletteParameter
     component.setPalettes(palettes);
   }
 
-  protected List<SimpleColorPalette> getPalettes() {
+  protected @Nonnull
+  List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 
-  protected void setPalettes(List<SimpleColorPalette> palettes) {
-    if (!palettes.contains(DEFAULT_DEUTERNOPIA)) {
-      palettes.add(0, DEFAULT_DEUTERNOPIA);
+  protected void setPalettes(@Nonnull List<SimpleColorPalette> palettes) {
+
+    int index = 0;
+    for (SimpleColorPalette def : SimpleColorPalette.DEFAULT.values()) {
+      if (!palettes.contains(def)) {
+        palettes.add(index, def);
+        logger.info("Loaded color palettes did not contain default " + def.getName()
+            + " palette. Adding...");
+      }
+      index++;
     }
+
     this.palettes = palettes;
   }
 

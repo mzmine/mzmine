@@ -82,7 +82,7 @@ public class ColorPaletteComponent extends GridPane {
 
     editPalette = new Button("Edit");
     editPalette.setOnAction(e -> {
-      if (box.getValue().equals(ColorPaletteParameter.DEFAULT_DEUTERNOPIA)) {
+      if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot edit default palette.");
         return;
       }
@@ -114,7 +114,7 @@ public class ColorPaletteComponent extends GridPane {
 
     deletePalette = new Button("Delete");
     deletePalette.setOnAction(e -> {
-      if (box.getValue().equals(ColorPaletteParameter.DEFAULT_DEUTERNOPIA)) {
+      if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot delete default palette.");
         return;
       }
