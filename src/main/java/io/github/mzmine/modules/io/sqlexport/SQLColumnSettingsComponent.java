@@ -18,13 +18,20 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-
 import javax.annotation.Nonnull;
 
 public class SQLColumnSettingsComponent extends BorderPane {
@@ -70,10 +77,31 @@ public class SQLColumnSettingsComponent extends BorderPane {
         columnsTable.setEditable(true);
 
         //Editors on each cell
-        columnName.setCellFactory(param -> new SQLStringCellEditor(value));
-        columnType.setCellFactory(param ->new SQLExportTypeCellEditor(value));
-        columnValue.setCellFactory(param -> new SQLStringCellEditor(value));
-        columnsTable.setOnMouseMoved(event -> setValue(getValue())); // making table update on every mouse movement over table
+      columnName.setCellFactory(TextFieldTableCell.<SQLRowObject>forTableColumn());
+      columnName.setOnEditCommit(event -> {
+        getValue().setValueAt(event.getNewValue(), event.getTablePosition().getRow(), 0);
+        setValue(getValue()); //refresh the table
+      });
+
+      columnValue.setCellFactory(TextFieldTableCell.<SQLRowObject>forTableColumn());
+      columnValue.setOnEditCommit(event -> {
+        getValue().setValueAt(event.getNewValue().toUpperCase(), event.getTablePosition().getRow(), 2);
+        setValue(getValue()); //refresh the table
+      });
+
+      ArrayList<SQLExportDataType> exportDataTypeValues=new ArrayList<SQLExportDataType>(Arrays.asList(SQLExportDataType.values()));
+
+      columnType.setCellFactory(ComboBoxTableCell.forTableColumn(FXCollections.observableArrayList(SQLExportDataType.values())));
+      columnType.setOnEditCommit(event -> {
+        boolean selected = event.getNewValue().isSelectableValue();
+        if(!selected){ //case of  invalid(Title) datatype selection
+          getValue().setValueAt(exportDataTypeValues.get(exportDataTypeValues.indexOf(event.getNewValue())+1),event.getTablePosition().getRow(),1);
+        }
+        else {
+          getValue().setValueAt(event.getNewValue(), event.getTablePosition().getRow(), 1);
+        }
+        setValue(getValue());
+      });
 
         // Add buttons
         VBox buttonsPanel=new VBox(20);
