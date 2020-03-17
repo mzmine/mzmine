@@ -17,14 +17,15 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
-import com.panemu.tiwulfx.control.NumberField;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
@@ -32,7 +33,7 @@ import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class ElementsTableComponent extends VBox{
+public class ElementsTableComponent extends FlowPane {
 
   private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
   private final TableView<ElementsValue> elementsValueTable = new TableView();
@@ -41,11 +42,16 @@ public class ElementsTableComponent extends VBox{
   public ElementsTableComponent() {
 
     elementsValueTable.setEditable(true);
-    this.maxWidth(200);
-    this.maxHeight(200);
+    elementsValueTable.prefHeightProperty().bind(Bindings.size(elementsValueTable.getItems()).
+            multiply(elementsValueTable.getFixedCellSize()).add(300));
+    for (TableColumn<ElementsValue, ?> column : elementsValueTable.getColumns()) {
+      column.setPrefWidth(elementsValueTable.getWidth() / elementsValueTable.getColumns().size());
+    }
+
+
 // allows the individual cells to be selected
     elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
-    TableColumn<ElementsValue, IIsotope> elementCol = new TableColumn("Element");
+    TableColumn<ElementsValue, String> elementCol = new TableColumn("Element");
     TableColumn<ElementsValue, String> maxCol = new TableColumn("Max");
     TableColumn<ElementsValue, String> minCol = new TableColumn("Min");
 
@@ -57,13 +63,11 @@ public class ElementsTableComponent extends VBox{
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
             getRow()).setMin(event.getNewValue()));
 
-    elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope()));
+    elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
     maxCol.setCellValueFactory(col-> {
       String max = String.valueOf(col.getValue().getMax());
       return new ReadOnlyObjectWrapper<>(max);
     });
-
-
 
 
     minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
@@ -92,16 +96,15 @@ public class ElementsTableComponent extends VBox{
     });
 
     this.setPadding(new Insets(5, 0, 0, 5));
-    this.setSpacing(5);
+    this.setHgap(10d);
 
-    elementsValueTable.getColumns().addAll(elementCol, maxCol, minCol);
+    elementsValueTable.getColumns().addAll(elementCol, minCol, maxCol);
     HBox hBox = new HBox();
     hBox.getChildren().addAll(addButton, removeButton);
-    hBox.setSpacing(3);
-
+    hBox.setSpacing(5);
 
     this.getChildren().addAll(elementsValueTable,hBox);
-
+    this.setAlignment(Pos.BASELINE_RIGHT);
   }
 
 
@@ -113,6 +116,7 @@ public class ElementsTableComponent extends VBox{
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
+     String s = isotope.getSymbol();
       elementsValues.add(new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount)));
 
     }

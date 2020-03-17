@@ -39,4 +39,5 @@ public final class ElementsValue {
      void setMin(String min){ this.min = min;}
     void setIsotope(IIsotope iisotope){ this.chosenIsotope = iisotope;}
 
+
 }
