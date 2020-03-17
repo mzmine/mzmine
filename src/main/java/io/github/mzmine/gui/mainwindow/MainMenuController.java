@@ -24,6 +24,7 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.ResultWindowFX;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
