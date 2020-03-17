@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.geometry.Insets;
 import javax.annotation.Nullable;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Pos;
@@ -37,6 +38,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import org.graphstream.stream.file.FileSourceGEXF.GEXFConstants.COLORAttribute;
 
 /**
  * Implementation of ListCell to display color palettes and select between them.
@@ -55,7 +57,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   private final List<Rectangle> rects;
   private final Rectangle positiveRect, negativeRect, neutralRect;
   private final FlowPane clrPane;
-  private final Label label;
+  private final Label lblName;
   private final GridPane pane;
 
   /**
@@ -78,28 +80,38 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     positiveRect = new Rectangle(height, height);
     negativeRect = new Rectangle(height, height);
     neutralRect = new Rectangle(height, height);
-    label = new Label();
-    label.setTextFill(TEXT_CLR);
+    lblName = new Label();
+    lblName.setTextFill(TEXT_CLR);
 
     // nasty way to align the palettes in the dropdown menu
-    label.setMinWidth(80);
-    label.setMaxWidth(150);
-    label.setPrefWidth(150);
-    label.setAlignment(Pos.CENTER_LEFT);
+    lblName.setMinWidth(80);
+    lblName.setMaxWidth(110);
+    lblName.setPrefWidth(110);
+    lblName.setAlignment(Pos.CENTER_LEFT);
 
     // palette in the second row...
     pane = new GridPane();
-    pane.setHgap(5);
-    pane.setVgap(5);
     pane.setBorder(new Border(new BorderStroke(BORDER_CLR, BorderStrokeStyle.SOLID,
         new CornerRadii(2.0), new BorderWidths(1.0))));
-    pane.add(label, 0, 0);
-    pane.add(clrPane, 0, 1);
-    pane.add(new Label("Pos.:"), 1, 0);
+    pane.setVgap(3);
+    pane.setHgap(5);
+
+    pane.add(lblName, 0, 0);
+    pane.add(clrPane, 0, 1, 7, 1);
+
+    Label label = new Label("Pos.:");
+    label.setTextFill(TEXT_CLR);
+    pane.add(label, 1, 0);
     pane.add(positiveRect, 2, 0);
-    pane.add(new Label("Neu.:"), 3, 0);
+
+    label = new Label("Neu.:");
+    label.setTextFill(TEXT_CLR);
+    pane.add(label, 3, 0);
     pane.add(neutralRect, 4, 0);
-    pane.add(new Label("Neg.:"), 5, 0);
+
+    label = new Label("Neg.:");
+    label.setTextFill(TEXT_CLR);
+    pane.add(label, 5, 0);
     pane.add(negativeRect, 6, 0);
   }
 
@@ -131,7 +143,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     } else {
       setRectangles(palette);
       clrPane.getChildren().clear();
-      label.setText(palette.getName());
+      lblName.setText(palette.getName());
       clrPane.getChildren().addAll(rects);
       setGraphic(pane);
     }

@@ -25,6 +25,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
@@ -55,8 +56,8 @@ public class ColorPaletteComponent extends GridPane {
       return new ColorPaletteCell(17);
     });
     box.setButtonCell(new ColorPaletteCell(15));
-    box.setMinHeight(35);
-    box.setMaxHeight(35);
+    box.setMinHeight(37);
+    box.setMaxHeight(37);
 
     addPalette = new Button("New");
     addPalette.setOnAction(e -> {
@@ -134,6 +135,9 @@ public class ColorPaletteComponent extends GridPane {
 
     add(box, 0, 0);
     add(pnButtons, 0, 1);
+
+    getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
+    pnButtons.getChildren().forEach(c -> FlowPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
   }
 
   public SimpleColorPalette getValue() {

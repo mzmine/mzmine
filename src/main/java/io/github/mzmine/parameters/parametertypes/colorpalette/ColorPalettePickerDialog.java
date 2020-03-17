@@ -20,6 +20,7 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import io.github.mzmine.main.MZmineCore;
 import java.util.regex.Pattern;
+import javafx.geometry.Insets;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
@@ -67,6 +68,12 @@ public class ColorPalettePickerDialog extends Stage {
   public ColorPalettePickerDialog(@Nullable SimpleColorPalette palette) {
     super();
 
+    pnMain = new GridPane();
+    Scene scene = new Scene(pnMain);
+    setScene(scene);
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
     exitCode = ExitCode.CANCEL;
 
     if (palette == null) {
@@ -76,9 +83,6 @@ public class ColorPalettePickerDialog extends Stage {
     selected = 0;
 
     // Create gui components
-    pnMain = new GridPane();
-    pnMain.setHgap(5);
-    pnMain.setVgap(5);
     pnPalette = new ColorPalettePreviewField(palette);
     btnAccept = new Button("Accept");
     btnCancel = new Button("Cancel");
@@ -110,13 +114,13 @@ public class ColorPalettePickerDialog extends Stage {
     pnMain.add(new Label("Negative"), 0, 5);
     pnMain.add(colorPickerNegative, 1, 5, 2, 1);
 
-    pnMain.add(btnAccept, 1, 3);
-    pnMain.add(btnCancel, 2, 3);
+    pnMain.add(btnAccept, 1, 6);
+    pnMain.add(btnCancel, 2, 6);
 
     colorPickerPalette.setOnAction(e -> {
       if (colorPickerPalette.getValue() != null) {
         int selected = pnPalette.getSelected();
-        if (selected > 0 && selected < this.palette.size()) {
+        if (selected >= 0 && selected < this.palette.size()) {
           this.palette.set(selected, colorPickerPalette.getValue());
         }
       }
@@ -128,18 +132,21 @@ public class ColorPalettePickerDialog extends Stage {
         this.palette.setPositiveColor(colorPickerPositive.getValue());
       }
     });
+    colorPickerPositive.setValue(palette.getPositiveColor());
 
     colorPickerNeutral.setOnAction(e -> {
       if (colorPickerNeutral.getValue() != null) {
         this.palette.setNeutralColor(colorPickerNeutral.getValue());
       }
     });
+    colorPickerNeutral.setValue(palette.getNeutralColor());
 
     colorPickerNegative.setOnAction(e -> {
       if (colorPickerNegative.getValue() != null) {
         this.palette.setNegativeColor(colorPickerNegative.getValue());
       }
     });
+    colorPickerNegative.setValue(palette.getNegativeColor());
 
     pnPalette.addListener((Color newColor, int newIndex) -> {
       colorPickerPalette.setValue(newColor);
@@ -151,8 +158,7 @@ public class ColorPalettePickerDialog extends Stage {
     btnAccept.setOnAction(e -> hideWindow(ExitCode.OK));
     btnCancel.setOnAction(e -> hideWindow(ExitCode.CANCEL));
 
-    Scene scene = new Scene(pnMain);
-    setScene(scene);
+    pnMain.getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 5.0)));
   }
 
   private void btnAddColorAction() {
