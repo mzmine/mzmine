@@ -23,7 +23,7 @@ import javafx.collections.ObservableList;
 
 public class SQLColumnSettings {
 
-  private final ObservableList<SQLRowObject> tableData = FXCollections.observableArrayList();;
+  private ObservableList<SQLRowObject> tableData = FXCollections.observableArrayList();
 
   public String getColumnName(int col) {
     switch (col) {
@@ -77,5 +77,6 @@ public class SQLColumnSettings {
   }
 
   public ObservableList<SQLRowObject> getTableData(){ return tableData;  }
+
 
 }

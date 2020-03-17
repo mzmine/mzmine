@@ -54,6 +54,6 @@ public class SQLRowObject {
 
     @Override
     public String toString() {
-        return "Name:"+ name +" Value:"+ value +" Type:"+ type;
+        return "Name:"+ name +" Value:"+ value +" Type:"+ type.toString().replace("      ", "");
     }
 }

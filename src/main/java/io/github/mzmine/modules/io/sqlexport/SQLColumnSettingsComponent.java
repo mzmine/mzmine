@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -33,7 +31,7 @@ public class SQLColumnSettingsComponent extends BorderPane {
 
     @Nonnull
     private SQLColumnSettings value;
-    private final TableView<SQLRowObject> columnsTable =new TableView<SQLRowObject>();
+    private  TableView<SQLRowObject> columnsTable =new TableView<SQLRowObject>();
     private final Button addColumnButton,removeColumnButton;
 
 
@@ -48,7 +46,6 @@ public class SQLColumnSettingsComponent extends BorderPane {
         columnName.setCellValueFactory(new PropertyValueFactory<>("Name")); //this is needed during connection to a database
         columnType.setCellValueFactory(new PropertyValueFactory<>("Type"));
         columnValue.setCellValueFactory(new PropertyValueFactory<>("Value"));
-
 
         columnsTable.getColumns().addAll(columnName,columnType,columnValue);  //added all the columns in the table
         setValue(value);
@@ -68,23 +65,15 @@ public class SQLColumnSettingsComponent extends BorderPane {
         columnsTable.setFixedCellSize(columnsTable.getFixedCellSize()+20);
         columnsTable.setStyle("-fx-font: 10 \"Plain\"");
 
-        ObservableList<SQLExportDataType> list= FXCollections.observableArrayList(SQLExportDataType.values());
-        ChoiceBox<SQLExportDataType> dataTypeChoice=new ChoiceBox<SQLExportDataType>(list);
-        dataTypeChoice.setValue(list.get(0));  //default value of choicebox
-
         //Setting action event on cells
         columnsTable.getSelectionModel().setCellSelectionEnabled(true);  //individual cell selection enabled
         columnsTable.setEditable(true);
-        columnsTable.setOnKeyPressed(event -> {
-            if (event.getCode().isLetterKey()) {
-                editFocusedCell();
-            }
-        });
 
-
-        //Todo: change the below swing code to JavaFX
-//        DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
-//        columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
+        //Editors on each cell
+        columnName.setCellFactory(param -> new SQLStringCellEditor(value));
+        columnType.setCellFactory(param ->new SQLExportTypeCellEditor(value));
+        columnValue.setCellFactory(param -> new SQLStringCellEditor(value));
+        columnsTable.setOnMouseMoved(event -> setValue(getValue())); // making table update on every mouse movement over table
 
         // Add buttons
         VBox buttonsPanel=new VBox(20);
@@ -105,7 +94,6 @@ public class SQLColumnSettingsComponent extends BorderPane {
     public void actionPerformed(ActionEvent event) {
 
         Object src = event.getSource();
-
         if (src == addColumnButton) {
             value.addNewRow();
         }
@@ -125,15 +113,12 @@ public class SQLColumnSettingsComponent extends BorderPane {
         // Clear the table
         this.value = newValue;
         columnsTable.setItems(value.getTableData());
+        columnsTable.refresh();
     }
 
     @Nonnull
     synchronized SQLColumnSettings getValue() {
         return value;
-    }
-    private void editFocusedCell() {
-        TablePosition < SQLRowObject, ? > focusedCell = columnsTable.focusModelProperty().get().focusedCellProperty().get();
-        columnsTable.edit(focusedCell.getRow(), focusedCell.getTableColumn()); //This is not working as expected, need to know how the "value" variable is getting its data
     }
 }
 
