@@ -18,10 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import javafx.application.Platform;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
 
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -57,8 +56,6 @@ import io.github.mzmine.util.FormulaUtils;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
-  private ResultWindow resultWindow;
-
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private Range<Double> massRange;
@@ -72,14 +69,14 @@ public class SingleRowPredictionTask extends AbstractTask {
   private PeakListRow peakListRow;
   private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
   private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters;
+  ResultWindowFX resultWindowFX;
+
 
   /**
-   * 
+   *
    * @param parameters
-   * @param peakList
    * @param peakListRow
-   * @param peak
-   */
+=   */
   SingleRowPredictionTask(ParameterSet parameters, PeakListRow peakListRow) {
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
@@ -136,10 +133,13 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    resultWindow = new ResultWindow(
-        "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
-        peakListRow, searchedMass, charge, this);
-    resultWindow.setVisible(true);
+    Platform.runLater(()->{
+              resultWindowFX  = new ResultWindowFX(
+              "Searching for " + MZmineCore.getConfiguration().getMZFormat().format(searchedMass),
+              peakListRow, searchedMass, charge, this);
+      resultWindowFX.show();
+
+    });
 
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
@@ -150,40 +150,47 @@ public class SingleRowPredictionTask extends AbstractTask {
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-    generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
-        massRange.upperEndpoint(), elementCounts);
+    try {
 
-    IMolecularFormula cdkFormula;
-    while ((cdkFormula = generator.getNextFormula()) != null) {
+      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+
+      generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
+              massRange.upperEndpoint(), elementCounts);
+
+      IMolecularFormula cdkFormula;
+      while ((cdkFormula = generator.getNextFormula()) != null) {
+
+        if (isCanceled())
+          return;
+
+        // Mass is ok, so test other constraints
+        checkConstraints(cdkFormula);
+
+
+      }
 
       if (isCanceled())
         return;
 
-      // Mass is ok, so test other constraints
-      checkConstraints(cdkFormula);
+      logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas + " formulas");
 
+      Platform.runLater(() -> { resultWindowFX.setTitle("Finished searching for "
+                + MZmineCore.getConfiguration().getMZFormat().format(searchedMass) + " amu, "
+                + foundFormulas + " formulas found");
+      });
     }
-
-    if (isCanceled())
-      return;
-
-    logger.finest(
-        "Finished formula search for " + massRange + " m/z, found " + foundFormulas + " formulas");
-
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        resultWindow.setTitle("Finished searching for "
-            + MZmineCore.getConfiguration().getMZFormat().format(searchedMass) + " amu, "
-            + foundFormulas + " formulas found");
-
-      }
-    });
+    catch (Exception e){
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+    }
 
     setStatus(TaskStatus.FINISHED);
 
+
   }
+
+
 
   private void checkConstraints(IMolecularFormula cdkFormula) {
 
@@ -209,9 +216,6 @@ public class SingleRowPredictionTask extends AbstractTask {
     final String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
 
     final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
-
-    // final double isotopeNoiseLevel =
-    // isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;
@@ -272,7 +276,7 @@ public class SingleRowPredictionTask extends AbstractTask {
         rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
 
     // Add the new formula entry
-    resultWindow.addNewListItem(resultEntry);
+    resultWindowFX.addNewListItem(resultEntry);
 
     foundFormulas++;
 

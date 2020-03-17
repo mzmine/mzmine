@@ -61,6 +61,9 @@ public class RTMZAnalyzerWindow extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
 
+    setMinWidth(600.0);
+    setMinHeight(500.0);
+
     toolbar = new ToolBar();
     toolbar.setOrientation(Orientation.VERTICAL);
     Button axesButton = new Button(null, new ImageView(axesIcon));
