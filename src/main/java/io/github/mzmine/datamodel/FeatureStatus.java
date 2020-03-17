@@ -53,14 +53,14 @@ public enum FeatureStatus {
             .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
     switch (this) {
       case DETECTED:
-        return FxColorUtil.fxColorToAWT(palette.getPositiveColor());
+        return palette.getPositiveColorAWT();
       case ESTIMATED:
-        return FxColorUtil.fxColorToAWT(palette.getNeutralColor());
+        return palette.getNeutralColorAWT();
       case MANUAL:
         return Color.BLACK;
       case UNKNOWN:
       default:
-        return FxColorUtil.fxColorToAWT(palette.getNegativeColor());
+        return palette.getNegativeColorAWT();
     }
   }
 

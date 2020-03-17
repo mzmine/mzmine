@@ -239,7 +239,8 @@ public class LipidDatabaseTableController {
 
     // set colors depending on colors
     SimpleColorPalette palette =
-        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore.getConfiguration()
+        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore
+            .getConfiguration()
             .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
 
     // fx colors
@@ -248,9 +249,9 @@ public class LipidDatabaseTableController {
     interFX = palette.getNegativeColor();
 
     // awt/swing colors or jfreechart
-    noInterSwing = FxColorUtil.fxColorToAWT(palette.getPositiveColor());
-    possibleInterSwing = FxColorUtil.fxColorToAWT(palette.getNeutralColor());
-    interSwing = FxColorUtil.fxColorToAWT(palette.getNegativeColor());
+    noInterSwing = palette.getPositiveColorAWT();
+    possibleInterSwing = palette.getNeutralColorAWT();
+    interSwing = palette.getNegativeColorAWT();
 
     // create cell factory
     statusColumn.setCellFactory(e -> new TableCell<LipidClassDescription, String>() {
