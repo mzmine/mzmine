@@ -29,7 +29,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
-
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
@@ -73,12 +72,12 @@ public class ElementsTableComponent extends FlowPane {
 
     elementsValueTable.setItems(elementsValues);
 
-    final Button addButton = new javafx.scene.control.Button("Add");
+    final Button addButton = new Button("Add");
     final Button removeButton = new Button("Remove");
     // Add event
     addButton.setOnAction(t -> {
-      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
-      dialog.setVisible(true);
+      PeriodicTableDialog dialog = new PeriodicTableDialog();
+      dialog.show();
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;
@@ -112,7 +111,7 @@ public class ElementsTableComponent extends FlowPane {
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-     String s = isotope.getSymbol();
+      String s = isotope.getSymbol();
       elementsValues.add(new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount)));
 
     }
