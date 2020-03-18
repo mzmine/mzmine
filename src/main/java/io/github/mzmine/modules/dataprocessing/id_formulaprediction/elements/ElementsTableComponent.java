@@ -17,100 +17,91 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
-
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.components.ComponentCellRenderer;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
-import javafx.embed.swing.SwingNode;
-import javafx.stage.Stage;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+public class ElementsTableComponent extends FlowPane {
 
-public class ElementsTableComponent extends SwingNode implements ActionListener {
-
-  private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
-
-  private JTable elementsTable;
-  private JButton addElementButton, removeElementButton;
-  private ElementsTableModel elementsTableModel;
+  private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
+  private final TableView<ElementsValue> elementsValueTable = new TableView();
 
   public ElementsTableComponent() {
 
-    JPanel mainPanel = new JPanel(new BorderLayout());
+    elementsValueTable.setEditable(true);
+    elementsValueTable.prefHeightProperty().bind(Bindings.size(elementsValueTable.getItems()).
+            multiply(elementsValueTable.getFixedCellSize()).add(300));
 
 
-    elementsTableModel = new ElementsTableModel();
+// allows the individual cells to be selected
+    elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
+    TableColumn<ElementsValue, String> elementCol = new TableColumn("Element");
+    TableColumn<ElementsValue, String> maxCol = new TableColumn("Max");
+    TableColumn<ElementsValue, String> minCol = new TableColumn("Min");
 
-    elementsTable = new JTable(elementsTableModel);
-    elementsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    elementsTable.setRowSelectionAllowed(true);
-    elementsTable.setColumnSelectionAllowed(false);
-    elementsTable.setDefaultRenderer(Object.class, new ComponentCellRenderer(smallFont));
-    elementsTable.getTableHeader().setReorderingAllowed(false);
+    // Make Column editable
+    maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    maxCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMax(event.getNewValue()));
+    minCol.setCellFactory(TextFieldTableCell.forTableColumn());
+    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMin(event.getNewValue()));
 
-    elementsTable.getTableHeader().setResizingAllowed(false);
-    elementsTable.setPreferredScrollableViewportSize(new Dimension(200, 80));
+    elementCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getIsotope().getSymbol()));
+    maxCol.setCellValueFactory(col-> {
+      String max = String.valueOf(col.getValue().getMax());
+      return new ReadOnlyObjectWrapper<>(max);
+    });
 
-    JScrollPane elementsScroll = new JScrollPane(elementsTable);
-    mainPanel.add(elementsScroll, BorderLayout.CENTER);
 
-    // Add buttons
-    JPanel buttonsPanel = new JPanel();
-    BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
-    buttonsPanel.setLayout(buttonsPanelLayout);
-    addElementButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
-    removeElementButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-    mainPanel.add(buttonsPanel, BorderLayout.EAST);
+    minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
 
-    mainPanel.setPreferredSize(new Dimension(300, 100));
+    minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
+            getRow()).setMin(event.getNewValue()));
 
-    SwingUtilities.invokeLater(() -> setContent(mainPanel));
+    elementsValueTable.setItems(elementsValues);
 
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    assert SwingUtilities.isEventDispatchThread();
-
-    Object src = event.getSource();
-
-    if (src == addElementButton) {
+    final Button addButton = new Button("Add");
+    final Button removeButton = new Button("Remove");
+    // Add event
+    addButton.setOnAction(t -> {
       PeriodicTableDialog dialog = new PeriodicTableDialog();
       dialog.show();
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;
-      elementsTableModel.addRow(chosenIsotope, 0, 100);
-    }
+      elementsValues.add(new ElementsValue(chosenIsotope, "100", "0"));
+    });
 
-    if (src == removeElementButton) {
-      int selectedRow = elementsTable.getSelectedRow();
-      if (selectedRow < 0)
-        return;
-      elementsTableModel.removeRow(selectedRow);
-    }
+    // Remove event
+    removeButton.setOnAction(t -> {
+      ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
+      elementsValues.remove(element);
+    });
+
+    this.setPadding(new Insets(5, 0, 0, 5));
+
+    elementsValueTable.getColumns().addAll(elementCol, minCol, maxCol);
+    HBox hBox = new HBox();
+    hBox.getChildren().addAll(addButton, removeButton);
+    hBox.setSpacing(10);
+
+    this.getChildren().addAll(elementsValueTable,hBox);
+    this.setHgap(10d);
+    this.setAlignment(Pos.BASELINE_RIGHT);
   }
 
-  public MolecularFormulaRange getElements() {
-
-    MolecularFormulaRange newValue = new MolecularFormulaRange();
-
-    for (int i = 0; i < elementsTableModel.getRowCount(); i++) {
-
-      IIsotope isotope = (IIsotope) elementsTableModel.getValueAt(i, 0);
-      int minCount = (Integer) elementsTableModel.getValueAt(i, 1);
-      int maxCount = (Integer) elementsTableModel.getValueAt(i, 2);
-
-      newValue.addIsotope(isotope, minCount, maxCount);
-    }
-    return newValue;
-  }
 
   public void setElements(MolecularFormulaRange elements) {
 
@@ -120,9 +111,26 @@ public class ElementsTableComponent extends SwingNode implements ActionListener 
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      elementsTableModel.addRow(isotope, minCount, maxCount);
+      String s = isotope.getSymbol();
+      elementsValues.add(new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount)));
 
     }
+  }
+
+  public MolecularFormulaRange getElements() {
+
+    MolecularFormulaRange newValue = new MolecularFormulaRange();
+
+    for (int row = 0; row < elementsValueTable.getItems().size(); row++) {
+
+      ElementsValue elementsValue = elementsValueTable.getItems().get(row);
+
+      IIsotope isotope = elementsValue.getIsotope();
+      String minCount = elementsValue.getMin();
+      String maxCount = elementsValue.getMax();
+      newValue.addIsotope(isotope, Integer.parseInt(minCount), Integer.parseInt(maxCount));
+    }
+    return newValue;
   }
 
 }
