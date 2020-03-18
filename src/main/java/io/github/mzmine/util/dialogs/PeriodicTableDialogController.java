@@ -33,7 +33,7 @@ import org.openscience.cdk.tools.periodictable.PeriodicTable;
 import java.lang.reflect.Method;
 import java.util.EventObject;
 
-public class DialogController {
+public class PeriodicTableDialogController {
 
   @FXML
   public Label textLabelup = new Label();
@@ -44,7 +44,7 @@ public class DialogController {
   private String elementSymbol = new String();
 
   @FXML
-  public void MouseArrive(MouseEvent event) {
+  public void handleMouseEnter(MouseEvent event) {
     Node source = (Node) event.getSource();
     Button b = (Button) source;
     Elements element = Elements.ofString(b.getText());
@@ -53,33 +53,29 @@ public class DialogController {
     b.setTooltip(new Tooltip(result));
     textLabelup.setText(result + " (" + elementSymbol + ")");
     textLabelup.setFont(new Font(30));
-    textLabelbottom.setText("Atomic number" + " " + element.number() + (", " + "Group" + " " + element.group()) + ", " + "Period" + " " + element.period()+
-        "\n\n\n"+
-        "CAS RN:" + " " + PeriodicTable.getCASId(elementSymbol) + "\n"
-        +"Element Category:" + " " + serieTranslator(PeriodicTable.getChemicalSeries(elementSymbol)) + "\n"
-        + "State:" + " " + phaseTranslator(PeriodicTable.getPhase(elementSymbol)) + "\n"
-        + "Electronegativity:" + " "
+    textLabelbottom.setText("Atomic number" + " " + element.number()
+        + (", " + "Group" + " " + element.group()) + ", " + "Period" + " " + element.period()
+        + "\n\n\n" + "CAS RN:" + " " + PeriodicTable.getCASId(elementSymbol) + "\n"
+        + "Element Category:" + " "
+        + serieTranslator(PeriodicTable.getChemicalSeries(elementSymbol)) + "\n" + "State:" + " "
+        + phaseTranslator(PeriodicTable.getPhase(elementSymbol)) + "\n" + "Electronegativity:" + " "
         + (PeriodicTable.getPaulingElectronegativity(elementSymbol) == null ? "undefined"
-        : PeriodicTable.getPaulingElectronegativity(elementSymbol))
-    );
+            : PeriodicTable.getPaulingElectronegativity(elementSymbol)));
 
-    StringBuilder sb_up = new StringBuilder("<html><FONT SIZE=+2>" + result
-        + " (" + elementSymbol + ")</FONT><br> " + "Atomic number" + " "
-        + element.number()
-        + (", " + "Group" + " " + element.group()) + ", "
-        + "Period" + " " + element.period() + "</html>");
+    StringBuilder sb_up =
+        new StringBuilder("<html><FONT SIZE=+2>" + result + " (" + elementSymbol + ")</FONT><br> "
+            + "Atomic number" + " " + element.number() + (", " + "Group" + " " + element.group())
+            + ", " + "Period" + " " + element.period() + "</html>");
 
 
-    StringBuilder sb_Center = new StringBuilder(
-        "<html><FONT> " + "CAS RN:" + " "
-            + PeriodicTable.getCASId(elementSymbol) + "<br> " + "Element Category:" + " "
-            + serieTranslator(PeriodicTable.getChemicalSeries(elementSymbol)) + "<br> "
-            + "State:" + " " + phaseTranslator(PeriodicTable.getPhase(elementSymbol))
-            + "<br> " + "Electronegativity:" + " "
-            + (PeriodicTable.getPaulingElectronegativity(elementSymbol) == null ? "undefined"
+    StringBuilder sb_Center = new StringBuilder("<html><FONT> " + "CAS RN:" + " "
+        + PeriodicTable.getCASId(elementSymbol) + "<br> " + "Element Category:" + " "
+        + serieTranslator(PeriodicTable.getChemicalSeries(elementSymbol)) + "<br> " + "State:" + " "
+        + phaseTranslator(PeriodicTable.getPhase(elementSymbol)) + "<br> " + "Electronegativity:"
+        + " "
+        + (PeriodicTable.getPaulingElectronegativity(elementSymbol) == null ? "undefined"
             : PeriodicTable.getPaulingElectronegativity(elementSymbol))
-            + "<br>" + "</FONT></html>"
-    );
+        + "<br>" + "</FONT></html>");
   }
 
   public String serieTranslator(String serie) {
