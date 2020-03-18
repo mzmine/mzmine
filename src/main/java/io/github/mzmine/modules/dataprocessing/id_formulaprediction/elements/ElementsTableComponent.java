@@ -18,24 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IIsotope;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.components.ComponentCellRenderer;
 import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import javafx.embed.swing.SwingNode;
+import javafx.stage.Stage;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IIsotope;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ElementsTableComponent extends SwingNode implements ActionListener {
 
@@ -87,8 +81,8 @@ public class ElementsTableComponent extends SwingNode implements ActionListener 
     Object src = event.getSource();
 
     if (src == addElementButton) {
-      PeriodicTableDialog dialog = new PeriodicTableDialog(null);
-      dialog.setVisible(true);
+      PeriodicTableDialog dialog = new PeriodicTableDialog();
+      dialog.show();
       IIsotope chosenIsotope = dialog.getSelectedIsotope();
       if (chosenIsotope == null)
         return;
