@@ -35,7 +35,7 @@ public class PeriodicTableDialog extends Stage implements ICDKChangeListener {
 
   public PeriodicTableDialog() {
     try {
-      Parent root = FXMLLoader.load(getClass().getResource("PeriodicTablePanel.fxml"));
+      Parent root = FXMLLoader.load(getClass().getResource("PeriodicTableDialog.fxml"));
       Scene scene = new Scene(root, 700, 400);
       super.setScene(scene);
       super.setTitle("Choose an element...");
