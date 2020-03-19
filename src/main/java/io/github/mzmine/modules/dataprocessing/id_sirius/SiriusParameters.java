@@ -23,12 +23,12 @@ import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements.ElementsParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 

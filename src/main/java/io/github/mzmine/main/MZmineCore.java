@@ -90,6 +90,11 @@ public final class MZmineCore {
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
     logger.finest("Working directory is " + cwd);
 
+    /*
+     * Report current temporary directory
+     */
+    logger.info("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+
     // Remove old temporary files on a new thread
     Thread cleanupThread = new Thread(new TmpFileCleanup());
     cleanupThread.setPriority(Thread.MIN_PRIORITY);
