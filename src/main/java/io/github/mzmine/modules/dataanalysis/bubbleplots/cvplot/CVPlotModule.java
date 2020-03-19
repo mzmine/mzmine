@@ -18,9 +18,11 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Collection;
 import javax.annotation.Nonnull;
+
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleRow;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;

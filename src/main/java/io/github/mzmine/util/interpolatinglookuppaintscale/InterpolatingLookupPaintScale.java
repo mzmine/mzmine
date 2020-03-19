@@ -18,8 +18,7 @@
 
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
-import java.awt.Color;
-import java.awt.Paint;
+import java.awt.*;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +33,28 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
    * 
    */
   private static final long serialVersionUID = 1L;
+
+  private Double key;
+  private Color value;
+
+
+  public Double getKey() {
+    return key;
+  }
+
+  public Color getValue() {
+     return lookupTable.get(1.1);
+  }
+
+  public void setKey(Double key) {
+    this.key = key;
+  }
+
+  public void setValue(Color value) {
+    this.value = value;
+
+  }
+
 
   private class CompatibleEntry implements Map.Entry<Double, Color> {
 
@@ -59,6 +80,7 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
       return prevValue;
     }
   }
+
 
   private class CompatibleTreeMap extends TreeMap<Double, Color> {
 
@@ -101,12 +123,14 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
     lookupTable.put(value, color);
   }
 
+
   public Double[] getLookupValues() {
     return lookupTable.keySet().toArray(new Double[0]);
   }
 
-  public Paint getDefaultPaint() {
-    return new Color(0, 0, 0);
+
+  public Color getDefaultPaint() {
+   return new Color(0, 0, 0);
   }
 
   public Paint getPaint(double value) {
@@ -131,6 +155,7 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
     float[] floorRGB = floor.getValue().getRGBColorComponents(null);
     double ceilValue = ceil.getKey();
     float[] ceilRGB = ceil.getValue().getRGBColorComponents(null);
+
 
     float[] rgb = new float[3];
     for (int i = 0; i < 3; i++)

@@ -18,6 +18,9 @@
 
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
+import com.sun.source.tree.Tree;
+import javafx.scene.control.TableColumn;
+
 import java.awt.Color;
 import java.util.TreeMap;
 
@@ -55,5 +58,13 @@ public class InterpolatingLookupPaintScaleSetupDialogTableModel extends Abstract
       return lookupTable.keySet().toArray(new Double[0])[row];
     return null;
   }
+  public TreeMap<Double, Color> getLookupTable(){
+    return this.lookupTable;
+  }
+
+  public TableColumn<InterpolatingLookupPaintScaleSetupDialogTableModel,Double> getColumnValues(){
+    return (TableColumn<InterpolatingLookupPaintScaleSetupDialogTableModel, Double>) lookupTable.values();
+  }
+
 
 }

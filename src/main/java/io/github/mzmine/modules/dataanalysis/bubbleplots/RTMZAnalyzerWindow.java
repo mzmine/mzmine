@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataanalysis.bubbleplots;
 import javax.swing.SwingUtilities;
 
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController;
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController;
 import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.PeakList;
@@ -41,6 +40,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+
 public class RTMZAnalyzerWindow extends Stage {
 
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
@@ -52,6 +52,7 @@ public class RTMZAnalyzerWindow extends Stage {
 
   private final ToolBar toolbar;
   private final RTMZPlot plot;
+
 
   public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
       InterpolatingLookupPaintScale paintScale) {
@@ -92,8 +93,7 @@ public class RTMZAnalyzerWindow extends Stage {
           public void run() {
             InterpolatingLookupPaintScaleSetupDialogController colorDialog =
                     new InterpolatingLookupPaintScaleSetupDialogController(null, plot.getPaintScale());
-            colorDialog.show();
-
+            colorDialog.showAndWait();
 
             if (colorDialog.getExitCode() == ExitCode.OK)
               plot.setPaintScale(colorDialog.getPaintScale());
