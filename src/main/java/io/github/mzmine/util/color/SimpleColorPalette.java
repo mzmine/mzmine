@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
@@ -155,7 +154,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   @Nonnull
   public Color getMainColor() {
-    if (isValidPalette()) {
+    if (isValid()) {
       return get(MAIN_COLOR);
     }
     return Color.BLACK;
@@ -165,7 +164,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return FxColorUtil.fxColorToAWT(getMainColor());
   }
 
-  public boolean isValidPalette() {
+  public boolean isValid() {
     if (this.isEmpty()) {
       return false;
     }
@@ -305,7 +304,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     } catch (Exception e) {
       logger.warning(e.toString());
-      logger.warning("Could not load color palette " + name + ". Setting default colors");
+      logger.warning("Could not load color palette " + name + ". Setting default colors.");
       this.addAll(
           ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
     }
@@ -317,7 +316,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     } catch (Exception e) {
       logger.warning(e.toString());
       logger.warning(
-          "Could not load positve/negative colors of " + name + ". Setting default colors");
+          "Could not load positve/negative colors of " + name + ". Setting default colors.");
       clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
       clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
       clrNeu = ColorsFX.getNeutralColor();

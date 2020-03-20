@@ -342,7 +342,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public SimpleColorPalette getDefaultColorPalette() {
     SimpleColorPalette p = preferences.getParameter(MZminePreferences.stdColorPalette).getValue();
-    if (!p.isValidPalette()) {
+    if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
               + "colors.");
