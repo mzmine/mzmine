@@ -122,12 +122,25 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
 
 
-    private ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
+    private final ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
 
-    public void getObservableList(TreeMap<Double, Color> lookupTable, ObservableList<InterpolatingLookupPaintScaleRow> observableTableList){
+    public void addPaintScaleToTableView(InterpolatingLookupPaintScale paintScale){
 
-        this.lookupTable = lookupTable;
-        this.observableTableList = observableTableList;
+        observableTableList.clear();
+        lookupTable.clear();
+
+        Double[] lookupValues = paintScale.getLookupValues();
+
+        for (Double lookupValue : lookupValues) {
+            Color color = (Color) paintScale.getPaint(lookupValue);
+            lookupTable.put(lookupValue, color);
+        }
+
+        for (Double value : lookupTable.keySet()) {
+            InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
+            observableTableList.add(ir);
+        }
+
         tableLookupValues.setItems(observableTableList);
     }
 

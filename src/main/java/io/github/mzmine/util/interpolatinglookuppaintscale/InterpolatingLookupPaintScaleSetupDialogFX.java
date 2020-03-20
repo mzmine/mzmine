@@ -19,26 +19,18 @@
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
 import io.github.mzmine.util.ExitCode;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.TreeMap;
+
 
 
 public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
 
     private InterpolatingLookupPaintScaleSetupDialogController controller;
-
-    private final ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
-    private final TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
-
-
 
     public InterpolatingLookupPaintScaleSetupDialogFX(InterpolatingLookupPaintScale paintScale){
 
@@ -49,6 +41,7 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
             Scene scene = new Scene(rootPane);
             setScene(scene);
             controller = root.getController();
+            controller.addPaintScaleToTableView(paintScale);
 
         }
         catch (IOException e)
@@ -56,21 +49,6 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
             e.printStackTrace();
         }
 
-        observableTableList.clear();
-        lookupTable.clear();
-
-        Double[] lookupValues = paintScale.getLookupValues();
-
-        for (Double lookupValue : lookupValues) {
-            Color color = (Color) paintScale.getPaint(lookupValue);
-            lookupTable.put(lookupValue, color);
-        }
-
-        for (Double value : lookupTable.keySet()) {
-            InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
-            observableTableList.add(ir);
-        }
-        controller.getObservableList(lookupTable,observableTableList);
 
     }
 
