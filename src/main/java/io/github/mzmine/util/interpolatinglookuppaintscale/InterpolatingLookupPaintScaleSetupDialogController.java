@@ -19,9 +19,6 @@
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
 import java.awt.*;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import io.github.mzmine.main.MZmineCore;
@@ -31,9 +28,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -41,33 +35,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
 
-public class InterpolatingLookupPaintScaleSetupDialogController extends Stage implements Initializable {
-
-
-    private static final long serialVersionUID = 1L;
+public class InterpolatingLookupPaintScaleSetupDialogController{
 
     public static final int VALUEFIELD_COLUMNS = 4;
 
-    private static final TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private static Scene mainScene;
-
-    private static ExitCode exitCode = ExitCode.CANCEL;
-
-    private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
-
-    private static ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
-
-
-    // Load the window FXML
-    FXMLLoader loader = new FXMLLoader((getClass().getResource("InterpolatingLookupPaintScaleSetupDialog.fxml")));
-
-
-    // Load the window FXML
     @FXML
     private AnchorPane main;
 
@@ -116,43 +88,8 @@ public class InterpolatingLookupPaintScaleSetupDialogController extends Stage im
     @FXML
     private TableColumn<InterpolatingLookupPaintScaleRow, Color> Color;
 
-    //default constructor
-    public InterpolatingLookupPaintScaleSetupDialogController(){
-
-    }
-
-
-    public InterpolatingLookupPaintScaleSetupDialogController(Object parent,
-                                                              InterpolatingLookupPaintScale paintScale) {
-
-        ObservableTableList.clear();
-
-        Double[] lookupValues = paintScale.getLookupValues();
-        for (Double lookupValue : lookupValues) {
-            Color color = (Color) paintScale.getPaint(lookupValue);
-            lookupTable.put(lookupValue, color);
-        }
-
-        for (Double value : lookupTable.keySet()) {
-            InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
-            ObservableTableList.add(ir);
-        }
-
-        try {
-            Parent root = loader.load();
-            mainScene  = new Scene(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        setScene(mainScene);
-
-    }
-
-
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    private void initialize() {
 
         Value.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getKey()));
         Color.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
@@ -180,13 +117,25 @@ public class InterpolatingLookupPaintScaleSetupDialogController extends Stage im
             }
         });
 
-        tableLookupValues.setItems(ObservableTableList);
+    }
 
+    private static TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private static ExitCode exitCode = ExitCode.CANCEL;
+    private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
+
+
+    private static ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
+
+    public void addObservableList(TreeMap<Double, Color> lookupTable, ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList){
+
+        this.lookupTable = lookupTable;
+        this.ObservableTableList = ObservableTableList;
+        tableLookupValues.setItems(ObservableTableList);
     }
 
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();
-
 
         if (src == colorPicker) {
             javafx.scene.paint.Color color = colorPicker.getValue();
@@ -228,6 +177,9 @@ public class InterpolatingLookupPaintScaleSetupDialogController extends Stage im
         }
     }
 
+
+
+
     public ExitCode getExitCode() {
         return exitCode;
     }
@@ -246,12 +198,10 @@ public class InterpolatingLookupPaintScaleSetupDialogController extends Stage im
             InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
             ObservableTableList.add(ir);
         }
-
     }
+
     public void dispose() {
-
         tableLookupValues.getScene().getWindow().hide();
-
     }
 
 }

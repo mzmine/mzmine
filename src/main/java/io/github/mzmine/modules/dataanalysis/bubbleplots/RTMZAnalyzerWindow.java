@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
-import javax.swing.SwingUtilities;
-
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController;
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogFX;
 import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.PeakList;
@@ -86,13 +84,11 @@ public class RTMZAnalyzerWindow extends Stage {
     });
 
     colorButton.setOnAction(e -> {
-      SwingUtilities.invokeLater(() -> {
-
         Platform.runLater(new Runnable() {
           @Override
           public void run() {
-            InterpolatingLookupPaintScaleSetupDialogController colorDialog =
-                    new InterpolatingLookupPaintScaleSetupDialogController(null, plot.getPaintScale());
+            InterpolatingLookupPaintScaleSetupDialogFX colorDialog =
+                    new InterpolatingLookupPaintScaleSetupDialogFX(null, plot.getPaintScale());
             colorDialog.showAndWait();
 
             if (colorDialog.getExitCode() == ExitCode.OK)
@@ -101,7 +97,6 @@ public class RTMZAnalyzerWindow extends Stage {
         });
 
       });
-    });
 
     String title = peakList.getName();
     title = title.concat(" : ");

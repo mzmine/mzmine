@@ -21,11 +21,11 @@ package io.github.mzmine.util.interpolatinglookuppaintscale;
 
 import java.awt.*;
 
-public class InterpolatingLookupPaintScaleRow {
+public final class InterpolatingLookupPaintScaleRow {
 
 
-    private Double key;
-    private Color value;
+    private final Double key;
+    private final Color value;
 
 
     public InterpolatingLookupPaintScaleRow(Double key, Color value) {
