@@ -19,17 +19,14 @@
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import org.apache.regexp.RE;
 
 /**
  * A pane showing a color palette and allowing the selection of single colors within the palette.
@@ -41,7 +38,8 @@ public class ColorPalettePreviewField extends FlowPane {
   private static final Logger logger = Logger.getLogger(ColorPalettePreviewField.class.getName());
 
   private static final int RECT_HEIGHT = 18;
-  private static final Color OUTLINE_CLR = Color.WHITE;
+  private static final Color STROKE_CLR = Color.WHITE;
+  private static final double STROKE_WIDTH = 0.5;
 
   protected final List<Rectangle> rects;
   protected SimpleColorPalette palette;
@@ -83,10 +81,11 @@ public class ColorPalettePreviewField extends FlowPane {
 
     for (int i = 0; i < palette.size(); i++) {
       Color clr = palette.get(i);
-      Rectangle rect = new Rectangle(RECT_HEIGHT - 1, RECT_HEIGHT - 1);
+      Rectangle rect = new Rectangle(RECT_HEIGHT - STROKE_WIDTH / 2,
+          RECT_HEIGHT - STROKE_WIDTH / 2);
       rect.setFill(clr);
       rect.setStroke(Color.BLACK);
-      rect.setStrokeWidth(0.5);
+      rect.setStrokeWidth(STROKE_WIDTH);
 
       rect.setOnMousePressed(e -> {
         rect.setOpacity(rect.getOpacity() / 2);
@@ -132,8 +131,8 @@ public class ColorPalettePreviewField extends FlowPane {
     }
 
     if (selected < rects.size() && selected >= 0) {
-      rects.get(selected).setStroke(OUTLINE_CLR);
-      rects.get(selected).setStrokeWidth(0.5);
+      rects.get(selected).setStroke(STROKE_CLR);
+      rects.get(selected).setStrokeWidth(STROKE_WIDTH);
     }
   }
 
