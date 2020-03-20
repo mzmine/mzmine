@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -23,24 +23,25 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import org.apache.regexp.RE;
 
 /**
  * A pane showing a color palette and allowing the selection of single colors within the palette.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class ColorPalettePreviewField extends FlowPane {
 
   private static final Logger logger = Logger.getLogger(ColorPalettePreviewField.class.getName());
 
-  private static final int RECT_HEIGHT = 17;
-  private static final Color OUTLINE_CLR = Color.BLACK;
+  private static final int RECT_HEIGHT = 18;
+  private static final Color OUTLINE_CLR = Color.WHITE;
 
   protected final List<Rectangle> rects;
   protected SimpleColorPalette palette;
@@ -53,8 +54,14 @@ public class ColorPalettePreviewField extends FlowPane {
   public ColorPalettePreviewField(SimpleColorPalette palette) {
     super();
     rects = new ArrayList<Rectangle>();
-    setMaxWidth(400);
     setPalette(palette);
+
+    palette.addListener((ListChangeListener<? super Color>) c -> {
+      this.setPrefWidth(palette.size() * RECT_HEIGHT);
+    });
+    setMinWidth(RECT_HEIGHT * 10);
+    setMaxWidth(RECT_HEIGHT * 20);
+    setPrefWidth(palette.size() * RECT_HEIGHT);
 
     validDrag = false;
 
@@ -65,19 +72,16 @@ public class ColorPalettePreviewField extends FlowPane {
   private void setRectangles() {
     rects.clear();
 
-    if (palette == null || palette.isEmpty())
+    if (palette == null || palette.isEmpty()) {
       return;
+    }
 
     for (int i = 0; i < palette.size(); i++) {
       Color clr = palette.get(i);
-      Rectangle rect = new Rectangle(RECT_HEIGHT, RECT_HEIGHT);
+      Rectangle rect = new Rectangle(RECT_HEIGHT - 1, RECT_HEIGHT - 1);
       rect.setFill(clr);
-      
-//      rect.setOnMouseClicked(e -> {
-//        if (e.getClickCount() == 1) {
-//          setSelected(rect);
-//        }
-//      });
+      rect.setStroke(Color.BLACK);
+      rect.setStrokeWidth(0.5);
 
       rect.setOnMousePressed(e -> {
         rect.setOpacity(rect.getOpacity() / 2);
@@ -87,7 +91,7 @@ public class ColorPalettePreviewField extends FlowPane {
       rect.setOnMouseDragged(e -> {
         validDrag = true;
       });
-      
+
       rect.setOnMouseReleased(e -> {
         rect.setOpacity(rect.getOpacity() * 2);
 
@@ -98,22 +102,33 @@ public class ColorPalettePreviewField extends FlowPane {
         Point2D exit = new Point2D(e.getSceneX(), e.getSceneY());
 
         double x = this.sceneToLocal(exit).getX();
-        x = (x < 0) ? 0 : x;
+        double y = this.sceneToLocal(exit).getY();
+        int rows = (int) ((RECT_HEIGHT * palette.size()) / getWidth() + 1);
 
-        int newIndex = (int) (x / RECT_HEIGHT + .5);
+        logger.info("rows: " + rows);
+
+        x = (x < 0) ? 0 : x;
+        y = (y < 0) ? 0 : y;
+        y = (y / RECT_HEIGHT <= rows) ? y : rows;
+        logger.info("y: " + y);
+
+        int rectsPerRow = (int) (getWidth() / RECT_HEIGHT);
+        int row = (int) (y / RECT_HEIGHT);
+
+        int newIndex = (int) (row * rectsPerRow + x / RECT_HEIGHT + .5);
 
         // we just have to move the color, the listener will update the preview
         palette.moveColor(getSelected(), newIndex);
         setSelected(newIndex);
         validDrag = false;
       });
-      
+
       rects.add(rect);
     }
 
     if (selected < rects.size() && selected >= 0) {
       rects.get(selected).setStroke(OUTLINE_CLR);
-      rects.get(selected).setStrokeWidth(1.0);
+      rects.get(selected).setStrokeWidth(0.5);
     }
   }
 

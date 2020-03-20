@@ -30,6 +30,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 
 /**
  * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
@@ -40,12 +41,12 @@ public class ColorPaletteComponent extends GridPane {
 
   private static final Logger logger = Logger.getLogger(ColorPaletteComponent.class.getName());
 
-  protected ComboBox<SimpleColorPalette> box;
-  protected Button addPalette;
-  protected Button editPalette;
-  protected Button deletePalette;
-  protected Button duplicatePalette;
-  protected FlowPane pnButtons;
+  protected final ComboBox<SimpleColorPalette> box;
+  protected final Button btnAddPalette;
+  protected final Button btnEditPalette;
+  protected final Button btnDeletePalette;
+  protected final Button duplicatePalette;
+  protected final FlowPane pnButtons;
 
   public ColorPaletteComponent() {
     super();
@@ -59,10 +60,13 @@ public class ColorPaletteComponent extends GridPane {
     box.setMinHeight(37);
     box.setMaxHeight(37);
 
-    addPalette = new Button("New");
-    addPalette.setOnAction(e -> {
+    btnAddPalette = new Button("New");
+    btnAddPalette.setOnAction(e -> {
       SimpleColorPalette pal = new SimpleColorPalette();
-      box.getItems().add(pal);
+      pal.setName("New palette");
+      pal.add(Color.BLACK);
+      addPalette(pal);
+      setValue(pal);
     });
 
     duplicatePalette = new Button("Duplicate");
@@ -74,15 +78,14 @@ public class ColorPaletteComponent extends GridPane {
       }
 
       SimpleColorPalette newPal = pal.clone();
-      newPal.setName(pal.getName() + " (cpy)");
+      newPal.setName(pal.getName() + " (copy)");
       if (addPalette(newPal)) {
         box.setValue(newPal);
       }
-
     });
 
-    editPalette = new Button("Edit");
-    editPalette.setOnAction(e -> {
+    btnEditPalette = new Button("Edit");
+    btnEditPalette.setOnAction(e -> {
       if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot edit default palette.");
         return;
@@ -113,8 +116,8 @@ public class ColorPaletteComponent extends GridPane {
       });
     });
 
-    deletePalette = new Button("Delete");
-    deletePalette.setOnAction(e -> {
+    btnDeletePalette = new Button("Delete");
+    btnDeletePalette.setOnAction(e -> {
       if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot delete default palette.");
         return;
@@ -131,13 +134,13 @@ public class ColorPaletteComponent extends GridPane {
 
     pnButtons = new FlowPane();
     pnButtons.getChildren()
-        .addAll(addPalette, duplicatePalette, editPalette, deletePalette);
+        .addAll(btnAddPalette, duplicatePalette, btnEditPalette, btnDeletePalette);
 
     add(box, 0, 0);
     add(pnButtons, 0, 1);
 
-    getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
-    pnButtons.getChildren().forEach(c -> FlowPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
+//    getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
+    pnButtons.getChildren().forEach(c -> FlowPane.setMargin(c, new Insets(5.0, 5.0, 0.0, 0.0)));
   }
 
   public SimpleColorPalette getValue() {
@@ -181,9 +184,17 @@ public class ColorPaletteComponent extends GridPane {
     return false;
   }
 
+  /**
+   * Palettes should be added via this method and not via {@link ComboBox#getItems#add()}, since this
+   * method provides additional checks for duplicates.
+   *
+   * @param pal
+   * @return
+   */
   public boolean addPalette(SimpleColorPalette pal) {
     if (box.getItems().contains(pal)) {
-      logger.fine("Cannot add duplicates. A palette with same name and colors already exists.");
+      logger.fine("Cannot add duplicates. A palette with the name " + pal.getName()
+          + " and same colors already exists.");
       return false;
     }
 

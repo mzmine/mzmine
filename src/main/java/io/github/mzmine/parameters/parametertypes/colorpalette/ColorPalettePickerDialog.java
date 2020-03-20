@@ -18,10 +18,18 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+
 import io.github.mzmine.main.MZmineCore;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,11 +54,16 @@ import javafx.stage.Stage;
  */
 public class ColorPalettePickerDialog extends Stage {
 
+  private static final Logger logger = Logger.getLogger(ColorPalettePickerDialog.class.getName());
+
   protected ExitCode exitCode;
 
   //  protected BorderPane pnSuper;
-//  protected BorderPane pnPicker;
-  protected GridPane pnMain;
+  //  protected BorderPane pnPicker;
+  protected BorderPane pnMain;
+  protected ScrollPane pnWrapParam;
+  protected GridPane pnParam;
+  protected ButtonBar pnButtons;
   protected ColorPalettePreviewField pnPalette;
   protected Button btnAccept;
   protected Button btnCancel;
@@ -68,7 +81,11 @@ public class ColorPalettePickerDialog extends Stage {
   public ColorPalettePickerDialog(@Nullable SimpleColorPalette palette) {
     super();
 
-    pnMain = new GridPane();
+    pnMain = new BorderPane();
+    pnWrapParam = new ScrollPane();
+    pnButtons = new ButtonBar();
+    setTitle("Editing of color palette " + palette.getName());
+
     Scene scene = new Scene(pnMain);
     setScene(scene);
     scene.getStylesheets()
@@ -83,8 +100,9 @@ public class ColorPalettePickerDialog extends Stage {
     selected = 0;
 
     // Create gui components
+    pnParam = new GridPane();
     pnPalette = new ColorPalettePreviewField(palette);
-    btnAccept = new Button("Accept");
+    btnAccept = new Button("OK");
     btnCancel = new Button("Cancel");
     btnAddColor = new Button("Add");
     btnRemoveColor = new Button("Remove");
@@ -96,26 +114,32 @@ public class ColorPalettePickerDialog extends Stage {
     txtName.setMaxWidth(250);
 
     // organize gui components
-    pnMain.add(new Label("Name"), 0, 0);
-    pnMain.add(txtName, 1, 0, 4, 1);
+    pnParam.add(new Label("Name"), 0, 0);
+    pnParam.add(txtName, 1, 0, 4, 1);
 
-    pnMain.add(new Label("Palette"), 0, 1);
-    pnMain.add(pnPalette, 1, 1, 4, 1);
+    pnParam.add(new Label("Palette"), 0, 1);
+    pnParam.add(pnPalette, 1, 1, 4, 1);
 
-    pnMain.add(new Label("Color"), 0, 2);
-    pnMain.add(colorPickerPalette, 1, 2, 2, 1);
-    pnMain.add(btnAddColor, 3, 2);
-    pnMain.add(btnRemoveColor, 4, 2);
+    pnParam.add(new Label("Color"), 0, 2);
+    pnParam.add(colorPickerPalette, 1, 2, 1, 1);
+    pnParam.add(btnAddColor, 3, 2);
+    pnParam.add(btnRemoveColor, 4, 2);
 
-    pnMain.add(new Label("Positive"), 0, 3);
-    pnMain.add(colorPickerPositive, 1, 3, 2, 1);
-    pnMain.add(new Label("Neutral"), 0, 4);
-    pnMain.add(colorPickerNeutral, 1, 4, 2, 1);
-    pnMain.add(new Label("Negative"), 0, 5);
-    pnMain.add(colorPickerNegative, 1, 5, 2, 1);
+    pnParam.add(new Label("Positive"), 0, 3);
+    pnParam.add(colorPickerPositive, 1, 3, 1, 1);
+    pnParam.add(new Label("Neutral"), 0, 4);
+    pnParam.add(colorPickerNeutral, 1, 4, 1, 1);
+    pnParam.add(new Label("Negative"), 0, 5);
+    pnParam.add(colorPickerNegative, 1, 5, 1, 1);
 
-    pnMain.add(btnAccept, 1, 6);
-    pnMain.add(btnCancel, 2, 6);
+    ColumnConstraints columnConstraints = new ColumnConstraints(USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, true);
+    pnParam.getColumnConstraints()
+        .addAll(columnConstraints, columnConstraints, columnConstraints, columnConstraints,
+            columnConstraints);
+
+    pnButtons.getButtons().add(btnCancel);
+    pnButtons.getButtons().add(btnAccept);
 
     colorPickerPalette.setOnAction(e -> {
       if (colorPickerPalette.getValue() != null) {
@@ -158,7 +182,10 @@ public class ColorPalettePickerDialog extends Stage {
     btnAccept.setOnAction(e -> hideWindow(ExitCode.OK));
     btnCancel.setOnAction(e -> hideWindow(ExitCode.CANCEL));
 
-    pnMain.getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 5.0)));
+    pnMain.setCenter(pnParam);
+    pnParam.getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 5.0)));
+    pnMain.setBottom(pnButtons);
+
   }
 
   private void btnAddColorAction() {
@@ -175,6 +202,12 @@ public class ColorPalettePickerDialog extends Stage {
   }
 
   private void hideWindow(ExitCode exitCode) {
+    if (exitCode == ExitCode.CANCEL) {
+      hide();
+      this.exitCode = exitCode;
+      return;
+    }
+
     String name = txtName.getText();
     if (name == null || name == "" || name.replaceAll("\\s+", "").equals("")) {
       MZmineCore.getDesktop().displayErrorMessage("Please set a name for the color palette.");
