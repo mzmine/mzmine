@@ -79,6 +79,9 @@ public class ColorPalettePickerDialog extends Stage {
     pnMain = new BorderPane();
     pnWrapParam = new ScrollPane();
     pnButtons = new ButtonBar();
+
+    pnWrapParam.setPadding(new Insets(10.0));
+
     setTitle("Editing of color palette " + palette.getName());
 
     Scene scene = new Scene(pnMain);
@@ -127,14 +130,15 @@ public class ColorPalettePickerDialog extends Stage {
     pnParam.add(new Label("Negative"), 0, 5);
     pnParam.add(colorPickerNegative, 1, 5, 1, 1);
 
-    ColumnConstraints columnConstraints = new ColumnConstraints(USE_COMPUTED_SIZE,
-        USE_COMPUTED_SIZE, USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, true);
-    pnParam.getColumnConstraints()
-        .addAll(columnConstraints, columnConstraints, columnConstraints, columnConstraints,
-            columnConstraints);
+//    ColumnConstraints columnConstraints = new ColumnConstraints(USE_COMPUTED_SIZE,
+//        USE_COMPUTED_SIZE, USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, true);
+//    pnParam.getColumnConstraints()
+//        .addAll(columnConstraints, columnConstraints, columnConstraints, columnConstraints,
+//            columnConstraints);
 
     pnButtons.getButtons().add(btnCancel);
     pnButtons.getButtons().add(btnAccept);
+    pnButtons.setPadding(new Insets(10.0));
 
     // color picker actions
     colorPickerPalette.setOnAction(e -> {
