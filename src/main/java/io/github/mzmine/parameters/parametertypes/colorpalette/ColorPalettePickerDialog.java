@@ -22,7 +22,6 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 
 import io.github.mzmine.main.MZmineCore;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
@@ -35,16 +34,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
 /**
@@ -141,6 +136,7 @@ public class ColorPalettePickerDialog extends Stage {
     pnButtons.getButtons().add(btnCancel);
     pnButtons.getButtons().add(btnAccept);
 
+    // color picker actions
     colorPickerPalette.setOnAction(e -> {
       if (colorPickerPalette.getValue() != null) {
         int selected = pnPalette.getSelected();
@@ -182,10 +178,16 @@ public class ColorPalettePickerDialog extends Stage {
     btnAccept.setOnAction(e -> hideWindow(ExitCode.OK));
     btnCancel.setOnAction(e -> hideWindow(ExitCode.CANCEL));
 
-    pnMain.setCenter(pnParam);
+    // add panels together
+    pnWrapParam.setContent(pnParam);
+    pnMain.setCenter(pnWrapParam);
     pnParam.getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 5.0)));
     pnMain.setBottom(pnButtons);
 
+    // size is computed when shown, so show here and set minimum size to the computed one
+    show();
+    this.setMinHeight(getHeight());
+    this.setMinWidth(getWidth());
   }
 
   private void btnAddColorAction() {
@@ -197,14 +199,21 @@ public class ColorPalettePickerDialog extends Stage {
   }
 
   private void btnRemoveColorAction() {
-    palette.remove(pnPalette.getSelected());
-//    pnPalette.updatePreview();
+    if (palette.size() > 0) {
+      palette.remove(pnPalette.getSelected());
+    }
   }
 
   private void hideWindow(ExitCode exitCode) {
     if (exitCode == ExitCode.CANCEL) {
       hide();
       this.exitCode = exitCode;
+      return;
+    }
+
+    if (!palette.isValid()) {
+      MZmineCore.getDesktop().displayErrorMessage("Current color palette is not valid.\n"
+          + "Does it contain enough colors? The minimum amount of colors is 3.");
       return;
     }
 

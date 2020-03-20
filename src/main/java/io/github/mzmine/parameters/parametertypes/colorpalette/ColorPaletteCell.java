@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Pos;
@@ -50,6 +51,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   private final static int MAX_PREVIEW_COLORS = 15;
   private static final Color BORDER_CLR = Color.DARKGRAY;
   private static final Color TEXT_CLR = Color.BLACK;
+  private static final Color STROKE_CLR = Color.BLACK;
+  private static final double STROKE_WIDTH = 0.5;
 
   private static final Logger logger = Logger.getLogger(ColorPaletteCell.class.getName());
 
@@ -74,12 +77,12 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     clrPane.setMaxHeight(h);
     clrPane.setMaxWidth(MAX_PREVIEW_COLORS * h);
     clrPane.setPrefHeight(h);
-    clrPane.setPrefWidth(MAX_PREVIEW_COLORS * h);
+//    clrPane.setPrefWidth(MAX_PREVIEW_COLORS * h);
 
     rects = new ArrayList<Rectangle>();
-    positiveRect = new Rectangle(height, height);
-    negativeRect = new Rectangle(height, height);
-    neutralRect = new Rectangle(height, height);
+    positiveRect = makeRect(Color.TRANSPARENT);
+    negativeRect = makeRect(Color.TRANSPARENT);
+    neutralRect = makeRect(Color.TRANSPARENT);
     lblName = new Label();
     lblName.setTextFill(TEXT_CLR);
 
@@ -124,8 +127,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
     for (int i = 0; i < palette.size(); i++) {
       Color clr = palette.get(i);
-      Rectangle rect = new Rectangle(height, height);
-      rect.setFill(clr);
+      Rectangle rect = makeRect(clr);
       rects.add(rect);
     }
 
@@ -147,5 +149,13 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
       clrPane.getChildren().addAll(rects);
       setGraphic(pane);
     }
+  }
+
+  protected Rectangle makeRect(@Nonnull Color clr) {
+    Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
+    rect.setFill(clr);
+    rect.setStroke(STROKE_CLR);
+    rect.setStrokeWidth(STROKE_WIDTH);
+    return rect;
   }
 };

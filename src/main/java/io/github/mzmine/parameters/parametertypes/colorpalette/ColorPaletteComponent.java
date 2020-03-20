@@ -82,6 +82,7 @@ public class ColorPaletteComponent extends GridPane {
       if (addPalette(newPal)) {
         box.setValue(newPal);
       }
+
     });
 
     btnEditPalette = new Button("Edit");
@@ -193,8 +194,7 @@ public class ColorPaletteComponent extends GridPane {
    */
   public boolean addPalette(SimpleColorPalette pal) {
     if (box.getItems().contains(pal)) {
-      logger.fine("Cannot add duplicates. A palette with the name " + pal.getName()
-          + " and same colors already exists.");
+      logger.fine("Cannot add duplicates. A palette with same name and colors already exists.");
       return false;
     }
 

@@ -56,9 +56,6 @@ public class ColorPalettePreviewField extends FlowPane {
     rects = new ArrayList<Rectangle>();
     setPalette(palette);
 
-    palette.addListener((ListChangeListener<? super Color>) c -> {
-      this.setPrefWidth(palette.size() * RECT_HEIGHT);
-    });
     setMinWidth(RECT_HEIGHT * 10);
     setMaxWidth(RECT_HEIGHT * 20);
     setPrefWidth(palette.size() * RECT_HEIGHT);
@@ -66,7 +63,15 @@ public class ColorPalettePreviewField extends FlowPane {
     validDrag = false;
 
     listeners = new ArrayList<>();
-    palette.addListener((ListChangeListener<Color>) c -> updatePreview());
+    palette.addListener((ListChangeListener<Color>) c -> {
+      while (c.next()) {
+        this.setPrefWidth(palette.size() * RECT_HEIGHT);
+        if (c.wasRemoved() && selected >= palette.size()) {
+          selected = palette.size() - 1;
+        }
+      }
+      updatePreview();
+    });
   }
 
   private void setRectangles() {
