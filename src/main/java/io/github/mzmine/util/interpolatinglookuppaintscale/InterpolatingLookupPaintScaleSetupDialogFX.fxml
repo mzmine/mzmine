@@ -26,8 +26,8 @@
                      <content>
                         <TableView fx:id="tableLookupValues" prefHeight="208.0" prefWidth="450.0">
                             <columns>
-                                <TableColumn fx:id="Value" minWidth="200" prefWidth="224.00006103515625" text="Value" />
-                                <TableColumn fx:id="Color" minWidth="100" prefWidth="225.5999755859375" text="Color" />
+                                <TableColumn fx:id="valueColumn" minWidth="200" prefWidth="224.00006103515625" text="Value" />
+                                <TableColumn fx:id="colorColumn" minWidth="100" prefWidth="225.5999755859375" text="Color" />
                             </columns>
                         </TableView>
                      </content></ScrollPane>

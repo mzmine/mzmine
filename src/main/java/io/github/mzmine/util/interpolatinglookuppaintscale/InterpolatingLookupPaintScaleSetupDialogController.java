@@ -83,18 +83,18 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     private TableView<InterpolatingLookupPaintScaleRow> tableLookupValues;
 
     @FXML
-    private TableColumn<InterpolatingLookupPaintScaleRow, Double> Value;
+    private TableColumn<InterpolatingLookupPaintScaleRow, Double> valueColumn;
 
     @FXML
-    private TableColumn<InterpolatingLookupPaintScaleRow, Color> Color;
+    private TableColumn<InterpolatingLookupPaintScaleRow, Color> colorColumn;
 
     @FXML
     private void initialize() {
 
-        Value.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getKey()));
-        Color.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
+        valueColumn.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getKey()));
+        colorColumn.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
 
-        Color.setCellFactory(e -> new TableCell<InterpolatingLookupPaintScaleRow, Color>() {
+        colorColumn.setCellFactory(e -> new TableCell<InterpolatingLookupPaintScaleRow, Color>() {
             @Override
             public void updateItem(Color item, boolean empty) {
 
@@ -119,13 +119,13 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
 
     }
 
-    private static TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
+    private  TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private static ExitCode exitCode = ExitCode.CANCEL;
+    private  ExitCode exitCode = ExitCode.CANCEL;
     private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
 
 
-    private static ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
+    private ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
 
     public void addObservableList(TreeMap<Double, Color> lookupTable, ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList){
 
