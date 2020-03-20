@@ -35,12 +35,12 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
 
     private InterpolatingLookupPaintScaleSetupDialogController controller;
 
-    private static ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
-    private static final TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
+    private final ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
+    private final TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
 
 
 
-    public InterpolatingLookupPaintScaleSetupDialogFX(Object parent,InterpolatingLookupPaintScale paintScale){
+    public InterpolatingLookupPaintScaleSetupDialogFX(InterpolatingLookupPaintScale paintScale){
 
         try{
 
@@ -56,7 +56,7 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
             e.printStackTrace();
         }
 
-        ObservableTableList.clear();
+        observableTableList.clear();
         lookupTable.clear();
 
         Double[] lookupValues = paintScale.getLookupValues();
@@ -68,9 +68,9 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
 
         for (Double value : lookupTable.keySet()) {
             InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
-            ObservableTableList.add(ir);
+            observableTableList.add(ir);
         }
-        controller.addObservableList(lookupTable,ObservableTableList);
+        controller.getObservableList(lookupTable,observableTableList);
 
     }
 

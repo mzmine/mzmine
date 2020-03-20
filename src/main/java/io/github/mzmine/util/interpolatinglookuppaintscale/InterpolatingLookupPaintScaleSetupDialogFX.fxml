@@ -22,15 +22,12 @@
             </AnchorPane>
             <AnchorPane fx:id="panelList" layoutX="55.0" layoutY="95.0" prefHeight="139.0" prefWidth="425.0">
                <children>
-                  <ScrollPane fx:id="scrollpaneLookupValues" prefHeight="214.0" prefWidth="459.0">
-                     <content>
-                        <TableView fx:id="tableLookupValues" prefHeight="208.0" prefWidth="450.0">
-                            <columns>
-                                <TableColumn fx:id="valueColumn" minWidth="200" prefWidth="224.00006103515625" text="Value" />
-                                <TableColumn fx:id="colorColumn" minWidth="100" prefWidth="225.5999755859375" text="Color" />
-                            </columns>
-                        </TableView>
-                     </content></ScrollPane>
+                   <TableView fx:id="tableLookupValues" prefHeight="208.0" prefWidth="450.0">
+                       <columns>
+                           <TableColumn fx:id="valueColumn" minWidth="200" prefWidth="224.00006103515625" text="Value" />
+                           <TableColumn fx:id="colorColumn" minWidth="100" prefWidth="225.5999755859375" text="Color" />
+                       </columns>
+                   </TableView>
                </children>
             </AnchorPane>
               <AnchorPane fx:id="panelValueAndColor" layoutX="34.0" layoutY="14.0" prefHeight="73.0" prefWidth="520.0">

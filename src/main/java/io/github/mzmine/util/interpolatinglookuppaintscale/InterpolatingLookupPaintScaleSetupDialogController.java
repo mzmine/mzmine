@@ -77,9 +77,6 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     private Button buttonCancel;
 
     @FXML
-    private ScrollPane scrollpaneLookupValues;
-
-    @FXML
     private TableView<InterpolatingLookupPaintScaleRow> tableLookupValues;
 
     @FXML
@@ -125,13 +122,13 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
 
 
-    private ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList = FXCollections.observableArrayList();
+    private ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
 
-    public void addObservableList(TreeMap<Double, Color> lookupTable, ObservableList<InterpolatingLookupPaintScaleRow> ObservableTableList){
+    public void getObservableList(TreeMap<Double, Color> lookupTable, ObservableList<InterpolatingLookupPaintScaleRow> observableTableList){
 
         this.lookupTable = lookupTable;
-        this.ObservableTableList = ObservableTableList;
-        tableLookupValues.setItems(ObservableTableList);
+        this.observableTableList = observableTableList;
+        tableLookupValues.setItems(observableTableList);
     }
 
     public void actionPerformed(ActionEvent event) {
@@ -161,7 +158,7 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
         if (src == buttonDelete) {
             InterpolatingLookupPaintScaleRow selected = tableLookupValues.getSelectionModel().getSelectedItem();
             if (selected != null) {
-                ObservableTableList.remove(selected);
+                observableTableList.remove(selected);
                 lookupTable.remove(selected.getKey());
 
             }
@@ -193,10 +190,10 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     }
 
     private void updateOBList(TreeMap<Double, Color> lookupTable){
-        ObservableTableList.clear();
+        observableTableList.clear();
         for (Double value : lookupTable.keySet()) {
             InterpolatingLookupPaintScaleRow ir = new InterpolatingLookupPaintScaleRow(value, lookupTable.get(value));
-            ObservableTableList.add(ir);
+            observableTableList.add(ir);
         }
     }
 

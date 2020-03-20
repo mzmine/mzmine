@@ -88,7 +88,7 @@ public class RTMZAnalyzerWindow extends Stage {
           @Override
           public void run() {
             InterpolatingLookupPaintScaleSetupDialogFX colorDialog =
-                    new InterpolatingLookupPaintScaleSetupDialogFX(null, plot.getPaintScale());
+                    new InterpolatingLookupPaintScaleSetupDialogFX(plot.getPaintScale());
             colorDialog.showAndWait();
 
             if (colorDialog.getExitCode() == ExitCode.OK)
