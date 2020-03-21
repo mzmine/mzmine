@@ -40,23 +40,11 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
 
     public static final int VALUEFIELD_COLUMNS = 4;
 
-    @FXML
-    private AnchorPane main;
-
-    @FXML
-    private AnchorPane panelControlsAndList;
-
-    @FXML
-    private AnchorPane panelValueAndColor;
-
-    @FXML
-    private Label labelValue;
 
     @FXML
     private TextField fieldValue;
 
-    @FXML
-    private Button buttonColor;
+
 
     @FXML
     private ColorPicker colorPicker;
@@ -66,9 +54,6 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
 
     @FXML
     private Button buttonDelete;
-
-    @FXML
-    private AnchorPane panelOKCancelButton;
 
     @FXML
     private Button buttonOK;
@@ -114,12 +99,21 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
             }
         });
 
+        tableLookupValues.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                InterpolatingLookupPaintScaleRow tempRow  = tableLookupValues.getSelectionModel().getSelectedItem();
+                fieldValue.setText(String.valueOf(tempRow.getKey()));
+                colorPicker.setValue(awtColorToJavaFX(tempRow.getValue()));
+            }
+        });
+
     }
 
     private  TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private  ExitCode exitCode = ExitCode.CANCEL;
     private javafx.scene.paint.Color bColor = javafx.scene.paint.Color.WHITE;
+
 
 
     private final ObservableList<InterpolatingLookupPaintScaleRow> observableTableList = FXCollections.observableArrayList();
@@ -144,6 +138,7 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
         tableLookupValues.setItems(observableTableList);
     }
 
+
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();
 
@@ -153,8 +148,14 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
         }
 
         if (src == buttonAddModify) {
-            if (fieldValue.getText() == null) {
+            String tempString = fieldValue.getText();
+
+            if (tempString == null || tempString.isEmpty()) {
                 MZmineCore.getDesktop().displayMessage("Please enter value first.");
+                return;
+            }
+            if (!isDouble(tempString)) {
+                MZmineCore.getDesktop().displayMessage("Value should be double or integral.");
                 return;
             }
             Double d = Double.parseDouble(fieldValue.getText());
@@ -187,8 +188,18 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
         }
     }
 
+    public boolean isDouble(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 
-
+    private javafx.scene.paint.Color awtColorToJavaFX(Color c) {
+        return javafx.scene.paint.Color.rgb(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha() / 255.0);
+    }
 
     public ExitCode getExitCode() {
         return exitCode;

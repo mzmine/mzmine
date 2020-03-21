@@ -40,6 +40,9 @@ public class InterpolatingLookupPaintScaleSetupDialogFX extends Stage {
             Parent rootPane = root.load();
             Scene scene = new Scene(rootPane);
             setScene(scene);
+            setMinWidth(480);
+            setMinHeight(330);
+
             controller = root.getController();
             controller.addPaintScaleToTableView(paintScale);
 
