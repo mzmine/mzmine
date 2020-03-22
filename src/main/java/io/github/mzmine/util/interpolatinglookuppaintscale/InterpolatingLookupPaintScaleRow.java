@@ -19,7 +19,7 @@
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
 
-import java.awt.*;
+import javafx.scene.paint.Color;
 
 public final class InterpolatingLookupPaintScaleRow {
 
