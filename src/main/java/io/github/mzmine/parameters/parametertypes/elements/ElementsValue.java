@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
+package io.github.mzmine.parameters.parametertypes.elements;
 import org.openscience.cdk.interfaces.IIsotope;
 public final class ElementsValue {
 
