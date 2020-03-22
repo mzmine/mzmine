@@ -143,8 +143,8 @@ public class ColorPaletteParameter
 
   @Override
   public void setValueToComponent(ColorPaletteComponent component, SimpleColorPalette newValue) {
-    component.setValue(newValue);
     component.setPalettes(palettes);
+    component.setValue(newValue);
   }
 
   protected @Nonnull
