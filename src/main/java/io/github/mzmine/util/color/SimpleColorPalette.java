@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
@@ -303,8 +304,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
         delegate.add(Color.web(clr));
       }
     } catch (Exception e) {
-      logger.warning(e.toString());
-      logger.warning("Could not load color palette " + name + ". Setting default colors.");
+      logger.log(Level.WARNING,
+          "Could not load color palette " + name + ". Setting default colors.", e);
       this.addAll(
           ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
     }
@@ -314,9 +315,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       clrNeg = Color.web(neg);
       clrNeu = Color.web(neu);
     } catch (Exception e) {
-      logger.warning(e.toString());
-      logger.warning(
-          "Could not load positve/negative colors of " + name + ". Setting default colors.");
+      logger.log(Level.WARNING,
+          "Could not load positve/negative colors of " + name + ". Setting default colors.", e);
       clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
       clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
       clrNeu = ColorsFX.getNeutralColor();

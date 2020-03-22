@@ -109,12 +109,9 @@ public class ColorPalettePreviewField extends FlowPane {
         double y = this.sceneToLocal(exit).getY();
         int rows = (int) ((RECT_HEIGHT * palette.size()) / getWidth() + 1);
 
-        logger.info("rows: " + rows);
-
         x = (x < 0) ? 0 : x;
         y = (y < 0) ? 0 : y;
         y = (y / RECT_HEIGHT <= rows) ? y : rows;
-        logger.info("y: " + y);
 
         int rectsPerRow = (int) (getWidth() / RECT_HEIGHT);
         int row = (int) (y / RECT_HEIGHT);
