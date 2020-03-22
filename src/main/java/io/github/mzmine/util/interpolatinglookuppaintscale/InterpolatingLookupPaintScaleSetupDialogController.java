@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -32,13 +33,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
+
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+
 import javafx.scene.control.TextField;
-import javafx.scene.layout.*;
+import javafx.util.converter.DoubleStringConverter;
 
 public class InterpolatingLookupPaintScaleSetupDialogController{
 
@@ -54,7 +54,7 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     private ColorPicker colorPicker;
 
     @FXML
-    private Button buttonAddModify;
+    private Button buttonAdd;
 
     @FXML
     private Button buttonDelete;
@@ -77,18 +77,24 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
     @FXML
     private void initialize() {
 
+        tableLookupValues.setEditable(true);
         valueColumn.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getKey()));
+        valueColumn.setCellFactory(TextFieldTableCell.forTableColumn(new DoubleStringConverter()));
+        valueColumn.setOnEditCommit(event -> {
+            Double newKey = event.getNewValue();
+            Double oldKey = event.getOldValue();
+            lookupTable.put(newKey,lookupTable.get(oldKey));
+            lookupTable.remove(oldKey);
+            updateOBList(lookupTable);
+        });
+
         colorColumn.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
-
         colorColumn.setCellFactory(column -> new ColorTableCell<InterpolatingLookupPaintScaleRow>(column));
-
-        tableLookupValues.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                InterpolatingLookupPaintScaleRow tempRow  = tableLookupValues.getSelectionModel().getSelectedItem();
-                fieldValue.setText(String.valueOf(tempRow.getKey()));
-                colorPicker.setValue(tempRow.getValue());
-                refreshColorValue();
-            }
+        colorColumn.setOnEditCommit(event -> {
+            Color newColor = event.getNewValue();
+            Double key =  event.getRowValue().getKey();
+            lookupTable.put(key,newColor);
+            updateOBList(lookupTable);
         });
 
     }
@@ -132,7 +138,7 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
             bColor = color;
         }
 
-        if (src == buttonAddModify) {
+        if (src == buttonAdd) {
             String tempString = fieldValue.getText();
 
             if (tempString == null || tempString.isEmpty()) {
@@ -214,7 +220,7 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
                         "[\\x00-\\x20]*");// Optional trailing "whitespace"
 
         if (Pattern.matches(fpRegex, str)){
-            Double.valueOf(str); // Will not throw NumberFormatException
+            Double.valueOf(str);
             return true;
         } else {
           return false;
@@ -227,6 +233,10 @@ public class InterpolatingLookupPaintScaleSetupDialogController{
 
     public InterpolatingLookupPaintScale getPaintScale() {
         InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+        lookupTable.clear();
+        for(InterpolatingLookupPaintScaleRow iR : observableTableList){
+            lookupTable.put(iR.getKey(),iR.getValue());
+        }
         for (Double value : lookupTable.keySet()) {
             Color fxColor = lookupTable.get(value);
             java.awt.Color awtColor = FxColorUtil.fxColorToAWT(fxColor);

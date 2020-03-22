@@ -10,10 +10,10 @@
             <children>
                 <Label fx:id="labelValue" layoutX="35.0" layoutY="24.0" text="Value: " />
                 <TextField fx:id="fieldValue" layoutX="78.0" layoutY="20.0" prefHeight="18.0" prefWidth="91.0" />
-                <Button fx:id="buttonAddModify" layoutX="312.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Add/Modify" />
-                <Button fx:id="buttonDelete" layoutX="409.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Delete" />
-                <ColorPicker fx:id="colorPicker" layoutX="183.0" layoutY="19.0" onAction="#actionPerformed" prefHeight="26.0" prefWidth="113.0" promptText="Select Color" />
-                <Label layoutX="205.0" layoutY="5.0" prefHeight="18.0" prefWidth="91.0" text="Select Color" />
+                <Button fx:id="buttonAdd" layoutX="331.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Add" />
+                <Button fx:id="buttonDelete" layoutX="393.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Delete" />
+                <ColorPicker fx:id="colorPicker" layoutX="194.0" layoutY="18.0" onAction="#actionPerformed" prefHeight="26.0" prefWidth="113.0" promptText="Select Color" />
+                <Label layoutX="216.0" layoutY="5.0" prefHeight="18.0" prefWidth="91.0" text="Select Color" />
             </children>
         </AnchorPane>
     </top>
@@ -21,10 +21,13 @@
     <center>
         <AnchorPane fx:id="panelList" layoutX="55.0" layoutY="95.0" prefHeight="218.0" prefWidth="423.0">
                <children>
-                   <TableView fx:id="tableLookupValues" layoutX="14.0" prefHeight="198.0" prefWidth="448.0">
+                   <TableView fx:id="tableLookupValues" layoutX="14.0" minHeight="200" prefHeight="200.0" prefWidth="448.0">
+                       <columnResizePolicy>
+                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                       </columnResizePolicy>
                        <columns>
-                           <TableColumn fx:id="valueColumn" minWidth="200" prefWidth="224.00006103515625" text="Value" />
-                           <TableColumn fx:id="colorColumn" minWidth="93.60003662109375" prefWidth="220.79998779296875" text="Color" />
+                           <TableColumn fx:id="valueColumn" minWidth="200" text="Value" />
+                           <TableColumn fx:id="colorColumn" minWidth="200" text="Color" />
                        </columns>
                    </TableView>
                </children>
