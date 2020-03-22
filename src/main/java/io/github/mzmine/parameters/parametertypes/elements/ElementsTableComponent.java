@@ -86,12 +86,9 @@ public class ElementsTableComponent extends FlowPane {
           PeriodicTableDialog dialog = new PeriodicTableDialog();
           dialog.show();
           IIsotope chosenIsotope = dialog.getSelectedIsotope();
-          ///wdtc
-          System.out.println(chosenIsotope);
           if (chosenIsotope == null) return;
           ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
             elementsValues.add(elementsValue);
-          System.out.println(elementsValues.size());
         });
 
     // Remove event
@@ -124,7 +121,6 @@ public class ElementsTableComponent extends FlowPane {
       ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount));
      if(!checkDuplicate.contains(elementsValue.getIsotope().getSymbol())){
        elementsValues.add(elementsValue);
-       System.out.println(elementsValue.getIsotope().getSymbol());
        checkDuplicate.add(elementsValue.chosenIsotope.getSymbol());
      }
     }
