@@ -18,6 +18,8 @@
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import io.github.mzmine.util.javafx.DraggableRectangle;
+import io.github.mzmine.util.javafx.DraggableRectangleContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -33,7 +35,7 @@ import javafx.scene.shape.Rectangle;
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
-public class ColorPalettePreviewField extends FlowPane {
+public class ColorPalettePreviewField extends FlowPane implements DraggableRectangleContainer {
 
   private static final Logger logger = Logger.getLogger(ColorPalettePreviewField.class.getName());
 
@@ -81,18 +83,18 @@ public class ColorPalettePreviewField extends FlowPane {
 
     for (int i = 0; i < palette.size(); i++) {
       Color clr = palette.get(i);
-      Rectangle rect = new Rectangle(RECT_HEIGHT - STROKE_WIDTH / 2,
+      Rectangle rect = new DraggableRectangle(RECT_HEIGHT - STROKE_WIDTH / 2,
           RECT_HEIGHT - STROKE_WIDTH / 2);
       rect.setFill(clr);
       rect.setStroke(Color.BLACK);
       rect.setStrokeWidth(STROKE_WIDTH);
 
       rect.setOnMousePressed(e -> {
-        rect.setOpacity(rect.getOpacity() / 2);
+//        rect.setOpacity(rect.getOpacity() / 2);
         setSelected(rect);
       });
 
-      rect.setOnMouseDragged(e -> {
+      /*rect.setOnMouseDragged(e -> {
         validDrag = true;
       });
 
@@ -119,10 +121,9 @@ public class ColorPalettePreviewField extends FlowPane {
         int newIndex = (int) (row * rectsPerRow + x / RECT_HEIGHT + .5);
 
         // we just have to move the color, the listener will update the preview
-        palette.moveColor(getSelected(), newIndex);
-        setSelected(newIndex);
+        moveRectangle(getSelected(), newIndex);
         validDrag = false;
-      });
+      });*/
 
       rects.add(rect);
     }
@@ -171,5 +172,11 @@ public class ColorPalettePreviewField extends FlowPane {
 
   public boolean removeListener(SelectionChangeListener listener) {
     return listeners.remove(listener);
+  }
+
+  @Override
+  public void moveRectangle(int oldIndex, int newIndex) {
+    palette.moveColor(oldIndex, newIndex);
+    setSelected(newIndex);
   }
 }
