@@ -17,6 +17,7 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -26,6 +27,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -42,15 +44,70 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>nameCol;
     @FXML
-    private TableColumn<SiriusCompound, Double>formulaCol;
+    private TableColumn<SiriusCompound, String>formulaCol;
     @FXML
-    private TableColumn<SiriusCompound, Double>dbsCol;
+    private TableColumn<SiriusCompound, String[]>dbsCol;
     @FXML
-    private TableColumn<SiriusCompound, Double>siriusScoreCol;
+    private TableColumn<SiriusCompound, String>siriusScoreCol;
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, String>chemicalStructureCol;
+    private TableColumn<SiriusCompound, IAtomContainer>chemicalStructureCol;
+    @FXML
+    private void initialize(){
+        formulaCol.setCellValueFactory(cell-> {
+            String formula = cell.getValue().getStringFormula();
+            String cellVal = "";
+            if(cell.getValue().getStringFormula()!=null)
+            {
+                cellVal = formula;
+            }
+
+            return new ReadOnlyObjectWrapper<>(cellVal);
+        });
+
+        nameCol.setCellValueFactory(cell->{
+            String name = cell.getValue().getName();
+            String cellVal = "";
+            if(cell.getValue().getName()!=null)
+            {
+                cellVal = name;
+            }
+            return new ReadOnlyObjectWrapper<>(cellVal);
+        });
+        dbsCol.setCellValueFactory(cell->{
+            String dbs[] = cell.getValue().getDBS();
+            return new ReadOnlyObjectWrapper<>(dbs);
+        });
+        siriusScoreCol.setCellValueFactory(cell->{
+            String sirius = cell.getValue().getSiriusScore();
+            String cellVal = "";
+            if(cell.getValue().getSiriusScore()!=null)
+            {
+                cellVal = sirius;
+            }
+            return new ReadOnlyObjectWrapper<>(cellVal);
+        });
+        fingerldScoreCol.setCellValueFactory(cell->{
+            String sirius = cell.getValue().getFingerIdScore();
+            String cellVal = "";
+            if(cell.getValue().getSiriusScore()!=null)
+            {
+                cellVal = sirius;
+            }
+            return new ReadOnlyObjectWrapper<>(cellVal);
+        });
+        chemicalStructureCol.setCellValueFactory(cell->{
+            IAtomContainer atomContainer = cell.getValue().getContainer();
+            if(cell.getValue().getContainer()!=null)
+            {
+                return new ReadOnlyObjectWrapper<>();
+            }
+            return new ReadOnlyObjectWrapper<>(atomContainer);
+        });
+
+
+    }
 
     public void initValues(PeakListRow peakListRow, Task searchTask)
     {

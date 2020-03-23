@@ -4,22 +4,22 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_sirius.ResultWindowController">
     <top>
         <Label text="List of  possible identities" />
     </top>
    <center>
-      <TableView BorderPane.alignment="CENTER">
+      <TableView fx:id="compoundsTable" BorderPane.alignment="CENTER">
           <placeholder>
 
           </placeholder>
         <columns>
-            <TableColumn minWidth="100" text="Name" />
-            <TableColumn minWidth="100" text="Formula" />
-            <TableColumn minWidth="100" text="DBs" />
-            <TableColumn minWidth="100" text="Sirius score" />
-            <TableColumn minWidth="200" text="Fingerld score" />
-            <TableColumn minWidth="200" text="Chemical Structure" />
+            <TableColumn fx:id="nameCol" minWidth="100" text="Name" />
+            <TableColumn fx:id="formulaCol" minWidth="100" text="Formula" />
+            <TableColumn fx:id="dbsCol" minWidth="100" text="DBs" />
+            <TableColumn fx:id="siriusScoreCol" minWidth="100" text="Sirius score" />
+            <TableColumn fx:id="fingerldScoreCol" minWidth="200" text="Fingerld score" />
+            <TableColumn fx:id="chemicalStructureCol" minWidth="200" text="Chemical Structure" />
         </columns>
          <opaqueInsets>
             <Insets />
