@@ -256,7 +256,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param msg of the error window
    */
   private void showError(ResultWindowFX window, String msg) {
-    window.dispose();
+//    window.dispose();
     setErrorMessage(msg);
     this.setStatus(TaskStatus.ERROR);
   }
