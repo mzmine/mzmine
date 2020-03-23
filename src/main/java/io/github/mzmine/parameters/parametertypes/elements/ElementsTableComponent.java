@@ -114,6 +114,7 @@ public class ElementsTableComponent extends FlowPane {
 
     if (elements == null)
       return;
+    elementsValues.clear();
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
