@@ -76,7 +76,6 @@ public class ElementsParameter
   @Override
   public ElementsTableComponent createEditingComponent() {
     ElementsTableComponent editor = new ElementsTableComponent();
-    editor.setElements(value);
     return editor;
   }
 

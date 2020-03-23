@@ -40,7 +40,6 @@ public class ElementsTableComponent extends FlowPane {
 
   private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
   private final TableView<ElementsValue> elementsValueTable = new TableView();
-  private final Set<String>checkDuplicate = new HashSet<>();
 
 
   public ElementsTableComponent() {
@@ -119,10 +118,8 @@ public class ElementsTableComponent extends FlowPane {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
       ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount));
-     if(!checkDuplicate.contains(elementsValue.getIsotope().getSymbol())){
        elementsValues.add(elementsValue);
-       checkDuplicate.add(elementsValue.chosenIsotope.getSymbol());
-     }
+
     }
 
   }
