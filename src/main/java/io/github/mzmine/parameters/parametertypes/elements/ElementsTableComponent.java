@@ -21,6 +21,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -32,10 +33,14 @@ import io.github.mzmine.util.dialogs.PeriodicTableDialog;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ElementsTableComponent extends FlowPane {
 
   private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
   private final TableView<ElementsValue> elementsValueTable = new TableView();
+
 
   public ElementsTableComponent() {
 
@@ -64,30 +69,32 @@ public class ElementsTableComponent extends FlowPane {
       return new ReadOnlyObjectWrapper<>(max);
     });
 
-
     minCol.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getMin()));
 
     minCol.setOnEditCommit(event -> event.getTableView().getItems().get(event.getTablePosition().
             getRow()).setMin(event.getNewValue()));
+
 
     elementsValueTable.setItems(elementsValues);
 
     final Button addButton = new Button("Add");
     final Button removeButton = new Button("Remove");
     // Add event
-    addButton.setOnAction(t -> {
-      PeriodicTableDialog dialog = new PeriodicTableDialog();
-      dialog.show();
-      IIsotope chosenIsotope = dialog.getSelectedIsotope();
-      if (chosenIsotope == null)
-        return;
-      elementsValues.add(new ElementsValue(chosenIsotope, "100", "0"));
-    });
+    addButton.setOnAction(
+        t -> {
+          PeriodicTableDialog dialog = new PeriodicTableDialog();
+          dialog.show();
+          IIsotope chosenIsotope = dialog.getSelectedIsotope();
+          if (chosenIsotope == null) return;
+          ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
+            elementsValues.add(elementsValue);
+        });
 
     // Remove event
     removeButton.setOnAction(t -> {
       ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
-      elementsValues.remove(element);
+        elementsValues.remove(element);
+
     });
 
     this.setPadding(new Insets(5, 0, 0, 5));
@@ -107,14 +114,15 @@ public class ElementsTableComponent extends FlowPane {
 
     if (elements == null)
       return;
-
+    elementsValues.clear();
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      String s = isotope.getSymbol();
-      elementsValues.add(new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount)));
+      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount), String.valueOf(minCount));
+       elementsValues.add(elementsValue);
 
     }
+
   }
 
   public MolecularFormulaRange getElements() {
