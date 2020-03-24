@@ -2,7 +2,6 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.modules.dataprocessing.id_sirius.ResultWindowController;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;

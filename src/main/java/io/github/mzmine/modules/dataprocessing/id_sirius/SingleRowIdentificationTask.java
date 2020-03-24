@@ -27,6 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -149,15 +150,19 @@ public class SingleRowIdentificationTask extends AbstractTask {
    */
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-
-    NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
     Platform.runLater(()->{
-
+      System.out.println("1.");
       resultWindowFX = new ResultWindowFX(peakListRow, this);
+      if(resultWindowFX == null)
+      {
+        System.out.println("Result Window is null at plateform..");
+      }
       resultWindowFX.setTitle(
               "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
+
       resultWindowFX.show();
     });
+
     List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
     try {
@@ -200,13 +205,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
       });
       siriusResults = f.get(timer, TimeUnit.SECONDS);
       siriusMethod = method;
-    } catch (InterruptedException | TimeoutException ie) {
+    }
+    catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
       showError(resultWindowFX,
           String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
               parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
-    } catch (ExecutionException ce) {
+    }
+    catch (ExecutionException ce) {
       ce.printStackTrace();
       logger.error("Concurrency error during Sirius method: " + ce.getMessage());
       showError(resultWindowFX, String.format("Sirius failed to predict compounds from row with id = %d",
@@ -224,6 +231,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
         /* Create a new FingerIdWebTask for each Sirius result */
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+          if(resultWindowFX == null)
+          {
+            System.out.println("Result Window is null at Finger..");
+          }
           FingerIdWebMethodTask task =
               new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX);
           task.setLatch(latch);
@@ -233,10 +244,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         // Sleep for not overloading boecker-labs servers
         Thread.sleep(1000);
-      } catch (InterruptedException interrupt) {
+      }
+      catch (InterruptedException interrupt) {
         logger.error("Processing of FingerWebMethods were interrupted");
       }
-    } else {
+    }
+    else
+        {
       /* MS/MS spectrum is not present */
       resultWindowFX.addListofItems(siriusMethod.getResult());
     }
