@@ -26,6 +26,11 @@ import java.util.logging.Logger;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
+import javafx.scene.Parent;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -40,7 +45,8 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
   private static final Logger logger = Logger.getLogger(ColorPalettePreviewField.class.getName());
 
   private static final int RECT_HEIGHT = 18;
-  private static final Color STROKE_CLR = Color.WHITE;
+  private static final Color STROKE_CLR_SELECTED = Color.WHITE;
+  private static final Color STROKE_CLR_DEFAULT = Color.BLACK;
   private static final double STROKE_WIDTH = 0.5;
 
   protected final List<Rectangle> rects;
@@ -53,7 +59,8 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
 
   public ColorPalettePreviewField(SimpleColorPalette palette) {
     super();
-    rects = new ArrayList<Rectangle>();
+    rects = new ArrayList<>();
+    listeners = new ArrayList<>();
     setPalette(palette);
 
     setMinWidth(RECT_HEIGHT * 10);
@@ -62,7 +69,6 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
 
     validDrag = false;
 
-    listeners = new ArrayList<>();
     palette.addListener((ListChangeListener<Color>) c -> {
       while (c.next()) {
         this.setPrefWidth(palette.size() * RECT_HEIGHT);
@@ -85,52 +91,16 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
       Color clr = palette.get(i);
       Rectangle rect = new DraggableRectangle(RECT_HEIGHT - STROKE_WIDTH / 2,
           RECT_HEIGHT - STROKE_WIDTH / 2);
+
+      rects.add(rect);
+
       rect.setFill(clr);
-      rect.setStroke(Color.BLACK);
+      rect.setStroke(STROKE_CLR_DEFAULT);
       rect.setStrokeWidth(STROKE_WIDTH);
 
       rect.setOnMousePressed(e -> {
-//        rect.setOpacity(rect.getOpacity() / 2);
         setSelected(rect);
       });
-
-      /*rect.setOnMouseDragged(e -> {
-        validDrag = true;
-      });
-
-      rect.setOnMouseReleased(e -> {
-        rect.setOpacity(rect.getOpacity() * 2);
-
-        if (!validDrag) {
-          return;
-        }
-
-        Point2D exit = new Point2D(e.getSceneX(), e.getSceneY());
-
-        double x = this.sceneToLocal(exit).getX();
-        double y = this.sceneToLocal(exit).getY();
-        int rows = (int) ((RECT_HEIGHT * palette.size()) / getWidth() + 1);
-
-        x = (x < 0) ? 0 : x;
-        y = (y < 0) ? 0 : y;
-        y = (y / RECT_HEIGHT <= rows) ? y : rows;
-
-        int rectsPerRow = (int) (getWidth() / RECT_HEIGHT);
-        int row = (int) (y / RECT_HEIGHT);
-
-        int newIndex = (int) (row * rectsPerRow + x / RECT_HEIGHT + .5);
-
-        // we just have to move the color, the listener will update the preview
-        moveRectangle(getSelected(), newIndex);
-        validDrag = false;
-      });*/
-
-      rects.add(rect);
-    }
-
-    if (selected < rects.size() && selected >= 0) {
-      rects.get(selected).setStroke(STROKE_CLR);
-      rects.get(selected).setStrokeWidth(STROKE_WIDTH);
     }
   }
 
@@ -143,7 +113,8 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
       return;
     }
     this.selected = i;
-    updatePreview();
+    rects.forEach(r -> r.setStroke(STROKE_CLR_DEFAULT));
+    rects.get(i).setStroke(STROKE_CLR_SELECTED);
     listeners.forEach(l -> l.selectionChanged(palette.get(getSelected()), getSelected()));
   }
 
@@ -155,6 +126,7 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
     setRectangles();
     getChildren().clear();
     getChildren().addAll(rects);
+    setSelected(selected);
   }
 
   public SimpleColorPalette getPalette() {
@@ -174,9 +146,19 @@ public class ColorPalettePreviewField extends FlowPane implements DraggableRecta
     return listeners.remove(listener);
   }
 
+  /**
+   * When a rectangle is drag and dropped this method is called by the rectangles, the actual moving
+   * is done here.
+   *
+   * @param oldIndex
+   * @param newIndex
+   */
   @Override
   public void moveRectangle(int oldIndex, int newIndex) {
-    palette.moveColor(oldIndex, newIndex);
-    setSelected(newIndex);
+    newIndex = palette.moveColor(oldIndex, newIndex);
+    if (newIndex != -1) {
+      updatePreview();
+      setSelected(newIndex);
+    }
   }
 }

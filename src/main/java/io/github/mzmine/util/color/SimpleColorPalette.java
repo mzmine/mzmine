@@ -189,28 +189,45 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     this.name = name;
   }
 
-  public void moveColor(Color color, int newIndex) {
-    moveColor(indexOf(color), newIndex);
+  /**
+   * @param color
+   * @param newIndex
+   * @return The new index of the moved color. -1 if called with invalid color.
+   */
+  public int moveColor(Color color, int newIndex) {
+    return moveColor(indexOf(color), newIndex);
   }
 
-  public void moveColor(int oldIndex, int newIndex) {
+  /**
+   * @param oldIndex
+   * @param newIndex
+   * @return The new index of the moved color. -1 if called with invalid index.
+   */
+  public int moveColor(int oldIndex, int newIndex) {
     if (oldIndex < 0 || newIndex < 0 || oldIndex >= size() || newIndex >= size()) {
       logger.info("move called with invalid parameters " + oldIndex + " to " + newIndex);
-      return;
+      return -1;
     }
 
-    List<Color> sublist = new ArrayList<>();
-    delegate.subList(newIndex, delegate.size()).forEach(c -> sublist.add(c));
     Color clr = delegate.get(oldIndex);
 
-    sublist.remove(clr);
-    delegate.remove(clr);
+    // if the color shall be moved to the end, we have to increment by 1, otherwise the last color
+    // will just move one to the right.
+    if (newIndex == size() - 1) {
+      newIndex++;
+    }
 
-    delegate.removeAll(sublist);
-    delegate.add(clr);
-    delegate.addAll(sublist);
+    delegate.add(newIndex, clr);
+
+    if (oldIndex > newIndex) {
+      remove(oldIndex + 1);
+    } else {
+      remove(oldIndex);
+    }
 
     fireChange(new ColorPaletteChangedEvent(this, oldIndex, newIndex));
+
+    return indexOf(clr);
   }
 
   /**

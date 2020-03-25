@@ -18,7 +18,6 @@
 
 package io.github.mzmine.util.javafx;
 
-import java.util.logging.Logger;
 import javafx.scene.Parent;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
@@ -28,16 +27,10 @@ import javafx.scene.shape.Rectangle;
 
 public class DraggableRectangle extends Rectangle {
 
-  private static final Logger logger = Logger.getLogger("test");
-
   public DraggableRectangle(double w, double h) {
     super(w, h);
 
     setOnDragDetected(e -> {
-      logger.info("drag detected");
-//      if(this.getScene() == null)
-//        return;
-
       Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
       ClipboardContent content = new ClipboardContent();
       int index = getParent().getChildrenUnmodifiable().indexOf(this);
@@ -49,15 +42,13 @@ public class DraggableRectangle extends Rectangle {
     });
 
     setOnDragOver(e -> {
-      logger.info("drag over");
-      if (e.getGestureSource() != this && e.getGestureSource() instanceof Rectangle) {
+      if (e.getGestureSource() != this && e.getDragboard().hasString()) {
         e.acceptTransferModes(TransferMode.MOVE);
       }
       e.consume();
     });
 
     setOnDragEntered(e -> {
-      logger.info("drag entered");
       if (e.getGestureSource() != this && e.getDragboard().hasString()) {
         setOpacity(getOpacity() * 0.3d);
       }
@@ -65,15 +56,13 @@ public class DraggableRectangle extends Rectangle {
     });
 
     setOnDragExited(e -> {
-      logger.info("drag exited");
       if (e.getGestureSource() != this && e.getDragboard().hasString()) {
         setOpacity(getOpacity() / 0.3d);
       }
+      e.consume();
     });
 
     setOnDragDropped(e -> {
-      logger.info("drag dropped");
-
       Parent parent = getParent();
       if (parent instanceof DraggableRectangleContainer) {
 
@@ -85,13 +74,10 @@ public class DraggableRectangle extends Rectangle {
         int oldIndex = Integer.valueOf(dragboard.getString());
         int newIndex = parent.getChildrenUnmodifiable().indexOf(this);
 
-        logger.info(
-            "drag dropped - old: " + oldIndex + " new: "
-                + newIndex);
-
         ((DraggableRectangleContainer) parent)
-            .moveRectangle(parent.getChildrenUnmodifiable().indexOf(this), newIndex);
+            .moveRectangle(oldIndex, newIndex);
       }
+      e.consume();
     });
   }
 }
