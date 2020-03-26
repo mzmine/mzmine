@@ -20,7 +20,7 @@ public class ResultWindowFX extends Stage {
     {
         try
         {
-            FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
+            FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindow.fxml"));
             Parent rootPane = root.load();
             Scene scene = new Scene(rootPane);
             setScene(scene);

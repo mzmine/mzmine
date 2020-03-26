@@ -27,19 +27,12 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import javafx.application.Platform;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -148,20 +141,35 @@ public class SingleRowIdentificationTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    Platform.runLater(()->{
-      System.out.println("1.");
-      resultWindowFX = new ResultWindowFX(peakListRow, this);
-      if(resultWindowFX == null)
-      {
-        System.out.println("Result Window is null at plateform..");
-      }
+
+    final FutureTask query = new FutureTask(()-> {
+            resultWindowFX = new ResultWindowFX(peakListRow, this);
       resultWindowFX.setTitle(
               "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
-
       resultWindowFX.show();
+      return resultWindowFX;
+
     });
+    Platform.runLater(query);
+
+    try {
+      query.get();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      System.out.println("fgfg" + query.get());
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
 
     List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
@@ -220,7 +228,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           peakListRow.getID()));
       return;
     }
-
+    System.out.println("Every thing is fine .....");
     /* FingerId processing */
     if (!ms2list.isEmpty()) {
       try {
@@ -233,7 +241,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           if(resultWindowFX == null)
           {
-            System.out.println("Result Window is null at Finger..");
+            System.out.println("Result Window is null at Finger.. 245");
+          }
+          else{
+            System.out.println("ResultWindowFX is not null.");
           }
           FingerIdWebMethodTask task =
               new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX);

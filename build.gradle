@@ -199,7 +199,7 @@ application {
                                  "-XX:InitialRAMPercentage=30", 
                                  "-XX:MinRAMPercentage=80",
                                  "-XX:MaxRAMPercentage=80",
-                                 "-Djava.library.path=tmp",
+                                 "-Djava.library.path=lib",
                                  "-enableassertions",
                                  "-Dapple.awt.application.name=MZmine ${version}" 
                                 ]
