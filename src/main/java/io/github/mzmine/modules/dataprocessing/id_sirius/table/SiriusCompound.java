@@ -28,13 +28,8 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
-import java.util.Set;
-import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.ImageIcon;
@@ -182,8 +177,9 @@ public class SiriusCompound extends SimplePeakIdentity {
 
     Set<String> dbNames = new TreeSet<String>();
 
-    for (DBLink link : dblinks)
+    for (DBLink link : dblinks) {
       dbNames.add(link.name);
+      }
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
@@ -200,7 +196,6 @@ public class SiriusCompound extends SimplePeakIdentity {
     IAtomContainer container = getIonAnnotation().getChemicalStructure();
     if (container == null)
       return null;
-
     return container;
   }
 
@@ -286,4 +281,5 @@ public class SiriusCompound extends SimplePeakIdentity {
   public String getSiriusScore() {
     return getPropertyValue("Sirius score");
   }
+  
 }

@@ -2,16 +2,11 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.net.URL;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.awt.datatransfer.Clipboard;
-
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_sirius.table.ResultTable;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
 import io.github.mzmine.taskcontrol.Task;
@@ -23,14 +18,9 @@ import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
 import org.openscience.cdk.interfaces.IAtomContainer;
-
 import javax.annotation.Nonnull;
-import javax.swing.*;
 
 
 public class ResultWindowController{
@@ -52,7 +42,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, IAtomContainer>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Image>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -67,17 +57,23 @@ public class ResultWindowController{
         });
 
         nameCol.setCellValueFactory(cell->{
-            String name = cell.getValue().getName();
+            String name = cell.getValue().getAnnotationDescription();
             String cellVal = "";
-            if(cell.getValue().getName()!=null)
+            if(cell.getValue().getAnnotationDescription()!=null)
             {
                 cellVal = name;
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
         dbsCol.setCellValueFactory(cell->{
-            String dbs[] = cell.getValue().getDBS();
-            return new ReadOnlyObjectWrapper<>(dbs);
+            String[] dbs = cell.getValue().getDBS();
+
+            if(cell.getValue().getDBS()!=null)
+            {
+                return new ReadOnlyObjectWrapper<>(dbs);
+            }
+            return new ReadOnlyObjectWrapper<>();
+
         });
         siriusScoreCol.setCellValueFactory(cell->{
             String sirius = cell.getValue().getSiriusScore();
@@ -98,15 +94,17 @@ public class ResultWindowController{
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
         chemicalStructureCol.setCellValueFactory(cell->{
-            IAtomContainer atomContainer = cell.getValue().getContainer();
+            Image imge = cell.getValue().generateImage(3,2);
             if(cell.getValue().getContainer()!=null)
             {
-                return new ReadOnlyObjectWrapper<>();
+                return new ReadOnlyObjectWrapper<>(imge);
+
             }
-            return new ReadOnlyObjectWrapper<>(atomContainer);
+            return new ReadOnlyObjectWrapper<>();
+
         });
 
-
+     compoundsTable.setItems(compounds);
     }
 
     public void initValues(PeakListRow peakListRow, Task searchTask)
