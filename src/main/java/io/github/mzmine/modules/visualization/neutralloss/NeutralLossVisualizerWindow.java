@@ -94,6 +94,8 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
     neutralLossPlot = new NeutralLossPlot();
     neutralLossPlot.setAxisTypes(xAxisType);
     neutralLossPlot.addNeutralLossDataSet(dataset);
+    neutralLossPlot.setVisualizer(this);
+    neutralLossPlot.setMenuItems();
     borderPane.setCenter(neutralLossPlot);
 
     // toolBar = new NeutralLossToolBar(this);
@@ -104,8 +106,9 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
     Button highlightPrecursorBtn = new Button(null, new ImageView(PRECURSOR_MASS_ICON));
     highlightPrecursorBtn.setTooltip(new Tooltip("highlight selected precursor mass range"));
     highlightPrecursorBtn.setOnAction(e -> {
-      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, "HIGHLIGHT_PRECURSOR");
-      dialog.setVisible(true);
+        NeutralLossSetHighlightDialog dialog = new NeutralLossSetHighlightDialog(this,
+                neutralLossPlot, "HIGHLIGHT");
+        dialog.show();
     });
 
     WindowsMenu.addWindowsMenu(scene);
@@ -156,8 +159,9 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
     String command = event.getActionCommand();
 
     if (command.equals("HIGHLIGHT")) {
-      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
-      dialog.setVisible(true);
+        NeutralLossSetHighlightDialog dialog = new NeutralLossSetHighlightDialog(this,
+                neutralLossPlot, "HIGHLIGHT");
+        dialog.show();
     }
 
     if (command.equals("SHOW_SPECTRUM")) {

@@ -213,25 +213,6 @@ class NeutralLossPlot extends EChartViewer
     // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
     // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
-    MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
-    emfMenuItem.setOnAction(event -> {
-      /*
-      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, "HIGHLIGHT_PRECURSOR");
-      dialog.setVisible(true);
-       */
-    });
-    popupMenu.getItems().add(epsMenuItem);
-    popupMenu.getItems().add(new SeparatorMenuItem());
-
-    MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
-    emfMenuItem.setOnAction(event -> {
-      /*
-      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, "HIGHLIGHT_NEUTRALLOSS");
-      dialog.setVisible(true);
-       */
-    });
-    popupMenu.getItems().add(epsMenuItem);
-    popupMenu.getItems().add(new SeparatorMenuItem());
 
     /*
     MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
@@ -333,6 +314,30 @@ class NeutralLossPlot extends EChartViewer
     plot.setDataset(dataset);
     defaultRenderer.setDefaultToolTipGenerator(dataset);
     plot.setRenderer(defaultRenderer);
+  }
+
+  public void setVisualizer (NeutralLossVisualizerWindow visualizer) {
+    this.visualizer=visualizer;
+  }
+
+  public void setMenuItems () {
+    final ContextMenu popupMenu = getContextMenu();
+
+    MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
+    highlightPrecursorMenuItem.setOnAction(event -> {
+      NeutralLossSetHighlightDialog dialog = new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
+      dialog.show();
+    });
+    popupMenu.getItems().add(highlightPrecursorMenuItem);
+    popupMenu.getItems().add(new SeparatorMenuItem());
+
+    MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
+    highlightNLMenuItem.setOnAction(event -> {
+      NeutralLossSetHighlightDialog dialog = new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
+      dialog.show();
+    });
+    popupMenu.getItems().add(highlightNLMenuItem);
+    popupMenu.getItems().add(new SeparatorMenuItem());
   }
 
   private void setSeriesColorRenderer(int series, Color color, Shape shape) {
