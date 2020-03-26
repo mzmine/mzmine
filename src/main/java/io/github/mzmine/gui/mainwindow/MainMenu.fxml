@@ -73,6 +73,9 @@
 	<Menu text="Raw data methods">
 		<MenuItem text="Raw data import" onAction="#runModule"
 			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
+		<MenuItem text="Raw data import (folder)" onAction="#runModule"
+			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule" />
+			
 		<Menu text="Raw data export">
 			<MenuItem text="Export raw data file to mzML"
 				onAction="#runModule"
