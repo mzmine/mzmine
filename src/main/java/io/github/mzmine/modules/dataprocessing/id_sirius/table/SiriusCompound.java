@@ -281,5 +281,5 @@ public class SiriusCompound extends SimplePeakIdentity {
   public String getSiriusScore() {
     return getPropertyValue("Sirius score");
   }
-  
+
 }
