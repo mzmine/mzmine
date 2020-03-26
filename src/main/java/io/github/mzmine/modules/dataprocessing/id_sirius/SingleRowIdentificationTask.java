@@ -162,15 +162,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     } catch (ExecutionException e) {
       e.printStackTrace();
     }
-
-    try {
-      System.out.println("fgfg" + query.get());
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-    }
-
+    
     List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
     try {
@@ -228,7 +220,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
           peakListRow.getID()));
       return;
     }
-    System.out.println("Every thing is fine .....");
     /* FingerId processing */
     if (!ms2list.isEmpty()) {
       try {
@@ -239,13 +230,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
         /* Create a new FingerIdWebTask for each Sirius result */
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          if(resultWindowFX == null)
-          {
-            System.out.println("Result Window is null at Finger.. 245");
-          }
-          else{
-            System.out.println("ResultWindowFX is not null.");
-          }
           FingerIdWebMethodTask task =
               new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX);
           task.setLatch(latch);
