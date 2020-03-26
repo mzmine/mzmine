@@ -32,10 +32,15 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -43,6 +48,8 @@ import javafx.stage.Stage;
  * Neutral loss visualizer using JFreeChart library
  */
 public class NeutralLossVisualizerWindow extends Stage implements ActionListener {
+
+  private static final Image PRECURSOR_MASS_ICON = FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
 
   private static final long serialVersionUID = 1L;
   private ToolBar toolBar;
@@ -82,13 +89,24 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
     setMinWidth(400.0);
     setMinHeight(300.0);
 
-    // neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
+    //neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
     // add(neutralLossPlot, BorderLayout.CENTER);
+    neutralLossPlot = new NeutralLossPlot();
+    neutralLossPlot.setAxisTypes(xAxisType);
+    neutralLossPlot.addNeutralLossDataSet(dataset);
+    borderPane.setCenter(neutralLossPlot);
 
     // toolBar = new NeutralLossToolBar(this);
     // add(toolBar, BorderLayout.EAST);
     toolBar = new ToolBar();
     toolBar.setOrientation(Orientation.VERTICAL);
+
+    Button highlightPrecursorBtn = new Button(null, new ImageView(PRECURSOR_MASS_ICON));
+    highlightPrecursorBtn.setTooltip(new Tooltip("highlight selected precursor mass range"));
+    highlightPrecursorBtn.setOnAction(e -> {
+      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, "HIGHLIGHT_PRECURSOR");
+      dialog.setVisible(true);
+    });
 
     WindowsMenu.addWindowsMenu(scene);
 
