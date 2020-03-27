@@ -497,6 +497,8 @@ public class TICPlot extends EChartViewer {
 //      final Color rendererColor = palette.getAWT(numOfDataSets % palette.size());
 //      renderer.setSeriesPaint(0, rendererColor);
 //      renderer.setSeriesFillPaint(0, rendererColor);
+      renderer.setSeriesPaint(0, plot.getDrawingSupplier().getNextPaint());
+      renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
       addDataSetRenderer(dataSet, renderer);
