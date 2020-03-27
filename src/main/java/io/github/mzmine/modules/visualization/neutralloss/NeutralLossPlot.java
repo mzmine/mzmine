@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
+import java.io.File;
 import java.text.NumberFormat;
 
 import javax.swing.*;
@@ -34,9 +35,12 @@ import javax.swing.event.MouseInputListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
@@ -57,7 +61,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 
-class NeutralLossPlot extends EChartViewer
+class NeutralLossPlot extends EChartViewer implements EventHandler<KeyEvent>// implements ChartMouseListenerFX
 {
 
   private static final long serialVersionUID = 1L;
@@ -156,56 +160,54 @@ class NeutralLossPlot extends EChartViewer
 
     // add items to popup menu
     final ContextMenu popupMenu = getContextMenu();
+    Menu saveAsMenu = new Menu("Save as");
+    popupMenu.getItems().add(saveAsMenu);
     MenuItem emfMenuItem = new MenuItem("EMF...");
     emfMenuItem.setOnAction(event -> {
-      /*
-      TODO:
+      // TODO: get rid of copy/pasted code: make a method that gets eps/emf as argument
+      // TODO: fix: the saving location cannot be changed yet
       FileChooser chooser = new FileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
+      chooser.setTitle("Choose file");
+      chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("EMF Image", "EMF"));
+      File file = chooser.showSaveDialog(visualizer);
+      if (file != null) { // file is null when cancel was pressed
+        String filename = file.getName();
+        if (!filename.toLowerCase().endsWith(".emf"))
+          filename += ".emf";
 
         int width = (int) this.getWidth();
         int height = (int) this.getHeight();
 
         // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
+        SaveImage SI = new SaveImage(getChart(), filename, width, height, FileType.EMF);
         new Thread(SI).start();
       }
-       */
-    });
-    popupMenu.getItems().add(emfMenuItem);
-    popupMenu.getItems().add(new SeparatorMenuItem());
-    MenuItem epsMenuItem = new MenuItem("EPS...");
-    emfMenuItem.setOnAction(event -> {
-      /*
-      TODO:
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+    });
+
+    saveAsMenu.getItems().add(emfMenuItem);
+    MenuItem epsMenuItem = new MenuItem("EPS...");
+    epsMenuItem.setOnAction(event -> {
+
+      FileChooser chooser = new FileChooser();
+      chooser.setTitle("Choose file");
+      chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("EPS Image", "EPS"));
+      File file = chooser.showSaveDialog(visualizer);
+      if (file != null) { // file is null when cancel was pressed
+        String filename = file.getName();
+        if (!filename.toLowerCase().endsWith(".eps"))
+          filename += ".eps";
+
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
+        SaveImage SI = new SaveImage(getChart(), filename, width, height, FileType.EPS);
         new Thread(SI).start();
 
       }
-
-    }
-       */
     });
-    popupMenu.getItems().add(epsMenuItem);
+    saveAsMenu.getItems().add(epsMenuItem);
     popupMenu.getItems().add(new SeparatorMenuItem());
 
     // Add EMF and EPS options to the save as menu
@@ -421,4 +423,8 @@ class NeutralLossPlot extends EChartViewer
     return plot;
   }
 
+  @Override
+  public void handle(KeyEvent keyEvent) {
+
+  }
 }

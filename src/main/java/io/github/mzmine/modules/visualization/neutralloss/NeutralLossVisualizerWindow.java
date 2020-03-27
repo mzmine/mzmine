@@ -111,6 +111,10 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
         dialog.show();
     });
 
+
+    toolBar.getItems().add(highlightPrecursorBtn);
+    borderPane.setRight(toolBar);
+
     WindowsMenu.addWindowsMenu(scene);
 
 
