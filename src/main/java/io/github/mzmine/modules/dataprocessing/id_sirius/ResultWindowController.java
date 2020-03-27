@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import java.awt.*;
@@ -19,7 +37,9 @@ import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import org.openscience.cdk.interfaces.IAtomContainer;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import java.awt.Image;
 import javax.annotation.Nonnull;
 
 
@@ -36,7 +56,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>formulaCol;
     @FXML
-    private TableColumn<SiriusCompound, String[]>dbsCol;
+    private TableColumn<SiriusCompound, String>dbsCol;
     @FXML
     private TableColumn<SiriusCompound, String>siriusScoreCol;
     @FXML
@@ -65,15 +85,16 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
-        dbsCol.setCellValueFactory(cell->{
-            String[] dbs = cell.getValue().getDBS();
+    dbsCol.setCellValueFactory(
+        cell -> {
+          String[] dbs = cell.getValue().getDBS();
 
-            if(cell.getValue().getDBS()!=null)
-            {
-                return new ReadOnlyObjectWrapper<>(dbs);
+          if (cell.getValue().getDBS() != null) {
+            for (int i = 0; i < dbs.length; i++) {
+              return new ReadOnlyObjectWrapper<>(dbs[i]);
             }
-            return new ReadOnlyObjectWrapper<>();
-
+          }
+          return new ReadOnlyObjectWrapper<>();
         });
         siriusScoreCol.setCellValueFactory(cell->{
             String sirius = cell.getValue().getSiriusScore();
@@ -93,11 +114,13 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
+
         chemicalStructureCol.setCellValueFactory(cell->{
-            Image imge = cell.getValue().generateImage(3,2);
+            Image image = cell.getValue().generateImage(3,2);
+
             if(cell.getValue().getContainer()!=null)
             {
-                return new ReadOnlyObjectWrapper<>(imge);
+                return new ReadOnlyObjectWrapper<>(image);
 
             }
             return new ReadOnlyObjectWrapper<>();

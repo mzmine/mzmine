@@ -149,6 +149,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
             resultWindowFX = new ResultWindowFX(peakListRow, this);
       resultWindowFX.setTitle(
               "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
+      resultWindowFX.setMinHeight(200);
+      resultWindowFX.setMinWidth(700);
       resultWindowFX.show();
       return resultWindowFX;
 
