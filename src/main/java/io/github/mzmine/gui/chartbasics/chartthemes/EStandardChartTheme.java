@@ -143,7 +143,8 @@ public class EStandardChartTheme extends StandardChartTheme {
     // Cross hair and  axis visibility colors
     applyToCrosshair(chart);
     applyToAxes(chart);
-    applyToTitles(chart);
+
+//    applyToTitles(chart);
 
     // apply bg
     chart.setBackgroundPaint(this.getChartBackgroundPaint());
@@ -209,23 +210,22 @@ public class EStandardChartTheme extends StandardChartTheme {
     fixLegend(chart);
   }
 
-  public void applyToTitles(@Nonnull JFreeChart chart){
-    chart.getSubtitles().forEach(s -> {
-      if(s instanceof TextTitle){
-        ((TextTitle) s).setFont(getLargeFont());
-        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
-        ((TextTitle) s).setVisible(isShowTitle());
-
-        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
-          ((PaintScaleLegend) s)
-              .setBackgroundPaint(this.getChartBackgroundPaint());
-        }
-      }
-    });
-
-    chart.getTitle().setVisible(isShowTitle());
-    chart.getTitle().setFont(getLargeFont());
-  }
+//  public void applyToTitles(@Nonnull JFreeChart chart){
+//    chart.getSubtitles().forEach(s -> {
+//      if(s instanceof TextTitle && s != chart.getTitle()){
+//        ((TextTitle) s).setFont(getRegularFont());
+//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+//        ((TextTitle) s).setVisible(isShowTitle());
+////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+////        subtitle color is set by the chart theme parameters
+//
+//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+//          ((PaintScaleLegend) s)
+//              .setBackgroundPaint(this.getChartBackgroundPaint());
+//        }
+//      }
+//    });
+//  }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
@@ -399,4 +399,5 @@ public class EStandardChartTheme extends StandardChartTheme {
   public void setClrYGrid(Color clrYGrid) {
     this.clrYGrid = clrYGrid;
   }
+
 }

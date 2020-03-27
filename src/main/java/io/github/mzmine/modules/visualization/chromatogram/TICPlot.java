@@ -19,12 +19,12 @@
 package io.github.mzmine.modules.visualization.chromatogram;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import java.awt.BasicStroke;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -32,10 +32,15 @@ import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.Cursor;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -47,18 +52,8 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * TIC plot.
@@ -296,7 +291,7 @@ public class TICPlot extends EChartViewer {
     if (history != null)
       history.clear();
 
-    theme.apply(this.getChart());
+//    theme.apply(this.getChart());
   }
 
   // @Override
@@ -498,7 +493,8 @@ public class TICPlot extends EChartViewer {
           + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-//      final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
+//      SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+//      final Color rendererColor = palette.getAWT(numOfDataSets % palette.size());
 //      renderer.setSeriesPaint(0, rendererColor);
 //      renderer.setSeriesFillPaint(0, rendererColor);
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);

@@ -168,9 +168,9 @@ public class ChartThemeParameters extends SimpleParameterSet {
     String ylabel =
         this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
     FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
-    FontSpecs large = this.getParameter(ChartThemeParameters.titleFont).getValue();
-    FontSpecs medium = this.getParameter(ChartThemeParameters.captionFont).getValue();
-    FontSpecs small = this.getParameter(ChartThemeParameters.labelFont).getValue();
+    FontSpecs titleFont = this.getParameter(ChartThemeParameters.titleFont).getValue();
+    FontSpecs captionFont = this.getParameter(ChartThemeParameters.captionFont).getValue();
+    FontSpecs labelFont = this.getParameter(ChartThemeParameters.labelFont).getValue();
     Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setShowTitle(showTitle);
@@ -179,18 +179,18 @@ public class ChartThemeParameters extends SimpleParameterSet {
     theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
 
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
-    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(large.getFont()));
-    theme.setLargeFont(FxFontUtil.fxFontToAWT(medium.getFont()));
-    theme.setRegularFont(FxFontUtil.fxFontToAWT(small.getFont()));
-    theme.setSmallFont(FxFontUtil.fxFontToAWT(small.getFont()));
+    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(titleFont.getFont()));
+    theme.setLargeFont(FxFontUtil.fxFontToAWT(captionFont.getFont()));
+    theme.setRegularFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
+    theme.setSmallFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
 
     theme.setMasterFontColor(FxColorUtil.fxColorToAWT(master.getColor()));
-    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
-    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
-    theme.setTitlePaint(FxColorUtil.fxColorToAWT(large.getColor()));
-    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
-    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
-    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
+    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setTitlePaint(FxColorUtil.fxColorToAWT(titleFont.getColor()));
+    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
+    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
 
     theme.setShowXAxis(showXAxis);
     theme.setShowYAxis(showYAxis);

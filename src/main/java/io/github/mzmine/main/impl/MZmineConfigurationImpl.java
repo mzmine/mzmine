@@ -358,9 +358,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public EStandardChartTheme getDefaultChartTheme() {
     // update the theme settings first
-    ChartThemeParameters ctp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
+    ChartThemeParameters ctp = this.getDefaultChartThemeParameters();
     ctp.applyToChartTheme(standardChartTheme);
-    SimpleColorPalette scp = MZmineCore.getConfiguration().getDefaultColorPalette();
+    SimpleColorPalette scp = this.getDefaultColorPalette();
     scp.applyToChartTheme(standardChartTheme);
 
     return standardChartTheme;
