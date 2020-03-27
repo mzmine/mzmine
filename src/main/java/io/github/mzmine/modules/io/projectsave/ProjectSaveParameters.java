@@ -19,14 +19,12 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import java.io.File;
-import java.util.concurrent.FutureTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
-import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -64,30 +62,23 @@ public class ProjectSaveParameters extends SimpleParameterSet {
         fileChooser.setInitialDirectory(currentDir);
     }
 
-    final FutureTask<File> task = new FutureTask<>(() -> fileChooser.showSaveDialog(null));
-    Platform.runLater(task);
-
-    try {
-      File selectedFile = task.get();
-      if (selectedFile == null)
-        return ExitCode.CANCEL;
-      if (!selectedFile.getName().endsWith(".mzmine")) {
-        selectedFile = new File(selectedFile.getPath() + ".mzmine");
-      }
-      if (selectedFile.exists()) {
-        Alert alert = new Alert(AlertType.CONFIRMATION,
-            selectedFile.getName() + " already exists, overwrite ?", ButtonType.YES, ButtonType.NO);
-        alert.showAndWait();
-
-        if (alert.getResult() != ButtonType.YES) {
-          return ExitCode.CANCEL;
-        }
-
-      }
-      getParameter(projectFile).setValue(selectedFile);
-    } catch (Exception e) {
-      e.printStackTrace();
+    File selectedFile = fileChooser.showSaveDialog(null);
+    if (selectedFile == null)
+      return ExitCode.CANCEL;
+    if (!selectedFile.getName().endsWith(".mzmine")) {
+      selectedFile = new File(selectedFile.getPath() + ".mzmine");
     }
+    if (selectedFile.exists()) {
+      Alert alert = new Alert(AlertType.CONFIRMATION,
+          selectedFile.getName() + " already exists, overwrite ?", ButtonType.YES, ButtonType.NO);
+      alert.showAndWait();
+
+      if (alert.getResult() != ButtonType.YES) {
+        return ExitCode.CANCEL;
+      }
+
+    }
+    getParameter(projectFile).setValue(selectedFile);
 
     return ExitCode.OK;
 

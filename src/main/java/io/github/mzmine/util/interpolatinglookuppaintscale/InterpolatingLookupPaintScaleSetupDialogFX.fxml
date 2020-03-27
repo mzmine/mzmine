@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="330.0" minWidth="480.0" prefHeight="328.0" prefWidth="475.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogController">
+
+    <top>
+        <AnchorPane fx:id="panelValueAndColor" layoutX="34.0" layoutY="14.0" prefHeight="74.0" prefWidth="499.0">
+            <children>
+                <Label fx:id="labelValue" layoutX="35.0" layoutY="24.0" text="Value: " />
+                <TextField fx:id="fieldValue" layoutX="78.0" layoutY="20.0" prefHeight="18.0" prefWidth="91.0" />
+                <Button fx:id="buttonAdd" layoutX="331.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Add" />
+                <Button fx:id="buttonDelete" layoutX="393.0" layoutY="19.0" mnemonicParsing="false" onAction="#actionPerformed" text="Delete" />
+                <ColorPicker fx:id="colorPicker" layoutX="194.0" layoutY="18.0" onAction="#actionPerformed" prefHeight="26.0" prefWidth="113.0" promptText="Select Color" />
+                <Label layoutX="216.0" layoutY="5.0" prefHeight="18.0" prefWidth="91.0" text="Select Color" />
+            </children>
+        </AnchorPane>
+    </top>
+
+    <center>
+        <AnchorPane fx:id="panelList" layoutX="55.0" layoutY="95.0" prefHeight="218.0" prefWidth="423.0">
+               <children>
+                   <TableView fx:id="tableLookupValues" layoutX="14.0" minHeight="200" prefHeight="200.0" prefWidth="448.0">
+                       <columnResizePolicy>
+                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                       </columnResizePolicy>
+                       <columns>
+                           <TableColumn fx:id="valueColumn" minWidth="200" text="Value" />
+                           <TableColumn fx:id="colorColumn" minWidth="200" text="Color" />
+                       </columns>
+                   </TableView>
+               </children>
+        </AnchorPane>
+    </center>
+
+    <bottom>
+        <ButtonBar layoutX="280.0" layoutY="328.0" style="-fx-padding: 5 5 5 5;">
+            <buttons>
+                <AnchorPane fx:id="panelOKCancelButton" layoutX="255.0" layoutY="311.0" prefHeight="31.0" prefWidth="153.0">
+                    <children>
+                        <Button fx:id="buttonOK" layoutY="4.0" mnemonicParsing="false" onAction="#actionPerformed" prefHeight="26.0" prefWidth="54.0" text="Ok" />
+                        <Button fx:id="buttonCancel" layoutX="73.0" layoutY="4.0" mnemonicParsing="false" onAction="#actionPerformed" prefHeight="26.0" prefWidth="70.0" text="Cancel" />
+                    </children>
+                </AnchorPane>
+            </buttons>
+        </ButtonBar>
+    </bottom>
+
+</BorderPane>
