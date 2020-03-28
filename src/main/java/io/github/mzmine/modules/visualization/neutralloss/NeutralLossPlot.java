@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -36,6 +36,7 @@ import java.io.File;
 import java.text.NumberFormat;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
@@ -69,7 +70,7 @@ class NeutralLossPlot extends EChartViewer {
 
   // crosshair stroke
   private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
+      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3}, 0);
 
   // title font
   private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -95,7 +96,8 @@ class NeutralLossPlot extends EChartViewer {
 
     this.visualizer = visualizer;
 
-    setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE,new CornerRadii(0),new Insets(0))));
+    setBackground(new Background(
+        new BackgroundFill(javafx.scene.paint.Color.WHITE, new CornerRadii(0), new Insets(0))));
     setCursor(Cursor.CROSSHAIR);
 
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -167,32 +169,36 @@ class NeutralLossPlot extends EChartViewer {
 
     // register key handlers
 
-    this.addEventHandler(KeyCode.SPACE, visualizer);
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), visualizer, "SHOW_SPECTRUM");
+    this.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.SPACE) {
+        visualizer.handle(event);
+      }
+    });
+//    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), visualizer, "SHOW_SPECTRUM");
 
     // add items to popup menu
-    Menu popupMenu = getPopupMenu();
-    popupMenu.addSeparator();
+    ContextMenu popupMenu = getContextMenu();
 
     // Add EMF and EPS options to the save as menu
-    MenuItem saveAsMenu = (MenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+//    MenuItem saveAsMenu = popupMenu.getItems().get(3);
+//    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+//    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
     MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
-    highLightPrecursorRange.addActionListener(visualizer);
-    highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
-    popupMenu.add(highLightPrecursorRange);
+    highLightPrecursorRange.setOnAction(visualizer);
+//    highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
+    popupMenu.getItems().add(highLightPrecursorRange);
 
     MenuItem highLightNeutralLossRange = new MenuItem("Highlight neutral loss m/z range...");
-    highLightNeutralLossRange.addActionListener(visualizer);
-    highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
-    popupMenu.add(highLightNeutralLossRange);
+    highLightNeutralLossRange.setOnAction(visualizer);
+//    highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
+    popupMenu.getItems().add(highLightNeutralLossRange);
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
   }
 
 
@@ -205,13 +211,14 @@ class NeutralLossPlot extends EChartViewer {
     if ("SAVE_EMF".equals(command)) {
 
       FileChooser chooser = new FileChooser();
-      chooser.getExtensionFilters().add(new ExtensionFilter("EMF Image","EMF"));
-      File file= chooser.showSaveDialog(null);
+      chooser.getExtensionFilters().add(new ExtensionFilter("EMF Image", "EMF"));
+      File file = chooser.showSaveDialog(null);
 
-      if (file !=null) {
+      if (file != null) {
         String filepath = file.getPath();
-        if (!filepath.toLowerCase().endsWith(".emf"))
+        if (!filepath.toLowerCase().endsWith(".emf")) {
           filepath += ".emf";
+        }
 
         int width = (int) this.getWidth();
         int height = (int) this.getHeight();
@@ -228,12 +235,13 @@ class NeutralLossPlot extends EChartViewer {
       FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters().add(new ExtensionFilter("EPS Image", "EPS"));
 
-      File file= chooser.showSaveDialog(null);
+      File file = chooser.showSaveDialog(null);
 
-      if (file !=null) {
+      if (file != null) {
         String filepath = file.getPath();
-        if (!filepath.toLowerCase().endsWith(".eps"))
+        if (!filepath.toLowerCase().endsWith(".eps")) {
           filepath += ".eps";
+        }
 
         int width = (int) this.getWidth();
         int height = (int) this.getHeight();
@@ -317,8 +325,8 @@ class NeutralLossPlot extends EChartViewer {
 
       if (showSpectrumRequest) {
         showSpectrumRequest = false;
-        visualizer.actionPerformed(
-            new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+//        visualizer.actionPerformed(
+//            new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
       }
     }
 

@@ -26,22 +26,22 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import java.awt.Dialog;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.MenuBar;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 
 
 /**
  * Neutral loss visualizer using JFreeChart library
  */
-public class NeutralLossVisualizerWindow extends BorderPane implements ActionListener {
+public class NeutralLossVisualizerWindow extends BorderPane implements EventHandler<ActionEvent> {
 
 
   private NeutralLossToolBar toolBar;
@@ -56,7 +56,8 @@ public class NeutralLossVisualizerWindow extends BorderPane implements ActionLis
 //    super(dataFile.getName());
 
 //    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(new Background(new BackgroundFill(Color.WHITE,new CornerRadii(0),new Insets(0))));
+    setBackground(
+        new Background(new BackgroundFill(Color.WHITE, new CornerRadii(0), new Insets(0))));
 
     this.dataFile = dataFile;
 
@@ -86,7 +87,6 @@ public class NeutralLossVisualizerWindow extends BorderPane implements ActionLis
 
     setTop(menuBar);
 
-
     // get the window settings parameter
     ParameterSet paramSet =
         MZmineCore.getConfiguration().getModuleParameters(NeutralLossVisualizerModule.class);
@@ -102,8 +102,8 @@ public class NeutralLossVisualizerWindow extends BorderPane implements ActionLis
     title.append(dataFile.getName());
     title.append("]: neutral loss");
 
-    Stage s=(Stage)(this.getScene().getWindow());
-    s.setTitle(title.toString());
+//    Stage s=(Stage)(this.getScene().getWindow());
+//    s.setTitle(title.toString());
 
     NeutralLossDataPoint pos = getCursorPosition();
 
@@ -116,27 +116,6 @@ public class NeutralLossVisualizerWindow extends BorderPane implements ActionLis
 
   }
 
-  /**
-   * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-   */
-  @Override
-  public void actionPerformed(ActionEvent event) {
-
-    String command = event.getActionCommand();
-
-    if (command.equals("HIGHLIGHT")) {
-      Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
-      dialog.setVisible(true);
-    }
-
-    if (command.equals("SHOW_SPECTRUM")) {
-      NeutralLossDataPoint pos = getCursorPosition();
-      if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
-      }
-    }
-
-  }
 
   public NeutralLossDataPoint getCursorPosition() {
     double xValue = neutralLossPlot.getXYPlot().getDomainCrosshairValue();
@@ -152,4 +131,24 @@ public class NeutralLossVisualizerWindow extends BorderPane implements ActionLis
     return neutralLossPlot;
   }
 
+  @Override
+  public void handle(ActionEvent event) {
+//    String command = event.getActionCommand();
+    String command = "";
+    if (command.equals("HIGHLIGHT")) {
+      Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
+      dialog.setVisible(true);
+    }
+
+    if (command.equals("SHOW_SPECTRUM")) {
+      NeutralLossDataPoint pos = getCursorPosition();
+      if (pos != null) {
+        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
+      }
+    }
+  }
+
+  public void handle(KeyEvent event) {
+    System.out.println("keyevent method called");
+  }
 }
