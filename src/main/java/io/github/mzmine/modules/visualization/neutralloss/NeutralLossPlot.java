@@ -24,8 +24,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+
 import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.text.NumberFormat;
@@ -34,19 +33,27 @@ import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.event.ChartProgressListener;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
@@ -60,6 +67,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
+
+import static javafx.scene.input.MouseEvent.*;
 
 class NeutralLossPlot extends EChartViewer implements EventHandler<KeyEvent>// implements ChartMouseListenerFX
 {
@@ -227,7 +236,70 @@ class NeutralLossPlot extends EChartViewer implements EventHandler<KeyEvent>// i
     highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
     popupMenu.getItems().add(highLightNeutralLossRange);
     */
-    // reset zoom history
+    resetZoomHistory();
+    // setMouseZoomable(false);
+
+    this.addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        requestFocus();
+        MouseEvent mouseEvent = event.getTrigger();
+
+        if ((mouseEvent.getClickCount() == 2) && (mouseEvent.getButton() == MouseButton.PRIMARY))  {
+          //showSpectrum();
+          showSpectrumRequest=true;
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+        return;
+      }
+    });
+
+
+    this.setOnKeyTyped(new EventHandler<KeyEvent>() {
+      @Override
+      public void handle(KeyEvent keyEvent) {
+        if(keyEvent.getCharacter().equals(" ")) {
+          showSpectrum();
+          // showSpectrumRequest=true; // this does not work with the ProgressListener
+        };
+      }
+    });
+
+    chart.addProgressListener(new ChartProgressListener() {
+      @Override
+      public void chartProgress(ChartProgressEvent event) {
+        if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+
+          visualizer.updateTitle();
+
+          if (showSpectrumRequest) {
+            showSpectrumRequest = false;
+            showSpectrum();
+            
+          }
+        }
+      }
+    });
+
+  }
+
+  public void showSpectrum () {
+    NeutralLossDataSet dataset = (NeutralLossDataSet) plot.getDataset();
+    double xValue = plot.getDomainCrosshairValue();
+    double yValue = plot.getRangeCrosshairValue();
+    NeutralLossDataPoint pos = dataset.getDataPoint(xValue,yValue);
+    RawDataFile dataFile = visualizer.getDataFile();
+    if (pos != null) {
+       	SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
+    }
+
+    resetZoomHistory();
+  }
+
+  public void resetZoomHistory() {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
@@ -383,6 +455,7 @@ class NeutralLossPlot extends EChartViewer implements EventHandler<KeyEvent>// i
   /**
    * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
    */
+  /*
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)
@@ -393,11 +466,12 @@ class NeutralLossPlot extends EChartViewer implements EventHandler<KeyEvent>// i
 
     // if user double-clicked left button, place a request to open a
     // spectrum
-    if ((event.getButton() == MouseEvent.BUTTON1) && (event.getClickCount() == 2)) {
+    if ((event.getButton() == BUTTON1) && (event.getClickCount() == 2)) {
       showSpectrumRequest = true;
     }
 
   }
+   */
 
   /**
    * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)

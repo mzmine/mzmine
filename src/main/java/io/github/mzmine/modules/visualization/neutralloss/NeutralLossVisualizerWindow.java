@@ -191,4 +191,7 @@ public class NeutralLossVisualizerWindow extends Stage implements ActionListener
     return neutralLossPlot;
   }
 
+  public RawDataFile getDataFile() {
+    return this.dataFile;
+  }
 }
