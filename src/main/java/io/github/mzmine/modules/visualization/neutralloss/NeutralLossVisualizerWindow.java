@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -32,13 +25,25 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javafx.geometry.Insets;
+import javafx.scene.control.MenuBar;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
 
 /**
  * Neutral loss visualizer using JFreeChart library
  */
-public class NeutralLossVisualizerWindow extends JFrame implements ActionListener {
+public class NeutralLossVisualizerWindow extends BorderPane implements ActionListener {
 
-  private static final long serialVersionUID = 1L;
+
   private NeutralLossToolBar toolBar;
   private NeutralLossPlot neutralLossPlot;
 
@@ -48,10 +53,10 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
 
   public NeutralLossVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
 
-    super(dataFile.getName());
+//    super(dataFile.getName());
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
+//    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setBackground(new Background(new BackgroundFill(Color.WHITE,new CornerRadii(0),new Insets(0))));
 
     this.dataFile = dataFile;
 
@@ -67,29 +72,26 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
     dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange, numOfFragments, this);
 
     neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
-    add(neutralLossPlot, BorderLayout.CENTER);
+    setCenter(neutralLossPlot);
 
     toolBar = new NeutralLossToolBar(this);
-    add(toolBar, BorderLayout.EAST);
+    setLeft(toolBar);
 
     MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
     updateTitle();
 
     // Add the Windows menu
-    JMenuBar menuBar = new JMenuBar();
-    // menuBar.add(new WindowsMenu());
-    setJMenuBar(menuBar);
+    MenuBar menuBar = new MenuBar();
 
-    pack();
+    setTop(menuBar);
+
 
     // get the window settings parameter
     ParameterSet paramSet =
         MZmineCore.getConfiguration().getModuleParameters(NeutralLossVisualizerModule.class);
     WindowSettingsParameter settings = paramSet.getParameter(NeutralLossParameters.windowSettings);
 
-    // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
 
   }
 
@@ -100,7 +102,8 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
     title.append(dataFile.getName());
     title.append("]: neutral loss");
 
-    setTitle(title.toString());
+    Stage s=(Stage)(this.getScene().getWindow());
+    s.setTitle(title.toString());
 
     NeutralLossDataPoint pos = getCursorPosition();
 
@@ -122,7 +125,7 @@ public class NeutralLossVisualizerWindow extends JFrame implements ActionListene
     String command = event.getActionCommand();
 
     if (command.equals("HIGHLIGHT")) {
-      JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
+      Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
       dialog.setVisible(true);
     }
 

@@ -18,37 +18,38 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
-import java.awt.Color;
-import java.awt.Insets;
+import javafx.scene.control.ToolBar;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 
-import javax.swing.Icon;
-import javax.swing.JToolBar;
-
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.swing.IconUtil;
 
 /**
  * Neutral loss visualizer's toolbar class
  */
-class NeutralLossToolBar extends JToolBar {
+class NeutralLossToolBar extends ToolBar {
 
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
-  static final Icon dataPointsIcon = IconUtil.loadIconFromResources("icons/datapointsicon.png");
+
+  static final ImageView dataPointsIcon = new ImageView(new Image("icons/datapointsicon.png"));
 
   NeutralLossToolBar(NeutralLossVisualizerWindow masterFrame) {
 
-    super(JToolBar.VERTICAL);
+//    super(ToolBar.VERTICAL);
 
-    setFloatable(false);
-    setFocusable(false);
-    setMargin(new Insets(5, 5, 5, 5));
-    setBackground(Color.white);
+//    setFloatable(false);
+//    setFocusable(false);
 
-    GUIUtils.addButton(this, null, dataPointsIcon, masterFrame, "HIGHLIGHT",
-        "Highlight selected precursor mass range");
+    setBackground(new Background(new BackgroundFill(
+        Color.WHITE,new CornerRadii(0),new javafx.geometry.Insets(5))));
+
+//    GUIUtils.addButton(this, null, dataPointsIcon, masterFrame, "HIGHLIGHT",
+//        "Highlight selected precursor mass range");
 
   }
 

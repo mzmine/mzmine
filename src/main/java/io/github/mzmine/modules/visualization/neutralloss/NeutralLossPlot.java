@@ -18,22 +18,32 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.SaveImage;
+import io.github.mzmine.util.SaveImage.FileType;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
+import java.io.File;
 import java.text.NumberFormat;
-
-import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
+import javafx.geometry.Insets;
+import javafx.scene.Cursor;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
@@ -42,18 +52,8 @@ import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
 
-import com.google.common.collect.Range;
+class NeutralLossPlot extends EChartViewer {
 
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
-
-class NeutralLossPlot extends EChartPanel {
-
-  private static final long serialVersionUID = 1L;
 
   private JFreeChart chart;
 
@@ -91,12 +91,12 @@ class NeutralLossPlot extends EChartPanel {
   NeutralLossPlot(NeutralLossVisualizerWindow visualizer, NeutralLossDataSet dataset,
       Object xAxisType) {
 
-    super(null, true);
+    super(null);
 
     this.visualizer = visualizer;
 
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE,new CornerRadii(0),new Insets(0))));
+    setCursor(Cursor.CROSSHAIR);
 
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -149,8 +149,8 @@ class NeutralLossPlot extends EChartPanel {
     chartTitle.setFont(titleFont);
 
     // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
+    setMaxWidth(Integer.MAX_VALUE);
+    setMaxHeight(Integer.MAX_VALUE);
 
     // set crosshair (selection) properties
     plot.setDomainCrosshairVisible(true);
@@ -163,26 +163,28 @@ class NeutralLossPlot extends EChartPanel {
     plot.addRangeMarker(new ValueMarker(0));
 
     // set focusable state to receive key events
-    setFocusable(true);
+    setFocused(true);
 
     // register key handlers
+
+    this.addEventHandler(KeyCode.SPACE, visualizer);
     GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), visualizer, "SHOW_SPECTRUM");
 
     // add items to popup menu
-    JPopupMenu popupMenu = getPopupMenu();
+    Menu popupMenu = getPopupMenu();
     popupMenu.addSeparator();
 
     // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
+    MenuItem saveAsMenu = (MenuItem) popupMenu.getComponent(3);
     GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
     GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
-    JMenuItem highLightPrecursorRange = new JMenuItem("Highlight precursor m/z range...");
+    MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
     highLightPrecursorRange.addActionListener(visualizer);
     highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
     popupMenu.add(highLightPrecursorRange);
 
-    JMenuItem highLightNeutralLossRange = new JMenuItem("Highlight neutral loss m/z range...");
+    MenuItem highLightNeutralLossRange = new MenuItem("Highlight neutral loss m/z range...");
     highLightNeutralLossRange.addActionListener(visualizer);
     highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
     popupMenu.add(highLightNeutralLossRange);
@@ -193,29 +195,29 @@ class NeutralLossPlot extends EChartPanel {
       history.clear();
   }
 
-  @Override
+
   public void actionPerformed(final ActionEvent event) {
 
-    super.actionPerformed(event);
+//    super.actionPerformed(event);
 
     final String command = event.getActionCommand();
 
     if ("SAVE_EMF".equals(command)) {
 
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
+      FileChooser chooser = new FileChooser();
+      chooser.getExtensionFilters().add(new ExtensionFilter("EMF Image","EMF"));
+      File file= chooser.showSaveDialog(null);
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+      if (file !=null) {
+        String filepath = file.getPath();
+        if (!filepath.toLowerCase().endsWith(".emf"))
+          filepath += ".emf";
+
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
+        SaveImage SI = new SaveImage(getChart(), filepath, width, height, FileType.EMF);
         new Thread(SI).start();
 
       }
@@ -223,20 +225,21 @@ class NeutralLossPlot extends EChartPanel {
 
     if ("SAVE_EPS".equals(command)) {
 
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
+      FileChooser chooser = new FileChooser();
+      chooser.getExtensionFilters().add(new ExtensionFilter("EPS Image", "EPS"));
 
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
+      File file= chooser.showSaveDialog(null);
+
+      if (file !=null) {
+        String filepath = file.getPath();
+        if (!filepath.toLowerCase().endsWith(".eps"))
+          filepath += ".eps";
+
+        int width = (int) this.getWidth();
+        int height = (int) this.getHeight();
 
         // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
+        SaveImage SI = new SaveImage(getChart(), filepath, width, height, FileType.EPS);
         new Thread(SI).start();
 
       }
@@ -288,7 +291,7 @@ class NeutralLossPlot extends EChartPanel {
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
+//    super.mouseClicked(event);
 
     // request focus to receive key events
     requestFocus();
@@ -306,7 +309,7 @@ class NeutralLossPlot extends EChartPanel {
    */
   public void chartProgress(ChartProgressEvent event) {
 
-    super.chartProgress(event);
+//    super.chartProgress(event);
 
     if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
