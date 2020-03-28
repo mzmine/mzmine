@@ -95,7 +95,8 @@ class NeutralLossPlot extends EChartViewer {
 
   NeutralLossPlot() {
     super(ChartFactory.createXYLineChart("", "","",null,
-            PlotOrientation.VERTICAL,true,true,false));
+            PlotOrientation.VERTICAL,true,true,false),
+            true, true, false, false, true);
     resetZoomHistory();
     setMouseZoomable(false);
 
@@ -173,7 +174,6 @@ class NeutralLossPlot extends EChartViewer {
       public void handle(KeyEvent keyEvent) {
         if (keyEvent.getCharacter().equals(" ")) {
           showSpectrum();
-          // showSpectrumRequest=true; // this does not work with the ProgressListener
         }
       }
     });
