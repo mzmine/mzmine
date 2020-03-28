@@ -164,7 +164,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     } catch (ExecutionException e) {
       e.printStackTrace();
     }
-    
+
     List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
     try {

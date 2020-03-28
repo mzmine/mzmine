@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -36,9 +37,16 @@ import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+
+
 import java.awt.Image;
 import javax.annotation.Nonnull;
 
@@ -62,7 +70,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Image>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -116,11 +124,19 @@ public class ResultWindowController{
         });
 
         chemicalStructureCol.setCellValueFactory(cell->{
-            Image image = cell.getValue().generateImage(3,2);
-
+            IAtomContainer container = cell.getValue().getContainer();
+            Node component;
+            try {
+                 component = new Structure2DComponent(container);
+            } catch (CDKException e) {
+                e.printStackTrace();
+                String errorMessage =
+                        "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
+                component = new Label(errorMessage);
+            }
             if(cell.getValue().getContainer()!=null)
             {
-                return new ReadOnlyObjectWrapper<>(image);
+                return new ReadOnlyObjectWrapper<>(component);
 
             }
             return new ReadOnlyObjectWrapper<>();

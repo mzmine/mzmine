@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class ResultWindowFX extends Stage {
-    private ResultWindowController controller;
+   private ResultWindowController controller;
 
     public ResultWindowFX(PeakListRow peakListRow, Task searchTask)
     {
