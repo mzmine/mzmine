@@ -19,6 +19,7 @@
 package io.github.mzmine.gui;
 
 
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,10 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import javafx.application.HostServices;
+import javafx.event.EventHandler;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -60,6 +65,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 
 /**
  * MZmine JavaFX Application class
@@ -109,6 +116,51 @@ public class MZmineGUI extends Application implements Desktop {
     stage.setOnCloseRequest(e -> {
       requestQuit();
       e.consume();
+    });
+
+    // Drag over surface
+    rootScene.setOnDragOver(new EventHandler<DragEvent>() {
+      @Override
+      public void handle(DragEvent event) {
+        Dragboard dragBoard = event.getDragboard();
+        if (dragBoard.hasFiles()) {
+          event.acceptTransferModes(TransferMode.COPY);
+        } else {
+          event.consume();
+        }
+      }
+    });
+    // Dropping over surface
+    rootScene.setOnDragDropped(new EventHandler<DragEvent>() {
+      @Override
+      public void handle(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+        boolean success = false;
+        if (dragboard.hasFiles()) {
+          success = true;
+          for (File selectedFile:dragboard.getFiles()) {
+            final String moduleClass = "io.github.mzmine.modules.io.projectload.ProjectLoadModule";
+
+            Class<? extends MZmineRunnableModule> moduleJavaClass;
+            try {
+              moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
+            } catch (Throwable e) {
+              MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
+              return;
+            }
+
+            ParameterSet moduleParameters =
+                    MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+
+            moduleParameters.getParameter(projectFile).setValue(selectedFile);
+            ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+            logger.finest("Starting module Open project with parameters " + parametersCopy);
+            MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+          }
+        }
+        event.setDropCompleted(success);
+        event.consume();
+      }
     });
 
     // Configure desktop properties such as the application taskbar icon
