@@ -108,10 +108,11 @@ public class NeutralLossSetHighlightDialog extends Dialog {
     btnCancel = new Button("Cancel");
     btnOK.setOnAction(this::actionPerformed);
     btnCancel.setOnAction(this::actionPerformed);
-    buttonsPanel.getButtons().addAll(btnOK,btnCancel);
+    buttonsPanel.getButtons().addAll(btnOK, btnCancel);
     components.add(buttonsPanel, 0, 3, 3, 1);
+
     this.getDialogPane().setContent(components);
-    setResizable(false);
+    this.setResizable(false);
   }
 
 

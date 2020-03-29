@@ -161,14 +161,12 @@ class NeutralLossPlot extends EChartViewer {
     plot.setRangeCrosshairPaint(crossHairColor);
     plot.setDomainCrosshairStroke(crossHairStroke);
     plot.setRangeCrosshairStroke(crossHairStroke);
-
     plot.addRangeMarker(new ValueMarker(0));
 
     // set focusable state to receive key events
     setFocused(true);
 
     // register key handlers
-
     this.setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.SPACE) {
         visualizer.handleShowspectrum();
@@ -182,10 +180,9 @@ class NeutralLossPlot extends EChartViewer {
     Menu saveAsMenu = (Menu) popupMenu.getItems().get(0);
     MenuItem saveAsEMF = new MenuItem("EMF...");
     MenuItem saveAsEPS = new MenuItem("EPS...");
-    saveAsEMF.setOnAction(event -> saveFile("EMF Image","EMF",".emf"));
-    saveAsEPS.setOnAction(event -> saveFile("EPS Image","EPS",".eps"));
+    saveAsEMF.setOnAction(event -> saveFile("EMF Image", "EMF", ".emf"));
+    saveAsEPS.setOnAction(event -> saveFile("EPS Image", "EPS", ".eps"));
     saveAsMenu.getItems().addAll(saveAsEMF, saveAsEPS);
-
 
     MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
     highLightPrecursorRange.setOnAction(event -> {
@@ -212,26 +209,26 @@ class NeutralLossPlot extends EChartViewer {
   }
 
 
-  public void saveFile(String description,String extensions,String extension) {
+  public void saveFile(String description, String extensions, String extension) {
 
-      FileChooser chooser = new FileChooser();
-      chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
-      File file = chooser.showSaveDialog(null);
+    FileChooser chooser = new FileChooser();
+    chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
+    File file = chooser.showSaveDialog(null);
 
-      if (file != null) {
-        String filepath = file.getPath();
-        if (!filepath.toLowerCase().endsWith(extension)) {
-          filepath += extension;
-        }
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), filepath, width, height, FileType.EMF);
-        new Thread(SI).start();
-
+    if (file != null) {
+      String filepath = file.getPath();
+      if (!filepath.toLowerCase().endsWith(extension)) {
+        filepath += extension;
       }
+
+      int width = (int) this.getWidth();
+      int height = (int) this.getHeight();
+
+      // Save image
+      SaveImage SI = new SaveImage(getChart(), filepath, width, height, FileType.EMF);
+      new Thread(SI).start();
+
+    }
 
   }
 
@@ -279,28 +276,22 @@ class NeutralLossPlot extends EChartViewer {
     // request focus to receive key events
     requestFocus();
 
-    // if user double-clicked left button, place a request to open a
-    // spectrum
-    if (event.getClickCount() == 2 && event.getButton()== MouseButton.PRIMARY) {
+    // if user double-clicked left button, place a request to open a spectrum
+    if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
       showSpectrumRequest = true;
     }
-
   }
 
 
   public void chartProgress(ChartProgressEvent event) {
 
-
     if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
-
       visualizer.updateTitle();
-
       if (showSpectrumRequest) {
         showSpectrumRequest = false;
         visualizer.handleShowspectrum();
       }
     }
-
   }
 
   XYPlot getXYPlot() {

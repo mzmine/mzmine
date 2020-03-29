@@ -50,7 +50,6 @@ import javafx.stage.Stage;
 public class NeutralLossVisualizerWindow extends Stage {
 
 
-
   private NeutralLossPlot neutralLossPlot;
   private BorderPane pane;
   private NeutralLossDataSet dataset;
@@ -79,10 +78,11 @@ public class NeutralLossVisualizerWindow extends Stage {
     neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
     pane.setCenter(neutralLossPlot);
 
-    ButtonBar buttonPanel=new ButtonBar();
+    ButtonBar buttonPanel = new ButtonBar();
     Button button = new Button();
-    button.setBackground(new Background(new BackgroundImage(dataPointsIcon, BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,
-        BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
+    button.setBackground(new Background(
+        new BackgroundImage(dataPointsIcon, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+            BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
     button.setOnAction(event -> this.handleHighlight("HIGHLIGHT_PRECURSOR"));
     button.setTooltip(new Tooltip("Highlight selected precursor mass range"));
     buttonPanel.getButtons().add(button);
@@ -116,9 +116,7 @@ public class NeutralLossVisualizerWindow extends Stage {
       title.append(", ");
       title.append(pos.getName());
     }
-
     neutralLossPlot.setTitle(title.toString());
-
   }
 
 
@@ -127,7 +125,6 @@ public class NeutralLossVisualizerWindow extends Stage {
     double yValue = neutralLossPlot.getXYPlot().getRangeCrosshairValue();
 
     NeutralLossDataPoint point = dataset.getDataPoint(xValue, yValue);
-
     return point;
 
   }
