@@ -34,6 +34,7 @@ import java.text.NumberFormat;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
@@ -178,12 +179,12 @@ class NeutralLossPlot extends EChartViewer {
     ContextMenu popupMenu = getContextMenu();
 
     // Add EMF and EPS options to the save as menu
-//    MenuItem saveAsMenu = popupMenu.getItems().get(3);
+    Menu saveAsMenu = (Menu) popupMenu.getItems().get(0);
     MenuItem saveAsEMF = new MenuItem("EMF...");
     MenuItem saveAsEPS = new MenuItem("EPS...");
     saveAsEMF.setOnAction(event -> saveFile("EMF Image","EMF",".emf"));
     saveAsEPS.setOnAction(event -> saveFile("EPS Image","EPS",".eps"));
-    popupMenu.getItems().addAll(saveAsEMF, saveAsEPS);
+    saveAsMenu.getItems().addAll(saveAsEMF, saveAsEPS);
 
 
     MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
@@ -191,14 +192,13 @@ class NeutralLossPlot extends EChartViewer {
       visualizer.handleHighlight("HIGHLIGHT_PRECURSOR");
     });
 
-    popupMenu.getItems().add(highLightPrecursorRange);
-
     MenuItem highLightNeutralLossRange = new MenuItem("Highlight neutral loss m/z range...");
     highLightNeutralLossRange.setOnAction(event -> {
       visualizer.handleHighlight("HIGHLIGHT_NEUTRALLOSS");
     });
 
     popupMenu.getItems().add(new SeparatorMenuItem());
+    popupMenu.getItems().add(highLightPrecursorRange);
     popupMenu.getItems().add(highLightNeutralLossRange);
 
     // reset zoom history

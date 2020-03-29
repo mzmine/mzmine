@@ -50,8 +50,6 @@ public class NeutralLossSetHighlightDialog extends Dialog {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  static final int PADDING_SIZE = 5;
-
   // dialog components
   private Button btnOK, btnCancel;
   private TextField fieldMinMZ, fieldMaxMZ;
@@ -65,7 +63,7 @@ public class NeutralLossSetHighlightDialog extends Dialog {
   public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
     // Make dialog modal
-    initModality(Modality.APPLICATION_MODAL);
+    initModality(Modality.WINDOW_MODAL);
 
     this.desktop = MZmineCore.getDesktop();
     this.plot = plot;
@@ -110,7 +108,7 @@ public class NeutralLossSetHighlightDialog extends Dialog {
     btnCancel = new Button("Cancel");
     btnOK.setOnAction(this::actionPerformed);
     btnCancel.setOnAction(this::actionPerformed);
-
+    buttonsPanel.getButtons().addAll(btnOK,btnCancel);
     components.add(buttonsPanel, 0, 3, 3, 1);
     this.getDialogPane().setContent(components);
     setResizable(false);

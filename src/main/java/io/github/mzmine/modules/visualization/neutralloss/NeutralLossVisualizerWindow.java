@@ -23,37 +23,44 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 
 /**
  * Neutral loss visualizer using JFreeChart library
  */
-public class NeutralLossVisualizerWindow extends BorderPane {
+public class NeutralLossVisualizerWindow extends Stage {
 
 
-  private NeutralLossToolBar toolBar;
+
   private NeutralLossPlot neutralLossPlot;
-
+  private BorderPane pane;
   private NeutralLossDataSet dataset;
+  static final Image dataPointsIcon = new Image("icons/datapointsicon.png");
 
   private RawDataFile dataFile;
 
   public NeutralLossVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
-
-//    super(dataFile.getName());
-
-//    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(
+    pane = new BorderPane();
+    pane.setBackground(
         new Background(new BackgroundFill(Color.WHITE, new CornerRadii(0), new Insets(0))));
 
     this.dataFile = dataFile;
@@ -70,10 +77,16 @@ public class NeutralLossVisualizerWindow extends BorderPane {
     dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange, numOfFragments, this);
 
     neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
-    setCenter(neutralLossPlot);
+    pane.setCenter(neutralLossPlot);
 
-    toolBar = new NeutralLossToolBar(this);
-    setLeft(toolBar);
+    ButtonBar buttonPanel=new ButtonBar();
+    Button button = new Button();
+    button.setBackground(new Background(new BackgroundImage(dataPointsIcon, BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,
+        BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
+    button.setOnAction(event -> this.handleHighlight("HIGHLIGHT_PRECURSOR"));
+    button.setTooltip(new Tooltip("Highlight selected precursor mass range"));
+    buttonPanel.getButtons().add(button);
+    pane.setRight(buttonPanel);
 
     MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
@@ -82,14 +95,10 @@ public class NeutralLossVisualizerWindow extends BorderPane {
     // Add the Windows menu
     MenuBar menuBar = new MenuBar();
 
-    setTop(menuBar);
-
-    // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(NeutralLossVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(NeutralLossParameters.windowSettings);
-
-
+    pane.setTop(menuBar);
+    this.setScene(new Scene(pane));
+    this.setMinHeight(600);
+    this.setMinWidth(800);
   }
 
   void updateTitle() {
@@ -99,8 +108,7 @@ public class NeutralLossVisualizerWindow extends BorderPane {
     title.append(dataFile.getName());
     title.append("]: neutral loss");
 
-//    Stage s=(Stage)(this.getScene().getWindow());
-//    s.setTitle(title.toString());
+    this.setTitle(title.toString());
 
     NeutralLossDataPoint pos = getCursorPosition();
 
