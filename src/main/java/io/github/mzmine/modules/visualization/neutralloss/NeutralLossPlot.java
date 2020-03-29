@@ -22,24 +22,23 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.text.NumberFormat;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -171,27 +170,35 @@ class NeutralLossPlot extends EChartViewer {
 
     this.setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.SPACE) {
-        visualizer.handle(event);
+        visualizer.handleShowspectrum();
       }
     });
-//    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), visualizer, "SHOW_SPECTRUM");
 
     // add items to popup menu
     ContextMenu popupMenu = getContextMenu();
 
     // Add EMF and EPS options to the save as menu
 //    MenuItem saveAsMenu = popupMenu.getItems().get(3);
-//    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-//    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    MenuItem saveAsEMF = new MenuItem("EMF...");
+    MenuItem saveAsEPS = new MenuItem("EPS...");
+    saveAsEMF.setOnAction(event -> saveFile("EMF Image","EMF",".emf"));
+    saveAsEPS.setOnAction(event -> saveFile("EPS Image","EPS",".eps"));
+    popupMenu.getItems().addAll(saveAsEMF, saveAsEPS);
+
 
     MenuItem highLightPrecursorRange = new MenuItem("Highlight precursor m/z range...");
-    highLightPrecursorRange.setOnAction(visualizer);
-//    highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
+    highLightPrecursorRange.setOnAction(event -> {
+      visualizer.handleHighlight("HIGHLIGHT_PRECURSOR");
+    });
+
     popupMenu.getItems().add(highLightPrecursorRange);
 
     MenuItem highLightNeutralLossRange = new MenuItem("Highlight neutral loss m/z range...");
-    highLightNeutralLossRange.setOnAction(visualizer);
-//    highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
+    highLightNeutralLossRange.setOnAction(event -> {
+      visualizer.handleHighlight("HIGHLIGHT_NEUTRALLOSS");
+    });
+
+    popupMenu.getItems().add(new SeparatorMenuItem());
     popupMenu.getItems().add(highLightNeutralLossRange);
 
     // reset zoom history
@@ -199,25 +206,22 @@ class NeutralLossPlot extends EChartViewer {
     if (history != null) {
       history.clear();
     }
+    this.setOnMouseClicked(this::mouseClicked);
+    setMouseZoomable(true);
+    chart.addProgressListener(this::chartProgress);
   }
 
 
-  public void actionPerformed(final ActionEvent event) {
-
-//    super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-
-    if ("SAVE_EMF".equals(command)) {
+  public void saveFile(String description,String extensions,String extension) {
 
       FileChooser chooser = new FileChooser();
-      chooser.getExtensionFilters().add(new ExtensionFilter("EMF Image", "EMF"));
+      chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
       File file = chooser.showSaveDialog(null);
 
       if (file != null) {
         String filepath = file.getPath();
-        if (!filepath.toLowerCase().endsWith(".emf")) {
-          filepath += ".emf";
+        if (!filepath.toLowerCase().endsWith(extension)) {
+          filepath += extension;
         }
 
         int width = (int) this.getWidth();
@@ -228,31 +232,7 @@ class NeutralLossPlot extends EChartViewer {
         new Thread(SI).start();
 
       }
-    }
 
-    if ("SAVE_EPS".equals(command)) {
-
-      FileChooser chooser = new FileChooser();
-      chooser.getExtensionFilters().add(new ExtensionFilter("EPS Image", "EPS"));
-
-      File file = chooser.showSaveDialog(null);
-
-      if (file != null) {
-        String filepath = file.getPath();
-        if (!filepath.toLowerCase().endsWith(".eps")) {
-          filepath += ".eps";
-        }
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), filepath, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
   }
 
   private void setSeriesColorRenderer(int series, Color color, Shape shape) {
@@ -293,31 +273,23 @@ class NeutralLossPlot extends EChartViewer {
     this.highlightedNeutralLossRange = range;
   }
 
-  /**
-   * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-   */
-  public void mouseClicked(MouseEvent event) {
 
-    // let the parent handle the event (selection etc.)
-//    super.mouseClicked(event);
+  public void mouseClicked(MouseEvent event) {
 
     // request focus to receive key events
     requestFocus();
 
     // if user double-clicked left button, place a request to open a
     // spectrum
-    if ((event.getButton() == MouseEvent.BUTTON1) && (event.getClickCount() == 2)) {
+    if (event.getClickCount() == 2 && event.getButton()== MouseButton.PRIMARY) {
       showSpectrumRequest = true;
     }
 
   }
 
-  /**
-   * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
-   */
+
   public void chartProgress(ChartProgressEvent event) {
 
-//    super.chartProgress(event);
 
     if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
@@ -325,8 +297,7 @@ class NeutralLossPlot extends EChartViewer {
 
       if (showSpectrumRequest) {
         showSpectrumRequest = false;
-//        visualizer.actionPerformed(
-//            new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+        visualizer.handleShowspectrum();
       }
     }
 

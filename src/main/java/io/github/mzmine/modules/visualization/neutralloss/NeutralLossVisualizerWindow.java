@@ -25,12 +25,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import java.awt.Dialog;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuBar;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -41,7 +38,7 @@ import javafx.scene.paint.Color;
 /**
  * Neutral loss visualizer using JFreeChart library
  */
-public class NeutralLossVisualizerWindow extends BorderPane implements EventHandler<ActionEvent> {
+public class NeutralLossVisualizerWindow extends BorderPane {
 
 
   private NeutralLossToolBar toolBar;
@@ -131,24 +128,15 @@ public class NeutralLossVisualizerWindow extends BorderPane implements EventHand
     return neutralLossPlot;
   }
 
-  @Override
-  public void handle(ActionEvent event) {
-//    String command = event.getActionCommand();
-    String command = "";
-    if (command.equals("HIGHLIGHT")) {
-      Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
-      dialog.setVisible(true);
-    }
-
-    if (command.equals("SHOW_SPECTRUM")) {
-      NeutralLossDataPoint pos = getCursorPosition();
-      if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
-      }
-    }
+  public void handleHighlight(String command) {
+    Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
+    dialog.show();
   }
 
-  public void handle(KeyEvent event) {
-    System.out.println("keyevent method called");
+  public void handleShowspectrum() {
+    NeutralLossDataPoint pos = getCursorPosition();
+    if (pos != null) {
+      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
+    }
   }
 }
