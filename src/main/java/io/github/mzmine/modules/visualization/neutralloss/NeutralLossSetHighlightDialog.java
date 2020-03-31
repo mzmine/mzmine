@@ -63,7 +63,7 @@ public class NeutralLossSetHighlightDialog extends Dialog {
   public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
     // Make dialog modal
-    initModality(Modality.WINDOW_MODAL);
+    initModality(Modality.APPLICATION_MODAL);
 
     this.desktop = MZmineCore.getDesktop();
     this.plot = plot;

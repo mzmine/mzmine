@@ -135,7 +135,7 @@ public class NeutralLossVisualizerWindow extends Stage {
 
   public void handleHighlight(String command) {
     Dialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
-    dialog.show();
+    dialog.showAndWait();
   }
 
   public void handleShowspectrum() {
