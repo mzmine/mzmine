@@ -113,7 +113,7 @@ dependencies {
     implementation "io.github.msdk:msdk-featuredetection-adap3d:$msdkVersion"
     implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
-    implementation "org.du-lab.adap:adap:4.0.5"
+    implementation "org.du-lab.adap:adap:4.1.4"
     implementation "gnf:clustering:20130919"
     implementation "it.unimi.dsi:fastutil:8.2.2"
     implementation "com.itextpdf:itextpdf:5.5.13.1"

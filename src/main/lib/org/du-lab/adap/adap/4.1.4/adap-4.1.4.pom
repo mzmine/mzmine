@@ -4,7 +4,7 @@
 
     <groupId>org.du-lab.adap</groupId>
     <artifactId>adap</artifactId>
-    <version>4.0.5</version>
+    <version>4.1.4</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -33,8 +33,8 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
+
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -119,13 +119,20 @@
         <dependency>
             <groupId>org.du-lab.javanmf</groupId>
             <artifactId>javanmf</artifactId>
-            <version>0.1.4</version>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.du-lab.jsparsehc</groupId>
             <artifactId>jsparsehc</artifactId>
-            <version>0.1.2</version>
+            <version>0.1.3</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>4.2</version>
+        </dependency>
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
