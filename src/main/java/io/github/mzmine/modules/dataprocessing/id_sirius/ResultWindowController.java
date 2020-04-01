@@ -122,20 +122,22 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
-
         chemicalStructureCol.setCellValueFactory(cell->{
             IAtomContainer container = cell.getValue().getContainer();
             Node component;
+            Font font = new Font("Verdana", Font.PLAIN, 14);
             try {
-                 component = new Structure2DComponent(container);
+                 component = new Structure2DComponent(container, font);
             } catch (CDKException e) {
                 e.printStackTrace();
                 String errorMessage =
                         "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
                 component = new Label(errorMessage);
             }
+            cell.getTableColumn().setStyle("-fx-background-color: transparent;");
             if(cell.getValue().getContainer()!=null)
             {
+
                 return new ReadOnlyObjectWrapper<>(component);
 
             }
