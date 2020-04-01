@@ -17,6 +17,8 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.Colors;
@@ -46,36 +48,37 @@ public enum FeatureStatus {
   MANUAL;
 
   public Color getColor() {
-    Vision vision =
-        MZmineCore.getConfiguration() != null ? MZmineCore.getConfiguration().getColorVision()
-            : Vision.DEUTERANOPIA;
+    SimpleColorPalette palette =
+        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore.getConfiguration()
+            .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
     switch (this) {
       case DETECTED:
-        return Colors.getPositiveColor(vision);
+        return palette.getPositiveColorAWT();
       case ESTIMATED:
-        return Colors.getNeutralColor();
+        return palette.getNeutralColorAWT();
       case MANUAL:
         return Color.BLACK;
       case UNKNOWN:
       default:
-        return Colors.getNegativeColor(vision);
+        return palette.getNegativeColorAWT();
     }
   }
 
   public javafx.scene.paint.Color getColorFX() {
-    Vision vision =
-        MZmineCore.getConfiguration() != null ? MZmineCore.getConfiguration().getColorVision()
-            : Vision.DEUTERANOPIA;
+    SimpleColorPalette palette =
+        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore.getConfiguration()
+            .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
+
     switch (this) {
       case DETECTED:
-        return ColorsFX.getPositiveColor(vision);
+        return palette.getPositiveColor();
       case ESTIMATED:
-        return ColorsFX.getNeutralColor();
+        return palette.getNeutralColor();
       case MANUAL:
         return javafx.scene.paint.Color.BLACK;
       case UNKNOWN:
       default:
-        return ColorsFX.getNegativeColor(vision);
+        return palette.getNegativeColor();
     }
   }
 }

@@ -135,6 +135,9 @@ public class EChartViewer extends ChartViewer {
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
       addExportMenu(graphicsExportMenu, dataExportMenu);
+
+    // apply the theme here, let's see how that works
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
   }
 
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
