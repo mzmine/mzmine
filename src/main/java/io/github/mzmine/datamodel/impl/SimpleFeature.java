@@ -83,7 +83,17 @@ public class SimpleFeature implements Feature {
   public SimpleFeature(RawDataFile dataFile, double MZ, double RT, double height, double area,
       int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus peakStatus,
       int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
-      Range<Double> rtRange, Range<Double> mzRange, Range<Double> intensityRange) {
+      @Nonnull Range<Double> rtRange, @Nonnull Range<Double> mzRange,
+      @Nonnull Range<Double> intensityRange) {
+
+    assert dataFile != null;
+    assert scanNumbers != null;
+    assert dataPointsPerScan != null;
+    assert peakStatus != null;
+    assert rtRange != null;
+    assert mzRange != null;
+    assert intensityRange != null;
+
 
     if (dataPointsPerScan.length == 0) {
       throw new IllegalArgumentException("Cannot create a SimplePeak instance with no data points");

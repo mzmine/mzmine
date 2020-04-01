@@ -3,8 +3,13 @@
 .classpath
 .gradle
 .settings
+.idea
 .temp*
+/*.iml
 mzmine.log*
 /target
 /build
 /bin
+bio
+not-bio
+/libglpk*

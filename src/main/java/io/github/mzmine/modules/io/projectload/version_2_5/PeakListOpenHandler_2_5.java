@@ -388,6 +388,10 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // clear all MS2 fragment scan numbers list for next peak
       currentAllMS2FragmentScans.clear();
 
+      // peakRTRange could be null if the peak consists only of 0 intensity data points
+      if (peakRTRange == null)
+        peakRTRange = Range.singleton(rt);
+
       SimpleFeature peak = new SimpleFeature(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
           status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
           peakMZRange, peakIntensityRange);
@@ -461,7 +465,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
   /**
    * Return a string without tab an EOF characters
-   * 
+   *
    * @return String element text
    */
   private String getTextOfElement() {
@@ -474,7 +478,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
   /**
    * characters()
-   * 
+   *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
   @Override

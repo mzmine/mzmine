@@ -29,6 +29,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
 
 /**
  * Module for identifying peaks by searching on-line databases.
@@ -70,6 +71,8 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
    * @param row the feature list row.
    */
   public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+
+    assert Platform.isFxApplicationThread();
 
     final ParameterSet parameters = new SingleRowIdentificationParameters();
 

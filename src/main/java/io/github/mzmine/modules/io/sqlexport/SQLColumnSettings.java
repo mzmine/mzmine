@@ -18,39 +18,13 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
-import java.util.ArrayList;
-import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
-import javax.swing.table.AbstractTableModel;
+public class SQLColumnSettings {
 
-public class SQLColumnSettings extends AbstractTableModel {
+  private final ObservableList<SQLRowObject> tableData = FXCollections.observableArrayList();
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
-  List<String> columnNames = new ArrayList<String>();
-  List<SQLExportDataType> columnTypes = new ArrayList<SQLExportDataType>();
-  List<String> columnValues = new ArrayList<String>();
-
-  @Override
-  public int getColumnCount() {
-    return 3;
-  }
-
-  @Override
-  public Class<?> getColumnClass(int col) {
-    switch (col) {
-      case 0:
-      case 2:
-        return String.class;
-      case 1:
-        return SQLExportDataType.class;
-    }
-    return null;
-  }
-
-  @Override
   public String getColumnName(int col) {
     switch (col) {
       case 0:
@@ -63,64 +37,46 @@ public class SQLColumnSettings extends AbstractTableModel {
     return null;
   }
 
-  @Override
   public synchronized int getRowCount() {
-    return columnNames.size();
+    return tableData.size();
   }
 
-  @Override
-  public boolean isCellEditable(int row, int col) {
-    if ((col == 0) || (col == 1))
-      return true;
-    SQLExportDataType dataType = columnTypes.get(row);
-    return dataType.hasAdditionalValue();
-  }
-
-  @Override
   public synchronized Object getValueAt(int row, int col) {
-    if (row >= columnNames.size())
+    if (row >= tableData.size())
       return null;
     switch (col) {
       case 0:
-        return columnNames.get(row);
+        return tableData.get(row).getName();
       case 1:
-        return columnTypes.get(row);
+        return tableData.get(row).getType();
       case 2:
-        return columnValues.get(row);
+        return tableData.get(row).getValue();
     }
     return null;
   }
 
-  public synchronized void addNewRow() {
-    columnNames.add("");
-    columnTypes.add(SQLExportDataType.CONSTANT);
-    columnValues.add("");
-    int insertedRow = columnNames.size() - 1;
-    fireTableRowsInserted(insertedRow, insertedRow);
-  }
+  public synchronized void addNewRow() {   tableData.add(new SQLRowObject("",SQLExportDataType.CONSTANT, ""));  }
 
-  public synchronized void removeRow(int row) {
-    columnNames.remove(row);
-    columnTypes.remove(row);
-    columnValues.remove(row);
-    fireTableRowsDeleted(row, row);
-  }
+  public synchronized void removeRow(SQLRowObject row) { tableData.remove(row); }
 
   public void setValueAt(Object val, int row, int col) {
     switch (col) {
       case 0:
-        columnNames.set(row, (String) val);
+        tableData.get(row).setName((String) val);
         break;
       case 1:
         SQLExportDataType dataTypeVal = (SQLExportDataType) val;
-        columnTypes.set(row, dataTypeVal);
+        tableData.get(row).setType(dataTypeVal);
         if (!dataTypeVal.hasAdditionalValue())
-          columnValues.set(row, dataTypeVal.valueType());
+        	tableData.get(row).setValue(dataTypeVal.valueType());
         break;
       case 2:
-        columnValues.set(row, (String) val);
+      	tableData.get(row).setValue((String) val);
         break;
     }
   }
+
+  public ObservableList<SQLRowObject> getTableData(){ return tableData;  }
+
 
 }

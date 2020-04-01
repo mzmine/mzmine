@@ -22,8 +22,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.controlsfx.control.NotificationPane;
-import org.controlsfx.control.action.Action;
 import com.google.common.base.Strings;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
@@ -46,6 +44,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 /**
@@ -265,13 +264,13 @@ public class ParameterSetupDialog extends Stage {
 
     if (!Strings.isNullOrEmpty(footerMessage)) {
 
-      // Footer
-      // WebView webView = new WebView();
-      NotificationPane notificationPane = new NotificationPane(mainPane);
-      notificationPane.setText(footerMessage);
-      notificationPane.setShowFromTop(false);
-      notificationPane.getActions().add(new Action("Close", e -> notificationPane.hide()));
-
+      WebView label = new WebView();
+      label.getEngine().loadContent(footerMessage);
+      label.setMaxHeight(100.0);
+      // label.setWrapText(true);
+      // notificationPane.setShowFromTop(false);
+      // notificationPane.getActions().add(new Action("Close", e -> notificationPane.hide()));
+      mainPane.setTop(label);
 
       /*
        * JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);

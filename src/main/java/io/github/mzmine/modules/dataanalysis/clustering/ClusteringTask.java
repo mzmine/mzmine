@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.PeakMeasurementType;
+import javafx.application.Platform;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -264,7 +265,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(sampleNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
       } else {
         String[] variableNames = new String[selectedRows.length];
         for (int i = 0; i < selectedRows.length; i++) {
@@ -278,7 +279,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(variableNames,
             clusteringResult.toArray(new Integer[0]), "Clustering Report");
-        reportWindow.setVisible(true);
+        reportWindow.show();
 
       }
 
@@ -337,9 +338,11 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         component2Coords = sammonsResult[yAxisDimension - 1];
       }
 
-      ProjectionPlotWindow newFrame =
-          new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
-      newFrame.show();
+      Platform.runLater(() -> {
+        ProjectionPlotWindow newFrame =
+            new ProjectionPlotWindow(desktop.getSelectedPeakLists()[0], this, parameters);
+        newFrame.show();
+      });
     }
     status = TaskStatus.FINISHED;
     logger.info("Finished computing Clustering visualization.");

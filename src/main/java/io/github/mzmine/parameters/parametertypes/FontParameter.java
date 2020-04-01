@@ -116,16 +116,16 @@ public class FontParameter implements UserParameter<FontSpecs, FontSpecsComponen
       // font
       String[] s = sfont.split(",");
       String name = s[0];
-      FontWeight style = FontWeight.valueOf(s[1]);
+      FontWeight style = FontWeight.findByName(s[1]);
       double size = Double.valueOf(s[2]);
       Font f = Font.font(name, style, size);
 
       // color
       s = scolor.split(",");
-      int r = Integer.valueOf(s[0]);
-      int g = Integer.valueOf(s[1]);
-      int b = Integer.valueOf(s[2]);
-      int a = Integer.valueOf(s[3]);
+      double r = Double.valueOf(s[0]);
+      double g = Double.valueOf(s[1]);
+      double b = Double.valueOf(s[2]);
+      double a = Double.valueOf(s[3]);
       Color c = new Color(r, g, b, a);
 
       value = new FontSpecs(c, f);

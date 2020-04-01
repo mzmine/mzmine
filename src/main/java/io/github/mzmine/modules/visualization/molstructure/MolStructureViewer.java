@@ -24,6 +24,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -31,6 +32,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -129,6 +131,7 @@ public class MolStructureViewer extends Stage {
 
     splitPane.setOrientation(Orientation.HORIZONTAL);
     mainPanel.setCenter(splitPane);
+    splitPane.setDividerPosition(0, 0.5);
 
     setMinWidth(600.0);
     setMinHeight(400.0);
@@ -158,8 +161,11 @@ public class MolStructureViewer extends Stage {
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new Label(errorMessage);
     }
-    splitPane.getItems().set(0, newComponent);
-    // splitPane.setDividerLocation(500);
+    final Node newComponentFinal = newComponent;
+    Platform.runLater(() -> {
+      splitPane.getItems().set(0, newComponentFinal);
+
+    });
   }
 
   /**
@@ -172,12 +178,16 @@ public class MolStructureViewer extends Stage {
     try {
       newComponent = new Structure2DComponent(container);
     } catch (Exception e) {
+      e.printStackTrace();
       String errorMessage =
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new Label(errorMessage);
     }
-    splitPane.getItems().set(0, newComponent);
-    // splitPane.setDividerLocation(500);
+    final Node newComponentFinal = newComponent;
+    Platform.runLater(() -> {
+      splitPane.getItems().set(0, newComponentFinal);
+    });
+
   }
 
   /**
@@ -202,8 +212,11 @@ public class MolStructureViewer extends Stage {
       }
 
       Structure3DComponent new3DComponent = new Structure3DComponent();
-      splitPane.getItems().set(1, new3DComponent);
-      // splitPane.setDividerLocation(500);
+      final AnchorPane newComponentFinal = new AnchorPane();
+      newComponentFinal.getChildren().add(new3DComponent);
+      Platform.runLater(() -> {
+        splitPane.getItems().set(1, newComponentFinal);
+      });
 
       // loadStructure must be called after the component is added,
       // otherwise Jmol will freeze waiting for repaint (IMHO this is a
@@ -211,11 +224,11 @@ public class MolStructureViewer extends Stage {
       new3DComponent.loadStructure(structure3D);
 
     } catch (Exception e) {
+      e.printStackTrace();
       String errorMessage =
           "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       Label label = new Label(errorMessage);
-      splitPane.getItems().set(1, label);
-      // splitPane.setDividerLocation(500);
+      Platform.runLater(() -> splitPane.getItems().set(1, label));
     }
 
   }

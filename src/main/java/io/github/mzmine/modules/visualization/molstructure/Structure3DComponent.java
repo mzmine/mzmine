@@ -18,32 +18,44 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import java.awt.Graphics2D;
-import org.jfree.fx.FXGraphics2D;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jmol.adapter.smarter.SmarterJmolAdapter;
 import org.jmol.api.JmolAdapter;
 import org.jmol.api.JmolViewer;
-import javafx.scene.canvas.Canvas;
+import javafx.embed.swing.SwingNode;
 
-public class Structure3DComponent extends Canvas {
+public class Structure3DComponent extends SwingNode {
 
-
+  private final JPanel mainPanel;
   private JmolViewer viewer;
   private JmolAdapter adapter;
+  final Dimension currentSize = new Dimension();
+  final Rectangle rectClip = new Rectangle();
 
   /**
    *
    */
   public Structure3DComponent() {
+
+    mainPanel = new JPanel() {
+      @Override
+      public void paint(Graphics g) {
+        mainPanel.getSize(currentSize);
+        g.getClipBounds(rectClip);
+        viewer.renderScreenImage(g, currentSize, rectClip);
+      }
+    };
+
     adapter = new SmarterJmolAdapter();
-    viewer = JmolViewer.allocateViewer(this, adapter, null, null, null, null, null);
+    viewer = JmolViewer.allocateViewer(mainPanel, adapter, null, null, null, null, null);
     viewer.setColorBackground("white");
     viewer.setShowHydrogens(false);
 
-    paint();
-
-    widthProperty().addListener(e -> paint());
-    heightProperty().addListener(e -> paint());
+    SwingUtilities.invokeLater(() -> setContent(mainPanel));
   }
 
   /**
@@ -56,12 +68,4 @@ public class Structure3DComponent extends Canvas {
   }
 
 
-  public void paint() {
-
-    Graphics2D g2 = new FXGraphics2D(this.getGraphicsContext2D());
-
-    int width = (int) getWidth();
-    int height = (int) getHeight();
-    viewer.renderScreenImage(g2, width, height);
-  }
 }
