@@ -133,24 +133,6 @@ class NeutralLossPlot extends EChartViewer {
 
     plot.addRangeMarker(new ValueMarker(0));
 
-    // add items to popup menu
-    final ContextMenu popupMenu = getContextMenu();
-    Menu saveAsMenu = new Menu("Save as");
-    popupMenu.getItems().add(saveAsMenu);
-    MenuItem emfMenuItem = new MenuItem("EMF...");
-    emfMenuItem.setOnAction(event -> {
-      saveAsProcess("EMF Image", "EMF", EMF_FILE_EXTENSION, FileType.EMF);
-    });
-
-    saveAsMenu.getItems().add(emfMenuItem);
-    MenuItem epsMenuItem = new MenuItem("EPS...");
-    epsMenuItem.setOnAction(event -> {
-      saveAsProcess("EPS Image", "EPS", EPS_FILE_EXTENSION, FileType.EPS);
-    });
-    saveAsMenu.getItems().add(epsMenuItem);
-    popupMenu.getItems().add(new SeparatorMenuItem());
-
-
     this.addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
@@ -195,29 +177,7 @@ class NeutralLossPlot extends EChartViewer {
     });
     resetZoomHistory();
   }
-
-  public void saveAsProcess (String filterDescription, String filterExtension, String fileExtension, FileType fileType) {
-    // TODO: fix: the saving location cannot be changed yet
-
-    FileChooser chooser = new FileChooser();
-    chooser.setTitle("Choose file");
-    chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(filterDescription, filterExtension));
-    File file = chooser.showSaveDialog(visualizer);
-
-    if (file != null) { // file is null when cancel was pressed
-      String filename = file.getName();
-      if (!filename.toLowerCase().endsWith(fileExtension)) {
-        filename += fileExtension;
-      }
-      int width = (int) this.getWidth();
-      int height = (int) this.getHeight();
-
-      // Save image
-      SaveImage saveImage = new SaveImage(getChart(), filename, width, height, fileType);
-      new Thread(saveImage).start();
-    }
-  }
-
+  
   public void showSpectrum() {
     NeutralLossDataSet dataset = (NeutralLossDataSet) plot.getDataset();
     double xValue = plot.getDomainCrosshairValue();
