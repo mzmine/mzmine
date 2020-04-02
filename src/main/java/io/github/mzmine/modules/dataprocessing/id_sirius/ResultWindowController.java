@@ -38,10 +38,14 @@ import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+import org.apache.batik.ext.awt.g2d.GraphicContext;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
@@ -70,7 +74,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Canvas>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -124,22 +128,23 @@ public class ResultWindowController{
         });
         chemicalStructureCol.setCellValueFactory(cell->{
             IAtomContainer container = cell.getValue().getContainer();
-            Node component;
+            cell.getTableColumn().setStyle("-fx-background-color: #232F3E;");
+            Canvas component;
             Font font = new Font("Verdana", Font.PLAIN, 14);
-            try {
+            try
+            {
                  component = new Structure2DComponent(container, font);
-            } catch (CDKException e) {
+            }
+            catch (CDKException e)
+            {
                 e.printStackTrace();
                 String errorMessage =
                         "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-                component = new Label(errorMessage);
+                component = new Canvas();
             }
-            cell.getTableColumn().setStyle("-fx-background-color: transparent;");
             if(cell.getValue().getContainer()!=null)
             {
-
                 return new ReadOnlyObjectWrapper<>(component);
-
             }
             return new ReadOnlyObjectWrapper<>();
 
