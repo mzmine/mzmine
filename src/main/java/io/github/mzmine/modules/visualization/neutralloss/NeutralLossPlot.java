@@ -151,33 +151,25 @@ class NeutralLossPlot extends EChartViewer {
     });
 
 
-    this.setOnKeyTyped(new EventHandler<KeyEvent>() {
-      @Override
-      public void handle(KeyEvent keyEvent) {
-        if (keyEvent.getCharacter().equals(" ")) {
+    this.setOnKeyTyped(keyEvent -> {
+      if (keyEvent.getCharacter().equals(" ")) {
+        showSpectrum();
+      }
+    });
+
+    chart.addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+        visualizer.updateTitle();
+        if (showSpectrumRequest) {
+          showSpectrumRequest = false;
           showSpectrum();
         }
       }
     });
 
-    chart.addProgressListener(new ChartProgressListener() {
-      @Override
-      public void chartProgress(ChartProgressEvent event) {
-        if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
-
-          visualizer.updateTitle();
-
-          if (showSpectrumRequest) {
-            showSpectrumRequest = false;
-            showSpectrum();
-            
-          }
-        }
-      }
-    });
     resetZoomHistory();
   }
-  
+
   public void showSpectrum() {
     NeutralLossDataSet dataset = (NeutralLossDataSet) plot.getDataset();
     double xValue = plot.getDomainCrosshairValue();
