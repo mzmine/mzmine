@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.io.File;
 import java.text.NumberFormat;
@@ -101,11 +103,12 @@ public class SpectraVisualizerWindow extends Stage {
       FxIconUtil.loadImageFromResources("icons/DBSpectraIcon.png");
   private static final Image sumFormulaIcon = FxIconUtil.loadImageFromResources("icons/search.png");
 
-  public static final Color scanColor = new Color(0, 0, 192);
-  public static final Color peaksColor = Color.red;
-  public static final Color singlePeakColor = Color.magenta;
-  public static final Color detectedIsotopesColor = Color.magenta;
-  public static final Color predictedIsotopesColor = Color.green;
+  // initialize colors to some default before the color palette is loaded
+  public static Color scanColor = new Color(0, 0, 192);
+  public static Color peaksColor = Color.red;
+  public static Color singlePeakColor = Color.magenta;
+  public static Color detectedIsotopesColor = Color.magenta;
+  public static Color predictedIsotopesColor = Color.green;
 
   private final Scene mainScene;
   private final BorderPane mainPane;
@@ -136,6 +139,8 @@ public class SpectraVisualizerWindow extends Stage {
 
     setTitle("Spectrum loading...");
     this.dataFile = dataFile;
+
+    loadColorSettings();
 
     mainPane = new BorderPane();
     mainScene = new Scene(mainPane);
@@ -270,6 +275,14 @@ public class SpectraVisualizerWindow extends Stage {
     this(dataFile, false);
   }
 
+  private void loadColorSettings() {
+    SimpleColorPalette p = MZmineCore.getConfiguration().getDefaultColorPalette();
+    scanColor = FxColorUtil.fxColorToAWT(p.get(0));
+    peaksColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+    singlePeakColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+    detectedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+    predictedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+  }
 
   public void loadRawData(Scan scan) {
 

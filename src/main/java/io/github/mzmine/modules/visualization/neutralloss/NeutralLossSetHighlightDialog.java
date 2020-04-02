@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -35,6 +36,13 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.converter.NumberStringConverter;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.data.general.DatasetChangeEvent;
 
 import com.google.common.collect.Range;
@@ -46,11 +54,8 @@ import io.github.mzmine.util.GUIUtils;
 /**
  * Dialog for selection of highlighted precursor m/z range
  */
-public class NeutralLossSetHighlightDialog extends JDialog implements ActionListener {
+public class NeutralLossSetHighlightDialog extends Stage  /*implements ActionListener */ {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -58,99 +63,136 @@ public class NeutralLossSetHighlightDialog extends JDialog implements ActionList
   static final int PADDING_SIZE = 5;
 
   // dialog components
-  private JButton btnOK, btnCancel;
-  private JFormattedTextField fieldMinMZ, fieldMaxMZ;
+  private final DialogPane mainPane;
+  private final Scene mainScene;
+  private final Button btnOK, btnCancel;
+  private final TextField fieldMinMZ, fieldMaxMZ;
+  private final GridPane pnlLabelsAndFields;
 
   private Desktop desktop;
 
   private String rangeType;
+  private ValueAxis axis;
 
   private NeutralLossPlot plot;
 
-  public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
+  public NeutralLossSetHighlightDialog(@Nonnull Stage parent, @Nonnull NeutralLossPlot plot, @Nonnull String command) {
 
-    // Make dialog modal
-    super((JFrame) null, "", true);
+    assert parent != null;
+    assert plot != null;
+    assert command != null;
 
-    this.desktop = MZmineCore.getDesktop();
+    desktop = MZmineCore.getDesktop();
     this.plot = plot;
-    this.rangeType = command;
+    rangeType = command;
+    mainPane = new DialogPane();
+    mainScene = new Scene(mainPane);
+
+    // Use main CSS
+    mainScene.getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
+
+    initOwner(parent);
 
     String title = "Highlight ";
-    if (command.equals("HIGHLIGHT_PRECURSOR"))
+    if (command.equals("HIGHLIGHT_PRECURSOR")) {
       title += "precursor m/z range";
-    else if (command.equals("HIGHLIGHT_NEUTRALLOSS"))
+      axis = plot.getXYPlot().getDomainAxis();
+    } else if (command.equals("HIGHLIGHT_NEUTRALLOSS")) {
       title += "neutral loss m/z range";
+      axis = plot.getXYPlot().getRangeAxis();
+    }
     setTitle(title);
 
-    GridBagConstraints constraints = new GridBagConstraints();
+    Label lblMinMZ = new Label("Minimum m/z");
+    Label lblMaxMZ = new Label("Maximum m/z");
 
-    // set default layout constraints
-    constraints.fill = GridBagConstraints.HORIZONTAL;
-    constraints.anchor = GridBagConstraints.WEST;
-    constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE, PADDING_SIZE, PADDING_SIZE);
+    NumberStringConverter converter = new NumberStringConverter();
 
-    JComponent comp;
-    GridBagLayout layout = new GridBagLayout();
+    fieldMinMZ = new TextField();
+    fieldMinMZ.setTextFormatter(new TextFormatter<>(converter));
+    fieldMaxMZ = new TextField();
+    fieldMaxMZ.setTextFormatter(new TextFormatter<>(converter));
 
-    JPanel components = new JPanel(layout);
+    pnlLabelsAndFields = new GridPane();
+    pnlLabelsAndFields.setHgap(5);
+    pnlLabelsAndFields.setVgap(10);
 
-    NumberFormat format = NumberFormat.getNumberInstance();
+    int row = 0;
+    pnlLabelsAndFields.add(lblMinMZ, 0, row);
+    pnlLabelsAndFields.add(fieldMinMZ, 1, row);
 
-    comp = GUIUtils.addLabel(components, "Minimum m/z");
-    constraints.gridx = 0;
-    constraints.gridy = 0;
-    constraints.gridwidth = 1;
-    constraints.gridheight = 1;
-    layout.setConstraints(comp, constraints);
+    row++;
+    pnlLabelsAndFields.add(lblMaxMZ, 0, row);
+    pnlLabelsAndFields.add(fieldMaxMZ, 1, row);
 
-    constraints.weightx = 1;
-    fieldMinMZ = new JFormattedTextField(format);
-    fieldMinMZ.setPreferredSize(new Dimension(50, fieldMinMZ.getPreferredSize().height));
-    constraints.gridx = 1;
-    components.add(fieldMinMZ, constraints);
-    constraints.weightx = 0;
+    // Create buttons
+    mainPane.getButtonTypes().add(ButtonType.OK);
+    mainPane.getButtonTypes().add(ButtonType.CANCEL);
 
-    comp = GUIUtils.addLabel(components, "Maximum m/z");
-    constraints.gridx = 0;
-    constraints.gridy = 1;
-    layout.setConstraints(comp, constraints);
+    btnOK = (Button) mainPane.lookupButton(ButtonType.OK);
+    btnOK.setOnAction(e -> {
+      if (highlightDataPoints())
+        hide();
+    });
+    btnCancel = (Button) mainPane.lookupButton(ButtonType.CANCEL);
+    btnCancel.setOnAction(e -> hide());
 
-    constraints.weightx = 1;
-    fieldMaxMZ = new JFormattedTextField(format);
-    constraints.gridx = 1;
-    components.add(fieldMaxMZ, constraints);
-    constraints.weightx = 0;
+    mainPane.setContent(pnlLabelsAndFields);
 
-    comp = GUIUtils.addSeparator(components, PADDING_SIZE);
-    constraints.gridx = 0;
-    constraints.gridy = 2;
-    constraints.gridwidth = 3;
-    constraints.gridheight = 1;
-    layout.setConstraints(comp, constraints);
-
-    JPanel buttonsPanel = new JPanel();
-    btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
-    btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
-    constraints.gridx = 0;
-    constraints.gridy = 3;
-    constraints.gridwidth = 3;
-    constraints.gridheight = 1;
-    components.add(buttonsPanel, constraints);
-
-    GUIUtils.addMargin(components, PADDING_SIZE);
-    add(components);
-
-    // finalize the dialog
-    pack();
-    // setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+    sizeToScene();
+    centerOnScreen();
     setResizable(false);
 
+  }
+
+  public boolean highlightDataPoints() {
+
+
+    try {
+      double lower = Double.parseDouble(fieldMinMZ.getText());
+      double upper = Double.parseDouble(fieldMaxMZ.getText());
+      if (lower > upper) {
+        displayMessage("Invalid " + axis.getLabel() + " range.");
+        return false;
+      }
+      Range<Double> range = Range.closed(lower, upper);
+      if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+        plot.setHighlightedPrecursorRange(range);
+      else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))
+        plot.setHighlightedNeutralLossRange(range);
+      logger.info("Updating Neutral loss plot window");
+
+      NeutralLossDataSet dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
+      dataSet.updateOnRangeDataPoints(rangeType);
+      plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
+      return true;
+    } catch (NumberFormatException e) {
+      displayMessage("Could not parse number " + e);
+      return false;
+    } catch (IllegalArgumentException iae) {
+      desktop.displayErrorMessage(iae.getMessage());
+      return false;
+    } catch (Exception e) {
+      logger.log(Level.FINE, "Error while setting highlighted range", e);
+      return false;
+    }
+  }
+
+  private void displayMessage(String msg) {
+    logger.info(msg);
+    final Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.initStyle(StageStyle.UTILITY);
+    alert.setTitle("Information");
+    alert.setHeaderText("Error");
+    alert.setContentText(msg);
+    alert.showAndWait();
   }
 
   /**
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
+  /*
   public void actionPerformed(ActionEvent ae) {
 
     Object src = ae.getSource();
@@ -159,13 +201,13 @@ public class NeutralLossSetHighlightDialog extends JDialog implements ActionList
 
       try {
 
-        if ((fieldMinMZ.getValue() == null) || (fieldMinMZ.getValue() == null)) {
+        if ((fieldMinMZ.getText() == null) || (fieldMinMZ.getText() == null)) {
           desktop.displayErrorMessage("Invalid bounds");
           return;
         }
 
-        double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
-        double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
+        double mzMin = (Double.parseDouble(fieldMinMZ.getText()));
+        double mzMax = (Double.parseDouble(fieldMaxMZ.getText()));
 
         Range<Double> range = Range.closed(mzMin, mzMax);
         if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
@@ -177,8 +219,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements ActionList
         NeutralLossDataSet dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
         dataSet.updateOnRangeDataPoints(rangeType);
         plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
-
-        dispose();
+        hide();
 
       } catch (IllegalArgumentException iae) {
         desktop.displayErrorMessage(iae.getMessage());
@@ -188,8 +229,9 @@ public class NeutralLossSetHighlightDialog extends JDialog implements ActionList
     }
 
     if (src == btnCancel) {
-      dispose();
+      hide();
     }
 
   }
+   */
 }

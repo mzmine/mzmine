@@ -38,10 +38,10 @@ import javafx.collections.FXCollections;
 
 public class MZminePreferences extends SimpleParameterSet {
 
-  public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
-      "Color palettes (color blindness mode)",
-      "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
-      FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
+//  public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
+//      "Color palettes (color blindness mode)",
+//      "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
+//      FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -83,7 +83,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
   
   public MZminePreferences() {
-    super(new Parameter[] {colorPalettes, mzFormat, rtFormat, intensityFormat, numOfThreads,
+    super(new Parameter[]{mzFormat, rtFormat, intensityFormat, numOfThreads,
         proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
         stdColorPalette, chartParam});
   }

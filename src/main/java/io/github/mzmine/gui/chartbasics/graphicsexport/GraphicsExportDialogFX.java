@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.io.File;
 import java.util.logging.Level;
@@ -60,7 +62,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected JFreeChart chart;
   protected EChartViewer chartPanel;
   protected ChartThemeParameters chartParam;
-  protected Color[] colors;
+  protected SimpleColorPalette colors;
 
   private Button btnRenewPreview;
   private Button btnApply;
@@ -74,7 +76,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     chartParam = (ChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
 
-    colors = Colors.getSevenColorPalette(MZmineCore.getConfiguration().getColorVision(), true);
+    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
 
     try {
       this.chart = (JFreeChart) chart.clone();
@@ -115,9 +117,11 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected void applyTheme() {
     // update param
     updateParameterSetFromComponents();
+    chartParam = (ChartThemeParameters) parameterSet
+        .getParameter(GraphicsExportParameters.chartParameters).getValue();
+    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
     // apply settings
     chartParam.applyToChartTheme(theme);
-    chartParam.applyToChart(chartPanel.getChart());
     setStandardColors();
     theme.apply(chartPanel.getChart());
     disableCrosshair();
@@ -130,7 +134,11 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   }
 
   protected void setStandardColors() {
-    DrawingSupplier ds = new DefaultDrawingSupplier(colors, colors, colors,
+    Color[] clrs = new Color[colors.size()];
+    for(int i = 0; i < colors.size(); i++)
+      clrs[i] = colors.getAWT(i);
+
+    DrawingSupplier ds = new DefaultDrawingSupplier(clrs, clrs, clrs,
         DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);

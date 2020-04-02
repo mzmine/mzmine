@@ -138,10 +138,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   // color palettes
-  @Override
-  public Vision getColorVision() {
-    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
-  }
+//  @Override
+//  public Vision getColorVision() {
+//    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
+//  }
 
   // Number formatting functions
   @Override
@@ -340,7 +340,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public SimpleColorPalette getDefaultColorPalette() {
     SimpleColorPalette p = preferences.getParameter(MZminePreferences.stdColorPalette).getValue();
-    if (!p.isValidPalette()) {
+    if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
               + "colors.");
@@ -358,9 +358,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public EStandardChartTheme getDefaultChartTheme() {
     // update the theme settings first
-    ChartThemeParameters ctp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
+    ChartThemeParameters ctp = this.getDefaultChartThemeParameters();
     ctp.applyToChartTheme(standardChartTheme);
-    SimpleColorPalette scp = MZmineCore.getConfiguration().getDefaultColorPalette();
+    SimpleColorPalette scp = this.getDefaultColorPalette();
     scp.applyToChartTheme(standardChartTheme);
 
     return standardChartTheme;

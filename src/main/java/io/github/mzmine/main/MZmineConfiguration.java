@@ -81,7 +81,7 @@ public interface MZmineConfiguration {
    * 
    * @return
    */
-  public Vision getColorVision();
+//  public Vision getColorVision();
   
   public SimpleColorPalette getDefaultColorPalette();
   

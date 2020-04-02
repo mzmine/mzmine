@@ -1,22 +1,23 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
@@ -46,7 +47,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
  * Creates a window with a mirror chart to compare to scans
- * 
+ *
  * @author Robin Schmid
  */
 public class MirrorScanWindow extends JFrame {
@@ -84,7 +85,7 @@ public class MirrorScanWindow extends JFrame {
 
   /**
    * Set scan and mirror scan and create chart
-   * 
+   *
    * @param scan
    * @param mirror
    */
@@ -109,7 +110,7 @@ public class MirrorScanWindow extends JFrame {
 
   /**
    * Based on a data base match to a spectral library
-   * 
+   *
    * @param row
    * @param db
    */
@@ -134,11 +135,11 @@ public class MirrorScanWindow extends JFrame {
       return;
 
     // get colors for vision
-    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
-    final Color[] colors = new Color[] {Color.black, // black = filtered
-        Colors.getNegativeColor(vision), // unaligned
-        Colors.getPositiveColor(vision) // aligned
+    final Color[] colors = new Color[]{Color.black, // black = filtered
+        palette.getNegativeColorAWT(), // unaligned
+        palette.getPositiveColorAWT()// aligned
     };
 
     // scan a
