@@ -34,13 +34,12 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -52,6 +51,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -199,7 +200,35 @@ public class EChartViewer extends ChartViewer {
       });
 
       addMenuItem(getContextMenu(), "Print", event -> {
-
+        Printable content = (graphics, pageFormat, pageIndex) -> {
+          if (pageIndex > 0) {
+            return Printable.NO_SUCH_PAGE;
+          }
+          Graphics2D g2d = (Graphics2D) graphics;
+          g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+          graphics.drawImage(chart.createBufferedImage(500, 500), 100, 100, null);
+          return Printable.PAGE_EXISTS;
+        };
+        PrinterJob job = PrinterJob.getPrinterJob();
+        if (job.getPrintService() != null) {
+          job.setPrintable(content);
+          boolean doPrint = job.printDialog();
+          if (doPrint) {
+            try {
+              job.print();
+            } catch (PrinterException e) {
+              Alert alert = new Alert(AlertType.ERROR);
+              alert.setTitle("Printing Service");
+              alert.setHeaderText("Error in Printing the Chart");
+              alert.showAndWait();
+            }
+          }
+        } else {
+          Alert alert = new Alert(AlertType.ERROR);
+          alert.setTitle("Printing Service");
+          alert.setHeaderText("No Printing Service Found");
+          alert.showAndWait();
+        }
       });
     }
 
