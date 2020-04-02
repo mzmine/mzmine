@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.io.File;
 import java.text.NumberFormat;
@@ -56,10 +54,13 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import io.github.mzmine.util.scans.ScanUtils;
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -361,12 +362,17 @@ public class SpectraVisualizerWindow extends Stage {
       spectrumSubtitle = "Scan definition: " + currentScan.getScanDefinition();
     }
 
-    setTitle(windowTitle);
-    spectrumPlot.setTitle(spectrumTitle, spectrumSubtitle);
+    final String finalSpectrumTitle = spectrumTitle;
+    final String finalSpectrumSubtitle = spectrumSubtitle;
 
-    // Set plot data set
-    spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
+    Platform.runLater(() -> {
+      setTitle(windowTitle);
+      spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
+
+      // Set plot data set
+      spectrumPlot.removeAllDataSets();
+      spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
+    });
 
   }
 
