@@ -133,6 +133,9 @@ class NeutralLossPlot extends EChartViewer {
 
     plot.addRangeMarker(new ValueMarker(0));
 
+    final ContextMenu popupMenu = getContextMenu();
+    popupMenu.getItems().add(new SeparatorMenuItem());
+
     this.addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
