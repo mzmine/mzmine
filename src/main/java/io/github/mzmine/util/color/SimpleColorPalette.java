@@ -18,7 +18,6 @@
 
 package io.github.mzmine.util.color;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +26,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
+import com.google.common.collect.ImmutableMap;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.collections.ModifiableObservableListBase;
@@ -39,32 +39,32 @@ import javafx.scene.paint.Color;
  */
 public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
 
-  protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
-      ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
-      ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
-      ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
+  protected static final SimpleColorPalette DEFAULT_NORMAL =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
+          ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
 
-  protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA = new SimpleColorPalette(
-      ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true), "Deuteranopia",
-      ColorsFX.getPositiveColor(Vision.DEUTERANOPIA), ColorsFX.getNeutralColor(),
-      ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
+  protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true),
+          "Deuteranopia", ColorsFX.getPositiveColor(Vision.DEUTERANOPIA),
+          ColorsFX.getNeutralColor(), ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
 
-  protected static final SimpleColorPalette DEFAULT_PROTANOPIA = new SimpleColorPalette(
-      ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
-      ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
-      ColorsFX.getNegativeColor(Vision.PROTANOPIA));
+  protected static final SimpleColorPalette DEFAULT_PROTANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
+          ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.PROTANOPIA));
 
-  protected static final SimpleColorPalette DEFAULT_TRITANOPIA = new SimpleColorPalette(
-      ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
-      ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
-      ColorsFX.getNegativeColor(Vision.TRITANOPIA));
+  protected static final SimpleColorPalette DEFAULT_TRITANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
+          ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.TRITANOPIA));
 
   /**
    * Access via {@link Vision}
    */
-  public static final ImmutableMap<Vision, SimpleColorPalette> DEFAULT = ImmutableMap
-      .of(Vision.NORMAL_VISION, DEFAULT_NORMAL, Vision.DEUTERANOPIA, DEFAULT_DEUTERANOPIA,
-          Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
+  public static final ImmutableMap<Vision, SimpleColorPalette> DEFAULT = ImmutableMap.of(
+      Vision.NORMAL_VISION, DEFAULT_NORMAL, Vision.DEUTERANOPIA, DEFAULT_DEUTERANOPIA,
+      Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
 
   private static final String NAME_ATTRIBUTE = "name";
   private static final String POS_ATTRIBUTE = "positive_color";
@@ -281,8 +281,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   @Override
   public int hashCode() {
-    return super.hashCode() + name.hashCode() + getPositiveColor().hashCode() + getNeutralColor()
-        .hashCode() + getNegativeColor().hashCode();
+    return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
+        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
@@ -323,8 +323,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     } catch (Exception e) {
       logger.log(Level.WARNING,
           "Could not load color palette " + name + ". Setting default colors.", e);
-      this.addAll(
-          ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
+      this.addAll(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
     }
 
     try {
@@ -333,7 +332,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       clrNeu = Color.web(neu);
     } catch (Exception e) {
       logger.log(Level.WARNING,
-          "Could not load positve/negative colors of " + name + ". Setting default colors.", e);
+          "Could not load positive/negative colors of " + name + ". Setting default colors.", e);
       clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
       clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
       clrNeu = ColorsFX.getNeutralColor();
@@ -373,9 +372,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setPositiveColor(Color positiveColor) {
     this.positiveColor = positiveColor;
-    fireChange(
-        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED,
-            positiveColor));
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED, positiveColor));
   }
 
   public Color getNegativeColor() {
@@ -388,9 +386,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setNegativeColor(Color negativeColor) {
     this.negativeColor = negativeColor;
-    fireChange(
-        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED,
-            negativeColor));
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED, negativeColor));
   }
 
   public Color getNeutralColor() {
@@ -403,9 +400,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setNeutralColor(Color neutralColor) {
     this.neutralColor = neutralColor;
-    fireChange(
-        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED,
-            neutralColor));
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED, neutralColor));
   }
 
   // --- super type
