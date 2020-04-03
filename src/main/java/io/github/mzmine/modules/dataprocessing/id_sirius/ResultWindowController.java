@@ -41,6 +41,7 @@ import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -76,7 +77,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Structure2DComponent>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -128,30 +129,32 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
+
         chemicalStructureCol.setCellValueFactory(cell->{
 
-            IAtomContainer container = cell.getValue().getContainer();
-            Node component;
-            Font font = new Font("Verdana", Font.PLAIN, 14);
-            try
-            {
-                 component = new Structure2DComponent(container, font);
+            Structure2DComponent component = null;
 
-            }
-            catch (CDKException e)
-            {
+            IAtomContainer container = cell.getValue().getContainer();
+            try {
+                component = new Structure2DComponent(container);
+            } catch (CDKException e) {
                 e.printStackTrace();
-                String errorMessage =
-                        "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-                component = new Label(errorMessage);
             }
-            if(cell.getValue().getContainer()!=null)
+            Structure2DComponent finalComponent = component;
+            component.setOnMouseClicked(e->{
+                  finalComponent.resize(100, 200);
+                  chemicalStructureCol.setCellValueFactory(c->{
+                      return new ReadOnlyObjectWrapper<>(finalComponent);
+                  });
+              });
+            if(cell.getValue().getContainer()!=null || component!=null)
             {
                 return new ReadOnlyObjectWrapper<>(component);
             }
             return new ReadOnlyObjectWrapper<>();
 
         });
+
 
      compoundsTable.setItems(compounds);
     }
@@ -161,6 +164,8 @@ public class ResultWindowController{
         this.peakListRow = peakListRow;
         this.searchTask = searchTask;
     }
+
+
 
 @FXML
 private void addIdentityOnClick(ActionEvent ae){
@@ -174,7 +179,6 @@ private void addIdentityOnClick(ActionEvent ae){
     peakListRow.addPeakIdentity(compound, false);
 
 }
-
 @FXML
 private void displayDBOnClick(ActionEvent ae){
 
@@ -184,7 +188,7 @@ private void displayDBOnClick(ActionEvent ae){
         MZmineCore.getDesktop().displayMessage(null, "Select one row to display the list DBs");
         return;
     }
-   DBFrame dbFrame = new DBFrame(compound, null);
+    DBFrame dbFrame = new DBFrame(compound, null);
     dbFrame.setVisible(true);
 }
 
