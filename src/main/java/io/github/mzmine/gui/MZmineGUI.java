@@ -20,7 +20,10 @@ package io.github.mzmine.gui;
 
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -67,6 +70,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 /**
  * MZmine JavaFX Application class
@@ -139,7 +143,19 @@ public class MZmineGUI extends Application implements Desktop {
         if (dragboard.hasFiles()) {
           success = true;
           for (File selectedFile:dragboard.getFiles()) {
-            final String moduleClass = "io.github.mzmine.modules.io.projectload.ProjectLoadModule";
+
+            final String extension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf("."));
+            String[] RowDataFile = {".cdf",".nc",".mzData",".mzML",".mzXML"};
+            final Boolean isRawDataFile = Arrays.asList(RowDataFile).contains(extension);
+            final Boolean isMZmineProject = extension.equals(".mzmine");
+
+            String moduleClass = "";
+            if(isMZmineProject)
+            {
+              moduleClass = "io.github.mzmine.modules.io.projectload.ProjectLoadModule";
+            } else if(isRawDataFile){
+              moduleClass = "io.github.mzmine.modules.io.rawdataimport.RawDataImportModule";
+            }
 
             Class<? extends MZmineRunnableModule> moduleJavaClass;
             try {
@@ -152,9 +168,15 @@ public class MZmineGUI extends Application implements Desktop {
             ParameterSet moduleParameters =
                     MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
 
-            moduleParameters.getParameter(projectFile).setValue(selectedFile);
+            if(isMZmineProject){
+              moduleParameters.getParameter(projectFile).setValue(selectedFile);
+            } else if (isRawDataFile){
+              List<File> fileList = new ArrayList<>();
+              fileList.add(selectedFile);
+              moduleParameters.getParameter(fileNames).setValue(fileList.toArray(new File[0]));
+            }
+
             ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-            logger.finest("Starting module Open project with parameters " + parametersCopy);
             MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
           }
         }
