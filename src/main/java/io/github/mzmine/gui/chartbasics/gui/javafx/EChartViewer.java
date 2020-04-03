@@ -34,6 +34,7 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +89,7 @@ public class EChartViewer extends ChartViewer {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
+  private Menu exportMenu;
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -147,6 +149,7 @@ public class EChartViewer extends ChartViewer {
 
       ValueAxis xAxis = chart.getXYPlot().getDomainAxis();
       ValueAxis yAxis = chart.getXYPlot().getDomainAxis();
+      exportMenu = (Menu) getContextMenu().getItems().get(0);
 
       // Add Export to Excel and graphics export menu
       if (graphicsExportMenu || dataExportMenu) {
@@ -159,31 +162,38 @@ public class EChartViewer extends ChartViewer {
       });
 
       addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
-        AxesSetupDialog dialog = new AxesSetupDialog(new Stage(), chart.getXYPlot());
+        AxesSetupDialog dialog = new AxesSetupDialog((Stage) this.getScene().getWindow(),
+            chart.getXYPlot());
         dialog.show();
       });
 
-      addMenuItem((Menu) getContextMenu().getItems().get(0), "EPS..",
+      addMenuItem(exportMenu, "EPS..",
           event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
 
-      addMenuItem((Menu) getContextMenu().getItems().get(0), "EMF..",
+      addMenuItem(exportMenu, "EMF..",
           event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
 
       addMenuItem(getContextMenu(), "Copy Chart to Clipboard", event -> {
-        Image image = SwingFXUtils.toFXImage(getChart().createBufferedImage(500, 500), null);
+        BufferedImage bufferedImage = getChart()
+            .createBufferedImage((int) this.getScene().getWidth(),
+                (int) this.getScene().getHeight());
+        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
         ClipboardContent content = new ClipboardContent();
         content.putImage(image);
         Clipboard.getSystemClipboard().setContent(content);
       });
 
       addMenuItem(getContextMenu(), "Print", event -> {
-        ImageView image = new ImageView(
-            SwingFXUtils.toFXImage(getChart().createBufferedImage(500, 500), null));
+        BufferedImage bufferedImage = getChart()
+            .createBufferedImage((int) this.getScene().getWidth(),
+                (int) this.getScene().getHeight());
+        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+        ImageView imageView = new ImageView(image);
         PrinterJob job = PrinterJob.createPrinterJob();
         if (job != null) {
-          boolean doPrint = job.showPrintDialog(new Stage());
+          boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
           if (doPrint) {
-            job.printPage(image);
+            job.printPage(imageView);
             job.endJob();
           }
         } else {
@@ -232,9 +242,6 @@ public class EChartViewer extends ChartViewer {
     parent.getItems().add(pngItem);
   }
 
-  protected void addMenu(ContextMenu menu, Menu m) {
-    menu.getItems().add(m);
-  }
 
   @Override
   public void setChart(JFreeChart chart) {
@@ -366,7 +373,7 @@ public class EChartViewer extends ChartViewer {
       MenuExportToClipboard exportXYClipboard = new MenuExportToClipboard("to Clipboard", this);
       export.getItems().add(exportXYClipboard);
       // add to panel
-      addMenu(getContextMenu(), export);
+      getContextMenu().getItems().add(export);
     }
   }
 
