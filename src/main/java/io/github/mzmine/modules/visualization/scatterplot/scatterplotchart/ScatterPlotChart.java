@@ -165,11 +165,6 @@ public class ScatterPlotChart extends EChartViewer {
     // popupMenu.addSeparator();
     // GUIUtils.addMenuItem(popupMenu, "Show Chromatogram", this, "TIC");
 
-    // Add EMF and EPS options to the save as menu
-    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-
     // reset zoom history
     ZoomHistory history = getZoomHistory();
     if (history != null)
@@ -177,9 +172,9 @@ public class ScatterPlotChart extends EChartViewer {
   }
 
   /*
-   * 
+   *
    * @Override public JComponent getCustomToolTipComponent(MouseEvent event) {
-   * 
+   *
    * String index = this.getToolTipText(event); if (index == null) { return null; } String
    * indexSplit[] = index.split(":");
    *
@@ -194,8 +189,8 @@ public class ScatterPlotChart extends EChartViewer {
    * mainDataSet.getYValue(series, item); newSummary.setRatio(xValue, yValue);
    *
    * return newSummary;
-   * 
-   * 
+   *
+   *
    * }
    */
 

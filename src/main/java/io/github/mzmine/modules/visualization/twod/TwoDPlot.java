@@ -23,8 +23,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -35,11 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 
 /**
  *
@@ -140,52 +134,6 @@ class TwoDPlot extends EChartViewer {
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
     peakDataRenderer = new PeakDataRenderer();
-
-    ContextMenu popupMenu = getContextMenu();
-
-    // Add EMF and EPS options to the save as menu
-    // Menu saveAsMenu = (Menu) popupMenu.getItems().get(3);
-    MenuItem saveEMF = new MenuItem("EMF...");
-    saveEMF.setOnAction(e -> {
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-      }
-    });
-
-    MenuItem saveEPS = new MenuItem("EPS...");
-    saveEPS.setOnAction(e -> {
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-    });
-    popupMenu.getItems().addAll(saveEMF, saveEPS);
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();

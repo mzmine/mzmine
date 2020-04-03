@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,45 +18,31 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.data.general.DatasetChangeEvent;
+import com.google.common.collect.Range;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.main.MZmineCore;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.converter.NumberStringConverter;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.data.general.DatasetChangeEvent;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
 
 /**
  * Dialog for selection of highlighted precursor m/z range
  */
-public class NeutralLossSetHighlightDialog extends Stage  /*implements ActionListener */ {
-
-  private static final long serialVersionUID = 1L;
+public class NeutralLossSetHighlightDialog extends Stage {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -76,7 +62,8 @@ public class NeutralLossSetHighlightDialog extends Stage  /*implements ActionLis
 
   private NeutralLossPlot plot;
 
-  public NeutralLossSetHighlightDialog(@Nonnull Stage parent, @Nonnull NeutralLossPlot plot, @Nonnull String command) {
+  public NeutralLossSetHighlightDialog(@Nonnull Stage parent, @Nonnull NeutralLossPlot plot,
+      @Nonnull String command) {
 
     assert parent != null;
     assert plot != null;
@@ -89,7 +76,8 @@ public class NeutralLossSetHighlightDialog extends Stage  /*implements ActionLis
     mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
 
     initOwner(parent);
@@ -193,45 +181,33 @@ public class NeutralLossSetHighlightDialog extends Stage  /*implements ActionLis
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
   /*
-  public void actionPerformed(ActionEvent ae) {
-
-    Object src = ae.getSource();
-
-    if (src == btnOK) {
-
-      try {
-
-        if ((fieldMinMZ.getText() == null) || (fieldMinMZ.getText() == null)) {
-          desktop.displayErrorMessage("Invalid bounds");
-          return;
-        }
-
-        double mzMin = (Double.parseDouble(fieldMinMZ.getText()));
-        double mzMax = (Double.parseDouble(fieldMaxMZ.getText()));
-
-        Range<Double> range = Range.closed(mzMin, mzMax);
-        if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
-          plot.setHighlightedPrecursorRange(range);
-        else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))
-          plot.setHighlightedNeutralLossRange(range);
-        logger.info("Updating Neutral loss plot window");
-
-        NeutralLossDataSet dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
-        dataSet.updateOnRangeDataPoints(rangeType);
-        plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
-        hide();
-
-      } catch (IllegalArgumentException iae) {
-        desktop.displayErrorMessage(iae.getMessage());
-      } catch (Exception e) {
-        logger.log(Level.FINE, "Error while setting highlighted range", e);
-      }
-    }
-
-    if (src == btnCancel) {
-      hide();
-    }
-
-  }
+   * public void actionPerformed(ActionEvent ae) {
+   * 
+   * Object src = ae.getSource();
+   * 
+   * if (src == btnOK) {
+   * 
+   * try {
+   * 
+   * if ((fieldMinMZ.getText() == null) || (fieldMinMZ.getText() == null)) {
+   * desktop.displayErrorMessage("Invalid bounds"); return; }
+   * 
+   * double mzMin = (Double.parseDouble(fieldMinMZ.getText())); double mzMax =
+   * (Double.parseDouble(fieldMaxMZ.getText()));
+   * 
+   * Range<Double> range = Range.closed(mzMin, mzMax); if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+   * plot.setHighlightedPrecursorRange(range); else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))
+   * plot.setHighlightedNeutralLossRange(range); logger.info("Updating Neutral loss plot window");
+   * 
+   * NeutralLossDataSet dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
+   * dataSet.updateOnRangeDataPoints(rangeType); plot.getXYPlot().datasetChanged(new
+   * DatasetChangeEvent(plot, dataSet)); hide();
+   * 
+   * } catch (IllegalArgumentException iae) { desktop.displayErrorMessage(iae.getMessage()); } catch
+   * (Exception e) { logger.log(Level.FINE, "Error while setting highlighted range", e); } }
+   * 
+   * if (src == btnCancel) { hide(); }
+   * 
+   * }
    */
 }

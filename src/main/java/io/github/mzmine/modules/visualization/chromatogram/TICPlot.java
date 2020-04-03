@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -32,12 +28,6 @@ import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -54,6 +44,14 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import javafx.scene.Cursor;
+import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /**
  * TIC plot.
@@ -79,7 +77,7 @@ public class TICPlot extends EChartViewer {
   private static final double AXIS_MARGINS = 0.001;
 
   // Title margin.
-//  private static final double TITLE_TOP_MARGIN = 5.0;
+  // private static final double TITLE_TOP_MARGIN = 5.0;
 
   // Plot type.
   private TICPlotType plotType;
@@ -224,16 +222,9 @@ public class TICPlot extends EChartViewer {
      * "ZOOM_AUTO");
      */
     // Add items to popup menu.
-    final ContextMenu popupMenu = getContextMenu();
-    popupMenu.getItems().add(new MenuItem("gagaga"));
-    popupMenu.getItems().add(new SeparatorMenuItem());
-
-
-
-    // Add EMF and EPS options to the save as menu
-    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+    // final ContextMenu popupMenu = getContextMenu();
+    // popupMenu.getItems().add(new MenuItem("gagaga"));
+    // popupMenu.getItems().add(new SeparatorMenuItem());
 
     // if (listener instanceof TICVisualizerWindow) {
 
@@ -291,7 +282,7 @@ public class TICPlot extends EChartViewer {
     if (history != null)
       history.clear();
 
-//    theme.apply(this.getChart());
+    // theme.apply(this.getChart());
   }
 
   // @Override
@@ -493,10 +484,10 @@ public class TICPlot extends EChartViewer {
           + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-//      SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-//      final Color rendererColor = palette.getAWT(numOfDataSets % palette.size());
-//      renderer.setSeriesPaint(0, rendererColor);
-//      renderer.setSeriesFillPaint(0, rendererColor);
+      // SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+      // final Color rendererColor = palette.getAWT(numOfDataSets % palette.size());
+      // renderer.setSeriesPaint(0, rendererColor);
+      // renderer.setSeriesFillPaint(0, rendererColor);
       renderer.setSeriesPaint(0, plot.getDrawingSupplier().getNextPaint());
       renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
@@ -517,7 +508,7 @@ public class TICPlot extends EChartViewer {
 
     final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-//    renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
+    // renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
     addDataSetRenderer(dataSet, renderer);
     numOfPeaks++;
   }

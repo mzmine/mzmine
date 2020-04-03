@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,35 +18,16 @@
 
 package io.github.mzmine.modules.visualization.neutralloss;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
-import java.io.File;
 import java.text.NumberFormat;
-import javafx.event.EventHandler;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.stage.FileChooser;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
-import org.jfree.chart.event.ChartProgressListener;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
@@ -54,6 +35,17 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 
 class NeutralLossPlot extends EChartViewer {
 
@@ -65,9 +57,6 @@ class NeutralLossPlot extends EChartViewer {
   private boolean showSpectrumRequest;
 
   private NeutralLossVisualizerWindow visualizer;
-
-  private static final String EMF_FILE_EXTENSION = ".emf";
-  private static final String EPS_FILE_EXTENSION = ".eps";
 
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
@@ -94,9 +83,8 @@ class NeutralLossPlot extends EChartViewer {
   private Range<Double> highlightedNeutralLossRange = Range.singleton(Double.NEGATIVE_INFINITY);
 
   NeutralLossPlot() {
-    super(ChartFactory.createXYLineChart("", "","",null,
-            PlotOrientation.VERTICAL,true,true,false),
-            true, true, false, false, true);
+    super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
+        false), true, true, false, false, true);
     resetZoomHistory();
     setMouseZoomable(false);
 
@@ -141,8 +129,8 @@ class NeutralLossPlot extends EChartViewer {
       public void chartMouseClicked(ChartMouseEventFX event) {
         requestFocus();
         MouseEvent mouseEvent = event.getTrigger();
-        if ((mouseEvent.getClickCount() == 2) && (mouseEvent.getButton() == MouseButton.PRIMARY))  {
-          //showSpectrum();
+        if ((mouseEvent.getClickCount() == 2) && (mouseEvent.getButton() == MouseButton.PRIMARY)) {
+          // showSpectrum();
           showSpectrumRequest = true;
         }
       }
@@ -177,7 +165,7 @@ class NeutralLossPlot extends EChartViewer {
     NeutralLossDataSet dataset = (NeutralLossDataSet) plot.getDataset();
     double xValue = plot.getDomainCrosshairValue();
     double yValue = plot.getRangeCrosshairValue();
-    NeutralLossDataPoint pos = dataset.getDataPoint(xValue,yValue);
+    NeutralLossDataPoint pos = dataset.getDataPoint(xValue, yValue);
     RawDataFile dataFile = visualizer.getDataFile();
     if (pos != null) {
       SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
@@ -235,7 +223,7 @@ class NeutralLossPlot extends EChartViewer {
     MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
     highlightPrecursorMenuItem.setOnAction(event -> {
       NeutralLossSetHighlightDialog dialog =
-              new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
+          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
     popupMenu.getItems().add(highlightPrecursorMenuItem);
@@ -243,7 +231,7 @@ class NeutralLossPlot extends EChartViewer {
     MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
     highlightNLMenuItem.setOnAction(event -> {
       NeutralLossSetHighlightDialog dialog =
-              new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
+          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
       dialog.show();
     });
     popupMenu.getItems().add(highlightNLMenuItem);
