@@ -34,28 +34,24 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.print.Printable;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.print.PrinterJob;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -174,54 +170,21 @@ public class EChartViewer extends ChartViewer {
           event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
 
       addMenuItem(getContextMenu(), "Copy Chart to Clipboard", event -> {
-        Image image = getChart().createBufferedImage(500, 500);
-        Transferable clipboardWriter = new Transferable() {
-
-          @Override
-          public DataFlavor[] getTransferDataFlavors() {
-            return new DataFlavor[]{DataFlavor.imageFlavor};
-          }
-
-          @Override
-          public boolean isDataFlavorSupported(DataFlavor flavor) {
-            return DataFlavor.imageFlavor.equals(flavor);
-          }
-
-          @Override
-          public Object getTransferData(DataFlavor flavor)
-              throws UnsupportedFlavorException, IOException {
-            if (!DataFlavor.imageFlavor.equals(flavor)) {
-              throw new UnsupportedFlavorException(flavor);
-            }
-            return image;
-          }
-        };
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(clipboardWriter, null);
+        Image image = SwingFXUtils.toFXImage(getChart().createBufferedImage(500, 500), null);
+        ClipboardContent content = new ClipboardContent();
+        content.putImage(image);
+        Clipboard.getSystemClipboard().setContent(content);
       });
 
       addMenuItem(getContextMenu(), "Print", event -> {
-        Printable content = (graphics, pageFormat, pageIndex) -> {
-          if (pageIndex > 0) {
-            return Printable.NO_SUCH_PAGE;
-          }
-          Graphics2D g2d = (Graphics2D) graphics;
-          g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-          graphics.drawImage(chart.createBufferedImage(500, 500), 100, 100, null);
-          return Printable.PAGE_EXISTS;
-        };
-        PrinterJob job = PrinterJob.getPrinterJob();
-        if (job.getPrintService() != null) {
-          job.setPrintable(content);
-          boolean doPrint = job.printDialog();
+        ImageView image = new ImageView(
+            SwingFXUtils.toFXImage(getChart().createBufferedImage(500, 500), null));
+        PrinterJob job = PrinterJob.createPrinterJob();
+        if (job != null) {
+          boolean doPrint = job.showPrintDialog(new Stage());
           if (doPrint) {
-            try {
-              job.print();
-            } catch (PrinterException e) {
-              Alert alert = new Alert(AlertType.ERROR);
-              alert.setTitle("Printing Service");
-              alert.setHeaderText("Error in Printing the Chart");
-              alert.showAndWait();
-            }
+            job.printPage(image);
+            job.endJob();
           }
         } else {
           Alert alert = new Alert(AlertType.ERROR);
