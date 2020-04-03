@@ -46,6 +46,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import org.apache.batik.ext.awt.g2d.GraphicContext;
+import org.apache.poi.ss.formula.functions.T;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
@@ -53,6 +54,7 @@ import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 
 import java.awt.Image;
 import javax.annotation.Nonnull;
+import javax.security.auth.callback.Callback;
 
 
 public class ResultWindowController{
@@ -74,7 +76,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Canvas>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -127,20 +129,21 @@ public class ResultWindowController{
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
         chemicalStructureCol.setCellValueFactory(cell->{
+
             IAtomContainer container = cell.getValue().getContainer();
-            cell.getTableColumn().setStyle("-fx-background-color: #232F3E;");
-            Canvas component;
+            Node component;
             Font font = new Font("Verdana", Font.PLAIN, 14);
             try
             {
                  component = new Structure2DComponent(container, font);
+
             }
             catch (CDKException e)
             {
                 e.printStackTrace();
                 String errorMessage =
                         "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-                component = new Canvas();
+                component = new Label(errorMessage);
             }
             if(cell.getValue().getContainer()!=null)
             {
