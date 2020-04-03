@@ -165,13 +165,6 @@ class MsMsPlot extends EChartViewer implements MouseWheelListener {
 
     peakDataRenderer = new PeakDataRenderer();
 
-    // Add EMF and EPS options to the save as menu TODO: this should be moved to EChartViewer
-    /*
-     * JPopupMenu popupMenu = getPopupMenu(); JMenuItem saveAsMenu = (JMenuItem)
-     * popupMenu.getComponent(3); GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-     * GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-     */
-
     // Register for mouse-wheel events
     // addMouseWheelListener(this);
 
@@ -180,45 +173,6 @@ class MsMsPlot extends EChartViewer implements MouseWheelListener {
     if (history != null)
       history.clear();
   }
-
-  /*
-   * 
-   * @Override public void actionPerformed(final ActionEvent event) {
-   * 
-   * super.actionPerformed(event);
-   * 
-   * final String command = event.getActionCommand();
-   * 
-   * if ("SAVE_EMF".equals(command)) {
-   * 
-   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
-   * FileNameExtensionFilter("EMF Image", "EMF"); chooser.setFileFilter(filter); int returnVal =
-   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
-   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
-   * 
-   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
-   * 
-   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF); new
-   * Thread(SI).start();
-   * 
-   * } }
-   * 
-   * if ("SAVE_EPS".equals(command)) {
-   * 
-   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
-   * FileNameExtensionFilter("EPS Image", "EPS"); chooser.setFileFilter(filter); int returnVal =
-   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
-   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
-   * 
-   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
-   * 
-   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS); new
-   * Thread(SI).start();
-   * 
-   * }
-   * 
-   * } }
-   */
 
   XYPlot getXYPlot() {
     return plot;
@@ -262,9 +216,9 @@ class MsMsPlot extends EChartViewer implements MouseWheelListener {
 
   /*
    * @Override public void mouseClicked(final MouseEvent event) {
-   * 
+   *
    * // Let the parent handle the event (selection etc.) super.mouseClicked(event);
-   * 
+   *
    * if (event.getX() < 70) { // User clicked on Y-axis if (event.getClickCount() == 2) { // Reset
    * zoom on Y-axis XYDataset data = ((XYPlot) getChart().getPlot()).getDataset(); Number maximum =
    * DatasetUtils.findMaximumRangeValue(data); getXYPlot().getRangeAxis().setRange(0, 1.05 *

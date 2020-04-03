@@ -50,9 +50,6 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   // rt bin for summing different files
   private final double RT_BIN = 0.001;
 
-  // For comparing small differences.
-  private static final double EPSILON = 0.0000001;
-
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 100L;
 
