@@ -19,10 +19,7 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 
-import java.util.List;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.Title;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -82,7 +79,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
 
   public ChartThemeParameters() {
-    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
+    super(new Parameter[]{showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
         titleFont, captionFont, labelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -96,13 +93,15 @@ public class ChartThemeParameters extends SimpleParameterSet {
 
     assert Platform.isFxApplicationThread();
 
-    if ((parameters == null) || (parameters.length == 0))
+    if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
 
+  @Deprecated
   public void applyToChart(JFreeChart chart) {
     // // apply chart settings
     // boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
@@ -169,29 +168,29 @@ public class ChartThemeParameters extends SimpleParameterSet {
     String ylabel =
         this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
     FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
-    FontSpecs large = this.getParameter(ChartThemeParameters.titleFont).getValue();
-    FontSpecs medium = this.getParameter(ChartThemeParameters.captionFont).getValue();
-    FontSpecs small = this.getParameter(ChartThemeParameters.labelFont).getValue();
+    FontSpecs titleFont = this.getParameter(ChartThemeParameters.titleFont).getValue();
+    FontSpecs captionFont = this.getParameter(ChartThemeParameters.captionFont).getValue();
+    FontSpecs labelFont = this.getParameter(ChartThemeParameters.labelFont).getValue();
     Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setShowTitle(showTitle);
-    theme.getShowSubtitles(showLegends);
+    theme.getShowSubtitles(showTitle);
     theme.setChartBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
     theme.setPlotBackgroundPaint(FxColorUtil.fxColorToAWT(bgColor));
 
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
-    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(large.getFont()));
-    theme.setLargeFont(FxFontUtil.fxFontToAWT(medium.getFont()));
-    theme.setRegularFont(FxFontUtil.fxFontToAWT(small.getFont()));
-    theme.setSmallFont(FxFontUtil.fxFontToAWT(small.getFont()));
+    theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(titleFont.getFont()));
+    theme.setLargeFont(FxFontUtil.fxFontToAWT(captionFont.getFont()));
+    theme.setRegularFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
+    theme.setSmallFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
 
     theme.setMasterFontColor(FxColorUtil.fxColorToAWT(master.getColor()));
-    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
-    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
-    theme.setTitlePaint(FxColorUtil.fxColorToAWT(large.getColor()));
-    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(small.getColor()));
-    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(medium.getColor()));
-    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(medium.getColor()));
+    theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
+    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setTitlePaint(FxColorUtil.fxColorToAWT(titleFont.getColor()));
+    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
+    theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(captionFont.getColor()));
 
     theme.setShowXAxis(showXAxis);
     theme.setShowYAxis(showYAxis);

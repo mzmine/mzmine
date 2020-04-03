@@ -17,13 +17,11 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import java.awt.BorderLayout;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.swing.JFrame;
-import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
@@ -40,6 +38,11 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.PeakMeasurementType;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingNode;
+import javafx.scene.Scene;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -234,21 +237,31 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         } else {
           c = cluster;
         }
-        JFrame visualizationWindow = new JFrame(clusterNumber);
-        visualizationWindow.setSize(600, 500);
-        visualizationWindow.setLayout(new BorderLayout());
 
         HierarchyVisualizer visualizer = new HierarchyVisualizer(c);
-        visualizationWindow.add(visualizer, BorderLayout.CENTER);
+        SwingNode sn = new SwingNode();
         visualizer.fitToScreen();
+        SwingUtilities.invokeLater(() -> {
+          sn.setContent(visualizer);
+        });
+
+        BorderPane visualizationPane = new BorderPane();
+        visualizationPane.setCenter(sn);
+        Scene visualizationWindowScene = new Scene(visualizationPane);
 
         // Text field with the clustering result in Newick format
-        JTextField data = new JTextField(c);
-        visualizationWindow.add(data, BorderLayout.SOUTH);
-        visualizationWindow.setVisible(true);
-        visualizationWindow.pack();
+        TextField data = new TextField(c);
+        visualizationPane.setBottom(data);
 
-        visualizationWindow.setVisible(true);
+        Platform.runLater(() -> {
+          Stage visualizationWindow = new Stage();
+          visualizationWindow.setTitle(clusterNumber);
+          visualizationWindow.setScene(visualizationWindowScene);
+          visualizationWindow.setMinWidth(600.0);
+          visualizationWindow.setMinHeight(500.0);
+          visualizationWindow.show();
+        });
+
       }
       progress = 100;
     } else {
