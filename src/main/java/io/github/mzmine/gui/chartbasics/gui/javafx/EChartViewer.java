@@ -175,8 +175,8 @@ public class EChartViewer extends ChartViewer {
 
       addMenuItem(getContextMenu(), "Copy Chart to Clipboard", event -> {
         BufferedImage bufferedImage = getChart()
-            .createBufferedImage((int) this.getScene().getWidth(),
-                (int) this.getScene().getHeight());
+            .createBufferedImage((int) this.getWidth(),
+                (int) this.getHeight());
         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
         ClipboardContent content = new ClipboardContent();
         content.putImage(image);
@@ -185,8 +185,8 @@ public class EChartViewer extends ChartViewer {
 
       addMenuItem(getContextMenu(), "Print", event -> {
         BufferedImage bufferedImage = getChart()
-            .createBufferedImage((int) this.getScene().getWidth(),
-                (int) this.getScene().getHeight());
+            .createBufferedImage((int) this.getWidth(),
+                (int) this.getHeight());
         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
         ImageView imageView = new ImageView(image);
         PrinterJob job = PrinterJob.createPrinterJob();
