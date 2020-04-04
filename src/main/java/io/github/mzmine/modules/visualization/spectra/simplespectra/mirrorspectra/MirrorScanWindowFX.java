@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
@@ -139,11 +140,11 @@ public class MirrorScanWindowFX extends Stage {
     }
 
     // get colors for vision
-    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
     final Color[] colors = new Color[]{Color.black, // black = filtered
-        Colors.getNegativeColor(vision), // unaligned
-        Colors.getPositiveColor(vision) // aligned
+        palette.getNegativeColorAWT(), // unaligned
+        palette.getPositiveColorAWT() // aligned
     };
 
     // scan a

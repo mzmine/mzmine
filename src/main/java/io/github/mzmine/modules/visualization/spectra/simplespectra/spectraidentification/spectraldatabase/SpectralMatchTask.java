@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import java.awt.Color;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -49,17 +50,18 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import javafx.application.Platform;
 
 /**
  * Spectral match task to compare single spectra with spectral databases
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public final static double[] DELTA_ISOTOPES = new double[] {1.0034, 1.0078, 2.0157, 1.9970};
+  public final static double[] DELTA_ISOTOPES = new double[]{1.0034, 1.0078, 2.0157, 1.9970};
 
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
@@ -78,7 +80,7 @@ public class SpectralMatchTask extends AbstractTask {
   private int totalSteps;
 
   private List<SpectralDBPeakIdentity> matches;
-  private SpectraIdentificationResultsWindow resultWindow;
+  private SpectraIdentificationResultsWindowFX resultWindow;
 
   private int count = 0;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
@@ -107,7 +109,8 @@ public class SpectralMatchTask extends AbstractTask {
   private int minMatchedIsoSignals;
 
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
-      SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
+      SpectraPlot spectraPlot, Scan currentScan,
+      SpectraIdentificationResultsWindowFX resultWindow) {
     this.startEntry = startEntry;
     this.list = list;
     this.currentScan = currentScan;
@@ -159,8 +162,9 @@ public class SpectralMatchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalSteps == 0)
+    if (totalSteps == 0) {
       return 0;
+    }
     return ((double) finishedSteps) / totalSteps;
   }
 
@@ -192,8 +196,9 @@ public class SpectralMatchTask extends AbstractTask {
     }
 
     // remove 13C isotopes
-    if (removeIsotopes)
+    if (removeIsotopes) {
       spectraMassList = removeIsotopes(spectraMassList);
+    }
 
     setStatus(TaskStatus.PROCESSING);
     try {
@@ -240,7 +245,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   /**
    * Checks for isotope pattern in matched signals within mzToleranceSpectra
-   * 
+   *
    * @param sim
    * @return
    */
@@ -270,8 +275,9 @@ public class SpectralMatchTask extends AbstractTask {
           if (mzToleranceSpectra.checkWithinTolerance(dIso, dmz)) {
             matchedIso = true;
             matches++;
-            if (matches >= minMatchedIsoSignals)
+            if (matches >= minMatchedIsoSignals) {
               return true;
+            }
           }
         }
       }
@@ -281,8 +287,7 @@ public class SpectralMatchTask extends AbstractTask {
 
 
   /**
-   * 
-   * @param currentScan
+   * @param spectraMassList
    * @param ident
    * @return spectral similarity or null if no match
    */
@@ -290,8 +295,9 @@ public class SpectralMatchTask extends AbstractTask {
     // do not check precursorMZ or precursorMZ within tolerances
     if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
       DataPoint[] library = ident.getDataPoints();
-      if (removeIsotopes)
+      if (removeIsotopes) {
         library = removeIsotopes(library);
+      }
 
       DataPoint[] query = spectraMassList;
       if (cropSpectraToOverlap) {
@@ -308,7 +314,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   /**
    * Remove 13C isotopes from masslist
-   * 
+   *
    * @param a
    * @return
    */
@@ -318,7 +324,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   /**
    * Uses the similarity function and filter to create similarity.
-   * 
+   *
    * @param library
    * @param query
    * @return positive match with similarity or null if criteria was not met
@@ -335,16 +341,16 @@ public class SpectralMatchTask extends AbstractTask {
 
   /**
    * Get data points of mass list
-   * 
+   *
    * @param scan
    * @return
    * @throws MissingMassListException
    */
   private DataPoint[] getDataPoints(Scan scan) throws MissingMassListException {
     MassList massList = scan.getMassList(massListName);
-    if (massList == null)
+    if (massList == null) {
       throw new MissingMassListException(massListName);
-    else {
+    } else {
       // thresholded list
       DataPoint[] dps = massList.getDataPoints();
       return ScanUtils.getFiltered(dps, noiseLevel);
@@ -373,8 +379,9 @@ public class SpectralMatchTask extends AbstractTask {
         int start = compoundName.indexOf("[");
         int end = compoundName.indexOf("]");
         if (start != -1 && start + 1 < compoundName.length() && end != -1
-            && end < compoundName.length())
+            && end < compoundName.length()) {
           shortName = compoundName.substring(start + 1, end);
+        }
 
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
             shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getScore()),
@@ -387,9 +394,9 @@ public class SpectralMatchTask extends AbstractTask {
         errorCounter++;
       }
     }
-    resultWindow.addMatches(matches);
-    resultWindow.revalidate();
-    resultWindow.repaint();
+    Platform.runLater(() -> resultWindow.addMatches(matches));
+//    resultWindow.revalidate();
+//    resultWindow.repaint();
     setStatus(TaskStatus.FINISHED);
   }
 

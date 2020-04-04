@@ -42,6 +42,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -185,6 +186,11 @@ public class SpectralMatchPanelFX extends BorderPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
+    ColumnConstraints columnConstraints1 = new ColumnConstraints();
+    ColumnConstraints columnConstraints2 = new ColumnConstraints();
+    columnConstraints1.setPercentWidth(0.5);
+    columnConstraints2.setPercentWidth(0.5);
+
     GridPane g1 = new GridPane();
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
@@ -192,6 +198,8 @@ public class SpectralMatchPanelFX extends BorderPane {
         extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
+//    g1.getColumnConstraints().add(0, columnConstraints1);
+//    g1.getColumnConstraints().add(1, columnConstraints2);
     metaDataPanel.getChildren().add(g1); // TODO maybe put all info in one gridpane and add that?
 
     GridPane g2 = new GridPane();
@@ -199,8 +207,13 @@ public class SpectralMatchPanelFX extends BorderPane {
         extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther =
         extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
-    g2.add(pnDB, 0, 0);
-    g2.add(pnOther, 1, 0);
+//    g2.add(pnDB, 0, 0);
+//    g2.add(pnOther, 1, 0);
+//    g2.getColumnConstraints().add(0, columnConstraints1);
+//    g2.getColumnConstraints().add(1, columnConstraints2);
+    g1.add(pnDB, 0, 1);
+    g1.add(pnOther, 1, 1);
+
     metaDataPanel.getChildren().add(g2);
 
     MirrorScanWindowFX mirrorWindow = new MirrorScanWindowFX();
@@ -282,7 +295,7 @@ public class SpectralMatchPanelFX extends BorderPane {
   }
 
   public void applyTheme() {
-    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    /*EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     this.chartFont = theme.getRegularFont();
     if (mirrorChart != null) {
@@ -300,7 +313,7 @@ public class SpectralMatchPanelFX extends BorderPane {
       queryPlot.getRangeAxis().setTickLabelFont(chartFont);
       libraryPlot.getRangeAxis().setLabelFont(chartFont);
       libraryPlot.getRangeAxis().setTickLabelFont(chartFont);
-    }
+    }*/
   }
 
   private IAtomContainer parseInChi(SpectralDBPeakIdentity hit) {

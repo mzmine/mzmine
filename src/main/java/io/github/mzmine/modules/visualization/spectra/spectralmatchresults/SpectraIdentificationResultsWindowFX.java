@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
@@ -38,7 +39,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.scene.control.ScrollPane;
-import javax.swing.SwingUtilities;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -68,8 +68,12 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   public SpectraIdentificationResultsWindowFX() {
 //    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
     pnMain = new BorderPane();
     this.setScene(new Scene(pnMain));
+    getScene().getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
     pnMain.setPrefSize(1400, 900);
 
     setTitle("Processing...");
@@ -82,6 +86,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     // yellow
     noMatchesFound.setTextFill(Color.web("0xFFCC00"));
     pnGrid.add(noMatchesFound, 0, 0);
+    pnGrid.setVgap(5);
 
     // Add the Windows menu
     MenuBar menuBar = new MenuBar();
@@ -150,6 +155,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
       SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
       pn.setCoupleZoomY(isCouplingZoomY);
       matchPanels.put(match, pn);
+      pnGrid.add(pn, 0, matchPanels.size() - 1);
 
       // sort and show
       sortTotalMatches();
@@ -162,6 +168,9 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
    * @param matches
    */
   public synchronized void addMatches(List<SpectralDBPeakIdentity> matches) {
+    if (matches.isEmpty()) {
+      return;
+    }
     // add all
     for (SpectralDBPeakIdentity match : matches) {
       if (!totalMatches.contains(match)) {
@@ -201,13 +210,14 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   }
 
   public void renewLayout() {
-    SwingUtilities.invokeLater(() -> {
+    Platform.runLater(() -> {
       // any number of rows
-      GridPane pnGrid = new GridPane();
-      pnGrid.setVgap(5);
+//      GridPane pnGrid = new GridPane();
+//      pnGrid.setVgap(5);
 
       // add all panel in order
       synchronized (totalMatches) {
+        pnGrid.getChildren().clear();
         int row = 0;
         for (SpectralDBPeakIdentity match : totalMatches) {
           Pane pn = matchPanels.get(match);
@@ -219,7 +229,8 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
       }
       // show
 //      scrollPane.getVerticalScrollBar().setUnitIncrement(75);
-      this.pnGrid = pnGrid;
+//      this.pnGrid = pnGrid;
+//      scrollPane.setContent(pnGrid);
     });
   }
 
