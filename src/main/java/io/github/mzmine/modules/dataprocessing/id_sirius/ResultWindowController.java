@@ -20,6 +20,9 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.awt.image.RenderedImage;
+import java.awt.image.renderable.RenderableImage;
+import java.io.IOException;
 import java.util.List;
 import java.awt.datatransfer.Clipboard;
 import io.github.msdk.datamodel.IonAnnotation;
@@ -35,14 +38,17 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -53,8 +59,9 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 
 
-import java.awt.Image;
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
 import javax.security.auth.callback.Callback;
 
 
@@ -132,7 +139,8 @@ public class ResultWindowController{
 
         chemicalStructureCol.setCellValueFactory(cell->{
 
-            Structure2DComponent component = null;
+            Structure2DComponent component=null;
+
 
             IAtomContainer container = cell.getValue().getContainer();
             try {
@@ -140,13 +148,22 @@ public class ResultWindowController{
             } catch (CDKException e) {
                 e.printStackTrace();
             }
+            Tooltip tooltip = new Tooltip();
             Structure2DComponent finalComponent = component;
-            component.setOnMouseClicked(e->{
-                  finalComponent.resize(100, 200);
-                  chemicalStructureCol.setCellValueFactory(c->{
-                      return new ReadOnlyObjectWrapper<>(finalComponent);
+
+            component.setOnMouseEntered(e->{
+                Structure2DComponent node = (Structure2DComponent) e.getSource();
+                  Platform.runLater(()->{
+                      if(finalComponent!=null){
+                          tooltip.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("doge.png"))));}
+                      else{
+                          tooltip.setText("dfdf");
+                      }
+                      tooltip.show(node, e.getScreenX()+50, e.getScreenY());
                   });
-              });
+
+            });
+
             if(cell.getValue().getContainer()!=null || component!=null)
             {
                 return new ReadOnlyObjectWrapper<>(component);
