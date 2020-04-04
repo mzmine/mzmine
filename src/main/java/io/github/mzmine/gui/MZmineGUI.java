@@ -29,11 +29,16 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+import com.sun.istack.NotNull;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import javafx.application.HostServices;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -123,66 +128,12 @@ public class MZmineGUI extends Application implements Desktop {
     });
 
     // Drag over surface
-    rootScene.setOnDragOver(new EventHandler<DragEvent>() {
-      @Override
-      public void handle(DragEvent event) {
-        Dragboard dragBoard = event.getDragboard();
-        if (dragBoard.hasFiles()) {
-          event.acceptTransferModes(TransferMode.COPY);
-        } else {
-          event.consume();
-        }
-      }
+    rootScene.setOnDragOver(event -> {
+      activateSetOnDragOver(event);
     });
     // Dropping over surface
-    rootScene.setOnDragDropped(new EventHandler<DragEvent>() {
-      @Override
-      public void handle(DragEvent event) {
-        Dragboard dragboard = event.getDragboard();
-        boolean success = false;
-        if (dragboard.hasFiles()) {
-          success = true;
-          for (File selectedFile:dragboard.getFiles()) {
-
-            final String extension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf("."));
-            String[] RowDataFile = {".cdf",".nc",".mzData",".mzML",".mzXML"};
-            final Boolean isRawDataFile = Arrays.asList(RowDataFile).contains(extension);
-            final Boolean isMZmineProject = extension.equals(".mzmine");
-
-            String moduleClass = "";
-            if(isMZmineProject)
-            {
-              moduleClass = "io.github.mzmine.modules.io.projectload.ProjectLoadModule";
-            } else if(isRawDataFile){
-              moduleClass = "io.github.mzmine.modules.io.rawdataimport.RawDataImportModule";
-            }
-
-            Class<? extends MZmineRunnableModule> moduleJavaClass;
-            try {
-              moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
-            } catch (Throwable e) {
-              MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
-              return;
-            }
-
-            ParameterSet moduleParameters =
-                    MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-
-            if(isMZmineProject){
-              moduleParameters.getParameter(projectFile).setValue(selectedFile);
-            } else if (isRawDataFile){
-              List<File> fileList = new ArrayList<>();
-              fileList.add(selectedFile);
-              moduleParameters.getParameter(fileNames).setValue(fileList.toArray(new File[0]));
-            }
-
-            ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-            MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
-          }
-        }
-        event.setDropCompleted(success);
-        event.consume();
-      }
+    rootScene.setOnDragDropped(event -> {
+      activateSetOnDragDropped(event);
     });
 
     // Configure desktop properties such as the application taskbar icon
@@ -361,6 +312,52 @@ public class MZmineGUI extends Application implements Desktop {
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
       aboutWindow.show();
     });
+  }
+
+  public static void activateSetOnDragOver(DragEvent event){
+    Dragboard dragBoard = event.getDragboard();
+    if (dragBoard.hasFiles()) {
+      event.acceptTransferModes(TransferMode.COPY);
+    } else {
+      event.consume();
+    }
+  }
+
+  public static void activateSetOnDragDropped(DragEvent event){
+    Dragboard dragboard = event.getDragboard();
+    boolean hasFileDropped = false;
+    if (dragboard.hasFiles()) {
+      hasFileDropped = true;
+      for (File selectedFile:dragboard.getFiles()) {
+
+        final String extension = FilenameUtils.getExtension(selectedFile.getName());
+        String[] rowDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
+        final Boolean isRawDataFile = Arrays.asList(rowDataFile).contains(extension);
+        final Boolean isMZmineProject = extension.equals("mzmine");
+
+        Class<? extends MZmineRunnableModule> moduleJavaClass = null;
+        if(isMZmineProject)
+        {
+          moduleJavaClass = ProjectLoadModule.class;
+        } else if(isRawDataFile){
+          moduleJavaClass = RawDataImportModule.class;
+        }
+        ParameterSet moduleParameters =
+                MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+
+        if(isMZmineProject){
+          moduleParameters.getParameter(projectFile).setValue(selectedFile);
+        } else if (isRawDataFile){
+          File fileArray[] = { selectedFile };
+          moduleParameters.getParameter(fileNames).setValue(fileArray);
+        }
+
+        ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+        MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+      }
+    }
+    event.setDropCompleted(hasFileDropped);
+    event.consume();
   }
 
   @Override

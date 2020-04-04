@@ -129,18 +129,29 @@ public class MainWindowController {
     rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // rawDataTree.setShowRoot(true);
 
-    rawDataTree.setCellFactory(rawDataListView -> new DraggableListCell<>() {
-      @Override
-      protected void updateItem(RawDataFile item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || (item == null)) {
-          setText("");
-          setGraphic(null);
-          return;
+    rawDataTree.setCellFactory(rawDataFileListView -> {
+      DraggableListCell<RawDataFile> cell = new DraggableListCell<>(){
+        @Override
+        public void updateItem(RawDataFile item , boolean empty) {
+          super.updateItem(item, empty);
+          if (empty || (item == null)) {
+            setText("");
+            setGraphic(null);
+            return;
+          }
+          setText(item.getName());
+          setGraphic(new ImageView(rawDataFileIcon));
         }
-        setText(item.getName());
-        setGraphic(new ImageView(rawDataFileIcon));
-      }
+      };
+
+      cell.setOnDragOver(event -> {
+        MZmineGUI.activateSetOnDragOver(event);
+      });
+      cell.setOnDragDropped(event -> {
+        MZmineGUI.activateSetOnDragDropped(event);
+      });
+
+      return cell ;
     });
 
     // Add mouse clicked event handler
@@ -153,22 +164,34 @@ public class MainWindowController {
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
 
-    featureTree.setCellFactory(featureListView -> new DraggableListCell<>() {
-      @Override
-      protected void updateItem(PeakList item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || (item == null)) {
-          setText("");
-          setGraphic(null);
-          return;
+    featureTree.setCellFactory(featureListView -> {
+      DraggableListCell<PeakList> cell = new DraggableListCell<>(){
+        @Override
+        protected void updateItem(PeakList item, boolean empty) {
+          super.updateItem(item, empty);
+          if (empty || (item == null)) {
+            setText("");
+            setGraphic(null);
+            return;
+          }
+          setText(item.getName());
+          if (item.getNumberOfRawDataFiles() > 1)
+            setGraphic(new ImageView(featureListAlignedIcon));
+          else
+            setGraphic(new ImageView(featureListSingleIcon));
         }
-        setText(item.getName());
-        if (item.getNumberOfRawDataFiles() > 1)
-          setGraphic(new ImageView(featureListAlignedIcon));
-        else
-          setGraphic(new ImageView(featureListSingleIcon));
-      }
+      };
+
+      cell.setOnDragOver(event -> {
+        MZmineGUI.activateSetOnDragOver(event);
+      });
+      cell.setOnDragDropped(event -> {
+        MZmineGUI.activateSetOnDragDropped(event);
+      });
+
+      return cell ;
     });
+
     // Add mouse clicked event handler
     featureTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
