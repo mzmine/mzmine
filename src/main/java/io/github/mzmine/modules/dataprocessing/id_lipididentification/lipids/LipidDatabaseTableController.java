@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -178,18 +180,19 @@ public class LipidDatabaseTableController {
               selectedLipids[i].getMainClass().getName(), // main class
               selectedLipids[i].getName(), // lipid class
               lipidChain.getFormula(), // molecular formula
-              selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")", // abbr
+              selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")",
+              // abbr
               ionizationType.toString(), // ionization type
               numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
-                                                                                         // mass
+              // mass
               "", // info
               "", // status
               String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
-                                                                                         // fragments
-                                                                                         // postive
+              // fragments
+              // postive
               String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization()))); // msms
-                                                                                           // fragments
-                                                                                           // negative
+          // fragments
+          // negative
           id++;
           if (useModification) {
             for (int j = 0; j < lipidModification.length; j++) {
@@ -200,11 +203,12 @@ public class LipidDatabaseTableController {
                   // class
                   lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
                   // formula
-                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"// abbr
+                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"
+// abbr
                       + lipidModification[j].getLipidModificatio(),
                   ionizationType.toString(), // ionization type
                   numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
-                  // mass
+                      // mass
                       + lipidModification[j].getModificationMass()),
                   "", // info
                   "", // status
@@ -234,17 +238,20 @@ public class LipidDatabaseTableController {
     checkInterferences();
 
     // set colors depending on colors
-    Vision vision = MZminePreferences.colorPalettes.getValue();
+    SimpleColorPalette palette =
+        (MZmineCore.getConfiguration().getDefaultColorPalette() != null) ? MZmineCore
+            .getConfiguration()
+            .getDefaultColorPalette() : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
 
     // fx colors
-    noInterFX = ColorsFX.getPositiveColor(vision);
-    possibleInterFX = ColorsFX.getNeutralColor();
-    interFX = ColorsFX.getNegativeColor(vision);
+    noInterFX = palette.getPositiveColor();
+    possibleInterFX = palette.getNeutralColor();
+    interFX = palette.getNegativeColor();
 
     // awt/swing colors or jfreechart
-    noInterSwing = Colors.getPositiveColor(vision);
-    possibleInterSwing = Colors.getNeutralColor();
-    interSwing = Colors.getNegativeColor(vision);
+    noInterSwing = palette.getPositiveColorAWT();
+    possibleInterSwing = palette.getNeutralColorAWT();
+    interSwing = palette.getNegativeColorAWT();
 
     // create cell factory
     statusColumn.setCellFactory(e -> new TableCell<LipidClassDescription, String>() {

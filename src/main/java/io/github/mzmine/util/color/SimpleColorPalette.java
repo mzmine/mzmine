@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,13 +21,13 @@ package io.github.mzmine.util.color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
+import com.google.common.collect.ImmutableMap;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
@@ -36,11 +36,40 @@ import javafx.scene.paint.Color;
  * Implementation of a color palette. It's an observable list to allow addition of listeners.
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class SimpleColorPalette extends ModifiableObservableListBase<Color> implements Cloneable {
 
+  protected static final SimpleColorPalette DEFAULT_NORMAL =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
+          ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
+
+  protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true),
+          "Deuteranopia", ColorsFX.getPositiveColor(Vision.DEUTERANOPIA),
+          ColorsFX.getNeutralColor(), ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
+
+  protected static final SimpleColorPalette DEFAULT_PROTANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
+          ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.PROTANOPIA));
+
+  protected static final SimpleColorPalette DEFAULT_TRITANOPIA =
+      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
+          ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
+          ColorsFX.getNegativeColor(Vision.TRITANOPIA));
+
+  /**
+   * Access via {@link Vision}
+   */
+  public static final ImmutableMap<Vision, SimpleColorPalette> DEFAULT = ImmutableMap.of(
+      Vision.NORMAL_VISION, DEFAULT_NORMAL, Vision.DEUTERANOPIA, DEFAULT_DEUTERANOPIA,
+      Vision.PROTANOPIA, DEFAULT_PROTANOPIA, Vision.TRITANOPIA, DEFAULT_TRITANOPIA);
+
   private static final String NAME_ATTRIBUTE = "name";
+  private static final String POS_ATTRIBUTE = "positive_color";
+  private static final String NEG_ATTRIBUTE = "negative_color";
+  private static final String NEU_ATTRIBUTE = "neutral_color";
 
   private static final Color defclr = Color.BLACK;
   private static final Logger logger = Logger.getLogger(SimpleColorPalette.class.getName());
@@ -51,8 +80,13 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   protected String name;
   protected int next;
 
+  protected Color positiveColor;
+  protected Color negativeColor;
+
+  protected Color neutralColor;
+
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -61,19 +95,30 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     delegate = new ArrayList<>();
     next = 0;
     name = "";
+    positiveColor = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
+    negativeColor = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
+    neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(Color[] clrs) {
+  public SimpleColorPalette(@Nonnull Color[] clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
     }
   }
 
-  public SimpleColorPalette(SimpleColorPalette p) {
-    this();
-    p.forEach(c -> add(c));
-    name = p.getName() + " (cpy)";
+  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name) {
+    this(clrs);
+    setName(name);
+  }
+
+  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name, Color positiveColor,
+      Color neutralColor, Color negativeColor) {
+    this(clrs, name);
+
+    setPositiveColor(positiveColor);
+    setNeutralColor(neutralColor);
+    setNegativeColor(negativeColor);
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
@@ -89,7 +134,6 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   /**
-   * 
    * @return The next color in the color palette.
    */
   public Color getNextColor() {
@@ -105,14 +149,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return get(next - 1);
   }
 
-  @Nonnull public Color getMainColor() {
-    if (isValidPalette()) {
+  public java.awt.Color getNextColorAWT(int index) {
+    return FxColorUtil.fxColorToAWT(getNextColor());
+  }
+
+  @Nonnull
+  public Color getMainColor() {
+    if (isValid()) {
       return get(MAIN_COLOR);
     }
     return Color.BLACK;
   }
 
-  public boolean isValidPalette() {
+  public java.awt.Color getMainColorAWT() {
+    return FxColorUtil.fxColorToAWT(getMainColor());
+  }
+
+  public boolean isValid() {
     if (this.isEmpty()) {
       return false;
     }
@@ -127,7 +180,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return true;
   }
 
-  @Nonnull public String getName() {
+  @Nonnull
+  public String getName() {
     return name;
   }
 
@@ -135,50 +189,72 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     this.name = name;
   }
 
-  public void moveColor(Color color, int newIndex) {
-    moveColor(indexOf(color), newIndex);
+  /**
+   * @param color
+   * @param newIndex
+   * @return The new index of the moved color. -1 if called with invalid color.
+   */
+  public int moveColor(Color color, int newIndex) {
+    return moveColor(indexOf(color), newIndex);
   }
 
-  public void moveColor(int oldIndex, int newIndex) {
+  /**
+   * @param oldIndex
+   * @param newIndex
+   * @return The new index of the moved color. -1 if called with invalid index.
+   */
+  public int moveColor(int oldIndex, int newIndex) {
     if (oldIndex < 0 || newIndex < 0 || oldIndex >= size() || newIndex >= size()) {
       logger.info("move called with invalid parameters " + oldIndex + " to " + newIndex);
-      return;
+      return -1;
     }
 
-    List<Color> sublist = new ArrayList<>();
-    delegate.subList(newIndex, delegate.size()).forEach(c -> sublist.add(c));
     Color clr = delegate.get(oldIndex);
 
-    sublist.remove(clr);
-    delegate.remove(clr);
+    // if the color shall be moved to the end, we have to increment by 1, otherwise the last color
+    // will just move one to the right.
+    if (newIndex == size() - 1) {
+      newIndex++;
+    }
 
-    delegate.removeAll(sublist);
-    delegate.add(clr);
-    delegate.addAll(sublist);
+    delegate.add(newIndex, clr);
 
-    fireChange(new ColorPaletteColorMovedEvent(this, oldIndex, newIndex));
+    if (oldIndex > newIndex) {
+      remove(oldIndex + 1);
+    } else {
+      remove(oldIndex);
+    }
+
+    fireChange(new ColorPaletteChangedEvent(this, oldIndex, newIndex));
+
+    return indexOf(clr);
   }
 
   /**
    * Checks for equality between two color palettes. Does not take the name into account.
-   * 
+   *
    * @param obj The palette.
    * @return true or false.
    */
-  @Override public boolean equals(Object obj) {
-    if(obj == null)
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
       return false;
+    }
 
-    if(obj == this)
+    if (obj == this) {
       return true;
+    }
 
-    if(!(obj instanceof SimpleColorPalette))
+    if (!(obj instanceof SimpleColorPalette)) {
       return false;
+    }
 
     SimpleColorPalette palette = (SimpleColorPalette) obj;
 
-    if (size() != palette.size())
+    if (size() != palette.size()) {
       return false;
+    }
 
     for (int i = 0; i < size(); i++) {
       if (!Objects.equals(get(i).toString(), palette.get(i).toString())) {
@@ -186,15 +262,27 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     }
 
-    if(!Objects.equals(getName(), palette.getName()))
+    if (!Objects.equals(getName(), palette.getName())) {
       return false;
+    }
+
+    if (!Objects.equals(getPositiveColor().toString(), palette.getPositiveColor().toString())) {
+      return false;
+    }
+    if (!Objects.equals(getNegativeColor().toString(), palette.getNegativeColor().toString())) {
+      return false;
+    }
+    if (!Objects.equals(getNeutralColor().toString(), palette.getNeutralColor().toString())) {
+      return false;
+    }
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + name.hashCode();
+    return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
+        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
@@ -204,31 +292,55 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       clone.add(clr);
     }
     clone.setName(getName());
+    clone.setNegativeColor(getNegativeColor());
+    clone.setPositiveColor(getPositiveColor());
     return clone;
   }
 
   @Override
   public String toString() {
-    return getName() + " " + super.toString();
+    return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
+        + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {
     this.setName(xmlElement.getAttribute(NAME_ATTRIBUTE));
     String text = xmlElement.getTextContent();
 
-    // not a single color in the palette
-    if (text.length() < 10) {
-      this.clear();
-      this.addAll(
-          ColorsFX.getSevenColorPalette(MZmineCore.getConfiguration().getColorVision(), true));
-      return;
+    String pos = xmlElement.getAttribute(POS_ATTRIBUTE);
+    String neg = xmlElement.getAttribute(NEG_ATTRIBUTE);
+    String neu = xmlElement.getAttribute(NEU_ATTRIBUTE);
+
+    Color clrPos, clrNeg, clrNeu;
+
+    try {
+      text = text.substring(1, text.length() - 1);
+      text = text.replaceAll("\\s", "");
+      String[] clrs = text.split(",");
+      for (String clr : clrs) {
+        delegate.add(Color.web(clr));
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          "Could not load color palette " + name + ". Setting default colors.", e);
+      this.addAll(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
     }
-    text = text.substring(1, text.length() - 1);
-    text = text.replaceAll("\\s", "");
-    String[] clrs = text.split(",");
-    for (String clr : clrs) {
-      delegate.add(Color.web(clr));
+
+    try {
+      clrPos = Color.web(pos);
+      clrNeg = Color.web(neg);
+      clrNeu = Color.web(neu);
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          "Could not load positive/negative colors of " + name + ". Setting default colors.", e);
+      clrPos = ColorsFX.getPositiveColor(Vision.DEUTERANOPIA);
+      clrNeg = ColorsFX.getNegativeColor(Vision.DEUTERANOPIA);
+      clrNeu = ColorsFX.getNeutralColor();
     }
+
+    setPositiveColor(clrPos);
+    setNegativeColor(clrNeg);
+    setNeutralColor(clrNeu);
   }
 
   public static SimpleColorPalette createFromXML(Element xmlElement) {
@@ -245,7 +357,51 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public void saveToXML(Element xmlElement) {
     xmlElement.setAttribute(NAME_ATTRIBUTE, name);
     xmlElement.setTextContent(delegate.toString());
-    logger.info(xmlElement.toString());
+    xmlElement.setAttribute(POS_ATTRIBUTE, getPositiveColor().toString());
+    xmlElement.setAttribute(NEG_ATTRIBUTE, getNegativeColor().toString());
+    xmlElement.setAttribute(NEU_ATTRIBUTE, getNeutralColor().toString());
+  }
+
+  public Color getPositiveColor() {
+    return positiveColor;
+  }
+
+  public java.awt.Color getPositiveColorAWT() {
+    return FxColorUtil.fxColorToAWT(getPositiveColor());
+  }
+
+  public void setPositiveColor(Color positiveColor) {
+    this.positiveColor = positiveColor;
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED, positiveColor));
+  }
+
+  public Color getNegativeColor() {
+    return negativeColor;
+  }
+
+  public java.awt.Color getNegativeColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNegativeColor());
+  }
+
+  public void setNegativeColor(Color negativeColor) {
+    this.negativeColor = negativeColor;
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED, negativeColor));
+  }
+
+  public Color getNeutralColor() {
+    return neutralColor;
+  }
+
+  public java.awt.Color getNeutralColorAWT() {
+    return FxColorUtil.fxColorToAWT(getNeutralColor());
+  }
+
+  public void setNeutralColor(Color neutralColor) {
+    this.neutralColor = neutralColor;
+    fireChange(new ColorPaletteChangedEvent(this,
+        ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED, neutralColor));
   }
 
   // --- super type
@@ -253,6 +409,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public Color get(int index) {
     next = index + 1;
     return delegate.get(index);
+  }
+
+  public java.awt.Color getAWT(int index) {
+    return FxColorUtil.fxColorToAWT(get(index));
   }
 
   @Override

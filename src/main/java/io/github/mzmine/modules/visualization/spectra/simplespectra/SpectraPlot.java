@@ -19,23 +19,21 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -69,13 +67,13 @@ public class SpectraPlot extends EChartViewer {
   // grid color
   private static final Color gridColor = Color.lightGray;
 
-  // title font
-  private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-  private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
+  // title font - moved to EStandardChartTheme ~SteffenHeu
+  // private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+  // private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
   private TextTitle chartTitle, chartSubTitle;
 
-  // legend
-  private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+  // legend - moved to EStandardChartTheme ~SteffenHeu
+  // private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true,
       dataPointsVisible = false;
@@ -85,8 +83,10 @@ public class SpectraPlot extends EChartViewer {
   private int numOfDataSets = 0;
 
   // Spectra processing
-  DataPointProcessingController controller;
+  protected DataPointProcessingController controller;
   private boolean processingAllowed;
+
+  protected EStandardChartTheme theme;
 
   public SpectraPlot() {
     this(false);
@@ -111,41 +111,25 @@ public class SpectraPlot extends EChartViewer {
     chart = getChart();
     chart.setBackgroundPaint(Color.white);
 
+    plot = chart.getXYPlot();
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+
     // title
     chartTitle = chart.getTitle();
-    chartTitle.setMargin(5, 0, 0, 0);
-    chartTitle.setFont(titleFont);
-
     chartSubTitle = new TextTitle();
-    chartSubTitle.setFont(subTitleFont);
-    chartSubTitle.setMargin(5, 0, 0, 0);
     chart.addSubtitle(chartSubTitle);
-
-    // legend constructed by ChartFactory
-    LegendTitle legend = chart.getLegend();
-    legend.setItemFont(legendFont);
-    legend.setFrame(BlockBorder.NONE);
 
     // disable maximum size (we don't want scaling)
     // setMaximumDrawWidth(Integer.MAX_VALUE);
     // setMaximumDrawHeight(Integer.MAX_VALUE);
     // setMinimumDrawHeight(0);
 
-    // set the plot properties
-    plot = chart.getXYPlot();
-    plot.setBackgroundPaint(Color.white);
-    plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    // set grid properties
+    // set grid properties - TODO: do we want gridlines in spectra?
     plot.setDomainGridlinePaint(gridColor);
     plot.setRangeGridlinePaint(gridColor);
-
-    // set crosshair (selection) properties
-    plot.setDomainCrosshairVisible(false);
-    plot.setRangeCrosshairVisible(false);
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
@@ -174,48 +158,50 @@ public class SpectraPlot extends EChartViewer {
 
     ContextMenu popupMenu = getContextMenu();
 
-    // Add EMF and EPS options to the save as menu
-    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    // FxMenuUtil.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    // FxMenuUtil.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-
     // add items to popup menu
     /*
      * if (masterPlot instanceof SpectraVisualizerWindow) {
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
      * "EXPORT_SPECTRA"); FxMenuUtil.addMenuItem(popupMenu, "Create spectral library entry",
      * masterPlot, "CREATE_LIBRARY_ENTRY");
-     * 
+     *
      * popupMenu.addSeparator();
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
      * "TOGGLE_PLOT_MODE"); FxMenuUtil.addMenuItem(popupMenu,
      * "Toggle displaying of data points in continuous mode", masterPlot, "SHOW_DATA_POINTS");
      * FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
      * "SHOW_ANNOTATIONS"); FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
      * masterPlot, "SHOW_PICKED_PEAKS");
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Reset removed titles to visible", this,
      * "SHOW_REMOVED_TITLES");
-     * 
+     *
      * popupMenu.addSeparator();
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
      * "SET_SAME_RANGE");
-     * 
+     *
      * popupMenu.addSeparator();
-     * 
+     *
      * FxMenuUtil.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
      * }
      */
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
+
+    theme.apply(chart);
+
+    // set crosshair (selection) properties
+    plot.setDomainCrosshairVisible(false);
+    plot.setRangeCrosshairVisible(false);
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
@@ -229,33 +215,6 @@ public class SpectraPlot extends EChartViewer {
    * for (int i = 0; i < getChart().getSubtitleCount(); i++) {
    * getChart().getSubtitle(i).setVisible(true); } getChart().getTitle().setVisible(true); }
    *
-   * if ("SAVE_EMF".equals(command)) {
-   *
-   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
-   * FileNameExtensionFilter("EMF Image", "EMF"); chooser.setFileFilter(filter); int returnVal =
-   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
-   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
-   *
-   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
-   *
-   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF); new
-   * Thread(SI).start();
-   *
-   * } }
-   *
-   * if ("SAVE_EPS".equals(command)) {
-   *
-   * JFileChooser chooser = new JFileChooser(); FileNameExtensionFilter filter = new
-   * FileNameExtensionFilter("EPS Image", "EPS"); chooser.setFileFilter(filter); int returnVal =
-   * chooser.showSaveDialog(null); if (returnVal == JFileChooser.APPROVE_OPTION) { String file =
-   * chooser.getSelectedFile().getPath(); if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
-   *
-   * int width = (int) this.getSize().getWidth(); int height = (int) this.getSize().getHeight();
-   *
-   * // Save image SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS); new
-   * Thread(SI).start();
-   *
-   * }
    *
    * } }
    */
@@ -284,7 +243,7 @@ public class SpectraPlot extends EChartViewer {
     SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
     newRenderer.setDefaultItemLabelGenerator(labelGenerator);
     newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-    newRenderer.setDefaultItemLabelPaint(labelsColor);
+    newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     plot.setRenderer(0, newRenderer);
 
@@ -386,7 +345,7 @@ public class SpectraPlot extends EChartViewer {
       SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(labelsColor);
+      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     } else {
       newRenderer = new PeakRenderer(color, transparency);
@@ -419,14 +378,14 @@ public class SpectraPlot extends EChartViewer {
       // Add label generator for the dataset
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(labelsColor);
+      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
 
     } else {
       newRenderer = new PeakRenderer(color, transparency);
       // Add label generator for the dataset
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(labelsColor);
+      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
     }
 
     plot.setDataset(numOfDataSets, dataSet);

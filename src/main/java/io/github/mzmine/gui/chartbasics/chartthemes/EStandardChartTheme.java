@@ -18,20 +18,25 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.Stroke;
+import javax.annotation.Nonnull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import org.jfree.chart.ui.RectangleInsets;
 
 /**
  * More options for the StandardChartTheme
@@ -42,6 +47,14 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final long serialVersionUID = 1L;
 
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
+  private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
+
+  private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
+  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
+      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
+
+  private static final RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
+  private static final double TITLE_TOP_MARGIN = 5.0;
 
   public static final String XML_DESC = "ChartTheme";
   // master font
@@ -126,9 +139,50 @@ public class EStandardChartTheme extends StandardChartTheme {
   public void apply(JFreeChart chart) {
     super.apply(chart);
     XYPlot p = chart.getXYPlot();
+
+    // Cross hair and  axis visibility colors
+    applyToCrosshair(chart);
+    applyToAxes(chart);
+
+//    applyToTitles(chart);
+
+    // apply bg
+    chart.setBackgroundPaint(this.getChartBackgroundPaint());
+    chart.getPlot().setBackgroundPaint(this.getPlotBackgroundPaint());
+
     //
-    p.setDomainGridlinesVisible(showXGrid);
-    p.setRangeGridlinesVisible(showYGrid);
+    chart.setAntiAlias(isAntiAliased());
+    p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
+
+    applyToLegend(chart);
+
+  }
+
+
+  public void applyToCrosshair(@Nonnull JFreeChart chart){
+    XYPlot p = chart.getXYPlot();
+    p.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+    p.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+    p.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+    p.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+    p.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+    p.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+  }
+
+  public void applyToAxes(@Nonnull JFreeChart chart){
+    XYPlot p = chart.getXYPlot();
+    p.getDomainAxis().setVisible(isShowXAxis());
+    p.getRangeAxis().setVisible(isShowYAxis());
+    p.setDomainGridlinesVisible(isShowXGrid());
+    p.setDomainGridlinePaint(getClrXGrid());
+    p.setRangeGridlinesVisible(isShowYGrid());
+    p.setRangeGridlinePaint(getClrYGrid());
+
+    if (isUseXLabel())
+      p.getDomainAxis().setLabel(getXlabel());
+    if (isUseYLabel())
+      p.getRangeAxis().setLabel(getYlabel());
+
     // all axes
     for (int i = 0; i < p.getDomainAxisCount(); i++) {
       NumberAxis a = (NumberAxis) p.getDomainAxis(i);
@@ -144,41 +198,34 @@ public class EStandardChartTheme extends StandardChartTheme {
       // visible?
       a.setVisible(showYAxis);
     }
-    // apply bg
-    chart.setBackgroundPaint(this.getChartBackgroundPaint());
-    chart.getPlot().setBackgroundPaint(this.getPlotBackgroundPaint());
 
-    for (int i = 0; i < chart.getSubtitleCount(); i++) {
-      // visible?
-      chart.getSubtitle(i).setVisible(subtitleVisible);
-      //
-      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
-        ((PaintScaleLegend) chart.getSubtitle(i))
-            .setBackgroundPaint(this.getChartBackgroundPaint());
-    }
+    p.setAxisOffset(DEFAULT_AXIS_OFFSET);
+  }
+
+  public void applyToLegend(@Nonnull JFreeChart chart){
+
     if (chart.getLegend() != null)
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
 
-    if (isUseXLabel())
-      p.getDomainAxis().setLabel(getXlabel());
-    if (isUseYLabel())
-      p.getRangeAxis().setLabel(getYlabel());
-
-    p.getDomainAxis().setVisible(isShowXAxis());
-    p.getRangeAxis().setVisible(isShowYAxis());
-
-    p.setDomainGridlinesVisible(isShowXGrid());
-    p.setDomainGridlinePaint(getClrXGrid());
-    p.setRangeGridlinesVisible(isShowYGrid());
-    p.setRangeGridlinePaint(getClrYGrid());
-
-    //
-    chart.setAntiAlias(isAntiAliased());
-    chart.getTitle().setVisible(isShowTitle());
-    p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
-
     fixLegend(chart);
   }
+
+//  public void applyToTitles(@Nonnull JFreeChart chart){
+//    chart.getSubtitles().forEach(s -> {
+//      if(s instanceof TextTitle && s != chart.getTitle()){
+//        ((TextTitle) s).setFont(getRegularFont());
+//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+//        ((TextTitle) s).setVisible(isShowTitle());
+////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+////        subtitle color is set by the chart theme parameters
+//
+//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+//          ((PaintScaleLegend) s)
+//              .setBackgroundPaint(this.getChartBackgroundPaint());
+//        }
+//      }
+//    });
+//  }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
@@ -193,6 +240,8 @@ public class EStandardChartTheme extends StandardChartTheme {
     this.setLegendBackgroundPaint(
         new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
   }
+
+
 
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
@@ -211,6 +260,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     newLegend.setItemFont(oldLegend.getItemFont());
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
+    newLegend.setFrame(BlockBorder.NONE);
   }
 
   // GETTERS AND SETTERS
@@ -349,4 +399,5 @@ public class EStandardChartTheme extends StandardChartTheme {
   public void setClrYGrid(Color clrYGrid) {
     this.clrYGrid = clrYGrid;
   }
+
 }

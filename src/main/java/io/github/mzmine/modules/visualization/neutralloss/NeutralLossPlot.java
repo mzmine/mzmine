@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,47 +20,41 @@ package io.github.mzmine.modules.visualization.neutralloss;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
-
-import javax.swing.JFileChooser;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 
-class NeutralLossPlot extends EChartPanel {
-
-  private static final long serialVersionUID = 1L;
+class NeutralLossPlot extends EChartViewer {
 
   private JFreeChart chart;
 
   private XYPlot plot;
   private NeutralLossDataPointRenderer defaultRenderer;
 
-  private boolean showSpectrumRequest = false;
+  private boolean showSpectrumRequest;
 
   private NeutralLossVisualizerWindow visualizer;
 
@@ -88,38 +82,13 @@ class NeutralLossPlot extends EChartPanel {
   private Range<Double> highlightedPrecursorRange = Range.singleton(Double.NEGATIVE_INFINITY);
   private Range<Double> highlightedNeutralLossRange = Range.singleton(Double.NEGATIVE_INFINITY);
 
-  NeutralLossPlot(NeutralLossVisualizerWindow visualizer, NeutralLossDataSet dataset,
-      Object xAxisType) {
+  NeutralLossPlot() {
+    super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
+        false), true, true, false, false, true);
+    resetZoomHistory();
+    setMouseZoomable(false);
 
-    super(null, true);
-
-    this.visualizer = visualizer;
-
-    setBackground(Color.white);
-    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
-    // set the X axis (retention time) properties
-    NumberAxis xAxis;
-    if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
-      xAxis = new NumberAxis("Precursor m/z");
-      xAxis.setNumberFormatOverride(mzFormat);
-    } else {
-      xAxis = new NumberAxis("Retention time");
-      xAxis.setNumberFormatOverride(rtFormat);
-    }
-    xAxis.setUpperMargin(0);
-    xAxis.setLowerMargin(0);
-    xAxis.setAutoRangeIncludesZero(false);
-
-    // set the Y axis (intensity) properties
-    NumberAxis yAxis = new NumberAxis("Neutral loss (Da)");
-    yAxis.setAutoRangeIncludesZero(false);
-    yAxis.setNumberFormatOverride(mzFormat);
-    yAxis.setUpperMargin(0);
-    yAxis.setLowerMargin(0);
+    showSpectrumRequest = false;
 
     // set the renderer properties
     defaultRenderer = new NeutralLossDataPointRenderer(false, true);
@@ -128,29 +97,19 @@ class NeutralLossPlot extends EChartPanel {
     setSeriesColorRenderer(1, searchPrecursorColor, dataPointsShape2);
     setSeriesColorRenderer(2, searchNeutralLossColor, dataPointsShape2);
 
-    // tooltips
-    defaultRenderer.setDefaultToolTipGenerator(dataset);
-
-    // set the plot properties
-    plot = new XYPlot(dataset, xAxis, yAxis, defaultRenderer);
-    plot.setBackgroundPaint(Color.white);
-    plot.setRenderer(defaultRenderer);
-    plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
-
     // chart properties
-    chart = new JFreeChart("", titleFont, plot, false);
+    chart = getChart();
     chart.setBackgroundPaint(Color.white);
 
-    setChart(chart);
+    // set the plot properties
+    plot = chart.getXYPlot();
+    plot.setBackgroundPaint(Color.white);
+    plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
 
     // title
     chartTitle = chart.getTitle();
     chartTitle.setMargin(5, 0, 0, 0);
     chartTitle.setFont(titleFont);
-
-    // disable maximum size (we don't want scaling)
-    setMaximumDrawWidth(Integer.MAX_VALUE);
-    setMaximumDrawHeight(Integer.MAX_VALUE);
 
     // set crosshair (selection) properties
     plot.setDomainCrosshairVisible(true);
@@ -162,86 +121,121 @@ class NeutralLossPlot extends EChartPanel {
 
     plot.addRangeMarker(new ValueMarker(0));
 
-    // set focusable state to receive key events
-    setFocusable(true);
+    final ContextMenu popupMenu = getContextMenu();
+    popupMenu.getItems().add(new SeparatorMenuItem());
 
-    // register key handlers
-    GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), visualizer, "SHOW_SPECTRUM");
+    this.addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        requestFocus();
+        MouseEvent mouseEvent = event.getTrigger();
+        if ((mouseEvent.getClickCount() == 2) && (mouseEvent.getButton() == MouseButton.PRIMARY)) {
+          // showSpectrum();
+          showSpectrumRequest = true;
+        }
+      }
 
-    // add items to popup menu
-    JPopupMenu popupMenu = getPopupMenu();
-    popupMenu.addSeparator();
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+        return;
+      }
+    });
 
-    // Add EMF and EPS options to the save as menu
-    JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
-    JMenuItem highLightPrecursorRange = new JMenuItem("Highlight precursor m/z range...");
-    highLightPrecursorRange.addActionListener(visualizer);
-    highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
-    popupMenu.add(highLightPrecursorRange);
+    this.setOnKeyTyped(keyEvent -> {
+      if (keyEvent.getCharacter().equals(" ")) {
+        showSpectrum();
+      }
+    });
 
-    JMenuItem highLightNeutralLossRange = new JMenuItem("Highlight neutral loss m/z range...");
-    highLightNeutralLossRange.addActionListener(visualizer);
-    highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
-    popupMenu.add(highLightNeutralLossRange);
+    chart.addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+        visualizer.updateTitle();
+        if (showSpectrumRequest) {
+          showSpectrumRequest = false;
+          showSpectrum();
+        }
+      }
+    });
 
-    // reset zoom history
-    ZoomHistory history = getZoomHistory();
-    if (history != null)
-      history.clear();
+    resetZoomHistory();
   }
 
-  @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
+  public void showSpectrum() {
+    NeutralLossDataSet dataset = (NeutralLossDataSet) plot.getDataset();
+    double xValue = plot.getDomainCrosshairValue();
+    double yValue = plot.getRangeCrosshairValue();
+    NeutralLossDataPoint pos = dataset.getDataPoint(xValue, yValue);
+    RawDataFile dataFile = visualizer.getDataFile();
+    if (pos != null) {
+      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
     }
 
-    if ("SAVE_EPS".equals(command)) {
+    resetZoomHistory();
+  }
 
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getSize().getWidth();
-        int height = (int) this.getSize().getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
+  public void resetZoomHistory() {
+    ZoomHistory history = getZoomHistory();
+    if (history != null) {
+      history.clear();
     }
+  }
+
+  public void setAxisTypes(Object xAxisType) {
+
+    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+
+    // set the X axis (retention time) properties
+    final NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
+    if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
+      xAxis.setLabel("Precursor m/z");
+      xAxis.setNumberFormatOverride(mzFormat);
+    } else {
+      xAxis.setLabel("Retention time");
+      xAxis.setNumberFormatOverride(rtFormat);
+    }
+    xAxis.setUpperMargin(0);
+    xAxis.setLowerMargin(0);
+    xAxis.setAutoRangeIncludesZero(false);
+    // set the Y axis (intensity) properties
+    final NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
+    yAxis.setLabel("Neutral loss (Da)");
+    yAxis.setAutoRangeIncludesZero(false);
+    yAxis.setNumberFormatOverride(mzFormat);
+    yAxis.setUpperMargin(0);
+    yAxis.setLowerMargin(0);
+  }
+
+  public void addNeutralLossDataSet(NeutralLossDataSet dataset) {
+    plot.setDataset(dataset);
+    defaultRenderer.setDefaultToolTipGenerator(dataset);
+    plot.setRenderer(defaultRenderer);
+  }
+
+  public void setVisualizer(NeutralLossVisualizerWindow visualizer) {
+    this.visualizer = visualizer;
+  }
+
+  public void setMenuItems() {
+    final ContextMenu popupMenu = getContextMenu();
+
+    MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
+    highlightPrecursorMenuItem.setOnAction(event -> {
+      NeutralLossSetHighlightDialog dialog =
+          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
+      dialog.show();
+    });
+    popupMenu.getItems().add(highlightPrecursorMenuItem);
+
+    MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
+    highlightNLMenuItem.setOnAction(event -> {
+      NeutralLossSetHighlightDialog dialog =
+          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
+      dialog.show();
+    });
+    popupMenu.getItems().add(highlightNLMenuItem);
+    popupMenu.getItems().add(new SeparatorMenuItem());
   }
 
   private void setSeriesColorRenderer(int series, Color color, Shape shape) {
@@ -280,45 +274,6 @@ class NeutralLossPlot extends EChartPanel {
    */
   void setHighlightedNeutralLossRange(Range<Double> range) {
     this.highlightedNeutralLossRange = range;
-  }
-
-  /**
-   * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-   */
-  public void mouseClicked(MouseEvent event) {
-
-    // let the parent handle the event (selection etc.)
-    super.mouseClicked(event);
-
-    // request focus to receive key events
-    requestFocus();
-
-    // if user double-clicked left button, place a request to open a
-    // spectrum
-    if ((event.getButton() == MouseEvent.BUTTON1) && (event.getClickCount() == 2)) {
-      showSpectrumRequest = true;
-    }
-
-  }
-
-  /**
-   * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
-   */
-  public void chartProgress(ChartProgressEvent event) {
-
-    super.chartProgress(event);
-
-    if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
-
-      visualizer.updateTitle();
-
-      if (showSpectrumRequest) {
-        showSpectrumRequest = false;
-        visualizer.actionPerformed(
-            new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
-      }
-    }
-
   }
 
   XYPlot getXYPlot() {

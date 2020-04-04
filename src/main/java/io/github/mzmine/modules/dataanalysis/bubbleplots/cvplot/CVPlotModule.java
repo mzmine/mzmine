@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 import java.awt.Color;
 import java.util.Collection;
 import javax.annotation.Nonnull;
+
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;

@@ -21,13 +21,9 @@ package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogAxis;
@@ -53,14 +49,11 @@ import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.PeakUtils;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.SearchDefinition;
 import io.github.mzmine.util.components.ComponentToolTipManager;
-import io.github.mzmine.util.components.ComponentToolTipProvider;
 import javafx.scene.control.ContextMenu;
 
-public class ScatterPlotChart extends EChartViewer implements ComponentToolTipProvider {
+public class ScatterPlotChart extends EChartViewer {
 
   // grid color
   private static final Color gridColor = Color.lightGray;
@@ -172,38 +165,34 @@ public class ScatterPlotChart extends EChartViewer implements ComponentToolTipPr
     // popupMenu.addSeparator();
     // GUIUtils.addMenuItem(popupMenu, "Show Chromatogram", this, "TIC");
 
-    // Add EMF and EPS options to the save as menu
-    // JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
-    // GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
-    // GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-
     // reset zoom history
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
   }
 
-  @Override
-  public JComponent getCustomToolTipComponent(MouseEvent event) {
-
-    /*
-     * String index = this.getToolTipText(event); if (index == null) { return null; } String
-     * indexSplit[] = index.split(":");
-     *
-     * int series = Integer.parseInt(indexSplit[0]); int item = Integer.parseInt(indexSplit[1]);
-     *
-     * PeakListRow row = mainDataSet.getRow(series, item);
-     *
-     * PeakSummaryComponent newSummary = new PeakSummaryComponent(row, peakList.getRawDataFiles(),
-     * true, true, true, true, false, ComponentToolTipManager.bg);
-     *
-     * double xValue = mainDataSet.getXValue(series, item); double yValue =
-     * mainDataSet.getYValue(series, item); newSummary.setRatio(xValue, yValue);
-     *
-     * return newSummary;
-     */ return null;
-
-  }
+  /*
+   *
+   * @Override public JComponent getCustomToolTipComponent(MouseEvent event) {
+   *
+   * String index = this.getToolTipText(event); if (index == null) { return null; } String
+   * indexSplit[] = index.split(":");
+   *
+   * int series = Integer.parseInt(indexSplit[0]); int item = Integer.parseInt(indexSplit[1]);
+   *
+   * PeakListRow row = mainDataSet.getRow(series, item);
+   *
+   * PeakSummaryComponent newSummary = new PeakSummaryComponent(row, peakList.getRawDataFiles(),
+   * true, true, true, true, false, ComponentToolTipManager.bg);
+   *
+   * double xValue = mainDataSet.getXValue(series, item); double yValue =
+   * mainDataSet.getYValue(series, item); newSummary.setRatio(xValue, yValue);
+   *
+   * return newSummary;
+   *
+   *
+   * }
+   */
 
   /**
    * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
@@ -264,48 +253,6 @@ public class ScatterPlotChart extends EChartViewer implements ComponentToolTipPr
           mzRange);
     }
 
-    if ("SAVE_EMF".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EMF Image", "EMF");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".emf"))
-          file += ".emf";
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-        new Thread(SI).start();
-
-      }
-    }
-
-    if ("SAVE_EPS".equals(command)) {
-
-      JFileChooser chooser = new JFileChooser();
-      FileNameExtensionFilter filter = new FileNameExtensionFilter("EPS Image", "EPS");
-      chooser.setFileFilter(filter);
-      int returnVal = chooser.showSaveDialog(null);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        String file = chooser.getSelectedFile().getPath();
-        if (!file.toLowerCase().endsWith(".eps"))
-          file += ".eps";
-
-        int width = (int) this.getWidth();
-        int height = (int) this.getHeight();
-
-        // Save image
-        SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-        new Thread(SI).start();
-
-      }
-
-    }
   }
 
   public void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY,

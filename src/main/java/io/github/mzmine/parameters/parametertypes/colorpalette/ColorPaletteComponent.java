@@ -25,11 +25,12 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 
 /**
  * Gui component for a SimpleColorPalette. Allows editing and selection of different palettes.
@@ -40,13 +41,12 @@ public class ColorPaletteComponent extends GridPane {
 
   private static final Logger logger = Logger.getLogger(ColorPaletteComponent.class.getName());
 
-  protected ComboBox<SimpleColorPalette> box;
-  protected Button addPalette;
-  protected Button editPalette;
-  protected Button deletePalette;
-  protected Button duplicatePalette;
-  protected Button addDefault;
-  protected FlowPane pnButtons;
+  protected final ComboBox<SimpleColorPalette> box;
+  protected final Button btnAddPalette;
+  protected final Button btnEditPalette;
+  protected final Button btnDeletePalette;
+  protected final Button duplicatePalette;
+  protected final FlowPane pnButtons;
 
   public ColorPaletteComponent() {
     super();
@@ -57,18 +57,16 @@ public class ColorPaletteComponent extends GridPane {
       return new ColorPaletteCell(17);
     });
     box.setButtonCell(new ColorPaletteCell(15));
-    box.setMinHeight(35);
-    box.setMaxHeight(35);
+    box.setMinHeight(37);
+    box.setMaxHeight(37);
 
-    box.getItems().addListener((ListChangeListener<? super SimpleColorPalette>) e ->
-        logger.info("Item added" + e.toString()));
-
-    addPalette = new Button("New");
-    addPalette.setOnAction(e -> {
+    btnAddPalette = new Button("New");
+    btnAddPalette.setOnAction(e -> {
       SimpleColorPalette pal = new SimpleColorPalette();
-      box.getItems().add(pal);
-//      box.getSelectionModel().select(box.getItems().indexOf(pal));
-//      box.setValue(pal);
+      pal.setName("New palette");
+      pal.add(Color.BLACK);
+      addPalette(pal);
+      setValue(pal);
     });
 
     duplicatePalette = new Button("Duplicate");
@@ -80,18 +78,20 @@ public class ColorPaletteComponent extends GridPane {
       }
 
       SimpleColorPalette newPal = pal.clone();
-      newPal.setName(pal.getName() + " (cpy)");
+      newPal.setName(pal.getName() + " (copy)");
       if (addPalette(newPal)) {
         box.setValue(newPal);
       }
 
-      logger.info("index of new value: " + box.getItems().indexOf(newPal));
-      logger.info("hash - old: " + pal.hashCode() + " new: " + newPal.hashCode());
-
     });
 
-    editPalette = new Button("Edit");
-    editPalette.setOnAction(e -> {
+    btnEditPalette = new Button("Edit");
+    btnEditPalette.setOnAction(e -> {
+      if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot edit default palette.");
+        return;
+      }
+
       ColorPalettePickerDialog d = new ColorPalettePickerDialog(box.getValue().clone());
       d.show();
 
@@ -106,10 +106,9 @@ public class ColorPaletteComponent extends GridPane {
           if (!addPalette(newVal)) {
             addPalette(oldVal);
             setValue(oldVal);
+            d.show();
             MZmineCore.getDesktop().displayErrorMessage(
                 "Cannot add duplicates. Palette with same name and colors already exists.");
-
-            d.show();
 //          return;
           }
 
@@ -118,8 +117,13 @@ public class ColorPaletteComponent extends GridPane {
       });
     });
 
-    deletePalette = new Button("Delete");
-    deletePalette.setOnAction(e -> {
+    btnDeletePalette = new Button("Delete");
+    btnDeletePalette.setOnAction(e -> {
+      if (SimpleColorPalette.DEFAULT.values().contains(box.getValue())) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot delete default palette.");
+        return;
+      }
+
       if (box.getItems().size() <= 1) {
         logger.warning(
             "Cannot remove palettes. Only 1 palette present. Please add a new palette first.");
@@ -129,20 +133,15 @@ public class ColorPaletteComponent extends GridPane {
       box.setValue(box.getItems().get(0));
     });
 
-    addDefault = new Button("Add default");
-    addDefault.setOnAction(e -> {
-      SimpleColorPalette pal;
-      pal = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
-      pal.setName("Deuternopia");
-      addPalette(pal);
-    });
-
     pnButtons = new FlowPane();
     pnButtons.getChildren()
-        .addAll(addPalette, duplicatePalette, editPalette, deletePalette, addDefault);
+        .addAll(btnAddPalette, duplicatePalette, btnEditPalette, btnDeletePalette);
 
     add(box, 0, 0);
     add(pnButtons, 0, 1);
+
+//    getChildren().forEach(c -> GridPane.setMargin(c, new Insets(5.0, 0.0, 5.0, 0.0)));
+    pnButtons.getChildren().forEach(c -> FlowPane.setMargin(c, new Insets(5.0, 5.0, 0.0, 0.0)));
   }
 
   public SimpleColorPalette getValue() {
@@ -186,6 +185,13 @@ public class ColorPaletteComponent extends GridPane {
     return false;
   }
 
+  /**
+   * Palettes should be added via this method and not via {@link ComboBox#getItems#add()}, since this
+   * method provides additional checks for duplicates.
+   *
+   * @param pal
+   * @return
+   */
   public boolean addPalette(SimpleColorPalette pal) {
     if (box.getItems().contains(pal)) {
       logger.fine("Cannot add duplicates. A palette with same name and colors already exists.");

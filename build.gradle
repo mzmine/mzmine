@@ -113,7 +113,7 @@ dependencies {
     implementation "io.github.msdk:msdk-featuredetection-adap3d:$msdkVersion"
     implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
-    implementation "org.du-lab.adap:adap:4.0.5"
+    implementation "org.du-lab.adap:adap:4.1.4"
     implementation "gnf:clustering:20130919"
     implementation "it.unimi.dsi:fastutil:8.2.2"
     implementation "com.itextpdf:itextpdf:5.5.13.1"
@@ -149,6 +149,8 @@ dependencies {
     implementation "org.drjekyll:fontchooser:2.4"
     implementation "org.json:json:20190722"
     implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
+    implementation "com.github.oshi:oshi-core:4.5.2" // because the version that is pulled by SIRIUS crashes
+    
 }
 
 /* 
@@ -171,7 +173,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "13.0.2"
+    version = "14"
     modules = ["javafx.controls", 
                "javafx.swing", 
                "javafx.fxml",

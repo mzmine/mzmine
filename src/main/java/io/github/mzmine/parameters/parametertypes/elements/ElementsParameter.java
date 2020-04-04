@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements;
+package io.github.mzmine.parameters.parametertypes.elements;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -76,7 +76,6 @@ public class ElementsParameter
   @Override
   public ElementsTableComponent createEditingComponent() {
     ElementsTableComponent editor = new ElementsTableComponent();
-    editor.setElements(value);
     return editor;
   }
 

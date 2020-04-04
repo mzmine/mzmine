@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import java.awt.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -82,9 +83,11 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
       "Chart parameters", "Manually set the chart parameters", new ChartThemeParameters());
 
+  public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
+
   public GraphicsExportParameters() {
     super(new Parameter[] {path, unit, exportFormat, fixedSize, width, height, dpi, color, alpha,
-        chartParameters});
+        chartParameters, colorPalette});
     height.setValue(true);
   }
 
