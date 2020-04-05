@@ -6,6 +6,7 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorSpectrumUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.color.ColorScaleUtil;
@@ -44,15 +45,12 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -66,7 +64,7 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 
-public class SpectralMatchPanelFX extends BorderPane {
+public class SpectralMatchPanelFX extends GridPane {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -109,9 +107,9 @@ public class SpectralMatchPanelFX extends BorderPane {
 
   private XYPlot libraryPlot;
 
-  private BorderPane pnMain;
+  private GridPane pnMain;
   private VBox metaDataPanel;
-  private GridPane boxTitlePanel;
+  private FlowPane boxTitlePanel;
   private GridPane pnExport;
   private BorderPane pnSpectrum;
 
@@ -120,11 +118,12 @@ public class SpectralMatchPanelFX extends BorderPane {
   private java.awt.Font chartFont;
 
   public SpectralMatchPanelFX(SpectralDBPeakIdentity hit) {
+    super();
 
     pnMain = this;
 
     metaDataPanel = new VBox();
-    boxTitlePanel = new GridPane();
+    boxTitlePanel = new FlowPane();
     boxTitlePanel.setAlignment(Pos.CENTER);
 
     // create Top panel
@@ -140,8 +139,10 @@ public class SpectralMatchPanelFX extends BorderPane {
     lblScore
         .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
             + COS_FORM.format(simScore)));
-    boxTitlePanel.add(lblHit, 0, 0);
-    boxTitlePanel.add(lblScore, 1, 0);
+    boxTitlePanel.getChildren().add(lblHit);
+    boxTitlePanel.getChildren().add(lblScore);
+    boxTitlePanel.maxWidthProperty().bind(this.widthProperty());
+    boxTitlePanel.prefWidthProperty().bind(this.widthProperty());
 
     // preview panel
     IAtomContainer molecule;
@@ -186,10 +187,12 @@ public class SpectralMatchPanelFX extends BorderPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
-    ColumnConstraints columnConstraints1 = new ColumnConstraints();
-    ColumnConstraints columnConstraints2 = new ColumnConstraints();
-    columnConstraints1.setPercentWidth(0.5);
-    columnConstraints2.setPercentWidth(0.5);
+    ColumnConstraints metadataConstraints1 = new ColumnConstraints();
+    ColumnConstraints metadataConstraints2 = new ColumnConstraints();
+    metadataConstraints1.setPercentWidth(0.5);
+    metadataConstraints1.setMinWidth(150);
+    metadataConstraints2.setPercentWidth(0.5);
+    metadataConstraints2.setMinWidth(150);
 
     GridPane g1 = new GridPane();
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
@@ -198,8 +201,8 @@ public class SpectralMatchPanelFX extends BorderPane {
         extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
-//    g1.getColumnConstraints().add(0, columnConstraints1);
-//    g1.getColumnConstraints().add(1, columnConstraints2);
+//    g1.getColumnConstraints().add(0, metadataConstraints1);
+//    g1.getColumnConstraints().add(1, metadataConstraints2);
     metaDataPanel.getChildren().add(g1); // TODO maybe put all info in one gridpane and add that?
 
     GridPane g2 = new GridPane();
@@ -207,25 +210,21 @@ public class SpectralMatchPanelFX extends BorderPane {
         extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther =
         extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
-//    g2.add(pnDB, 0, 0);
-//    g2.add(pnOther, 1, 0);
+    g2.add(pnDB, 0, 0);
+    g2.add(pnOther, 1, 0);
 //    g2.getColumnConstraints().add(0, columnConstraints1);
 //    g2.getColumnConstraints().add(1, columnConstraints2);
     g1.add(pnDB, 0, 1);
     g1.add(pnOther, 1, 1);
 
-    metaDataPanel.getChildren().add(g2);
-
-    MirrorScanWindowFX mirrorWindow = new MirrorScanWindowFX();
-    mirrorWindow.setScans(hit);
+//    metaDataPanel.getChildren().add(g2);
 
     ScrollPane pnScroll = new ScrollPane(metaDataPanel);
     pnScroll.setFitToWidth(true);
     pnScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
     pnScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 
-    mirrorChart = mirrorWindow.getMirrorSpecrumPlot();
-    mirrorChart = new EChartViewer(mirrorChart.getChart());
+    mirrorChart = MirrorSpectrumUtil.createPlotFromSpectralDBPeakIdentity(hit);
 
     pnSpectrum = new BorderPane();
     pnSpectrum.setCenter(mirrorChart);
@@ -235,10 +234,22 @@ public class SpectralMatchPanelFX extends BorderPane {
     metaDataPanel.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT);
 
     // put into main
-    pnMain.setTop(boxTitlePanel);
-    pnMain.setCenter(pnSpectrum);
-    pnMain.setRight(metaDataPanel);
-    pnMain.setBorder(
+    ColumnConstraints constraintsSpectrum = new ColumnConstraints();
+    ColumnConstraints constraintsMetadata = new ColumnConstraints();
+
+    constraintsMetadata.setPercentWidth(0.3);
+    constraintsSpectrum.setPercentWidth(0.7);
+    constraintsMetadata.setMinWidth(300);
+    constraintsSpectrum.setMinWidth(300);
+
+    add(boxTitlePanel, 0, 0);
+    add(pnSpectrum, 0, 1);
+    add(metaDataPanel, 1, 1);
+
+//    getColumnConstraints().add(0, constraintsSpectrum);
+//    getColumnConstraints().add(1, constraintsMetadata);
+
+    setBorder(
         new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
             BorderWidths.DEFAULT)));
 
