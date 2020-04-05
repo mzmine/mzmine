@@ -20,21 +20,16 @@ package io.github.mzmine.gui;
 
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
-import com.sun.istack.NotNull;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import javafx.application.HostServices;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -128,13 +123,9 @@ public class MZmineGUI extends Application implements Desktop {
     });
 
     // Drag over surface
-    rootScene.setOnDragOver(event -> {
-      activateSetOnDragOver(event);
-    });
+    rootScene.setOnDragOver(MZmineGUI::activateSetOnDragOver);
     // Dropping over surface
-    rootScene.setOnDragDropped(event -> {
-      activateSetOnDragDropped(event);
-    });
+    rootScene.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
 
     // Configure desktop properties such as the application taskbar icon
     // on a new thread. It is important to start this thread after the
@@ -314,6 +305,11 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
+  /**
+   * The method activateSetOnDragOver controlling what happens when something is dragged over.
+   * Implemented activateSetOnDragOver to accept when files are dragged over it.
+   * @param event - DragEvent
+   */
   public static void activateSetOnDragOver(DragEvent event){
     Dragboard dragBoard = event.getDragboard();
     if (dragBoard.hasFiles()) {
@@ -323,6 +319,12 @@ public class MZmineGUI extends Application implements Desktop {
     }
   }
 
+  /**
+   * The method activateSetOnDragDropped controlling what happens when something is dropped on window.
+   * Implemented activateSetOnDragDropped to select the module according to the dropped file type and open dropped file
+   * @param event - DragEvent
+   */
+
   public static void activateSetOnDragDropped(DragEvent event){
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
@@ -331,8 +333,8 @@ public class MZmineGUI extends Application implements Desktop {
       for (File selectedFile:dragboard.getFiles()) {
 
         final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rowDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
-        final Boolean isRawDataFile = Arrays.asList(rowDataFile).contains(extension);
+        String[] rawDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
+        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
         final Boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;

@@ -144,12 +144,8 @@ public class MainWindowController {
         }
       };
 
-      cell.setOnDragOver(event -> {
-        MZmineGUI.activateSetOnDragOver(event);
-      });
-      cell.setOnDragDropped(event -> {
-        MZmineGUI.activateSetOnDragDropped(event);
-      });
+      cell.setOnDragOver(MZmineGUI::activateSetOnDragOver);
+      cell.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
 
       return cell ;
     });
@@ -182,12 +178,8 @@ public class MainWindowController {
         }
       };
 
-      cell.setOnDragOver(event -> {
-        MZmineGUI.activateSetOnDragOver(event);
-      });
-      cell.setOnDragDropped(event -> {
-        MZmineGUI.activateSetOnDragDropped(event);
-      });
+      cell.setOnDragOver(MZmineGUI::activateSetOnDragOver);
+      cell.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
 
       return cell ;
     });
