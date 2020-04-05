@@ -18,24 +18,25 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.title.PaintScaleLegend;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import org.jfree.chart.ui.RectangleInsets;
 
 /**
@@ -169,23 +170,34 @@ public class EStandardChartTheme extends StandardChartTheme {
     p.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
   }
 
-  public void applyToAxes(@Nonnull JFreeChart chart){
+  public void applyToAxes(@Nonnull JFreeChart chart) {
     XYPlot p = chart.getXYPlot();
-    p.getDomainAxis().setVisible(isShowXAxis());
-    p.getRangeAxis().setVisible(isShowYAxis());
-    p.setDomainGridlinesVisible(isShowXGrid());
-    p.setDomainGridlinePaint(getClrXGrid());
-    p.setRangeGridlinesVisible(isShowYGrid());
-    p.setRangeGridlinePaint(getClrYGrid());
+    Axis domainAxis = p.getDomainAxis();
+    Axis rangeAxis = p.getRangeAxis();
 
-    if (isUseXLabel())
-      p.getDomainAxis().setLabel(getXlabel());
-    if (isUseYLabel())
-      p.getRangeAxis().setLabel(getYlabel());
+    if (domainAxis != null) {
+      domainAxis.setVisible(isShowXAxis());
+      p.setDomainGridlinesVisible(isShowXGrid());
+      p.setDomainGridlinePaint(getClrXGrid());
+      if (isUseXLabel()) {
+        domainAxis.setLabel(getXlabel());
+      }
+    }
+    if (rangeAxis != null) {
+      rangeAxis.setVisible(isShowYAxis());
+      p.setRangeGridlinesVisible(isShowYGrid());
+      p.setRangeGridlinePaint(getClrYGrid());
+      if (isUseYLabel()) {
+        rangeAxis.setLabel(getYlabel());
+      }
+    }
 
     // all axes
     for (int i = 0; i < p.getDomainAxisCount(); i++) {
       NumberAxis a = (NumberAxis) p.getDomainAxis(i);
+      if (a == null) {
+        continue;
+      }
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
@@ -193,10 +205,28 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
     for (int i = 0; i < p.getRangeAxisCount(); i++) {
       NumberAxis a = (NumberAxis) p.getRangeAxis(i);
+      if (a == null) {
+        continue;
+      }
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
       a.setVisible(showYAxis);
+    }
+
+    // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
+    if (p instanceof CombinedDomainXYPlot) {
+      for (XYPlot subplot : (List<XYPlot>) ((CombinedDomainXYPlot) p).getSubplots()) {
+        Axis ra = subplot.getRangeAxis();
+        if (rangeAxis != null) {
+          ra.setVisible(isShowYAxis());
+          subplot.setRangeGridlinesVisible(isShowYGrid());
+          subplot.setRangeGridlinePaint(getClrYGrid());
+          if (isUseYLabel()) {
+            ra.setLabel(getYlabel());
+          }
+        }
+      }
     }
 
     p.setAxisOffset(DEFAULT_AXIS_OFFSET);
@@ -246,7 +276,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
-   * 
+   *
    * @param chart The chart.
    */
   public static void fixLegend(JFreeChart chart) {
