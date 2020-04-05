@@ -29,6 +29,11 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import javax.annotation.Nonnull;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
@@ -40,6 +45,8 @@ import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+
 
 /**
  * Class SiriusCompound May contain different amount of properties 1) if the IonAnnotation is from
@@ -274,6 +281,16 @@ public class SiriusCompound extends SimplePeakIdentity {
    */
   public String getSiriusScore() {
     return getPropertyValue("Sirius score");
+  }
+
+  public SimpleObjectProperty<Node> getNode() throws CDKException {
+    SimpleObjectProperty<Node>temp;
+
+    Node node =new Structure2DComponent(this.getContainer());
+    temp = new SimpleObjectProperty<Node>(node);
+
+    return temp;
+
   }
 
 }

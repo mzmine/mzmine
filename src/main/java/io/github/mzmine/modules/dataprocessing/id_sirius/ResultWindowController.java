@@ -35,6 +35,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -42,6 +43,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -51,7 +53,9 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import org.apache.batik.ext.awt.g2d.GraphicContext;
 import org.apache.poi.ss.formula.functions.T;
 import org.openscience.cdk.exception.CDKException;
@@ -84,7 +88,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Structure2DComponent>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -137,41 +141,39 @@ public class ResultWindowController{
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
 
-        chemicalStructureCol.setCellValueFactory(cell->{
-
-            Structure2DComponent component=null;
-
-
-            IAtomContainer container = cell.getValue().getContainer();
+        chemicalStructureCol.setCellValueFactory(c-> {
             try {
-                component = new Structure2DComponent(container);
+                return c.getValue().getNode();
             } catch (CDKException e) {
                 e.printStackTrace();
             }
-            Tooltip tooltip = new Tooltip();
-            Structure2DComponent finalComponent = component;
-
-            component.setOnMouseEntered(e->{
-                Structure2DComponent node = (Structure2DComponent) e.getSource();
-                  Platform.runLater(()->{
-                      if(finalComponent!=null){
-                          tooltip.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("doge.png"))));}
-                      else{
-                          tooltip.setText("dfdf");
-                      }
-                      tooltip.show(node, e.getScreenX()+50, e.getScreenY());
-                  });
-
-            });
-
-            if(cell.getValue().getContainer()!=null || component!=null)
-            {
-                return new ReadOnlyObjectWrapper<>(component);
-            }
-            return new ReadOnlyObjectWrapper<>();
-
+            return null;
         });
 
+        chemicalStructureCol.setCellFactory(c->{
+            return new TableCell<SiriusCompound, Node>(){
+                @Override
+                protected void updateItem(Node item, boolean empty)
+                {
+                    super.updateItem(item, empty);
+                    if (item == null || empty) {
+                        return;
+                    }
+                    setItem(item);
+                    Tooltip tooltip = new Tooltip();
+                    item.resize(300, 300);
+                    tooltip.setGraphic(item);
+                    this.setOnMouseEntered(e->{
+                        Node node = (Node) e.getSource();
+                        tooltip.show(node, e.getScreenX()+50, e.getScreenY());
+                    });
+
+                    this.setOnMouseExited(e->{
+                        tooltip.hide();
+                    });
+                }
+            };
+        });
 
      compoundsTable.setItems(compounds);
     }
