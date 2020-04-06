@@ -30,6 +30,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -103,7 +104,7 @@ public class HistogramPanel extends BorderPane {
       pnHistoSett.setAlignment(Pos.CENTER);
     }
     {
-      Button btnToggleLegend = new Button("Toggle legend");
+      ToggleButton btnToggleLegend = new ToggleButton("Toggle legend");
       btnToggleLegend.setOnAction(e -> toggleLegends());
       btnToggleLegend.setTooltip(new Tooltip("Show/hide legend"));
 
