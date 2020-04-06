@@ -22,6 +22,8 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
 import java.awt.datatransfer.Clipboard;
+
+import com.google.common.base.Strings;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.main.MZmineCore;
@@ -195,6 +197,7 @@ private void addIdentityOnClick(ActionEvent ae){
         return;
     }
     peakListRow.addPeakIdentity(compound, false);
+    dispose();
 
 }
 @FXML
@@ -242,7 +245,7 @@ private void copySmilesOnClick(ActionEvent ae){
      * @param errorMessage - to print in a message if value of `content` is null
      */
     private void copyToClipboard(String content, String errorMessage) {
-        if (content == null) {
+    if (Strings.isNullOrEmpty(content)) {
             MZmineCore.getDesktop().displayMessage(null, errorMessage);
             return;
         }
