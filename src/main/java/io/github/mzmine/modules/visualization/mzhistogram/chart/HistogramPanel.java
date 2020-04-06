@@ -24,13 +24,15 @@ import io.github.mzmine.util.maths.Precision;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -66,13 +68,12 @@ public class HistogramPanel extends BorderPane {
   private String xLabel;
   private HistogramData data;
   private VBox boxSettings;
+  private HBox secondGaussian, pnHistoSett, xRanges, yRanges;
 
   /**
    * Create the dialog.
    */
   public HistogramPanel() {
-    setPrefSize(903, 952);
-    setMinSize(600, 300);
     contentPanel = new BorderPane();
     setCenter(contentPanel);
     {
@@ -80,187 +81,116 @@ public class HistogramPanel extends BorderPane {
       contentPanel.setLeft(panel);
     }
     {
-      BorderPane center1 = new BorderPane();
-      contentPanel.setCenter(center1);
-      {
-        boxSettings = new VBox();
-        center1.setBottom(boxSettings);
-        {
-          Pane pnstats = new Pane();
-          boxSettings.getChildren().add(pnstats);
-          {
-            lbStats = new Label("");
-            lbStats.setFont(new Font("Tahoma", 14));
-            pnstats.getChildren().add(lbStats);
-          }
-        }
-        {
+      cbExcludeSmallerNoise = new CheckBox("exclude smallest");
+      cbExcludeSmallerNoise.setSelected(true);
 
-          Pane pnHistoSett = new Pane();
-          boxSettings.getChildren().add(pnHistoSett);
-          {
-            cbExcludeSmallerNoise = new CheckBox("exclude smallest");
-            cbExcludeSmallerNoise.setSelected(true);
-            pnHistoSett.getChildren().add(cbExcludeSmallerNoise);
-          }
-          {
-            cbThirdSQRT = new CheckBox("cube root(I)");
-            cbThirdSQRT.setSelected(false);
-            pnHistoSett.getChildren().add(cbThirdSQRT);
-          }
-          {
-            Separator horizontalStrut = new Separator();
-            pnHistoSett.getChildren().add(horizontalStrut);
-          }
-          {
-            Label lblBinWidth = new Label("bin width");
-            pnHistoSett.getChildren().add(lblBinWidth);
-          }
-          {
-            txtBinWidth = new TextField();
-            txtBinWidth.setText("");
-            pnHistoSett.getChildren().add(txtBinWidth);
-          }
-          {
-            Separator horizontalStrut = new Separator();
-            pnHistoSett.getChildren().add(horizontalStrut);
-          }
-          {
-            Label lblBinWidth = new Label("shift bins by");
-            pnHistoSett.getChildren().add(lblBinWidth);
-          }
-          {
-            txtBinShift = new TextField();
-            txtBinShift.setText("0");
-            pnHistoSett.getChildren().add(txtBinShift);
-          }
-        }
-        {
-          Pane secondGaussian = new Pane();
-          boxSettings.getChildren().add(secondGaussian);
-          {
-            Button btnToggleLegend = new Button("Toggle legend");
-            btnToggleLegend.setOnAction(e -> toggleLegends());
-            btnToggleLegend.setTooltip(new Tooltip("Show/hide legend"));
-            secondGaussian.getChildren().add(btnToggleLegend);
-          }
-          {
-            Button btnUpdateGaussian = new Button("Update");
-            btnUpdateGaussian.setOnAction(e -> updateGaussian());
-            btnUpdateGaussian.setTooltip(new Tooltip("Update Gaussian fit"));
-            secondGaussian.getChildren().add(btnUpdateGaussian);
-          }
-          {
-            cbGaussianFit = new CheckBox("Gaussian fit");
-            secondGaussian.getChildren().add(cbGaussianFit);
-          }
-          {
-            Label lblFrom = new Label("from");
-            secondGaussian.getChildren().add(lblFrom);
-          }
-          {
-            txtGaussianLower = new TextField();
-            txtGaussianLower
-                .setTooltip(new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
-            txtGaussianLower.setText("0");
-            secondGaussian.getChildren().add(txtGaussianLower);
-          }
-          {
-            Label label = new Label("-");
-            secondGaussian.getChildren().add(label);
-          }
-          {
-            txtGaussianUpper = new TextField();
-            txtGaussianUpper
-                .setTooltip(new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
-            txtGaussianUpper.setText("0");
-            secondGaussian.getChildren().add(txtGaussianUpper);
-          }
-          {
-            Separator horizontalStrut = new Separator();
-            secondGaussian.getChildren().add(horizontalStrut);
-          }
-          {
-            Label lblSignificantFigures = new Label("significant figures");
-            secondGaussian.getChildren().add(lblSignificantFigures);
-          }
-          {
-            txtPrecision = new TextField();
-            txtPrecision
-                .setTooltip(new Tooltip("Change number of significant figures and press update"));
-            txtPrecision.setText("6");
-            secondGaussian.getChildren().add(txtPrecision);
-          }
-        }
-        {
-          Pane third = new Pane();
-          boxSettings.getChildren().add(third);
+      cbThirdSQRT = new CheckBox("cube root(I)");
+      cbThirdSQRT.setSelected(false);
 
-          {
-            Label lblRanges = new Label("x-range");
-            third.getChildren().add(lblRanges);
-          }
-          {
-            txtRangeX = new TextField();
-            third.getChildren().add(txtRangeX);
-            txtRangeX.setTooltip(new Tooltip("Set the x-range for both histograms"));
-            txtRangeX.setText("0");
-          }
+      Label lblBinWidth = new Label("bin width");
 
-          {
-            Label label = new Label("-");
-            third.getChildren().add(label);
-          }
-          {
-            txtRangeXEnd = new TextField();
-            txtRangeXEnd.setTooltip(new Tooltip("Set the x-range for both histograms"));
-            txtRangeXEnd.setText("0");
-            third.getChildren().add(txtRangeXEnd);
-          }
-          {
-            Button btnApplyX = new Button("Apply");
-            btnApplyX.setOnAction(e -> applyXRange());
-            third.getChildren().add(btnApplyX);
-          }
-          {
-            Pane panel = new Pane();
-            boxSettings.getChildren().add(panel);
+      txtBinWidth = new TextField();
+      txtBinWidth.setText("");
 
-            {
-              Label label = new Label("y-range");
-              panel.getChildren().add(label);
-            }
-            {
-              txtRangeY = new TextField();
-              panel.getChildren().add(txtRangeY);
-              txtRangeY.setText("0");
-              txtRangeY.setTooltip(new Tooltip("Set the y-range for both histograms"));
-            }
-            {
-              Label label = new Label("-");
-              panel.getChildren().add(label);
-            }
-            {
-              txtRangeYEnd = new TextField();
-              txtRangeYEnd.setTooltip(new Tooltip("Set the y-range for both histograms"));
-              txtRangeYEnd.setText("0");
-              panel.getChildren().add(txtRangeYEnd);
-            }
-            {
-              Button btnApplyY = new Button("Apply");
-              btnApplyY.setOnAction(e -> applyYRange());
-              panel.getChildren().add(btnApplyY);
-            }
-          }
-        }
-      }
+      Label lblBinShift = new Label("shift bins by");
 
-      {
-        southwest = new BorderPane();
-        center1.setCenter(southwest);
-      }
+      txtBinShift = new TextField();
+      txtBinShift.setText("0");
 
+      pnHistoSett = new HBox(10);
+      pnHistoSett.getChildren().addAll(cbExcludeSmallerNoise, cbThirdSQRT, lblBinWidth, txtBinWidth,
+          lblBinShift, txtBinShift);
+      pnHistoSett.setAlignment(Pos.CENTER);
     }
+    {
+      Button btnToggleLegend = new Button("Toggle legend");
+      btnToggleLegend.setOnAction(e -> toggleLegends());
+      btnToggleLegend.setTooltip(new Tooltip("Show/hide legend"));
+
+      Button btnUpdateGaussian = new Button("Update");
+      btnUpdateGaussian.setOnAction(e -> updateGaussian());
+      btnUpdateGaussian.setTooltip(new Tooltip("Update Gaussian fit"));
+
+      Label lblFrom = new Label("from");
+
+      cbGaussianFit = new CheckBox("Gaussian fit");
+
+      txtGaussianLower = new TextField();
+      txtGaussianLower
+          .setTooltip(new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
+      txtGaussianLower.setText("0");
+
+      Label label = new Label("-");
+
+      txtGaussianUpper = new TextField();
+      txtGaussianUpper
+          .setTooltip(new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
+      txtGaussianUpper.setText("0");
+
+      Label lblSignificantFigures = new Label("significant figures");
+
+      txtPrecision = new TextField();
+      txtPrecision
+          .setTooltip(new Tooltip("Change number of significant figures and press update"));
+      txtPrecision.setText("6");
+
+      secondGaussian = new HBox(10);
+      secondGaussian.getChildren()
+          .addAll(btnToggleLegend, btnUpdateGaussian, lblFrom, cbGaussianFit,
+              txtGaussianLower, label, txtGaussianUpper, lblSignificantFigures, txtPrecision);
+      secondGaussian.setAlignment(Pos.CENTER);
+    }
+    {
+      Label lblRanges = new Label("x-range");
+
+      txtRangeX = new TextField();
+      txtRangeX.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeX.setText("0");
+
+      Label label = new Label("-");
+
+      txtRangeXEnd = new TextField();
+      txtRangeXEnd.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeXEnd.setText("0");
+
+      Button btnApplyX = new Button("Apply");
+      btnApplyX.setOnAction(e -> applyXRange());
+
+      xRanges = new HBox(10);
+      xRanges.getChildren().addAll(lblRanges, txtRangeX, label, txtRangeXEnd, btnApplyX);
+      xRanges.setAlignment(Pos.CENTER);
+    }
+    {
+      Label lblRanges = new Label("y-range");
+
+      txtRangeY = new TextField();
+      txtRangeY.setText("0");
+      txtRangeY.setTooltip(new Tooltip("Set the y-range for both histograms"));
+
+      Label label = new Label("-");
+
+      txtRangeYEnd = new TextField();
+      txtRangeYEnd.setTooltip(new Tooltip("Set the y-range for both histograms"));
+      txtRangeYEnd.setText("0");
+
+      Button btnApplyY = new Button("Apply");
+      btnApplyY.setOnAction(e -> applyYRange());
+
+      yRanges = new HBox(10);
+      yRanges.getChildren().addAll(lblRanges, txtRangeY, label, txtRangeYEnd, btnApplyY);
+      yRanges.setAlignment(Pos.CENTER);
+    }
+    lbStats = new Label("");
+    lbStats.setFont(new Font("Tahoma", 14));
+
+    boxSettings = new VBox(10);
+    boxSettings.setAlignment(Pos.CENTER);
+    boxSettings.setPadding(new Insets(10));
+    boxSettings.getChildren().addAll(lbStats, pnHistoSett, secondGaussian, xRanges, yRanges);
+    contentPanel.setBottom(boxSettings);
+
+    southwest = new BorderPane();
+    contentPanel.setCenter(southwest);
 
     addListener();
 
@@ -339,30 +269,34 @@ public class HistogramPanel extends BorderPane {
   }
 
   private void applyXRange() {
-    try {
-      double x = Double.parseDouble(txtRangeX.getText());
-      double xe = Double.parseDouble(txtRangeXEnd.getText());
-      if (x < xe) {
-        if (pnHisto != null) {
-          pnHisto.getChart().getXYPlot().getDomainAxis().setRange(x, xe);
+    if (!txtRangeX.getText().equals("") && !txtRangeXEnd.getText().equals("")) {
+      try {
+        double x = Double.parseDouble(txtRangeX.getText());
+        double xe = Double.parseDouble(txtRangeXEnd.getText());
+        if (x < xe) {
+          if (pnHisto != null) {
+            pnHisto.getChart().getXYPlot().getDomainAxis().setRange(x, xe);
+          }
         }
+      } catch (Exception e2) {
+        logger.error("", e2);
       }
-    } catch (Exception e2) {
-      logger.error("", e2);
     }
   }
 
   private void applyYRange() {
-    try {
-      double y = Double.parseDouble(txtRangeY.getText());
-      double ye = Double.parseDouble(txtRangeYEnd.getText());
-      if (y < ye) {
-        if (pnHisto != null) {
-          pnHisto.getChart().getXYPlot().getRangeAxis().setRange(y, ye);
+    if (!txtRangeY.getText().equals("") && !txtRangeYEnd.getText().equals("")) {
+      try {
+        double y = Double.parseDouble(txtRangeY.getText());
+        double ye = Double.parseDouble(txtRangeYEnd.getText());
+        if (y < ye) {
+          if (pnHisto != null) {
+            pnHisto.getChart().getXYPlot().getRangeAxis().setRange(y, ye);
+          }
         }
+      } catch (Exception e2) {
+        logger.error("", e2);
       }
-    } catch (Exception e2) {
-      logger.error("", e2);
     }
   }
 

@@ -23,7 +23,6 @@ import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 ;
@@ -48,7 +47,7 @@ public class HistogramDialog extends Stage {
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
   public HistogramDialog(String title, String xLabel, HistogramData data, double binWidth) {
-    // this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
     setTitle(title);
 
     mainPane = new BorderPane();
@@ -58,11 +57,10 @@ public class HistogramDialog extends Stage {
     mainScene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
-    // setBounds(100, 100, 1000, 800);
-    // getContentPane().setLayout(new BorderLayout());
     histo = new HistogramPanel(xLabel, data, binWidth);
 
-
+    setMinWidth(1050);
+    setMinHeight(700);
     setScene(mainScene);
     Platform.runLater(() -> {
       mainPane.setCenter(histo);
