@@ -174,5 +174,9 @@ public class Structure2DComponent extends Canvas {
     renderer.setup(molecule, drawArea);
     renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
   }
+  public IAtomContainer getContainer()
+  {
+    return this.molecule;
+  }
   
 }

@@ -22,7 +22,6 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
 import java.awt.datatransfer.Clipboard;
-
 import com.google.common.base.Strings;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
@@ -32,26 +31,16 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.renderer.color.IAtomColorer;
-
-import javax.annotation.Nonnull;
-
 
 public class ResultWindowController{
 
@@ -135,45 +124,37 @@ public class ResultWindowController{
         });
 
     chemicalStructureCol.setCellFactory(
-        x -> {
-          return new TableCell<SiriusCompound, Structure2DComponent>() {
+        x -> new TableCell<>() {
             @Override
             protected void updateItem(Structure2DComponent item, boolean empty) {
-              super.updateItem(item, empty);
-              if (item == null || empty) {
-                setText("");
-              }
-              else
-                  {
-                      setGraphic(item);
-                      Tooltip tooltip = new Tooltip();
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setText("");
+                } else {
+                    setGraphic(item);
+                    Tooltip tooltip = new Tooltip();
 
-                      this.setOnMouseEntered(e->{
+                    this.setOnMouseEntered(e -> {
 
-                          SiriusCompound compound = compoundsTable.getSelectionModel().getSelectedItem();
-                          if(compound == null)return;
+                        IAtomContainer container = item.getContainer();
+                        try {
+                            if (container == null) return;
+                            Structure2DComponent newItem = new Structure2DComponent(container);
+                            newItem.resize(300, 300);
+                            tooltip.setGraphic(newItem);
+                        } catch (CDKException ex) {
+                            ex.printStackTrace();
+                        }
 
-                          IAtomContainer container =  compound.getContainer();
-                          try {
-                              if(container== null)return;
-                              Structure2DComponent newItem = new Structure2DComponent(container);
-                              newItem.resize(300,300);
-                              tooltip.setGraphic(newItem);
-                          } catch (CDKException ex) {
-                              ex.printStackTrace();
-                          }
-
-                        tooltip.show(this, e.getScreenX()+50, e.getScreenY());
+                        tooltip.show(this, e.getScreenX() + 50, e.getScreenY());
                     });
 
-                    this.setOnMouseExited(e->{
+                    this.setOnMouseExited(e -> {
                         tooltip.hide();
                     });
 
-
-              }
+                }
             }
-          };
         });
 
      compoundsTable.setItems(compounds);
@@ -260,15 +241,12 @@ private void copySmilesOnClick(ActionEvent ae){
      *
      * @param compound
      */
-    public void addNewListItem(@Nonnull final SiriusCompound compound) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                compounds.add(compound);     // todo : add here
-                // link to cell
-                // then i will get
-                // sizes from it
-            }
+    public void addNewListItem( final SiriusCompound compound) {
+        Platform.runLater(() -> {
+            compounds.add(compound);     // todo : add here
+            // link to cell
+            // then i will get
+            // sizes from it
         });
     }
 
