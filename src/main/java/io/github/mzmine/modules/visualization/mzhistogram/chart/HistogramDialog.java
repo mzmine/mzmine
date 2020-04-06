@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -56,16 +57,16 @@ public class HistogramDialog extends Stage {
     // Use main CSS
     mainScene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
 
     // setBounds(100, 100, 1000, 800);
     // getContentPane().setLayout(new BorderLayout());
     histo = new HistogramPanel(xLabel, data, binWidth);
 
-    Pane node = new Pane();
-    node.getChildren().add(histo);
-    mainPane.setCenter(node);
-    show();
+
+    setScene(mainScene);
+    Platform.runLater(() -> {
+      mainPane.setCenter(histo);
+    });
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);

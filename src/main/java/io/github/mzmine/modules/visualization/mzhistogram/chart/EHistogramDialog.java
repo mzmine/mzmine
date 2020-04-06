@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
-import io.github.mzmine.gui.chartbasics.ChartLogics;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
@@ -216,15 +216,15 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
     }
 
     // auto range y
-    ChartLogics.autoRangeAxis(getChartPanel());
+    ChartLogicsFX.autoRangeAxis(getChartPanel());
   }
 
-  private ChartPanel getChartPanel() {
+  private ChartViewer getChartPanel() {
     return getHistoPanel().getChartPanel();
   }
 
   private XYPlot getXYPlot() {
-    ChartPanel chart = getHistoPanel().getChartPanel();
+    ChartViewer chart = getHistoPanel().getChartPanel();
     if (chart != null)
       return chart.getChart().getXYPlot();
     else
