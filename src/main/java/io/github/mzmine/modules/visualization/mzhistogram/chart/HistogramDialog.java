@@ -18,13 +18,14 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
-import javax.swing.SwingUtilities;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.WindowsMenu;
-import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+
+;
 
 public class HistogramDialog extends Stage {
 
@@ -41,7 +42,6 @@ public class HistogramDialog extends Stage {
   }
 
   /**
-   *
    * @param title
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
@@ -62,11 +62,10 @@ public class HistogramDialog extends Stage {
     // getContentPane().setLayout(new BorderLayout());
     histo = new HistogramPanel(xLabel, data, binWidth);
 
-    SwingNode swingNode = new SwingNode();
-    mainPane.setCenter(swingNode);
-    SwingUtilities.invokeLater(() -> {
-      swingNode.setContent(histo);
-    });
+    Pane node = new Pane();
+    node.getChildren().add(histo);
+    mainPane.setCenter(node);
+    show();
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
