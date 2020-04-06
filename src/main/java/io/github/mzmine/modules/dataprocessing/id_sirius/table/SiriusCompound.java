@@ -283,11 +283,11 @@ public class SiriusCompound extends SimplePeakIdentity {
     return getPropertyValue("Sirius score");
   }
 
-  public SimpleObjectProperty<Node> getNode() throws CDKException {
-    SimpleObjectProperty<Node>temp;
+  public SimpleObjectProperty<Structure2DComponent> getNode() throws CDKException {
+    SimpleObjectProperty<Structure2DComponent>temp;
 
-    Node node =new Structure2DComponent(this.getContainer());
-    temp = new SimpleObjectProperty<Node>(node);
+    Structure2DComponent node =new Structure2DComponent(this.getContainer());
+    temp = new SimpleObjectProperty<Structure2DComponent>(node);
 
     return temp;
 

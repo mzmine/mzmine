@@ -20,9 +20,6 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
-import java.io.IOException;
 import java.util.List;
 import java.awt.datatransfer.Clipboard;
 import io.github.msdk.datamodel.IonAnnotation;
@@ -30,6 +27,7 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.db.DBFrame;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -43,30 +41,14 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import org.apache.batik.ext.awt.g2d.GraphicContext;
-import org.apache.poi.ss.formula.functions.T;
+import javafx.scene.layout.HBox;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
-
+import org.openscience.cdk.renderer.color.IAtomColorer;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageOutputStream;
-import javax.security.auth.callback.Callback;
 
 
 public class ResultWindowController{
@@ -88,7 +70,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>fingerldScoreCol;
     @FXML
-    private TableColumn<SiriusCompound, Node>chemicalStructureCol;
+    private TableColumn<SiriusCompound, Structure2DComponent>chemicalStructureCol;
     @FXML
     private void initialize(){
         formulaCol.setCellValueFactory(cell-> {
@@ -150,29 +132,46 @@ public class ResultWindowController{
             return null;
         });
 
-        chemicalStructureCol.setCellFactory(c->{
-            return new TableCell<SiriusCompound, Node>(){
-                @Override
-                protected void updateItem(Node item, boolean empty)
-                {
-                    super.updateItem(item, empty);
-                    if (item == null || empty) {
-                        return;
-                    }
-                    setItem(item);
-                    Tooltip tooltip = new Tooltip();
-                    item.resize(300, 300);
-                    tooltip.setGraphic(item);
-                    this.setOnMouseEntered(e->{
-                        Node node = (Node) e.getSource();
-                        tooltip.show(node, e.getScreenX()+50, e.getScreenY());
+    chemicalStructureCol.setCellFactory(
+        x -> {
+          return new TableCell<SiriusCompound, Structure2DComponent>() {
+            @Override
+            protected void updateItem(Structure2DComponent item, boolean empty) {
+              super.updateItem(item, empty);
+              if (item == null || empty) {
+                setText("");
+              }
+              else
+                  {
+                      setGraphic(item);
+                      Tooltip tooltip = new Tooltip();
+
+                      this.setOnMouseEntered(e->{
+
+                          SiriusCompound compound = compoundsTable.getSelectionModel().getSelectedItem();
+                          if(compound == null)return;
+
+                          IAtomContainer container =  compound.getContainer();
+                          try {
+                              if(container== null)return;
+                              Structure2DComponent newItem = new Structure2DComponent(container);
+                              newItem.resize(300,300);
+                              tooltip.setGraphic(newItem);
+                          } catch (CDKException ex) {
+                              ex.printStackTrace();
+                          }
+
+                        tooltip.show(this, e.getScreenX()+50, e.getScreenY());
                     });
 
                     this.setOnMouseExited(e->{
                         tooltip.hide();
                     });
-                }
-            };
+
+
+              }
+            }
+          };
         });
 
      compoundsTable.setItems(compounds);
