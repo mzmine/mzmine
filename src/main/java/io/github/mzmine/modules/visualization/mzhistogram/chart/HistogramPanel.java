@@ -20,14 +20,14 @@ package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
 import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-//import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.util.maths.Precision;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
-import javafx.scene.Scene;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -35,7 +35,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
@@ -43,6 +42,7 @@ import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class HistogramPanel extends BorderPane {
 
@@ -71,8 +71,6 @@ public class HistogramPanel extends BorderPane {
    * Create the dialog.
    */
   public HistogramPanel() {
-    setLayoutX(100);
-    setLayoutY(100);
     setPrefSize(903, 952);
     setMinSize(600, 300);
     contentPanel = new BorderPane();
@@ -111,8 +109,8 @@ public class HistogramPanel extends BorderPane {
             pnHistoSett.getChildren().add(cbThirdSQRT);
           }
           {
-//    Component horizontalStrut = Box.createHorizontalStrut(20);
-//    pnHistoSett.getChildren().add(horizontalStrut);
+            Separator horizontalStrut = new Separator();
+            pnHistoSett.getChildren().add(horizontalStrut);
           }
           {
             Label lblBinWidth = new Label("bin width");
@@ -124,8 +122,8 @@ public class HistogramPanel extends BorderPane {
             pnHistoSett.getChildren().add(txtBinWidth);
           }
           {
-//    horizontalStrut = Box.createHorizontalStrut(20);
-//    pnHistoSett.getChildren().add(horizontalStrut);
+            Separator horizontalStrut = new Separator();
+            pnHistoSett.getChildren().add(horizontalStrut);
           }
           {
             Label lblBinWidth = new Label("shift bins by");
@@ -179,8 +177,8 @@ public class HistogramPanel extends BorderPane {
             secondGaussian.getChildren().add(txtGaussianUpper);
           }
           {
-//    horizontalStrut = Box.createHorizontalStrut(20);
-//    secondGaussian.getChildren().add(horizontalStrut);
+            Separator horizontalStrut = new Separator();
+            secondGaussian.getChildren().add(horizontalStrut);
           }
           {
             Label lblSignificantFigures = new Label("significant figures");
@@ -327,7 +325,6 @@ public class HistogramPanel extends BorderPane {
   }
 
   private void addListener() {
-//    ddlRepaint = new DelayedDocumentListener(e -> requestLayout())
 
     txtRangeX.setOnKeyTyped(event -> applyXRange());
     txtRangeXEnd.setOnKeyTyped(event -> applyXRange());
@@ -371,8 +368,6 @@ public class HistogramPanel extends BorderPane {
 
   /**
    * Create new histograms
-   *
-   *
    */
   private void updateHistograms() {
     if (data != null) {
@@ -392,12 +387,14 @@ public class HistogramPanel extends BorderPane {
 
           final double binwidth = binwidth2;
           final double binShift = Math.abs(binShift2);
-            try {
+          try {
+            Platform.runLater(() -> {
               JFreeChart chart = doInBackground(binShift, binwidth);
               done(chart);
-            } catch (Exception e) {
-              logger.error("", e);
-            }
+            });
+          } catch (Exception e) {
+            logger.error("", e);
+          }
         } catch (Exception e1) {
           logger.error("", e1);
         }
@@ -448,7 +445,6 @@ public class HistogramPanel extends BorderPane {
         pnHisto = new EChartViewer(histo, true, true, true, true, true);
         histo.getLegend().setVisible(true);
 
-        southwest = new BorderPane();
         southwest.setCenter(pnHisto);
 
         lbStats.setText("DONE");
