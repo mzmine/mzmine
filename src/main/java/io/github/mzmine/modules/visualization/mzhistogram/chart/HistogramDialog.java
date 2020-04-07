@@ -62,9 +62,8 @@ public class HistogramDialog extends Stage {
     setMinWidth(1050);
     setMinHeight(700);
     setScene(mainScene);
-    Platform.runLater(() -> {
-      mainPane.setCenter(histo);
-    });
+
+    mainPane.setCenter(histo);
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);

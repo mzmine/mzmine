@@ -21,6 +21,8 @@ package io.github.mzmine.modules.visualization.mzhistogram.chart;
 import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.maths.Precision;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
 import javafx.application.Platform;
@@ -70,7 +72,7 @@ public class HistogramPanel extends BorderPane {
   private HistogramData data;
   private VBox boxSettings;
   private HBox secondGaussian, pnHistoSett, xRanges, yRanges;
-
+  private Executor exec;
   /**
    * Create the dialog.
    */
@@ -194,6 +196,11 @@ public class HistogramPanel extends BorderPane {
     contentPanel.setCenter(southwest);
 
     addListener();
+    exec= Executors.newFixedThreadPool(5,runnable->{
+      Thread t=new Thread(runnable);
+      t.setDaemon(true);
+      return  t;
+    });
 
   }
 
@@ -232,7 +239,6 @@ public class HistogramPanel extends BorderPane {
         try {
           bws = Precision.toString(bw, 4);
         } catch (Exception e) {
-          logger.error("", e);
         }
         txtBinWidth.setText(bws);
       }
@@ -323,10 +329,14 @@ public class HistogramPanel extends BorderPane {
           final double binwidth = binwidth2;
           final double binShift = Math.abs(binShift2);
           try {
-            Platform.runLater(() -> {
+
+            exec.execute(() -> {
               JFreeChart chart = doInBackground(binShift, binwidth);
-              done(chart);
+              Platform.runLater(() -> {
+                done(chart);
+              });
             });
+
           } catch (Exception e) {
             logger.error("", e);
           }
