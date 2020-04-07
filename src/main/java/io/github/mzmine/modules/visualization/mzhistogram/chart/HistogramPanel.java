@@ -73,6 +73,7 @@ public class HistogramPanel extends BorderPane {
   private VBox boxSettings;
   private HBox secondGaussian, pnHistoSett, xRanges, yRanges;
   private Executor exec;
+
   /**
    * Create the dialog.
    */
@@ -196,10 +197,10 @@ public class HistogramPanel extends BorderPane {
     contentPanel.setCenter(southwest);
 
     addListener();
-    exec= Executors.newFixedThreadPool(5,runnable->{
-      Thread t=new Thread(runnable);
+    exec = Executors.newFixedThreadPool(5, runnable -> {
+      Thread t = new Thread(runnable);
       t.setDaemon(true);
-      return  t;
+      return t;
     });
 
   }
