@@ -43,7 +43,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.javafx.DraggableListCell;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -75,7 +74,7 @@ import javafx.util.Duration;
 public class MainWindowController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private Boolean reorderListItem = false;
   private static final Image rawDataFileIcon =
       FxIconUtil.loadImageFromResources("icons/fileicon.png");
 
@@ -129,25 +128,18 @@ public class MainWindowController {
     rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // rawDataTree.setShowRoot(true);
 
-    rawDataTree.setCellFactory(rawDataFileListView -> {
-      DraggableListCell<RawDataFile> cell = new DraggableListCell<>(){
-        @Override
-        public void updateItem(RawDataFile item , boolean empty) {
-          super.updateItem(item, empty);
-          if (empty || (item == null)) {
-            setText("");
-            setGraphic(null);
-            return;
-          }
-          setText(item.getName());
-          setGraphic(new ImageView(rawDataFileIcon));
+    rawDataTree.setCellFactory(rawDataListView -> new DraggableListCellWithDraggableFiles<>() {
+      @Override
+      protected void updateItem(RawDataFile item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || (item == null)) {
+          setText("");
+          setGraphic(null);
+          return;
         }
-      };
-
-      cell.setOnDragOver(MZmineGUI::activateSetOnDragOver);
-      cell.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
-
-      return cell ;
+        setText(item.getName());
+        setGraphic(new ImageView(rawDataFileIcon));
+      }
     });
 
     // Add mouse clicked event handler
@@ -160,30 +152,22 @@ public class MainWindowController {
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
 
-    featureTree.setCellFactory(featureListView -> {
-      DraggableListCell<PeakList> cell = new DraggableListCell<>(){
-        @Override
-        protected void updateItem(PeakList item, boolean empty) {
-          super.updateItem(item, empty);
-          if (empty || (item == null)) {
-            setText("");
-            setGraphic(null);
-            return;
-          }
-          setText(item.getName());
-          if (item.getNumberOfRawDataFiles() > 1)
-            setGraphic(new ImageView(featureListAlignedIcon));
-          else
-            setGraphic(new ImageView(featureListSingleIcon));
+    featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
+      @Override
+      protected void updateItem(PeakList item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || (item == null)) {
+          setText("");
+          setGraphic(null);
+          return;
         }
-      };
-
-      cell.setOnDragOver(MZmineGUI::activateSetOnDragOver);
-      cell.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
-
-      return cell ;
+        setText(item.getName());
+        if (item.getNumberOfRawDataFiles() > 1)
+          setGraphic(new ImageView(featureListAlignedIcon));
+        else
+          setGraphic(new ImageView(featureListSingleIcon));
+      }
     });
-
     // Add mouse clicked event handler
     featureTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
