@@ -51,6 +51,7 @@ public class DistributionPlot extends ApplicationFrame
 		{
 			Double line = lines.get(label);
 			ValueMarker valueMarker = new ValueMarker(line);
+			valueMarker.setPaint(Color.black);
 			valueMarker.setLabel(label);
 			plot.addRangeMarker(valueMarker);
 		}

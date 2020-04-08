@@ -7,6 +7,10 @@ import java.util.Collections;
 class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 {
 	protected double maxRangeLength;
+	protected double mostErrorsStart;
+	protected double mostErrorsEnd;
+	protected double mostErrorsStartValue;
+	protected double mostErrorsEndValue;
 
 	public FixedLengthRangeBiasEstimator(ArrayList<Double> errors, double maxRangeLength)
 	{
@@ -33,17 +37,15 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 			}
 		}
 
+		this.mostErrorsStart = mostErrorsStart;
+		this.mostErrorsEnd = mostErrorsEnd;
+		this.mostErrorsStartValue = errors.get(mostErrorsStart);
+		this.mostErrorsEndValue = errors.get(mostErrorsEnd);
+
 		System.out.println("Finding range with most errors and max length of " + maxRangeLength);
 		System.out.printf("Found range with %d/%d errors%n", mostErrorsEnd - mostErrorsStart + 1, errors.size());
 		System.out.printf("Smallest value %f, biggest value %f, range length %f%n", 
 						   errors.get(mostErrorsStart), errors.get(mostErrorsEnd), errors.get(mostErrorsEnd) - errors.get(mostErrorsStart));
-
-
-		HashMap<String, Double> lines = new HashMap<String, Double>();
-		lines.put("Range smallest value", errors.get(mostErrorsStart));
-		lines.put("Range biggest value", errors.get(mostErrorsEnd));
-
-		DistributionPlot.main("ppm errors distribution", errors, lines);
 
 		ArithmeticMeanBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(
 			new ArrayList<Double>(errors.subList(mostErrorsStart, mostErrorsEnd+1)));
@@ -52,4 +54,25 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 		return estimate;
 
 	}
+
+	public double getMostErrorsStart()
+	{
+		return mostErrorsStart;
+	}
+
+	public double getMostErrorsEnd()
+	{
+		return mostErrorsEnd;
+	}
+
+	public double getMostErrorsStartValue()
+	{
+		return mostErrorsStartValue;
+	}
+
+	public double getMostErrorsEndValue()
+	{
+		return mostErrorsEndValue;
+	}
+
 }

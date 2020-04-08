@@ -967,63 +967,68 @@ Sheet 6, found 133 errors ppm
 Sheet 7, found 138 errors ppm
 Sheet 8, found 122 errors ppm
 
-Arithemtic mean bias estimates for given distributions
-Distribution 1: bias estimate 2.779208
-Distribution 2: bias estimate -2.150768
-Distribution 3: bias estimate -2.756267
-Distribution 4: bias estimate 1.154742
-Distribution 5: bias estimate 2.102471
-Distribution 6: bias estimate -2.879988
-Distribution 7: bias estimate -3.474007
-Distribution 8: bias estimate 3.429276
+Measurement bias estimated for found error distributions
 
-Fixed length estimates for given distributions
-Using max range length of 2.0 ppm value
-
+Distribution 1:  71 errors ppm
+Arithmetic mean bias estimate: 2.779208
 Finding range with most errors and max length of 2.0
 Found range with 27/71 errors
 Smallest value 2.118806, biggest value 4.112261, range length 1.993454
 Arithmetic mean of errors found in the choosen range 3.245052413227292
-Distribution 1: bias estimate 3.245052
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.245052
 
+Distribution 2:  79 errors ppm
+Arithmetic mean bias estimate: -2.150768
 Finding range with most errors and max length of 2.0
 Found range with 40/79 errors
 Smallest value -4.503916, biggest value -2.572755, range length 1.931161
 Arithmetic mean of errors found in the choosen range -3.598857773720095
-Distribution 2: bias estimate -3.598858
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: -3.598858
 
+Distribution 3:  177 errors ppm
+Arithmetic mean bias estimate: -2.756267
 Finding range with most errors and max length of 2.0
 Found range with 128/177 errors
 Smallest value -4.527167, biggest value -2.527885, range length 1.999282
 Arithmetic mean of errors found in the choosen range -3.5627957575039035
-Distribution 3: bias estimate -3.562796
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: -3.562796
 
+Distribution 4:  131 errors ppm
+Arithmetic mean bias estimate: 1.154742
 Finding range with most errors and max length of 2.0
 Found range with 68/131 errors
 Smallest value 1.171588, biggest value 3.171275, range length 1.999687
 Arithmetic mean of errors found in the choosen range 2.068653698408919
-Distribution 4: bias estimate 2.068654
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: 2.068654
 
+Distribution 5:  78 errors ppm
+Arithmetic mean bias estimate: 2.102471
 Finding range with most errors and max length of 2.0
 Found range with 40/78 errors
 Smallest value 2.171476, biggest value 4.084160, range length 1.912684
 Arithmetic mean of errors found in the choosen range 3.163177599463092
-Distribution 5: bias estimate 3.163178
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.163178
 
+Distribution 6:  133 errors ppm
+Arithmetic mean bias estimate: -2.879988
 Finding range with most errors and max length of 2.0
 Found range with 103/133 errors
 Smallest value -3.849059, biggest value -1.933549, range length 1.915511
 Arithmetic mean of errors found in the choosen range -2.9453473019075007
-Distribution 6: bias estimate -2.945347
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: -2.945347
 
+Distribution 7:  138 errors ppm
+Arithmetic mean bias estimate: -3.474007
 Finding range with most errors and max length of 2.0
 Found range with 90/138 errors
 Smallest value -6.786534, biggest value -4.832621, range length 1.953913
 Arithmetic mean of errors found in the choosen range -5.561060094580981
-Distribution 7: bias estimate -5.561060
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: -5.561060
 
+Distribution 8:  122 errors ppm
+Arithmetic mean bias estimate: 3.429276
 Finding range with most errors and max length of 2.0
 Found range with 44/122 errors
 Smallest value 2.566131, biggest value 4.530403, range length 1.964272
 Arithmetic mean of errors found in the choosen range 3.6223065008473982
-Distribution 8: bias estimate 3.622307
+Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.622307

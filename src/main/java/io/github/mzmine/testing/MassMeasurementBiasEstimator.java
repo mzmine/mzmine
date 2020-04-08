@@ -11,5 +11,10 @@ abstract class MassMeasurementBiasEstimator
 		this.errors = errors;
 	}
 
+	public ArrayList<Double> getErrors()
+	{
+		return errors;
+	}
+
 	abstract public Double getBiasEstimate();
 }

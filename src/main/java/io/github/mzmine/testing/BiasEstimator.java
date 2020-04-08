@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BiasEstimator
 {
@@ -40,27 +41,33 @@ public class BiasEstimator
 		}
 
 		System.out.println();
-		System.out.println("Arithemtic mean bias estimates for given distributions");
-		index = 0;
-		for(var errors: ppmErrors)
-		{
-			MassMeasurementBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(errors);
-			double estimate = meanEstimator.getBiasEstimate();
-			System.out.printf("Distribution %d: bias estimate %f%n", index+1, estimate);
-			index++;
-		}
-
+		System.out.println("Measurement bias estimated for found error distributions");
 		double maxRangeLength = 2;
-		System.out.println();
-		System.out.println("Fixed length estimates for given distributions");
-		System.out.println("Using max range length of " + maxRangeLength + " ppm value");
 		index = 0;
 		for(var errors: ppmErrors)
 		{
 			System.out.println();
-			MassMeasurementBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(errors, maxRangeLength);
-			double estimate = fixedRangeEstimator.getBiasEstimate();
-			System.out.printf("Distribution %d: bias estimate %f%n", index+1, estimate);
+			System.out.println("Distribution " + (index+1) + ":  " + errors.size() + " errors ppm");
+
+			MassMeasurementBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(errors);
+			double meanEstimate = meanEstimator.getBiasEstimate();
+			System.out.printf("Arithmetic mean bias estimate: %f%n", meanEstimate);
+
+			// MassMeasurementBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(errors, maxRangeLength);
+			FixedLengthRangeBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(errors, maxRangeLength);
+			double fixedRangeEstimate = fixedRangeEstimator.getBiasEstimate();
+			System.out.printf("Fixed range length bias estimate, using max range length of %f ppm value: %f%n", 
+				maxRangeLength, fixedRangeEstimate);
+
+			HashMap<String, Double> lines = new HashMap<String, Double>();
+			lines.put(" ".repeat(40) + "Range smallest value", fixedRangeEstimator.getMostErrorsStartValue());
+			lines.put(" ".repeat(40) + "Range biggest value", fixedRangeEstimator.getMostErrorsEndValue());
+			lines.put(" ".repeat(140) + "Arithmetic mean", meanEstimate);
+			lines.put(" ".repeat(90) + "Range mean", fixedRangeEstimate);
+
+			DistributionPlot.main("ppm errors and measurement bias estimates, distribution " + (index+1),
+				fixedRangeEstimator.getErrors(), lines);
+
 			index++;
 		}
 
