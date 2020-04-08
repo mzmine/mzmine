@@ -51,6 +51,7 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Application;
+import io.github.mzmine.testing.BiasEstimator;
 
 /**
  * MZmine main class
@@ -70,7 +71,13 @@ public final class MZmineCore {
   /**
    * Main method
    */
-  public static void main(String args[]) {
+  public static void main(String args[]) throws Exception {
+
+    if(true)
+    {
+      BiasEstimator.main(args);
+      return;
+    }
 
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
