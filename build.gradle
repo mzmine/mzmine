@@ -151,7 +151,6 @@ dependencies {
     implementation "org.json:json:20190722"
     implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
     implementation "com.github.oshi:oshi-core:4.5.2" // because the version that is pulled by SIRIUS crashes
-    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'
     implementation "org.jfree:jcommon:1.0.24"
 }
 

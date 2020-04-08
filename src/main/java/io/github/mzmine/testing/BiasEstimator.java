@@ -17,34 +17,20 @@ public class BiasEstimator
 	public static void main(String[] args) throws Exception
 	{
 		System.out.println("Bias Estimator");
-		// URL path = BiasEstimator.class.getResource(measurementErrorsFile);
-		// URL path = ClassLoader.getSystemResource(measurementErrorsFile);
-		// ClassLoader.getResourceAsStream(measurementErrorsFile);
 		Workbook workbook = WorkbookFactory.create(BiasEstimator.class.getResourceAsStream(measurementErrorsFile));
-		// URL path = BiasEstimator.class.getClassLoader().getResource(measurementErrorsFile);
-		// Workbook workbook = WorkbookFactory.create(new File(measurementErrorsFile));
-		// Workbook workbook = WorkbookFactory.create(new File(path.getFile()));
-		// File file = new File(path.getFile());
-		// File file = new File(measurementErrorsFile);
-		// File file = new File(path.toURI());
-		// System.out.println(path.toURI());
-		// File file = new File(path.toURI());
-		// File file = new File(path.getFile());
-		// File file = Paths.get(path.toURI()).toFile();
-		// System.out.println(file.exists());
 		System.out.println("Found " + workbook.getNumberOfSheets() + " sheets in the file");
 		for(Sheet sheet: workbook) {
 			System.out.println("Sheet name: " + sheet.getSheetName());
 		}
 
-		// ArrayList<Float[]> ppmErrors = new ArrayList<Float[]>();
-		// ArrayList<ArrayList<Float>> ppmErrors = new ArrayList<ArrayList<Float>>();
+		System.out.println();
 		ArrayList<ArrayList<Double>> ppmErrors = new ArrayList<ArrayList<Double>>();
 		for(Sheet sheet: workbook)
 		{
 			ppmErrors.add(getErrors(sheet));
 		}
 
+		System.out.println();
 		System.out.println("Found error distributions");
 		int index = 0;
 		for(var errors: ppmErrors)
@@ -78,12 +64,8 @@ public class BiasEstimator
 			index++;
 		}
 
-		// DistributionPlot.main();
-		// System.out.println("test");
 	}
 
-	// protected static Float[] getErrors(Sheet sheet)
-	// protected static ArrayList<Float> getErrors(Sheet sheet)
 	protected static ArrayList<Double> getErrors(Sheet sheet)
 	{
 		System.out.println();
@@ -94,10 +76,6 @@ public class BiasEstimator
 		int index = 0;
 		for(Row row: sheet)
 		{
-			// for(Cell cell: row)
-			// {
-			// 	System.out.println(dataFormatter.formatCellValue(cell));			
-			// }
 			if(index == 0)
 			{
 				index++;
@@ -115,7 +93,6 @@ public class BiasEstimator
 			}
 			index++;
 		}
-		// return new Float[10];
 		return array;
 	}
 }

@@ -1,7 +1,9 @@
 package io.github.mzmine.testing;
 
 import java.awt.Font;
+import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -24,9 +26,9 @@ public class DistributionPlot extends ApplicationFrame
 {
 
 	ArrayList<Double> errors;
-	ArrayList<Double> lines;
+	HashMap<String, Double> lines;
 
-	public DistributionPlot(String title, ArrayList<Double> errors, ArrayList<Double> lines)
+	public DistributionPlot(String title, ArrayList<Double> errors, HashMap<String, Double> lines)
 	{
 		super(title);
 		this.errors = errors;
@@ -39,16 +41,17 @@ public class DistributionPlot extends ApplicationFrame
 	protected JFreeChart createChart(String title)
 	{
 		XYDataset dataset = createDataset();
-		// XYItemRenderer renderer = new StandardXYItemRenderer();
 		XYItemRenderer renderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
 		NumberAxis xAxis = new NumberAxis("Match number");
 		NumberAxis yAxis = new NumberAxis("PPM error");
 		XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
 		plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
 
-		for(Double line: lines)
+		for(String label: lines.keySet())
 		{
+			Double line = lines.get(label);
 			ValueMarker valueMarker = new ValueMarker(line);
+			valueMarker.setLabel(label);
 			plot.addRangeMarker(valueMarker);
 		}
 		
@@ -63,13 +66,11 @@ public class DistributionPlot extends ApplicationFrame
 			errorsXY.add(i+1, errors.get(i));
 		}
 
-		// return errorsXY;
 		return new XYSeriesCollection(errorsXY);
 	}
 
-	public static void main(String title, ArrayList<Double> errors, ArrayList<Double> lines)
+	public static void main(String title, ArrayList<Double> errors, HashMap<String, Double> lines)
 	{
-		// DistributionPlot plot = new DistributionPlot("ppm errors distribution");
 		DistributionPlot plot = new DistributionPlot(title, errors, lines);
 		plot.pack();
 		RefineryUtilities.centerFrameOnScreen(plot);

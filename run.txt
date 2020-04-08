@@ -9,6 +9,7 @@ Sheet name: Example 6 (+H)
 Sheet name: Example 7 (+H)
 Sheet name: Example 8 (-H)
 
+
 Example 1 (-H)
 PPM error -1.5856040669984972
 PPM error -1.7936035173920095
@@ -955,6 +956,7 @@ PPM error 4.4852807139196536
 PPM error 1.097226419843326
 PPM error 4.057247472876611
 PPM error 4.861492188291086
+
 Found error distributions
 Sheet 1, found 71 errors ppm
 Sheet 2, found 79 errors ppm

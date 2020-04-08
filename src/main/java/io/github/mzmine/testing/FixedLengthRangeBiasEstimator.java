@@ -1,6 +1,7 @@
 package io.github.mzmine.testing;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Collections;
 
 class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
@@ -16,23 +17,19 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 	public Double getBiasEstimate()
 	{
 		Collections.sort(errors);
-		// int start_index = 0;
-		int end_index = 0;
-		// int mostErrors = 0;
+		int endIndex = 0;
 		int mostErrorsStart = 0;
 		int mostErrorsEnd = 0;
-		// for(int i = 0; i < error.size(); i++)
-		for(int start_index = 0; start_index < errors.size(); start_index++)
+		for(int startIndex = 0; startIndex < errors.size(); startIndex++)
 		{
-			// while(end_index + 1 < errors.size() && errors[end_index+1] - errors[start_index] <= maxRangeLength)
-			while(end_index + 1 < errors.size() && errors.get(end_index+1) - errors.get(start_index) <= maxRangeLength)
+			while(endIndex + 1 < errors.size() && errors.get(endIndex+1) - errors.get(startIndex) <= maxRangeLength)
 			{
-				end_index++;
+				endIndex++;
 			}
-			if(end_index - start_index > mostErrorsEnd - mostErrorsStart)
+			if(endIndex - startIndex > mostErrorsEnd - mostErrorsStart)
 			{
-				mostErrorsStart = start_index;
-				mostErrorsEnd = end_index;
+				mostErrorsStart = startIndex;
+				mostErrorsEnd = endIndex;
 			}
 		}
 
@@ -42,14 +39,12 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 						   errors.get(mostErrorsStart), errors.get(mostErrorsEnd), errors.get(mostErrorsEnd) - errors.get(mostErrorsStart));
 
 
-		ArrayList<Double> lines = new ArrayList<Double>();
-		lines.add(errors.get(mostErrorsStart));
-		lines.add(errors.get(mostErrorsEnd));
+		HashMap<String, Double> lines = new HashMap<String, Double>();
+		lines.put("Range smallest value", errors.get(mostErrorsStart));
+		lines.put("Range biggest value", errors.get(mostErrorsEnd));
 
-		// DistributionPlot plot = new DistributionPlot();
 		DistributionPlot.main("ppm errors distribution", errors, lines);
 
-		// ArithmeticMeanBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator((ArrayList<Double>)errors.subList(mostErrorsStart, mostErrorsEnd+1));
 		ArithmeticMeanBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(
 			new ArrayList<Double>(errors.subList(mostErrorsStart, mostErrorsEnd+1)));
 		double estimate = meanEstimator.getBiasEstimate();
