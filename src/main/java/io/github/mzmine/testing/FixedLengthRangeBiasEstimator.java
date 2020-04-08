@@ -7,8 +7,8 @@ import java.util.Collections;
 class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 {
 	protected double maxRangeLength;
-	protected double mostErrorsStart;
-	protected double mostErrorsEnd;
+	protected int mostErrorsStart;
+	protected int mostErrorsEnd;
 	protected double mostErrorsStartValue;
 	protected double mostErrorsEndValue;
 
@@ -55,12 +55,12 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 
 	}
 
-	public double getMostErrorsStart()
+	public int getMostErrorsStart()
 	{
 		return mostErrorsStart;
 	}
 
-	public double getMostErrorsEnd()
+	public int getMostErrorsEnd()
 	{
 		return mostErrorsEnd;
 	}

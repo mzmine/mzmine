@@ -976,6 +976,10 @@ Found range with 27/71 errors
 Smallest value 2.118806, biggest value 4.112261, range length 1.993454
 Arithmetic mean of errors found in the choosen range 3.245052413227292
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.245052
+Found stretched range with 71/71 errors
+Smallest value -6.250641, biggest value 6.992334, range length 13.242975
+Arithmetic mean of errors found in the choosen range 2.7792079361162676
+Stretched range bias estimate: 2.779208
 
 Distribution 2:  79 errors ppm
 Arithmetic mean bias estimate: -2.150768
@@ -984,6 +988,10 @@ Found range with 40/79 errors
 Smallest value -4.503916, biggest value -2.572755, range length 1.931161
 Arithmetic mean of errors found in the choosen range -3.598857773720095
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: -3.598858
+Found stretched range with 40/79 errors
+Smallest value -4.503916, biggest value -2.572755, range length 1.931161
+Arithmetic mean of errors found in the choosen range -3.598857773720095
+Stretched range bias estimate: -3.598858
 
 Distribution 3:  177 errors ppm
 Arithmetic mean bias estimate: -2.756267
@@ -992,6 +1000,10 @@ Found range with 128/177 errors
 Smallest value -4.527167, biggest value -2.527885, range length 1.999282
 Arithmetic mean of errors found in the choosen range -3.5627957575039035
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: -3.562796
+Found stretched range with 128/177 errors
+Smallest value -4.527167, biggest value -2.527885, range length 1.999282
+Arithmetic mean of errors found in the choosen range -3.5627957575039035
+Stretched range bias estimate: -3.562796
 
 Distribution 4:  131 errors ppm
 Arithmetic mean bias estimate: 1.154742
@@ -1000,6 +1012,10 @@ Found range with 68/131 errors
 Smallest value 1.171588, biggest value 3.171275, range length 1.999687
 Arithmetic mean of errors found in the choosen range 2.068653698408919
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: 2.068654
+Found stretched range with 122/131 errors
+Smallest value -2.830479, biggest value 4.581762, range length 7.412242
+Arithmetic mean of errors found in the choosen range 1.5583642429419322
+Stretched range bias estimate: 1.558364
 
 Distribution 5:  78 errors ppm
 Arithmetic mean bias estimate: 2.102471
@@ -1008,6 +1024,10 @@ Found range with 40/78 errors
 Smallest value 2.171476, biggest value 4.084160, range length 1.912684
 Arithmetic mean of errors found in the choosen range 3.163177599463092
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.163178
+Found stretched range with 78/78 errors
+Smallest value -8.200042, biggest value 8.452798, range length 16.652839
+Arithmetic mean of errors found in the choosen range 2.10247084711741
+Stretched range bias estimate: 2.102471
 
 Distribution 6:  133 errors ppm
 Arithmetic mean bias estimate: -2.879988
@@ -1016,6 +1036,10 @@ Found range with 103/133 errors
 Smallest value -3.849059, biggest value -1.933549, range length 1.915511
 Arithmetic mean of errors found in the choosen range -2.9453473019075007
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: -2.945347
+Found stretched range with 103/133 errors
+Smallest value -3.849059, biggest value -1.933549, range length 1.915511
+Arithmetic mean of errors found in the choosen range -2.9453473019075007
+Stretched range bias estimate: -2.945347
 
 Distribution 7:  138 errors ppm
 Arithmetic mean bias estimate: -3.474007
@@ -1024,6 +1048,10 @@ Found range with 90/138 errors
 Smallest value -6.786534, biggest value -4.832621, range length 1.953913
 Arithmetic mean of errors found in the choosen range -5.561060094580981
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: -5.561060
+Found stretched range with 90/138 errors
+Smallest value -6.786534, biggest value -4.832621, range length 1.953913
+Arithmetic mean of errors found in the choosen range -5.561060094580981
+Stretched range bias estimate: -5.561060
 
 Distribution 8:  122 errors ppm
 Arithmetic mean bias estimate: 3.429276
@@ -1032,3 +1060,7 @@ Found range with 44/122 errors
 Smallest value 2.566131, biggest value 4.530403, range length 1.964272
 Arithmetic mean of errors found in the choosen range 3.6223065008473982
 Fixed range length bias estimate, using max range length of 2.000000 ppm value: 3.622307
+Found stretched range with 105/122 errors
+Smallest value -3.923604, biggest value 6.766545, range length 10.690149
+Arithmetic mean of errors found in the choosen range 2.897080350975319
+Stretched range bias estimate: 2.897080
