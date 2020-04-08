@@ -38,7 +38,10 @@ import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
@@ -140,7 +143,7 @@ public class ResultWindowController{
                         try {
                             if (container == null) return;
                             Structure2DComponent newItem = new Structure2DComponent(container);
-                            newItem.resize(300, 300);
+                            newItem.resize(500, 500);
                             tooltip.setGraphic(newItem);
                         } catch (CDKException ex) {
                             ex.printStackTrace();
@@ -190,8 +193,16 @@ private void displayDBOnClick(ActionEvent ae){
         MZmineCore.getDesktop().displayMessage(null, "Select one row to display the list DBs");
         return;
     }
-    DBFrame dbFrame = new DBFrame(compound, null);
-    dbFrame.setVisible(true);
+    DBFrame dbFrame = new DBFrame(compound, new Button());
+    Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+            Stage stage = new Stage();
+            Scene scene = new Scene(dbFrame);
+            stage.setScene(scene);
+            stage.show();
+        }
+    });
 }
 
 @FXML
