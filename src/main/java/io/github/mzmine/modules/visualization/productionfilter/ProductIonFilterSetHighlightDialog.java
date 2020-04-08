@@ -76,7 +76,7 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
     mainScene = new Scene(mainPane);
     mainScene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-
+    setScene(mainScene);
     initOwner(parent);
     String title = "Highlight ";
     if (command.equals("HIGHLIGHT_PRECURSOR")) {
