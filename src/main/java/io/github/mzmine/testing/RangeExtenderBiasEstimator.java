@@ -7,49 +7,42 @@ import java.util.Collections;
 class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 {
 	protected double stretchGapToMeanRatio;
-	// protected double mostErrorsStart;
-	// protected double mostErrorsEnd;
 	protected int mostErrorsStart;
 	protected int mostErrorsEnd;
 	protected double mostErrorsStartValue;
 	protected double mostErrorsEndValue;
 
-	public RangeExtenderBiasEstimator(ArrayList<Double> errors, double stretchGapToMeanRatio,
-									  // double mostErrorsStart, double mostErrorsEnd)
-									  int mostErrorsStart, int mostErrorsEnd)
+	public RangeExtenderBiasEstimator(ArrayList<Double> errors, int mostErrorsStart, int mostErrorsEnd, double stretchGapToMeanRatio)
 	{
 		super(errors);
-		this.stretchGapToMeanRatio = stretchGapToMeanRatio;
 		this.mostErrorsStart = mostErrorsStart;
 		this.mostErrorsEnd = mostErrorsEnd;
+		this.stretchGapToMeanRatio = stretchGapToMeanRatio;
 	}
 
 	public Double getBiasEstimate()
 	{
 		// Collections.sort(errors);
-		double sumInRange = 0;
-		for(int i = mostErrorsStart; i <= mostErrorsEnd; i++)
-		{
-			sumInRange += errors.get(i);
-		}
+		double meanGapInRange = (errors.get(mostErrorsEnd) - errors.get(mostErrorsStart))
+								/ (mostErrorsEnd - mostErrorsStart);
 
-		double tolerance = (sumInRange / (mostErrorsEnd - mostErrorsStart + 1)) * stretchGapToMeanRatio;
+		double tolerance = meanGapInRange * stretchGapToMeanRatio;
 		while((mostErrorsStart > 0 && errors.get(mostErrorsStart) - errors.get(mostErrorsStart - 1) < tolerance)
 			|| (mostErrorsEnd < errors.size()-1 && errors.get(mostErrorsEnd + 1) - errors.get(mostErrorsEnd) < tolerance))
 		{
 			if(mostErrorsStart > 0 && errors.get(mostErrorsStart) - errors.get(mostErrorsStart - 1) < tolerance)
 			{
 				mostErrorsStart--;
-				sumInRange += errors.get(mostErrorsStart);
 			}
 			if(mostErrorsEnd < errors.size()-1 && errors.get(mostErrorsEnd + 1) - errors.get(mostErrorsEnd) < tolerance)
 			{
 				mostErrorsEnd++;
-				sumInRange += errors.get(mostErrorsEnd);
 			}
 
-			// double tolerance = (sumInRange / (mostErrorsEnd - mostErrorsStart + 1)) * stretchGapToMeanRatio;
-			tolerance = (sumInRange / (mostErrorsEnd - mostErrorsStart + 1)) * stretchGapToMeanRatio;
+			meanGapInRange = (errors.get(mostErrorsEnd) - errors.get(mostErrorsStart))
+								/ (mostErrorsEnd - mostErrorsStart);
+
+			tolerance = meanGapInRange * stretchGapToMeanRatio;
 		}
 
 		this.mostErrorsStart = mostErrorsStart;

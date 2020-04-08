@@ -36,7 +36,6 @@ public class DistributionPlot extends ApplicationFrame
 		super(title);
 		this.errors = errors;
 		this.lines = lines;
-		// JFreeChart chart = createChart(title);
 		chart = createChart(title);
 		ChartPanel panel = new ChartPanel(chart, true, true, true, false, true);
 		setContentPane(panel);
@@ -74,15 +73,12 @@ public class DistributionPlot extends ApplicationFrame
 		return new XYSeriesCollection(errorsXY);
 	}
 
-	// public static void main(String title, ArrayList<Double> errors, HashMap<String, Double> lines)
 	public static void main(String title, ArrayList<Double> errors, HashMap<String, Double> lines) throws Exception
 	{
 		DistributionPlot plot = new DistributionPlot(title, errors, lines);
 		plot.pack();
 		RefineryUtilities.centerFrameOnScreen(plot);
 		plot.setVisible(true);
-		// ChartUtils.saveChartAsPNG(chart, new File(title + ".png"), 1600, 1200);
-		// ChartUtils.saveChartAsPNG(plot.chart, new File(title.replace(' ', '-') + ".png"), 1600, 1200);
 		ChartUtils.saveChartAsPNG(new File(title.replace(' ', '-') + ".png"), plot.chart, 1600, 1200);
 	}
 

@@ -69,8 +69,8 @@ public class BiasEstimator
 				fixedRangeEstimator.getErrors(), lines);
 
 
-			RangeExtenderBiasEstimator rangeExtender = new RangeExtenderBiasEstimator(errors, 1.1, 
-				fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd());
+			RangeExtenderBiasEstimator rangeExtender = new RangeExtenderBiasEstimator(errors, 
+				fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 1.1);
 			double stretchedRangeEstimate = rangeExtender.getBiasEstimate();
 			System.out.printf("Stretched range bias estimate: %f%n", stretchedRangeEstimate);
 
