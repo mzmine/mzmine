@@ -75,14 +75,11 @@ public class AlignmentRansacPlot extends EChartViewer {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
   public AlignmentRansacPlot() {
-    super(null);
+    super(ChartFactory.createXYLineChart("", null, null, new XYSeriesCollection(),
+        PlotOrientation.VERTICAL, true, true, false));
 
-    dataset = new XYSeriesCollection();
-    chart = ChartFactory.createXYLineChart("", null, null, dataset, PlotOrientation.VERTICAL, true,
-        true, false);
-
+    chart = this.getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // title
     chartTitle = chart.getTitle();
@@ -99,6 +96,7 @@ public class AlignmentRansacPlot extends EChartViewer {
     plot.setBackgroundPaint(Color.white);
     plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+    dataset = (XYSeriesCollection) plot.getDataset();
 
     // set grid properties
     plot.setDomainGridlinePaint(gridColor);

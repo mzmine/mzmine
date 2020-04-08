@@ -88,6 +88,9 @@ public class HistogramWindow extends Stage {
     // settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
 
+    setMinWidth(600.0);
+    setMinHeight(400.0);
+
     if (peakList != null) {
       HistogramPlotDataset dataSet =
           new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType, range);
