@@ -30,6 +30,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -37,6 +38,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +52,12 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 // * browser if entry point is known, otherwise shows dialogue window.
 // */
 
-public  class DBFrame extends VBox{
+public  class DBFrame extends Popup {
 
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
   private final TableView<SiriusDBCompound> dbTable = new TableView();
   private final ObservableList<SiriusDBCompound> compounds = FXCollections.observableArrayList();
-
+    VBox vBox = new VBox();
 
   public DBFrame(SiriusCompound compound, Button openBrowser) {
       final Label label = new Label("List of database with IDs");
@@ -62,14 +65,15 @@ public  class DBFrame extends VBox{
       TableColumn<SiriusDBCompound,String> database = new TableColumn("Database");
       TableColumn<SiriusDBCompound, String> index = new TableColumn("Index");
       openBrowser.setText("Open Browser");
+
       dbTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
       dbTable.getColumns().addAll(database, index);
-      this.setMinWidth(500);
-      this.setMinHeight(100);
-      this.setSpacing(10);
-      this.setPadding(new Insets(5, 10, 5, 10));
-      this.getChildren().addAll(label, dbTable, openBrowser);
+      vBox.setMinWidth(500);
+      vBox.setMinHeight(100);
+      vBox.setSpacing(10);
+      vBox.setPadding(new Insets(5, 10, 5, 10));
+      vBox.getChildren().addAll(label, dbTable, openBrowser);
       database.setCellValueFactory(cell->{
         String databaseValue = cell.getValue().getDB();
         if(cell.getValue().getDB()==null){
@@ -120,8 +124,8 @@ public  class DBFrame extends VBox{
       }
 
     });
-
   }
+
   public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
     DBLink[] links = annotation.getDBLinks();
@@ -132,5 +136,14 @@ public  class DBFrame extends VBox{
       compounds.add(new SiriusDBCompound(link.name, link.id));
     }
   }
+
+  public void display(){
+     Scene scene = new Scene(vBox);
+      Stage popupwindow = new Stage();
+      popupwindow.setScene(scene);
+      popupwindow.show();
+
+  }
+
 }
 

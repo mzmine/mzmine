@@ -38,10 +38,9 @@ import javafx.collections.ObservableList;
 import io.github.mzmine.datamodel.PeakListRow;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.stage.Stage;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
@@ -58,7 +57,7 @@ public class ResultWindowController{
     @FXML
     private TableColumn<SiriusCompound, String>formulaCol;
     @FXML
-    private TableColumn<SiriusCompound, String>dbsCol;
+    private TableColumn<SiriusCompound, Node>dbsCol;
     @FXML
     private TableColumn<SiriusCompound, String>siriusScoreCol;
     @FXML
@@ -87,17 +86,8 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
-    dbsCol.setCellValueFactory(
-        cell -> {
-          String[] dbs = cell.getValue().getDBS();
+        dbsCol.setCellValueFactory(c-> c.getValue().getDBS());
 
-          if (cell.getValue().getDBS() != null) {
-            for (int i = 0; i < dbs.length; i++) {
-              return new ReadOnlyObjectWrapper<>(dbs[i]);
-            }
-          }
-          return new ReadOnlyObjectWrapper<>();
-        });
         siriusScoreCol.setCellValueFactory(cell->{
             String sirius = cell.getValue().getSiriusScore();
             String cellVal = "";
@@ -194,15 +184,8 @@ private void displayDBOnClick(ActionEvent ae){
         return;
     }
     DBFrame dbFrame = new DBFrame(compound, new Button());
-    Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-            Stage stage = new Stage();
-            Scene scene = new Scene(dbFrame);
-            stage.setScene(scene);
-            stage.show();
-        }
-    });
+    dbFrame.display();
+
 }
 
 @FXML

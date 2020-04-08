@@ -168,7 +168,7 @@ public class ResultWindow extends JFrame implements ActionListener {
       final SiriusCompound compound = listElementModel.getCompoundAt(realRow);
 
       DBFrame dbFrame = new DBFrame(compound, null);
-      dbFrame.setVisible(true);
+     // dbFrame.setVisible(true);
     }
   }
 

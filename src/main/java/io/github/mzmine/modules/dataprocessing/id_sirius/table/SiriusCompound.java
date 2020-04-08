@@ -32,7 +32,13 @@ import javax.annotation.Nonnull;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -171,7 +177,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    *
    * @return unique names of the databases
    */
-  public String[] getDBS() {
+  public SimpleObjectProperty<Node> getDBS() {
     DBLink[] dblinks = getIonAnnotation().getDBLinks();
     if (dblinks == null)
       return null;
@@ -184,10 +190,21 @@ public class SiriusCompound extends SimplePeakIdentity {
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
+    SimpleObjectProperty<ArrayList<String>> newdbs = new SimpleObjectProperty<ArrayList<String>>();
+    ArrayList<String>temp = new ArrayList<>();
+    VBox vBox = new VBox();
+    for(int i=0;i<dbNames.size();i++)
+    {
+     TextField ele =  new TextField();
+     ele.setEditable(false);
+     ele.setText(dbs[i]);
+       vBox.getChildren().add(i, ele);
+    }
 
-    return dbs;
+
+    newdbs.set(temp);
+    return new SimpleObjectProperty<>(vBox);
   }
-
   /**
    * Method returns AtomContainer of the compound (if exists)
    *
