@@ -187,7 +187,7 @@ class ProductIonFilterPlot extends EChartViewer {
     // set the X axis (retention time) properties
     final NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
     if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
-      xAxis.setLabel("Precursor m/z");
+      xAxis.setLabel("Precursor ion m/z");
       xAxis.setNumberFormatOverride(mzFormat);
     } else {
       xAxis.setLabel("Retention time");
@@ -198,7 +198,7 @@ class ProductIonFilterPlot extends EChartViewer {
     xAxis.setAutoRangeIncludesZero(false);
     // set the Y axis (intensity) properties
     final NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
-    yAxis.setLabel("Neutral loss (Da)");
+    yAxis.setLabel("Product ion m/z");
     yAxis.setAutoRangeIncludesZero(false);
     yAxis.setNumberFormatOverride(mzFormat);
     yAxis.setUpperMargin(0);
