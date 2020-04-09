@@ -73,7 +73,6 @@ public class ResultWindowController{
             {
                 cellVal = formula;
             }
-
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
 
