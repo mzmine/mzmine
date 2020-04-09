@@ -57,9 +57,10 @@ public  class DBFrame extends Popup {
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
   private final TableView<SiriusDBCompound> dbTable = new TableView();
   private final ObservableList<SiriusDBCompound> compounds = FXCollections.observableArrayList();
-    VBox vBox = new VBox();
+  final VBox vBox = new VBox();
+  final   Button openBrowser = new Button();
 
-  public DBFrame(SiriusCompound compound, Button openBrowser) {
+  public DBFrame(SiriusCompound compound) {
       final Label label = new Label("List of database with IDs");
       label.setFont(Font.font("Arial", FontWeight.BOLD,12));
       TableColumn<SiriusDBCompound,String> database = new TableColumn("Database");
@@ -110,13 +111,13 @@ public  class DBFrame extends Popup {
         if (Desktop.isDesktopSupported())
         {
           // Open uri in default browser
-          Desktop.getDesktop().browse(url.toURI());
+          MZmineCore.getDesktop().openWebPage(url);
         }
       }
       catch (RuntimeException f)
       {
         MZmineCore.getDesktop().displayMessage(null, "Not supported Database");
-      } catch (URISyntaxException | IOException d)
+      } catch (IOException d)
       {
         logger.error("Error happened on opening db link for {} : {}", selectedCompound.getDB(),
                 selectedCompound.getID());

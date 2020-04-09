@@ -183,7 +183,7 @@ private void displayDBOnClick(ActionEvent ae){
         MZmineCore.getDesktop().displayMessage(null, "Select one row to display the list DBs");
         return;
     }
-    DBFrame dbFrame = new DBFrame(compound, new Button());
+    DBFrame dbFrame = new DBFrame(compound);
     dbFrame.display();
 
 }
