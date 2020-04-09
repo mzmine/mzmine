@@ -13,9 +13,6 @@
           <placeholder>
             <Label text="Searching with SIRIUS..." />
           </placeholder>
-          <columnResizePolicy>
-              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-          </columnResizePolicy>
         <columns>
             <TableColumn fx:id="nameCol" minWidth="100" text="Name" />
             <TableColumn fx:id="formulaCol" minWidth="100" text="Formula" />

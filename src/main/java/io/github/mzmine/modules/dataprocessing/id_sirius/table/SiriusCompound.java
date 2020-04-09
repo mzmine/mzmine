@@ -37,6 +37,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import org.openscience.cdk.exception.CDKException;
@@ -298,18 +299,23 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   public SimpleObjectProperty<Node>getDBSNode(){
-    SimpleObjectProperty<Node>dbsNode;
      String dbs[] = this.getDBS();
     VBox vBox = new VBox();
-    for(int i=0;i<dbs.length;i++)
+    String dbsWords="";
+    Label label = new Label();
+    label.setMaxWidth(180);
+    label.setWrapText(true);
+    int cnt =0;
+    for(String S:dbs)
     {
-      TextField ele =  new TextField();
-      ele.setEditable(false);
-      ele.setText(dbs[i]);
-      vBox.getChildren().add(i, ele);
+      dbsWords+=S+" \n";
+      cnt++;
     }
-   return new SimpleObjectProperty<>(vBox);
-  }
+    label.setText(dbsWords);
+    vBox.getChildren().add(label);
+    System.out.println(cnt);
 
+   return new SimpleObjectProperty<>(label);
+  }
 
 }
