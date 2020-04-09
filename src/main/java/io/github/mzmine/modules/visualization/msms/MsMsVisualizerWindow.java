@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import java.awt.Color;
-import java.awt.geom.Ellipse2D;
-import org.jfree.chart.LegendItem;
-import org.jfree.chart.LegendItemCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -38,6 +34,9 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.awt.Color;
+import java.awt.geom.Ellipse2D;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -48,6 +47,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 
 /**
  * MS/MS visualizer using JFreeChart library
@@ -148,15 +149,17 @@ public class MsMsVisualizerWindow extends Stage {
       final ParameterSet parametersSearch = new SimpleParameterSet(findParams);
       ExitCode exitCode = parametersSearch.showSetupDialog(true);
 
-      if (exitCode != ExitCode.OK)
+      if (exitCode != ExitCode.OK) {
         return;
+      }
 
       double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
       MZTolerance searchMZTolerance = parametersSearch.getParameter(inputMZTolerance).getValue();
       double minIntensity = parametersSearch.getParameter(inputIntensity).getValue();
       boolean neutralLoss = parametersSearch.getParameter(inputNL).getValue();
 
-      Color highligtColor = Color.red;;
+      Color highligtColor = Color.red;
+      ;
       if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {
         highligtColor = Color.green;
       }
@@ -177,22 +180,17 @@ public class MsMsVisualizerWindow extends Stage {
       IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);
     });
 
-
     toolBar.getItems().addAll(toggleContinuousModeButton, toggleTooltipButton, findButton);
     mainPane.setRight(toolBar);
 
-
     bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
+    bottomPanel.setPadding(new Insets(10));
     mainPane.setBottom(bottomPanel);
 
     updateTitle();
 
-    // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
-
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
-
-    // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
@@ -200,7 +198,7 @@ public class MsMsVisualizerWindow extends Stage {
     WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
 
     // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
+    settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
   }
 
