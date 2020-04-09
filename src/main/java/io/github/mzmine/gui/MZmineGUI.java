@@ -344,18 +344,19 @@ public class MZmineGUI extends Application implements Desktop {
         } else if(isRawDataFile){
           moduleJavaClass = RawDataImportModule.class;
         }
-        ParameterSet moduleParameters =
-                MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
 
-        if(isMZmineProject){
-          moduleParameters.getParameter(projectFile).setValue(selectedFile);
-        } else if (isRawDataFile){
-          File fileArray[] = { selectedFile };
-          moduleParameters.getParameter(fileNames).setValue(fileArray);
+        if(moduleJavaClass != null){
+          ParameterSet moduleParameters =
+                  MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          if(isMZmineProject){
+            moduleParameters.getParameter(projectFile).setValue(selectedFile);
+          } else if (isRawDataFile){
+            File fileArray[] = { selectedFile };
+            moduleParameters.getParameter(fileNames).setValue(fileArray);
+          }
+          ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+          MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
         }
-
-        ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-        MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
       }
     }
     event.setDropCompleted(hasFileDropped);
