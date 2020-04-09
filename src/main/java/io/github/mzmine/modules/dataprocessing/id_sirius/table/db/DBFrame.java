@@ -52,7 +52,7 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 // * browser if entry point is known, otherwise shows dialogue window.
 // */
 
-public  class DBFrame extends Popup {
+public  class DBFrame extends Stage {
 
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
   private final TableView<SiriusDBCompound> dbTable = new TableView();
@@ -124,13 +124,12 @@ public  class DBFrame extends Popup {
       }
 
     });
-
       Scene scene = new Scene(vBox);
       this.setScene(scene);
+      this.show();
   }
 
-
-  public void addElement(SiriusCompound compound) {
+    public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
     DBLink[] links = annotation.getDBLinks();
     if (links == null)
@@ -140,10 +139,5 @@ public  class DBFrame extends Popup {
       compounds.add(new SiriusDBCompound(link.name, link.id));
     }
   }
-
-    @Override
-    protected void show() {
-        super.show();
-    }
 }
 
