@@ -305,15 +305,12 @@ public class SiriusCompound extends SimplePeakIdentity {
     Label label = new Label();
     label.setMaxWidth(180);
     label.setWrapText(true);
-    int cnt =0;
     for(String S:dbs)
     {
       dbsWords+=S+" \n";
-      cnt++;
     }
     label.setText(dbsWords);
     vBox.getChildren().add(label);
-    System.out.println(cnt);
 
    return new SimpleObjectProperty<>(label);
   }
