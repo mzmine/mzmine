@@ -19,13 +19,21 @@
 package io.github.mzmine.gui;
 
 
+import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import javafx.application.HostServices;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -60,6 +68,9 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 /**
  * MZmine JavaFX Application class
@@ -110,6 +121,11 @@ public class MZmineGUI extends Application implements Desktop {
       requestQuit();
       e.consume();
     });
+
+    // Drag over surface
+    rootScene.setOnDragOver(MZmineGUI::activateSetOnDragOver);
+    // Dropping over surface
+    rootScene.setOnDragDropped(MZmineGUI::activateSetOnDragDropped);
 
     // Configure desktop properties such as the application taskbar icon
     // on a new thread. It is important to start this thread after the
@@ -287,6 +303,64 @@ public class MZmineGUI extends Application implements Desktop {
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
       aboutWindow.show();
     });
+  }
+
+  /**
+   * The method activateSetOnDragOver controlling what happens when something is dragged over.
+   * Implemented activateSetOnDragOver to accept when files are dragged over it.
+   * @param event - DragEvent
+   */
+  public static void activateSetOnDragOver(DragEvent event){
+    Dragboard dragBoard = event.getDragboard();
+    if (dragBoard.hasFiles()) {
+      event.acceptTransferModes(TransferMode.COPY);
+    } else {
+      event.consume();
+    }
+  }
+
+  /**
+   * The method activateSetOnDragDropped controlling what happens when something is dropped on window.
+   * Implemented activateSetOnDragDropped to select the module according to the dropped file type and open dropped file
+   * @param event - DragEvent
+   */
+
+  public static void activateSetOnDragDropped(DragEvent event){
+    Dragboard dragboard = event.getDragboard();
+    boolean hasFileDropped = false;
+    if (dragboard.hasFiles()) {
+      hasFileDropped = true;
+      for (File selectedFile:dragboard.getFiles()) {
+
+        final String extension = FilenameUtils.getExtension(selectedFile.getName());
+        String[] rawDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
+        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
+        final Boolean isMZmineProject = extension.equals("mzmine");
+
+        Class<? extends MZmineRunnableModule> moduleJavaClass = null;
+        if(isMZmineProject)
+        {
+          moduleJavaClass = ProjectLoadModule.class;
+        } else if(isRawDataFile){
+          moduleJavaClass = RawDataImportModule.class;
+        }
+
+        if(moduleJavaClass != null){
+          ParameterSet moduleParameters =
+                  MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          if(isMZmineProject){
+            moduleParameters.getParameter(projectFile).setValue(selectedFile);
+          } else if (isRawDataFile){
+            File fileArray[] = { selectedFile };
+            moduleParameters.getParameter(fileNames).setValue(fileArray);
+          }
+          ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+          MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+        }
+      }
+    }
+    event.setDropCompleted(hasFileDropped);
+    event.consume();
   }
 
   @Override
