@@ -108,11 +108,10 @@ public  class DBFrame extends Popup {
         URL url = selectedCompound.generateURL();
         if (url == null)
           throw new RuntimeException("Unsupported DB");
-        if (Desktop.isDesktopSupported())
-        {
+
           // Open uri in default browser
           MZmineCore.getDesktop().openWebPage(url);
-        }
+
       }
       catch (RuntimeException f)
       {
@@ -125,7 +124,11 @@ public  class DBFrame extends Popup {
       }
 
     });
+
+      Scene scene = new Scene(vBox);
+      this.setScene(scene);
   }
+
 
   public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
@@ -138,13 +141,9 @@ public  class DBFrame extends Popup {
     }
   }
 
-  public void display(){
-     Scene scene = new Scene(vBox);
-      Stage popupwindow = new Stage();
-      popupwindow.setScene(scene);
-      popupwindow.show();
-
-  }
-
+    @Override
+    protected void show() {
+        super.show();
+    }
 }
 

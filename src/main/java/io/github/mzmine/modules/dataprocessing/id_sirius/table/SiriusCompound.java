@@ -177,33 +177,20 @@ public class SiriusCompound extends SimplePeakIdentity {
    *
    * @return unique names of the databases
    */
-  public SimpleObjectProperty<Node> getDBS() {
+  public String[] getDBS() {
     DBLink[] dblinks = getIonAnnotation().getDBLinks();
     if (dblinks == null)
       return null;
 
     Set<String> dbNames = new TreeSet<String>();
-
     for (DBLink link : dblinks) {
       dbNames.add(link.name);
       }
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
-    SimpleObjectProperty<ArrayList<String>> newdbs = new SimpleObjectProperty<ArrayList<String>>();
-    ArrayList<String>temp = new ArrayList<>();
-    VBox vBox = new VBox();
-    for(int i=0;i<dbNames.size();i++)
-    {
-     TextField ele =  new TextField();
-     ele.setEditable(false);
-     ele.setText(dbs[i]);
-       vBox.getChildren().add(i, ele);
-    }
 
-
-    newdbs.set(temp);
-    return new SimpleObjectProperty<>(vBox);
+    return dbs;
   }
   /**
    * Method returns AtomContainer of the compound (if exists)
@@ -300,14 +287,29 @@ public class SiriusCompound extends SimplePeakIdentity {
     return getPropertyValue("Sirius score");
   }
 
-  public SimpleObjectProperty<Structure2DComponent> getNode() throws CDKException {
-    SimpleObjectProperty<Structure2DComponent>temp;
+  public SimpleObjectProperty<Structure2DComponent> getChemicalStructureNode() throws CDKException {
+    SimpleObjectProperty<Structure2DComponent>chemicalStructure;
 
     Structure2DComponent node =new Structure2DComponent(this.getContainer());
-    temp = new SimpleObjectProperty<Structure2DComponent>(node);
+    chemicalStructure = new SimpleObjectProperty<Structure2DComponent>(node);
 
-    return temp;
+    return chemicalStructure;
 
   }
+
+  public SimpleObjectProperty<Node>getDBSNode(){
+    SimpleObjectProperty<Node>dbsNode;
+     String dbs[] = this.getDBS();
+    VBox vBox = new VBox();
+    for(int i=0;i<dbs.length;i++)
+    {
+      TextField ele =  new TextField();
+      ele.setEditable(false);
+      ele.setText(dbs[i]);
+      vBox.getChildren().add(i, ele);
+    }
+   return new SimpleObjectProperty<>(vBox);
+  }
+
 
 }

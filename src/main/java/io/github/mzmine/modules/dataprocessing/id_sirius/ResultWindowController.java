@@ -86,7 +86,7 @@ public class ResultWindowController{
             }
             return new ReadOnlyObjectWrapper<>(cellVal);
         });
-        dbsCol.setCellValueFactory(c-> c.getValue().getDBS());
+        dbsCol.setCellValueFactory(c-> c.getValue().getDBSNode());
 
         siriusScoreCol.setCellValueFactory(cell->{
             String sirius = cell.getValue().getSiriusScore();
@@ -109,7 +109,7 @@ public class ResultWindowController{
 
         chemicalStructureCol.setCellValueFactory(c-> {
             try {
-                return c.getValue().getNode();
+                return c.getValue().getChemicalStructureNode();
             } catch (CDKException e) {
                 e.printStackTrace();
             }
@@ -183,9 +183,7 @@ private void displayDBOnClick(ActionEvent ae){
         MZmineCore.getDesktop().displayMessage(null, "Select one row to display the list DBs");
         return;
     }
-    DBFrame dbFrame = new DBFrame(compound);
-    dbFrame.display();
-
+  DBFrame dbFrame = new DBFrame(compound);
 }
 
 @FXML
