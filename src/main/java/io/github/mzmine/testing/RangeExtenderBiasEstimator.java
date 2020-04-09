@@ -26,7 +26,8 @@ class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 		double meanGapInRange = (errors.get(mostErrorsEnd) - errors.get(mostErrorsStart))
 								/ (mostErrorsEnd - mostErrorsStart);
 
-		double tolerance = meanGapInRange * stretchGapToMeanRatio;
+		// double tolerance = meanGapInRange * stretchGapToMeanRatio;
+		double tolerance = 0.4;
 		while((mostErrorsStart > 0 && errors.get(mostErrorsStart) - errors.get(mostErrorsStart - 1) < tolerance)
 			|| (mostErrorsEnd < errors.size()-1 && errors.get(mostErrorsEnd + 1) - errors.get(mostErrorsEnd) < tolerance))
 		{
@@ -42,7 +43,7 @@ class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 			meanGapInRange = (errors.get(mostErrorsEnd) - errors.get(mostErrorsStart))
 								/ (mostErrorsEnd - mostErrorsStart);
 
-			tolerance = meanGapInRange * stretchGapToMeanRatio;
+			// tolerance = meanGapInRange * stretchGapToMeanRatio;
 		}
 
 		this.mostErrorsStart = mostErrorsStart;
@@ -53,6 +54,7 @@ class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 		System.out.printf("Found stretched range with %d/%d errors%n", mostErrorsEnd - mostErrorsStart + 1, errors.size());
 		System.out.printf("Smallest value %f, biggest value %f, range length %f%n", 
 						   errors.get(mostErrorsStart), errors.get(mostErrorsEnd), errors.get(mostErrorsEnd) - errors.get(mostErrorsStart));
+		System.out.println("Mean gap length: " + meanGapInRange);
 
 		ArithmeticMeanBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(
 			new ArrayList<Double>(errors.subList(mostErrorsStart, mostErrorsEnd+1)));

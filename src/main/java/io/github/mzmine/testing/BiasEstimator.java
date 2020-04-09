@@ -70,16 +70,17 @@ public class BiasEstimator
 
 
 			RangeExtenderBiasEstimator rangeExtender = new RangeExtenderBiasEstimator(errors, 
-				fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 1.1);
+				// fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 2);
+				fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 5);
 			double stretchedRangeEstimate = rangeExtender.getBiasEstimate();
 			System.out.printf("Stretched range bias estimate: %f%n", stretchedRangeEstimate);
 
 			HashMap<String, Double> lines2 = new HashMap<String, Double>();
-			lines2.put(" ".repeat(150) + "Range length extender smallest value", rangeExtender.getMostErrorsStartValue());
-			lines2.put(" ".repeat(150) + "Range length extender biggest value", rangeExtender.getMostErrorsEndValue());
-			lines2.put(" ".repeat(150) + "Range length extender mean", stretchedRangeEstimate);
+			lines2.put(" ".repeat(80) + "Range length extender smallest value", rangeExtender.getMostErrorsStartValue());
+			lines2.put(" ".repeat(80) + "Range length extender biggest value", rangeExtender.getMostErrorsEndValue());
+			lines2.put(" ".repeat(80) + "Range length extender mean", stretchedRangeEstimate);
 
-			DistributionPlot.main("ppm errors and measurement bias estimates stretched, distribution " + (index+1),
+			DistributionPlot.main("ppm errors and measurement bias estimates stretched fixed, distribution " + (index+1),
 				rangeExtender.getErrors(), lines2);
 
 			index++;

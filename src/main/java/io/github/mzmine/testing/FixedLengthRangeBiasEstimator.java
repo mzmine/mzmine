@@ -46,6 +46,9 @@ class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 		System.out.printf("Found range with %d/%d errors%n", mostErrorsEnd - mostErrorsStart + 1, errors.size());
 		System.out.printf("Smallest value %f, biggest value %f, range length %f%n", 
 						   errors.get(mostErrorsStart), errors.get(mostErrorsEnd), errors.get(mostErrorsEnd) - errors.get(mostErrorsStart));
+		double meanGapInRange = (errors.get(mostErrorsEnd) - errors.get(mostErrorsStart))
+								/ (mostErrorsEnd - mostErrorsStart);
+		System.out.println("Mean gap length: " + meanGapInRange);
 
 		ArithmeticMeanBiasEstimator meanEstimator = new ArithmeticMeanBiasEstimator(
 			new ArrayList<Double>(errors.subList(mostErrorsStart, mostErrorsEnd+1)));
