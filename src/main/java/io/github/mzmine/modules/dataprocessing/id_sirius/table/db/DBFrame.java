@@ -17,14 +17,15 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table.db;
-import java.awt.Desktop;;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -38,56 +39,48 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
-
-///**
-// * Class DBFrame Creates a new window with Database links (e.g.: Pubchem: 1520) New window is
-// * created on a position of `Display DB links` button (it is parent JFrame) Opens new window in a
-// * browser if entry point is known, otherwise shows dialogue window.
-// */
-
-public  class DBFrame extends Stage {
+/**
+ * Class DBFrame Creates a new window with Database links (e.g.: Pubchem: 1520) New window is
+ * created on a position of `Display DB links` button (it is parent JFrame) Opens new window in a
+ * browser if entry point is known, otherwise shows dialogue window.
+ */
+public class DBFrame extends Stage {
 
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
-  private final TableView<SiriusDBCompound> dbTable = new TableView();
+  private final TableView<SiriusDBCompound> dbTable = new TableView<>();
   private final ObservableList<SiriusDBCompound> compounds = FXCollections.observableArrayList();
   final VBox vBox = new VBox();
-  final   Button openBrowser = new Button();
+  final Button openBrowser = new Button();
 
   public DBFrame(SiriusCompound compound) {
-      final Label label = new Label("List of database with IDs");
-      label.setFont(Font.font("Arial", FontWeight.BOLD,12));
-      TableColumn<SiriusDBCompound,String> database = new TableColumn("Database");
-      TableColumn<SiriusDBCompound, String> index = new TableColumn("Index");
-      openBrowser.setText("Open Browser");
+    final Label label = new Label("List of database with IDs");
+    label.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+    TableColumn<SiriusDBCompound, String> database = new TableColumn<>("Database");
+    TableColumn<SiriusDBCompound, String> index = new TableColumn<>("Index");
+    openBrowser.setText("Open Browser");
 
-      dbTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    dbTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-      dbTable.getColumns().addAll(database, index);
-      vBox.setMinWidth(500);
-      vBox.setMinHeight(100);
-      vBox.setSpacing(10);
-      vBox.setPadding(new Insets(5, 10, 5, 10));
-      vBox.getChildren().addAll(label, dbTable, openBrowser);
-      database.setCellValueFactory(cell->{
-        String databaseValue = cell.getValue().getDB();
-        if(cell.getValue().getDB()==null){
-          return new ReadOnlyObjectWrapper<>();
-        }
-        return new ReadOnlyObjectWrapper<>(databaseValue);
-      });
+    dbTable.getColumns().addAll(database, index);
+    vBox.setMinWidth(500);
+    vBox.setMinHeight(100);
+    vBox.setSpacing(10);
+    vBox.setPadding(new Insets(5, 10, 5, 10));
+    vBox.getChildren().addAll(label, dbTable, openBrowser);
+    database.setCellValueFactory(cell -> {
+      String databaseValue = cell.getValue().getDB();
+      if (cell.getValue().getDB() == null) {
+        return new ReadOnlyObjectWrapper<>();
+      }
+      return new ReadOnlyObjectWrapper<>(databaseValue);
+    });
 
-    index.setCellValueFactory(cell->{
+    index.setCellValueFactory(cell -> {
       String indexValue = cell.getValue().getID();
-      if(cell.getValue().getID()==null)
-      {
-        return  new ReadOnlyObjectWrapper<>();
+      if (cell.getValue().getID() == null) {
+        return new ReadOnlyObjectWrapper<>();
       }
       return new ReadOnlyObjectWrapper<>(indexValue);
     });
@@ -95,41 +88,39 @@ public  class DBFrame extends Stage {
 
     Platform.runLater(() -> addElement(compound));
 
-      openBrowser.setOnAction(e->{
-       SiriusDBCompound selectedCompound =  dbTable.getSelectionModel().getSelectedItem();
-        if(selectedCompound == null){
-          MZmineCore.getDesktop().displayMessage(null,
+    openBrowser.setOnAction(e -> {
+      SiriusDBCompound selectedCompound = dbTable.getSelectionModel().getSelectedItem();
+      if (selectedCompound == null) {
+        MZmineCore.getDesktop().displayMessage(null,
             "Select one result to add as compound identity");
-          return;
-        }
-       //  Generate url
-      try
-      {
+        return;
+      }
+      // Generate url
+      try {
         URL url = selectedCompound.generateURL();
         if (url == null)
           throw new RuntimeException("Unsupported DB");
 
-          // Open uri in default browser
-          MZmineCore.getDesktop().openWebPage(url);
+        // Open uri in default browser
+        MZmineCore.getDesktop().openWebPage(url);
 
-      }
-      catch (RuntimeException f)
-      {
+      } catch (RuntimeException f) {
+        f.printStackTrace();
         MZmineCore.getDesktop().displayMessage(null, "Not supported Database");
-      } catch (IOException d)
-      {
+      } catch (IOException d) {
+        d.printStackTrace();
         logger.error("Error happened on opening db link for {} : {}", selectedCompound.getDB(),
-                selectedCompound.getID());
+            selectedCompound.getID());
 
       }
 
     });
-      Scene scene = new Scene(vBox);
-      this.setScene(scene);
-      this.show();
+    Scene scene = new Scene(vBox);
+    this.setScene(scene);
+    this.show();
   }
 
-    public void addElement(SiriusCompound compound) {
+  public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
     DBLink[] links = annotation.getDBLinks();
     if (links == null)
