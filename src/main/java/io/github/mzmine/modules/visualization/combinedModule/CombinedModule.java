@@ -49,8 +49,7 @@ public class CombinedModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    CombinedModuleVisualizerWindow newWindow =
-        new CombinedModuleVisualizerWindow(parameters);
+    CombinedModuleVisualizerWindow newWindow = new CombinedModuleVisualizerWindow(parameters);
     newWindow.show();
 
     return ExitCode.OK;

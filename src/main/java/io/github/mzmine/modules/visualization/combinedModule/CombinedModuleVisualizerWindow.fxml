@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -8,13 +8,17 @@
 <BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
   minWidth="-Infinity" prefHeight="570.0" prefWidth="844.0" xmlns="http://javafx.com/javafx/8"
   xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.modules.visualization.combinedModule.CombinedModuleVisualizerWindow">
+  fx:controller="io.github.mzmine.modules.visualization.combinedModule.CombinedModuleVisualizerWindowController">
   <center>
     <Pane fx:id="centerPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER"/>
   </center>
   <right>
     <ToolBar fx:id="toolbar" orientation="VERTICAL" prefHeight="570.0" prefWidth="74.0"
-      BorderPane.alignment="CENTER"/>
+      BorderPane.alignment="CENTER">
+      <items>
+        <Button fx:id="highlightPrecursorBtn" mnemonicParsing="false"/>
+      </items>
+    </ToolBar>
   </right>
   <bottom>
     <HBox fx:id="bottomPanel" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER"/>
