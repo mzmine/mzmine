@@ -28,14 +28,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import javafx.stage.FileChooser;
 
 /**
  * This class imports project parameters and their values from a CSV file to the main project
@@ -105,17 +104,14 @@ public class ProjectParametersImporter {
   }
 
   private File chooseFile() {
-    JFileChooser chooser = new JFileChooser();
-
-    FileNameExtensionFilter filter = new FileNameExtensionFilter("TXT & CSV files", "txt", "csv");
-    chooser.setDialogTitle("Please select a file containing project parameter values for files.");
-    chooser.setFileFilter(filter);
-    int returnVal = chooser.showOpenDialog(null);
-    if (returnVal == JFileChooser.CANCEL_OPTION) {
-      return null;
-    }
-
-    return chooser.getSelectedFile();
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Please select a file containing project parameter values for files.");
+    fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("All Files","*.*"),
+            new FileChooser.ExtensionFilter("text","*.txt"),
+            new FileChooser.ExtensionFilter("csv","*.csv")
+            );
+    return fileChooser.showOpenDialog(desktop.getMainWindow());
   }
 
   private UserParameter<?, ?>[] processParameters(File parameterFile) {
