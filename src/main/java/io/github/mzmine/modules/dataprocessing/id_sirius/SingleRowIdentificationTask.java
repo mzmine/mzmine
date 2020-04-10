@@ -32,14 +32,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
+import javafx.application.Platform;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +82,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   // Amount of components to show
   private final Integer fingerCandidates;
   private final Integer siriusCandidates;
+  ResultWindowFX resultWindowFX;
 
   // Timer for Sirius Identification method. If it expires, dialogue window
   // shows up.
@@ -145,14 +141,29 @@ public class SingleRowIdentificationTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-    ResultWindow window = new ResultWindow(peakListRow, this);
-    window.setTitle(
-        "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
-    window.setVisible(true);
+    final FutureTask query = new FutureTask(()-> {
+            resultWindowFX = new ResultWindowFX(peakListRow, this);
+      resultWindowFX.setTitle(
+              "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
+      resultWindowFX.setMinHeight(200);
+      resultWindowFX.setMinWidth(700);
+      resultWindowFX.show();
+      return resultWindowFX;
+
+    });
+    Platform.runLater(query);
+
+    try {
+      query.get();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
 
     List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
@@ -172,7 +183,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       }
 
     } catch (MissingMassListException f) {
-      showError(window,
+      showError(resultWindowFX,
           "Scan does not contain Mass List with requested name. [" + massListName + "]");
       return;
     }
@@ -196,20 +207,21 @@ public class SingleRowIdentificationTask extends AbstractTask {
       });
       siriusResults = f.get(timer, TimeUnit.SECONDS);
       siriusMethod = method;
-    } catch (InterruptedException | TimeoutException ie) {
+    }
+    catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      showError(window,
+      showError(resultWindowFX,
           String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
               parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
-    } catch (ExecutionException ce) {
+    }
+    catch (ExecutionException ce) {
       ce.printStackTrace();
       logger.error("Concurrency error during Sirius method: " + ce.getMessage());
-      showError(window, String.format("Sirius failed to predict compounds from row with id = %d",
+      showError(resultWindowFX, String.format("Sirius failed to predict compounds from row with id = %d",
           peakListRow.getID()));
       return;
     }
-
     /* FingerId processing */
     if (!ms2list.isEmpty()) {
       try {
@@ -221,7 +233,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           FingerIdWebMethodTask task =
-              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX);
           task.setLatch(latch);
           fingerTasks.add(task);
           MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
@@ -229,12 +241,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         // Sleep for not overloading boecker-labs servers
         Thread.sleep(1000);
-      } catch (InterruptedException interrupt) {
+      }
+      catch (InterruptedException interrupt) {
         logger.error("Processing of FingerWebMethods were interrupted");
       }
-    } else {
+    }
+    else
+        {
       /* MS/MS spectrum is not present */
-      window.addListofItems(siriusMethod.getResult());
+      resultWindowFX.addListofItems(siriusMethod.getResult());
     }
 
     // If there was a FingerId processing, wait until subtasks finish
@@ -248,11 +263,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
   /**
    * Shows error dialogue window and sets task status as ERROR
-   * 
-   * @param window - where to create dialogue
+   *  @param window - where to create dialogue
    * @param msg of the error window
    */
-  private void showError(ResultWindow window, String msg) {
+  private void showError(ResultWindowFX window, String msg) {
     window.dispose();
     setErrorMessage(msg);
     this.setStatus(TaskStatus.ERROR);
@@ -261,7 +275,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   /**
    * Construct MsSpectrum object from DataPoint array
    * 
-   * @param points MZ/Intensity pairs
    * @return new MsSpectrum
    */
   private MsSpectrum buildMSDKSpectrum(Scan scan, String massListName)

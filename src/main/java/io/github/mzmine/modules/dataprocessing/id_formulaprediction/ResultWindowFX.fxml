@@ -9,6 +9,9 @@
 
     <center>
         <TableView fx:id="resultTable" minHeight="100">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
             <columns>
                 <TableColumn fx:id="Formula" minWidth="200" text="Formula" />
                 <TableColumn fx:id="absoluteMassDifference" minWidth="100" text="Mass difference(Da)" />
