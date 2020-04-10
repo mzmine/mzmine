@@ -52,22 +52,20 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private Font headerFont = new Font("Dialog Bold", 16);
-  private GridPane pnGrid;
-  private javafx.scene.control.ScrollPane scrollPane;
-  private List<SpectralDBPeakIdentity> totalMatches;
-  private Map<SpectralDBPeakIdentity, SpectralMatchPanelFX> matchPanels;
+  private final Font headerFont = new Font("Dialog Bold", 16);
+  private final GridPane pnGrid;
+  private final javafx.scene.control.ScrollPane scrollPane;
+  private final List<SpectralDBPeakIdentity> totalMatches;
+  private final Map<SpectralDBPeakIdentity, SpectralMatchPanelFX> matchPanels;
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
 
-  private Label noMatchesFound;
+  private final Label noMatchesFound;
 
-  private Font chartFont = new Font("Verdana", 11);
-
-  private BorderPane pnMain;
+  private final BorderPane pnMain;
 
   public SpectraIdentificationResultsWindowFX() {
-//    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    super();
 
     pnMain = new BorderPane();
     this.setScene(new Scene(pnMain));
@@ -75,6 +73,9 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     pnMain.setPrefSize(1400, 900);
+    pnMain.setMinSize(700, 500);
+    setMinWidth(700);
+    setMinHeight(500);
 
     setTitle("Processing...");
 
@@ -111,11 +112,6 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     cbCoupleZoomY.setOnAction(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
     menu.getItems().add(cbCoupleZoomY);
 
-    // should be done via themes
-//    MenuItem btnSetFont = new MenuItem("Set chart font");
-//    btnSetFont.setOnAction(e -> setChartFont());
-//    menu.getItems().add(btnSetFont);
-
     menuBar.getMenus().add(menu);
     pnMain.setTop(menuBar);
 
@@ -129,9 +125,6 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     setCoupleZoomY(true);
 
     show();
-//    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//    validate();
-//    repaint();
   }
 
   public void setCoupleZoomY(boolean selected) {
@@ -178,6 +171,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
         totalMatches.add(match);
         SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
         pn.setCoupleZoomY(isCouplingZoomY);
+        pn.prefWidthProperty().bind(this.widthProperty());
         matchPanels.put(match, pn);
       }
     }
@@ -211,10 +205,6 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   public void renewLayout() {
     Platform.runLater(() -> {
-      // any number of rows
-//      GridPane pnGrid = new GridPane();
-//      pnGrid.setVgap(5);
-
       // add all panel in order
       synchronized (totalMatches) {
         pnGrid.getChildren().clear();
@@ -227,25 +217,8 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
           }
         }
       }
-      // show
-//      scrollPane.getVerticalScrollBar().setUnitIncrement(75);
-//      this.pnGrid = pnGrid;
-//      scrollPane.setContent(pnGrid);
     });
   }
-
-//  public Font getChartFont() {
-//    return chartFont;
-//  }
-//
-//  public void setChartFont(Font chartFont) {
-//    this.chartFont = chartFont;
-//    if (matchPanels == null)
-//      return;
-//    matchPanels.values().stream().forEach(pn -> {
-//      pn.setChartFont(chartFont);
-//    });
-//  }
 
   private void showExportButtonsChanged() {
     if (matchPanels == null) {
@@ -255,5 +228,14 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
       pn.applySettings(MZmineCore.getConfiguration()
           .getModuleParameters(SpectraIdentificationResultsModule.class));
     });
+  }
+
+
+  protected void removeMatch(SpectralMatchPanelFX pn) {
+    pn.prefWidthProperty().unbind();
+    pnGrid.getChildren().remove(pn);
+
+    totalMatches.remove(pn.getHit());
+    matchPanels.remove(pn.getHit());
   }
 }

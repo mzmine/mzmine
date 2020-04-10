@@ -35,6 +35,27 @@
 	-fx-label-padding: 0.0 20.0 0.0 20.0; 
 }
 
+.larger-label {
+  -fx-font-size: 12.0pt;
+}
+
+.title-label {
+  -fx-font-size: 16.0pt;
+}
+
+.bold-title-label {
+  -fx-font-size: 16.0pt;
+  -fx-font-weight: bold;
+}
+
+.score-label {
+  -fx-font-size: 20.0pt;
+  -fx-font-weight: bold;
+}
+
+
+
+
 
 /* Some useful CSS properties: */
 /* 

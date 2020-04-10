@@ -5,7 +5,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorSpectrumUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -16,23 +16,20 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.IconUtil;
 import io.github.mzmine.util.swing.SwingExportUtil;
-import it.unimi.dsi.fastutil.ints.Int2CharOpenHashMap;
-import java.awt.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -45,12 +42,14 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -64,7 +63,7 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 
-public class SpectralMatchPanelFX extends GridPane {
+public class SpectralMatchPanelFX extends GridPane implements Cloneable {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -86,6 +85,7 @@ public class SpectralMatchPanelFX extends GridPane {
 
   public static final int META_WIDTH = 500;
   public static final int ENTRY_HEIGHT = 500;
+  public static final int STRUCTURE_HEIGHT = 150;
 
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
@@ -95,66 +95,69 @@ public class SpectralMatchPanelFX extends GridPane {
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
 
-  private Font headerFont = new Font("Dialog", 16);
-  private Font titleFont = new Font("Dialog", 18);
-  private Font scoreFont = new Font("Dialog", 30);
-
   private EChartViewer mirrorChart;
 
   private boolean setCoupleZoomY;
 
   private XYPlot queryPlot;
-
   private XYPlot libraryPlot;
 
-  private GridPane pnMain;
   private VBox metaDataPanel;
-  private FlowPane boxTitlePanel;
+  private VBox pnTitle;
   private GridPane pnExport;
-  private BorderPane pnSpectrum;
 
   private Label lblScore;
   private Label lblHit;
-  private java.awt.Font chartFont;
+
+  private EStandardChartTheme theme;
+
+  private SpectralDBPeakIdentity hit;
 
   public SpectralMatchPanelFX(SpectralDBPeakIdentity hit) {
     super();
 
-    pnMain = this;
+    setHit(hit);
+
+    setMinSize(600, 500);
+
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     metaDataPanel = new VBox();
-    boxTitlePanel = new FlowPane();
-    boxTitlePanel.setAlignment(Pos.CENTER);
+    pnTitle = new VBox();
+    pnTitle.setAlignment(Pos.CENTER);
 
     // create Top panel
     double simScore = hit.getSimilarity().getScore();
     Color gradientCol = FxColorUtil.awtColorToFX(ColorScaleUtil
         .getColor(FxColorUtil.fxColorToAWT(MIN_COS_COLOR), FxColorUtil.fxColorToAWT(MAX_COS_COLOR),
             MIN_COS_COLOR_VALUE, MAX_COS_COLOR_VALUE, simScore));
-    boxTitlePanel.setBackground(
+    pnTitle.setBackground(
         new Background(new BackgroundFill(gradientCol, CornerRadii.EMPTY, Insets.EMPTY)));
 
     lblHit = new Label(hit.getName());
+    lblHit.getStyleClass().add("larger-label");
+
     lblScore = new Label(COS_FORM.format(simScore));
+    lblScore.getStyleClass().add("score-label");
     lblScore
         .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
             + COS_FORM.format(simScore)));
-    boxTitlePanel.getChildren().add(lblHit);
-    boxTitlePanel.getChildren().add(lblScore);
-    boxTitlePanel.maxWidthProperty().bind(this.widthProperty());
-    boxTitlePanel.prefWidthProperty().bind(this.widthProperty());
+
+    pnTitle.getChildren().add(lblHit);
+    pnTitle.getChildren().add(lblScore);
 
     // preview panel
     IAtomContainer molecule;
     BorderPane pnPreview2D = new BorderPane();
-    pnPreview2D.setPrefSize(META_WIDTH, 150);
-    pnPreview2D.setMinSize(META_WIDTH, 150);
-    pnPreview2D.setMaxSize(META_WIDTH, 150);
+    pnPreview2D.setPrefSize(META_WIDTH, STRUCTURE_HEIGHT);
+    pnPreview2D.setMinSize(META_WIDTH, STRUCTURE_HEIGHT);
+    pnPreview2D.setMaxSize(META_WIDTH, STRUCTURE_HEIGHT);
 
-    pnExport = new GridPane(); // wrapped in additional pane before
-    pnPreview2D.setRight(pnExport);
-
-    // TODO add export Buttons
+    // TODO! - Export functionality for Java FX nodes
+//    pnExport = new GridPane(); // wrapped in additional pane before
+//    pnPreview2D.setRight(pnExport);
+//    addExportButtons(MZmineCore.getConfiguration()
+//        .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     Node newComponent = null;
 
@@ -175,7 +178,7 @@ public class SpectralMatchPanelFX extends GridPane {
     // try to draw the component
     if (molecule != null) {
       try {
-        // newComponent = new Structure2DComponent(molecule, FONT);
+        newComponent = new Structure2DComponent(molecule, theme.getRegularFont());
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -187,12 +190,12 @@ public class SpectralMatchPanelFX extends GridPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
-    ColumnConstraints metadataConstraints1 = new ColumnConstraints();
-    ColumnConstraints metadataConstraints2 = new ColumnConstraints();
-    metadataConstraints1.setPercentWidth(0.5);
-    metadataConstraints1.setMinWidth(150);
-    metadataConstraints2.setPercentWidth(0.5);
-    metadataConstraints2.setMinWidth(150);
+    ColumnConstraints ccMetadata1 = new ColumnConstraints(150, -1, Double.MAX_VALUE,
+        Priority.NEVER, HPos.LEFT, false);
+    ColumnConstraints ccMetadata2 = new ColumnConstraints(150, -1, Double.MAX_VALUE,
+        Priority.NEVER, HPos.LEFT, false);
+    ccMetadata1.setPercentWidth(50);
+    ccMetadata2.setPercentWidth(50);
 
     GridPane g1 = new GridPane();
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
@@ -201,59 +204,43 @@ public class SpectralMatchPanelFX extends GridPane {
         extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
-//    g1.getColumnConstraints().add(0, metadataConstraints1);
-//    g1.getColumnConstraints().add(1, metadataConstraints2);
-    metaDataPanel.getChildren().add(g1); // TODO maybe put all info in one gridpane and add that?
+    g1.getColumnConstraints().add(0, ccMetadata1);
+    g1.getColumnConstraints().add(1, ccMetadata2);
 
-    GridPane g2 = new GridPane();
     BorderPane pnDB =
         extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
     BorderPane pnOther =
         extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
-    g2.add(pnDB, 0, 0);
-    g2.add(pnOther, 1, 0);
-//    g2.getColumnConstraints().add(0, columnConstraints1);
-//    g2.getColumnConstraints().add(1, columnConstraints2);
     g1.add(pnDB, 0, 1);
     g1.add(pnOther, 1, 1);
 
-//    metaDataPanel.getChildren().add(g2);
+    metaDataPanel.getChildren().add(g1);
 
-    ScrollPane pnScroll = new ScrollPane(metaDataPanel);
-    pnScroll.setFitToWidth(true);
-    pnScroll.setHbarPolicy(ScrollBarPolicy.NEVER);
-    pnScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataPanel.setPrefSize(META_WIDTH, ENTRY_HEIGHT);
 
     mirrorChart = MirrorSpectrumUtil.createPlotFromSpectralDBPeakIdentity(hit);
 
-    pnSpectrum = new BorderPane();
-    pnSpectrum.setCenter(mirrorChart);
-
     coupleZoomYListener();
 
-    metaDataPanel.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT);
-
     // put into main
-    ColumnConstraints constraintsSpectrum = new ColumnConstraints();
-    ColumnConstraints constraintsMetadata = new ColumnConstraints();
+    ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
+        Priority.ALWAYS, HPos.CENTER,
+        true);
+    ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 20, META_WIDTH + 20,
+        Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
-    constraintsMetadata.setPercentWidth(0.3);
-    constraintsSpectrum.setPercentWidth(0.7);
-    constraintsMetadata.setMinWidth(300);
-    constraintsSpectrum.setMinWidth(300);
+//    ccSpectrum.setPercentWidth(70);
 
-    add(boxTitlePanel, 0, 0);
-    add(pnSpectrum, 0, 1);
+    add(pnTitle, 0, 0, 2, 1);
+    add(mirrorChart, 0, 1);
     add(metaDataPanel, 1, 1);
 
-//    getColumnConstraints().add(0, constraintsSpectrum);
-//    getColumnConstraints().add(1, constraintsMetadata);
+    getColumnConstraints().add(0, ccSpectrum);
+    getColumnConstraints().add(1, ccMetadata);
 
     setBorder(
         new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
             BorderWidths.DEFAULT)));
-
-    applyTheme();
 
   }
 
@@ -303,28 +290,6 @@ public class SpectralMatchPanelFX extends GridPane {
 
   public void setCoupleZoomY(boolean selected) {
     setCoupleZoomY = selected;
-  }
-
-  public void applyTheme() {
-    /*EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-
-    this.chartFont = theme.getRegularFont();
-    if (mirrorChart != null) {
-
-      // add datasets and renderer
-      // set up renderer
-      CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
-      NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
-      axis.setLabel("m/z");
-      XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
-      XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
-      domainPlot.getDomainAxis().setLabelFont(chartFont);
-      domainPlot.getDomainAxis().setTickLabelFont(chartFont);
-      queryPlot.getRangeAxis().setLabelFont(chartFont);
-      queryPlot.getRangeAxis().setTickLabelFont(chartFont);
-      libraryPlot.getRangeAxis().setLabelFont(chartFont);
-      libraryPlot.getRangeAxis().setTickLabelFont(chartFont);
-    }*/
   }
 
   private IAtomContainer parseInChi(SpectralDBPeakIdentity hit) {
@@ -383,7 +348,7 @@ public class SpectralMatchPanelFX extends GridPane {
     }
 
     Label otherInfo = new Label(title);
-    otherInfo.setFont(headerFont);
+    otherInfo.getStyleClass().add("bold-title-label");
     BorderPane pn = new BorderPane();
     pn.setTop(otherInfo);
     pn.setCenter(panelOther);
@@ -468,27 +433,71 @@ public class SpectralMatchPanelFX extends GridPane {
     } else {
       chooser = new FileChooser();
     }
+
     // get file
     File f = chooser.showSaveDialog(null);
     if (f != null) {
-      try {
-        pnExport.setVisible(false);
-//        pnExport.revalidate();
-//        pnExport.getParent().revalidate();
-//        pnExport.getParent().repaint();
-        JFXPanel pn = new JFXPanel(); // I know this is dirty but I'm lazy
-        pn.setScene(new Scene(this));
-        SwingExportUtil.writeToGraphics(pn, f.getParentFile(), f.getName(), format);
-        // save path
-        param.setValue(FileAndPathUtil.eraseFormat(f));
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
-      } finally {
-        pnExport.setVisible(true);
-//        pnExport.getParent().revalidate();
-//        pnExport.getParent().repaint();
-      }
+
+      // attempt to put this node into a swing component to use the swing util to export
+      // -> does not work, probably incompatible with JFXPanel :/
+      Platform.runLater(() -> {
+        try {
+          pnExport.setVisible(false);
+          Stage stage = (Stage) this.getScene().getWindow();
+
+          if (stage instanceof SpectraIdentificationResultsWindowFX) {
+            JFXPanel pn = new JFXPanel(); // I know this attempt is dirty
+
+            SpectralMatchPanelFX pnHit = new SpectralMatchPanelFX(getHit());
+            pn.setScene(new Scene(pnHit));
+            pn.setSize((int) getWidth(), (int) getHeight());
+            pnHit.setPrefSize(getWidth(), getHeight());
+            pnHit.setMinSize(getWidth(), getHeight());
+
+            pn.setVisible(true);
+            pn.revalidate();
+
+            // put this into a frame to test (works)
+//            JFrame frame = new JFrame();
+//            frame.setContentPane(pn);
+//            frame.setVisible(true);
+//            frame.revalidate();
+//            frame.setSize((int) getWidth(), (int) getHeight());
+
+            SwingExportUtil.writeToGraphics(pn, f.getParentFile(), f.getName(), format);
+            // save path
+            param.setValue(FileAndPathUtil.eraseFormat(f));
+
+          }
+
+
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
+        } finally {
+          pnExport.setVisible(true);
+
+        }
+      });
+
+//      Print using print to pdf - converts the spectrum to an image :/
+//      probably since it is a swing node in a java fx environment
+
+//      PrinterJob print = PrinterJob.createPrinterJob();
+//      if(print != null){
+//        print.showPrintDialog(null);
+//        print.printPage(this);
+//        print.endJob();
+//      }
+
     }
+  }
+
+  public SpectralDBPeakIdentity getHit() {
+    return hit;
+  }
+
+  private void setHit(SpectralDBPeakIdentity hit) {
+    this.hit = hit;
   }
 
 }
