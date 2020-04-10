@@ -44,11 +44,13 @@ import javafx.stage.Stage;
  */
 public class ProductIonFilterVisualizerWindow extends Stage {
 
+  private static final Image PRECURSOR_MASS_ICON =
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
   private ToolBar toolBar;
   private ProductIonFilterPlot productIonFilterPlot;
-
+  private BorderPane borderPane;
+  private Scene scene;
   private ProductIonFilterDataSet dataset;
-
   private RawDataFile dataFile;
 
   // For m/z tolerance for previous filters
@@ -57,13 +59,12 @@ public class ProductIonFilterVisualizerWindow extends Stage {
   private List<Double> targetedNF_List;
   private File fileName;
   private double basePeakPercent;
-  private static final Image PRECURSOR_MASS_ICON =
-      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
-  private BorderPane borderPane;
+
 
   public ProductIonFilterVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
     borderPane = new BorderPane();
-    setScene(new Scene(borderPane));
+    scene = new Scene(borderPane);
+    setScene(scene);
 
     this.dataFile = dataFile;
 

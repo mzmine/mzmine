@@ -74,10 +74,14 @@ public class MsMsVisualizerWindow extends Stage {
   private MsMsDataSet dataset;
   private RawDataFile dataFile;
 
-  public MsMsVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
-      IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
-      ParameterSet parameters) {
-
+  public MsMsVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
+    Range<Double> rtRange = parameters.getParameter(MsMsParameters.retentionTimeRange).getValue();
+    Range<Double> mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
+    final IntensityType intensityType =
+        parameters.getParameter(MsMsParameters.intensityType).getValue();
+    final NormalizationType normalizationType =
+        parameters.getParameter(MsMsParameters.normalizationType).getValue();
+    Double minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt).getValue();
     mainPane = new BorderPane();
     mainScene = new Scene(mainPane);
 
@@ -85,9 +89,6 @@ public class MsMsVisualizerWindow extends Stage {
     mainScene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
-
-    // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    // setBackground(Color.white);
 
     this.dataFile = dataFile;
 
@@ -159,7 +160,7 @@ public class MsMsVisualizerWindow extends Stage {
       boolean neutralLoss = parametersSearch.getParameter(inputNL).getValue();
 
       Color highligtColor = Color.red;
-      ;
+
       if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {
         highligtColor = Color.green;
       }

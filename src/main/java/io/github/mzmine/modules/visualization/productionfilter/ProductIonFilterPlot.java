@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.neutralloss.NeutralLossParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -186,7 +185,7 @@ class ProductIonFilterPlot extends EChartViewer {
 
     // set the X axis (retention time) properties
     final NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
-    if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
+    if (xAxisType.equals(ProductIonFilterParameters.xAxisPrecursor)) {
       xAxis.setLabel("Precursor ion m/z");
       xAxis.setNumberFormatOverride(mzFormat);
     } else {
