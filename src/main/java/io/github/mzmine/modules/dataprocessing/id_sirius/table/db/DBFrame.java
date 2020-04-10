@@ -18,127 +18,117 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table.db;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.table.TableRowSorter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import de.unijena.bioinf.chemdb.DBLink;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
-import io.github.mzmine.util.GUIUtils;
+import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 
 /**
  * Class DBFrame Creates a new window with Database links (e.g.: Pubchem: 1520) New window is
  * created on a position of `Display DB links` button (it is parent JFrame) Opens new window in a
  * browser if entry point is known, otherwise shows dialogue window.
  */
-public class DBFrame extends JFrame implements ActionListener {
+public class DBFrame extends Stage {
+
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
+  private final TableView<SiriusDBCompound> dbTable = new TableView<>();
+  private final ObservableList<SiriusDBCompound> compounds = FXCollections.observableArrayList();
+  final VBox vBox = new VBox();
+  final Button openBrowser = new Button();
 
-  private final JTable dbTable;
-  private final DBTableModel model;
+  public DBFrame(SiriusCompound compound) {
+    final Label label = new Label("List of database with IDs");
+    label.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+    TableColumn<SiriusDBCompound, String> database = new TableColumn<>("Database");
+    TableColumn<SiriusDBCompound, String> index = new TableColumn<>("Index");
+    openBrowser.setText("Open Browser");
 
-  public DBFrame(SiriusCompound compound, JButton button) {
-    super("Database links");
+    dbTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    setBackground(Color.white);
-
-    JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
-    pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    pnlLabelsAndList.add(new JLabel("List of databases with IDs"), BorderLayout.NORTH);
-
-    // Configure table
-    dbTable = new JTable();
-    model = new DBTableModel();
-    dbTable.setModel(model);
-    dbTable.setRowSorter(new TableRowSorter<>(dbTable.getModel()));
-    dbTable.getTableHeader().setReorderingAllowed(false);
-    dbTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-    JScrollPane listScroller = new JScrollPane(dbTable);
-    listScroller.setPreferredSize(new Dimension(400, 250));
-    listScroller.setAlignmentX(LEFT_ALIGNMENT);
-    JPanel listPanel = new JPanel();
-    listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
-    listPanel.add(listScroller);
-    listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-    pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
-
-    // Buttons panel
-    JPanel pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-    GUIUtils.addButton(pnlButtons, "Open browser", null, this, "OPEN_WEB");
-    setLayout(new BorderLayout());
-    add(pnlLabelsAndList, BorderLayout.CENTER);
-    add(pnlButtons, BorderLayout.SOUTH);
-
-    // Set size and position
-    setSize(400, 250);
-    setLocation(button.getLocationOnScreen());
-    pack();
-
-    // Initiate loading of DB links into new table
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        model.addElement(compound);
+    dbTable.getColumns().addAll(database, index);
+    vBox.setMinWidth(500);
+    vBox.setMinHeight(100);
+    vBox.setSpacing(10);
+    vBox.setPadding(new Insets(5, 10, 5, 10));
+    vBox.getChildren().addAll(label, dbTable, openBrowser);
+    database.setCellValueFactory(cell -> {
+      String databaseValue = cell.getValue().getDB();
+      if (cell.getValue().getDB() == null) {
+        return new ReadOnlyObjectWrapper<>();
       }
+      return new ReadOnlyObjectWrapper<>(databaseValue);
     });
-  }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    String action = e.getActionCommand();
+    index.setCellValueFactory(cell -> {
+      String indexValue = cell.getValue().getID();
+      if (cell.getValue().getID() == null) {
+        return new ReadOnlyObjectWrapper<>();
+      }
+      return new ReadOnlyObjectWrapper<>(indexValue);
+    });
+    dbTable.setItems(compounds);
 
-    if (action.equals("OPEN_WEB")) {
-      int index = dbTable.getSelectedRow();
+    Platform.runLater(() -> addElement(compound));
 
-      if (index < 0) {
+    openBrowser.setOnAction(e -> {
+      SiriusDBCompound selectedCompound = dbTable.getSelectionModel().getSelectedItem();
+      if (selectedCompound == null) {
         MZmineCore.getDesktop().displayMessage(null,
             "Select one result to add as compound identity");
         return;
       }
-      int realIndex = dbTable.convertRowIndexToModel(index);
-      SiriusDBCompound compound = model.getCompoundAt(realIndex);
-
       // Generate url
       try {
-        URL url = compound.generateURL();
+        URL url = selectedCompound.generateURL();
         if (url == null)
           throw new RuntimeException("Unsupported DB");
-        if (Desktop.isDesktopSupported()) {
-          // Open uri in default browser
-          Desktop.getDesktop().browse(url.toURI());
-        }
+
+        // Open uri in default browser
+        MZmineCore.getDesktop().openWebPage(url);
+
       } catch (RuntimeException f) {
+        f.printStackTrace();
         MZmineCore.getDesktop().displayMessage(null, "Not supported Database");
-      } catch (URISyntaxException | IOException d) {
-        logger.error("Error happened on opening db link for {} : {}", compound.getDB(),
-            compound.getID());
+      } catch (IOException d) {
+        d.printStackTrace();
+        logger.error("Error happened on opening db link for {} : {}", selectedCompound.getDB(),
+            selectedCompound.getID());
+
       }
+
+    });
+    Scene scene = new Scene(vBox);
+    this.setScene(scene);
+    this.show();
+  }
+
+  public void addElement(SiriusCompound compound) {
+    SiriusIonAnnotation annotation = compound.getIonAnnotation();
+    DBLink[] links = annotation.getDBLinks();
+    if (links == null)
+      return;
+
+    for (DBLink link : links) {
+      compounds.add(new SiriusDBCompound(link.name, link.id));
     }
   }
 }
+

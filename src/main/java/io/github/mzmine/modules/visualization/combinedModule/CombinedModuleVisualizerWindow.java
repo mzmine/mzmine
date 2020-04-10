@@ -65,8 +65,6 @@ public class CombinedModuleVisualizerWindow extends Stage {
     WindowsMenu.addWindowsMenu(getScene());
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
-
-
   }
 
 }

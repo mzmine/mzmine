@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 
-
-<BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="570.0" prefWidth="844.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.combinedModule.CombinedModuleVisualizerWindow">
-   <center>
-      <Pane fx:id="centerPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-   </center>
-   <right>
-      <ToolBar fx:id="toolbar" orientation="VERTICAL" prefHeight="570.0" prefWidth="74.0" BorderPane.alignment="CENTER" />
-   </right>
-   <bottom>
-      <HBox fx:id="bottomPanel" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-   </bottom>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+  minWidth="-Infinity" prefHeight="570.0" prefWidth="844.0" xmlns="http://javafx.com/javafx/8"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.combinedModule.CombinedModuleVisualizerWindow">
+  <center>
+    <Pane fx:id="centerPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER"/>
+  </center>
+  <right>
+    <ToolBar fx:id="toolbar" orientation="VERTICAL" prefHeight="570.0" prefWidth="74.0"
+      BorderPane.alignment="CENTER"/>
+  </right>
+  <bottom>
+    <HBox fx:id="bottomPanel" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER"/>
+  </bottom>
 </BorderPane>

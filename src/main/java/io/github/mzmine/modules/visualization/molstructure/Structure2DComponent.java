@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
 import org.jfree.fx.FXGraphics2D;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryUtil;
@@ -171,5 +174,9 @@ public class Structure2DComponent extends Canvas {
     renderer.setup(molecule, drawArea);
     renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
   }
-
+  public IAtomContainer getContainer()
+  {
+    return this.molecule;
+  }
+  
 }
