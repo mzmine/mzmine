@@ -19,7 +19,8 @@
 package io.github.mzmine.modules.visualization.combinedModule;
 
 public enum ColorScale {
-  PRECURSORION("Precursor ion intensity"), PRODUCTION("Product ion intensity");
+  PRECURSORION("Precursor ion intensity"), //
+  PRODUCTION("Product ion intensity"); //
   private String type;
 
   ColorScale(String type) {

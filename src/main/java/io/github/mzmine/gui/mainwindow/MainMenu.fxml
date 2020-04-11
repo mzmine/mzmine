@@ -327,6 +327,8 @@
 		<MenuItem text="MS/MS plot" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule" />
 		<MenuItem text="Neutral loss plot" onAction="#runModule"
+			userData="io.github.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule" />
+		<MenuItem text="Combined module" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.combinedModule.CombinedModule" />
 		<MenuItem text="m/z scan histogram" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule" />

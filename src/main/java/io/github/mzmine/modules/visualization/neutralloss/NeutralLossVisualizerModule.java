@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.visualization.combinedModule.CombinedModuleParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -74,8 +73,7 @@ public class NeutralLossVisualizerModule implements MZmineRunnableModule {
   @Override
   public @Nonnull
   Class<? extends ParameterSet> getParameterSetClass() {
-//    return NeutralLossParameters.class;
-    return CombinedModuleParameters.class;
+    return NeutralLossParameters.class;
   }
 
 }

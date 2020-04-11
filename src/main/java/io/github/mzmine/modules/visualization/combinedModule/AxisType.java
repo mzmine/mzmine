@@ -19,8 +19,10 @@
 package io.github.mzmine.modules.visualization.combinedModule;
 
 public enum AxisType {
-  RETENTIONTIME("Retention time"), PRECURSORION("Precursor ion m/z"), PRODUCTION(
-      "Product ion m/z"), NEUTRALLOSS("Neutral loss");
+  RETENTIONTIME("Retention time"), //
+  PRECURSORIONMZ("Precursor ion m/z"), //
+  PRODUCTIONMZ("Product ion m/z"), //
+  NEUTRALLOSS("Neutral loss");
 
   private String type;
 

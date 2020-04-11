@@ -40,18 +40,18 @@ public class CombinedModuleParameters extends SimpleParameterSet {
   public static final MZRangeParameter mzRange =
       new MZRangeParameter("Precursor m/z", "Range of precursor m/z values");
 
-  public static final ComboParameter<Object> xAxisType =
-      new ComboParameter<Object>("X axis", "X axis type", AxisType.values());
+  public static final ComboParameter<AxisType> xAxisType =
+      new ComboParameter<AxisType>("X axis", "X axis type", AxisType.values());
 
-  public static final ComboParameter<Object> yAxisType =
-      new ComboParameter<Object>("Y axis", "Y axis type", AxisType.values());
+  public static final ComboParameter<AxisType> yAxisType =
+      new ComboParameter<AxisType>("Y axis", "Y axis type", AxisType.values());
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
       "Intensities less than this value are interpreted as noise.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final ComboParameter<Object> colorScale =
-      new ComboParameter<Object>("Color Scale", "Color Scale", ColorScale.values());
+  public static final ComboParameter<ColorScale> colorScale =
+      new ComboParameter<ColorScale>("Color Scale", "Color Scale", ColorScale.values());
 
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
