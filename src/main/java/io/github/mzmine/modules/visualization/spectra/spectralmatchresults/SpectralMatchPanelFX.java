@@ -1,6 +1,8 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -8,26 +10,19 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorSpectrumUtil;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.color.ColorScaleUtil;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.SwingExportUtil;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -48,8 +43,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -154,10 +147,10 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
     pnPreview2D.setMaxSize(META_WIDTH, STRUCTURE_HEIGHT);
 
     // TODO! - Export functionality for Java FX nodes
-//    pnExport = new GridPane(); // wrapped in additional pane before
-//    pnPreview2D.setRight(pnExport);
-//    addExportButtons(MZmineCore.getConfiguration()
-//        .getModuleParameters(SpectraIdentificationResultsModule.class));
+    pnExport = new GridPane(); // wrapped in additional pane before
+    pnPreview2D.setRight(pnExport);
+    addExportButtons(MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     Node newComponent = null;
 
@@ -352,10 +345,6 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
     BorderPane pn = new BorderPane();
     pn.setTop(otherInfo);
     pn.setCenter(panelOther);
-//    JPanel pn1 = new JPanel(new BorderLayout());
-//    pn1.add(pn, BorderLayout.NORTH);
-//    pn1.setBackground(java.awt.Color.WHITE);
-//    return pn1;
     return pn;
   }
 
@@ -380,7 +369,8 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
       pnExport.add(btnExport, 0, 0);
     }
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
+    // TODO: lets keep this until we find a way to export a javafx node to pdf
+    /*if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
       ImageView img = new ImageView(iconPdf);
       img.setPreserveRatio(true);
       img.setFitWidth(ICON_WIDTH);
@@ -418,11 +408,18 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
       btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
       btnExport.setOnAction(e -> exportToGraphics("svg"));
       pnExport.add(btnExport, 0, 4);
-    }
+    }*/
   }
 
   public void exportToGraphics(String format) {
-    // old path
+
+    GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
+        .getConfiguration().getModuleParameters(GraphicsExportModule.class);
+
+    MZmineCore.getModuleInstance(GraphicsExportModule.class)
+        .openDialog(getMirrorChart().getChart(), parameters);
+
+    /*// old path
     FileNameParameter param =
         MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
             .getParameter(SpectraIdentificationResultsParameters.file);
@@ -443,33 +440,31 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
       Platform.runLater(() -> {
         try {
           pnExport.setVisible(false);
-          Stage stage = (Stage) this.getScene().getWindow();
+          JFXPanel pn = new JFXPanel(); // I know this attempt is dirty
 
-          if (stage instanceof SpectraIdentificationResultsWindowFX) {
-            JFXPanel pn = new JFXPanel(); // I know this attempt is dirty
+          SpectralMatchPanelFX pnHit = new SpectralMatchPanelFX(getHit());
+          pn.setScene(new Scene(pnHit));
+          pn.setSize((int) getWidth(), (int) getHeight());
+          pnHit.setPrefSize(getWidth(), getHeight());
+          pnHit.setMinSize(getWidth(), getHeight());
 
-            SpectralMatchPanelFX pnHit = new SpectralMatchPanelFX(getHit());
-            pn.setScene(new Scene(pnHit));
-            pn.setSize((int) getWidth(), (int) getHeight());
-            pnHit.setPrefSize(getWidth(), getHeight());
-            pnHit.setMinSize(getWidth(), getHeight());
+          pn.setVisible(true);
+          pn.revalidate();
 
-            pn.setVisible(true);
-            pn.revalidate();
-
-            // put this into a frame to test (works)
+          // put this into a frame to test (works)
 //            JFrame frame = new JFrame();
 //            frame.setContentPane(pn);
 //            frame.setVisible(true);
 //            frame.revalidate();
 //            frame.setSize((int) getWidth(), (int) getHeight());
+//            frame.setTitle("test");
 
-            SwingExportUtil.writeToGraphics(pn, f.getParentFile(), f.getName(), format);
-            // save path
-            param.setValue(FileAndPathUtil.eraseFormat(f));
+          SwingExportUtil.writeToGraphics(pn, f.getParentFile(), f.getName(), format);
 
-          }
+//          tryExportAsSwing(f, format);
 
+          // save path
+          param.setValue(FileAndPathUtil.eraseFormat(f));
 
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
@@ -489,8 +484,32 @@ public class SpectralMatchPanelFX extends GridPane implements Cloneable {
 //        print.endJob();
 //      }
 
-    }
+    }*/
   }
+
+  /*private void tryExportAsSwing(File f, String format) {
+//    SwingUtilities.invokeLater(() -> {
+      pnExport.setVisible(false);
+      try {
+        SpectralMatchPanel swingPanel = new SpectralMatchPanel(getHit());
+        swingPanel.setPreferredSize(new Dimension((int) getWidth(), (int) getHeight()));
+        swingPanel.revalidate();
+        JPanel pane = new JPanel();
+        pane.add(swingPanel);
+        JFrame frame = new JFrame();
+        frame.setContentPane(pane);
+        frame.setVisible(true);
+        frame.revalidate();
+        frame.setSize((int) getWidth(), (int) getHeight());
+
+//        SwingExportUtil.writeToGraphics(swingPanel, f.getParentFile(), f.getName() + " swing", format);
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
+      } finally {
+        pnExport.setVisible(true);
+      }
+//    });
+  }*/
 
   public SpectralDBPeakIdentity getHit() {
     return hit;
