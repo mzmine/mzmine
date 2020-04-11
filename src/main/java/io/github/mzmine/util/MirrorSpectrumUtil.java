@@ -20,6 +20,7 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
@@ -145,22 +146,40 @@ public class MirrorSpectrumUtil {
     }
 
     // add legend
-    LegendItem item;
-    LegendItemCollection collection = new LegendItemCollection();
-    for (int i = 0; i < tags.length; i++) {
-      item = new LegendItem(tags[i].toRemainderString(), colors[i]);
-      collection.add(item);
-    }
-    mirrorSpecrumPlot.getChart().removeLegend();
-    LegendTitle legend = new LegendTitle(() -> collection);
-    legend.setPosition(RectangleEdge.BOTTOM);
+    LegendTitle legend = createLegend(domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
 
     // set y axis title
     queryPlot.getRangeAxis().setLabel("rel. intensity [%] (query)");
     libraryPlot.getRangeAxis().setLabel("rel. intensity [%] (library)");
 
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(mirrorSpecrumPlot.getChart());
+
     return mirrorSpecrumPlot;
+  }
+
+  public static LegendTitle createLegend(CombinedDomainXYPlot mirrorSpectrumPlot) {
+
+    // get colors for vision
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    // colors for the different DataPointsTags:
+    final Color[] colors = new Color[]{Color.black, // black = filtered
+        palette.getNegativeColorAWT(), // unaligned
+        palette.getPositiveColorAWT() // aligned
+    };
+
+    LegendItem item;
+    LegendItemCollection collection = new LegendItemCollection();
+    for (int i = 0; i < tags.length; i++) {
+      item = new LegendItem(tags[i].toRemainderString(), colors[i]);
+      collection.add(item);
+    }
+    mirrorSpectrumPlot.getChart().removeLegend();
+    LegendTitle legend = new LegendTitle(() -> collection);
+    legend.setPosition(RectangleEdge.BOTTOM);
+
+    return legend;
   }
 
   private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {

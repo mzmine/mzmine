@@ -17,7 +17,7 @@
 }
 
 .chart {
-	-fx-background-color: white;  
+	-fx-background-color: white;
 }
 
 .chart-series-line {
@@ -35,8 +35,11 @@
 	-fx-label-padding: 0.0 20.0 0.0 20.0; 
 }
 
-.larger-label {
-  -fx-font-size: 12.0pt;
+.white-larger-label {
+  -fx-font-size: 14.0pt;
+  -fx-text-fill: white;
+  -fx-wrap-text: true;
+  -fx-font-weight: bold;
 }
 
 .title-label {
@@ -48,11 +51,20 @@
   -fx-font-weight: bold;
 }
 
-.score-label {
+.white-score-label {
   -fx-font-size: 20.0pt;
   -fx-font-weight: bold;
+  -fx-text-fill: white;
 }
 
+.text-label {
+  -fx-wrap-text: true;
+}
+
+
+.region{
+  -fx-background-color: white;
+}
 
 
 

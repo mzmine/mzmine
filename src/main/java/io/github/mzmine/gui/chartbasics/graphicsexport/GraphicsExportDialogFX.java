@@ -18,35 +18,28 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import java.awt.Color;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.plot.DefaultDrawingSupplier;
-import org.jfree.chart.plot.DrawingSupplier;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.FontParameter;
-import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
-import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.Color;
+import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.DrawingSupplier;
 
 /**
  * 
@@ -83,6 +76,9 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     } catch (CloneNotSupportedException e1) {
       e1.printStackTrace();
       logger.severe("Chart could not be cloned.");
+    }
+    if (chart.getPlot() instanceof CombinedDomainXYPlot) {
+      ((CombinedDomainXYPlot) chart.getPlot()).setGap(0);
     }
 
     theme = ChartThemeFactory.createBlackNWhiteTheme();

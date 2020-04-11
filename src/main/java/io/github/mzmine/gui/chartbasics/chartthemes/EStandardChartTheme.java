@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.util.MirrorSpectrumUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -45,16 +46,20 @@ import org.jfree.chart.ui.RectangleInsets;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EStandardChartTheme extends StandardChartTheme {
+
   private static final long serialVersionUID = 1L;
 
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
   private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
-  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
-      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
+  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
+      BasicStroke.CAP_BUTT,
+      BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
-  private static final RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
+  private static final RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0,
+      5.0);
+  private static final RectangleInsets MIRROR_PLOT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
   private static final double TITLE_TOP_MARGIN = 5.0;
 
   public static final String XML_DESC = "ChartTheme";
@@ -156,11 +161,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
 
     applyToLegend(chart);
-
   }
 
 
-  public void applyToCrosshair(@Nonnull JFreeChart chart){
+  public void applyToCrosshair(@Nonnull JFreeChart chart) {
     XYPlot p = chart.getXYPlot();
     p.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
     p.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
@@ -216,26 +220,33 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
     if (p instanceof CombinedDomainXYPlot) {
+      ((CombinedDomainXYPlot) p).setGap(0);
+      p.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
       for (XYPlot subplot : (List<XYPlot>) ((CombinedDomainXYPlot) p).getSubplots()) {
         Axis ra = subplot.getRangeAxis();
         if (rangeAxis != null) {
           ra.setVisible(isShowYAxis());
           subplot.setRangeGridlinesVisible(isShowYGrid());
           subplot.setRangeGridlinePaint(getClrYGrid());
+          subplot.setDomainGridlinesVisible(isShowXGrid());
+          subplot.setDomainGridlinePaint(getClrXGrid());
           if (isUseYLabel()) {
             ra.setLabel(getYlabel());
           }
         }
       }
+    } else {
+      p.setAxisOffset(DEFAULT_AXIS_OFFSET);
     }
 
-    p.setAxisOffset(DEFAULT_AXIS_OFFSET);
+
   }
 
-  public void applyToLegend(@Nonnull JFreeChart chart){
+  public void applyToLegend(@Nonnull JFreeChart chart) {
 
-    if (chart.getLegend() != null)
+    if (chart.getLegend() != null) {
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
+    }
 
     fixLegend(chart);
   }
@@ -272,7 +283,6 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
 
-
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
@@ -285,12 +295,20 @@ public class EStandardChartTheme extends StandardChartTheme {
     RectangleEdge pos = oldLegend.getPosition();
     chart.removeLegend();
 
-    LegendTitle newLegend = new LegendTitle(plot);
+    LegendTitle newLegend;
+
+    if (plot instanceof CombinedDomainXYPlot) {
+      newLegend = MirrorSpectrumUtil.createLegend((CombinedDomainXYPlot) plot);
+    } else {
+      newLegend = new LegendTitle(plot);
+    }
+
     newLegend.setPosition(pos);
     newLegend.setItemFont(oldLegend.getItemFont());
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
     newLegend.setFrame(BlockBorder.NONE);
+
   }
 
   // GETTERS AND SETTERS
