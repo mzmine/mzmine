@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.EHistogramDialog;
+import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramDialog;
 import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -144,8 +144,8 @@ public class MZDistributionHistoTask extends AbstractTask {
 
       // create histogram dialog
       Platform.runLater(() -> {
-        EHistogramDialog dialog =
-            new EHistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
+        HistogramDialog dialog =
+            new HistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
         dialog.showAndWait();
       });
 

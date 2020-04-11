@@ -45,8 +45,10 @@ public class ElementsTableComponent extends FlowPane {
   public ElementsTableComponent() {
 
     elementsValueTable.setEditable(true);
-    elementsValueTable.prefHeightProperty().bind(Bindings.size(elementsValueTable.getItems()).
-            multiply(elementsValueTable.getFixedCellSize()).add(300));
+    this.setMaxHeight(200);
+    elementsValueTable.setMaxHeight(200);
+    elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
 
 
 // allows the individual cells to be selected
@@ -100,11 +102,11 @@ public class ElementsTableComponent extends FlowPane {
     this.setPadding(new Insets(5, 0, 0, 5));
 
     elementsValueTable.getColumns().addAll(elementCol, minCol, maxCol);
-    HBox hBox = new HBox();
-    hBox.getChildren().addAll(addButton, removeButton);
-    hBox.setSpacing(10);
+    VBox vBox = new VBox();
+    vBox.getChildren().addAll(addButton, removeButton);
+    vBox.setSpacing(10);
 
-    this.getChildren().addAll(elementsValueTable,hBox);
+    this.getChildren().addAll(elementsValueTable,vBox);
     this.setHgap(10d);
     this.setAlignment(Pos.BASELINE_RIGHT);
   }

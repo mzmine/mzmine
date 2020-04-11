@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -47,6 +46,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
 
 /**
@@ -128,7 +128,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     this.correctorParameters = correctorParameters;
 
     try {
-      this.baselineCorrector = correctorClass.newInstance();
+      this.baselineCorrector = correctorClass.getConstructor().newInstance();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -356,16 +356,11 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
       addProgessBar();
       while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) {
 
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            progressBar.setProgress(baselineCorrector.getFinishedPercentage(dataFile));
-          }
-        });
+        Platform.runLater(
+            () -> progressBar.setProgress(baselineCorrector.getFinishedPercentage(dataFile)));
         try {
           Thread.sleep(5);
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }

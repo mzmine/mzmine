@@ -59,10 +59,7 @@ public class HistogramChart extends EChartViewer {
   private HistogramPlotDataset dataSet;
 
   public HistogramChart() {
-    super(null);
-
-    // initialize the chart by default time series chart from factory
-    chart = ChartFactory.createHistogram("", // title
+    super(ChartFactory.createHistogram("", // title
         "", // x-axis label
         "", // y-axis label
         null, // data set
@@ -70,7 +67,10 @@ public class HistogramChart extends EChartViewer {
         true, // create legend
         false, // generate tooltips
         false // generate URLs
-    );
+    ));
+
+    // initialize the chart by default time series chart from factory
+    chart = getChart();
 
     // title
     chartTitle = chart.getTitle();
@@ -88,7 +88,6 @@ public class HistogramChart extends EChartViewer {
     legend.setFrame(BlockBorder.NONE);
 
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // disable maximum size (we don't want scaling)
     // setMaximumDrawWidth(Integer.MAX_VALUE);

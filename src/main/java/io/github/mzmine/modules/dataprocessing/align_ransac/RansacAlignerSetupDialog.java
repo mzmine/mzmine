@@ -89,7 +89,6 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     }
 
     peakListsPanel.getChildren().add(comboPanel);
-    peakListsPanel.setVisible(false);
 
     // Panel for XYPlot
     pnlPlotXY = new BorderPane();

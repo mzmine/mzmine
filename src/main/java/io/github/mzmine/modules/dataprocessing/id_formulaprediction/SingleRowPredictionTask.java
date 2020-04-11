@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import javafx.application.Platform;
 import java.util.Map;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -53,6 +54,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.concurrent.CountDownLatch;
 
 public class SingleRowPredictionTask extends AbstractTask {
 

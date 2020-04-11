@@ -276,7 +276,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
-   * 
+   *
    * @param chart The chart.
    */
   public static void fixLegend(JFreeChart chart) {
