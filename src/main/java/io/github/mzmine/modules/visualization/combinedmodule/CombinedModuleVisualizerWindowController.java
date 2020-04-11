@@ -20,14 +20,12 @@ package io.github.mzmine.modules.visualization.combinedmodule;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.neutralloss.NeutralLossParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 
 public class CombinedModuleVisualizerWindowController {
 
@@ -42,17 +40,16 @@ public class CombinedModuleVisualizerWindowController {
   private BorderPane mainPane;
 
   @FXML
-  private Pane centerPane;
-
-  @FXML
   private Button highlightPrecursorBtn;
 
   private ParameterSet parameters;
   private RawDataFile dataFile;
   private Range<Double> rtRange;
   private Range<Double> mzRange;
-  private Object xAxisType;
-  private CombinedModulePLot plot;
+  private AxisType xAxisType;
+  private AxisType yAxisType;
+  @FXML
+  private CombinedModulePlot plot;
 
 
   public void setParameters(ParameterSet parameters) {
@@ -60,16 +57,14 @@ public class CombinedModuleVisualizerWindowController {
     rtRange =
         parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
     mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
-    xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
+    xAxisType = parameters.getParameter(CombinedModuleParameters.xAxisType).getValue();
+    yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
   }
 
   public void initialize() {
-    plot = new CombinedModulePLot();
-    centerPane.getChildren().add(plot);
-
-
+    plot = new CombinedModulePlot();
   }
 
 }
