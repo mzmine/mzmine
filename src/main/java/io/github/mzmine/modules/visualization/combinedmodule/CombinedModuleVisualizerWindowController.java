@@ -29,18 +29,16 @@ import javafx.scene.layout.HBox;
 
 public class CombinedModuleVisualizerWindowController {
 
-
   @FXML
   private ToolBar toolbar;
-
   @FXML
   private HBox bottomPanel;
-
   @FXML
   private BorderPane mainPane;
-
   @FXML
   private Button highlightPrecursorBtn;
+  @FXML
+  private CombinedModulePlot plot;
 
   private ParameterSet parameters;
   private RawDataFile dataFile;
@@ -48,8 +46,9 @@ public class CombinedModuleVisualizerWindowController {
   private Range<Double> mzRange;
   private AxisType xAxisType;
   private AxisType yAxisType;
-  @FXML
-  private CombinedModulePlot plot;
+  private String massList;
+  private Double noiseLevel;
+  private ColorScale colorScale;
 
 
   public void setParameters(ParameterSet parameters) {
@@ -61,6 +60,10 @@ public class CombinedModuleVisualizerWindowController {
     yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
+    massList = parameters.getParameter(CombinedModuleParameters.massList).getValue();
+    noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
+    colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
+
   }
 
   public void initialize() {

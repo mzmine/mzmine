@@ -57,7 +57,6 @@ public class CombinedModuleParameters extends SimpleParameterSet {
 
   public CombinedModuleParameters() {
     super(new Parameter[]{dataFiles, xAxisType, yAxisType, massList, retentionTimeRange, mzRange,
-        colorScale,
-        noiseLevel, windowSettings});
+        colorScale, noiseLevel, windowSettings});
   }
 }
