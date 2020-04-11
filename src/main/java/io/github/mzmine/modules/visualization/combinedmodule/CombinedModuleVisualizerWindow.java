@@ -16,21 +16,27 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.combinedModule;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
-public enum AxisType {
-  RETENTIONTIME("Retention time"), //
-  PRECURSORIONMZ("Precursor ion m/z"), //
-  PRODUCTIONMZ("Product ion m/z"), //
-  NEUTRALLOSS("Neutral loss");
+import java.io.IOException;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
-  private String type;
+public class CombinedModuleVisualizerWindow extends Stage {
 
-  AxisType(String type) {
-    this.type = type;
+  public CombinedModuleVisualizerWindow() {
+    try {
+      FXMLLoader root = new FXMLLoader(
+          getClass().getResource("CombinedModuleVisualizerWindow.fxml"));
+      Parent rootPane = root.load();
+      Scene scene = new Scene(rootPane);
+      setScene(scene);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
   }
 
-  public String toString() {
-    return type;
-  }
 }

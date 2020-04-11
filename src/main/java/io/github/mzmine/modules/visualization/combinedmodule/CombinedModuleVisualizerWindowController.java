@@ -16,43 +16,71 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.combinedModule;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.neutralloss.NeutralLossParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import java.io.IOException;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import java.net.URL;
+import java.util.ResourceBundle;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 
-public class CombinedModuleVisualizerWindow extends Stage {
+public class CombinedModuleVisualizerWindowController {
 
 
+  @FXML
+  private ToolBar toolbar;
+
+  @FXML
+  private HBox bottomPanel;
+
+  @FXML
+  private BorderPane mainPane;
+
+  @FXML
+  private Pane centerPane;
+
+  @FXML
+  private Button highlightPrecursorBtn;
+
+  private ParameterSet parameters;
   private RawDataFile dataFile;
 
-  public CombinedModuleVisualizerWindow(ParameterSet parameters) {
 
+  public void initialize() {
+
+  }
+
+  public void setParameters(ParameterSet parameters) {
+    this.parameters = parameters;
     Range<Double> rtRange =
         parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
     Range<Double> mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
     Object xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
-
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
-
-    try {
-      FXMLLoader root = new FXMLLoader(
-          getClass().getResource("CombinedModuleVisualizerWindow.fxml"));
-      Parent rootPane = root.load();
-      Scene scene = new Scene(rootPane);
-      setScene(scene);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
   }
 
+  public ToolBar getToolbar() {
+    return toolbar;
+  }
+
+  public HBox getBottomPanel() {
+    return bottomPanel;
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
+  public Pane getCenterPane() {
+    return centerPane;
+  }
 }

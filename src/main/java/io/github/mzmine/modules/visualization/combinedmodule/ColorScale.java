@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.combinedModule;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
 public enum ColorScale {
   PRECURSORION("Precursor ion intensity"), //

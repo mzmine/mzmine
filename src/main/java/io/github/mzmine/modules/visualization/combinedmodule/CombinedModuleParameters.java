@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.combinedModule;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
