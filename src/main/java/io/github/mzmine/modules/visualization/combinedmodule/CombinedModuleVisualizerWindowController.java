@@ -22,10 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.neutralloss.NeutralLossParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import java.net.URL;
-import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
@@ -52,35 +49,27 @@ public class CombinedModuleVisualizerWindowController {
 
   private ParameterSet parameters;
   private RawDataFile dataFile;
+  private Range<Double> rtRange;
+  private Range<Double> mzRange;
+  private Object xAxisType;
+  private CombinedModulePLot plot;
 
-
-  public void initialize() {
-
-  }
 
   public void setParameters(ParameterSet parameters) {
     this.parameters = parameters;
-    Range<Double> rtRange =
+    rtRange =
         parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
-    Range<Double> mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
-    Object xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
+    mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
+    xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
     dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
   }
 
-  public ToolBar getToolbar() {
-    return toolbar;
+  public void initialize() {
+    plot = new CombinedModulePLot();
+    centerPane.getChildren().add(plot);
+
+
   }
 
-  public HBox getBottomPanel() {
-    return bottomPanel;
-  }
-
-  public BorderPane getMainPane() {
-    return mainPane;
-  }
-
-  public Pane getCenterPane() {
-    return centerPane;
-  }
 }

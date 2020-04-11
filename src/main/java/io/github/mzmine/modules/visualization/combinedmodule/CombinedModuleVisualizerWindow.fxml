@@ -21,7 +21,9 @@
       <Button fx:id="highlightPrecursorBtn" mnemonicParsing="false">
         <graphic>
           <ImageView fitHeight="20.0" fitWidth="19.0" pickOnBounds="true" preserveRatio="true">
-            <Image url="@../../../../../../../resources/icons/datapointsicon.png"/>
+            <image>
+              <Image url="/icons/datapointsicon.png"/>
+            </image>
           </ImageView>
         </graphic>
         <tooltip>

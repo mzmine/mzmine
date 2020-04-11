@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.visualization.combinedmodule;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -26,17 +29,26 @@ import javafx.stage.Stage;
 
 public class CombinedModuleVisualizerWindow extends Stage {
 
-  public CombinedModuleVisualizerWindow() {
+  private CombinedModuleVisualizerWindowController controller;
+  private Scene scene;
+
+  public CombinedModuleVisualizerWindow(ParameterSet parameters) {
+
     try {
       FXMLLoader root = new FXMLLoader(
           getClass().getResource("CombinedModuleVisualizerWindow.fxml"));
       Parent rootPane = root.load();
-      Scene scene = new Scene(rootPane);
+      controller = root.getController();
+      controller.setParameters(parameters);
+      scene = new Scene(rootPane);
       setScene(scene);
     } catch (IOException e) {
       e.printStackTrace();
     }
-
+    setTitle("Combined Module Plot");
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    WindowsMenu.addWindowsMenu(scene);
   }
 
 }

@@ -31,7 +31,7 @@ public class CombinedModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "MS/MS data visualizer";
   private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS data of 3 modules (neutralloss,productionfilter & msms)";
-  private CombinedModuleVisualizerWindowController controller;
+
 
   @Override
   public @Nonnull
@@ -50,8 +50,7 @@ public class CombinedModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    CombinedModuleVisualizerWindow newWindow = new CombinedModuleVisualizerWindow();
-    controller.setParameters(parameters);
+    CombinedModuleVisualizerWindow newWindow = new CombinedModuleVisualizerWindow(parameters);
     newWindow.show();
 
     return ExitCode.OK;
