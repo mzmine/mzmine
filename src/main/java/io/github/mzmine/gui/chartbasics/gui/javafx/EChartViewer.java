@@ -18,6 +18,25 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.fx.interaction.MouseHandlerFX;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.Range;
+import org.jfree.data.RangeType;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -34,18 +53,10 @@ import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.print.PrinterJob;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -56,19 +67,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.fx.interaction.MouseHandlerFX;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.CombinedRangeXYPlot;
-import org.jfree.chart.plot.Plot;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
-import org.jfree.data.RangeType;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
 
 /**
  * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
@@ -93,7 +91,19 @@ public class EChartViewer extends ChartViewer {
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
-   * stickyZeroForRangeAxis = false <br> Graphics and data export menu are added
+   * stickyZeroForRangeAxis = false <br>
+   * Graphics and data export menu are added
+   *
+   * @param chart
+   */
+  public EChartViewer() {
+    this(null, true, true, true, true, false);
+  }
+
+  /**
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * stickyZeroForRangeAxis = false <br>
+   * Graphics and data export menu are added
    *
    * @param chart
    */
@@ -107,8 +117,8 @@ public class EChartViewer extends ChartViewer {
    *
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param standardGestures   adds the standard ChartGestureHandlers
-   * @param dataExportMenu     adds data export menu
+   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param dataExportMenu adds data export menu
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
@@ -119,9 +129,9 @@ public class EChartViewer extends ChartViewer {
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
-   * @param graphicsExportMenu     adds graphics export menu
-   * @param dataExportMenu         adds data export menu
-   * @param standardGestures       adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu adds graphics export menu
+   * @param dataExportMenu adds data export menu
+   * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
@@ -133,9 +143,9 @@ public class EChartViewer extends ChartViewer {
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    *
    * @param chart
-   * @param graphicsExportMenu     adds graphics export menu
-   * @param dataExportMenu         adds data export menu
-   * @param standardGestures       adds the standard ChartGestureHandlers
+   * @param graphicsExportMenu adds graphics export menu
+   * @param dataExportMenu adds data export menu
+   * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
@@ -144,69 +154,61 @@ public class EChartViewer extends ChartViewer {
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
-    if (chart != null) {
+
+    // Add chart and configure
+    if (chart != null)
       setChart(chart);
 
-      ValueAxis xAxis = chart.getXYPlot().getDomainAxis();
-      ValueAxis yAxis = chart.getXYPlot().getDomainAxis();
-      exportMenu = (Menu) getContextMenu().getItems().get(0);
+    exportMenu = (Menu) getContextMenu().getItems().get(0);
 
-      // Add Export to Excel and graphics export menu
-      if (graphicsExportMenu || dataExportMenu) {
-        addExportMenu(graphicsExportMenu, dataExportMenu);
-      }
-
-      addMenuItem(getContextMenu(), "Reset Zoom", event -> {
-        xAxis.setAutoRange(true);
-        yAxis.setAutoRange(true);
-      });
-
-      addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
-        AxesSetupDialog dialog = new AxesSetupDialog((Stage) this.getScene().getWindow(),
-            chart.getXYPlot());
-        dialog.show();
-      });
-
-      addMenuItem(exportMenu, "EPS..",
-          event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
-
-      addMenuItem(exportMenu, "EMF..",
-          event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
-
-      addMenuItem(getContextMenu(), "Copy Chart to Clipboard", event -> {
-        BufferedImage bufferedImage = getChart()
-            .createBufferedImage((int) this.getWidth(),
-                (int) this.getHeight());
-        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-        ClipboardContent content = new ClipboardContent();
-        content.putImage(image);
-        Clipboard.getSystemClipboard().setContent(content);
-      });
-
-      addMenuItem(getContextMenu(), "Print", event -> {
-        BufferedImage bufferedImage = getChart()
-            .createBufferedImage((int) this.getWidth(),
-                (int) this.getHeight());
-        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-        ImageView imageView = new ImageView(image);
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job != null) {
-          boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
-          if (doPrint) {
-            job.printPage(imageView);
-            job.endJob();
-          }
-        } else {
-          Alert alert = new Alert(AlertType.ERROR);
-          alert.setTitle("Printing Service");
-          alert.setHeaderText("No Printing Service Found");
-          alert.showAndWait();
-        }
-      });
+    // Add Export to Excel and graphics export menu
+    if (graphicsExportMenu || dataExportMenu) {
+      addExportMenu(graphicsExportMenu, dataExportMenu);
     }
 
-    // apply the theme here, let's see how that works
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
+    addMenuItem(getContextMenu(), "Reset Zoom", event -> {
+      ValueAxis xAxis = getChart().getXYPlot().getDomainAxis();
+      ValueAxis yAxis = getChart().getXYPlot().getDomainAxis();
+      xAxis.setAutoRange(true);
+      yAxis.setAutoRange(true);
+    });
+
+    addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
+      AxesSetupDialog dialog =
+          new AxesSetupDialog((Stage) this.getScene().getWindow(), chart.getXYPlot());
+      dialog.show();
+    });
+
+    addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
+
+    addMenuItem(exportMenu, "EMF..", event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
+
+    addMenuItem(getContextMenu(), "Copy chart to clipboard", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ClipboardContent content = new ClipboardContent();
+      content.putImage(image);
+      Clipboard.getSystemClipboard().setContent(content);
+    });
+
+    addMenuItem(getContextMenu(), "Print", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ImageView imageView = new ImageView(image);
+      PrinterJob job = PrinterJob.createPrinterJob();
+      if (job != null) {
+        boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
+        if (doPrint) {
+          job.printPage(imageView);
+          job.endJob();
+        }
+      } else {
+        MZmineCore.getDesktop().displayErrorMessage("No Printing Service Found");
+      }
+    });
+
   }
 
   private void handleSave(String description, String extensions, String extension,
@@ -246,17 +248,15 @@ public class EChartViewer extends ChartViewer {
   @Override
   public void setChart(JFreeChart chart) {
     super.setChart(chart);
-    if (chart != null) {
-      initChartPanel();
-    }
-  }
 
-  /**
-   * Init ChartPanel Mouse Listener For MouseDraggedOverAxis event For scrolling X-Axis und zooming
-   * Y-Axis0
-   */
-  private void initChartPanel() {
+    // If no chart, end here
+    if (chart == null)
+      return;
+
     final EChartViewer chartPanel = this;
+
+    // apply the theme here, let's see how that works
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
 
     // remove old init
     if (mouseAdapter != null) {
@@ -327,6 +327,8 @@ public class EChartViewer extends ChartViewer {
     }
   }
 
+
+
   public void addMouseHandler(MouseHandlerFX handler) {
     this.getCanvas().addAuxiliaryMouseHandler(handler);
   }
@@ -358,8 +360,7 @@ public class EChartViewer extends ChartViewer {
         GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
             .getConfiguration().getModuleParameters(GraphicsExportModule.class);
 
-        MZmineCore.getModuleInstance(GraphicsExportModule.class)
-            .openDialog(getChart(), parameters);
+        MZmineCore.getModuleInstance(GraphicsExportModule.class).openDialog(getChart(), parameters);
       });
     }
     if (data) {
@@ -378,8 +379,9 @@ public class EChartViewer extends ChartViewer {
   }
 
   /**
-   * Default tries to extract all series from an XYDataset or XYZDataset<br> series 1 | Series 2
-   * <br> x y x y x y z x y z
+   * Default tries to extract all series from an XYDataset or XYZDataset<br>
+   * series 1 | Series 2 <br>
+   * x y x y x y z x y z
    *
    * @return Data array[columns][rows]
    */

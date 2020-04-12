@@ -39,6 +39,7 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 
 /**
  * More options for the StandardChartTheme
@@ -46,7 +47,6 @@ import org.jfree.chart.ui.RectangleInsets;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EStandardChartTheme extends StandardChartTheme {
-
   private static final long serialVersionUID = 1L;
 
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
@@ -54,11 +54,10 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
-      BasicStroke.CAP_BUTT,
-      BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
 
-  private static final RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0,
-      5.0);
+  private static final RectangleInsets DEFAULT_AXIS_OFFSET =
+      new RectangleInsets(5.0, 5.0, 5.0, 5.0);
   private static final RectangleInsets MIRROR_PLOT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
   private static final double TITLE_TOP_MARGIN = 5.0;
 
@@ -142,15 +141,17 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  public void apply(JFreeChart chart) {
+  public void apply(@Nonnull JFreeChart chart) {
+    assert chart != null;
+
     super.apply(chart);
     XYPlot p = chart.getXYPlot();
 
-    // Cross hair and  axis visibility colors
+    // Cross hair and axis visibility colors
     applyToCrosshair(chart);
     applyToAxes(chart);
 
-//    applyToTitles(chart);
+    // applyToTitles(chart);
 
     // apply bg
     chart.setBackgroundPaint(this.getChartBackgroundPaint());
@@ -161,6 +162,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
 
     applyToLegend(chart);
+
   }
 
 
@@ -244,9 +246,8 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToLegend(@Nonnull JFreeChart chart) {
 
-    if (chart.getLegend() != null) {
+    if (chart.getLegend() != null)
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
-    }
 
     fixLegend(chart);
   }
@@ -283,6 +284,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
 
+
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
@@ -308,7 +310,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
     newLegend.setFrame(BlockBorder.NONE);
-
   }
 
   // GETTERS AND SETTERS
