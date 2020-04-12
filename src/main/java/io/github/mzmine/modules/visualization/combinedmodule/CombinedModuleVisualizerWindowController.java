@@ -49,6 +49,7 @@ public class CombinedModuleVisualizerWindowController {
   private String massList;
   private Double noiseLevel;
   private ColorScale colorScale;
+  private CombinedModuleDataset dataset;
 
 
   public void setParameters(ParameterSet parameters) {
@@ -63,11 +64,13 @@ public class CombinedModuleVisualizerWindowController {
     massList = parameters.getParameter(CombinedModuleParameters.massList).getValue();
     noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
     colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
+    dataset=new CombinedModuleDataset(dataFile,rtRange,mzRange,this);
+    plot = new CombinedModulePlot(dataFile,this,dataset,rtRange,mzRange,xAxisType,yAxisType,massList,noiseLevel,colorScale);
 
   }
 
   public void initialize() {
-    plot = new CombinedModulePlot();
+    plot=new CombinedModulePlot();
   }
 
 }

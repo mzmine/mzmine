@@ -8,18 +8,20 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
   minWidth="-Infinity" prefHeight="570.0" prefWidth="844.0" xmlns="http://javafx.com/javafx/8"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.combinedmodule.CombinedModuleVisualizerWindowController">
+  <left>
+    <Pane prefWidth="30"/>
+  </left>
   <center>
-    <fx:define>
-      <CombinedModulePlot fx:id="plot" prefHeight="200.0" prefWidth="200.0"
-        BorderPane.alignment="CENTER"/>
-    </fx:define>
+    <CombinedModulePlot fx:id="plot" prefHeight="200.0" prefWidth="200.0"
+      BorderPane.alignment="CENTER"/>
   </center>
   <right>
-    <ToolBar fx:id="toolbar" orientation="VERTICAL" prefHeight="570.0" prefWidth="74.0"
+    <ToolBar fx:id="toolbar" orientation="VERTICAL"  prefWidth="40"
       BorderPane.alignment="CENTER">
       <Button fx:id="highlightPrecursorBtn" mnemonicParsing="false">
         <graphic>
