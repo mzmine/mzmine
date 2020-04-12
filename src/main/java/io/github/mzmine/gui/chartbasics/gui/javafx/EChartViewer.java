@@ -57,8 +57,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.print.PrinterJob;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -156,67 +154,61 @@ public class EChartViewer extends ChartViewer {
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
-    if (chart != null) {
+
+    // Add chart and configure
+    if (chart != null)
       setChart(chart);
 
-      ValueAxis xAxis = chart.getXYPlot().getDomainAxis();
-      ValueAxis yAxis = chart.getXYPlot().getDomainAxis();
-      exportMenu = (Menu) getContextMenu().getItems().get(0);
+    exportMenu = (Menu) getContextMenu().getItems().get(0);
 
-      // Add Export to Excel and graphics export menu
-      if (graphicsExportMenu || dataExportMenu) {
-        addExportMenu(graphicsExportMenu, dataExportMenu);
-      }
-
-      addMenuItem(getContextMenu(), "Reset Zoom", event -> {
-        xAxis.setAutoRange(true);
-        yAxis.setAutoRange(true);
-      });
-
-      addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
-        AxesSetupDialog dialog =
-            new AxesSetupDialog((Stage) this.getScene().getWindow(), chart.getXYPlot());
-        dialog.show();
-      });
-
-      addMenuItem(exportMenu, "EPS..",
-          event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
-
-      addMenuItem(exportMenu, "EMF..",
-          event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
-
-      addMenuItem(getContextMenu(), "Copy Chart to Clipboard", event -> {
-        BufferedImage bufferedImage =
-            getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
-        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-        ClipboardContent content = new ClipboardContent();
-        content.putImage(image);
-        Clipboard.getSystemClipboard().setContent(content);
-      });
-
-      addMenuItem(getContextMenu(), "Print", event -> {
-        BufferedImage bufferedImage =
-            getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
-        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-        ImageView imageView = new ImageView(image);
-        PrinterJob job = PrinterJob.createPrinterJob();
-        if (job != null) {
-          boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
-          if (doPrint) {
-            job.printPage(imageView);
-            job.endJob();
-          }
-        } else {
-          Alert alert = new Alert(AlertType.ERROR);
-          alert.setTitle("Printing Service");
-          alert.setHeaderText("No Printing Service Found");
-          alert.showAndWait();
-        }
-      });
+    // Add Export to Excel and graphics export menu
+    if (graphicsExportMenu || dataExportMenu) {
+      addExportMenu(graphicsExportMenu, dataExportMenu);
     }
 
-    // apply the theme here, let's see how that works
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(this.getChart());
+    addMenuItem(getContextMenu(), "Reset Zoom", event -> {
+      ValueAxis xAxis = getChart().getXYPlot().getDomainAxis();
+      ValueAxis yAxis = getChart().getXYPlot().getDomainAxis();
+      xAxis.setAutoRange(true);
+      yAxis.setAutoRange(true);
+    });
+
+    addMenuItem(getContextMenu(), "Set Range on Axis", event -> {
+      AxesSetupDialog dialog =
+          new AxesSetupDialog((Stage) this.getScene().getWindow(), chart.getXYPlot());
+      dialog.show();
+    });
+
+    addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
+
+    addMenuItem(exportMenu, "EMF..", event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
+
+    addMenuItem(getContextMenu(), "Copy chart to clipboard", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ClipboardContent content = new ClipboardContent();
+      content.putImage(image);
+      Clipboard.getSystemClipboard().setContent(content);
+    });
+
+    addMenuItem(getContextMenu(), "Print", event -> {
+      BufferedImage bufferedImage =
+          getChart().createBufferedImage((int) this.getWidth(), (int) this.getHeight());
+      Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+      ImageView imageView = new ImageView(image);
+      PrinterJob job = PrinterJob.createPrinterJob();
+      if (job != null) {
+        boolean doPrint = job.showPrintDialog(this.getScene().getWindow());
+        if (doPrint) {
+          job.printPage(imageView);
+          job.endJob();
+        }
+      } else {
+        MZmineCore.getDesktop().displayErrorMessage("No Printing Service Found");
+      }
+    });
+
   }
 
   private void handleSave(String description, String extensions, String extension,
@@ -256,17 +248,15 @@ public class EChartViewer extends ChartViewer {
   @Override
   public void setChart(JFreeChart chart) {
     super.setChart(chart);
-    if (chart != null) {
-      initChartPanel();
-    }
-  }
 
-  /**
-   * Init ChartPanel Mouse Listener For MouseDraggedOverAxis event For scrolling X-Axis und zooming
-   * Y-Axis0
-   */
-  private void initChartPanel() {
+    // If no chart, end here
+    if (chart == null)
+      return;
+
     final EChartViewer chartPanel = this;
+
+    // apply the theme here, let's see how that works
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
 
     // remove old init
     if (mouseAdapter != null) {
@@ -336,6 +326,8 @@ public class EChartViewer extends ChartViewer {
       // mouseAdapter.addDebugHandler();
     }
   }
+
+
 
   public void addMouseHandler(MouseHandlerFX handler) {
     this.getCanvas().addAuxiliaryMouseHandler(handler);
