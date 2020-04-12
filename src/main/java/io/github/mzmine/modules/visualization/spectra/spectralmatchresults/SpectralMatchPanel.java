@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -172,8 +174,9 @@ public class SpectralMatchPanel extends JPanel {
     preview2DPanel.add(pn, BorderLayout.EAST);
     pn.add(pnExport, BorderLayout.CENTER);
 
-    addExportButtons(MZmineCore.getConfiguration()
-        .getModuleParameters(SpectraIdentificationResultsModule.class));
+//    This class is just used for export fuctionality, so we do not need this buttons
+//    addExportButtons(MZmineCore.getConfiguration()
+//        .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     JComponent newComponent = null;
 
@@ -193,7 +196,7 @@ public class SpectralMatchPanel extends JPanel {
     // try to draw the component
     if (molecule != null) {
       try {
-        // newComponent = new Structure2DComponent(molecule, FONT);
+        newComponent = new Structure2DComponentAWT(molecule, FONT);
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);

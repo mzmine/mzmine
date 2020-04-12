@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorSpectrumUtil;
 import io.github.mzmine.util.color.ColorScaleUtil;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -48,6 +49,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -114,7 +117,7 @@ public class SpectralMatchPanelFX extends GridPane {
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
 
-  private EChartViewer mirrorChart;
+  private final EChartViewer mirrorChart;
 
   private boolean setCoupleZoomY;
 
@@ -122,6 +125,7 @@ public class SpectralMatchPanelFX extends GridPane {
   private XYPlot libraryPlot;
 
   private VBox metaDataPanel;
+  private ScrollPane metaDataScroll;
   private GridPane pnTitle;
   private GridPane pnExport;
 
@@ -130,20 +134,51 @@ public class SpectralMatchPanelFX extends GridPane {
 
   private EStandardChartTheme theme;
 
-  private SpectralDBPeakIdentity hit;
+  private final SpectralDBPeakIdentity hit;
 
   public SpectralMatchPanelFX(SpectralDBPeakIdentity hit) {
     super();
 
-    setHit(hit);
+    this.hit = hit;
 
-    setMinSize(600, 500);
+    setMinSize(950, 500);
 
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
-    metaDataPanel = new VBox();
-    metaDataPanel.getStyleClass().add("region");
+    MAX_COS_COLOR = palette.getPositiveColor();
+    MIN_COS_COLOR = palette.getNegativeColor();
 
+    pnTitle = createTitlePane();
+
+    metaDataScroll = createMetaDataPane();
+
+    mirrorChart = MirrorSpectrumUtil.createPlotFromSpectralDBPeakIdentity(hit);
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(mirrorChart.getChart());
+
+    coupleZoomYListener();
+
+    // put into main
+    ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
+        Priority.ALWAYS, HPos.CENTER,
+        true);
+    ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
+        Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
+
+    add(pnTitle, 0, 0, 2, 1);
+    add(mirrorChart, 0, 1);
+    add(metaDataScroll, 1, 1);
+
+    getColumnConstraints().add(0, ccSpectrum);
+    getColumnConstraints().add(1, ccMetadata);
+
+    setBorder(
+        new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+            BorderWidths.DEFAULT)));
+
+  }
+
+  private GridPane createTitlePane() {
     pnTitle = new GridPane();
     pnTitle.setAlignment(Pos.CENTER);
 
@@ -172,6 +207,13 @@ public class SpectralMatchPanelFX extends GridPane {
         false);
     pnTitle.getColumnConstraints().add(0, ccTitle0);
     pnTitle.getColumnConstraints().add(1, ccTitle1);
+
+    return pnTitle;
+  }
+
+  private ScrollPane createMetaDataPane() {
+    metaDataPanel = new VBox();
+    metaDataPanel.getStyleClass().add("region");
 
     // preview panel
     IAtomContainer molecule;
@@ -220,9 +262,9 @@ public class SpectralMatchPanelFX extends GridPane {
       metaDataPanel.getChildren().add(pnPreview2D);
     }
 
-    ColumnConstraints ccMetadata1 = new ColumnConstraints(150, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata1 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
-    ColumnConstraints ccMetadata2 = new ColumnConstraints(150, -1, Double.MAX_VALUE,
+    ColumnConstraints ccMetadata2 = new ColumnConstraints(META_WIDTH / 2, -1, Double.MAX_VALUE,
         Priority.NEVER, HPos.LEFT, false);
     ccMetadata1.setPercentWidth(50);
     ccMetadata2.setPercentWidth(50);
@@ -249,31 +291,14 @@ public class SpectralMatchPanelFX extends GridPane {
     metaDataPanel.setMinSize(META_WIDTH, ENTRY_HEIGHT);
     metaDataPanel.setPrefSize(META_WIDTH, -1);
 
-    mirrorChart = MirrorSpectrumUtil.createPlotFromSpectralDBPeakIdentity(hit);
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(mirrorChart.getChart());
+    metaDataScroll = new ScrollPane(metaDataPanel);
+    metaDataScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    metaDataScroll.setMinSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
+    metaDataScroll.setMaxSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
+    metaDataScroll.setPrefSize(META_WIDTH + 20, ENTRY_HEIGHT + 20);
 
-    coupleZoomYListener();
-
-    // put into main
-    ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
-        Priority.ALWAYS, HPos.CENTER,
-        true);
-    ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 20, META_WIDTH + 20,
-        Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
-
-//    ccSpectrum.setPercentWidth(70);
-
-    add(pnTitle, 0, 0, 2, 1);
-    add(mirrorChart, 0, 1);
-    add(metaDataPanel, 1, 1);
-
-    getColumnConstraints().add(0, ccSpectrum);
-    getColumnConstraints().add(1, ccMetadata);
-
-    setBorder(
-        new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-            BorderWidths.DEFAULT)));
-
+    return metaDataScroll;
   }
 
   private void coupleZoomYListener() {
@@ -470,6 +495,9 @@ public class SpectralMatchPanelFX extends GridPane {
       chooser = new FileChooser();
     }
 
+//    For everything to be exported, we take the height of the actual metaDataPanel, not the metaDataScroll
+    double calcdHeight = metaDataPanel.getHeight() + pnTitle.getHeight() + 30;
+
     // this is so unbelievably dirty
     // i'm so sorry
     // i'm so sorry
@@ -481,7 +509,7 @@ public class SpectralMatchPanelFX extends GridPane {
     stage.setScene(scene);
     SwingNode swingNode = new SwingNode();
     SpectralMatchPanel swingPanel = new SpectralMatchPanel(getHit());
-    swingPanel.setPreferredSize(new Dimension((int) getWidth() + 20, (int) getHeight() + 20));
+    swingPanel.setPreferredSize(new Dimension((int) getWidth() + 20, (int) calcdHeight));
     swingPanel.revalidate();
     swingNode.setContent(swingPanel);
     pane.getChildren().add(swingNode);
@@ -507,10 +535,6 @@ public class SpectralMatchPanelFX extends GridPane {
 
   public SpectralDBPeakIdentity getHit() {
     return hit;
-  }
-
-  private void setHit(SpectralDBPeakIdentity hit) {
-    this.hit = hit;
   }
 
 }

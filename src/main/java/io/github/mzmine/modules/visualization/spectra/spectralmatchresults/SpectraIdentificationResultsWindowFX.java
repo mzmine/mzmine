@@ -72,7 +72,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     getScene().getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
-    pnMain.setPrefSize(1400, 900);
+    pnMain.setPrefSize(1000, 600);
     pnMain.setMinSize(700, 500);
     setMinWidth(700);
     setMinHeight(500);
