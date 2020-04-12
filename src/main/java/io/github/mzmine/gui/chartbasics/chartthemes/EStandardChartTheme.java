@@ -18,7 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -38,6 +37,7 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 
 /**
  * More options for the StandardChartTheme
@@ -51,10 +51,11 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
-  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT,
-      BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
+  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
 
-  private static final RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
+  private static final RectangleInsets DEFAULT_AXIS_OFFSET =
+      new RectangleInsets(5.0, 5.0, 5.0, 5.0);
   private static final double TITLE_TOP_MARGIN = 5.0;
 
   public static final String XML_DESC = "ChartTheme";
@@ -137,15 +138,17 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  public void apply(JFreeChart chart) {
+  public void apply(@Nonnull JFreeChart chart) {
+    assert chart != null;
+
     super.apply(chart);
     XYPlot p = chart.getXYPlot();
 
-    // Cross hair and  axis visibility colors
+    // Cross hair and axis visibility colors
     applyToCrosshair(chart);
     applyToAxes(chart);
 
-//    applyToTitles(chart);
+    // applyToTitles(chart);
 
     // apply bg
     chart.setBackgroundPaint(this.getChartBackgroundPaint());
@@ -160,7 +163,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
 
-  public void applyToCrosshair(@Nonnull JFreeChart chart){
+  public void applyToCrosshair(@Nonnull JFreeChart chart) {
     XYPlot p = chart.getXYPlot();
     p.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
     p.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
@@ -232,7 +235,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     p.setAxisOffset(DEFAULT_AXIS_OFFSET);
   }
 
-  public void applyToLegend(@Nonnull JFreeChart chart){
+  public void applyToLegend(@Nonnull JFreeChart chart) {
 
     if (chart.getLegend() != null)
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
@@ -240,22 +243,22 @@ public class EStandardChartTheme extends StandardChartTheme {
     fixLegend(chart);
   }
 
-//  public void applyToTitles(@Nonnull JFreeChart chart){
-//    chart.getSubtitles().forEach(s -> {
-//      if(s instanceof TextTitle && s != chart.getTitle()){
-//        ((TextTitle) s).setFont(getRegularFont());
-//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
-//        ((TextTitle) s).setVisible(isShowTitle());
-////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
-////        subtitle color is set by the chart theme parameters
-//
-//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
-//          ((PaintScaleLegend) s)
-//              .setBackgroundPaint(this.getChartBackgroundPaint());
-//        }
-//      }
-//    });
-//  }
+  // public void applyToTitles(@Nonnull JFreeChart chart){
+  // chart.getSubtitles().forEach(s -> {
+  // if(s instanceof TextTitle && s != chart.getTitle()){
+  // ((TextTitle) s).setFont(getRegularFont());
+  // ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+  // ((TextTitle) s).setVisible(isShowTitle());
+  //// ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+  //// subtitle color is set by the chart theme parameters
+  //
+  // if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+  // ((PaintScaleLegend) s)
+  // .setBackgroundPaint(this.getChartBackgroundPaint());
+  // }
+  // }
+  // });
+  // }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
