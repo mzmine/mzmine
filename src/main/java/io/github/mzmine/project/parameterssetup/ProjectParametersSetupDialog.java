@@ -90,7 +90,7 @@ public class ProjectParametersSetupDialog extends Stage {
     buttonImportParameters = new Button("Import parameters and values...");
     buttonImportParameters.setOnAction(e -> {
       // Import parameter values from a file
-      ProjectParametersImporter importer = new ProjectParametersImporter(this);
+      ProjectParametersImporter importer = new ProjectParametersImporter();
       importer.importParameters();
     });
     buttonRemoveParameter = new Button("Remove selected parameter");

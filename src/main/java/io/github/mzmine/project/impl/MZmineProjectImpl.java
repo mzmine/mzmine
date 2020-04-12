@@ -21,6 +21,8 @@ package io.github.mzmine.project.impl;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -83,7 +85,13 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public boolean hasParameter(UserParameter<?, ?> parameter) {
-    return projectParametersAndValues.containsKey(parameter);
+    AtomicReference<Boolean> hasPara = new AtomicReference<>(false);
+    projectParametersAndValues.forEach((k,v)->{
+      if(parameter.getName().equals(k.getName())){
+        hasPara.set(true);
+      }
+    });
+    return hasPara.get();
   }
 
   @Override
