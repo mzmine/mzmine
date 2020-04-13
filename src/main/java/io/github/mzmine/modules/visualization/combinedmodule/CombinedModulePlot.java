@@ -47,7 +47,6 @@ public class CombinedModulePlot extends EChartViewer {
   private String massList;
   private Double noiseLevel;
   private ColorScale colorScale;
-  private NumberAxis xAxis, yAxis;
   private static final Color gridColor = Color.lightGray;
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
@@ -97,20 +96,24 @@ public class CombinedModulePlot extends EChartViewer {
     plot.setDomainCrosshairStroke(crossHairStroke);
     plot.setRangeCrosshairStroke(crossHairStroke);
 
-    setAxes(xAxis, xAxisType, rtFormat);
-    plot.setDomainAxis(xAxis);
+    NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
+    if (xAxisType == AxisType.RETENTIONTIME) {
+      setAxes(xAxis, xAxisType, rtFormat);
+    } else {
+      setAxes(xAxis, xAxisType, mzFormat);
+    }
+    NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
     setAxes(yAxis, yAxisType, mzFormat);
-    plot.setRangeAxis(yAxis);
 
     plot.setDataset(0, dataset);
 
   }
 
   private void setAxes(NumberAxis axis, AxisType axisType, NumberFormat format) {
-    axis = new NumberAxis(axisType.toString());
+    axis.setLabel(axisType.toString());
     axis.setAutoRangeIncludesZero(false);
     axis.setNumberFormatOverride(format);
-    axis.setUpperMargin(0.01);
-    axis.setLowerMargin(0.01);
+    axis.setUpperMargin(0);
+    axis.setLowerMargin(0);
   }
 }
