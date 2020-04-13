@@ -97,8 +97,15 @@ public class CombinedModulePlot extends EChartViewer {
     plot.setDomainCrosshairStroke(crossHairStroke);
     plot.setRangeCrosshairStroke(crossHairStroke);
 
-    setAxes(xAxis, xAxisType, rtFormat);
+    xAxis=(NumberAxis) this.plot.getDomainAxis();
+    if(xAxisType==AxisType.RETENTIONTIME) {
+      setAxes(xAxis, xAxisType, rtFormat);
+    }
+    else {
+      setAxes(xAxis, xAxisType, mzFormat);
+    }
     plot.setDomainAxis(xAxis);
+    yAxis=(NumberAxis) this.plot.getRangeAxis();
     setAxes(yAxis, yAxisType, mzFormat);
     plot.setRangeAxis(yAxis);
 
@@ -107,10 +114,10 @@ public class CombinedModulePlot extends EChartViewer {
   }
 
   private void setAxes(NumberAxis axis, AxisType axisType, NumberFormat format) {
-    axis = new NumberAxis(axisType.toString());
+    axis.setLabel(axisType.toString());
     axis.setAutoRangeIncludesZero(false);
     axis.setNumberFormatOverride(format);
-    axis.setUpperMargin(0.01);
-    axis.setLowerMargin(0.01);
+    axis.setUpperMargin(0);
+    axis.setLowerMargin(0);
   }
 }
