@@ -60,25 +60,24 @@ public class CombinedModulePlot extends EChartViewer {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  public CombinedModulePlot(){
+  public CombinedModulePlot() {
     super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
         false), true, true, false, false, true);
-
-
   }
-  public CombinedModulePlot(RawDataFile dataFile,
-      CombinedModuleVisualizerWindowController visualizer, CombinedModuleDataset dataset,
-      Range<Double> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
-      String massList,
+
+  public void setPlot(RawDataFile dataFile,
+      CombinedModuleVisualizerWindowController visualizer,
+      CombinedModuleDataset dataset, Range<Double> rtRange, Range<Double> mzRange,
+      AxisType xAxisType, AxisType yAxisType, String massList,
       Double noiseLevel, ColorScale colorScale) {
-    super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
-        false), true, true, false, false, true);
-    setMouseZoomable(false);
 
     this.visualizer = visualizer;
     this.dataFile = dataFile;
     this.rtRange = rtRange;
     this.mzRange = mzRange;
+    this.noiseLevel = noiseLevel;
+    this.colorScale = colorScale;
+    this.massList = massList;
 
     chart = getChart();
     chart.setBackgroundPaint(Color.white);
@@ -103,7 +102,7 @@ public class CombinedModulePlot extends EChartViewer {
     setAxes(yAxis, yAxisType, mzFormat);
     plot.setRangeAxis(yAxis);
 
-    plot.setDataset(0,dataset);
+    plot.setDataset(0, dataset);
 
   }
 
