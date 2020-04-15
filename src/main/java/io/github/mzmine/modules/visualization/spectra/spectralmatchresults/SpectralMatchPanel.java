@@ -18,8 +18,24 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.gui.framework.CustomTextPane;
+import io.github.mzmine.gui.framework.ScrollablePanel;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.util.color.ColorScaleUtil;
+import io.github.mzmine.util.components.MultiLineLabel;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.swing.IconUtil;
+import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -41,6 +57,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -53,24 +70,6 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
-import io.github.mzmine.gui.framework.CustomTextPane;
-import io.github.mzmine.gui.framework.ScrollablePanel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.util.color.ColorScaleUtil;
-import io.github.mzmine.util.components.MultiLineLabel;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.IconUtil;
-import io.github.mzmine.util.swing.SwingExportUtil;
-import net.miginfocom.swing.MigLayout;
 
 public class SpectralMatchPanel extends JPanel {
   private final Logger logger = Logger.getLogger(this.getClass().getName());

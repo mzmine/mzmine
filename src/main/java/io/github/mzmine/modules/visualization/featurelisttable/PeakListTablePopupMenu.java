@@ -18,25 +18,6 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable;
 
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
@@ -70,14 +51,33 @@ import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.AbstractTableModel;
 
 /**
  * Peak-list table pop-up menu.
@@ -588,11 +588,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
               .filter(pi -> pi instanceof SpectralDBPeakIdentity)
               .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
       if (!spectralID.isEmpty()) {
-        SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
+        SpectraIdentificationResultsWindowFX window = new SpectraIdentificationResultsWindowFX();
         window.addMatches(spectralID);
         window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
             + clickedPeakListRow.getID());
-        window.setVisible(true);
+        window.show();
       }
     }
 

@@ -18,20 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -39,6 +29,13 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
@@ -52,7 +49,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private List<RowsSpectralMatchTask> tasks;
 
-  private SpectraIdentificationResultsWindow resultWindow;
+  private SpectraIdentificationResultsWindowFX resultWindow;
 
   private PeakListTable table;
 
@@ -96,8 +93,8 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
     if (peakListRows.length == 1) {
       // add result frame
-      resultWindow = new SpectraIdentificationResultsWindow();
-      resultWindow.setVisible(true);
+      resultWindow = new SpectraIdentificationResultsWindowFX();
+      resultWindow.show();
     } else {
       resultWindow = null;
     }
@@ -140,8 +137,6 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
       resultWindow
           .setTitle("Matched " + count + " compounds for feature list row: " + peakListRows[0]);
       resultWindow.setMatchingFinished();
-      resultWindow.revalidate();
-      resultWindow.repaint();
     }
 
     // work around to update feature list identities
@@ -170,8 +165,6 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
               // one selected row -> show in dialog
               if (resultWindow != null) {
                 resultWindow.addMatches(match);
-                resultWindow.revalidate();
-                resultWindow.repaint();
               }
             });
         MZmineCore.getTaskController().addTask(task);
