@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Scene xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialogController">
+      <VBox prefHeight="480.0" prefWidth="835.0">
+        <TableView fx:id="parameterTable" prefHeight="400.0" >
+            <placeholder>
+                <Label text="No Parameters"></Label>
+            </placeholder>
+
+        </TableView>
+      <ButtonBar buttonMinWidth="50.0" prefHeight="40.0" prefWidth="200.0">
+        <buttons>
+          <Button onAction="#addPara" mnemonicParsing="false" text="Add new Parameter" ButtonBar.buttonData="LEFT" />
+            <Button onAction="#importPara" mnemonicParsing="false" text="Import parameters and values..." ButtonBar.buttonData="LEFT" />
+            <Button onAction="#removePara" mnemonicParsing="false" text="Remove selected parameter" ButtonBar.buttonData="LEFT" />
+        </buttons>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </ButtonBar>
+      <ButtonBar prefHeight="40.0" prefWidth="200.0">
+        <buttons>
+            <Button onAction="#onClickOK" mnemonicParsing="false" text="OK" />
+            <Button onAction="#onClickCancel" mnemonicParsing="false" text="Cancel" />
+        </buttons>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </ButtonBar>
+
+    </VBox>
+
+
+</Scene>

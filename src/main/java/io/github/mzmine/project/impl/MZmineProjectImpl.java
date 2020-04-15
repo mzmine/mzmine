@@ -54,6 +54,15 @@ public class MZmineProjectImpl implements MZmineProject {
               FXCollections.observableArrayList()//
           ));
 
+  @Override
+  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
+    return projectParametersAndValues;
+  }
+
+  @Override
+  public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
+    this.projectParametersAndValues = projectParametersAndValues;
+  }
 
   private File projectFile;
 
@@ -84,14 +93,23 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    AtomicReference<Boolean> hasPara = new AtomicReference<>(false);
-    projectParametersAndValues.forEach((k,v)->{
-      if(parameter.getName().equals(k.getName())){
-        hasPara.set(true);
+  public UserParameter<?,?> getParameterByName(String name){
+    for(UserParameter<?,?> parameter:getParameters()){
+      if(parameter.getName().equals(name)){
+        return parameter;
       }
-    });
-    return hasPara.get();
+    }
+    return null;
+  }
+
+  @Override
+  public boolean hasParameter(UserParameter<?, ?> parameter) {
+    //matching by name
+    UserParameter<?,?> param =  getParameterByName(parameter.getName());
+    if(param==null){
+      return false;
+    }
+    return true;
   }
 
   @Override

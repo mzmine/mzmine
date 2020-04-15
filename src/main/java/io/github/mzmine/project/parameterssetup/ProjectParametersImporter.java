@@ -190,7 +190,7 @@ public class ProjectParametersImporter {
     // Remove parameters with same name
     for (UserParameter<?, ?> parameter:parameters){
       if(currentProject.hasParameter(parameter)){
-        currentProject.removeParameter(parameter);
+        currentProject.removeParameter(currentProject.getParameterByName(parameter.getName()));
       }
     }
 
@@ -205,6 +205,7 @@ public class ProjectParametersImporter {
       parameterFileReader = new BufferedReader(new FileReader(parameterFile));
     } catch (FileNotFoundException ex) {
       logger.severe("Could not open file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
@@ -267,6 +268,7 @@ public class ProjectParametersImporter {
       desktop.displayErrorMessage("Could not close file " + parameterFile);
       return false;
     }
+
     return true;
   }
 }
