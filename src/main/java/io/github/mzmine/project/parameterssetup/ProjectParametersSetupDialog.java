@@ -24,17 +24,15 @@ import javafx.stage.Stage;
 
 public class ProjectParametersSetupDialog extends Stage {
 
-  private ProjectParametersSetupDialogController controller;
-
   public ProjectParametersSetupDialog(){
     try{
       FXMLLoader loader = new FXMLLoader(getClass().getResource("ProjectParametersSetupDialog.fxml"));
       setTitle("Setup project parameters and values");
       Scene rootScene = loader.load();
       setMinWidth(700);
-      setMinHeight(500);
+      setMinHeight(400);
       setScene(rootScene);
-      controller =loader.getController();
+      ProjectParametersSetupDialogController controller = loader.getController();
       controller.setStage(this);
     }catch(Exception e){
       e.printStackTrace();

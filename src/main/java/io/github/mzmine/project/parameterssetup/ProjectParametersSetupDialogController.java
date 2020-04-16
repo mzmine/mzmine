@@ -29,8 +29,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -38,7 +38,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import java.util.Hashtable;
 import java.util.Optional;
@@ -98,9 +97,6 @@ public class ProjectParametersSetupDialogController {
         }
 
         parameterTable.getItems().addAll(paramValue);
-
-//        System.out.println(parameterTable.getColumns().toString());
-        System.out.println(parameterTable.getItems().toString());
     }
 
     private TableColumn<ObservableList<StringProperty>, String> createColumn(
@@ -131,8 +127,6 @@ public class ProjectParametersSetupDialogController {
                         UserParameter<?,?> parameter = currentProject.getParameterByName(parameterName);
                         int rowNo = parameterTable.getSelectionModel().selectedIndexProperty().get();
                         String fileName = parameterTable.getItems().get(rowNo).get(0).getValue();
-                        System.out.println(rowNo);
-                        System.out.println(fileName);
                         RawDataFile rawDataFile = null;
                         for(RawDataFile file:fileList){
                             if(file.getName().equals(fileName)){
@@ -157,14 +151,18 @@ public class ProjectParametersSetupDialogController {
         addParaStage.setMinHeight(100);
         addParaStage.setMinWidth(80);
         VBox vBox = new VBox();
-        HBox hBox  = new HBox();
+        HBox hBox1  = new HBox();
         Label label1 = new Label("Parameter Name");
+        label1.setPrefWidth(150);
         TextField paraField = new TextField();
         paraField.setPromptText("Enter Parameter Name");
+        HBox hBox2  = new HBox();
         Label label2 = new Label("Description");
+        label2.setPrefWidth(150);
         TextField descriptionField = new TextField();
         paraField.setPromptText("Enter Description");
-        hBox.getChildren().addAll(label1, paraField, label2, descriptionField);
+        hBox1.getChildren().addAll(label1, paraField);
+        hBox2.getChildren().addAll(label2, descriptionField);
         Button button = new Button("OK");
         button.setOnAction(e->{
             String parameterName = paraField.getText();
@@ -186,7 +184,8 @@ public class ProjectParametersSetupDialogController {
             updateParametersToTable();
             addParaStage.close();
         });
-        vBox.getChildren().addAll(hBox,button);
+        vBox.getChildren().addAll(hBox1,hBox2,button);
+        vBox.setPadding(new Insets(5, 5, 5, 5));
         Scene scene = new Scene(vBox);
         addParaStage.setScene(scene);
         addParaStage.showAndWait();
@@ -206,8 +205,8 @@ public class ProjectParametersSetupDialogController {
 
     @FXML
     public void removePara(ActionEvent actionEvent) {
-        TableColumn position = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
-        if(position==null){
+        TableColumn column = parameterTable.getFocusModel().getFocusedCell().getTableColumn();
+        if(column==null){
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No cell selected");
             alert.setHeaderText(null);
@@ -215,7 +214,7 @@ public class ProjectParametersSetupDialogController {
             alert.showAndWait();
             return;
         }
-        String parameterName =  position.getText();
+        String parameterName =  column.getText();
         if(parameterName.equals("Raw Data File")){
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Cannot remove Raw Data File Column");

@@ -32,9 +32,12 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
@@ -82,12 +85,45 @@ public class ProjectParametersImporter {
     if (parameters == null)
       return false;
 
-    // TODO: Show a dialog for selecting which parameters to import and edit
-    // their types
 
     // Read values of parameters and store them in the project
     return processParameterValues(parameterFile, parameters);
 
+  }
+
+  private Hashtable<UserParameter<?,?>, Boolean> showParameterChooseOption(UserParameter<?,?>[] parameters) {
+    Hashtable<UserParameter<?,?>,Boolean> ischeckedparameter = new Hashtable<>();
+    for(UserParameter<?,?> parameter:parameters){
+      ischeckedparameter.put(parameter,false);
+    }
+    Stage chooseParaStage = new Stage();
+    chooseParaStage.initModality(Modality.APPLICATION_MODAL);
+    chooseParaStage.setTitle("Choose Parameters to include in project");
+    chooseParaStage.setMinHeight(200);
+    chooseParaStage.setMinWidth(200);
+    VBox vbox = new VBox();
+    Label label = new Label("Parameters");
+    label.setStyle("-fx-font-weight: bold");
+    vbox.setStyle("-fx-font-size:16px;");
+    vbox.getChildren().add(label);
+    for(UserParameter<?,?> parameter:parameters){
+      CheckBox checkBox = new CheckBox(parameter.getName());
+      vbox.getChildren().add(checkBox);
+      checkBox.setOnAction(e->{
+        if(checkBox.isSelected())
+          ischeckedparameter.put(parameter,true);
+        else
+          ischeckedparameter.put(parameter,false);
+      });
+    }
+    Button button = new Button("OK");
+    button.setOnAction(e->chooseParaStage.close());
+    vbox.getChildren().add(button);
+    vbox.setPadding(new Insets(5, 5, 5, 5));
+    Scene scene = new Scene(vbox);
+    chooseParaStage.setScene(scene);
+    chooseParaStage.showAndWait();
+    return ischeckedparameter;
   }
 
   private File chooseFile() {
@@ -128,6 +164,7 @@ public class ProjectParametersImporter {
         if (parameterValues.containsKey(paramName)) {
           logger.severe(
                   "Did not import parameters because of a non-unique parameter name: " + paramName);
+          assert desktop != null;
           desktop.displayErrorMessage("Could not open file " + parameterFile);
           parameterFileReader.close();
           return null;
@@ -152,6 +189,7 @@ public class ProjectParametersImporter {
 
           if (st.hasMoreTokens() ^ parameterNameIterator.hasNext()) {
             logger.severe("Incorrect number of parameter values on row " + rowNumber);
+            assert desktop != null;
             desktop.displayErrorMessage("Incorrect number of parameter values on row " + rowNumber);
             parameterFileReader.close();
             return null;
@@ -167,7 +205,6 @@ public class ProjectParametersImporter {
       while (parameterNameIterator.hasNext()) {
         String name = parameterNameIterator.next();
         parameters.add(new StringParameter(name, null));
-
       }
 
       // Close reader
@@ -211,6 +248,9 @@ public class ProjectParametersImporter {
     for (UserParameter<?, ?> parameter : parameters) {
       currentProject.addParameter(parameter);
     }
+
+
+    Hashtable<UserParameter<?,?>,Boolean> chosenParameter = showParameterChooseOption(parameters);
 
     // Open reader
     BufferedReader parameterFileReader;
@@ -265,6 +305,12 @@ public class ProjectParametersImporter {
           UserParameter<?, ?> parameter = parameters[parameterIndex];
           currentProject.setParameterValue(parameter, dataFile, parameterValue);
           parameterIndex++;
+        }
+        //Removing unselected paramaters
+        for(UserParameter<?,?> parameter:parameters){
+            if(!chosenParameter.get(parameter)){
+              currentProject.removeParameter(parameter);
+            }
         }
       }
     } catch (IOException ex) {
