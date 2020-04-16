@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 /**
  * This class imports project parameters and their values from a CSV file to the main project
@@ -59,6 +60,11 @@ public class ProjectParametersImporter {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject currentProject= MZmineCore.getProjectManager().getCurrentProject();
   private final Desktop desktop = MZmineCore.getDesktop();
+  private Stage currentStage;
+
+  public ProjectParametersImporter(Stage stage) {
+    this.currentStage = stage;
+  }
 
 
   public boolean importParameters() {
@@ -92,7 +98,14 @@ public class ProjectParametersImporter {
             new FileChooser.ExtensionFilter("text","*.txt"),
             new FileChooser.ExtensionFilter("csv","*.csv")
             );
-    return fileChooser.showOpenDialog(desktop.getMainWindow());
+
+    File currentFile = currentProject.getProjectFile();
+    if (currentFile != null) {
+      File currentDir = currentFile.getParentFile();
+      if ((currentDir != null) && (currentDir.exists()))
+        fileChooser.setInitialDirectory(currentDir);
+    }
+    return fileChooser.showOpenDialog(currentStage.getScene().getWindow());
   }
 
   private UserParameter<?, ?>[] processParameters(File parameterFile) {
@@ -256,6 +269,7 @@ public class ProjectParametersImporter {
       }
     } catch (IOException ex) {
       logger.severe("Could not read file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
@@ -265,6 +279,7 @@ public class ProjectParametersImporter {
       parameterFileReader.close();
     } catch (IOException ex) {
       logger.severe("Could not close file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not close file " + parameterFile);
       return false;
     }

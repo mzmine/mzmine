@@ -194,7 +194,7 @@ public class ProjectParametersSetupDialogController {
 
     @FXML
     public void importPara(ActionEvent actionEvent) {
-        ProjectParametersImporter importer = new ProjectParametersImporter();
+        ProjectParametersImporter importer = new ProjectParametersImporter(currentStage);
         if(importer.importParameters()){
             logger.info("Successfully imported parameters from file");
             updateParametersToTable();
