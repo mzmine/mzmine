@@ -199,11 +199,6 @@ public class ProjectParametersSetupDialogController {
             addParaStage.close();
         });
         cancelButton.setOnAction(e->{
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Parameter not added");
-            alert.setHeaderText(null);
-            alert.setContentText("Parameter adding cancelled by user");
-            alert.showAndWait();
             addParaStage.close();
         });
         addParaStage.setOnCloseRequest(e->{
@@ -271,9 +266,6 @@ public class ProjectParametersSetupDialogController {
             if(tbdParameter!=null)
                 currentProject.removeParameter(tbdParameter);
             updateParametersToTable();
-        }
-        else{
-            logger.info("Remove Parameter "+parameterName+" cancelled by user");
         }
     }
 
