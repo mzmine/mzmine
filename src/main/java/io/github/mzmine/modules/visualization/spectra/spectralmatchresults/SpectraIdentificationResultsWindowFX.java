@@ -98,11 +98,13 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     // set font size of chart
     MenuItem btnSetup = new MenuItem("Setup dialog");
     btnSetup.setOnAction(e -> {
-      if (MZmineCore.getConfiguration()
-          .getModuleParameters(SpectraIdentificationResultsModule.class)
-          .showSetupDialog(true) == ExitCode.OK) {
-        showExportButtonsChanged();
-      }
+      Platform.runLater(() -> {
+        if (MZmineCore.getConfiguration()
+            .getModuleParameters(SpectraIdentificationResultsModule.class)
+            .showSetupDialog(true) == ExitCode.OK) {
+          showExportButtonsChanged();
+        }
+      });
     });
 
     menu.getItems().add(btnSetup);
@@ -137,7 +139,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   }
 
   /**
-   * Add a new match and sort the view
+   * Add a new match and sort the view. Call from {@link Platform#runLater}.
    *
    * @param match
    */
@@ -147,8 +149,10 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
       totalMatches.add(match);
       SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
       pn.setCoupleZoomY(isCouplingZoomY);
+      pn.prefWidthProperty().bind(this.widthProperty());
       matchPanels.put(match, pn);
-      pnGrid.add(pn, 0, matchPanels.size() - 1);
+
+      //pnGrid.add(pn, 0, matchPanels.size() - 1);
 
       // sort and show
       sortTotalMatches();
@@ -156,7 +160,8 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   }
 
   /**
-   * add all matches and sort the view
+   * add all matches and sort the view.
+   * Call from {@link Platform#runLater}.
    *
    * @param matches
    */
@@ -203,21 +208,24 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     }
   }
 
-  public void renewLayout() {
-    Platform.runLater(() -> {
-      // add all panel in order
-      synchronized (totalMatches) {
-        pnGrid.getChildren().clear();
-        int row = 0;
-        for (SpectralDBPeakIdentity match : totalMatches) {
-          Pane pn = matchPanels.get(match);
-          if (pn != null) {
-            pnGrid.add(pn, 0, row);
-            row++;
-          }
+  /**
+   * Removes panels and puts them in order.
+   */
+  private void renewLayout() {
+//    Platform.runLater(() -> {
+    // add all panel in order
+    synchronized (totalMatches) {
+      pnGrid.getChildren().clear();
+      int row = 0;
+      for (SpectralDBPeakIdentity match : totalMatches) {
+        Pane pn = matchPanels.get(match);
+        if (pn != null) {
+          pnGrid.add(pn, 0, row);
+          row++;
         }
       }
-    });
+      }
+//    });
   }
 
   private void showExportButtonsChanged() {

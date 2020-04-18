@@ -29,6 +29,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.color.ColorScaleUtil;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.components.MultiLineLabel;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -93,8 +94,8 @@ public class SpectralMatchPanel extends JPanel {
   public static final double MAX_COS_COLOR_VALUE = 1.0;
   // min color is a darker red
   // max color is a darker green
-  public static final Color MAX_COS_COLOR = new Color(0x388E3C);
-  public static final Color MIN_COS_COLOR = new Color(0xE30B0B);
+  public static Color MAX_COS_COLOR = new Color(0x388E3C);
+  public static Color MIN_COS_COLOR = new Color(0xE30B0B);
 
   private Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private Font titleFont = new Font("Dialog", Font.BOLD, 18);
@@ -121,6 +122,11 @@ public class SpectralMatchPanel extends JPanel {
     metaDataPanel.setLayout(new BoxLayout(metaDataPanel, BoxLayout.Y_AXIS));
 
     metaDataPanel.setBackground(Color.WHITE);
+
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+    MAX_COS_COLOR = palette.getPositiveColorAWT();
+    MIN_COS_COLOR = palette.getNegativeColorAWT();
 
     // add title
     MigLayout l = new MigLayout("aligny center, wrap, insets 0 10 0 30", "[grow][]", "[grow]");
