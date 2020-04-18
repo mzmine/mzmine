@@ -25,7 +25,7 @@
         <ButtonBar prefHeight="40.0" prefWidth="200.0">
         <buttons>
             <Button onAction="#onClickOK" mnemonicParsing="false" text="OK" />
-            <Button onAction="#onClickCancel" mnemonicParsing="false" text="Cancel" />
+            <Button onAction="#onClickHelp" mnemonicParsing="false" text="Help" ButtonBar.buttonData="LEFT"/>
         </buttons>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

@@ -21,6 +21,7 @@ package io.github.mzmine.project.parameterssetup;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -39,6 +40,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.net.URL;
 import java.util.Hashtable;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -140,6 +142,7 @@ public class ProjectParametersSetupDialogController {
             );
 
         }
+        column.setMinWidth(175.0);
         return column;
     }
 
@@ -160,13 +163,24 @@ public class ProjectParametersSetupDialogController {
         Label label2 = new Label("Description");
         label2.setPrefWidth(150);
         TextField descriptionField = new TextField();
-        paraField.setPromptText("Enter Description");
+        descriptionField.setPromptText("Enter Description");
         hBox1.getChildren().addAll(label1, paraField);
         hBox2.getChildren().addAll(label2, descriptionField);
-        Button button = new Button("OK");
-        button.setOnAction(e->{
+        Button okButton = new Button("OK");
+        Button cancelButton = new Button("Cancel");
+        ButtonBar buttonBar = new ButtonBar();
+        buttonBar.getButtons().addAll(okButton,cancelButton);
+        okButton.setOnAction(e->{
             String parameterName = paraField.getText();
             String description = paraField.getText();
+            if(parameterName.equals("")){
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Parameter cannot be left blank");
+                alert.setHeaderText(null);
+                alert.setContentText("Please enter some parameter name.");
+                alert.showAndWait();
+                return;
+            }
             if(currentProject.getParameterByName(parameterName)!=null){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Parameter already present");
@@ -184,7 +198,31 @@ public class ProjectParametersSetupDialogController {
             updateParametersToTable();
             addParaStage.close();
         });
-        vBox.getChildren().addAll(hBox1,hBox2,button);
+        cancelButton.setOnAction(e->{
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Parameter not added");
+            alert.setHeaderText(null);
+            alert.setContentText("Parameter adding cancelled by user");
+            alert.showAndWait();
+            addParaStage.close();
+        });
+        addParaStage.setOnCloseRequest(e->{
+            String parameterName = paraField.getText();
+            String description = paraField.getText();
+            if(parameterName.equals("")){
+                return;
+            }
+            if(currentProject.getParameterByName(parameterName)!=null){
+                return;
+            }
+            UserParameter<?,?> newParameter =new StringParameter(parameterName,description);
+            currentProject.addParameter(newParameter);
+            for(RawDataFile file: fileList){
+                currentProject.setParameterValue(newParameter,file,"");
+            }
+            updateParametersToTable();
+        });
+        vBox.getChildren().addAll(hBox1,hBox2,buttonBar);
         vBox.setPadding(new Insets(5, 5, 5, 5));
         Scene scene = new Scene(vBox);
         addParaStage.setScene(scene);
@@ -245,10 +283,11 @@ public class ProjectParametersSetupDialogController {
     }
 
     @FXML
-    public void onClickCancel(ActionEvent actionEvent) {
-        currentProject.setProjectParametersAndValues(initialParameters);
-        logger.info("Parameters are not updated");
-        currentStage.close();
+    public void onClickHelp(ActionEvent actionEvent) {
+        final URL helpPage =
+                this.getClass().getResource("ParametersSetupHelp.html");
+        HelpWindow helpWindow = new HelpWindow(helpPage.toString());
+        helpWindow.show();
     }
 
 }
