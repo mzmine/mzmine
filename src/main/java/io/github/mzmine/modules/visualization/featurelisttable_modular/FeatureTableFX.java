@@ -27,6 +27,10 @@ import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import java.util.Random;
 import java.util.logging.Logger;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -65,6 +69,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     this.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     this.getSelectionModel().setCellSelectionEnabled(true);
     setTableEditable(true);
+
+    /*getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)  -> {
+        int io = getRoot().getChildren().indexOf(oldValue);
+        int in = getRoot().getChildren().indexOf(newValue);
+    });*/
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);

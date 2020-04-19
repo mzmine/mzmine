@@ -1,32 +1,22 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import com.google.common.collect.Range;
-import dulab.adap.datamodel.RawData;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.rawdataimport.RawDataFileType;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.SpectraPlotUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -117,14 +107,10 @@ public class FeatureTableWindowFXMLController {
       }
     });
 
-    featureTable.getSelectionModel().getSelectedCells().addListener(
-        (ListChangeListener<? super TreeTablePosition<ModularFeatureListRow, ?>>) change -> {
-          change.next();
-          if (change.wasAdded()) {
-            selectedRowChanged();
-          }
-        }
-    );
+    featureTable.getSelectionModel().selectedItemProperty()
+        .addListener(((observable, oldValue, newValue) -> {
+          selectedRowChanged();
+        }));
 
     miShowXICOnAction(null);
     miShowSpectrumOnAction(null);
@@ -278,6 +264,13 @@ public class FeatureTableWindowFXMLController {
   void selectedRowChanged() {
     TreeItem<ModularFeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
+
+    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
+
+    logger.info(
+        "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
+            .getText());
+
     if (selectedItem == null) {
       return;
     }
