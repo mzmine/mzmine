@@ -18,9 +18,16 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.types.RawFileType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
+import io.github.mzmine.modules.visualization.twod.PlotType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYZDataset;
@@ -119,6 +126,41 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     errorMessage = null;
 
     this.plotType = plotType;
+
+    // Start-up the refresh task.
+    MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+  }
+
+  /**
+   * Creates a TICDataSet from a {@link ModularFeature}. Effectively a XIC.
+   *
+   * @param feature The feature.
+   */
+  public TICDataSet(ModularFeature feature) {
+
+    dataFile = (RawDataFile) feature.getValue(RawFileType.class);
+    mzRange = (Range<Double>) feature.getValue(MZRangeType.class);
+    Range<Double> rtRange = (Range<Double>) feature.getValue(RTRangeType.class);
+    List<Integer> scanNums = (List<Integer>) feature.getValue(ScanNumbersType.class);
+
+    scans = new Scan[scanNums.size()];
+
+    for (int i = 0; i < scanNums.size(); i++) {
+      scans[i] = dataFile.getScan(scanNums.get(i));
+    }
+
+    totalScans = scans.length;
+    basePeakValues = new double[totalScans];
+    intensityValues = new double[totalScans];
+    rtValues = new double[totalScans];
+    processedScans = 0;
+    intensityMin = 0.0;
+    intensityMax = 0.0;
+
+    status = TaskStatus.WAITING;
+    errorMessage = null;
+
+    this.plotType = TICPlotType.TIC;
 
     // Start-up the refresh task.
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);

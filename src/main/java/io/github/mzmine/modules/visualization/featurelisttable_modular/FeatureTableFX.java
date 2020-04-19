@@ -127,7 +127,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   /**
    * add row data and columns of first row
    *
-   * @param data
+   * @param flist
    */
   public void addData(ModularFeatureList flist) {
     if (flist.isEmpty()) {
@@ -165,7 +165,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * Add a new column to the table
    *
    * @param dataType
-   * @param featureColumns
    */
   public void addColumn(DataType dataType) {
     // value binding

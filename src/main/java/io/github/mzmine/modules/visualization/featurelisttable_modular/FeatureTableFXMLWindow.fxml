@@ -56,13 +56,28 @@
       <center>
         <StackPane fx:id="pnMainCenter" prefHeight="150.0" prefWidth="200.0"
           BorderPane.alignment="CENTER">
-          <FeatureTableFX fx:id="featureTable" prefWidth="1000" prefHeight="600"/>
+          <children>
+            <SplitPane fx:id="pnTablePreviewSplit" dividerPositions="0.5" orientation="VERTICAL"
+              prefHeight="200.0"
+              prefWidth="160.0">
+              <items>
+                <StackPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                  <children>
+                    <FeatureTableFX fx:id="featureTable"/>
+                  </children>
+                </StackPane>
+                <StackPane fx:id="pnPreview" minHeight="0.0" minWidth="0.0" prefHeight="0.0"
+                  prefWidth="0.0">
+                  <children>
+                    <SplitPane fx:id="pnSpectrumXICSplit" prefHeight="0.0" prefWidth="0.0"
+                      visible="false"/>
+                  </children>
+                </StackPane>
+              </items>
+            </SplitPane>
+          </children>
         </StackPane>
       </center>
-      <bottom>
-        <SplitPane fx:id="pnBottomSplit" prefHeight="0.0" prefWidth="0.0" visible="false"
-          BorderPane.alignment="CENTER"/>
-      </bottom>
     </BorderPane>
   </children>
 </AnchorPane>
