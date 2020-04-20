@@ -51,6 +51,7 @@ import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -78,6 +79,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
+import org.apache.poi.ss.formula.functions.Mirr;
 
 /**
  * Peak-list table pop-up menu.
@@ -579,6 +581,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
           MirrorScanWindow mirrorWindow = new MirrorScanWindow();
           mirrorWindow.setScans(scan, mirror);
           mirrorWindow.setVisible(true);
+
+          Platform.runLater(() -> {
+            MirrorScanWindowFX mirrorScanWindowFX = new MirrorScanWindowFX();
+            mirrorScanWindowFX.setScans(scan, mirror);
+            mirrorScanWindowFX.show();
+          });
         }
       }
     }
