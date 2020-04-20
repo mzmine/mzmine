@@ -29,24 +29,19 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorSpectrumUtil;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.SwingExportUtil;
-import java.awt.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.embed.swing.SwingNode;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -64,14 +59,14 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -136,6 +131,8 @@ public class SpectralMatchPanelFX extends GridPane {
 
   private final SpectralDBPeakIdentity hit;
 
+  private SpectralMatchPanel swingPanel;
+
   public SpectralMatchPanelFX(SpectralDBPeakIdentity hit) {
     super();
 
@@ -175,7 +172,6 @@ public class SpectralMatchPanelFX extends GridPane {
     setBorder(
         new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
             BorderWidths.DEFAULT)));
-
   }
 
   private GridPane createTitlePane() {
@@ -495,42 +491,30 @@ public class SpectralMatchPanelFX extends GridPane {
       chooser = new FileChooser();
     }
 
-//    For everything to be exported, we take the height of the actual metaDataPanel, not the metaDataScroll
-    double calcdHeight = metaDataPanel.getHeight() + pnTitle.getHeight() + 30;
-
     // this is so unbelievably dirty
-    // i'm so sorry
-    // i'm so sorry
     // i'm so sorry ~SteffenHeu
-    Stage stage = new Stage();
-    stage.setTitle("Export window (don't mind me)");
-    Pane pane = new Pane();
-    Scene scene = new Scene(pane);
-    stage.setScene(scene);
-    SwingNode swingNode = new SwingNode();
-    SpectralMatchPanel swingPanel = new SpectralMatchPanel(getHit());
-    swingPanel.setPreferredSize(new Dimension((int) getWidth() + 20, (int) calcdHeight));
-    swingPanel.revalidate();
-    swingNode.setContent(swingPanel);
-    pane.getChildren().add(swingNode);
-    swingPanel.revalidate();
-    swingPanel.repaint();
-    // it works though, until we figure something out
+    final JFrame[] frame = new JFrame[1];
+    logger.info("Creating dummy window for spectral match export...");
+    SwingUtilities.invokeLater(() -> {
+      frame[0] = new JFrame();
+      swingPanel = new SpectralMatchPanel(hit);
+      frame[0].setContentPane(swingPanel);
+      frame[0].revalidate();
+      frame[0].setVisible(true);
+      frame[0].toBack();
+      swingPanel.calculateAndSetSize();
+    });
 
     // get file
-    File f = chooser.showSaveDialog(null);
-    if (f != null) {
-      stage.show();
-      stage.hide();
-      try {
-        SwingExportUtil.writeToGraphics(swingPanel, f.getParentFile(), f.getName(), format);
-        param.setValue(FileAndPathUtil.eraseFormat(f));
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
-      } finally {
-        pnExport.setVisible(true);
-      }
+    File file = chooser.showSaveDialog(null);
+    if (file != null) {
+      swingPanel.exportToGraphics(format, file);
     }
+
+    logger.info("Disposing dummy window for spectral match export...");
+    SwingUtilities.invokeLater(() -> frame[0].dispose());
+
+    // it works though, until we figure something out
   }
 
   public SpectralDBPeakIdentity getHit() {
