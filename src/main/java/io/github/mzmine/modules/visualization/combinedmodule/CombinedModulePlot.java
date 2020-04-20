@@ -36,84 +36,119 @@ import org.jfree.chart.ui.RectangleInsets;
 
 public class CombinedModulePlot extends EChartViewer {
 
-  private JFreeChart chart;
+		private JFreeChart chart;
 
-  private XYPlot plot;
-  private RawDataFile dataFile;
-  private CombinedModuleVisualizerWindowController visualizer;
-  private CombinedModuleDataset dataset;
-  private Range<Double> rtRange;
-  private Range<Double> mzRange;
-  private String massList;
-  private Double noiseLevel;
-  private ColorScale colorScale;
-  private static final Color gridColor = Color.lightGray;
-  // crosshair (selection) color
-  private static final Color crossHairColor = Color.gray;
+		private XYPlot plot;
+		private RawDataFile dataFile;
+		private CombinedModuleVisualizerWindowController visualizer;
+		private CombinedModuleDataset dataset;
+		private Range<Double> rtRange;
+		private Range<Double> mzRange;
+		private String massList;
+		private Double noiseLevel;
+		private ColorScale colorScale;
+		private static final Color gridColor = Color.lightGray;
+		// crosshair (selection) color
+		private static final Color crossHairColor = Color.gray;
 
-  // crosshair stroke
-  private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3}, 0);
+		// crosshair stroke
+		private static final BasicStroke crossHairStroke =
+				new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3},
+						0);
+		private Range<Double> highlightedPrecursorRange = Range.singleton(Double.NEGATIVE_INFINITY);
+		private Range<Double> highlightedNeutralLossRange = Range.singleton(Double.NEGATIVE_INFINITY);
 
 
-  private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+		private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  public CombinedModulePlot() {
-    super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
-        false), true, true, false, false, true);
-  }
+		public CombinedModulePlot() {
+				super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
+						false), true, true, false, false, true);
+		}
 
-  public void setPlot(RawDataFile dataFile,
-      CombinedModuleVisualizerWindowController visualizer,
-      CombinedModuleDataset dataset, Range<Double> rtRange, Range<Double> mzRange,
-      AxisType xAxisType, AxisType yAxisType, String massList,
-      Double noiseLevel, ColorScale colorScale) {
+		public void setPlot(RawDataFile dataFile,
+				CombinedModuleVisualizerWindowController visualizer,
+				CombinedModuleDataset dataset, Range<Double> rtRange, Range<Double> mzRange,
+				AxisType xAxisType, AxisType yAxisType, String massList,
+				Double noiseLevel, ColorScale colorScale) {
 
-    this.visualizer = visualizer;
-    this.dataFile = dataFile;
-    this.rtRange = rtRange;
-    this.mzRange = mzRange;
-    this.noiseLevel = noiseLevel;
-    this.colorScale = colorScale;
-    this.massList = massList;
+				this.visualizer = visualizer;
+				this.dataFile = dataFile;
+				this.rtRange = rtRange;
+				this.mzRange = mzRange;
+				this.noiseLevel = noiseLevel;
+				this.colorScale = colorScale;
+				this.massList = massList;
 
-    chart = getChart();
-    chart.setBackgroundPaint(Color.white);
+				chart = getChart();
+				chart.setBackgroundPaint(Color.white);
 
-    plot = chart.getXYPlot();
-    plot.setBackgroundPaint(Color.white);
-    plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
-    plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-    plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
-    plot.setDomainGridlinePaint(gridColor);
-    plot.setRangeGridlinePaint(gridColor);
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-    plot.setDomainCrosshairPaint(crossHairColor);
-    plot.setRangeCrosshairPaint(crossHairColor);
-    plot.setDomainCrosshairStroke(crossHairStroke);
-    plot.setRangeCrosshairStroke(crossHairStroke);
+				plot = chart.getXYPlot();
+				plot.setBackgroundPaint(Color.white);
+				plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
+				plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+				plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+				plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
+				plot.setDomainGridlinePaint(gridColor);
+				plot.setRangeGridlinePaint(gridColor);
+				plot.setDomainCrosshairVisible(true);
+				plot.setRangeCrosshairVisible(true);
+				plot.setDomainCrosshairPaint(crossHairColor);
+				plot.setRangeCrosshairPaint(crossHairColor);
+				plot.setDomainCrosshairStroke(crossHairStroke);
+				plot.setRangeCrosshairStroke(crossHairStroke);
 
-    NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
-    if (xAxisType == AxisType.RETENTIONTIME) {
-      setAxes(xAxis, xAxisType, rtFormat);
-    } else {
-      setAxes(xAxis, xAxisType, mzFormat);
-    }
-    NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
-    setAxes(yAxis, yAxisType, mzFormat);
+				NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
+				if (xAxisType == AxisType.RETENTIONTIME) {
+						setAxes(xAxis, xAxisType, rtFormat);
+				} else {
+						setAxes(xAxis, xAxisType, mzFormat);
+				}
+				NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
+				setAxes(yAxis, yAxisType, mzFormat);
 
-    plot.setDataset(0, dataset);
+				plot.setDataset(0, dataset);
 
-  }
+		}
 
-  private void setAxes(NumberAxis axis, AxisType axisType, NumberFormat format) {
-    axis.setLabel(axisType.toString());
-    axis.setAutoRangeIncludesZero(false);
-    axis.setNumberFormatOverride(format);
-    axis.setUpperMargin(0);
-    axis.setLowerMargin(0);
-  }
+		private void setAxes(NumberAxis axis, AxisType axisType, NumberFormat format) {
+				axis.setLabel(axisType.toString());
+				axis.setAutoRangeIncludesZero(false);
+				axis.setNumberFormatOverride(format);
+				axis.setUpperMargin(0);
+				axis.setLowerMargin(0);
+		}
+
+		XYPlot getXYPlot() {
+				return plot;
+		}
+
+		/**
+		 * @return Returns the highlightedPrecursorRange.
+		 */
+		Range<Double> getHighlightedPrecursorRange() {
+				return highlightedPrecursorRange;
+		}
+
+		/**
+		 * @param range The highlightedPrecursorRange to set.
+		 */
+		void setHighlightedPrecursorRange(Range<Double> range) {
+				this.highlightedPrecursorRange = range;
+		}
+
+		/**
+		 * @return Returns the highlightedNeutralLossRange.
+		 */
+		Range<Double> getHighlightedNeutralLossRange() {
+				return highlightedNeutralLossRange;
+		}
+
+		/**
+		 * @param range The highlightedNeutralLossRange to set.
+		 */
+		void setHighlightedNeutralLossRange(Range<Double> range) {
+				this.highlightedNeutralLossRange = range;
+		}
 }

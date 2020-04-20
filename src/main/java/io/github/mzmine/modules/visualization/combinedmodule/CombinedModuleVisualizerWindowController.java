@@ -29,44 +29,52 @@ import javafx.scene.layout.HBox;
 
 public class CombinedModuleVisualizerWindowController {
 
-  @FXML
-  private ToolBar toolbar;
-  @FXML
-  private HBox bottomPanel;
-  @FXML
-  private BorderPane mainPane;
-  @FXML
-  private Button highlightPrecursorBtn;
-  @FXML
-  private CombinedModulePlot plot;
+		@FXML
+		private ToolBar toolbar;
+		@FXML
+		private HBox bottomPanel;
+		@FXML
+		private BorderPane mainPane;
+		@FXML
+		private Button highlightPrecursorBtn;
+		@FXML
+		private CombinedModulePlot plot;
 
-  private ParameterSet parameters;
-  private RawDataFile dataFile;
-  private Range<Double> rtRange;
-  private Range<Double> mzRange;
-  private AxisType xAxisType;
-  private AxisType yAxisType;
-  private String massList;
-  private Double noiseLevel;
-  private ColorScale colorScale;
-  private CombinedModuleDataset dataset;
+		private ParameterSet parameters;
+		private RawDataFile dataFile;
+		private Range<Double> rtRange;
+		private Range<Double> mzRange;
+		private AxisType xAxisType;
+		private AxisType yAxisType;
+		private String massList;
+		private Double noiseLevel;
+		private ColorScale colorScale;
+		private CombinedModuleDataset dataset;
 
 
-  public void setParameters(ParameterSet parameters) {
-    this.parameters = parameters;
-    rtRange =
-        parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
-    mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
-    xAxisType = parameters.getParameter(CombinedModuleParameters.xAxisType).getValue();
-    yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();
-    dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
-    massList = parameters.getParameter(CombinedModuleParameters.massList).getValue();
-    noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
-    colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
-    dataset = new CombinedModuleDataset(dataFile, rtRange, mzRange, this);
-    plot.setPlot(dataFile, this, dataset, rtRange, mzRange, xAxisType, yAxisType, massList,
-        noiseLevel, colorScale);
+		public void setParameters(CombinedModuleVisualizerWindow stage,ParameterSet parameters) {
+				highlightPrecursorBtn.setOnAction(event -> {
+						CombinedModuleSetHighlightDialog dialog=new CombinedModuleSetHighlightDialog(stage, plot, "HIGHLIGHT_PRECURSOR");
+						dialog.show();
+				});
+				this.parameters = parameters;
+				rtRange =
+						parameters.getParameter(CombinedModuleParameters.retentionTimeRange).getValue();
+				mzRange = parameters.getParameter(CombinedModuleParameters.mzRange).getValue();
+				xAxisType = parameters.getParameter(CombinedModuleParameters.xAxisType).getValue();
+				yAxisType = parameters.getParameter(CombinedModuleParameters.yAxisType).getValue();
+				dataFile = parameters.getParameter(CombinedModuleParameters.dataFiles).getValue()
+						.getMatchingRawDataFiles()[0];
+				massList = parameters.getParameter(CombinedModuleParameters.massList).getValue();
+				noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
+				colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
+				dataset = new CombinedModuleDataset(dataFile, rtRange, mzRange, this);
+				plot.setPlot(dataFile, this, dataset, rtRange, mzRange, xAxisType, yAxisType, massList,
+						noiseLevel, colorScale);
 
-  }
+		}
+
+		public CombinedModulePlot getPlot() {
+				return plot;
+		}
 }
