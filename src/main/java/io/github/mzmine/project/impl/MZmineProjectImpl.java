@@ -21,6 +21,8 @@ package io.github.mzmine.project.impl;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -52,6 +54,15 @@ public class MZmineProjectImpl implements MZmineProject {
               FXCollections.observableArrayList()//
           ));
 
+  @Override
+  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
+    return projectParametersAndValues;
+  }
+
+  @Override
+  public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
+    this.projectParametersAndValues = projectParametersAndValues;
+  }
 
   private File projectFile;
 
@@ -82,8 +93,23 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
+  public UserParameter<?,?> getParameterByName(String name){
+    for(UserParameter<?,?> parameter:getParameters()){
+      if(parameter.getName().equals(name)){
+        return parameter;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public boolean hasParameter(UserParameter<?, ?> parameter) {
-    return projectParametersAndValues.containsKey(parameter);
+    //matching by name
+    UserParameter<?,?> param =  getParameterByName(parameter.getName());
+    if(param==null){
+      return false;
+    }
+    return true;
   }
 
   @Override

@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import java.io.File;
+import java.util.Hashtable;
+
 import io.github.mzmine.parameters.UserParameter;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
@@ -74,6 +76,8 @@ public interface MZmineProject {
    * Returns all experimental parameter of the project
    */
   public UserParameter<?, ?>[] getParameters();
+
+  public UserParameter<?,?> getParameterByName(String name);
 
   /**
    * Sets experimental parameter's value corresponding to a RawDataFile.
@@ -135,7 +139,12 @@ public interface MZmineProject {
    */
   public PeakList[] getPeakLists(RawDataFile file);
 
-  // public void notifyObjectChanged(Object object, boolean structureChanged);
+  public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
+
+  public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
+
+
+    // public void notifyObjectChanged(Object object, boolean structureChanged);
 
   // public void addProjectListener(MZmineProjectListener newListener);
 
