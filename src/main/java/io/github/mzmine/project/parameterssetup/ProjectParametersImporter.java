@@ -23,19 +23,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
+
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 /**
  * This class imports project parameters and their values from a CSV file to the main project
@@ -52,32 +55,20 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  * column names in the file must be be unique. If main dialog already contains a parameter with the
  * same name, a warning is shown to the user before overwriting previous parameter.
  *
- *
- * Rules for deciding type of parameter:
- *
- * 1. If all values in a column (except column header on the first row) are numeric, then the
- * parameter type is set to Double.
- *
- * 2. If there are at least some duplicate strings among values for a parameter, then the parameter
- * type is String and possible parameter values are all unique strings.
- *
- * 3. Otherwise it is a free text parameter of type String.
- *
+ * All parameters are set as of String type.
  *
  */
 public class ProjectParametersImporter {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final MZmineProject currentProject= MZmineCore.getProjectManager().getCurrentProject();
+  private final Desktop desktop = MZmineCore.getDesktop();
+  private Stage currentStage;
 
-  private ProjectParametersSetupDialog mainDialog;
-  private Desktop desktop;
-
-  public ProjectParametersImporter(ProjectParametersSetupDialog mainDialog) {
-    this.mainDialog = mainDialog;
-
-    desktop = MZmineCore.getDesktop();
-
+  public ProjectParametersImporter(Stage stage) {
+    this.currentStage = stage;
   }
+
 
   public boolean importParameters() {
 
@@ -94,32 +85,66 @@ public class ProjectParametersImporter {
     if (parameters == null)
       return false;
 
-    // TODO: Show a dialog for selecting which parameters to import and edit
-    // their types
 
     // Read values of parameters and store them in the project
-    processParameterValues(parameterFile, parameters);
+    return processParameterValues(parameterFile, parameters);
 
-    return true;
+  }
 
+  private Hashtable<UserParameter<?,?>, Boolean> showParameterChooseOption(UserParameter<?,?>[] parameters) {
+    Hashtable<UserParameter<?,?>,Boolean> ischeckedparameter = new Hashtable<>();
+    for(UserParameter<?,?> parameter:parameters){
+      ischeckedparameter.put(parameter,false);
+    }
+    Stage chooseParaStage = new Stage();
+    chooseParaStage.initModality(Modality.APPLICATION_MODAL);
+    chooseParaStage.setTitle("Choose Parameters to include in project");
+    chooseParaStage.setMinHeight(200);
+    chooseParaStage.setMinWidth(200);
+    VBox vbox = new VBox();
+    Label label = new Label("Parameters");
+    label.setStyle("-fx-font-weight: bold");
+    vbox.setStyle("-fx-font-size:16px;");
+    vbox.getChildren().add(label);
+    for(UserParameter<?,?> parameter:parameters){
+      CheckBox checkBox = new CheckBox(parameter.getName());
+      vbox.getChildren().add(checkBox);
+      checkBox.setOnAction(e->{
+        if(checkBox.isSelected())
+          ischeckedparameter.put(parameter,true);
+        else
+          ischeckedparameter.put(parameter,false);
+      });
+    }
+    Button button = new Button("OK");
+    button.setOnAction(e->chooseParaStage.close());
+    vbox.getChildren().add(button);
+    vbox.setPadding(new Insets(5, 5, 5, 5));
+    Scene scene = new Scene(vbox);
+    chooseParaStage.setScene(scene);
+    chooseParaStage.showAndWait();
+    return ischeckedparameter;
   }
 
   private File chooseFile() {
-    JFileChooser chooser = new JFileChooser();
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Please select a file containing project parameter values for files.");
+    fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("All Files","*.*"),
+            new FileChooser.ExtensionFilter("text","*.txt"),
+            new FileChooser.ExtensionFilter("csv","*.csv")
+            );
 
-    FileNameExtensionFilter filter = new FileNameExtensionFilter("TXT & CSV files", "txt", "csv");
-    chooser.setDialogTitle("Please select a file containing project parameter values for files.");
-    chooser.setFileFilter(filter);
-    int returnVal = chooser.showOpenDialog(null);
-    if (returnVal == JFileChooser.CANCEL_OPTION) {
-      return null;
+    File currentFile = currentProject.getProjectFile();
+    if (currentFile != null) {
+      File currentDir = currentFile.getParentFile();
+      if ((currentDir != null) && (currentDir.exists()))
+        fileChooser.setInitialDirectory(currentDir);
     }
-
-    return chooser.getSelectedFile();
+    return fileChooser.showOpenDialog(currentStage.getScene().getWindow());
   }
 
   private UserParameter<?, ?>[] processParameters(File parameterFile) {
-
     ArrayList<UserParameter<?, ?>> parameters = new ArrayList<UserParameter<?, ?>>();
 
     // Open reader
@@ -133,12 +158,13 @@ public class ProjectParametersImporter {
       st.nextToken(); // Assume first column contains file names
       ArrayList<String> parameterNames = new ArrayList<String>();
       Hashtable<String, ArrayList<String>> parameterValues =
-          new Hashtable<String, ArrayList<String>>();
+              new Hashtable<String, ArrayList<String>>();
       while (st.hasMoreTokens()) {
         String paramName = st.nextToken();
         if (parameterValues.containsKey(paramName)) {
           logger.severe(
-              "Did not import parameters because of a non-unique parameter name: " + paramName);
+                  "Did not import parameters because of a non-unique parameter name: " + paramName);
+          assert desktop != null;
           desktop.displayErrorMessage("Could not open file " + parameterFile);
           parameterFileReader.close();
           return null;
@@ -163,6 +189,7 @@ public class ProjectParametersImporter {
 
           if (st.hasMoreTokens() ^ parameterNameIterator.hasNext()) {
             logger.severe("Incorrect number of parameter values on row " + rowNumber);
+            assert desktop != null;
             desktop.displayErrorMessage("Incorrect number of parameter values on row " + rowNumber);
             parameterFileReader.close();
             return null;
@@ -173,48 +200,11 @@ public class ProjectParametersImporter {
         rowNumber++;
       }
 
-      // Decide parameter types (all numeric => Double, all unique string
-      // => String, at least one duplicate string => Object with possible
-      // values
-
+//      Add String parameters
       Iterator<String> parameterNameIterator = parameterNames.iterator();
       while (parameterNameIterator.hasNext()) {
         String name = parameterNameIterator.next();
-        ArrayList<String> vals = parameterValues.get(name);
-
-        // Test for all numeric
-        Iterator<String> valIterator = vals.iterator();
-        boolean isAllNumeric = true;
-        while (valIterator.hasNext()) {
-          try {
-            Double.valueOf(valIterator.next());
-          } catch (NumberFormatException ex) {
-            isAllNumeric = false;
-            break;
-          }
-        }
-        if (isAllNumeric) {
-          parameters.add(new DoubleParameter(name, null));
-          continue;
-        }
-
-        // Test for "set of values"
-        ArrayList<String> uniqueValues = new ArrayList<String>();
-        valIterator = vals.iterator();
-        while (valIterator.hasNext()) {
-          String val = valIterator.next();
-          if (!uniqueValues.contains(val))
-            uniqueValues.add(val);
-        }
-        if (uniqueValues.size() < vals.size()) {
-          parameters
-              .add(new ComboParameter<String>(name, null, uniqueValues.toArray(new String[0])));
-          continue;
-        }
-
-        // Otherwise it is a free text parameter
         parameters.add(new StringParameter(name, null));
-
       }
 
       // Close reader
@@ -233,28 +223,34 @@ public class ProjectParametersImporter {
   private boolean processParameterValues(File parameterFile, UserParameter<?, ?>[] parameters) {
 
     // Warn user if main dialog already contains a parameter with same name
-    for (UserParameter<?, ?> parameter : parameters) {
-      /*
-       * UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName()); if (p != null) {
-       * Alert alert = new Alert(AlertType.CONFIRMATION,
-       * "Overwrite previous parameter(s) with same name?"); Optional<ButtonType> result =
-       * alert.showAndWait(); if (result.isPresent() && result.get() == ButtonType.OK) { break; }
-       * else { return false; } }
-       */
+    for (UserParameter<?,?> parameter :parameters){
+      if(currentProject.hasParameter(parameter)){
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Overwrite previous parameter(s) with same name?");
+        Optional<ButtonType> result = alert.showAndWait();
+        if(result.isPresent() && result.get() == ButtonType.OK){
+          break;
+        }
+        else{
+          return false;
+        }
+      }
     }
 
     // Remove parameters with same name
-    for (UserParameter<?, ?> parameter : parameters) {
-      // UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
-      // if (p != null) {
-      // mainDialog.removeParameter(p);
-      // }
+    for (UserParameter<?, ?> parameter:parameters){
+      if(currentProject.hasParameter(parameter)){
+        currentProject.removeParameter(currentProject.getParameterByName(parameter.getName()));
+      }
     }
 
     // Add new parameters to the main dialog
     for (UserParameter<?, ?> parameter : parameters) {
-      // mainDialog.addParameter(parameter);
+      currentProject.addParameter(parameter);
     }
+
+
+    Hashtable<UserParameter<?,?>,Boolean> chosenParameter = showParameterChooseOption(parameters);
 
     // Open reader
     BufferedReader parameterFileReader;
@@ -262,6 +258,7 @@ public class ProjectParametersImporter {
       parameterFileReader = new BufferedReader(new FileReader(parameterFile));
     } catch (FileNotFoundException ex) {
       logger.severe("Could not open file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
@@ -285,25 +282,40 @@ public class ProjectParametersImporter {
         // Get raw data file for this row
         String fileName = st.nextToken();
 
+        //Check whether fileName named rawData file is present
+        RawDataFile[] dataFiles = currentProject.getDataFiles();
+        // Find index for data file
+        int dataFileIndex = 0;
+        while (dataFileIndex < dataFiles.length) {
+          if (dataFiles[dataFileIndex].getName().equals(fileName))
+            break;
+          dataFileIndex++;
+        }
+
+        // File not found?
+        if (dataFileIndex == dataFiles.length)
+          return false;
+
+        RawDataFile dataFile = dataFiles[dataFileIndex];
+
         // Set parameter values to project
         int parameterIndex = 0;
         while (st.hasMoreTokens()) {
           String parameterValue = st.nextToken();
           UserParameter<?, ?> parameter = parameters[parameterIndex];
-
-          /*
-           * if (parameter instanceof DoubleParameter) mainDialog.setParameterValue(parameter,
-           * fileName, Double.parseDouble(parameterValue)); else
-           * mainDialog.setParameterValue(parameter, fileName, parameterValue);
-           */
+          currentProject.setParameterValue(parameter, dataFile, parameterValue);
           parameterIndex++;
-
         }
-
+        //Removing unselected paramaters
+        for(UserParameter<?,?> parameter:parameters){
+            if(!chosenParameter.get(parameter)){
+              currentProject.removeParameter(parameter);
+            }
+        }
       }
-
     } catch (IOException ex) {
       logger.severe("Could not read file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not open file " + parameterFile);
       return false;
     }
@@ -313,12 +325,11 @@ public class ProjectParametersImporter {
       parameterFileReader.close();
     } catch (IOException ex) {
       logger.severe("Could not close file " + parameterFile);
+      assert desktop != null;
       desktop.displayErrorMessage("Could not close file " + parameterFile);
       return false;
     }
 
     return true;
-
   }
-
 }
