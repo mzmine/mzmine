@@ -21,7 +21,7 @@
       BorderPane.alignment="CENTER"/>
   </center>
   <right>
-    <ToolBar fx:id="toolbar" orientation="VERTICAL"  prefWidth="40"
+    <ToolBar fx:id="toolbar" orientation="VERTICAL" prefWidth="40"
       BorderPane.alignment="CENTER">
       <Button fx:id="highlightPrecursorBtn" mnemonicParsing="false">
         <graphic>

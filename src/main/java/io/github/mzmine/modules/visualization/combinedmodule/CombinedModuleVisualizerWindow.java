@@ -39,7 +39,7 @@ public class CombinedModuleVisualizerWindow extends Stage {
           getClass().getResource("CombinedModuleVisualizerWindow.fxml"));
       Parent rootPane = root.load();
       controller = root.getController();
-      controller.setParameters(this,parameters);
+      controller.setParameters(this, parameters);
       scene = new Scene(rootPane);
       setScene(scene);
     } catch (IOException e) {

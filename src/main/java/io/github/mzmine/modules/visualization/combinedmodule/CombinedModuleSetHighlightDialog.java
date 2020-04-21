@@ -41,134 +41,134 @@ import org.jfree.data.general.DatasetChangeEvent;
 
 public class CombinedModuleSetHighlightDialog extends Stage {
 
-		private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
-		static final int PADDING_SIZE = 5;
+  static final int PADDING_SIZE = 5;
 
-		// dialog components
-		private final DialogPane mainPane;
-		private final Scene mainScene;
-		private final Button btnOK, btnCancel;
-		private final TextField fieldMinMZ, fieldMaxMZ;
-		private final GridPane pnlLabelsAndFields;
+  // dialog components
+  private final DialogPane mainPane;
+  private final Scene mainScene;
+  private final Button btnOK, btnCancel;
+  private final TextField fieldMinMZ, fieldMaxMZ;
+  private final GridPane pnlLabelsAndFields;
 
-		private Desktop desktop;
+  private Desktop desktop;
 
-		private String rangeType;
-		private ValueAxis axis;
+  private String rangeType;
+  private ValueAxis axis;
 
-		private CombinedModulePlot plot;
+  private CombinedModulePlot plot;
 
-		public CombinedModuleSetHighlightDialog(@Nonnull Stage parent, @Nonnull CombinedModulePlot plot,
-				@Nonnull String command) {
+  public CombinedModuleSetHighlightDialog(@Nonnull Stage parent, @Nonnull CombinedModulePlot plot,
+      @Nonnull String command) {
 
-				desktop = MZmineCore.getDesktop();
-				this.plot = plot;
-				rangeType = command;
-				mainPane = new DialogPane();
-				mainScene = new Scene(mainPane);
+    desktop = MZmineCore.getDesktop();
+    this.plot = plot;
+    rangeType = command;
+    mainPane = new DialogPane();
+    mainScene = new Scene(mainPane);
 
-				// Use main CSS
-				mainScene.getStylesheets()
-						.addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-				setScene(mainScene);
+    // Use main CSS
+    mainScene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    setScene(mainScene);
 
-				initOwner(parent);
+    initOwner(parent);
 
-				String title = "Highlight ";
-				if (command.equals("HIGHLIGHT_PRECURSOR")) {
-						title += "precursor m/z range";
-						axis = plot.getXYPlot().getDomainAxis();
-				} else if (command.equals("HIGHLIGHT_NEUTRALLOSS")) {
-						title += "neutral loss m/z range";
-						axis = plot.getXYPlot().getRangeAxis();
-				}
-				setTitle(title);
+    String title = "Highlight ";
+    if (command.equals("HIGHLIGHT_PRECURSOR")) {
+      title += "precursor m/z range";
+      axis = plot.getXYPlot().getDomainAxis();
+    } else if (command.equals("HIGHLIGHT_NEUTRALLOSS")) {
+      title += "neutral loss m/z range";
+      axis = plot.getXYPlot().getRangeAxis();
+    }
+    setTitle(title);
 
-				Label lblMinMZ = new Label("Minimum m/z");
-				Label lblMaxMZ = new Label("Maximum m/z");
+    Label lblMinMZ = new Label("Minimum m/z");
+    Label lblMaxMZ = new Label("Maximum m/z");
 
-				NumberStringConverter converter = new NumberStringConverter();
+    NumberStringConverter converter = new NumberStringConverter();
 
-				fieldMinMZ = new TextField();
-				fieldMinMZ.setTextFormatter(new TextFormatter<>(converter));
-				fieldMaxMZ = new TextField();
-				fieldMaxMZ.setTextFormatter(new TextFormatter<>(converter));
+    fieldMinMZ = new TextField();
+    fieldMinMZ.setTextFormatter(new TextFormatter<>(converter));
+    fieldMaxMZ = new TextField();
+    fieldMaxMZ.setTextFormatter(new TextFormatter<>(converter));
 
-				pnlLabelsAndFields = new GridPane();
-				pnlLabelsAndFields.setHgap(5);
-				pnlLabelsAndFields.setVgap(10);
+    pnlLabelsAndFields = new GridPane();
+    pnlLabelsAndFields.setHgap(5);
+    pnlLabelsAndFields.setVgap(10);
 
-				int row = 0;
-				pnlLabelsAndFields.add(lblMinMZ, 0, row);
-				pnlLabelsAndFields.add(fieldMinMZ, 1, row);
+    int row = 0;
+    pnlLabelsAndFields.add(lblMinMZ, 0, row);
+    pnlLabelsAndFields.add(fieldMinMZ, 1, row);
 
-				row++;
-				pnlLabelsAndFields.add(lblMaxMZ, 0, row);
-				pnlLabelsAndFields.add(fieldMaxMZ, 1, row);
+    row++;
+    pnlLabelsAndFields.add(lblMaxMZ, 0, row);
+    pnlLabelsAndFields.add(fieldMaxMZ, 1, row);
 
-				// Create buttons
-				mainPane.getButtonTypes().add(ButtonType.OK);
-				mainPane.getButtonTypes().add(ButtonType.CANCEL);
+    // Create buttons
+    mainPane.getButtonTypes().add(ButtonType.OK);
+    mainPane.getButtonTypes().add(ButtonType.CANCEL);
 
-				btnOK = (Button) mainPane.lookupButton(ButtonType.OK);
-				btnOK.setOnAction(e -> {
-						if (highlightDataPoints()) {
-								hide();
-						}
-				});
-				btnCancel = (Button) mainPane.lookupButton(ButtonType.CANCEL);
-				btnCancel.setOnAction(e -> hide());
+    btnOK = (Button) mainPane.lookupButton(ButtonType.OK);
+    btnOK.setOnAction(e -> {
+      if (highlightDataPoints()) {
+        hide();
+      }
+    });
+    btnCancel = (Button) mainPane.lookupButton(ButtonType.CANCEL);
+    btnCancel.setOnAction(e -> hide());
 
-				mainPane.setContent(pnlLabelsAndFields);
+    mainPane.setContent(pnlLabelsAndFields);
 
-				sizeToScene();
-				centerOnScreen();
-				setResizable(false);
+    sizeToScene();
+    centerOnScreen();
+    setResizable(false);
 
-		}
+  }
 
-		public boolean highlightDataPoints() {
+  public boolean highlightDataPoints() {
 
-				try {
-						double lower = Double.parseDouble(fieldMinMZ.getText());
-						double upper = Double.parseDouble(fieldMaxMZ.getText());
-						if (lower > upper) {
-								displayMessage("Invalid " + axis.getLabel() + " range.");
-								return false;
-						}
-						Range<Double> range = Range.closed(lower, upper);
-						if (rangeType.equals("HIGHLIGHT_PRECURSOR")) {
-								plot.setHighlightedPrecursorRange(range);
-						} else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS")) {
-								plot.setHighlightedNeutralLossRange(range);
-						}
-						logger.info("Updating Neutral loss plot window");
+    try {
+      double lower = Double.parseDouble(fieldMinMZ.getText());
+      double upper = Double.parseDouble(fieldMaxMZ.getText());
+      if (lower > upper) {
+        displayMessage("Invalid " + axis.getLabel() + " range.");
+        return false;
+      }
+      Range<Double> range = Range.closed(lower, upper);
+      if (rangeType.equals("HIGHLIGHT_PRECURSOR")) {
+        plot.setHighlightedPrecursorRange(range);
+      } else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS")) {
+        plot.setHighlightedNeutralLossRange(range);
+      }
+      logger.info("Updating Neutral loss plot window");
 
-						CombinedModuleDataset dataSet = (CombinedModuleDataset) plot.getXYPlot().getDataset();
-						dataSet.updateOnRangeDataPoints(rangeType);
-						plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
-						return true;
-				} catch (NumberFormatException e) {
-						displayMessage("Could not parse number " + e);
-						return false;
-				} catch (IllegalArgumentException iae) {
-						desktop.displayErrorMessage(iae.getMessage());
-						return false;
-				} catch (Exception e) {
-						logger.log(Level.FINE, "Error while setting highlighted range", e);
-						return false;
-				}
-		}
+      CombinedModuleDataset dataSet = (CombinedModuleDataset) plot.getXYPlot().getDataset();
+      dataSet.updateOnRangeDataPoints(rangeType);
+      plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
+      return true;
+    } catch (NumberFormatException e) {
+      displayMessage("Could not parse number " + e);
+      return false;
+    } catch (IllegalArgumentException iae) {
+      desktop.displayErrorMessage(iae.getMessage());
+      return false;
+    } catch (Exception e) {
+      logger.log(Level.FINE, "Error while setting highlighted range", e);
+      return false;
+    }
+  }
 
-		private void displayMessage(String msg) {
-				logger.info(msg);
-				final Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.initStyle(StageStyle.UTILITY);
-				alert.setTitle("Information");
-				alert.setHeaderText("Error");
-				alert.setContentText(msg);
-				alert.showAndWait();
-		}
+  private void displayMessage(String msg) {
+    logger.info(msg);
+    final Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.initStyle(StageStyle.UTILITY);
+    alert.setTitle("Information");
+    alert.setHeaderText("Error");
+    alert.setContentText(msg);
+    alert.showAndWait();
+  }
 
 }
