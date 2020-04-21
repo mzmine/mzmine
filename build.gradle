@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.8.0"
+    id "org.beryx.runtime" version "1.8.1"
 }
 
 group = "io.github.mzmine"
@@ -12,7 +12,7 @@ version = "3.0"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
-defaultTasks "runtimeZip"
+defaultTasks 'clean',"runtimeZip"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
@@ -133,7 +133,7 @@ dependencies {
     implementation "org.apache.xmlgraphics:batik-ttf2svg:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-parser:$batikVersion"
     implementation "net.sf.epsgraphics:epsgraphics:1.2"
-    implementation "com.miglayout:miglayout:3.7.4"        
+    implementation "com.miglayout:miglayout:3.7.4"
     implementation "javax.xml.bind:jaxb-api:2.3.1"
     implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
     implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
@@ -150,22 +150,22 @@ dependencies {
     implementation "org.json:json:20190722"
     implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
     implementation "com.github.oshi:oshi-core:4.5.2" // because the version that is pulled by SIRIUS crashes
-    
+
 }
 
-/* 
- * Remove the xml-apis dependencies to avoid a compilation error in Eclipse. 
- * The org.w3c.dom package is present in the java.xml module as well as in these dependencies. 
+/*
+ * Remove the xml-apis dependencies to avoid a compilation error in Eclipse.
+ * The org.w3c.dom package is present in the java.xml module as well as in these dependencies.
  * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
  */
 configurations.all {
-  exclude group: "xml-apis", module: "xml-apis"
-  exclude group: "xml-apis", module: "xml-apis-ext"
-  exclude group: "xom", module: "xom"
-  exclude group: "ch.qos.logback", module: "logback-core"
-  exclude group: "ch.qos.logback", module: "logback-classic"
-  exclude group: "gurobi", module: "gurobi-linux64"
-  exclude group: "cplex", module: "cplex"
+    exclude group: "xml-apis", module: "xml-apis"
+    exclude group: "xml-apis", module: "xml-apis-ext"
+    exclude group: "xom", module: "xom"
+    exclude group: "ch.qos.logback", module: "logback-core"
+    exclude group: "ch.qos.logback", module: "logback-classic"
+    exclude group: "gurobi", module: "gurobi-linux64"
+    exclude group: "cplex", module: "cplex"
 }
 
 
@@ -174,12 +174,12 @@ configurations.all {
  */
 javafx {
     version = "14"
-    modules = ["javafx.controls", 
-               "javafx.swing", 
+    modules = ["javafx.controls",
+               "javafx.swing",
                "javafx.fxml",
                "javafx.web",
                "javafx.graphics"
-              ]
+    ]
 }
 
 tasks.withType(JavaCompile) {
@@ -194,15 +194,15 @@ application {
     mainClassName = "io.github.mzmine.main.MZmineCore"
     applicationName = "MZmine"
     executableDir = ""
-    applicationDefaultJvmArgs = ["-showversion", 
-                                 "-XX:MaxHeapFreeRatio=100", 
-                                 "-XX:InitialRAMPercentage=30", 
+    applicationDefaultJvmArgs = ["-showversion",
+                                 "-XX:MaxHeapFreeRatio=100",
+                                 "-XX:InitialRAMPercentage=30",
                                  "-XX:MinRAMPercentage=80",
                                  "-XX:MaxRAMPercentage=80",
                                  "-Djava.library.path=lib",
                                  "-enableassertions",
-                                 "-Dapple.awt.application.name=MZmine ${version}" 
-                                ]
+                                 "-Dapple.awt.application.name=MZmine ${version}"
+    ]
 }
 
 
@@ -247,7 +247,19 @@ runtime {
                "java.security.jgss",
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
-    
+    jpackage {
+        jpackageHome = '/usr/lib/jvm/jdk-14'
+        outputDir = 'mzmine-packaging'
+        if(org.gradle.internal.os.OperatingSystem.current().windows) {
+            installerType = 'exe'
+            skipInstaller = true
+            imageOptions = ['--win-console']
+            installerName = "MZmine"
+            appVersion = "3"
+            installerOptions = ['--win-per-user-install', '--win-dir-chooser', '--win-menu', '--win-shortcut']
+        }
+    }
+
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
     imageZip = file(relativePath(imageDir) + ".zip")
 }
@@ -272,7 +284,7 @@ tasks.runtime.doLast {
         from("LICENSE.txt")
         into(relativePath(imageDir) + "/legal/MZmine/")
     }
-    copy {        
+    copy {
         from("src/main/lib/vendor_lib")
         into(relativePath(imageDir) + "/lib/vendor_lib")
     }
@@ -280,12 +292,12 @@ tasks.runtime.doLast {
 }
 
 /*
- * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar. 
+ * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar.
  * The .java files are only for people who want to check the source codes.
  * But the .fxml and help files are required for the GUI.
  */
 jar {
-  sourceSets.main.resources.srcDirs += ["src/main/java"]
+    sourceSets.main.resources.srcDirs += ["src/main/java"]
 }
 
 /*
@@ -293,6 +305,6 @@ jar {
  */
 processResources {
     filesMatching("mzmineversion.properties") {
-        expand(project.properties) 
+        expand(project.properties)
     }
 }
