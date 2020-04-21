@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
 import io.github.mzmine.main.MZmineCore;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,6 +36,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.util.StringConverter;
 
 public class FeatureTableWindowFXMLController {
 
@@ -69,7 +72,7 @@ public class FeatureTableWindowFXMLController {
   private StackPane pnPreview;
 
   @FXML
-  private ChoiceBox<Class<? extends DataType>> cmbFilter;
+  private ChoiceBox<DataType> cmbFilter;
 
   @FXML
   private TextField txtSearch;
@@ -91,7 +94,22 @@ public class FeatureTableWindowFXMLController {
 
     spectrumPlot = new SpectraPlot();
 
+    cmbFilter.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(DataType object) {
+        return object.getHeaderString();
+      }
+
+      @Override
+      public DataType fromString(String string) {
+        return cmbFilter.getItems().stream().filter(dt -> dt.getHeaderString().equals(string))
+            .findFirst()
+            .orElse(null);
+      }
+    });
+
     pnSpectrumXICSplit.getItems().addListener((ListChangeListener<? super Node>) change -> {
+      change.next();
       if (change.getList().isEmpty()) {
         pnTablePreviewSplit.setDividerPosition(0, 1);
         pnPreview.setVisible(false);
@@ -99,7 +117,7 @@ public class FeatureTableWindowFXMLController {
         pnSpectrumXICSplit.setVisible(false);
         pnSpectrumXICSplit.setPrefHeight(0.0);
       } else {
-        pnTablePreviewSplit.setDividerPosition(0, 0.65);
+        pnTablePreviewSplit.setDividerPosition(0, 0.7);
         pnPreview.setVisible(true);
         pnPreview.setPrefHeight(100);
         pnSpectrumXICSplit.setVisible(true);
@@ -116,12 +134,10 @@ public class FeatureTableWindowFXMLController {
     miShowSpectrumOnAction(null);
   }
 
-
   @FXML
   void miParametersOnAction(ActionEvent event) {
     Platform.runLater(() -> {
       ExitCode exitCode = param.showSetupDialog(true);
-
       if (exitCode == ExitCode.OK) {
         updateWindowToParameterSetValues();
       }
@@ -135,7 +151,9 @@ public class FeatureTableWindowFXMLController {
     }
 
     if (miShowXIC.isSelected()) {
-      pnSpectrumXICSplit.getItems().add(xicPlot);
+      if (!pnSpectrumXICSplit.getItems().contains(xicPlot)) {
+        pnSpectrumXICSplit.getItems().add(xicPlot);
+      }
     } else {
       pnSpectrumXICSplit.getItems().remove(xicPlot);
     }
@@ -150,7 +168,9 @@ public class FeatureTableWindowFXMLController {
     }
 
     if (miShowSpectrum.isSelected()) {
-      pnSpectrumXICSplit.getItems().add(spectrumPlot);
+      if (!pnSpectrumXICSplit.getItems().contains(spectrumPlot)) {
+        pnSpectrumXICSplit.getItems().add(spectrumPlot);
+      }
     } else {
       pnSpectrumXICSplit.getItems().remove(spectrumPlot);
     }
@@ -230,43 +250,35 @@ public class FeatureTableWindowFXMLController {
       if (dataType instanceof SubColumnsFactory) {
         continue;
       }
-      cmbFilter.getItems().add(dataType.getClass());
+      cmbFilter.getItems().add(dataType);
     }
 
-    txtSearch.setOnKeyReleased(keyEvent -> {
-      Class<? extends DataType> type = cmbFilter.getValue();
-      if (type == null) {
-        return;
-      }
+    txtSearch.setOnKeyReleased(keyEvent -> searchFeatureTable());
+    cmbFilter.valueProperty().addListener((observable, oldVal, newVal) -> searchFeatureTable());
+  }
 
-      featureTable.getFilteredRowItems().setPredicate(item -> {
+  void searchFeatureTable() {
+    DataType type = cmbFilter.getValue();
+    if (type == null) {
+      return;
+    }
 
-        ModularFeatureListRow row = item.getValue();
-
-        Object value = row.getValue(type);
-
-//        DataType<?> dt = row.get(type); // does not work
-//        row.getTypeColumn(type); // does not work
-        // how to access DataType.getFormattedString?
-
-        String lowValue = value.toString().toLowerCase(); // dt.getFormattedString(value);
-        String filter = txtSearch.getText().toLowerCase().trim();
-
-        return lowValue.contains(filter);
-      });
-
-      featureTable.getRoot().getChildren().clear();
-      featureTable.getRoot().getChildren().addAll(featureTable.getFilteredRowItems());
+    featureTable.getFilteredRowItems().setPredicate(item -> {
+      ModularFeatureListRow row = item.getValue();
+      String value = type.getFormattedString(row.get(type));
+      String filter = txtSearch.getText().toLowerCase().trim();
+      return value.contains(filter);
     });
+
+    featureTable.getRoot().getChildren().clear();
+    featureTable.getRoot().getChildren().addAll(featureTable.getFilteredRowItems());
   }
 
 
   void selectedRowChanged() {
     TreeItem<ModularFeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
-
-    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
-
+//    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
     logger.info(
         "selected: " + featureTable.getSelectionModel().getSelectedCells().get(0).getTableColumn()
             .getText());
