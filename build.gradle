@@ -10,9 +10,9 @@ plugins {
 group = "io.github.mzmine"
 version = "3.0"
 description = "MZmine"
-sourceCompatibility = "12"
-targetCompatibility = "12"
-defaultTasks 'clean',"runtimeZip"
+sourceCompatibility = "14"
+targetCompatibility = "14"
+defaultTasks 'clean', "runtimeZip", "jpackage","jpackageImage"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
@@ -249,14 +249,19 @@ runtime {
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
     jpackage {
-        jpackageHome = '/usr/lib/jvm/jdk-14'
-        outputDir = 'mzmine-packaging'
+
         if(org.gradle.internal.os.OperatingSystem.current().windows) {
-            installerType = 'exe'
+
+           //lets you generate only the platform-specific application
             skipInstaller = true
-            imageOptions = ['--win-console']
+            project.named = "MZmine"
+
+           //list of additional options to be passed to the jpackage executable when creating the application installer.
+
+            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.png']
+
             installerName = "MZmine"
-            appVersion = "3"
+            imageName = "MZmine"
             installerOptions = ['--win-per-user-install', '--win-dir-chooser', '--win-menu', '--win-shortcut']
         }
     }
@@ -264,7 +269,6 @@ runtime {
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
     imageZip = file(relativePath(imageDir) + ".zip")
 }
-
 /*
  * Copy the resources and logging properties
  */
