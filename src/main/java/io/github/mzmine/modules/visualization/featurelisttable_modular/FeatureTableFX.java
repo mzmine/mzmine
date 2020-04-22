@@ -25,6 +25,9 @@ import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.Random;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
@@ -58,6 +61,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
 
+  private ParameterSet parameters;
+  private DataTypeCheckListParameter dataTypesParameter;
+
   public FeatureTableFX() {
     FeatureTableFX table = this;
     // add dummy root
@@ -74,6 +80,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         int io = getRoot().getChildren().indexOf(oldValue);
         int in = getRoot().getChildren().indexOf(newValue);
     });*/
+
+    parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
+    dataTypesParameter = parameters.getParameter(FeatureTableFXParameters.showDataTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
@@ -181,6 +190,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // add to table
     if (col != null) {
       this.getColumns().add(col);
+      col.setVisible(dataTypesParameter.isDataTypeVisible(dataType));
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
         // add feature columns for each raw file

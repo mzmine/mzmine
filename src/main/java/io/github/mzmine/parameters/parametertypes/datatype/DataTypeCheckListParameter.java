@@ -1,0 +1,166 @@
+package io.github.mzmine.parameters.parametertypes.datatype;
+
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+public class DataTypeCheckListParameter implements
+    UserParameter<Map<String, Boolean>, DataTypeCheckListComponent> {
+
+  private static final Logger logger = Logger.getLogger(DataTypeCheckListParameter.class.getName());
+
+  private final String name;
+  private final String desc;
+  private DataTypeCheckListComponent comp;
+  private Map<String, Boolean> value;
+
+  public DataTypeCheckListParameter(@Nonnull String name, @Nonnull String description) {
+    assert name != null;
+    assert description != null;
+
+    this.name = name;
+    this.desc = description;
+    this.value = new HashMap<>();
+  }
+
+  /**
+   * Adds a data type to the list. The datatype is activated by default.
+   *
+   * @param dt The data type
+   */
+  public void addDataType(DataType dt) {
+    addDataType(dt, true);
+  }
+
+  /**
+   * Adds a data type to the list.
+   *
+   * @param dt The data type.
+   * @param b  Selected or not.
+   */
+  public void addDataType(DataType dt, Boolean b) {
+    addDataType(dt.getHeaderString(), b);
+  }
+
+  public void addDataType(String dt, Boolean b) {
+    if (value.keySet().contains(dt)) {
+      logger.info("Already contains data type " + dt + ". Overwriting...");
+    }
+
+    value.put(dt, b);
+  }
+
+  /**
+   * Checks if the data type column has been displayed before. If the data type is not present yet,
+   * it is added to the list and shown by default.
+   *
+   * @param dataType The data type.
+   * @return true/false
+   */
+  public Boolean isDataTypeVisible(DataType dataType) {
+    return isDataTypeVisible(dataType.getHeaderString());
+  }
+
+  /**
+   * Checks if the data type column has been displayed before. If the data type is not present yet,
+   * it is added to the list and shown by default.
+   *
+   * @param dataType The data type.
+   * @return true/false
+   */
+  public Boolean isDataTypeVisible(String dataType) {
+    Boolean val = value.get(dataType);
+    if (val == null) {
+      val = true;
+      addDataType(dataType, val);
+    }
+    return val;
+  }
+
+  @Override
+  public String getDescription() {
+    return desc;
+  }
+
+  @Override
+  public DataTypeCheckListComponent createEditingComponent() {
+    comp = new DataTypeCheckListComponent();
+    return comp;
+  }
+
+  @Override
+  public void setValueFromComponent(DataTypeCheckListComponent dataTypeCheckListComponent) {
+    assert dataTypeCheckListComponent == comp;
+
+    value = ((DataTypeCheckListComponent) dataTypeCheckListComponent).getValue();
+  }
+
+  @Override
+  public void setValueToComponent(DataTypeCheckListComponent dataTypeCheckListComponent,
+      Map<String, Boolean> newValue) {
+    assert dataTypeCheckListComponent == comp;
+    if (!(newValue instanceof HashMap)) {
+      return;
+    }
+    comp.setValue((Map) newValue);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public Map<String, Boolean> getValue() {
+    return value;
+  }
+
+  @Override
+  public void setValue(Map<String, Boolean> newValue) {
+    this.value = value;
+  }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    NodeList childs = xmlElement.getChildNodes();
+
+    for (int i = 0; i < childs.getLength(); i++) {
+      Element e = (Element) childs.item(i);
+      value.put(e.getTagName(), Boolean.valueOf(e.getTextContent()));
+    }
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    Document doc = xmlElement.getOwnerDocument();
+
+    value.forEach((dt, b) -> {
+      Element element = doc.createElement(dt);
+      element.setNodeValue(b.toString());
+      xmlElement.appendChild(element);
+    });
+  }
+
+  @Override
+  public boolean isSensitive() {
+    return false;
+  }
+
+  @Override
+  public boolean checkValue(Collection errorMessages) {
+    return value != null;
+  }
+
+  @Override
+  public UserParameter cloneParameter() {
+    return null;
+  }
+
+}
