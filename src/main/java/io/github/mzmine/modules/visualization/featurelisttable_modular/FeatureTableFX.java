@@ -24,17 +24,23 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.fx.ColumnID;
+import io.github.mzmine.datamodel.data.types.fx.ColumnType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.SelectionMode;
@@ -56,13 +62,19 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   Random rand = new Random(System.currentTimeMillis());
-  private ModularFeatureList flist;
 
-  private FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
+  // lists
+  private ModularFeatureList flist;
+  private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
 
-  private ParameterSet parameters;
-  private DataTypeCheckListParameter dataTypesParameter;
+  // parameters
+  private final ParameterSet parameters;
+  private final DataTypeCheckListParameter rowTypesParameter;
+  private final DataTypeCheckListParameter featureTypesParameter;
+
+  // column map to keep track of columns
+  private final Map<ColumnID, TreeTableColumn> columnMap;
 
   public FeatureTableFX() {
     FeatureTableFX table = this;
@@ -82,10 +94,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     });*/
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
-    dataTypesParameter = parameters.getParameter(FeatureTableFXParameters.showDataTypeColumns);
+    rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
+    featureTypesParameter = parameters
+        .getParameter(FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
+    columnMap = new HashMap<>();
   }
 
   private void setTableEditable(boolean state) {
@@ -157,9 +172,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
     // add rows
     TreeItem<ModularFeatureListRow> root = getRoot();
-    logger.info("Add rows");
+//    logger.info("Add rows");
     for (ModularFeatureListRow row : flist.getRows()) {
-      logger.info("Add row with id: " + row.getID());
+//      logger.info("Add row with id: " + row.getID());
       root.getChildren().add(new TreeItem<>(row));
     }
 
@@ -172,7 +187,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(ModularFeatureList flist) {
-    logger.info("Adding columns to table");
+//    logger.info("Adding columns to table");
     // for all data columns available in "data"
     flist.getRowTypes().values().forEach(dataType -> {
       addColumn(dataType);
@@ -190,7 +205,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // add to table
     if (col != null) {
       this.getColumns().add(col);
-      col.setVisible(dataTypesParameter.isDataTypeVisible(dataType));
+      columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
+      rowTypesParameter.isDataTypeVisible(dataType);
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
         // add feature columns for each raw file
@@ -205,14 +221,16 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
             TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(raw);
             if (subCol != null) {
               sampleCol.getColumns().add(subCol);
+              columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, raw), subCol);
+              featureTypesParameter.isDataTypeVisible(ftype);
             }
           }
-
           // add all
           col.getColumns().add(sampleCol);
         }
       }
     }
+    applyColumnVisibility();
   }
 
 
@@ -269,5 +287,39 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   @Nullable
   public FilteredList<TreeItem<ModularFeatureListRow>> getFilteredRowItems() {
     return filteredRowItems;
+  }
+
+  @Nullable
+  private TreeTableColumn getColumn(ColumnID id) {
+    if (!columnMap.containsKey(id)) {
+      logger.info(id.getFormattedString());
+    }
+    return columnMap.get(id);
+  }
+
+  /**
+   * Sets visibility of DataType columns depending on the parameter values. Uses columnMap and
+   * ColumnID.
+   */
+  protected void applyColumnVisibility() {
+    if (flist == null) {
+      return;
+    }
+
+    for (DataType dataType : flist.getRowTypes().values()) {
+      TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+      if (col != null) {
+        col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
+      }
+    }
+
+    for (RawDataFile raw : flist.getRawDataFiles()) {
+      for (DataType dataType : flist.getFeatureTypes().values()) {
+        TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
+        if (col != null) {
+          col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
+        }
+      }
+    }
   }
 }

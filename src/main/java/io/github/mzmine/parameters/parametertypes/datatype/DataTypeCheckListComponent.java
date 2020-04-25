@@ -1,6 +1,5 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
-import io.github.mzmine.datamodel.data.types.DataType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,7 @@ public class DataTypeCheckListComponent extends StackPane {
 
     getChildren().add(checkList);
 
-    setPrefSize(200, 400);
+    setPrefSize(200, 200);
   }
 
   public void addListener(ListChangeListener<String> listener) {

@@ -12,12 +12,16 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
   public static final BooleanParameter showSpectrum = new BooleanParameter("Show spectrum",
       "Shows the spectrum of the selected feature.", false);
 
-  public static final DataTypeCheckListParameter showDataTypeColumns = new DataTypeCheckListParameter(
-      "Show data type columns",
+  public static final DataTypeCheckListParameter showRowTypeColumns = new DataTypeCheckListParameter(
+      "Row type columns",
+      "Specify which data type columns shall be displayed in the feature list table");
+
+  public static final DataTypeCheckListParameter showFeatureTypeColumns = new DataTypeCheckListParameter(
+      "Feature type columns",
       "Specify which data type columns shall be displayed in the feature list table");
 
   public FeatureTableFXParameters() {
-    super(new Parameter[]{showXIC, showSpectrum, showDataTypeColumns});
+    super(new Parameter[]{showXIC, showSpectrum, showRowTypeColumns, showFeatureTypeColumns});
   }
 
 }

@@ -21,6 +21,11 @@ public class DataTypeCheckListParameter implements
   private DataTypeCheckListComponent comp;
   private Map<String, Boolean> value;
 
+  private static final String DATA_TYPE_ELEMENT = "datatype";
+  private static final String DATA_TYPE_VISIBLE_ATTR = "visible";
+  private static final String DATA_TYPE_NAME_ATTR = "name";
+
+
   public DataTypeCheckListParameter(@Nonnull String name, @Nonnull String description) {
     assert name != null;
     assert description != null;
@@ -99,7 +104,7 @@ public class DataTypeCheckListParameter implements
   public void setValueFromComponent(DataTypeCheckListComponent dataTypeCheckListComponent) {
     assert dataTypeCheckListComponent == comp;
 
-    value = ((DataTypeCheckListComponent) dataTypeCheckListComponent).getValue();
+    value = dataTypeCheckListComponent.getValue();
   }
 
   @Override
@@ -109,7 +114,7 @@ public class DataTypeCheckListParameter implements
     if (!(newValue instanceof HashMap)) {
       return;
     }
-    comp.setValue((Map) newValue);
+    comp.setValue(newValue);
   }
 
   @Override
@@ -124,16 +129,18 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValue(Map<String, Boolean> newValue) {
-    this.value = value;
+    this.value = newValue;
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    NodeList childs = xmlElement.getChildNodes();
+    NodeList childs = xmlElement.getElementsByTagName(DATA_TYPE_ELEMENT);
 
     for (int i = 0; i < childs.getLength(); i++) {
       Element e = (Element) childs.item(i);
-      value.put(e.getTagName(), Boolean.valueOf(e.getTextContent()));
+      String datatype = e.getAttribute(DATA_TYPE_NAME_ATTR);
+      Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
+      value.put(datatype, val);
     }
   }
 
@@ -142,8 +149,9 @@ public class DataTypeCheckListParameter implements
     Document doc = xmlElement.getOwnerDocument();
 
     value.forEach((dt, b) -> {
-      Element element = doc.createElement(dt);
-      element.setNodeValue(b.toString());
+      Element element = doc.createElement(DATA_TYPE_ELEMENT);
+      element.setAttribute(DATA_TYPE_NAME_ATTR, dt); // cannot save whitespace as node name
+      element.setAttribute(DATA_TYPE_VISIBLE_ATTR, b.toString());
       xmlElement.appendChild(element);
     });
   }

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import io.github.mzmine.datamodel.data.types.fx.ColumnID;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;

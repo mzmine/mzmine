@@ -91,8 +91,12 @@ public class FeatureTableWindowFXMLController {
 
     xicPlot = new TICPlot();
     xicPlot.setPlotType(TICPlotType.TIC);
+    xicPlot.setMinHeight(150);
+    xicPlot.setPrefHeight(150);
 
     spectrumPlot = new SpectraPlot();
+    spectrumPlot.setMinHeight(150);
+    spectrumPlot.setPrefHeight(150);
 
     cmbFilter.setConverter(new StringConverter<>() {
       @Override
@@ -108,6 +112,7 @@ public class FeatureTableWindowFXMLController {
       }
     });
 
+    pnTablePreviewSplit.setDividerPosition(0, 1);
     pnSpectrumXICSplit.getItems().addListener((ListChangeListener<? super Node>) change -> {
       change.next();
       if (change.getList().isEmpty()) {
@@ -126,9 +131,7 @@ public class FeatureTableWindowFXMLController {
     });
 
     featureTable.getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> {
-          selectedRowChanged();
-        }));
+        .addListener(((obs, o, n) -> selectedRowChanged()));
 
     miShowXICOnAction(null);
     miShowSpectrumOnAction(null);
@@ -140,6 +143,7 @@ public class FeatureTableWindowFXMLController {
       ExitCode exitCode = param.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         updateWindowToParameterSetValues();
+        featureTable.applyColumnVisibility();
       }
     });
   }
@@ -177,6 +181,7 @@ public class FeatureTableWindowFXMLController {
 
     param.getParameter(FeatureTableFXParameters.showSpectrum).setValue(miShowSpectrum.isSelected());
   }
+
 
   /**
    * Updates the bottom xic to the selected feature.
@@ -223,6 +228,7 @@ public class FeatureTableWindowFXMLController {
     spectrumPlot.addDataSet(scanDataSet, palette.getMainColorAWT(), false);
   }
 
+
   /**
    * In case the parameters are changed in the setup dialog, they are applied to the window.
    */
@@ -235,10 +241,12 @@ public class FeatureTableWindowFXMLController {
     miShowXICOnAction(null);
   }
 
+
   public void setFeatureList(ModularFeatureList featureList) {
     featureTable.addData(featureList);
     setupFilter();
   }
+
 
   private void setupFilter() {
     ModularFeatureList flist = featureTable.getFeatureList();
