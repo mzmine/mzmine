@@ -224,7 +224,7 @@ startScripts {
 }
 
 /*
- * Build the JVM runtime using runtime
+ * Build the JVM runtime using jlink
  */
 runtime {
     options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
@@ -249,20 +249,14 @@ runtime {
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
     jpackage {
-
-        if(org.gradle.internal.os.OperatingSystem.current().windows) {
-
             //lets you generate only the platform-specific application
             skipInstaller = true
-            project.named = "MZmine"
 
             //list of additional options to be passed to the jpackage executable when creating the application installer.
-
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.png']
 
             installerName = "MZmine"
             imageName = "MZmine"
-        }
     }
 
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
@@ -273,7 +267,7 @@ runtime {
  */
 tasks.runtime.doLast {
 
-    // Remove the "release" file produced by runtime
+    // Remove the "release" file produced by jlink
     delete file(relativePath(imageDir) + "/release")
     copy {
         from("log")
