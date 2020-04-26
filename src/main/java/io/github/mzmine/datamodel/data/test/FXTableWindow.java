@@ -1,5 +1,6 @@
 package io.github.mzmine.datamodel.data.test;
 
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class FXTableWindow extends Application {
     ModularFeatureList flist;
     try {
       flist = createMinimalTest();
-      new FeatureTableFXWindow(flist).show();
+      FeatureTableFXUtil.createFeatureTableWindow(flist);
     } catch (IOException e) {
       e.printStackTrace();
     }

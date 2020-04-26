@@ -77,7 +77,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   private final Map<ColumnID, TreeTableColumn> columnMap;
 
   public FeatureTableFX() {
-    FeatureTableFX table = this;
     // add dummy root
     TreeItem<ModularFeatureListRow> root = new TreeItem<>();
     root.setExpanded(true);
