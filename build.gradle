@@ -260,9 +260,6 @@ runtime {
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.icns']
         }
 
-            //lets you generate only the platform-specific application
-            skipInstaller = true
-
             installerName = "MZmine"
             imageName = "MZmine"
     }
