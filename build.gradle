@@ -251,16 +251,17 @@ runtime {
     jpackage {
         if(org.gradle.internal.os.OperatingSystem.current().windows) {
             installerType = "msi"
+            //list of additional options to be passed to the jpackage executable when creating the application installer.
+            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
         }
         if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
             installerType = "dmg"
+            //list of additional options to be passed to the jpackage executable when creating the application installer.
+            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.icns']
         }
 
             //lets you generate only the platform-specific application
             skipInstaller = true
-
-            //list of additional options to be passed to the jpackage executable when creating the application installer.
-            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
 
             installerName = "MZmine"
             imageName = "MZmine"
