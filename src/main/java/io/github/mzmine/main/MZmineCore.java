@@ -18,21 +18,6 @@
 
 package io.github.mzmine.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
@@ -50,7 +35,19 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.logging.FileFilter;
+import io.github.mzmine.util.logging.FileFormatter;
 import javafx.application.Application;
+import org.jdom2.internal.SystemProperty;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.logging.*;
 
 /**
  * MZmine main class
@@ -58,6 +55,16 @@ import javafx.application.Application;
 public final class MZmineCore {
 
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+  private static Handler fileHandler;
+
+  static {
+    try {
+      fileHandler = new FileHandler("log/mzmine.log");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
 
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
@@ -66,6 +73,9 @@ public final class MZmineCore {
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
+
+  public MZmineCore() throws IOException {
+  }
 
   /**
    * Main method
@@ -82,6 +92,10 @@ public final class MZmineCore {
      */
     MZmineLogging.configureLogging();
 
+    fileHandler.setFormatter(new FileFormatter());
+    //  setting custom filter for FileHandler
+    fileHandler.setFilter(new FileFilter());
+    logger.addHandler(fileHandler);
     logger.info("Starting MZmine " + getMZmineVersion());
 
     /*
