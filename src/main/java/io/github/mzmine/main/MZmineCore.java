@@ -35,10 +35,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.logging.FileFilter;
-import io.github.mzmine.util.logging.FileFormatter;
 import javafx.application.Application;
-import org.jdom2.internal.SystemProperty;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,7 +44,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * MZmine main class
@@ -55,16 +54,6 @@ import java.util.logging.*;
 public final class MZmineCore {
 
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  private static Handler fileHandler;
-
-  static {
-    try {
-      fileHandler = new FileHandler("log/mzmine.log");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
 
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
@@ -80,7 +69,7 @@ public final class MZmineCore {
   /**
    * Main method
    */
-  public static void main(String args[]) {
+  public static void main(String args[]) throws IOException {
 
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
@@ -91,11 +80,9 @@ public final class MZmineCore {
      * Configure the logging properties before we start logging
      */
     MZmineLogging.configureLogging();
+    InputStream configFile = MZmineCore.class.getResourceAsStream("/logging.properties");
+    LogManager.getLogManager().readConfiguration(configFile);
 
-    fileHandler.setFormatter(new FileFormatter());
-    //  setting custom filter for FileHandler
-    fileHandler.setFilter(new FileFilter());
-    logger.addHandler(fileHandler);
     logger.info("Starting MZmine " + getMZmineVersion());
 
     /*
