@@ -61,6 +61,8 @@ public class CombinedModulePlot extends EChartViewer {
 
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private CombinedModuleDataPointRenderer defaultRenderer;
+
 
   public CombinedModulePlot() {
     super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
@@ -99,6 +101,9 @@ public class CombinedModulePlot extends EChartViewer {
     plot.setDomainCrosshairStroke(crossHairStroke);
     plot.setRangeCrosshairStroke(crossHairStroke);
 
+    defaultRenderer = new CombinedModuleDataPointRenderer(false, true);
+    defaultRenderer.setTransparency(0.4f);
+
     NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
     if (xAxisType == AxisType.RETENTIONTIME) {
       setAxes(xAxis, xAxisType, rtFormat);
@@ -107,9 +112,6 @@ public class CombinedModulePlot extends EChartViewer {
     }
     NumberAxis yAxis = (NumberAxis) this.plot.getRangeAxis();
     setAxes(yAxis, yAxisType, mzFormat);
-
-    plot.setDataset(0, dataset);
-
   }
 
   private void setAxes(NumberAxis axis, AxisType axisType, NumberFormat format) {
@@ -122,6 +124,12 @@ public class CombinedModulePlot extends EChartViewer {
 
   XYPlot getXYPlot() {
     return plot;
+  }
+
+  public void addDataset(CombinedModuleDataset dataset) {
+    plot.setDataset(dataset);
+    defaultRenderer.setDefaultToolTipGenerator(dataset);
+    plot.setRenderer(defaultRenderer);
   }
 
   /**

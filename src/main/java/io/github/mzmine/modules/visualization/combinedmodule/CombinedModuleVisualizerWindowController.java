@@ -73,6 +73,7 @@ public class CombinedModuleVisualizerWindowController {
         noiseLevel, colorScale);
     plot.setPlot(dataFile, this, dataset, rtRange, mzRange, xAxisType, yAxisType, massList,
         noiseLevel, colorScale);
+    plot.addDataset(dataset);
 
   }
 

@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -43,18 +42,14 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private CombinedModuleVisualizerWindowController visualizer;
   private TaskStatus status = TaskStatus.WAITING;
   private int processedScans, scanNumbers[];
-  private List<Double> targetedMZ_List;
-  private List<Double> targetedNF_List;
-  private Double basePeakPercent;
-  private MZTolerance mzDifference;
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
   int totalScans;
-  private static int RAW_LEVEL = 0;
-  private static int PRECURSOR_LEVEL = 1;
-  private static int NEUTRALLOSS_LEVEL = 2;
   private AxisType xAxisType, yAxisType;
   private Double noiseLevel;
   private ColorScale colorScale;
+  private static int RAW_LEVEL = 0;
+  private static int PRECURSOR_LEVEL = 1;
+  private static int NEUTRALLOSS_LEVEL = 2;
 
   public CombinedModuleDataset(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
       CombinedModuleVisualizerWindowController visualizer, AxisType xAxisType, AxisType yAxisType,
@@ -68,10 +63,6 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.noiseLevel = noiseLevel;
     this.colorScale = colorScale;
 
-//				targetedMZ_List = new ArrayList<Double>();
-//				targetedNF_List = new ArrayList<Double>();
-//				basePeakPercent = 0.0;
-
     scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
     totalScans = scanNumbers.length;
     dataSeries = new HashMap<Integer, Vector<CombinedModuleDataPoint>>();
@@ -80,6 +71,78 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     dataSeries.put(NEUTRALLOSS_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
 
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+  }
+
+  @Override
+  public void run() {
+
+    setStatus(TaskStatus.PROCESSING);
+    processedScans = 0;
+
+    ArrayList<Double> retentionList = new ArrayList<Double>();
+    ArrayList<Double> precursorList = new ArrayList<Double>();
+    for (int scanNumber : scanNumbers) {
+      if (status == TaskStatus.CANCELED) {
+        return;
+      }
+      Scan scan = rawDataFile.getScan(scanNumber);
+
+      //ignore scans of MS level 1
+      if (scan.getMSLevel() == 1) {
+        processedScans++;
+        continue;
+      }
+      // check parent m/z
+      if (!totalMZRange.contains(scan.getPrecursorMZ())) {
+        continue;
+      }
+
+      // skip empty scans
+      if (scan.getHighestDataPoint() == null) {
+        processedScans++;
+        continue;
+      }
+
+      retentionList.add(scan.getRetentionTime());
+      precursorList.add(scan.getPrecursorMZ());
+
+      DataPoint[] scanDataPoints = scan.getDataPoints();
+
+      // topPeaks will contain indexes to mzValues in scan above a threshold
+      List<Integer> topPeaksList = new ArrayList<Integer>();
+
+      for (int i = 0; i < scanDataPoints.length; i++) {
+        // Cancel?
+        if (status == TaskStatus.CANCELED) {
+          return;
+        }
+        if (scanDataPoints[i].getIntensity() > noiseLevel) {
+          // add the peaks
+          topPeaksList.add(i);
+        }
+      }
+      for (int peakIndex : topPeaksList) {
+
+        // if we have a very few peaks, the array may not be full
+        if (peakIndex < 0) {
+          break;
+        }
+
+        CombinedModuleDataPoint newPoint =
+            new CombinedModuleDataPoint(scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
+                scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
+
+        dataSeries.get(0).add(newPoint);
+      }
+      processedScans++;
+    }
+
+    refresh();
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private void refresh() {
+    Platform.runLater(this::fireDatasetChanged);
   }
 
   @Override
@@ -120,64 +183,6 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.status = newStatus;
   }
 
-  @Override
-  public void run() {
-
-    setStatus(TaskStatus.PROCESSING);
-    processedScans = 0;
-
-    ArrayList<Double> retentionList = new ArrayList<Double>();
-    ArrayList<Double> precursorList = new ArrayList<Double>();
-    for (int scanNumber : scanNumbers) {
-      if (status == TaskStatus.CANCELED) {
-        return;
-      }
-      Scan scan = rawDataFile.getScan(scanNumber);
-
-      //ignore scans of MS level 1
-      if (scan.getMSLevel() == 1) {
-        processedScans++;
-        continue;
-      }
-      // check parent m/z
-      if (!totalMZRange.contains(scan.getPrecursorMZ())) {
-        continue;
-      }
-
-      // skip empty scans
-      if (scan.getHighestDataPoint() == null) {
-        processedScans++;
-        continue;
-      }
-      
-      retentionList.add(scan.getRetentionTime());
-      precursorList.add(scan.getPrecursorMZ());
-
-      DataPoint[] scanDataPoints = scan.getDataPoints();
-
-      // topPeaks will contain indexes to mzValues in scan above a threshold
-      List<Integer> topPeaksList = new ArrayList<Integer>();
-
-      for (int i = 0; i < scanDataPoints.length; i++) {
-        // Cancel?
-        if (status == TaskStatus.CANCELED) {
-          return;
-        }
-        if (scanDataPoints[i].getIntensity() > noiseLevel) {
-          // add the peaks
-          topPeaksList.add(i);
-        }
-      }
-    }
-
-    refresh();
-    setStatus(TaskStatus.FINISHED);
-
-  }
-
-  private void refresh() {
-    Platform.runLater(this::fireDatasetChanged);
-  }
 
   @Override
   public int getSeriesCount() {
@@ -208,16 +213,12 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   @Override
   public Number getY(int series, int item) {
     CombinedModuleDataPoint point = dataSeries.get(series).get(item);
-    return point.getProductMZ();
-  }
-
-  public static boolean isAllTrue(boolean[] array) {
-    for (boolean b : array) {
-      if (!b) {
-        return false;
-      }
+    if (yAxisType.equals(AxisType.NEUTRALLOSS)) {
+      return point.getNeutralLoss();
+    } else {
+      return point.getPrecursorMass();
     }
-    return true;
+
   }
 
   @Override
@@ -247,7 +248,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       if (level == PRECURSOR_LEVEL) {
         b = prRange.contains(point.getPrecursorMass());
       } else {
-        b = nlRange.contains(point.getProductMZ());
+        b = nlRange.contains(point.getNeutralLoss());
       }
       if (b) {
         dataSeries.get(level).add(point);

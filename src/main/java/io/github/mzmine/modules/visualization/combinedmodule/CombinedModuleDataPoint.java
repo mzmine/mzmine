@@ -56,17 +56,17 @@ public class CombinedModuleDataPoint {
 
     neutralLoss = mzValue; /* precursorMass - mzValue; */
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("loss: ");
     sb.append(mzFormat.format(neutralLoss));
     sb.append(", m/z ");
     sb.append(mzFormat.format(mzValue));
-    sb.append(", scan #" + scanNumber + ", RT ");
+    sb.append(", scan #").append(scanNumber).append(", RT ");
     sb.append(rtFormat.format(retentionTime));
     sb.append(", m/z ");
     sb.append(mzFormat.format(precursorMZ));
     if (precursorCharge > 0) {
-      sb.append(" (charge " + precursorCharge + ")");
+      sb.append(" (charge ").append(precursorCharge).append(")");
     }
     label = sb.toString();
 
@@ -114,12 +114,11 @@ public class CombinedModuleDataPoint {
     return scanNumber;
   }
 
-  double getProductMZ() {
-    return neutralLoss;
+  String getName() {
+    return label;
   }
 
-  public String getName() {
-    return label;
-
+  double getNeutralLoss() {
+    return neutralLoss;
   }
 }

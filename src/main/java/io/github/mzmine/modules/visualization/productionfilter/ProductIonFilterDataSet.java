@@ -242,8 +242,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // if found in scan
       } else if (targetedMZ_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (int h = 0; h < topPeaks.length; h++) {
-          int peakIndex = topPeaks[h];
+        for (int peakIndex : topPeaks) {
           if (peakIndex < 0) {
             break;
           }
@@ -267,13 +266,13 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // searched for
       } else if (targetedNF_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (int h = 0; h < topPeaks.length; h++) {
+        for (Integer topPeak : topPeaks) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {
             return;
           }
 
-          int peakIndex = topPeaks[h];
+          int peakIndex = topPeak;
           if (peakIndex < 0) {
             break;
           }
@@ -304,13 +303,13 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       if (pass) {
 
         // Add all data points to visual plot and output file from scan
-        for (int i = 0; i < topPeaks.length; i++) {
+        for (Integer topPeak : topPeaks) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {
             return;
           }
 
-          int peakIndex = topPeaks[i];
+          int peakIndex = topPeak;
 
           // if we have a very few peaks, the array may not be full
           if (peakIndex < 0) {
