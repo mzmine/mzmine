@@ -80,8 +80,6 @@ public final class MZmineCore {
      * Configure the logging properties before we start logging
      */
     MZmineLogging.configureLogging();
-    InputStream configFile = MZmineCore.class.getResourceAsStream("/logging.properties");
-    LogManager.getLogManager().readConfiguration(configFile);
 
     logger.info("Starting MZmine " + getMZmineVersion());
 

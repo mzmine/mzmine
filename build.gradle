@@ -253,7 +253,7 @@ runtime {
             installerType = "msi"
             //list of additional options to be passed to the jpackage executable when creating the application installer.
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
-            installerOptions = ['--win-menu', '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid']
+            installerOptions = ['--win-menu', '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid', 'aabbccdd-eeff-1122-3344-556677889900']
         }
         if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
             installerType = "dmg"
