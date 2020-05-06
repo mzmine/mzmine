@@ -63,6 +63,7 @@ ext {
     poiVersion = "4.1.0"
     batikVersion = "1.11"
     controlsfxVersion = "11.0.1"
+    uuid = "896e9c2d-6db8-4259-a1af-1b5f8112d1e1"
 }
 
 dependencies {
@@ -253,7 +254,7 @@ runtime {
             installerType = "msi"
             //list of additional options to be passed to the jpackage executable when creating the application installer.
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
-            installerOptions = ['--win-menu', '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid', 'aabbccdd-eeff-1122-3344-556677889900']
+            installerOptions = ['--win-menu', '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid', "$uuid"]
         }
         if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
             installerType = "dmg"
@@ -264,34 +265,6 @@ runtime {
             installerName = "MZmine"
             imageName = "MZmine"
     }
-
-    imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
-    imageZip = file(relativePath(imageDir) + ".zip")
-}
-/*
- * Copy the resources and logging properties
- */
-tasks.runtime.doLast {
-
-    // Remove the "release" file produced by jlink
-    delete file(relativePath(imageDir) + "/release")
-    copy {
-        from("log")
-        into(relativePath(imageDir) + "/log")
-    }
-    copy {
-        from("manual.pdf")
-        into(relativePath(imageDir))
-    }
-    copy {
-        from("LICENSE.txt")
-        into(relativePath(imageDir) + "/legal/MZmine/")
-    }
-    copy {
-        from("src/main/lib/vendor_lib")
-        into(relativePath(imageDir) + "/lib/vendor_lib")
-    }
-
 }
 
 /*
