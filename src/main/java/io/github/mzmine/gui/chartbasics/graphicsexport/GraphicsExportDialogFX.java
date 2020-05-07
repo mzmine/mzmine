@@ -77,9 +77,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       e1.printStackTrace();
       logger.severe("Chart could not be cloned.");
     }
-    if (chart.getPlot() instanceof CombinedDomainXYPlot) {
-      ((CombinedDomainXYPlot) chart.getPlot()).setGap(0);
-    }
 
     theme = ChartThemeFactory.createBlackNWhiteTheme();
     chartParam.applyToChartTheme(theme);
