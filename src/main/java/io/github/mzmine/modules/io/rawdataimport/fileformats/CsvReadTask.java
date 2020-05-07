@@ -154,7 +154,7 @@ public class CsvReadTask extends AbstractTask {
 
         Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 1, null, dataPoints,
             MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
-            "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
+            "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange,0);
 
         newMZmineFile.addScan(scan);
         scanNumber++;

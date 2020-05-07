@@ -60,6 +60,7 @@ public class StorableScan implements Scan {
   private Range<Double> scanMZRange;
 
   private int storageID;
+  private  double mobility;
 
   /**
    * Constructor for creating a storable scan from a given scan
@@ -381,6 +382,10 @@ public class StorableScan implements Scan {
     if (scanMZRange == null)
       scanMZRange = getDataPointMZRange();
     return scanMZRange;
+  }
+  @Override
+  public double getMobility(){
+    return mobility;
   }
 
 }

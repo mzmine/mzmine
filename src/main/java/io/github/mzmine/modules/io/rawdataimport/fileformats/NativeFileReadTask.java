@@ -68,6 +68,7 @@ public class NativeFileReadTask extends AbstractTask {
    * These variables are used during parsing of the RAW dump.
    */
   private int scanNumber = 0, msLevel = 0, precursorCharge = 0, numOfDataPoints;
+  private double mobility = 0.0;
   private String scanId;
   private PolarityType polarity;
   private Range<Double> mzRange;
@@ -342,7 +343,7 @@ public class NativeFileReadTask extends AbstractTask {
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
         SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMZ,
-            precursorCharge, null, dataPoints, spectrumType, polarity, scanId, mzRange);
+            precursorCharge, null, dataPoints, spectrumType, polarity, scanId, mzRange, mobility);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;
@@ -357,6 +358,7 @@ public class NativeFileReadTask extends AbstractTask {
         precursorMZ = 0;
         precursorCharge = 0;
         numOfDataPoints = 0;
+        mobility = 0;
 
       }
 
