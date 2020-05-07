@@ -45,7 +45,6 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -62,14 +61,10 @@ public final class MZmineCore {
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
-
-  public MZmineCore() throws IOException {
-  }
-
   /**
    * Main method
    */
-  public static void main(String args[]) throws IOException {
+  public static void main(String args[]) {
 
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
