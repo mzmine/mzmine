@@ -63,11 +63,10 @@ public class MirrorScanWindowFX extends Stage {
    * Create the frame.
    */
   public MirrorScanWindowFX() {
-//    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//    setBounds(100, 100, 800, 800);
-
     contentPane = new BorderPane();
     contentPane.setStyle("-fx-border-width: 5;");
+    contentPane.setPrefSize(800, 800);
+
     this.setScene(new Scene(contentPane));
   }
 

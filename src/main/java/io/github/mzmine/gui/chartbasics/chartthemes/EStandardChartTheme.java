@@ -59,8 +59,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
-  private static final RectangleInsets DEFAULT_AXIS_OFFSET =
-      new RectangleInsets(5.0, 5.0, 5.0, 5.0);
+  private static final RectangleInsets DEFAULT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
   private static final RectangleInsets MIRROR_PLOT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
   private static final double TITLE_TOP_MARGIN = 5.0;
 
@@ -188,6 +187,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     p.setRangeGridlinePaint(getClrYGrid());
     p.setDomainGridlinesVisible(isShowXGrid());
     p.setDomainGridlinePaint(getClrXGrid());
+    p.setAxisOffset(DEFAULT_AXIS_OFFSET);
 
     // only apply labels to the main axes
     if (domainAxis != null && isUseXLabel()) {
@@ -237,15 +237,14 @@ public class EStandardChartTheme extends StandardChartTheme {
           }
         }
       }
-    } else {
-      p.setAxisOffset(DEFAULT_AXIS_OFFSET);
     }
   }
 
   public void applyToLegend(@Nonnull JFreeChart chart) {
 
-    if (chart.getLegend() != null)
+    if (chart.getLegend() != null) {
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
+    }
 
     fixLegend(chart);
   }
@@ -282,7 +281,6 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
 
-
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
@@ -292,12 +290,22 @@ public class EStandardChartTheme extends StandardChartTheme {
   public static void fixLegend(JFreeChart chart) {
     XYPlot plot = chart.getXYPlot();
     LegendTitle oldLegend = chart.getLegend();
+    if (oldLegend == null) {
+      return;
+    }
+
     RectangleEdge pos = oldLegend.getPosition();
     chart.removeLegend();
 
     LegendTitle newLegend;
 
-    if (plot instanceof CombinedDomainXYPlot) {
+    if (plot instanceof CombinedDomainXYPlot
+        && (
+        oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
+            ||
+            oldLegend.getSources()[0].getLegendItems().getItemCount()
+                == MirrorChartFactory.tags.length * 2)) {
+
       newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
     } else {
       newLegend = new LegendTitle(plot);

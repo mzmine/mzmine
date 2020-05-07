@@ -578,10 +578,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         Scan mirror = b.getBestFragmentation();
         if (scan != null && mirror != null) {
           // show mirror msms window of two rows
-          MirrorScanWindow mirrorWindow = new MirrorScanWindow();
-          mirrorWindow.setScans(scan, mirror);
-          mirrorWindow.setVisible(true);
-
           Platform.runLater(() -> {
             MirrorScanWindowFX mirrorScanWindowFX = new MirrorScanWindowFX();
             mirrorScanWindowFX.setScans(scan, mirror);

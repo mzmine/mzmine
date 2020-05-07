@@ -61,6 +61,8 @@ public class MirrorChartFactory {
   public static final DataPointsTag[] tags =
       new DataPointsTag[]{DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
 
+  public static final String LIBRARY_MATCH_USER_DATA = "Library match";
+
 
   /**
    * Creates a mirror chart from
@@ -168,6 +170,7 @@ public class MirrorChartFactory {
     // add legend
     LegendTitle legend = createLibraryMatchingLegend(domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
+    mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
 
     // set y axis title
     queryPlot.getRangeAxis().setLabel("rel. intensity [%] (query)");
@@ -187,7 +190,6 @@ public class MirrorChartFactory {
    * @return
    */
   public static LegendTitle createLibraryMatchingLegend(CombinedDomainXYPlot mirrorSpectrumPlot) {
-
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     // colors for the different DataPointsTags:
@@ -198,6 +200,7 @@ public class MirrorChartFactory {
 
     LegendItem item;
     LegendItemCollection collection = new LegendItemCollection();
+
     for (int i = 0; i < tags.length; i++) {
       item = new LegendItem(tags[i].toRemainderString(), colors[i]);
       collection.add(item);
