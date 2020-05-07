@@ -366,18 +366,18 @@
 
 	<!-- HELP -->
 	<Menu text="Help">
+		<MenuItem text="About MZmine" onAction="#showAbout" />
 		<MenuItem text="Tutorials" onAction="#openLink"
 			userData="http://mzmine.github.io/documentation.html" />
 		<MenuItem text="Support" onAction="#openLink"
 			userData="http://mzmine.github.io/support.html" />
+		<SeparatorMenuItem />
+		<MenuItem text="Check for updates" onAction="#versionCheck" />
+		<SeparatorMenuItem />
+		<MenuItem text="Show log file" onAction="#handleShowLogFile" />
 		<MenuItem text="Report a problem" onAction="#openLink"
 			userData="https://github.com/mzmine/mzmine3/issues" />
 
-		<SeparatorMenuItem />
-		<MenuItem text="Check for updates" onAction="#versionCheck" />
-
-		<SeparatorMenuItem />
-		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
 
 </MenuBar>
