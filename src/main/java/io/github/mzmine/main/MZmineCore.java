@@ -61,10 +61,6 @@ public final class MZmineCore {
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
-
-  public MZmineCore(){
-  }
-
   /**
    * Main method
    */
