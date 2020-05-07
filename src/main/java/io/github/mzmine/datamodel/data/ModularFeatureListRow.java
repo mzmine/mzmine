@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -44,14 +44,18 @@ import javafx.scene.Node;
 
 /**
  * Map of all feature related data.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ *  of {@link ModularFeatureListRow#getFeatures}. -> add during fueature list creation in the
+ *  chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements ModularDataModel {
 
-  private final @Nonnull ModularFeatureList flist;
+  private final @Nonnull
+  ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
 
@@ -75,18 +79,20 @@ public class ModularFeatureListRow implements ModularDataModel {
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
       HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
-      for (RawDataFile r : raws)
+      for (RawDataFile r : raws) {
         fmap.put(r, new ModularFeature(flist));
+      }
       features = FXCollections.unmodifiableObservableMap(FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
-    } else
+    } else {
       features = Collections.emptyMap();
+    }
   }
 
   /**
    * Constructor for row with only one raw data file.
-   * 
+   *
    * @param flist
    * @param id
    * @param raw
@@ -144,7 +150,6 @@ public class ModularFeatureListRow implements ModularDataModel {
   }
 
   /**
-   * 
    * @param raw
    * @param f
    */
@@ -162,7 +167,7 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   /**
    * Row ID or -1 if not present
-   * 
+   *
    * @return
    */
   public int getID() {
@@ -189,7 +194,7 @@ public class ModularFeatureListRow implements ModularDataModel {
   /**
    * nonnull if this feature list contains this raw data file. Even if there is no feature in this
    * raw data file
-   * 
+   *
    * @param raw
    * @return
    */

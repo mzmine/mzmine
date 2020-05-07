@@ -18,10 +18,6 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.util.List;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -31,8 +27,12 @@ import io.github.mzmine.datamodel.data.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableColumn;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}

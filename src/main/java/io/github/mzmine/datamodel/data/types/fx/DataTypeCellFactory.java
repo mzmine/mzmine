@@ -58,16 +58,22 @@ public class DataTypeCellFactory implements
     this.subcolumn = subcolumn;
   }
 
+  /**
+   * Creates cells of the modular feature table. Sets text, graphics and tool tips.
+   *
+   * @param param
+   * @return The cell.
+   */
   @Override
   public TreeTableCell<ModularFeatureListRow, Object> call(
       TreeTableColumn<ModularFeatureListRow, Object> param) {
-    logger.log(Level.INFO, "Creating cell in DataTypeCellFactory");
+//    logger.log(Level.INFO, "Creating cell in DataTypeCellFactory");
     return new TreeTableCell<>() {
 
       @Override
       protected void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
-        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
+//        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
         if (item == null || empty) {
           setGraphic(null);
           setText(null);
