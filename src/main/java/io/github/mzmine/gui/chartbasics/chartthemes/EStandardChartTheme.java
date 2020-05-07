@@ -19,13 +19,14 @@
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
-import io.github.mzmine.util.MirrorSpectrumUtil;
+import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
@@ -39,7 +40,6 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
 
 /**
  * More options for the StandardChartTheme
@@ -47,6 +47,9 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EStandardChartTheme extends StandardChartTheme {
+
+  public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
+
   private static final long serialVersionUID = 1L;
 
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
@@ -54,7 +57,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
-      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
   private static final RectangleInsets DEFAULT_AXIS_OFFSET =
       new RectangleInsets(5.0, 5.0, 5.0, 5.0);
@@ -181,21 +184,17 @@ public class EStandardChartTheme extends StandardChartTheme {
     Axis domainAxis = p.getDomainAxis();
     Axis rangeAxis = p.getRangeAxis();
 
-    if (domainAxis != null) {
-      domainAxis.setVisible(isShowXAxis());
-      p.setDomainGridlinesVisible(isShowXGrid());
-      p.setDomainGridlinePaint(getClrXGrid());
-      if (isUseXLabel()) {
-        domainAxis.setLabel(getXlabel());
-      }
+    p.setRangeGridlinesVisible(isShowYGrid());
+    p.setRangeGridlinePaint(getClrYGrid());
+    p.setDomainGridlinesVisible(isShowXGrid());
+    p.setDomainGridlinePaint(getClrXGrid());
+
+    // only apply labels to the main axes
+    if (domainAxis != null && isUseXLabel()) {
+      domainAxis.setLabel(getXlabel());
     }
-    if (rangeAxis != null) {
-      rangeAxis.setVisible(isShowYAxis());
-      p.setRangeGridlinesVisible(isShowYGrid());
-      p.setRangeGridlinePaint(getClrYGrid());
-      if (isUseYLabel()) {
-        rangeAxis.setLabel(getYlabel());
-      }
+    if (rangeAxis != null && isUseYLabel()) {
+      rangeAxis.setLabel(getYlabel());
     }
 
     // all axes
@@ -221,11 +220,12 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot) {
-      ((CombinedDomainXYPlot) p).setGap(0);
-      p.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
-      for (XYPlot subplot : (List<XYPlot>) ((CombinedDomainXYPlot) p).getSubplots()) {
+    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
+      mirrorPlot.setGap(0);
+      mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
+      for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
         Axis ra = subplot.getRangeAxis();
+        subplot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
         if (rangeAxis != null) {
           ra.setVisible(isShowYAxis());
           subplot.setRangeGridlinesVisible(isShowYGrid());
@@ -240,8 +240,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     } else {
       p.setAxisOffset(DEFAULT_AXIS_OFFSET);
     }
-
-
   }
 
   public void applyToLegend(@Nonnull JFreeChart chart) {
@@ -300,7 +298,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     LegendTitle newLegend;
 
     if (plot instanceof CombinedDomainXYPlot) {
-      newLegend = MirrorSpectrumUtil.createLegend((CombinedDomainXYPlot) plot);
+      newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
     } else {
       newLegend = new LegendTitle(plot);
     }
