@@ -19,20 +19,14 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderWidths;
 import javafx.stage.Stage;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.NumberAxis;
@@ -42,13 +36,9 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
-import io.github.mzmine.util.color.Colors;
-import io.github.mzmine.util.color.Vision;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -84,7 +74,7 @@ public class MirrorScanWindowFX extends Stage {
   public void setScans(String labelA, double precursorMZA, double rtA, DataPoint[] dpsA,
       String labelB, double precursorMZB, double rtB, DataPoint[] dpsB) {
     contentPane.getChildren().removeAll();
-    mirrorSpecrumPlot = SpectrumChartFactory
+    mirrorSpecrumPlot = MirrorChartFactory
         .createMirrorChartViewer(labelA, precursorMZA, rtA, dpsA,
             labelB, precursorMZB, rtB, dpsB, false, true);
     contentPane.setCenter(mirrorSpecrumPlot);
@@ -98,7 +88,7 @@ public class MirrorScanWindowFX extends Stage {
    */
   public void setScans(Scan scan, Scan mirror) {
     contentPane.getChildren().removeAll();
-    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartViewer(scan, mirror,
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartViewer(scan, mirror,
         scan.getScanDefinition(), mirror.getScanDefinition(), false, true);
     contentPane.setCenter(mirrorSpecrumPlot);
 
@@ -107,7 +97,7 @@ public class MirrorScanWindowFX extends Stage {
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
     contentPane.getChildren().removeAll();
     mirrorSpecrumPlot =
-        SpectrumChartFactory.createMirrorChartViewer(scan, mirror, labelA, labelB, false, true);
+        MirrorChartFactory.createMirrorChartViewer(scan, mirror, labelA, labelB, false, true);
     contentPane.setCenter(mirrorSpecrumPlot);
   }
 
@@ -117,118 +107,7 @@ public class MirrorScanWindowFX extends Stage {
    * @param db
    */
   public void setScans(SpectralDBPeakIdentity db) {
-    Scan scan = db.getQueryScan();
-    if (scan == null) {
-      return;
-    }
-
-    // get highest data intensity to calc relative intensity
-    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
-        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
-    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
-        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
-
-    if (mostIntenseDB == 0d) {
-      logger.warning(
-          "This data set has no original data points in the library spectrum (development error)");
-    }
-    if (mostIntenseQuery == 0d) {
-      logger.warning(
-          "This data set has no original data points in the query spectrum (development error)");
-    }
-    if (mostIntenseDB == 0d || mostIntenseQuery == 0d) {
-      return;
-    }
-
-    // get colors for vision
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // black = filtered
-        palette.getNegativeColorAWT(), // unaligned
-        palette.getPositiveColorAWT() // aligned
-    };
-
-    // scan a
-    double precursorMZA = scan.getPrecursorMZ();
-    double rtA = scan.getRetentionTime();
-
-    Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
-
-    contentPane.getChildren().removeAll();
-    // create without data
-    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartViewer(
-        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
-        precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
-//    mirrorSpecrumPlot.setMaximumDrawWidth(4200); // TODO?
-//    mirrorSpecrumPlot.setMaximumDrawHeight(2500);
-
-//     add data
-    DataPoint[][] query = new DataPoint[tags.length][];
-    DataPoint[][] library = new DataPoint[tags.length][];
-    for (int i = 0; i < tags.length; i++) {
-      DataPointsTag tag = tags[i];
-      query[i] = db.getQueryDataPoints(tag);
-      library[i] = db.getLibraryDataPoints(tag);
-    }
-
-    // add datasets and renderer
-    // set up renderer
-    CombinedDomainXYPlot domainPlot =
-        (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart().getXYPlot();
-    NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
-    axis.setLabel("m/z");
-    XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
-    XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
-
-    // add all datapoints to a dataset that are not present in subsequent
-    // masslist
-    for (int i = 0; i < tags.length; i++) {
-      DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata =
-          new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
-      for (DataPoint dp : query[i]) {
-        // not contained in other
-        if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0) {
-          qdata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseQuery * 100d, null);
-        }
-      }
-
-      PseudoSpectrumDataSet ldata =
-          new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
-      for (DataPoint dp : library[i]) {
-        if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0) {
-          ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
-        }
-      }
-
-      Color color = colors[i];
-      PseudoSpectraRenderer renderer = new PseudoSpectraRenderer(color, false);
-      PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(color, false);
-
-      queryPlot.setDataset(i, qdata);
-      queryPlot.setRenderer(i, renderer);
-
-      libraryPlot.setDataset(i, ldata);
-      libraryPlot.setRenderer(i, renderer2);
-    }
-
-    // add legend
-    LegendItem item;
-    LegendItemCollection collection = new LegendItemCollection();
-    for (int i = 0; i < tags.length; i++) {
-      item = new LegendItem(tags[i].toRemainderString(), colors[i]);
-      collection.add(item);
-    }
-    mirrorSpecrumPlot.getChart().removeLegend();
-    LegendTitle legend = new LegendTitle(() -> collection);
-    legend.setPosition(RectangleEdge.BOTTOM);
-    mirrorSpecrumPlot.getChart().addLegend(legend);
-
-    // set y axis title
-    queryPlot.getRangeAxis().setLabel("rel. intensity [%] (query)");
-    libraryPlot.getRangeAxis().setLabel("rel. intensity [%] (library)");
-
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     contentPane.setCenter(mirrorSpecrumPlot);
   }
 

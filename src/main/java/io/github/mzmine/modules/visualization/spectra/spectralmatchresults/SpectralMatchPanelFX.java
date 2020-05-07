@@ -26,7 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.util.MirrorSpectrumUtil;
+import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -124,6 +124,8 @@ public class SpectralMatchPanelFX extends GridPane {
   private GridPane pnTitle;
   private GridPane pnExport;
 
+  private BorderPane mirrorChartWrapper;
+
   private Label lblScore;
   private Label lblHit;
 
@@ -150,8 +152,10 @@ public class SpectralMatchPanelFX extends GridPane {
 
     metaDataScroll = createMetaDataPane();
 
-    mirrorChart = MirrorSpectrumUtil.createPlotFromSpectralDBPeakIdentity(hit);
+    mirrorChart = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(hit);
     MZmineCore.getConfiguration().getDefaultChartTheme().apply(mirrorChart.getChart());
+    mirrorChartWrapper = new BorderPane();
+    mirrorChartWrapper.setCenter(mirrorChart);
 
     coupleZoomYListener();
 
@@ -163,15 +167,14 @@ public class SpectralMatchPanelFX extends GridPane {
         Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
     add(pnTitle, 0, 0, 2, 1);
-    add(mirrorChart, 0, 1);
+    add(mirrorChartWrapper, 0, 1);
     add(metaDataScroll, 1, 1);
 
     getColumnConstraints().add(0, ccSpectrum);
     getColumnConstraints().add(1, ccMetadata);
 
-    setBorder(
-        new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-            BorderWidths.DEFAULT)));
+    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+        BorderWidths.DEFAULT)));
   }
 
   private GridPane createTitlePane() {
