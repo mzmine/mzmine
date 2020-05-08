@@ -19,7 +19,7 @@
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory2;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -37,7 +37,6 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.DrawingSupplier;
 
@@ -78,7 +77,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       logger.severe("Chart could not be cloned.");
     }
 
-    theme = ChartThemeFactory.createBlackNWhiteTheme();
+    theme = ChartThemeFactory2.createExportChartTheme("Export theme");
     chartParam.applyToChartTheme(theme);
     pnChartPreview = new BorderPane();
 
@@ -138,7 +137,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     
     theme.setDrawingSupplier(ds);
   }
-
 
   /**
    * renew chart preview with specified size

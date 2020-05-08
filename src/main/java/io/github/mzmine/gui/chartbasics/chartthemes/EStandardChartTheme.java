@@ -59,8 +59,10 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
-  private static final RectangleInsets DEFAULT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
-  private static final RectangleInsets MIRROR_PLOT_AXIS_OFFSET = RectangleInsets.ZERO_INSETS;
+  // not final because we want themes without offsets for the export.
+  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
+  private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
+
   private static final double TITLE_TOP_MARGIN = 5.0;
 
   public static final String XML_DESC = "ChartTheme";
@@ -99,7 +101,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     // general
 
     isAntiAliased = true;
-
     masterFont = new Font("Arial", Font.PLAIN, 11);
     masterFontColor = Color.black;
 
@@ -220,7 +221,8 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
+    if (p instanceof CombinedDomainXYPlot) {
+      CombinedDomainXYPlot mirrorPlot = (CombinedDomainXYPlot) p;
       mirrorPlot.setGap(0);
       mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
       for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
@@ -453,6 +455,28 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setClrYGrid(Color clrYGrid) {
     this.clrYGrid = clrYGrid;
+  }
+
+  public RectangleInsets getDefaultAxisOffset() {
+    return DEFAULT_AXIS_OFFSET;
+  }
+
+  /**
+   * Should be set to 0 for exports
+   *
+   * @param defaultAxisOffset
+   */
+  public void setDefaultAxisOffset(RectangleInsets defaultAxisOffset) {
+    DEFAULT_AXIS_OFFSET = defaultAxisOffset;
+  }
+
+
+  public RectangleInsets getMirrorPlotAxisOffset() {
+    return MIRROR_PLOT_AXIS_OFFSET;
+  }
+
+  public void setMirrorPlotAxisOffset(RectangleInsets mirrorPlotAxisOffset) {
+    MIRROR_PLOT_AXIS_OFFSET = mirrorPlotAxisOffset;
   }
 
 }
