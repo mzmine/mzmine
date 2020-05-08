@@ -78,11 +78,6 @@ public final class MZmineCore {
     // be . or , depending on the locale)
     Locale.setDefault(new Locale("en", "US"));
 
-    /*
-     * Configure the logging properties before we start logging
-     */
-    MZmineLogging.configureLogging();
-
     logger.info("Starting MZmine " + getMZmineVersion());
     /*
      * Dump the MZmine and JVM arguments for debugging purposes
@@ -91,16 +86,16 @@ public final class MZmineCore {
     final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
     final String jvmArgsString = String.join(" ", jvmArgs);
     final String classPathString = System.getProperty("java.class.path");
-    logger.info("MZmine arguments: " + mzmineArgsString);
-    logger.info("Java VM arguments: " + jvmArgsString);
-    logger.info("Java class path: " + classPathString);
+    logger.finest("MZmine arguments: " + mzmineArgsString);
+    logger.finest("Java VM arguments: " + jvmArgsString);
+    logger.finest("Java class path: " + classPathString);
 
     /*
      * Report current working and temporary directory
      */
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
-    logger.info("Working directory is " + cwd);
-    logger.info("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+    logger.finest("Working directory is " + cwd);
+    logger.finest("Temporary directory is " + System.getProperty("java.io.tmpdir"));
 
     // Remove old temporary files on a new thread
     Thread cleanupThread = new Thread(new TmpFileCleanup());

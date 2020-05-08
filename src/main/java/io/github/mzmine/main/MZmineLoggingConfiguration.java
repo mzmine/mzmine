@@ -24,16 +24,16 @@ import java.util.logging.LogManager;
 /**
  * MZmine logging support
  */
-public final class MZmineLogging {
+public final class MZmineLoggingConfiguration {
 
   /**
    * Configures the logging properties according to the logging.properties file found in the jar
    * resources
    */
-  public static void configureLogging() {
+  public MZmineLoggingConfiguration() {
 
     try {
-      ClassLoader cl = MZmineLogging.class.getClassLoader();
+      ClassLoader cl = MZmineLoggingConfiguration.class.getClassLoader();
       InputStream loggingProperties = cl.getResourceAsStream("logging.properties");
       LogManager logMan = LogManager.getLogManager();
       logMan.readConfiguration(loggingProperties);
