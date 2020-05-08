@@ -84,7 +84,6 @@ public final class MZmineCore {
     MZmineLogging.configureLogging();
 
     logger.info("Starting MZmine " + getMZmineVersion());
-
     /*
      * Dump the MZmine and JVM arguments for debugging purposes
      */
@@ -92,20 +91,16 @@ public final class MZmineCore {
     final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
     final String jvmArgsString = String.join(" ", jvmArgs);
     final String classPathString = System.getProperty("java.class.path");
-    logger.fine("MZmine arguments: " + mzmineArgsString);
-    logger.fine("Java VM arguments: " + jvmArgsString);
-    logger.fine("Java class path: " + classPathString);
+    logger.info("MZmine arguments: " + mzmineArgsString);
+    logger.info("Java VM arguments: " + jvmArgsString);
+    logger.info("Java class path: " + classPathString);
 
     /*
-     * Report current working directory
+     * Report current working and temporary directory
      */
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
-    logger.fine("Working directory is " + cwd);
-
-    /*
-     * Report current temporary directory
-     */
-    logger.fine("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+    logger.info("Working directory is " + cwd);
+    logger.info("Temporary directory is " + System.getProperty("java.io.tmpdir"));
 
     // Remove old temporary files on a new thread
     Thread cleanupThread = new Thread(new TmpFileCleanup());
@@ -114,10 +109,10 @@ public final class MZmineCore {
 
     logger.fine("Loading core classes..");
 
-    // create instance of configuration
+    // Create instance of configuration
     configuration = new MZmineConfigurationImpl();
 
-    // create instances of core modules
+    // Create instances of core modules
     projectManager = new ProjectManagerImpl();
     taskController = new TaskControllerImpl();
 
