@@ -116,10 +116,19 @@ public interface MZmineProject {
    */
   public void addPeakList(PeakList peaklist);
 
+//  /**
+//   * Adds a mobilogram list to the project
+//   */
+//  public void addMobilogramList(MobilogramList mobilogramlist);
+
   /**
    * Removes a feature list from the project
    */
   public void removePeakList(PeakList peaklist);
+//  /**
+//   * Removes a mobilogram list from the project
+//   */
+//  public void removeMobilogramList(MobilogramList mobilogramlist);
 
   /**
    * Returns all feature lists of the project
@@ -143,11 +152,18 @@ public interface MZmineProject {
 
   public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues);
 
+  public MobilogramList[] getMobilogramLists();
+
+  /**
+   * Returns all mobilogram lists which contain given data file
+   */
+  public MobilogramList[] getMobilogramLists(RawDataFile file);
+
 
     // public void notifyObjectChanged(Object object, boolean structureChanged);
 
-  // public void addProjectListener(MZmineProjectListener newListener);
+   // public void addProjectListener(MZmineProjectListener newListener);
 
-  // public void removeProjectListener(MZmineProjectListener listener);
+  //public void removeProjectListener(MZmineProjectListener listener);
 
 }

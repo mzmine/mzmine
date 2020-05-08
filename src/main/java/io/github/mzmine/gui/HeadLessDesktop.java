@@ -22,6 +22,8 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+
+import io.github.mzmine.datamodel.MobilogramList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
@@ -82,6 +84,11 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public PeakList[] getSelectedPeakLists() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public MobilogramList[] getSelectedMobilogramLists() {
+    return new MobilogramList[0];
   }
 
   @Override

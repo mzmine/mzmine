@@ -342,8 +342,8 @@ public class NativeFileReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMZ,
-            precursorCharge, null, dataPoints, spectrumType, polarity, scanId, mzRange, mobility);
+        SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility, precursorMZ,
+            precursorCharge, null, dataPoints, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;

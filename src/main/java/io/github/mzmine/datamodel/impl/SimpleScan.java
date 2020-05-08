@@ -41,6 +41,7 @@ public class SimpleScan implements Scan {
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
+  private double mobility;
   private Range<Double> mzRange;
   private DataPoint basePeak;
   private double totalIonCurrent;
@@ -48,25 +49,24 @@ public class SimpleScan implements Scan {
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
-  private double mobility;
 
   /**
    * Clone constructor
    */
   public SimpleScan(Scan sc) {
-    this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
+    this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMobility(),
         sc.getPrecursorMZ(), sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
         sc.getDataPoints(), sc.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
-        sc.getScanningMZRange(), sc.getMobility());
+        sc.getScanningMZRange());
   }
 
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, double retentionTime,
+  public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel, double retentionTime,double mobility,
       double precursorMZ, int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, double mobility) {
+      Range<Double> scanMZRange) {
 
     // save scan data
     this.dataFile = dataFile;
@@ -239,6 +239,19 @@ public class SimpleScan implements Scan {
   }
 
   /**
+   */
+  @Override
+  public double getMobility() {
+    return mobility;
+  }
+
+  /**
+   * @param mobility The mobility to set.
+   */
+  public void setMobility(double mobility) {
+    this.mobility = mobility;
+  }
+  /**
    * @see io.github.mzmine.datamodel.Scan#
    */
   public @Nonnull Range<Double> getDataPointMZRange() {
@@ -339,15 +352,5 @@ public class SimpleScan implements Scan {
       scanMZRange = getDataPointMZRange();
     return scanMZRange;
   }
-  @Override
-  public double getMobility(){
-    return mobility;
-  }
-
-  public void setMobility(double mobility)
-  {
-    this.mobility = mobility;
-  }
-
 }
 

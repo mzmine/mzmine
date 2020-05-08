@@ -144,9 +144,9 @@ public class MzMLReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+        SimpleScan scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility,  precursorMz,
                  precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition,
-                null, mobility);
+                null);
 
         for (SimpleScan s : parentStack) {
           if (s.getScanNumber() == parentScan) {

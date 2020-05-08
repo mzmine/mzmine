@@ -388,8 +388,10 @@ public class NetCDFReadTask extends AbstractTask {
     // An empty scan needs special attention..
     if (scanLength[0] == 0) {
       scanNum++;
-      return new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), 0, 0, null,
-          new DataPoint[0], MassSpectrumType.CENTROIDED, PolarityType.UNKNOWN, "", null, 0);
+
+      return new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), 0.0,
+              0, 0, null, new DataPoint[0], MassSpectrumType.CENTROIDED,
+              PolarityType.UNKNOWN, "", null);
     }
 
     // Is there any way how to extract polarity from netcdf?
@@ -432,8 +434,9 @@ public class NetCDFReadTask extends AbstractTask {
     // Auto-detect whether this scan is centroided
     MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-    SimpleScan buildingScan = new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), 0, 0,
-        null, dataPoints, spectrumType, polarity, scanDefinition, null, 0);
+    SimpleScan buildingScan = new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(),
+            0.0, 0,0,null,dataPoints, spectrumType, polarity,
+            scanDefinition, null);
 
     return buildingScan;
 

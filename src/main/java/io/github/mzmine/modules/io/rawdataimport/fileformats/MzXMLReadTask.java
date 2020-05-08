@@ -33,6 +33,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.google.common.collect.Range;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -243,8 +244,9 @@ public class MzXMLReadTask extends AbstractTask {
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0, 0, null,
-            new DataPoint[0], null, polarity, scanId, null,0);
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0,
+                0,0, null, new DataPoint[0], null,
+                polarity, scanId, null);
 
       }
 
