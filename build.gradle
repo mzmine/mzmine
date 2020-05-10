@@ -257,16 +257,33 @@ runtime {
             installerType = "msi"
             //list of additional options to be passed to the jpackage executable when creating the application installer.
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
-            installerOptions = ['--win-menu', '--win-menu-group', 'MZmine Software',  '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid', "$uuid"]
+            installerOptions = ['--win-menu',
+                                '--win-menu-group', 'MZmine',
+                                '--win-shortcut',
+                                '--win-dir-chooser',
+                                '--win-upgrade-uuid', "$uuid",
+                                '--license-file', 'src/main/resources/LICENSE.txt'
+            ]
         }
-        if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
+        else if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
             installerType = "dmg"
             //list of additional options to be passed to the jpackage executable when creating the application installer.
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.icns']
-        }
+            installerOptions = [
+                    '--license-file', 'src/main/resources/LICENSE.txt'
+            ]
 
-            installerName = "MZmine"
-            imageName = "MZmine"
+        }
+        else {
+            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.png']
+            installerOptions = [
+                    '--linux-shortcut',
+                    '--linux-menu-group','MZmine',
+                    '--license-file', 'src/main/resources/LICENSE.txt',
+                    '--linux-deb-maintainer', "plusik@gmail.com"
+            ]
+
+        }
     }
 }
 
