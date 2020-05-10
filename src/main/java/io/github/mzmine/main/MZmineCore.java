@@ -18,6 +18,22 @@
 
 package io.github.mzmine.main;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.gui.Desktop;
@@ -37,16 +53,6 @@ import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Application;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * MZmine main class
  */
@@ -61,33 +67,35 @@ public final class MZmineCore {
 
   private static Map<Class<?>, MZmineModule> initializedModules =
       new Hashtable<Class<?>, MZmineModule>();
+
   /**
    * Main method
    */
-  public static void main(String args[]) {
+  public static void main(final String args[]) {
 
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
     Locale.setDefault(new Locale("en", "US"));
 
-    /*
-     * Configure the logging properties before we start logging
-     */
-    MZmineLogging.configureLogging();
-
     logger.info("Starting MZmine " + getMZmineVersion());
+    /*
+     * Dump the MZmine and JVM arguments for debugging purposes
+     */
+    final String mzmineArgsString = String.join(" ", args);
+    final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    final String jvmArgsString = String.join(" ", jvmArgs);
+    final String classPathString = System.getProperty("java.class.path");
+    logger.finest("MZmine arguments: " + mzmineArgsString);
+    logger.finest("Java VM arguments: " + jvmArgsString);
+    logger.finest("Java class path: " + classPathString);
 
     /*
-     * Report current working directory
+     * Report current working and temporary directory
      */
     final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
     logger.finest("Working directory is " + cwd);
-
-    /*
-     * Report current temporary directory
-     */
-    logger.info("Temporary directory is " + System.getProperty("java.io.tmpdir"));
+    logger.finest("Temporary directory is " + System.getProperty("java.io.tmpdir"));
 
     // Remove old temporary files on a new thread
     Thread cleanupThread = new Thread(new TmpFileCleanup());
@@ -96,10 +104,10 @@ public final class MZmineCore {
 
     logger.fine("Loading core classes..");
 
-    // create instance of configuration
+    // Create instance of configuration
     configuration = new MZmineConfigurationImpl();
 
-    // create instances of core modules
+    // Create instances of core modules
     projectManager = new ProjectManagerImpl();
     taskController = new TaskControllerImpl();
 
