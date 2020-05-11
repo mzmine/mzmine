@@ -18,6 +18,25 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable;
 
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
@@ -46,11 +65,9 @@ import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTab
 import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTableColumnModel;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -59,27 +76,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javafx.application.Platform;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
-import org.apache.poi.ss.formula.functions.Mirr;
 
 /**
  * Peak-list table pop-up menu.
@@ -120,7 +117,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem exportMS1Library;
   ////
   private final JMenuItem manuallyDefineItem;
-  private final JMenuItem showPeakRowSummaryItem;
   private final JMenuItem clearIdsItem;
   private final JMenuItem onlineDbSearchItem;
   private final JMenuItem spectralDbSearchItem;
@@ -166,7 +162,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
     showSpectralDBResults = GUIUtils.addMenuItem(showMenu, "Spectral DB search results", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
-    showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
+    // showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
     searchMenu = new JMenu("Search");
     add(searchMenu);
@@ -220,7 +216,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showSpectralDBResults.setEnabled(false);
     showAllMSMSItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
-    showPeakRowSummaryItem.setEnabled(false);
     exportIsotopesItem.setEnabled(false);
     exportMSMSItem.setEnabled(false);
     exportMenu.setEnabled(false);
@@ -268,7 +263,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       // Enable items.
       show2DItem.setEnabled(oneRowSelected);
       show3DItem.setEnabled(oneRowSelected);
-      showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
       if (clickedPeakListRow.getBestPeak() != null) {
         exportMSMSItem.setEnabled(oneRowSelected
@@ -441,7 +435,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       ScanSelection scanSelection = new ScanSelection(selectedDataFile.getDataRTRange(1), 1);
 
-      ChromatogramVisualizerModule.showNewTICVisualizerWindow(new RawDataFile[]{selectedDataFile},
+      ChromatogramVisualizerModule.showNewTICVisualizerWindow(new RawDataFile[] {selectedDataFile},
           selectedPeaks.toArray(new Feature[selectedPeaks.size()]), labelsMap, scanSelection,
           TICPlotType.BASEPEAK, mzRange);
     }
@@ -454,7 +448,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       final RawDataFile[] selectedDataFiles =
           clickedDataFile == null ? peakList.getRawDataFiles().toArray(RawDataFile[]::new)
-              : new RawDataFile[]{clickedDataFile};
+              : new RawDataFile[] {clickedDataFile};
 
       Range<Double> mzRange = null;
       final ArrayList<Feature> allClickedPeaks =
@@ -677,10 +671,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     }
 
-    if (showPeakRowSummaryItem.equals(src)) {
-
-      PeakSummaryVisualizerModule.showNewPeakSummaryWindow(clickedPeakListRow);
-    }
 
     if (exportIsotopesItem.equals(src)) {
       IsotopePatternExportModule.exportIsotopePattern(clickedPeakListRow);
