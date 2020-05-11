@@ -61,6 +61,7 @@ public class MassListComponent extends FlowPane {
       }
       final Bounds boundsInScreen = lookupButton.localToScreen(lookupButton.getBoundsInLocal());
       lookupMenu.show(lookupButton, boundsInScreen.getCenterX(), boundsInScreen.getCenterY());
+//      lookupMenu.show(lookupButton, 0, 0);
     });
 
     getChildren().addAll(nameField, lookupButton);

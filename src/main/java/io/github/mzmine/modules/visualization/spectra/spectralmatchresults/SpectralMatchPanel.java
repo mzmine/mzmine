@@ -18,6 +18,25 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.gui.framework.CustomTextPane;
+import io.github.mzmine.gui.framework.ScrollablePanel;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.util.color.ColorScaleUtil;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.components.MultiLineLabel;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.swing.IconUtil;
+import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -26,8 +45,10 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -35,10 +56,13 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import net.miginfocom.swing.MigLayout;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -51,26 +75,9 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
-import io.github.mzmine.gui.framework.CustomTextPane;
-import io.github.mzmine.gui.framework.ScrollablePanel;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.util.color.ColorScaleUtil;
-import io.github.mzmine.util.components.MultiLineLabel;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.IconUtil;
-import io.github.mzmine.util.swing.SwingExportUtil;
-import net.miginfocom.swing.MigLayout;
 
 public class SpectralMatchPanel extends JPanel {
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final int ICON_WIDTH = 50;
@@ -92,8 +99,8 @@ public class SpectralMatchPanel extends JPanel {
   public static final double MAX_COS_COLOR_VALUE = 1.0;
   // min color is a darker red
   // max color is a darker green
-  public static final Color MAX_COS_COLOR = new Color(0x388E3C);
-  public static final Color MIN_COS_COLOR = new Color(0xE30B0B);
+  public static Color MAX_COS_COLOR = new Color(0x388E3C);
+  public static Color MIN_COS_COLOR = new Color(0xE30B0B);
 
   private Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private Font titleFont = new Font("Dialog", Font.BOLD, 18);
@@ -109,6 +116,9 @@ public class SpectralMatchPanel extends JPanel {
   private Font chartFont;
   private JPanel pnExport;
 
+  private final JPanel metaDataPanel;
+  private final JPanel boxTitlePanel;
+
   public SpectralMatchPanel(SpectralDBPeakIdentity hit) {
     JPanel panel = this;
     panel.setLayout(new BorderLayout());
@@ -116,14 +126,19 @@ public class SpectralMatchPanel extends JPanel {
     JPanel spectrumPanel = new JPanel(new BorderLayout());
 
     // set meta data from identity
-    JPanel metaDataPanel = new JPanel();
+    metaDataPanel = new JPanel();
     metaDataPanel.setLayout(new BoxLayout(metaDataPanel, BoxLayout.Y_AXIS));
 
     metaDataPanel.setBackground(Color.WHITE);
 
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+    MAX_COS_COLOR = palette.getPositiveColorAWT();
+    MIN_COS_COLOR = palette.getNegativeColorAWT();
+
     // add title
     MigLayout l = new MigLayout("aligny center, wrap, insets 0 10 0 30", "[grow][]", "[grow]");
-    JPanel boxTitlePanel = new JPanel();
+    boxTitlePanel = new JPanel();
     boxTitlePanel.setLayout(l);
 
     double simScore = hit.getSimilarity().getScore();
@@ -172,8 +187,9 @@ public class SpectralMatchPanel extends JPanel {
     preview2DPanel.add(pn, BorderLayout.EAST);
     pn.add(pnExport, BorderLayout.CENTER);
 
-    addExportButtons(MZmineCore.getConfiguration()
-        .getModuleParameters(SpectraIdentificationResultsModule.class));
+//    This class is just used for export fuctionality, so we do not need this buttons
+//    addExportButtons(MZmineCore.getConfiguration()
+//        .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     JComponent newComponent = null;
 
@@ -187,13 +203,14 @@ public class SpectralMatchPanel extends JPanel {
     // check for smiles
     else if (smilesString != "N/A") {
       molecule = parseSmiles(hit);
-    } else
+    } else {
       molecule = null;
+    }
 
     // try to draw the component
     if (molecule != null) {
       try {
-        // newComponent = new Structure2DComponent(molecule, FONT);
+        newComponent = new Structure2DComponentAWT(molecule, FONT);
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -268,7 +285,6 @@ public class SpectralMatchPanel extends JPanel {
   }
 
   /**
-   *
    * @param param {@link SpectraIdentificationResultsParameters}
    */
   private void addExportButtons(ParameterSet param) {
@@ -315,10 +331,6 @@ public class SpectralMatchPanel extends JPanel {
     }
   }
 
-  public void exportToAllGraphics() {
-    exportToGraphics("all");
-  }
-
   /**
    * Export the whole panel to pdf, emf, eps or all
    *
@@ -333,8 +345,9 @@ public class SpectralMatchPanel extends JPanel {
     if (param.getValue() != null) {
       chooser = new JFileChooser();
       chooser.setSelectedFile(param.getValue());
-    } else
+    } else {
       chooser = new JFileChooser();
+    }
     // get file
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       try {
@@ -354,6 +367,37 @@ public class SpectralMatchPanel extends JPanel {
         pnExport.getParent().revalidate();
         pnExport.getParent().repaint();
       }
+    }
+  }
+
+  /**
+   * This calculates the size for the export. Do not call export right after, or it won't have time
+   * to update
+   */
+  public void calculateAndSetSize() {
+    int w = META_WIDTH * 3;
+    int titleLineMultiplier = (int) ((boxTitlePanel.getPreferredSize().getWidth() / w) + 2);
+    boxTitlePanel.setSize(w, boxTitlePanel.getHeight() * titleLineMultiplier);
+    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel
+        .getPreferredSize().getHeight());
+
+    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+    frame.setSize(w, h);
+    this.setSize(w, h);
+
+    revalidate();
+    repaint();
+
+    frame.revalidate();
+    frame.repaint(0, 0, 0, w, h);
+  }
+
+  public void exportToGraphics(String format, File file) {
+    try {
+      SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
+    } finally {
     }
   }
 
@@ -387,11 +431,13 @@ public class SpectralMatchPanel extends JPanel {
   private void rangeHasChanged(Range range) {
     if (setCoupleZoomY) {
       ValueAxis axis = libraryPlot.getRangeAxis();
-      if (!axis.getRange().equals(range))
+      if (!axis.getRange().equals(range)) {
         axis.setRange(range);
+      }
       ValueAxis axisQuery = queryPlot.getRangeAxis();
-      if (!axisQuery.getRange().equals(range))
+      if (!axisQuery.getRange().equals(range)) {
         axisQuery.setRange(range);
+      }
     }
   }
 
@@ -440,8 +486,9 @@ public class SpectralMatchPanel extends JPanel {
         logger.log(Level.WARNING, errorMessage, e);
         return null;
       }
-    } else
+    } else {
       return null;
+    }
   }
 
   private IAtomContainer parseSmiles(SpectralDBPeakIdentity hit) {
@@ -457,8 +504,9 @@ public class SpectralMatchPanel extends JPanel {
         logger.log(Level.WARNING, errorMessage, e1);
         return null;
       }
-    } else
+    } else {
       return null;
+    }
   }
 
   /**
