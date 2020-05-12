@@ -30,12 +30,12 @@ public class CombinedModuleDataPoint {
   private double retentionTime;
   private double neutralLoss;
   private double precursorMass;
+  private double productionmz; //need updation
   private String label;
   private static int defaultPrecursorCharge = 2;
 
   public CombinedModuleDataPoint(double mzValue, int scanNumber, double precursorMZ,
-      int precursorCharge,
-      double retentionTime) {
+      int precursorCharge, double retentionTime) {
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
@@ -57,14 +57,11 @@ public class CombinedModuleDataPoint {
     neutralLoss = mzValue; /* precursorMass - mzValue; */
 
     StringBuilder sb = new StringBuilder();
-    sb.append("loss: ");
-    sb.append(mzFormat.format(neutralLoss));
-    sb.append(", m/z ");
-    sb.append(mzFormat.format(mzValue));
-    sb.append(", scan #").append(scanNumber).append(", RT ");
-    sb.append(rtFormat.format(retentionTime));
-    sb.append(", m/z ");
-    sb.append(mzFormat.format(precursorMZ));
+    sb.append("loss: ").append(mzFormat.format(neutralLoss));
+    sb.append(", m/z ").append(mzFormat.format(mzValue));
+    sb.append(", scan #").append(scanNumber);
+    sb.append(", RT ").append(rtFormat.format(retentionTime));
+    sb.append(", m/z ").append(mzFormat.format(precursorMZ));
     if (precursorCharge > 0) {
       sb.append(" (charge ").append(precursorCharge).append(")");
     }
@@ -120,5 +117,9 @@ public class CombinedModuleDataPoint {
 
   double getNeutralLoss() {
     return neutralLoss;
+  }
+
+  double getProductIonMZ() {
+    return productionmz;
   }
 }

@@ -39,6 +39,6 @@
     </ToolBar>
   </right>
   <bottom>
-    <HBox fx:id="bottomPanel" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER"/>
+    <HBox fx:id="bottomPanel" BorderPane.alignment="CENTER"/>
   </bottom>
 </BorderPane>

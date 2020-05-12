@@ -205,7 +205,14 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     if (xAxisType.equals(AxisType.PRECURSORIONMZ)) {
       double mz = point.getPrecursorMZ();
       return mz;
-    } else {
+    }
+    else if(xAxisType.equals(AxisType.NEUTRALLOSS)){
+      return point.getNeutralLoss();
+    }
+    else if(xAxisType.equals(AxisType.PRODUCTIONMZ)){
+      return point.getProductIonMZ();
+    }
+    else {
       return point.getRetentionTime();
     }
   }
@@ -213,10 +220,18 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   @Override
   public Number getY(int series, int item) {
     CombinedModuleDataPoint point = dataSeries.get(series).get(item);
-    if (yAxisType.equals(AxisType.NEUTRALLOSS)) {
+    if (yAxisType.equals(AxisType.PRECURSORIONMZ)) {
+      double mz = point.getPrecursorMZ();
+      return mz;
+    }
+    else if(yAxisType.equals(AxisType.NEUTRALLOSS)){
       return point.getNeutralLoss();
-    } else {
-      return point.getPrecursorMass();
+    }
+    else if(yAxisType.equals(AxisType.PRODUCTIONMZ)){
+      return point.getProductIonMZ();
+    }
+    else {
+      return point.getRetentionTime();
     }
 
   }
