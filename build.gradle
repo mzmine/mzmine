@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.8.1"
+    id "org.beryx.runtime" version "1.8.4"
 }
 
 group = "io.github.mzmine"
@@ -58,8 +58,8 @@ ext {
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
-    guavaVersion = "28.1-jre"
-    slf4jVersion = "1.7.28"
+    guavaVersion = "29.0-jre"
+    slf4jVersion = "1.7.30"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
     controlsfxVersion = "11.0.1"
