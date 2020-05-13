@@ -5,7 +5,7 @@
 <?import javafx.scene.Scene?>
 
 <Scene fx:id="resultTableScene" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.ResultWindowController">
-    <BorderPane minHeight="550.0" minWidth="700.0" style=" -fx-border-color:grey; -fx-border-width:3 ; -fx-border-style: solid;">
+    <BorderPane minHeight="350.0" minWidth="600.0" style=" -fx-border-color:grey; -fx-border-width:3 ; -fx-border-style: solid;">
 
         <top>
             <Label text="List of possible identities"/>
