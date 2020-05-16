@@ -124,7 +124,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
               resultWindowFX.show();
               //close button handle
               resultWindowFX.getScene().getWindow().setOnCloseRequest(e->{
-                if (getStatus() != TaskStatus.FINISHED) {
+                if (getStatus() == TaskStatus.WAITING || getStatus() == TaskStatus.PROCESSING) {
                   setStatus(TaskStatus.FINISHED);
                 }
               });

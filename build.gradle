@@ -241,7 +241,6 @@ runtime {
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.icns']
             installerOptions = ['--license-file', 'LICENSE.txt']
         } else {
-            installerType = "deb"
             // additional options for jpackage
             imageOptions = ['--icon', 'src/main/resources/MZmineIcon.png']
             installerOptions = ['--linux-shortcut',
