@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.combinedmodule;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -45,6 +46,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
   int totalScans;
   private AxisType xAxisType, yAxisType;
+  private String massListName;
   private Double noiseLevel;
   private ColorScale colorScale;
   private static int RAW_LEVEL = 0;
@@ -53,7 +55,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
   public CombinedModuleDataset(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
       CombinedModuleVisualizerWindowController visualizer, AxisType xAxisType, AxisType yAxisType,
-      Double noiseLevel, ColorScale colorScale) {
+      Double noiseLevel, ColorScale colorScale, String massList) {
     this.rawDataFile = dataFile;
     this.totalMZRange = mzRange;
     this.totalRTRange = rtRange;
@@ -62,8 +64,9 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
     this.yAxisType = yAxisType;
     this.noiseLevel = noiseLevel;
     this.colorScale = colorScale;
+    this.massListName = massList;
 
-    scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
+    scanNumbers = rawDataFile.getScanNumbers();
     totalScans = scanNumbers.length;
     dataSeries = new HashMap<Integer, Vector<CombinedModuleDataPoint>>();
     dataSeries.put(RAW_LEVEL, new Vector<CombinedModuleDataPoint>(totalScans));
@@ -92,8 +95,8 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
         processedScans++;
         continue;
       }
-      // check parent m/z
-      if (!totalMZRange.contains(scan.getPrecursorMZ())) {
+
+      if (!totalRTRange.contains(scan.getRetentionTime())) {
         continue;
       }
 
@@ -106,7 +109,12 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
       retentionList.add(scan.getRetentionTime());
       precursorList.add(scan.getPrecursorMZ());
 
-      DataPoint[] scanDataPoints = scan.getDataPoints();
+      MassList massList = scan.getMassList(massListName);
+      if (massList == null) {
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
+      DataPoint[] scanDataPoints = massList.getDataPoints();
 
       // topPeaks will contain indexes to mzValues in scan above a threshold
       List<Integer> topPeaksList = new ArrayList<Integer>();
@@ -115,6 +123,9 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
         // Cancel?
         if (status == TaskStatus.CANCELED) {
           return;
+        }
+        if (!totalMZRange.contains(scanDataPoints[i].getMZ())) {
+          continue;
         }
         if (scanDataPoints[i].getIntensity() > noiseLevel) {
           // add the peaks
@@ -201,38 +212,34 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
   @Override
   public Number getX(int series, int item) {
+    double mz;
     CombinedModuleDataPoint point = dataSeries.get(series).get(item);
     if (xAxisType.equals(AxisType.PRECURSORIONMZ)) {
-      double mz = point.getPrecursorMZ();
-      return mz;
+      mz = point.getPrecursorMZ();
+    } else if (xAxisType.equals(AxisType.NEUTRALLOSS)) {
+      mz = point.getNeutralLoss();
+    } else if (xAxisType.equals(AxisType.PRODUCTIONMZ)) {
+      mz = point.getProductIonMZ();
+    } else {
+      mz = point.getRetentionTime();
     }
-    else if(xAxisType.equals(AxisType.NEUTRALLOSS)){
-      return point.getNeutralLoss();
-    }
-    else if(xAxisType.equals(AxisType.PRODUCTIONMZ)){
-      return point.getProductIonMZ();
-    }
-    else {
-      return point.getRetentionTime();
-    }
+    return mz;
   }
 
   @Override
   public Number getY(int series, int item) {
     CombinedModuleDataPoint point = dataSeries.get(series).get(item);
+    double mz;
     if (yAxisType.equals(AxisType.PRECURSORIONMZ)) {
-      double mz = point.getPrecursorMZ();
-      return mz;
+      mz = point.getPrecursorMZ();
+    } else if (yAxisType.equals(AxisType.NEUTRALLOSS)) {
+      mz = point.getNeutralLoss();
+    } else if (yAxisType.equals(AxisType.PRODUCTIONMZ)) {
+      mz = point.getProductIonMZ();
+    } else {
+      mz = point.getRetentionTime();
     }
-    else if(yAxisType.equals(AxisType.NEUTRALLOSS)){
-      return point.getNeutralLoss();
-    }
-    else if(yAxisType.equals(AxisType.PRODUCTIONMZ)){
-      return point.getProductIonMZ();
-    }
-    else {
-      return point.getRetentionTime();
-    }
+    return mz;
 
   }
 

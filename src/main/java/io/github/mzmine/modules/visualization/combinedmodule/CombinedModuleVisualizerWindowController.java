@@ -70,8 +70,8 @@ public class CombinedModuleVisualizerWindowController {
     noiseLevel = parameters.getParameter(CombinedModuleParameters.noiseLevel).getValue();
     colorScale = parameters.getParameter(CombinedModuleParameters.colorScale).getValue();
     dataset = new CombinedModuleDataset(dataFile, rtRange, mzRange, this, xAxisType, yAxisType,
-        noiseLevel, colorScale);
-    plot.setPlot(dataFile, this, dataset, rtRange, mzRange, xAxisType, yAxisType, massList,
+        noiseLevel, colorScale,massList);
+    plot.setPlot(dataFile, this, rtRange, mzRange, xAxisType, yAxisType, massList,
         noiseLevel, colorScale);
     plot.addDataset(dataset);
 

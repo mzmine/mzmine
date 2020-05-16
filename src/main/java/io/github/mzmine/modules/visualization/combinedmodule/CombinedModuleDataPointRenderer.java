@@ -20,11 +20,14 @@ package io.github.mzmine.modules.visualization.combinedmodule;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
@@ -32,6 +35,7 @@ import org.jfree.data.xy.XYDataset;
 public class CombinedModuleDataPointRenderer extends XYLineAndShapeRenderer {
 
   private AlphaComposite alphaComp, alphaCompOriginal;
+  private PaintScale paintScale;
 
   public CombinedModuleDataPointRenderer(boolean lines, boolean shapes) {
     super(lines, shapes);
@@ -56,7 +60,15 @@ public class CombinedModuleDataPointRenderer extends XYLineAndShapeRenderer {
     } else if (series == 0) {
       g2.setComposite(alphaCompOriginal);
     }
+    double x=dataset.getXValue(series, item);
+    Paint p=this.paintScale.getPaint(x);
+    g2.setPaint(p);
     super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis, dataset, series, item,
         crosshairState, pass);
+  }
+
+  public void setPaintScale(LookupPaintScale scale) {
+    this.paintScale = scale;
+    fireChangeEvent();
   }
 }

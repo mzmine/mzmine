@@ -32,6 +32,7 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.ui.RectangleInsets;
 
 public class CombinedModulePlot extends EChartViewer {
@@ -69,11 +70,9 @@ public class CombinedModulePlot extends EChartViewer {
         false), true, true, false, false, true);
   }
 
-  public void setPlot(RawDataFile dataFile,
-      CombinedModuleVisualizerWindowController visualizer,
-      CombinedModuleDataset dataset, Range<Double> rtRange, Range<Double> mzRange,
-      AxisType xAxisType, AxisType yAxisType, String massList,
-      Double noiseLevel, ColorScale colorScale) {
+  public void setPlot(RawDataFile dataFile, CombinedModuleVisualizerWindowController visualizer,
+      Range<Double> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
+      String massList, Double noiseLevel, ColorScale colorScale) {
 
     this.visualizer = visualizer;
     this.dataFile = dataFile;
@@ -103,6 +102,9 @@ public class CombinedModulePlot extends EChartViewer {
 
     defaultRenderer = new CombinedModuleDataPointRenderer(false, true);
     defaultRenderer.setTransparency(0.4f);
+    LookupPaintScale scale = new LookupPaintScale(rtRange.lowerEndpoint(), rtRange.upperEndpoint(),
+        new Color(0, 0, 0));
+    defaultRenderer.setPaintScale(scale);
 
     NumberAxis xAxis = (NumberAxis) this.plot.getDomainAxis();
     if (xAxisType == AxisType.RETENTIONTIME) {

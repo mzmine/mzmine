@@ -30,7 +30,6 @@ public class CombinedModuleDataPoint {
   private double retentionTime;
   private double neutralLoss;
   private double precursorMass;
-  private double productionmz; //need updation
   private String label;
   private static int defaultPrecursorCharge = 2;
 
@@ -69,19 +68,6 @@ public class CombinedModuleDataPoint {
 
   }
 
-  /**
-   * @return Returns the mzValue.
-   */
-  double getMzValue() {
-    return mzValue;
-  }
-
-  /**
-   * @return Returns the precursorCharge.
-   */
-  int getPrecursorCharge() {
-    return precursorCharge;
-  }
 
   /**
    * @return Returns the precursorMZ.
@@ -104,12 +90,6 @@ public class CombinedModuleDataPoint {
     return retentionTime;
   }
 
-  /**
-   * @return Returns the scanNumber.
-   */
-  int getScanNumber() {
-    return scanNumber;
-  }
 
   String getName() {
     return label;
@@ -120,6 +100,6 @@ public class CombinedModuleDataPoint {
   }
 
   double getProductIonMZ() {
-    return productionmz;
+    return mzValue;
   }
 }
