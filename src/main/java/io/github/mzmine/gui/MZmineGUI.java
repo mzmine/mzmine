@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
-import io.github.mzmine.datamodel.MobilogramList;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import javafx.application.HostServices;
@@ -445,11 +444,6 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public PeakList[] getSelectedPeakLists() {
     return getSelectedFeatureLists().toArray(new PeakList[0]);
-  }
-
-  @Override
-  public MobilogramList[] getSelectedMobilogramLists() {
-    return new MobilogramList[0];
   }
 
   @Override

@@ -19,9 +19,7 @@
 package io.github.mzmine.gui;
 
 import javax.annotation.Nonnull;
-import javax.swing.event.TreeModelListener;
 
-import io.github.mzmine.datamodel.MobilogramList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
@@ -102,25 +100,6 @@ public interface Desktop extends MZmineModule {
    * @return Array of selected feature lists
    */
   public PeakList[] getSelectedPeakLists();
-
-  /**
-   * Returns array of currently selected mobilogram lists in GUI
-   *
-   * @return Array of selected mobilogram lists
-   */
-  public MobilogramList[] getSelectedMobilogramLists();
-
-//  public void addRawDataTreeListener(TreeModelListener listener);
-//
-//  public void addPeakListTreeListener(TreeModelListener listener);
-//
-//  public void addMobilogramListTreeListener(TreeModelListener listener);
-//
-//  public void removeRawDataTreeListener(TreeModelListener listener);
-//
-//  public void removePeakListTreeListener(TreeModelListener listener);
-//
-//  public void removeMobilogramListTreeListener(TreeModelListener listener);
 
   @Nonnull
   public ExitCode exitMZmine();

@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.8.1"
+    id "org.beryx.runtime" version "1.8.4"
 }
 
 group = "io.github.mzmine"
@@ -58,8 +58,8 @@ ext {
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
-    guavaVersion = "28.1-jre"
-    slf4jVersion = "1.7.28"
+    guavaVersion = "29.0-jre"
+    slf4jVersion = "1.7.30"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
     controlsfxVersion = "11.0.1"
@@ -196,34 +196,6 @@ tasks.withType(JavaCompile) {
 application {
     mainClassName = "io.github.mzmine.main.MZmineCore"
     applicationName = "MZmine"
-    executableDir = ""
-    applicationDefaultJvmArgs = ["-showversion",
-                                 "-XX:MaxHeapFreeRatio=100",
-                                 "-XX:InitialRAMPercentage=30",
-                                 "-XX:MinRAMPercentage=80",
-                                 "-XX:MaxRAMPercentage=80",
-                                 "-Djava.library.path=lib",
-                                 "-enableassertions",
-                                 "-Dapple.awt.application.name=MZmine ${version}"
-    ]
-}
-
-
-/*
- * Provide a default start script for this platform
- */
-startScripts {
-    applicationName = "startMZmine-" + osSuffix
-    classpath = files("lib/*")
-    doLast {
-        if (OperatingSystem.current().isWindows()) {
-            delete unixScript
-            // Temporary fix for https://github.com/gradle/gradle/issues/10387
-            windowsScript.text = windowsScript.text.replace('set JAVA_HOME=\"%~dp0.."', 'set JAVA_HOME="%~dp0"')
-        } else {
-            delete windowsScript
-        }
-    }
 }
 
 /*
@@ -252,22 +224,47 @@ runtime {
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
     jpackage {
-        if(org.gradle.internal.os.OperatingSystem.current().windows) {
+        if (OperatingSystem.current().isWindows()) {
+            // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
-            //list of additional options to be passed to the jpackage executable when creating the application installer.
-            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.ico']
-            installerOptions = ['--win-menu', '--win-shortcut','--win-dir-chooser','--win-upgrade-uuid', "$uuid"]
-            installerName = "MZmine"
-            imageName = "MZmine"
+            // additional options for jpackage
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico"]
+            installerOptions = ["--win-menu",
+                                "--win-menu-group", "MZmine",
+                                "--win-shortcut",
+                                "--win-dir-chooser",
+                                "--win-upgrade-uuid", "$uuid",
+                                "--license-file", "LICENSE.txt"
+            ]
         }
-        if(org.gradle.internal.os.OperatingSystem.current().macOsX) {
+        if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
-            //list of additional options to be passed to the jpackage executable when creating the application installer.
-            imageOptions = ['--icon', 'src/main/resources/MZmineIcon.icns']
+            // additional options for jpackage
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
+            installerOptions = ["--license-file", "LICENSE.txt"]
         }
+        if (OperatingSystem.current().isLinux()) {
+            // rpmbuild and rpm tools need to be installed
+            installerType = ["rpm", "deb"]
+            // additional options for jpackage
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
+            installerOptions = ["--linux-shortcut",
+                                "--linux-menu-group","MZmine",
+                                "--license-file", "LICENSE.txt",
+                                "--linux-deb-maintainer", "plusik@gmail.com"
+            ]
 
-            installerName = "MZmine"
-            imageName = "MZmine"
+        }
+        installerName = "MZmine"
+        imageName = "MZmine"
+        jvmArgs = ["-showversion",
+                   "-XX:MaxHeapFreeRatio=100",
+                   "-XX:InitialRAMPercentage=30",
+                   "-XX:MinRAMPercentage=80",
+                   "-XX:MaxRAMPercentage=80",
+                   "-enableassertions",
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+        ]
     }
 }
 

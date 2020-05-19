@@ -13,3 +13,4 @@ mzmine.log*
 bio
 not-bio
 /libglpk*
+/out

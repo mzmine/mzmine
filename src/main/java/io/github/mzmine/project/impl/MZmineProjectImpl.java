@@ -21,10 +21,8 @@ package io.github.mzmine.project.impl;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MobilogramList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;
@@ -63,16 +61,6 @@ public class MZmineProjectImpl implements MZmineProject {
   @Override
   public void setProjectParametersAndValues(Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
-  }
-
-  @Override
-  public MobilogramList[] getMobilogramLists() {
-    return new MobilogramList[0];
-  }
-
-  @Override
-  public MobilogramList[] getMobilogramLists(RawDataFile file) {
-    return new MobilogramList[0];
   }
 
   private File projectFile;

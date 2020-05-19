@@ -23,14 +23,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
-import io.github.mzmine.datamodel.MobilogramList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
-import javafx.application.HostServices;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -84,11 +82,6 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public PeakList[] getSelectedPeakLists() {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public MobilogramList[] getSelectedMobilogramLists() {
-    return new MobilogramList[0];
   }
 
   @Override
