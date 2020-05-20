@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.impl.SimpleMobilogramInformation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -164,10 +165,8 @@ public interface IMSFeature {
 
     // dulab Edit
     public void outputChromToFile();
+    public void setMobilogramInformation(SimpleMobilogramInformation MobilogramInfoIn);
 
-//    public void setMobilogramInformation(SimpleMobilogramInformation MobilogramInfoIn);
-//
-//    public SimpleMobilogramInformation getMobilogramInformation();
-//    // End dulab Edit
+    public SimpleMobilogramInformation getMobilogramInformation();
 
 }
