@@ -33,10 +33,11 @@ public class ScanDescription {
   private String scanType;
   private String polarity;
   private String definition;
+  private String mobility;
 
 
   public ScanDescription(String scanNumber, String retentionTime, String msLevel, String precursorMz,
-      String mzRange, String scanType, String polarity, String definition) {
+      String mzRange, String scanType, String polarity, String definition, String mobility) {
     this.scanNumber = scanNumber;
     this.retentionTime = retentionTime;
     this.msLevel = msLevel;
@@ -45,6 +46,7 @@ public class ScanDescription {
     this.scanType = scanType;
     this.polarity = polarity;
     this.definition = definition;
+    this.mobility = mobility;
   }
 
 
@@ -124,5 +126,9 @@ public class ScanDescription {
   public void setDefinition(String definition) {
     this.definition = definition;
   }
+
+  public String getMobility(){ return  mobility;}
+
+  public void setMobility(String mobility) { this.mobility = mobility; }
 
 }

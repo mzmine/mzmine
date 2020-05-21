@@ -19,7 +19,6 @@
 package io.github.mzmine.gui;
 
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
@@ -28,6 +27,7 @@ import io.github.mzmine.util.ExitCode;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
 import java.net.URL;
 
 /**

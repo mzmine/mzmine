@@ -133,6 +133,10 @@ public class SimpleScan implements Scan {
 
     return pointsOverIntensity;
   }
+  /**
+   * @param mzValues m/z values to set
+   * @param intensityValues Intensity values to set
+   */
 
   public void setDataPoints(DataPoint[] dataPoints) {
 
@@ -259,7 +263,7 @@ public class SimpleScan implements Scan {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Scan#
+   * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
    */
   public DataPoint getHighestDataPoint() {
     return basePeak;
@@ -275,6 +279,7 @@ public class SimpleScan implements Scan {
   /**
    * @param fragmentScans The fragmentScans to set.
    */
+  
   public void setFragmentScanNumbers(int[] fragmentScans) {
     this.fragmentScans = fragmentScans;
   }
