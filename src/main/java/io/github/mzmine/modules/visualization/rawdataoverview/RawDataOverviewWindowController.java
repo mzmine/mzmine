@@ -173,6 +173,8 @@ public class RawDataOverviewWindowController {
       } else {
         precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
       }
+      String mobility="";
+     mobility =  MZminePreferences.mzFormat.getValue().format(scan.getMobility());
 
       // format mzRange
       String mzRange =
@@ -188,7 +190,7 @@ public class RawDataOverviewWindowController {
           scan.getSpectrumType().toString(), // profile/centroid
           scan.getPolarity().toString(), // polarity
           scan.getScanDefinition(),      // definition
-              String.valueOf(scan.getMobility())) // mobility
+              mobility) // mobility
       );
     }
 
