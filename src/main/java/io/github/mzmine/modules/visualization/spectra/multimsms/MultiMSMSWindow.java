@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
+import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -396,7 +397,7 @@ public class MultiMSMSWindow extends JFrame {
     // COMMON
     // MS2 of all rows
     for (PeakListRow row : rows) {
-      EChartPanel c = SpectrumChartFactory.createMSMSChartPanel(row, raw, showTitle, showLegend,
+      EChartPanel c = MirrorChartFactory.createMSMSChartPanel(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
 
       if (c != null) {

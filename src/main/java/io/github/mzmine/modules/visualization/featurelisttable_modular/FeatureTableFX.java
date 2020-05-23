@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,15 +18,31 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import java.util.Random;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.fx.ColumnID;
+import io.github.mzmine.datamodel.data.types.fx.ColumnType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.logging.Logger;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -35,21 +51,32 @@ import javafx.scene.control.TreeTableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javax.annotation.Nullable;
 
 /**
  * JavaFX FeatureTable based on {@link ModularFeatureListRow} and {@link DataType}
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   Random rand = new Random(System.currentTimeMillis());
+
+  // lists
   private ModularFeatureList flist;
+  private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
+  private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
+
+  // parameters
+  private final ParameterSet parameters;
+  private final DataTypeCheckListParameter rowTypesParameter;
+  private final DataTypeCheckListParameter featureTypesParameter;
+
+  // column map to keep track of columns
+  private final Map<ColumnID, TreeTableColumn> columnMap;
 
   public FeatureTableFX() {
-    FeatureTableFX table = this;
     // add dummy root
     TreeItem<ModularFeatureListRow> root = new TreeItem<>();
     root.setExpanded(true);
@@ -59,8 +86,21 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     this.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     this.getSelectionModel().setCellSelectionEnabled(true);
     setTableEditable(true);
-  }
 
+    /*getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)  -> {
+        int io = getRoot().getChildren().indexOf(oldValue);
+        int in = getRoot().getChildren().indexOf(newValue);
+    });*/
+
+    parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
+    rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
+    featureTypesParameter = parameters
+        .getParameter(FeatureTableFXParameters.showFeatureTypeColumns);
+
+    rowItems = FXCollections.observableArrayList();
+    filteredRowItems = new FilteredList<>(rowItems);
+    columnMap = new HashMap<>();
+  }
 
   private void setTableEditable(boolean state) {
     this.setEditable(true);// when character or numbers pressed it will start edit in editable
@@ -118,32 +158,35 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   /**
    * add row data and columns of first row
-   * 
-   * @param data
+   *
+   * @param flist
    */
   public void addData(ModularFeatureList flist) {
-    if (flist.isEmpty())
+    if (flist.isEmpty()) {
       return;
+    }
     this.flist = flist;
 
     addColumns(flist);
 
     // add rows
     TreeItem<ModularFeatureListRow> root = getRoot();
-    logger.info("Add rows");
+//    logger.info("Add rows");
     for (ModularFeatureListRow row : flist.getRows()) {
-      logger.info("Add row with id: " + row.getID());
+//      logger.info("Add row with id: " + row.getID());
       root.getChildren().add(new TreeItem<>(row));
     }
+
+    rowItems.addAll(root.getChildren());
   }
 
   /**
    * Add all columns of {@link ModularFeatureListRow} data
-   * 
+   *
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(ModularFeatureList flist) {
-    logger.info("Adding columns to table");
+//    logger.info("Adding columns to table");
     // for all data columns available in "data"
     flist.getRowTypes().values().forEach(dataType -> {
       addColumn(dataType);
@@ -152,9 +195,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   /**
    * Add a new column to the table
-   * 
+   *
    * @param dataType
-   * @param featureColumns
    */
   public void addColumn(DataType dataType) {
     // value binding
@@ -162,6 +204,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // add to table
     if (col != null) {
       this.getColumns().add(col);
+      columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
+      rowTypesParameter.isDataTypeVisible(dataType);
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
         // add feature columns for each raw file
@@ -174,21 +218,24 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
           // add sub columns of feature
           for (DataType ftype : flist.getFeatureTypes().values()) {
             TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(raw);
-            if (subCol != null)
+            if (subCol != null) {
               sampleCol.getColumns().add(subCol);
+              columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, raw), subCol);
+              featureTypesParameter.isDataTypeVisible(ftype);
+            }
           }
-
           // add all
           col.getColumns().add(sampleCol);
         }
       }
     }
+    applyColumnVisibility();
   }
 
 
   /**
    * Copy all rows of selected cells
-   * 
+   *
    * @param table
    * @param addHeader
    */
@@ -231,8 +278,47 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
+  @Nullable
   public ModularFeatureList getFeatureList() {
     return flist;
   }
 
+  @Nullable
+  public FilteredList<TreeItem<ModularFeatureListRow>> getFilteredRowItems() {
+    return filteredRowItems;
+  }
+
+  @Nullable
+  private TreeTableColumn getColumn(ColumnID id) {
+    if (!columnMap.containsKey(id)) {
+      logger.info(id.getFormattedString());
+    }
+    return columnMap.get(id);
+  }
+
+  /**
+   * Sets visibility of DataType columns depending on the parameter values. Uses columnMap and
+   * ColumnID.
+   */
+  protected void applyColumnVisibility() {
+    if (flist == null) {
+      return;
+    }
+
+    for (DataType dataType : flist.getRowTypes().values()) {
+      TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+      if (col != null) {
+        col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
+      }
+    }
+
+    for (RawDataFile raw : flist.getRawDataFiles()) {
+      for (DataType dataType : flist.getFeatureTypes().values()) {
+        TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
+        if (col != null) {
+          col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
+        }
+      }
+    }
+  }
 }

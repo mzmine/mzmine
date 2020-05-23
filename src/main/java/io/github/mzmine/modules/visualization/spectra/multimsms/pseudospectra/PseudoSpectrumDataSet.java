@@ -94,4 +94,54 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
       }
     }
   }
+
+  @Override
+  public Number getX(int series, int item) {
+    return getSeries(series).getX(item);
+  }
+
+  @Override
+  public Number getY(int series, int item) {
+    return getSeries(series).getY(item);
+  }
+
+  @Override
+  public Number getEndX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getEndXValue(int series, int item) {
+    return getXValue(series, item);
+  }
+
+  @Override
+  public Number getEndY(int series, int item) {
+    return getY(series, item);
+  }
+
+  @Override
+  public double getEndYValue(int series, int item) {
+    return getYValue(series, item);
+  }
+
+  @Override
+  public Number getStartX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getStartXValue(int series, int item) {
+    return getXValue(series, item);
+  }
+
+  @Override
+  public Number getStartY(int series, int item) {
+    return getY(series, item);
+  }
+
+  @Override
+  public double getStartYValue(int series, int item) {
+    return getYValue(series, item);
+  }
 }

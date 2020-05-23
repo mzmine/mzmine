@@ -122,6 +122,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
     Platform.runLater(() -> {
               resultWindowFX= new ResultWindowFX(peakListRow, searchedMass, this);
               resultWindowFX.show();
+              //close button handle
+              resultWindowFX.getScene().getWindow().setOnCloseRequest(e->{
+                if (getStatus() == TaskStatus.WAITING || getStatus() == TaskStatus.PROCESSING) {
+                  cancel();
+                }
+              });
     });
 
 
