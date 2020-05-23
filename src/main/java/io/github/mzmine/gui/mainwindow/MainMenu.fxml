@@ -119,6 +119,8 @@
 		<Menu text="Import feature list">
 			<MenuItem text="mzTab" onAction="#runModule"
 				userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
+			<MenuItem text="mzTab-m" onAction="#runModule"
+					  userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule" />
 		</Menu>
 
 		<Menu text="Export feature list">
