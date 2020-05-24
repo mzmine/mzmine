@@ -24,7 +24,7 @@ enum RawDataElementName_2_3 {
       "id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN("fragmentscans"), FRAGMENT_SCAN(
           "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN(
               "parent"), PRECURSOR_MZ("precursor_mz"), PRECURSOR_CHARGE(
-                  "precursor_charge"), RETENTION_TIME("rt"), CENTROIDED(
+                  "precursor_charge"), RETENTION_TIME("rt"), ION_MOBILITY("mobility"), CENTROIDED(
                       "centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST("mass_list");
 
   private String elementName;

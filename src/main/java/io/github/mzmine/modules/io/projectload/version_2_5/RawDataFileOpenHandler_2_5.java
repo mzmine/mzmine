@@ -29,6 +29,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import io.github.mzmine.modules.io.projectload.version_2_0.RawDataElementName_2_0;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -57,6 +58,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
+  private double mobility;
   private int dataPointsNumber;
   private int fragmentCount;
   private int currentStorageID;
@@ -222,6 +224,11 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
+    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
+    {
+      mobility = Double.parseDouble(getTextOfElement());
+    }
+
     if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS.getElementName())) {
       dataPointsNumber = Integer.parseInt(getTextOfElement());
     }
@@ -233,7 +240,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
       StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
+          dataPointsNumber, scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge,
           fragmentScan, null, polarity, scanDescription, scanMZRange);
 
       try {

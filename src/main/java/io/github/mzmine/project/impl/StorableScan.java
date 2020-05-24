@@ -76,6 +76,7 @@ public class StorableScan implements Scan {
     this.scanNumber = originalScan.getScanNumber();
     this.msLevel = originalScan.getMSLevel();
     this.retentionTime = originalScan.getRetentionTime();
+    this.mobility = originalScan.getMobility();
     this.precursorMZ = originalScan.getPrecursorMZ();
     this.precursorCharge = originalScan.getPrecursorCharge();
     this.fragmentScans = originalScan.getFragmentScanNumbers();
@@ -90,7 +91,7 @@ public class StorableScan implements Scan {
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, double retentionTime, double precursorMZ, int precursorCharge,
+      int scanNumber, int msLevel, double retentionTime, double mobility, double precursorMZ, int precursorCharge,
       int fragmentScans[], MassSpectrumType spectrumType, PolarityType polarity,
       String scanDefinition, Range<Double> scanMZRange) {
 
@@ -102,6 +103,7 @@ public class StorableScan implements Scan {
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
     this.precursorMZ = precursorMZ;
+    this.mobility = mobility;
     this.precursorCharge = precursorCharge;
     this.fragmentScans = fragmentScans;
     this.spectrumType = spectrumType;

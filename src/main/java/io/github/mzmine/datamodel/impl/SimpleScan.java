@@ -244,7 +244,6 @@ public class SimpleScan implements Scan {
 
   /**
    */
-  @Override
   public double getMobility() {
     return mobility;
   }
