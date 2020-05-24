@@ -39,6 +39,7 @@ import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class MzTabmImportTask extends AbstractTask {
 
@@ -206,9 +207,13 @@ public class MzTabmImportTask extends AbstractTask {
             ParameterSet rdiParameters = RDI.getParameterSetClass().getDeclaredConstructor().newInstance();
             rdiParameters.getParameter(RawDataImportParameters.fileNames).setValue(filesToImport.toArray(new File[0]));
             synchronized (underlyingTasks){
+                final CountDownLatch doneLatch = new CountDownLatch(1);
                 Platform.runLater(()->{
-                    RDI.runModule(project, rdiParameters, underlyingTasks);
+                    RDI.runModule(project, rdiParameters, underlyingTasks).toString();
+                    doneLatch.countDown();
                 });
+                // wait for fx thread
+                doneLatch.await();
             }
             if(underlyingTasks.size()>0){
                 MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
@@ -235,7 +240,7 @@ public class MzTabmImportTask extends AbstractTask {
 
         // Find a matching RawDataFile for each msRun object
         for(MsRun singleRun: msrun){
-            String rawFileName = singleRun.getLocation();
+            String rawFileName = new File(singleRun.getLocation()).getName();
             RawDataFile rawDataFile = null;
 
             //check whether we already have raw data file of that name
