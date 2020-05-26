@@ -91,7 +91,6 @@ public class MzTabmImportTask extends AbstractTask {
 
     @Override
     public void run() {
-
         setStatus(TaskStatus.PROCESSING);
         try {
 
@@ -168,7 +167,8 @@ public class MzTabmImportTask extends AbstractTask {
     private List<RawDataFile> importRawDataFiles(MzTab mzTabmFile) throws Exception{
         List<MsRun> msrun = mzTabmFile.getMetadata().getMsRun();
         List<RawDataFile> rawDataFiles = new ArrayList<RawDataFile>();
-
+        //Used in getting reference for files imported from file name
+        String filesNameprefix = null;
         //if Import option is selected in parameters window
         if(importRawFiles){
             List<File> filesToImport = new ArrayList<>();
@@ -209,12 +209,14 @@ public class MzTabmImportTask extends AbstractTask {
             synchronized (underlyingTasks){
                 final CountDownLatch doneLatch = new CountDownLatch(1);
                 Platform.runLater(()->{
-                    RDI.runModule(project, rdiParameters, underlyingTasks).toString();
+                    RDI.runModule(project, rdiParameters, underlyingTasks);
                     doneLatch.countDown();
                 });
                 // wait for fx thread
                 doneLatch.await();
             }
+            filesNameprefix = RDI.getLastCommonPrefix();
+            //import files
             if(underlyingTasks.size()>0){
                 MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
             }
@@ -242,17 +244,17 @@ public class MzTabmImportTask extends AbstractTask {
         for(MsRun singleRun: msrun){
             String rawFileName = new File(singleRun.getLocation()).getName();
             RawDataFile rawDataFile = null;
-
             //check whether we already have raw data file of that name
             for(RawDataFile f: project.getDataFiles()){
-                if(f.getName().equals(rawFileName)){
+                String prefixedFileName = filesNameprefix+f.getName();
+                if(f.getName().equals(rawFileName)||prefixedFileName.equals(rawFileName)){
                     rawDataFile = f;
                     break;
                 }
             }
 
             //if no data file of that name exist, create a new one
-            if(rawDataFile ==null){
+            if(rawDataFile == null){
                 RawDataFileWriter writer = MZmineCore.createNewFile(rawFileName);
                 rawDataFile = writer.finishWriting();
                 project.addFile(rawDataFile);
@@ -278,7 +280,6 @@ public class MzTabmImportTask extends AbstractTask {
 
             List<Assay> assayList = studyVariable.getAssayRefs();
             for(int i=0;i<assayList.size();i++){
-//                System.out.println(assayList.get(i).getName());
                 Assay dataFileAssay = assayList.get(i);
                 if(dataFileAssay != null){
                     int indexOfAssay = mzTabmFile.getMetadata().getAssay().indexOf(dataFileAssay);
@@ -290,9 +291,6 @@ public class MzTabmImportTask extends AbstractTask {
 
     private void importSummaryTable(PeakList newPeakList, MzTab mzTabmFile, List<RawDataFile> rawDataFiles){
         List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
-        for(int i=0;i<assayList.size();++i){
-//            System.out.println(assayList.get(i).getName() +" "+rawDataFiles.get(i).getName());
-        }
         List<SmallMoleculeSummary> smallMoleculeSummaryList =  mzTabmFile.getSmallMoleculeSummary();
 
         //Loop through SML data
