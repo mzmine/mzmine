@@ -43,7 +43,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.javafx.DraggableListCell;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -75,7 +74,7 @@ import javafx.util.Duration;
 public class MainWindowController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private Boolean reorderListItem = false;
   private static final Image rawDataFileIcon =
       FxIconUtil.loadImageFromResources("icons/fileicon.png");
 
@@ -129,7 +128,7 @@ public class MainWindowController {
     rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // rawDataTree.setShowRoot(true);
 
-    rawDataTree.setCellFactory(rawDataListView -> new DraggableListCell<>() {
+    rawDataTree.setCellFactory(rawDataListView -> new DraggableListCellWithDraggableFiles<>() {
       @Override
       protected void updateItem(RawDataFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -153,7 +152,7 @@ public class MainWindowController {
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
 
-    featureTree.setCellFactory(featureListView -> new DraggableListCell<>() {
+    featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
       @Override
       protected void updateItem(PeakList item, boolean empty) {
         super.updateItem(item, empty);

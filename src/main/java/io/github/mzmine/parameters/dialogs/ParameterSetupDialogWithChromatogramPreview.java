@@ -43,18 +43,22 @@ import javafx.scene.layout.FlowPane;
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog {
 
-
   private RawDataFile[] dataFiles;
   private RawDataFile previewDataFile;
 
   // Dialog components
-  private BorderPane pnlPreviewFields;
-  private ComboBox<RawDataFile> comboDataFileName;
-  private DoubleRangeComponent rtRangeBox, mzRangeBox;
-  private CheckBox previewCheckBox;
+  private final BorderPane pnlPreviewFields = new BorderPane();
+  private final ComboBox<RawDataFile> comboDataFileName = new ComboBox<RawDataFile>(
+      MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+  private final DoubleRangeComponent rtRangeBox =
+      new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
+  private final DoubleRangeComponent mzRangeBox =
+      new DoubleRangeComponent(MZmineCore.getConfiguration().getMZFormat());
+  private final CheckBox previewCheckBox = new CheckBox("Show preview");
 
   // Show as TIC
-  private ComboBox<TICPlotType> ticViewComboBox;
+  private final ComboBox<TICPlotType> ticViewComboBox =
+      new ComboBox<TICPlotType>(FXCollections.observableArrayList(TICPlotType.values()));
 
   // XYPlot
   private TICPlot ticPlot;
@@ -65,17 +69,16 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-    if (dataFiles.length == 0)
-      return;
+    if (dataFiles.length > 0) {
 
-    RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+      RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
-    if (selectedFiles.length > 0)
-      previewDataFile = selectedFiles[0];
-    else
-      previewDataFile = dataFiles[0];
+      if (selectedFiles.length > 0)
+        previewDataFile = selectedFiles[0];
+      else
+        previewDataFile = dataFiles[0];
+    }
 
-    previewCheckBox = new CheckBox("Show preview");
     previewCheckBox.setOnAction(e -> {
       if (previewCheckBox.isSelected()) {
         showPreview();
@@ -106,8 +109,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
 
     // pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       int ind = comboDataFileName.getSelectionModel().getSelectedIndex();
@@ -117,15 +118,10 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
       }
     });
 
-    ticViewComboBox =
-        new ComboBox<TICPlotType>(FXCollections.observableArrayList(TICPlotType.values()));
     ticViewComboBox.getSelectionModel().select(TICPlotType.TIC);
     ticViewComboBox.setOnAction(e -> parametersChanged());
 
-    rtRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
     rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
-
-    mzRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration().getMZFormat());
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);
@@ -137,8 +133,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     pnlFlds.getChildren().add(mzRangeBox);
 
     // Put all together
-    pnlPreviewFields = new BorderPane();
-
     pnlPreviewFields.setLeft(pnlLab);
     pnlPreviewFields.setCenter(pnlFlds);
     pnlPreviewFields.setVisible(false);

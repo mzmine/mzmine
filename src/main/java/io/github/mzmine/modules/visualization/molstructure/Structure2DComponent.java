@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
 import org.jfree.fx.FXGraphics2D;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryUtil;
@@ -88,10 +91,6 @@ public class Structure2DComponent extends Canvas {
     RendererModel rendererModel = renderer.getRenderer2DModel();
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
 
-    paint();
-
-    widthProperty().addListener(e -> paint());
-    heightProperty().addListener(e -> paint());
 
   }
 
@@ -125,19 +124,59 @@ public class Structure2DComponent extends Canvas {
     rendererModel.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
   }
 
-  private void paint() {
+  @Override
+  public boolean isResizable() {
+    return true;
+  }
+
+  @Override
+  public double minWidth(double height) {
+    return 100d;
+  }
+
+  @Override
+  public double minHeight(double width) {
+    return 50d;
+  }
+
+  @Override
+  public double maxHeight(double width) {
+    return Double.POSITIVE_INFINITY;
+  }
+
+  @Override
+  public double maxWidth(double height) {
+    return Double.POSITIVE_INFINITY;
+  }
+
+  @Override
+  public double prefWidth(double height) {
+    return getWidth();
+  }
+
+  @Override
+  public double prefHeight(double width) {
+    return getHeight();
+  }
+
+  @Override
+  public void resize(double width, double height) {
+
+    super.setWidth(width);
+    super.setHeight(height);
 
     Graphics2D g2 = new FXGraphics2D(this.getGraphicsContext2D());
 
-    int width = (int) getWidth();
-    int height = (int) getHeight();
-
     g2.setColor(Color.WHITE);
-    g2.fillRect(0, 0, width, height);
+    g2.fillRect(0, 0, (int) width, (int) height);
 
-    final Rectangle drawArea = new Rectangle(width, height);
+    final Rectangle drawArea = new Rectangle((int) width, (int) height);
     renderer.setup(molecule, drawArea);
     renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
   }
-
+  public IAtomContainer getContainer()
+  {
+    return this.molecule;
+  }
+  
 }

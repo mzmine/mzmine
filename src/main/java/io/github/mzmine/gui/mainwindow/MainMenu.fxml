@@ -73,6 +73,9 @@
 	<Menu text="Raw data methods">
 		<MenuItem text="Raw data import" onAction="#runModule"
 			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
+		<MenuItem text="Raw data import (folder)" onAction="#runModule"
+			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule" />
+
 		<Menu text="Raw data export">
 			<MenuItem text="Export raw data file to mzML"
 				onAction="#runModule"
@@ -325,6 +328,8 @@
 			userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule" />
 		<MenuItem text="Neutral loss plot" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule" />
+		<MenuItem text="Combined module" onAction="#runModule"
+			userData="io.github.mzmine.modules.visualization.combinedmodule.CombinedModule" />
 		<MenuItem text="m/z scan histogram" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule" />
 		<MenuItem text="Diagnostic fragmentation filtering"
@@ -366,18 +371,19 @@
 
 	<!-- HELP -->
 	<Menu text="Help">
+		<MenuItem text="About MZmine" onAction="#showAbout" />
 		<MenuItem text="Tutorials" onAction="#openLink"
 			userData="http://mzmine.github.io/documentation.html" />
 		<MenuItem text="Support" onAction="#openLink"
 			userData="http://mzmine.github.io/support.html" />
+		<SeparatorMenuItem />
+		<MenuItem text="Check for updates" onAction="#versionCheck" />
+		<SeparatorMenuItem />
+		<MenuItem text="Show log file" onAction="#handleShowLogFile" />
 		<MenuItem text="Report a problem" onAction="#openLink"
 			userData="https://github.com/mzmine/mzmine3/issues" />
 
-		<SeparatorMenuItem />
-		<MenuItem text="Check for updates" onAction="#versionCheck" />
-
-		<SeparatorMenuItem />
-		<MenuItem text="About" onAction="#showAbout" />
 	</Menu>
 
 </MenuBar>
+

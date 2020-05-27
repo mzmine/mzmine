@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_sirius.ResultWindowController">
+    <top>
+        <Label text="List of  possible identities" />
+    </top>
+   <center>
+      <TableView fx:id="compoundsTable" BorderPane.alignment="CENTER">
+          <placeholder>
+            <Label text="Searching with SIRIUS..." />
+          </placeholder>
+          <columnResizePolicy>
+              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+          </columnResizePolicy>
+        <columns>
+            <TableColumn fx:id="nameCol" minWidth="100" text="Name" />
+            <TableColumn fx:id="formulaCol" minWidth="100" text="Formula" />
+            <TableColumn fx:id="dbsCol" minWidth="100" text="DBs" />
+            <TableColumn fx:id="siriusScoreCol" minWidth="100" text="Sirius score" />
+            <TableColumn fx:id="fingerldScoreCol" minWidth="200" text="Fingerld score" />
+            <TableColumn fx:id="chemicalStructureCol" minWidth="200" text="Chemical Structure" />
+        </columns>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+      </TableView>
+   </center>
+   <bottom>
+      <ButtonBar style="-fx-padding: 5 5 5 5;">
+        <buttons>
+            <Button fx:id="addIdentity" onAction="#addIdentityOnClick" text="Add identity" ButtonBar.buttonData="LEFT" />
+            <Button fx:id="copySmiles" onAction="#copySmilesOnClick" text="Copy SMILES String" ButtonBar.buttonData="LEFT" />
+            <Button fx:id="copyFormula" onAction="#copyFormulaOnClick" text="Copy Formula String" ButtonBar.buttonData="LEFT" />
+            <Button fx:id="displayDB" onAction="#displayDBOnClick" text="Display DB links" ButtonBar.buttonData="LEFT" />
+        </buttons>
+      </ButtonBar>
+   </bottom>
+</BorderPane>

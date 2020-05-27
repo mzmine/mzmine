@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.text.NumberFormatter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -88,7 +87,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
   private final Button btnPrevPattern, btnNextPattern;
   private final TextField txtCurrentPatternIndex;
 
-  private NumberFormatter form;
+  // private NumberFormatter form;
 
   // components created by parameters
   private OptionalModuleComponent cmpAutoCarbon;
@@ -154,13 +153,11 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
     pMinSize = autoCarbonParameters.getParameter(AutoCarbonParameters.minPatternSize);
 
     // set up gui
-    form = new NumberFormatter(NumberFormat.getInstance());
-    form.setValueClass(Integer.class);
-    form.setFormat(new DecimalFormat("0"));
-    form.setAllowsInvalid(true);
-    form.setMinimum(minC);
-    form.setMaximum(maxC);
-
+    /*
+     * form = new NumberFormatter(NumberFormat.getInstance()); form.setValueClass(Integer.class);
+     * form.setFormat(new DecimalFormat("0")); form.setAllowsInvalid(true); form.setMinimum(minC);
+     * form.setMaximum(maxC);
+     */
     btnPrevPattern = new Button("Previous");
 
     // btnPrevPattern.setMinimumSize(btnPrevPattern.getPreferredSize());
@@ -273,8 +270,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialog {
     maxC = pMaxC.getValue();
     minSize = pMinSize.getValue();
 
-    form.setMaximum(maxC);
-    form.setMinimum(minC);
+    // form.setMaximum(maxC);
+    // form.setMinimum(minC);
 
     if (txtCurrentPatternIndex.getText().equals("")) // if the user did
                                                      // stuff we dont allow

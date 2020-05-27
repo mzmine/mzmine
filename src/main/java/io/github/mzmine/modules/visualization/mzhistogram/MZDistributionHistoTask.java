@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,22 +20,21 @@ package io.github.mzmine.modules.visualization.mzhistogram;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.EHistogramDialog;
+import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramDialog;
 import io.github.mzmine.modules.visualization.mzhistogram.chart.HistogramData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import javafx.application.Platform;
 
 public class MZDistributionHistoTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -79,6 +78,7 @@ public class MZDistributionHistoTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Creating m/z distribution histogram of " + dataFile;
   }
@@ -86,6 +86,7 @@ public class MZDistributionHistoTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0;
@@ -100,6 +101,7 @@ public class MZDistributionHistoTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting to build mz distribution histogram for " + dataFile);
@@ -141,9 +143,12 @@ public class MZDistributionHistoTask extends AbstractTask {
         histo[i] = data.get(i);
 
       // create histogram dialog
-      EHistogramDialog dialog =
-          new EHistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
-      dialog.showAndWait();
+      Platform.runLater(() -> {
+        HistogramDialog dialog =
+            new HistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
+        dialog.showAndWait();
+      });
+
     } else {
       throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
     }

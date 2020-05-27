@@ -10,3 +10,7 @@ mzmine.log*
 /target
 /build
 /bin
+bio
+not-bio
+/libglpk*
+/out

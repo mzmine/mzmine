@@ -50,7 +50,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
   private final Integer candidatesAmount;
 
   /* Result containers */
-  private final ResultWindow window;
+  private final ResultWindowFX windowFX;
   private final PeakListRow row;
 
   /* MSDK-method */
@@ -67,18 +67,18 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param annotation - SiriusIonAnnotation to process by FingerId
    * @param experiment - contains necessary information for a web-request
    * @param candidatesAmount - amount of candidates to return from this task
-   * @param window - one of possible result containers
+   * @param windowFX - one of possible result containers
    * @param row - one of possible result containers
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, ResultWindow window, PeakListRow row) {
-    if (window == null && row == null)
+      Integer candidatesAmount, ResultWindowFX windowFX, PeakListRow row) {
+    if (windowFX== null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
 
     this.candidatesAmount = candidatesAmount;
     this.experiment = experiment;
     this.annotation = annotation;
-    this.window = window;
+    this.windowFX = windowFX;
     this.row = row;
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
   }
@@ -98,11 +98,11 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param annotation
    * @param experiment
    * @param candidatesAmount
-   * @param window - Result container for SingleRowIdentificationTask
+   * @param windowFX - Result container for SingleRowIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, ResultWindow window) {
-    this(annotation, experiment, candidatesAmount, window, null);
+      Integer candidatesAmount, ResultWindowFX windowFX) {
+    this(annotation, experiment, candidatesAmount, windowFX, null);
   }
 
   /**
@@ -173,9 +173,9 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param results
    */
   private void submitResults(List<IonAnnotation> results) {
-    if (window != null) // Update ResultWindow - if called from
+    if (windowFX != null) // Update ResultWindow - if called from
                         // SingleRowIdentificationTask
-      window.addListofItems(results);
+      windowFX.addListofItems(results);
 
     if (row != null) { // Update PeakListRow - if called from
                        // PeakListIdentificationTask

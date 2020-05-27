@@ -18,33 +18,27 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import java.awt.Color;
-import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.plot.DefaultDrawingSupplier;
-import org.jfree.chart.plot.DrawingSupplier;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory2;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.FontParameter;
-import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
-import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.Color;
+import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.DrawingSupplier;
 
 /**
  * 
@@ -60,7 +54,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected JFreeChart chart;
   protected EChartViewer chartPanel;
   protected ChartThemeParameters chartParam;
-  protected Color[] colors;
+  protected SimpleColorPalette colors;
 
   private Button btnRenewPreview;
   private Button btnApply;
@@ -74,7 +68,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     chartParam = (ChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
 
-    colors = Colors.getSevenColorPalette(MZmineCore.getConfiguration().getColorVision(), true);
+    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
 
     try {
       this.chart = (JFreeChart) chart.clone();
@@ -83,7 +77,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       logger.severe("Chart could not be cloned.");
     }
 
-    theme = ChartThemeFactory.createBlackNWhiteTheme();
+    theme = ChartThemeFactory2.createExportChartTheme("Export theme");
     chartParam.applyToChartTheme(theme);
     pnChartPreview = new BorderPane();
 
@@ -115,9 +109,11 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected void applyTheme() {
     // update param
     updateParameterSetFromComponents();
+    chartParam = (ChartThemeParameters) parameterSet
+        .getParameter(GraphicsExportParameters.chartParameters).getValue();
+    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
     // apply settings
     chartParam.applyToChartTheme(theme);
-    chartParam.applyToChart(chartPanel.getChart());
     setStandardColors();
     theme.apply(chartPanel.getChart());
     disableCrosshair();
@@ -130,14 +126,17 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   }
 
   protected void setStandardColors() {
-    DrawingSupplier ds = new DefaultDrawingSupplier(colors, colors, colors,
+    Color[] clrs = new Color[colors.size()];
+    for(int i = 0; i < colors.size(); i++)
+      clrs[i] = colors.getAWT(i);
+
+    DrawingSupplier ds = new DefaultDrawingSupplier(clrs, clrs, clrs,
         DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);
     
     theme.setDrawingSupplier(ds);
   }
-
 
   /**
    * renew chart preview with specified size

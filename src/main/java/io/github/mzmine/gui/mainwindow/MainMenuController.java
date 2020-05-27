@@ -18,12 +18,13 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
@@ -58,24 +59,37 @@ public class MainMenuController {
     MZmineGUI.requestQuit();
   }
 
+
+  public void handleShowLogFile(Event event) {
+
+    /*
+     * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
+     * it is hard-coded here for now
+     */
+    final Path logFilePath =
+        Paths.get(System.getProperty("java.io.tmpdir") + File.separator + "mzmine.log");
+
+    try {
+      Desktop gui = MZmineCore.getDesktop();
+      gui.openWebPage(logFilePath.toUri().toURL());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+
+
+  }
+
   public void openLink(Event event) {
 
     assert event.getSource() instanceof MenuItem;
     final MenuItem menuItem = (MenuItem) event.getSource();
     assert menuItem.getUserData() instanceof String;
-    final String linkURL = (String) menuItem.getUserData();
-    assert linkURL != null;
-
-    // Open link in browser
-    if (!Desktop.isDesktopSupported()) {
-      logger.severe("Could not open browser, Desktop support is not available");
-      return;
-    }
-
     try {
-      Desktop desktop = Desktop.getDesktop();
-      desktop.browse(new URI(linkURL));
-    } catch (IOException | URISyntaxException e) {
+      final URL linkURL = new URL((String) menuItem.getUserData());
+      // Open link in browser
+      Desktop gui = MZmineCore.getDesktop();
+      gui.openWebPage(linkURL);
+    } catch (MalformedURLException e) {
       e.printStackTrace();
     }
 
@@ -176,3 +190,5 @@ public class MainMenuController {
     });
   }
 }
+
+

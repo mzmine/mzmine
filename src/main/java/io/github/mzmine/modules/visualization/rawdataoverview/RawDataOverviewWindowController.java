@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
@@ -111,10 +113,10 @@ public class RawDataOverviewWindowController {
     int numberOfScans = rawDataFile.getNumOfScans();
 
     // set colors depending on vision
-    vision = MZminePreferences.colorPalettes.getValue();
-    posColor = Colors.getPositiveColor(vision);
-    negColor = Colors.getNegativeColor(vision);
-    neuColor = Colors.getNeutralColor();
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    posColor = palette.getPositiveColorAWT();
+    negColor = palette.getNegativeColorAWT();
+    neuColor = palette.getNeutralColorAWT();
 
     // add meta data
     rawDataLabel.setText(rawDataLabel.getText() + " " + rawDataFile.getName());

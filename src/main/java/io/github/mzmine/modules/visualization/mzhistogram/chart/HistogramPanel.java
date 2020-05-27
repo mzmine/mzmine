@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,22 +18,28 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.util.concurrent.ExecutionException;
+import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.util.maths.Precision;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingWorker;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
@@ -42,245 +48,164 @@ import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
-import io.github.mzmine.util.maths.Precision;
 
-public class HistogramPanel extends JPanel {
+public class HistogramPanel extends BorderPane {
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private final JPanel contentPanel;
-  private DelayedDocumentListener ddlRepaint;
-  private JPanel southwest;
-  private JTextField txtBinWidth, txtBinShift;
-  private JCheckBox cbExcludeSmallerNoise, cbThirdSQRT;
-  private JLabel lbStats;
-  private JTextField txtRangeX;
-  private JTextField txtRangeY;
-  private JTextField txtRangeXEnd;
-  private JTextField txtRangeYEnd;
-  private JTextField txtGaussianLower;
-  private JTextField txtGaussianUpper;
-  private JTextField txtPrecision;
-  private JCheckBox cbGaussianFit;
+  private final BorderPane contentPanel;
+  private BorderPane southwest;
+  private TextField txtBinWidth, txtBinShift;
+  private CheckBox cbExcludeSmallerNoise, cbThirdSQRT;
+  private Label lbStats;
+  private TextField txtRangeX;
+  private TextField txtRangeY;
+  private TextField txtRangeXEnd;
+  private TextField txtRangeYEnd;
+  private TextField txtGaussianLower;
+  private TextField txtGaussianUpper;
+  private TextField txtPrecision;
+  private CheckBox cbGaussianFit;
 
-  private EChartPanel pnHisto;
+  private EChartViewer pnHisto;
   private String xLabel;
   private HistogramData data;
-  private JPanel boxSettings;
+  private VBox boxSettings;
+  private HBox secondGaussian, pnHistoSett, xRanges, yRanges;
+  private Executor exec;
 
   /**
    * Create the dialog.
    */
   public HistogramPanel() {
-    setBounds(100, 100, 903, 952);
-    setMinimumSize(new Dimension(600, 300));
-    setLayout(new BorderLayout());
-    contentPanel = new JPanel();
-    add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new BorderLayout(0, 0));
+    contentPanel = new BorderPane();
+    setCenter(contentPanel);
     {
-      JPanel west = new JPanel();
-      contentPanel.add(west, BorderLayout.WEST);
-      west.setLayout(new BorderLayout(0, 0));
-      {
-        JPanel panel = new JPanel();
-        west.add(panel, BorderLayout.NORTH);
-      }
+      Pane panel = new Pane();
+      contentPanel.setLeft(panel);
     }
     {
-      JPanel center1 = new JPanel();
-      contentPanel.add(center1, BorderLayout.CENTER);
-      center1.setLayout(new BorderLayout(0, 0));
-      {
-        boxSettings = new JPanel();
-        center1.add(boxSettings, BorderLayout.SOUTH);
-        boxSettings.setLayout(new BoxLayout(boxSettings, BoxLayout.Y_AXIS));
-        {
-          JPanel pnstats = new JPanel();
-          boxSettings.add(pnstats);
-          {
-            lbStats = new JLabel("");
-            lbStats.setFont(new Font("Tahoma", Font.BOLD, 14));
-            pnstats.add(lbStats);
-          }
-        }
-        {
-          JPanel pnHistoSett = new JPanel();
-          boxSettings.add(pnHistoSett);
-          {
-            cbExcludeSmallerNoise = new JCheckBox("exclude smallest");
-            cbExcludeSmallerNoise.setSelected(true);
-            pnHistoSett.add(cbExcludeSmallerNoise);
-          }
-          {
-            cbThirdSQRT = new JCheckBox("cube root(I)");
-            cbThirdSQRT.setSelected(false);
-            pnHistoSett.add(cbThirdSQRT);
-          }
-          {
-            Component horizontalStrut = Box.createHorizontalStrut(20);
-            pnHistoSett.add(horizontalStrut);
-          }
-          {
-            JLabel lblBinWidth = new JLabel("bin width");
-            pnHistoSett.add(lblBinWidth);
-          }
-          {
-            txtBinWidth = new JTextField();
-            txtBinWidth.setText("");
-            pnHistoSett.add(txtBinWidth);
-            txtBinWidth.setColumns(7);
-          }
-          {
-            Component horizontalStrut = Box.createHorizontalStrut(20);
-            pnHistoSett.add(horizontalStrut);
-          }
-          {
-            JLabel lblBinWidth = new JLabel("shift bins by");
-            pnHistoSett.add(lblBinWidth);
-          }
-          {
-            txtBinShift = new JTextField();
-            txtBinShift.setText("0");
-            pnHistoSett.add(txtBinShift);
-            txtBinShift.setColumns(7);
-          }
-        }
-        {
-          JPanel secondGaussian = new JPanel();
-          boxSettings.add(secondGaussian);
-          {
-            JButton btnToggleLegend = new JButton("Toggle legend");
-            btnToggleLegend.addActionListener(e -> toggleLegends());
-            btnToggleLegend.setToolTipText("Show/hide legend");
-            secondGaussian.add(btnToggleLegend);
-          }
-          {
-            JButton btnUpdateGaussian = new JButton("Update");
-            btnUpdateGaussian.addActionListener(e -> updateGaussian());
-            btnUpdateGaussian.setToolTipText("Update Gaussian fit");
-            secondGaussian.add(btnUpdateGaussian);
-          }
-          {
-            cbGaussianFit = new JCheckBox("Gaussian fit");
-            secondGaussian.add(cbGaussianFit);
-          }
-          {
-            JLabel lblFrom = new JLabel("from");
-            secondGaussian.add(lblFrom);
-          }
-          {
-            txtGaussianLower = new JTextField();
-            txtGaussianLower.setToolTipText("The lower bound (domain axis) for the Gaussian fit");
-            txtGaussianLower.setText("0");
-            secondGaussian.add(txtGaussianLower);
-            txtGaussianLower.setColumns(7);
-          }
-          {
-            JLabel label = new JLabel("-");
-            secondGaussian.add(label);
-          }
-          {
-            txtGaussianUpper = new JTextField();
-            txtGaussianUpper
-                .setToolTipText("The upper bound (domain axis, x) for the Gaussian fit");
-            txtGaussianUpper.setText("0");
-            txtGaussianUpper.setColumns(7);
-            secondGaussian.add(txtGaussianUpper);
-          }
-          {
-            Component horizontalStrut = Box.createHorizontalStrut(20);
-            secondGaussian.add(horizontalStrut);
-          }
-          {
-            JLabel lblSignificantFigures = new JLabel("significant figures");
-            secondGaussian.add(lblSignificantFigures);
-          }
-          {
-            txtPrecision = new JTextField();
-            txtPrecision.setToolTipText("Change number of significant figures and press update");
-            txtPrecision.setText("6");
-            secondGaussian.add(txtPrecision);
-            txtPrecision.setColumns(3);
-          }
-        }
-        {
-          JPanel third = new JPanel();
-          boxSettings.add(third);
-          {
-            JLabel lblRanges = new JLabel("x-range");
-            third.add(lblRanges);
-          }
-          {
-            txtRangeX = new JTextField();
-            third.add(txtRangeX);
-            txtRangeX.setToolTipText("Set the x-range for both histograms");
-            txtRangeX.setText("0");
-            txtRangeX.setColumns(6);
-          }
-          {
-            JLabel label = new JLabel("-");
-            third.add(label);
-          }
-          {
-            txtRangeXEnd = new JTextField();
-            txtRangeXEnd.setToolTipText("Set the x-range for both histograms");
-            txtRangeXEnd.setText("0");
-            txtRangeXEnd.setColumns(6);
-            third.add(txtRangeXEnd);
-          }
-          {
-            JButton btnApplyX = new JButton("Apply");
-            btnApplyX.addActionListener(e -> applyXRange());
-            third.add(btnApplyX);
-          }
-          {
-            JPanel panel = new JPanel();
-            boxSettings.add(panel);
-            {
-              JLabel label = new JLabel("y-range");
-              panel.add(label);
-            }
-            {
-              txtRangeY = new JTextField();
-              panel.add(txtRangeY);
-              txtRangeY.setText("0");
-              txtRangeY.setToolTipText("Set the y-range for both histograms");
-              txtRangeY.setColumns(6);
-            }
-            {
-              JLabel label = new JLabel("-");
-              panel.add(label);
-            }
-            {
-              txtRangeYEnd = new JTextField();
-              txtRangeYEnd.setToolTipText("Set the y-range for both histograms");
-              txtRangeYEnd.setText("0");
-              txtRangeYEnd.setColumns(6);
-              panel.add(txtRangeYEnd);
-            }
-            {
-              JButton btnApplyY = new JButton("Apply");
-              btnApplyY.addActionListener(e -> applyYRange());
-              panel.add(btnApplyY);
-            }
-          }
-        }
-      }
-      {
-        southwest = new JPanel();
-        center1.add(southwest, BorderLayout.CENTER);
-        southwest.setLayout(new BorderLayout(0, 0));
-      }
+      cbExcludeSmallerNoise = new CheckBox("exclude smallest");
+      cbExcludeSmallerNoise.setSelected(true);
+
+      cbThirdSQRT = new CheckBox("cube root(I)");
+      cbThirdSQRT.setSelected(false);
+
+      Label lblBinWidth = new Label("bin width");
+
+      txtBinWidth = new TextField();
+      txtBinWidth.setText("");
+
+      Label lblBinShift = new Label("shift bins by");
+
+      txtBinShift = new TextField();
+      txtBinShift.setText("0");
+
+      pnHistoSett = new HBox(10);
+      pnHistoSett.getChildren().addAll(cbExcludeSmallerNoise, cbThirdSQRT, lblBinWidth, txtBinWidth,
+          lblBinShift, txtBinShift);
+      pnHistoSett.setAlignment(Pos.CENTER);
     }
+    {
+      ToggleButton btnToggleLegend = new ToggleButton("Toggle legend");
+      btnToggleLegend.setOnAction(e -> toggleLegends());
+      btnToggleLegend.setTooltip(new Tooltip("Show/hide legend"));
+
+      Button btnUpdateGaussian = new Button("Update");
+      btnUpdateGaussian.setOnAction(e -> updateGaussian());
+      btnUpdateGaussian.setTooltip(new Tooltip("Update Gaussian fit"));
+
+      Label lblFrom = new Label("from");
+
+      cbGaussianFit = new CheckBox("Gaussian fit");
+
+      txtGaussianLower = new TextField();
+      txtGaussianLower
+          .setTooltip(new Tooltip("The lower bound (domain axis) for the Gaussian fit"));
+      txtGaussianLower.setText("0");
+
+      Label label = new Label("-");
+
+      txtGaussianUpper = new TextField();
+      txtGaussianUpper
+          .setTooltip(new Tooltip("The upper bound (domain axis, x) for the Gaussian fit"));
+      txtGaussianUpper.setText("0");
+
+      Label lblSignificantFigures = new Label("significant figures");
+
+      txtPrecision = new TextField();
+      txtPrecision
+          .setTooltip(new Tooltip("Change number of significant figures and press update"));
+      txtPrecision.setText("6");
+
+      secondGaussian = new HBox(10);
+      secondGaussian.getChildren()
+          .addAll(btnToggleLegend, btnUpdateGaussian, lblFrom, cbGaussianFit,
+              txtGaussianLower, label, txtGaussianUpper, lblSignificantFigures, txtPrecision);
+      secondGaussian.setAlignment(Pos.CENTER);
+    }
+    {
+      Label lblRanges = new Label("x-range");
+
+      txtRangeX = new TextField();
+      txtRangeX.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeX.setText("0");
+
+      Label label = new Label("-");
+
+      txtRangeXEnd = new TextField();
+      txtRangeXEnd.setTooltip(new Tooltip("Set the x-range for both histograms"));
+      txtRangeXEnd.setText("0");
+
+      Button btnApplyX = new Button("Apply");
+      btnApplyX.setOnAction(e -> applyXRange());
+
+      xRanges = new HBox(10);
+      xRanges.getChildren().addAll(lblRanges, txtRangeX, label, txtRangeXEnd, btnApplyX);
+      xRanges.setAlignment(Pos.CENTER);
+    }
+    {
+      Label lblRanges = new Label("y-range");
+
+      txtRangeY = new TextField();
+      txtRangeY.setText("0");
+      txtRangeY.setTooltip(new Tooltip("Set the y-range for both histograms"));
+
+      Label label = new Label("-");
+
+      txtRangeYEnd = new TextField();
+      txtRangeYEnd.setTooltip(new Tooltip("Set the y-range for both histograms"));
+      txtRangeYEnd.setText("0");
+
+      Button btnApplyY = new Button("Apply");
+      btnApplyY.setOnAction(e -> applyYRange());
+
+      yRanges = new HBox(10);
+      yRanges.getChildren().addAll(lblRanges, txtRangeY, label, txtRangeYEnd, btnApplyY);
+      yRanges.setAlignment(Pos.CENTER);
+    }
+    lbStats = new Label("");
+    lbStats.setFont(new Font("Tahoma", 14));
+
+    boxSettings = new VBox(10);
+    boxSettings.setAlignment(Pos.CENTER);
+    boxSettings.setPadding(new Insets(10));
+    boxSettings.getChildren().addAll(lbStats, pnHistoSett, secondGaussian, xRanges, yRanges);
+    contentPanel.setBottom(boxSettings);
+
+    southwest = new BorderPane();
+    contentPanel.setCenter(southwest);
 
     addListener();
+    exec = Executors.newFixedThreadPool(5, runnable -> {
+      Thread t = new Thread(runnable);
+      t.setDaemon(true);
+      return t;
+    });
+
   }
 
   /**
-   * 
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
@@ -296,7 +221,7 @@ public class HistogramPanel extends JPanel {
 
   /**
    * set data and update histo
-   * 
+   *
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
@@ -319,12 +244,9 @@ public class HistogramPanel extends JPanel {
         txtBinWidth.setText(bws);
       }
 
-      //
-      ddlRepaint.stop();
       updateHistograms();
 
-      contentPanel.revalidate();
-      contentPanel.repaint();
+      contentPanel.requestLayout();
     }
   }
 
@@ -334,63 +256,60 @@ public class HistogramPanel extends JPanel {
   private void toggleLegends() {
     if (pnHisto != null) {
       LegendTitle legend = pnHisto.getChart().getLegend();
-      if (legend != null)
+      if (legend != null) {
         legend.setVisible(!legend.isVisible());
+      }
     }
   }
 
   private void addListener() {
-    ddlRepaint = new DelayedDocumentListener(e -> repaint());
 
-    // ranges
-    DelayedDocumentListener ddlx = new DelayedDocumentListener(e -> applyXRange());
-    DelayedDocumentListener ddly = new DelayedDocumentListener(e -> applyYRange());
-
-    txtRangeX.getDocument().addDocumentListener(ddlx);
-    txtRangeXEnd.getDocument().addDocumentListener(ddlx);
-    txtRangeY.getDocument().addDocumentListener(ddly);
-    txtRangeYEnd.getDocument().addDocumentListener(ddly);
-    cbThirdSQRT.addItemListener(e -> updateHistograms());
-    cbExcludeSmallerNoise.addItemListener(e -> updateHistograms());
-    txtBinWidth.getDocument()
-        .addDocumentListener(new DelayedDocumentListener(e -> updateHistograms()));
-    txtBinShift.getDocument()
-        .addDocumentListener(new DelayedDocumentListener(e -> updateHistograms()));
-
+    txtRangeX.setOnKeyTyped(event -> applyXRange());
+    txtRangeXEnd.setOnKeyTyped(event -> applyXRange());
+    txtRangeY.setOnKeyTyped(event -> applyYRange());
+    txtRangeYEnd.setOnKeyTyped(event -> applyYRange());
+    txtBinShift.setOnKeyTyped(event -> updateHistograms());
+    txtBinWidth.setOnKeyTyped(event -> updateHistograms());
+    cbThirdSQRT.setOnAction(e -> updateHistograms());
+    cbExcludeSmallerNoise.setOnAction(e -> updateHistograms());
     // add gaussian?
-    cbGaussianFit.addItemListener(e -> updateGaussian());
+    cbGaussianFit.setOnAction(e -> updateGaussian());
   }
 
   private void applyXRange() {
-    try {
-      double x = Double.parseDouble(txtRangeX.getText());
-      double xe = Double.parseDouble(txtRangeXEnd.getText());
-      if (x < xe) {
-        if (pnHisto != null)
-          pnHisto.getChart().getXYPlot().getDomainAxis().setRange(x, xe);
+    if (!txtRangeX.getText().equals("") && !txtRangeXEnd.getText().equals("")) {
+      try {
+        double x = Double.parseDouble(txtRangeX.getText());
+        double xe = Double.parseDouble(txtRangeXEnd.getText());
+        if (x < xe) {
+          if (pnHisto != null) {
+            pnHisto.getChart().getXYPlot().getDomainAxis().setRange(x, xe);
+          }
+        }
+      } catch (Exception e2) {
+        logger.error("", e2);
       }
-    } catch (Exception e2) {
-      logger.error("", e2);
     }
   }
 
   private void applyYRange() {
-    try {
-      double y = Double.parseDouble(txtRangeY.getText());
-      double ye = Double.parseDouble(txtRangeYEnd.getText());
-      if (y < ye) {
-        if (pnHisto != null)
-          pnHisto.getChart().getXYPlot().getRangeAxis().setRange(y, ye);
+    if (!txtRangeY.getText().equals("") && !txtRangeYEnd.getText().equals("")) {
+      try {
+        double y = Double.parseDouble(txtRangeY.getText());
+        double ye = Double.parseDouble(txtRangeYEnd.getText());
+        if (y < ye) {
+          if (pnHisto != null) {
+            pnHisto.getChart().getXYPlot().getRangeAxis().setRange(y, ye);
+          }
+        }
+      } catch (Exception e2) {
+        logger.error("", e2);
       }
-    } catch (Exception e2) {
-      logger.error("", e2);
     }
   }
 
   /**
    * Create new histograms
-   * 
-   * @throws Exception
    */
   private void updateHistograms() {
     if (data != null) {
@@ -400,79 +319,28 @@ public class HistogramPanel extends JPanel {
         binwidth2 = Double.parseDouble(txtBinWidth.getText());
         binShift2 = Double.parseDouble(txtBinShift.getText());
       } catch (Exception e) {
+        logger.error("", e);
       }
       if (!Double.isNaN(binShift2)) {
         try {
-          //
+
           lbStats.setText("UPDATING");
-          lbStats.setForeground(Color.RED);
-          //
+          lbStats.setTextFill(Color.RED);
+
           final double binwidth = binwidth2;
           final double binShift = Math.abs(binShift2);
-          new SwingWorker<JFreeChart, Void>() {
-            @Override
-            protected JFreeChart doInBackground() throws Exception {
-              // create histogram
-              double[] dat = data.getData();
-              if (cbExcludeSmallerNoise.isSelected()) {
-                double noise = data.getRange().getLowerBound();
-                // get processed data from original image
-                dat = DoubleStream.of(dat).filter(d -> d > noise).toArray();
-              }
+          try {
 
-              Range r = HistogramChartFactory.getBounds(dat);
+            exec.execute(() -> {
+              JFreeChart chart = doInBackground(binShift, binwidth);
+              Platform.runLater(() -> {
+                done(chart);
+              });
+            });
 
-              DoubleFunction<Double> f =
-                  cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
-
-              JFreeChart chart = HistogramChartFactory.createHistogram(dat, xLabel, binwidth,
-                  r.getLowerBound() - binShift, r.getUpperBound(), f);
-              // add gaussian?
-              if (cbGaussianFit.isSelected()) {
-                addGaussianCurve(chart.getXYPlot());
-              }
-              return chart;
-            }
-
-            @Override
-            protected void done() {
-              JFreeChart histo;
-              try {
-                Range x = null, y = null;
-                if (pnHisto != null) {
-                  x = pnHisto.getChart().getXYPlot().getDomainAxis().getRange();
-                  y = pnHisto.getChart().getXYPlot().getRangeAxis().getRange();
-                }
-                histo = get();
-
-                if (histo != null) {
-                  if (x != null)
-                    histo.getXYPlot().getDomainAxis().setRange(x);
-                  if (y != null)
-                    histo.getXYPlot().getRangeAxis().setRange(y);
-                  pnHisto = new EChartPanel(histo, true, true, true, true, true);
-                  histo.getLegend().setVisible(true);
-
-                  southwest.removeAll();
-                  southwest.add(pnHisto, BorderLayout.CENTER);
-
-                  lbStats.setText("DONE");
-                  lbStats.setForeground(Color.GREEN);
-
-                  southwest.getParent().revalidate();
-                  southwest.getParent().repaint();
-                } else {
-                  lbStats.setText("ERROR");
-                }
-              } catch (InterruptedException e) {
-                logger.error("", e);
-                lbStats.setText("ERROR");
-              } catch (ExecutionException e) {
-                logger.error("", e);
-                lbStats.setText("ERROR");
-              }
-            }
-          }.execute();
+          } catch (Exception e) {
+            logger.error("", e);
+          }
         } catch (Exception e1) {
           logger.error("", e1);
         }
@@ -480,28 +348,87 @@ public class HistogramPanel extends JPanel {
     }
   }
 
+  protected JFreeChart doInBackground(double binShift, double binwidth) {
+    // create histogram
+    double[] dat = data.getData();
+    if (cbExcludeSmallerNoise.isSelected()) {
+      double noise = data.getRange().getLowerBound();
+      // get processed data from original image
+      dat = DoubleStream.of(dat).filter(d -> d > noise).toArray();
+    }
+
+    Range r = HistogramChartFactory.getBounds(dat);
+
+    DoubleFunction<Double> f =
+        cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
+
+    JFreeChart chart = HistogramChartFactory.createHistogram(dat, xLabel, binwidth,
+        r.getLowerBound() - binShift, r.getUpperBound(), f);
+    // add gaussian?
+    if (cbGaussianFit.isSelected()) {
+      addGaussianCurve(chart.getXYPlot());
+    }
+    return chart;
+  }
+
+  protected void done(JFreeChart chart) {
+    JFreeChart histo;
+    try {
+      Range x = null, y = null;
+      if (pnHisto != null) {
+        x = pnHisto.getChart().getXYPlot().getDomainAxis().getRange();
+        y = pnHisto.getChart().getXYPlot().getRangeAxis().getRange();
+      }
+      histo = chart;
+
+      if (histo != null) {
+        if (x != null) {
+          histo.getXYPlot().getDomainAxis().setRange(x);
+        }
+        if (y != null) {
+          histo.getXYPlot().getRangeAxis().setRange(y);
+        }
+        pnHisto = new EChartViewer(histo, true, true, true, true, true);
+        histo.getLegend().setVisible(true);
+
+        southwest.setCenter(pnHisto);
+
+        lbStats.setText("DONE");
+        lbStats.setTextFill(Color.GREEN);
+        southwest.requestLayout();
+      } else {
+        lbStats.setText("ERROR");
+      }
+    } catch (Exception e) {
+      logger.error("", e);
+      lbStats.setText("ERROR");
+    }
+  }
+
   protected void updateGaussian() {
-    if (cbGaussianFit.isSelected())
+    if (cbGaussianFit.isSelected()) {
       addGaussianCurves();
-    else
+    } else {
       hideGaussianCurves();
+    }
   }
 
   protected void addGaussianCurves() {
-    if (pnHisto != null)
+    if (pnHisto != null) {
       addGaussianCurve(pnHisto.getChart().getXYPlot());
+    }
   }
 
   /**
    * Add Gaussian curve to the plot
-   * 
+   *
    * @param p
    */
   protected void addGaussianCurve(XYPlot p) {
     try {
-      double gMin = Double.valueOf(txtGaussianLower.getText());
-      double gMax = Double.valueOf(txtGaussianUpper.getText());
-      int sigDigits = Integer.valueOf(getTxtPrecision().getText());
+      double gMin = Double.parseDouble(txtGaussianLower.getText());
+      double gMax = Double.parseDouble(txtGaussianUpper.getText());
+      int sigDigits = Integer.parseInt(getTxtPrecision().getText());
 
       XYDataset data = p.getDataset(0);
       hideGaussianCurve(p);
@@ -513,8 +440,9 @@ public class HistogramPanel extends JPanel {
   }
 
   protected void hideGaussianCurves() {
-    if (pnHisto != null)
+    if (pnHisto != null) {
       hideGaussianCurve(pnHisto.getChart().getXYPlot());
+    }
   }
 
   protected void hideGaussianCurve(XYPlot p) {
@@ -524,7 +452,7 @@ public class HistogramPanel extends JPanel {
     }
   }
 
-  public EChartPanel getChartPanel() {
+  public EChartViewer getChartPanel() {
     return pnHisto;
   }
 
@@ -532,51 +460,51 @@ public class HistogramPanel extends JPanel {
     return data;
   }
 
-  public JPanel getSouthwest() {
+  public Pane getSouthwest() {
     return southwest;
   }
 
-  public JTextField getTxtBinWidth() {
+  public TextField getTxtBinWidth() {
     return txtBinWidth;
   }
 
-  public JCheckBox getCbExcludeSmallerNoise() {
+  public CheckBox getCbExcludeSmallerNoise() {
     return cbExcludeSmallerNoise;
   }
 
-  public JLabel getLbStats() {
+  public Label getLbStats() {
     return lbStats;
   }
 
-  public JTextField getTxtRangeX() {
+  public TextField getTxtRangeX() {
     return txtRangeX;
   }
 
-  public JTextField getTxtRangeY() {
+  public TextField getTxtRangeY() {
     return txtRangeY;
   }
 
-  public JTextField getTxtRangeYEnd() {
+  public TextField getTxtRangeYEnd() {
     return txtRangeYEnd;
   }
 
-  public JTextField getTxtRangeXEnd() {
+  public TextField getTxtRangeXEnd() {
     return txtRangeXEnd;
   }
 
-  public JCheckBox getCbGaussianFit() {
+  public CheckBox getCbGaussianFit() {
     return cbGaussianFit;
   }
 
-  public JTextField getTxtGaussianLower() {
+  public TextField getTxtGaussianLower() {
     return txtGaussianLower;
   }
 
-  public JTextField getTxtGaussianUpper() {
+  public TextField getTxtGaussianUpper() {
     return txtGaussianUpper;
   }
 
-  public JTextField getTxtPrecision() {
+  public TextField getTxtPrecision() {
     return txtPrecision;
   }
 
@@ -590,7 +518,7 @@ public class HistogramPanel extends JPanel {
 
   /**
    * set and update gaussian
-   * 
+   *
    * @param lower
    * @param upper
    */
@@ -600,7 +528,7 @@ public class HistogramPanel extends JPanel {
     updateGaussian();
   }
 
-  public JPanel getBoxSettings() {
+  public Pane getBoxSettings() {
     return boxSettings;
   }
 }

@@ -18,20 +18,28 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.util.MirrorChartFactory;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.Stroke;
+import java.util.List;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import org.jfree.chart.ui.RectangleInsets;
 
 /**
  * More options for the StandardChartTheme
@@ -39,9 +47,23 @@ import io.github.mzmine.util.javafx.FxColorUtil;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class EStandardChartTheme extends StandardChartTheme {
+
+  public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
+
   private static final long serialVersionUID = 1L;
 
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
+  private static final Color DEFAULT_CROSS_HAIR_COLOR = Color.BLACK;
+
+  private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
+  private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+
+  // not final because we want themes without offsets for the export.
+  private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
+  private RectangleInsets MIRROR_PLOT_AXIS_OFFSET = new RectangleInsets(0, 4, 0, 4);
+
+  private static final double TITLE_TOP_MARGIN = 5.0;
 
   public static final String XML_DESC = "ChartTheme";
   // master font
@@ -79,7 +101,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     // general
 
     isAntiAliased = true;
-
     masterFont = new Font("Arial", Font.PLAIN, 11);
     masterFontColor = Color.black;
 
@@ -123,15 +144,66 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  public void apply(JFreeChart chart) {
+  public void apply(@Nonnull JFreeChart chart) {
+    assert chart != null;
+
     super.apply(chart);
     XYPlot p = chart.getXYPlot();
+
+    // Cross hair and axis visibility colors
+    applyToCrosshair(chart);
+    applyToAxes(chart);
+
+    // applyToTitles(chart);
+
+    // apply bg
+    chart.setBackgroundPaint(this.getChartBackgroundPaint());
+    chart.getPlot().setBackgroundPaint(this.getPlotBackgroundPaint());
+
     //
-    p.setDomainGridlinesVisible(showXGrid);
-    p.setRangeGridlinesVisible(showYGrid);
+    chart.setAntiAlias(isAntiAliased());
+    p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
+
+    applyToLegend(chart);
+
+  }
+
+
+  public void applyToCrosshair(@Nonnull JFreeChart chart) {
+    XYPlot p = chart.getXYPlot();
+    p.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+    p.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+    p.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+    p.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+    p.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+    p.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+  }
+
+  public void applyToAxes(@Nonnull JFreeChart chart) {
+    XYPlot p = chart.getXYPlot();
+    Axis domainAxis = p.getDomainAxis();
+    Axis rangeAxis = p.getRangeAxis();
+
+    p.setRangeGridlinesVisible(isShowYGrid());
+    p.setRangeGridlinePaint(getClrYGrid());
+    p.setDomainGridlinesVisible(isShowXGrid());
+    p.setDomainGridlinePaint(getClrXGrid());
+    p.setAxisOffset(DEFAULT_AXIS_OFFSET);
+
+    // only apply labels to the main axes
+    if (domainAxis != null && isUseXLabel()) {
+      domainAxis.setLabel(getXlabel());
+    }
+    if (rangeAxis != null && isUseYLabel()) {
+      rangeAxis.setLabel(getYlabel());
+    }
+
     // all axes
     for (int i = 0; i < p.getDomainAxisCount(); i++) {
       NumberAxis a = (NumberAxis) p.getDomainAxis(i);
+      if (a == null) {
+        continue;
+      }
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
@@ -139,46 +211,62 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
     for (int i = 0; i < p.getRangeAxisCount(); i++) {
       NumberAxis a = (NumberAxis) p.getRangeAxis(i);
+      if (a == null) {
+        continue;
+      }
       a.setTickMarkPaint(axisLinePaint);
       a.setAxisLinePaint(axisLinePaint);
       // visible?
       a.setVisible(showYAxis);
     }
-    // apply bg
-    chart.setBackgroundPaint(this.getChartBackgroundPaint());
-    chart.getPlot().setBackgroundPaint(this.getPlotBackgroundPaint());
 
-    for (int i = 0; i < chart.getSubtitleCount(); i++) {
-      // visible?
-      chart.getSubtitle(i).setVisible(subtitleVisible);
-      //
-      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
-        ((PaintScaleLegend) chart.getSubtitle(i))
-            .setBackgroundPaint(this.getChartBackgroundPaint());
+    // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
+    if (p instanceof CombinedDomainXYPlot) {
+      CombinedDomainXYPlot mirrorPlot = (CombinedDomainXYPlot) p;
+      mirrorPlot.setGap(0);
+      mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
+      for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
+        Axis ra = subplot.getRangeAxis();
+        subplot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
+        if (rangeAxis != null) {
+          ra.setVisible(isShowYAxis());
+          subplot.setRangeGridlinesVisible(isShowYGrid());
+          subplot.setRangeGridlinePaint(getClrYGrid());
+          subplot.setDomainGridlinesVisible(isShowXGrid());
+          subplot.setDomainGridlinePaint(getClrXGrid());
+          if (isUseYLabel()) {
+            ra.setLabel(getYlabel());
+          }
+        }
+      }
     }
-    if (chart.getLegend() != null)
+  }
+
+  public void applyToLegend(@Nonnull JFreeChart chart) {
+
+    if (chart.getLegend() != null) {
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
-
-    if (isUseXLabel())
-      p.getDomainAxis().setLabel(getXlabel());
-    if (isUseYLabel())
-      p.getRangeAxis().setLabel(getYlabel());
-
-    p.getDomainAxis().setVisible(isShowXAxis());
-    p.getRangeAxis().setVisible(isShowYAxis());
-
-    p.setDomainGridlinesVisible(isShowXGrid());
-    p.setDomainGridlinePaint(getClrXGrid());
-    p.setRangeGridlinesVisible(isShowYGrid());
-    p.setRangeGridlinePaint(getClrYGrid());
-
-    //
-    chart.setAntiAlias(isAntiAliased());
-    chart.getTitle().setVisible(isShowTitle());
-    p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
+    }
 
     fixLegend(chart);
   }
+
+//  public void applyToTitles(@Nonnull JFreeChart chart){
+//    chart.getSubtitles().forEach(s -> {
+//      if(s instanceof TextTitle && s != chart.getTitle()){
+//        ((TextTitle) s).setFont(getRegularFont());
+//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+//        ((TextTitle) s).setVisible(isShowTitle());
+////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+////        subtitle color is set by the chart theme parameters
+//
+//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+//          ((PaintScaleLegend) s)
+//              .setBackgroundPaint(this.getChartBackgroundPaint());
+//        }
+//      }
+//    });
+//  }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
@@ -194,23 +282,42 @@ public class EStandardChartTheme extends StandardChartTheme {
         new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
   }
 
+
   /**
    * Fixes the legend item's colour after the colours of the datasets/series in the plot were
    * changed.
-   * 
+   *
    * @param chart The chart.
    */
   public static void fixLegend(JFreeChart chart) {
     XYPlot plot = chart.getXYPlot();
     LegendTitle oldLegend = chart.getLegend();
+    if (oldLegend == null) {
+      return;
+    }
+
     RectangleEdge pos = oldLegend.getPosition();
     chart.removeLegend();
 
-    LegendTitle newLegend = new LegendTitle(plot);
+    LegendTitle newLegend;
+
+    if (plot instanceof CombinedDomainXYPlot
+        && (
+        oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
+            ||
+            oldLegend.getSources()[0].getLegendItems().getItemCount()
+                == MirrorChartFactory.tags.length * 2)) {
+
+      newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
+    } else {
+      newLegend = new LegendTitle(plot);
+    }
+
     newLegend.setPosition(pos);
     newLegend.setItemFont(oldLegend.getItemFont());
     chart.addLegend(newLegend);
     newLegend.setVisible(oldLegend.isVisible());
+    newLegend.setFrame(BlockBorder.NONE);
   }
 
   // GETTERS AND SETTERS
@@ -349,4 +456,27 @@ public class EStandardChartTheme extends StandardChartTheme {
   public void setClrYGrid(Color clrYGrid) {
     this.clrYGrid = clrYGrid;
   }
+
+  public RectangleInsets getDefaultAxisOffset() {
+    return DEFAULT_AXIS_OFFSET;
+  }
+
+  /**
+   * Should be set to 0 for exports
+   *
+   * @param defaultAxisOffset
+   */
+  public void setDefaultAxisOffset(RectangleInsets defaultAxisOffset) {
+    DEFAULT_AXIS_OFFSET = defaultAxisOffset;
+  }
+
+
+  public RectangleInsets getMirrorPlotAxisOffset() {
+    return MIRROR_PLOT_AXIS_OFFSET;
+  }
+
+  public void setMirrorPlotAxisOffset(RectangleInsets mirrorPlotAxisOffset) {
+    MIRROR_PLOT_AXIS_OFFSET = mirrorPlotAxisOffset;
+  }
+
 }

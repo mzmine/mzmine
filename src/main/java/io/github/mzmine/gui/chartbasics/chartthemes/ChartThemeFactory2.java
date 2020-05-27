@@ -20,6 +20,7 @@ package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import org.jfree.chart.ui.RectangleInsets;
 
 /**
  * This is a dumped down version of the original ChartThemeFactory. It is to be seen if this is
@@ -33,15 +34,23 @@ public class ChartThemeFactory2 {
 
   public static EStandardChartTheme createDefaultTheme(String name) {
     EStandardChartTheme theme = new EStandardChartTheme(name);
-
     ChartThemeParameters ctp = MZmineCore.getConfiguration().getDefaultChartThemeParameters();
-
     ctp.applyToChartTheme(theme);
-
     SimpleColorPalette scp = MZmineCore.getConfiguration().getDefaultColorPalette();
-
     scp.applyToChartTheme(theme);
+    return theme;
+  }
 
+  /**
+   * Creates a chart theme with no axis offset better suited for exporting due to a cleaner look.
+   *
+   * @param name
+   * @return
+   */
+  public static EStandardChartTheme createExportChartTheme(String name) {
+    EStandardChartTheme theme = createDefaultTheme(name);
+    theme.setDefaultAxisOffset(RectangleInsets.ZERO_INSETS);
+    theme.setMirrorPlotAxisOffset(RectangleInsets.ZERO_INSETS);
     return theme;
   }
 

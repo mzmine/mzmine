@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import javafx.application.Platform;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
@@ -157,9 +158,16 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
     }
 
-    fireDatasetChanged();
+    refresh();
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  /**
+   * Notify data set listener (on the EDT).
+   */
+  private void refresh() {
+    Platform.runLater(() -> fireDatasetChanged());
   }
 
   public void updateOnRangeDataPoints(String rangeType) {
@@ -189,7 +197,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
         dataSeries.get(level).add(point);
     }
 
-    fireDatasetChanged();
+    refresh();
   }
 
   /**

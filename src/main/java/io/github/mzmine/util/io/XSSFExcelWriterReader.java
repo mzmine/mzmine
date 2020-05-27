@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -26,20 +26,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Vector;
-import javax.swing.JFileChooser;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.files.FileTypeFilter;
 
 public class XSSFExcelWriterReader {
-  // static
-  private static JFileChooser chooser;
 
   // ###################################################################################
   // READER STUFF
@@ -89,7 +84,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * Closes all loaded workbooks (Not saving!)
-   * 
+   *
    * @return true if succeed
    * @return false if not
    * @see
@@ -172,7 +167,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * Returns an existing sheet. If there is no sheet with this name a new will be created
-   * 
+   *
    * @param name name of sheet
    * @return an existing or new sheet
    * @see
@@ -215,7 +210,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * exports a data[rows][columns] array
-   * 
+   *
    * @param realFilePath
    * @param data
    * @param rowsFirst true: [rows][cols] false [cols][rows]
@@ -245,7 +240,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes a data[rows][columns] array to the given wb
-   * 
+   *
    * @param realFilePath
    * @param data
    * @param rowsFirst true: [rows][cols] false [cols][rows]
@@ -268,7 +263,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes a data[rows][columns] array to the given wb
-   * 
+   *
    * @param realFilePath
    * @param data
    * @param rowsFirst true: [rows][cols] false [cols][rows]
@@ -291,7 +286,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes a boolean[rows][columns] array to the given sheet as binary 1:0
-   * 
+   *
    * @param realFilePath
    * @param data
    */
@@ -307,7 +302,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes a data array to one column
-   * 
+   *
    * @param data
    * @param inColumn in column or inRow?
    */
@@ -339,7 +334,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes a data array to one column
-   * 
+   *
    * @param data
    */
   public void writeDataArrayToSheet(XSSFSheet sheet, Vector<Object> data, int ic, int ir) {
@@ -358,7 +353,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes one line to a sheet
-   * 
+   *
    * @param sheet
    * @param title
    */
@@ -372,7 +367,7 @@ public class XSSFExcelWriterReader {
 
   /**
    * writes regression data to sheets
-   * 
+   *
    * @param sheet
    * @param reg
    * @param dp
@@ -395,17 +390,5 @@ public class XSSFExcelWriterReader {
     writeDataArrayToSheet(sheet, dp, 4, 2, true);
   }
 
-  /**
-   * A file chooser for xlsx workbooks
-   * 
-   * @return
-   */
-  public static JFileChooser getChooser() {
-    if (chooser == null) {
-      chooser = new JFileChooser();
-      chooser.addChoosableFileFilter(new FileTypeFilter("xlsx", "Excel workbook"));
-    }
-    return chooser;
-  }
 
 }

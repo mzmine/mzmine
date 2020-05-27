@@ -20,8 +20,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ADAPchromatogrambuilder;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -42,22 +50,13 @@ import io.github.mzmine.util.PeakSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
-import com.google.common.collect.RangeSet;
-
-import java.util.*;
-import java.util.logging.Logger;
-
-import com.google.common.collect.Range;
-
-import java.lang.*;
-
 public class ADAPChromatogramBuilderTask extends AbstractTask {
 
   RangeSet<Double> rangeSet = TreeRangeSet.create();
   // After each range is created it does not change so we can map the ranges
   // (which will be uniqe)
   // to the chromatograms
-  HashMap<Range, ADAPChromatogram> rangeToChromMap = new HashMap<Range, ADAPChromatogram>();
+  HashMap<Range<Double>, ADAPChromatogram> rangeToChromMap = new HashMap<>();
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -74,7 +73,6 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   // User parameters
   private String suffix, massListName;
   private MZTolerance mzTolerance;
-  private double minimumHeight;
   private int minimumScanSpan;
   // Owen added User parameers;
   private double IntensityThresh2;
@@ -117,6 +115,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Detecting chromatograms in " + dataFile;
   }
@@ -124,6 +123,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return progress;
   }
@@ -135,6 +135,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
     boolean writeChromCDF = true;
 
@@ -144,6 +145,13 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
 
     scans = scanSelection.getMatchingScans(dataFile);
     int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
+
+    if (scans.length == 0) {
+      setStatus(TaskStatus.ERROR);
+      final String msg = "No scans match the input criteria";
+      setErrorMessage(msg);
+      return;
+    }
 
     List<Double> rtListForChromCDF = new ArrayList<Double>();
 
@@ -240,7 +248,16 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
     // Set<Chromatogram> buildingChromatograms;
     // buildingChromatograms = new LinkedHashSet<Chromatogram>();
 
-    double maxIntensity = simpleAllMzVals[0].getIntensity();
+    // Exit if no peaks
+    if (simpleAllMzVals.length == 0) {
+      progress = 1.0;
+
+      setStatus(TaskStatus.FINISHED);
+
+      logger.info("Finished chromatogram builder with no peaks on " + dataFile);
+
+      return;
+    }
 
     // count starts at 1 since we already have added one with a single
     // point.
@@ -281,8 +298,6 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
         Range<Double> minusRange = rangeSet.rangeContaining(toleranceRange.lowerEndpoint());
         Double toBeLowerBound;
         Double toBeUpperBound;
-
-        double cur_max_testing_mz = mzPeak.getMZ();
 
         // If both of the above ranges are null then we make the new
         // range spaning the full

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.tools.kovats;
 
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -382,7 +383,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       for (Entry<KovatsIndex, Double> e : parsedValues.entrySet()) {
         ValueMarker marker = new ValueMarker(e.getValue(),
-            Colors.getPositiveColor(MZmineCore.getConfiguration().getColorVision()), markerStroke);
+            MZmineCore.getConfiguration().getDefaultColorPalette()
+                .getPositiveColorAWT(), markerStroke);
+
         marker.setLabelOffset(new RectangleInsets(10, 0, 0, 0));
         marker.setLabelFont(new Font("Arial", Font.PLAIN, 12));
         marker.setLabelBackgroundColor(Color.WHITE);

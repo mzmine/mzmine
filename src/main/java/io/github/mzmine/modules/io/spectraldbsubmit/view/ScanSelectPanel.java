@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -157,9 +158,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
       String massListName) {
     // get colors for vision
-    Vision vision = MZmineCore.getConfiguration().getColorVision();
-    colorUsedData = Colors.getPositiveColor(vision);
-    colorRemovedData = Colors.getNegativeColor(vision);
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    colorUsedData = palette.getPositiveColorAWT();
+    colorRemovedData = palette.getNegativeColorAWT();
 
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;
@@ -545,7 +546,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
           .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
       error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setHorizontalAlignment(SwingConstants.CENTER);
-      error.setForeground(new Color(220, 20, 60));
       pnChart.add(error, BorderLayout.CENTER);
       //
     }

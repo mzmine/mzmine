@@ -21,6 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,7 +43,6 @@ import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -424,8 +424,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     // show peaklist window
     Platform.runLater(() -> {
-      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList);
-      window.show();
+//      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList);
+//      window.show();
+      FeatureTableFXUtil.createFeatureTableWindow(newPeakList);
     });
 
     progress = 1.0;

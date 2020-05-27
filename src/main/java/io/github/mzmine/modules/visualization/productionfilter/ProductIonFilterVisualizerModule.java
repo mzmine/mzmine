@@ -61,7 +61,7 @@ public class ProductIonFilterVisualizerModule implements MZmineRunnableModule {
 
     ProductIonFilterVisualizerWindow newWindow =
         new ProductIonFilterVisualizerWindow(dataFiles[0], parameters);
-    newWindow.setVisible(true);
+    newWindow.show();
 
     return ExitCode.OK;
   }

@@ -27,19 +27,20 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.ImageIcon;
 
-import org.openscience.cdk.interfaces.IAtom;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
@@ -51,6 +52,8 @@ import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+
 
 /**
  * Class SiriusCompound May contain different amount of properties 1) if the IonAnnotation is from
@@ -181,16 +184,15 @@ public class SiriusCompound extends SimplePeakIdentity {
       return null;
 
     Set<String> dbNames = new TreeSet<String>();
-
-    for (DBLink link : dblinks)
+    for (DBLink link : dblinks) {
       dbNames.add(link.name);
+      }
 
     String[] dbs = new String[dbNames.size()];
     dbs = dbNames.toArray(dbs);
 
     return dbs;
   }
-
   /**
    * Method returns AtomContainer of the compound (if exists)
    *
@@ -200,7 +202,6 @@ public class SiriusCompound extends SimplePeakIdentity {
     IAtomContainer container = getIonAnnotation().getChemicalStructure();
     if (container == null)
       return null;
-
     return container;
   }
 
@@ -286,4 +287,32 @@ public class SiriusCompound extends SimplePeakIdentity {
   public String getSiriusScore() {
     return getPropertyValue("Sirius score");
   }
+
+  public SimpleObjectProperty<Structure2DComponent> getChemicalStructureNode() throws CDKException {
+    SimpleObjectProperty<Structure2DComponent>chemicalStructure;
+
+    Structure2DComponent node =new Structure2DComponent(this.getContainer());
+    chemicalStructure = new SimpleObjectProperty<Structure2DComponent>(node);
+
+    return chemicalStructure;
+
+  }
+
+  public SimpleObjectProperty<Node>getDBSNode(){
+     String dbs[] = this.getDBS();
+    VBox vBox = new VBox();
+    String dbsWords="";
+    Label label = new Label();
+    label.setMaxWidth(180);
+    label.setWrapText(true);
+    for(String S:dbs)
+    {
+      dbsWords+=S+" \n";
+    }
+    label.setText(dbsWords);
+    vBox.getChildren().add(label);
+
+   return new SimpleObjectProperty<>(label);
+  }
+
 }
