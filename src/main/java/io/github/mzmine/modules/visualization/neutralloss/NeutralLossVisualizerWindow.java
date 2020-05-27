@@ -42,8 +42,7 @@ import javafx.stage.Stage;
 public class NeutralLossVisualizerWindow extends Stage {
 
   private static final Image PRECURSOR_MASS_ICON =
-          FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
-
+      FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
   private ToolBar toolBar;
   private NeutralLossPlot neutralLossPlot;
   private BorderPane borderPane;
@@ -53,7 +52,8 @@ public class NeutralLossVisualizerWindow extends Stage {
 
   /**
    * Constructor.
-   * @param dataFile file containing the data of one sample
+   *
+   * @param dataFile   file containing the data of one sample
    * @param parameters plot parameters set by the user
    */
   public NeutralLossVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
@@ -62,7 +62,7 @@ public class NeutralLossVisualizerWindow extends Stage {
 
     // Retrieve parameter's values
     Range<Double> rtRange =
-            parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue();
+        parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue();
     Range<Double> mzRange = parameters.getParameter(NeutralLossParameters.mzRange).getValue();
     int numOfFragments = parameters.getParameter(NeutralLossParameters.numOfFragments).getValue();
 
@@ -76,7 +76,7 @@ public class NeutralLossVisualizerWindow extends Stage {
 
     // Use main CSS
     scene.getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(scene);
 
     setMinWidth(400.0);
@@ -96,7 +96,7 @@ public class NeutralLossVisualizerWindow extends Stage {
     highlightPrecursorBtn.setTooltip(new Tooltip("Highlight precursor m/z range..."));
     highlightPrecursorBtn.setOnAction(e -> {
       NeutralLossSetHighlightDialog dialog =
-              new NeutralLossSetHighlightDialog(this, neutralLossPlot, "HIGHLIGHT_PRECURSOR");
+          new NeutralLossSetHighlightDialog(this, neutralLossPlot, "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
 

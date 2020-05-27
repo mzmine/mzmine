@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.productionfilter;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.Desktop;
@@ -39,14 +39,7 @@ import javax.annotation.Nonnull;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.data.general.DatasetChangeEvent;
 
-/**
- * Dialog for selection of highlighted precursor m/z range
- */
-public class ProductIonFilterSetHighlightDialog extends Stage {
-
-  /**
-   *
-   */
+public class CombinedModuleSetHighlightDialog extends Stage {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -55,8 +48,8 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
   // dialog components
   private final DialogPane mainPane;
   private final Scene mainScene;
-  private Button btnOK, btnCancel;
-  private TextField fieldMinMZ, fieldMaxMZ;
+  private final Button btnOK, btnCancel;
+  private final TextField fieldMinMZ, fieldMaxMZ;
   private final GridPane pnlLabelsAndFields;
 
   private Desktop desktop;
@@ -64,20 +57,24 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
   private String rangeType;
   private ValueAxis axis;
 
-  private ProductIonFilterPlot plot;
+  private CombinedModulePlot plot;
 
-  public ProductIonFilterSetHighlightDialog(@Nonnull Stage parent, ProductIonFilterPlot plot,
-      String command) {
+  public CombinedModuleSetHighlightDialog(@Nonnull Stage parent, @Nonnull CombinedModulePlot plot,
+      @Nonnull String command) {
 
-    this.desktop = MZmineCore.getDesktop();
+    desktop = MZmineCore.getDesktop();
     this.plot = plot;
-    this.rangeType = command;
+    rangeType = command;
     mainPane = new DialogPane();
     mainScene = new Scene(mainPane);
+
+    // Use main CSS
     mainScene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
+
     initOwner(parent);
+
     String title = "Highlight ";
     if (command.equals("HIGHLIGHT_PRECURSOR")) {
       title += "precursor m/z range";
@@ -128,6 +125,7 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
     sizeToScene();
     centerOnScreen();
     setResizable(false);
+
   }
 
   public boolean highlightDataPoints() {
@@ -147,7 +145,7 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
       }
       logger.info("Updating Neutral loss plot window");
 
-      ProductIonFilterDataSet dataSet = (ProductIonFilterDataSet) plot.getXYPlot().getDataset();
+      CombinedModuleDataset dataSet = (CombinedModuleDataset) plot.getXYPlot().getDataset();
       dataSet.updateOnRangeDataPoints(rangeType);
       plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
       return true;
@@ -172,4 +170,5 @@ public class ProductIonFilterSetHighlightDialog extends Stage {
     alert.setContentText(msg);
     alert.showAndWait();
   }
+
 }
