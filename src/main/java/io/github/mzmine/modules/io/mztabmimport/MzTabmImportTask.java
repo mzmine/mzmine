@@ -281,6 +281,7 @@ public class MzTabmImportTask extends AbstractTask {
             List<Assay> assayList = studyVariable.getAssayRefs();
             for(int i=0;i<assayList.size();i++){
                 Assay dataFileAssay = assayList.get(i);
+                System.out.println(dataFileAssay.getName());
                 if(dataFileAssay != null){
                     int indexOfAssay = mzTabmFile.getMetadata().getAssay().indexOf(dataFileAssay);
                     project.setParameterValue(newUserParameter, rawDataFiles.get(indexOfAssay), studyVariable.getDescription());
@@ -294,7 +295,7 @@ public class MzTabmImportTask extends AbstractTask {
         List<SmallMoleculeSummary> smallMoleculeSummaryList =  mzTabmFile.getSmallMoleculeSummary();
 
         //Loop through SML data
-        String formula,description,database, url="";
+        String formula,description,method, url="";
         double mzExp = 0, abundance = 0, peak_mz = 0, peak_rt = 0, peak_height = 0, rtValue = 0;
         // int charge = 0;
         int rowCounter = 0;
@@ -312,9 +313,8 @@ public class MzTabmImportTask extends AbstractTask {
 //            List<String> inchiKey = smallMoleculeSummary.getInchi();
             description = smallMoleculeSummary.getChemicalName().get(0);
 //             species = smallMoleculeSummary.getSpecies();?
-            //TODO database
-            database = null; //what is identification method?
-            // dbVersion = smallMolecule.getDatabaseVersion();?
+            Database db = mzTabmFile.getMetadata().getDatabase().get(0);
+            method = db.getPrefix()+'@'+db.getVersion();
 //             String reliability = smallMoleculeSummary.getReliability();
 
             if(smallMoleculeSummary.getUri().size() != 0){
@@ -347,7 +347,7 @@ public class MzTabmImportTask extends AbstractTask {
             newRow.setAverageRT(rtValue);
             if (description != null) {
                 SimplePeakIdentity newIdentity =
-                        new SimplePeakIdentity(description, formula, database, identifier, url);
+                        new SimplePeakIdentity(description, formula, method, identifier, url);
                 newRow.addPeakIdentity(newIdentity, false);
             }
 
