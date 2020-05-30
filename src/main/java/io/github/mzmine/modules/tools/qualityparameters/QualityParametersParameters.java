@@ -31,7 +31,7 @@ public class QualityParametersParameters extends SimpleParameterSet {
       "Sets the tolerance range for S/N calculations. For high resolving instruments 0 "
           + "is recommended. However for instruments with less resolution a higher tolerance can be"
           + " useful. Due to peaks overlapping sometimes because of lower resolution and accuracy "
-          + "the S/N could be accidentally lowered.", 0, 0);
+          + "the S/N could be accidentally lowered.", 0, 0, true);
 
   public QualityParametersParameters() {
     super(new Parameter[]{peakLists, mzTolerance});

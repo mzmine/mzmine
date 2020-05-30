@@ -68,7 +68,7 @@ public class QualityParametersTask extends AbstractTask {
     else if(modularFeatureList != null) {
       QualityParameters.calculateQualityParameters(modularFeatureList);
     }
-    finishedPercentage = 100.d;
+    finishedPercentage = 1.d;
     setStatus(TaskStatus.FINISHED);
   }
 
