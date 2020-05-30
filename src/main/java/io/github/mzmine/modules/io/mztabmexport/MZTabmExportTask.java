@@ -195,7 +195,7 @@ public class MZTabmExportTask extends AbstractTask {
                             String formula = peakIdentity.getPropertyValue("Molecular formula");
                             String description = escapeString(peakIdentity.getPropertyValue("Name"));
                             String url = peakIdentity.getPropertyValue("URL");
-                            System.out.println(identifier+" "+method+" "+formula+" "+description);
+//                            System.out.println(identifier+" "+method+" "+formula+" "+description);
                             if(identifier != null){
                                 sm.addDatabaseIdentifierItem(identifier);
                             }
@@ -241,9 +241,10 @@ public class MZTabmExportTask extends AbstractTask {
                                 String peakRT = String.valueOf(peak.getRT());
                                 String peakHeight = String.valueOf(peak.getHeight());
                                 Double peakArea = peak.getArea();
-                                peak_mzList.get(dataFileCount-1).build(peakMZ);
-                                peak_rtList.get(dataFileCount-1).build(peakRT);
-                                peak_heightList.get(dataFileCount-1).build(peakHeight);
+
+                                sm.addOptItem(peak_mzList.get(dataFileCount-1).build(peakMZ));
+                                sm.addOptItem(peak_rtList.get(dataFileCount-1).build(peakRT));
+                                sm.addOptItem(peak_heightList.get(dataFileCount-1).build(peakHeight));
                                 //TODO setAbundanceColumnValue
                             }
                         }
