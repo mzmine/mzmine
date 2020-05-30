@@ -281,7 +281,6 @@ public class MzTabmImportTask extends AbstractTask {
             List<Assay> assayList = studyVariable.getAssayRefs();
             for(int i=0;i<assayList.size();i++){
                 Assay dataFileAssay = assayList.get(i);
-                System.out.println(dataFileAssay.getName());
                 if(dataFileAssay != null){
                     int indexOfAssay = mzTabmFile.getMetadata().getAssay().indexOf(dataFileAssay);
                     project.setParameterValue(newUserParameter, rawDataFiles.get(indexOfAssay), studyVariable.getDescription());
