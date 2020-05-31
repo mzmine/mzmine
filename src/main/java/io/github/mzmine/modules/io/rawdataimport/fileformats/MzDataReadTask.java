@@ -308,7 +308,7 @@ public class MzDataReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,0.0, precursorMz,
             precursorCharge, null, dataPoints, spectrumType, polarity, "", null);
 
         /*

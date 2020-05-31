@@ -235,7 +235,7 @@ runtime {
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$uuid",
                                 "--license-file", "LICENSE.txt"
-                               ]
+            ]
         }
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
@@ -252,7 +252,7 @@ runtime {
                                 "--linux-menu-group","MZmine",
                                 "--license-file", "LICENSE.txt",
                                 "--linux-deb-maintainer", "plusik@gmail.com"
-                               ]
+            ]
 
         }
         installerName = "MZmine"
@@ -264,7 +264,7 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
-                  ]
+        ]
     }
 }
 
@@ -285,4 +285,3 @@ processResources {
         expand(project.properties)
     }
 }
-

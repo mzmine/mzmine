@@ -97,6 +97,9 @@ public class RawDataOverviewWindowController {
   private TableColumn<ScanDescription, String> definitionColumn;
 
   @FXML
+  private TableColumn<ScanDescription, String> mobilityColumn;
+
+  @FXML
   private GridPane metaDataGridPane;
 
   @FXML
@@ -170,6 +173,8 @@ public class RawDataOverviewWindowController {
       } else {
         precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
       }
+      String mobility="";
+     mobility =  MZminePreferences.mzFormat.getValue().format(scan.getMobility());
 
       // format mzRange
       String mzRange =
@@ -184,7 +189,8 @@ public class RawDataOverviewWindowController {
           mzRange, // mz range
           scan.getSpectrumType().toString(), // profile/centroid
           scan.getPolarity().toString(), // polarity
-          scan.getScanDefinition()) // definition
+          scan.getScanDefinition(),      // definition
+              mobility) // mobility
       );
     }
 
@@ -196,6 +202,7 @@ public class RawDataOverviewWindowController {
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
     polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
     definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
+    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
 
     rawDataTableView.setItems(tableData);
 
