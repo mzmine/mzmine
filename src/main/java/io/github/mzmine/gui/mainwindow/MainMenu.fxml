@@ -75,7 +75,7 @@
 			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportModule" />
 		<MenuItem text="Raw data import (folder)" onAction="#runModule"
 			userData="io.github.mzmine.modules.io.rawdataimport.RawDataImportFolderModule" />
-			
+
 		<Menu text="Raw data export">
 			<MenuItem text="Export raw data file to mzML"
 				onAction="#runModule"
@@ -360,6 +360,9 @@
 		<MenuItem text="Kovats index extraction"
 			onAction="#runModule"
 			userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule" />
+		<MenuItem text="Calculate quality parameters"
+			onAction="#runModule"
+			userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule" />
 	</Menu>
 
 
