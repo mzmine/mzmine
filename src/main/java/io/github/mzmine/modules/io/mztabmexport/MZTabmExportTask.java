@@ -241,11 +241,13 @@ public class MZTabmExportTask extends AbstractTask {
                                 String peakRT = String.valueOf(peak.getRT());
                                 String peakHeight = String.valueOf(peak.getHeight());
                                 Double peakArea = peak.getArea();
+                                System.out.println(peakArea);
 
                                 sm.addOptItem(peak_mzList.get(dataFileCount-1).build(peakMZ));
                                 sm.addOptItem(peak_rtList.get(dataFileCount-1).build(peakRT));
                                 sm.addOptItem(peak_heightList.get(dataFileCount-1).build(peakHeight));
-                                //TODO setAbundanceColumnValue
+                                sm.addAbundanceAssayItem(peakArea);
+
                             }
                         }
                     }
