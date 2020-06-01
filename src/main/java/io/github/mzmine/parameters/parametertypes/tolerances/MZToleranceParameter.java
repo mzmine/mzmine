@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -27,8 +27,10 @@ import io.github.mzmine.parameters.UserParameter;
 
 public class MZToleranceParameter implements UserParameter<MZTolerance, MZToleranceComponent> {
 
-  private String name, description;
+  private String name;
+  private String description;
   private MZTolerance value;
+  private boolean zeroAllowed;
 
   public MZToleranceParameter() {
     this("m/z tolerance",
@@ -40,12 +42,22 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   public MZToleranceParameter(String name, String description) {
     this.name = name;
     this.description = description;
+    this.zeroAllowed = false;
   }
 
   public MZToleranceParameter(String name, String description, double deltaMZ, double ppm) {
     this.name = name;
     this.description = description;
+    this.zeroAllowed = false;
     value = new MZTolerance(deltaMZ, ppm);
+  }
+
+  public MZToleranceParameter(String name, String description, double deltaMZ, double ppm,
+      boolean zeroAllowed) {
+    this.name = name;
+    this.description = description;
+    value = new MZTolerance(deltaMZ, ppm);
+    this.zeroAllowed = zeroAllowed;
   }
 
   @Override
@@ -105,14 +117,14 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
       String itemString = items.item(i).getTextContent();
       ppmTolerance = Double.parseDouble(itemString);
     }
-
     this.value = new MZTolerance(mzTolerance, ppmTolerance);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     Element newElement = parentDocument.createElement("absolutetolerance");
     newElement.setTextContent(String.valueOf(value.getMzTolerance()));
@@ -128,7 +140,9 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
       errorMessages.add(name + " is not set properly");
       return false;
     }
-    if ((value.getMzTolerance() <= 0.0) && (value.getPpmTolerance() <= 0.0)) {
+
+    if (((value.getMzTolerance() <= 0.0) && (value.getPpmTolerance() <= 0.0) && !zeroAllowed) ||
+        (value.getMzTolerance() < 0.0 && value.getPpmTolerance() < 0.0 && zeroAllowed)) {
       errorMessages.add(name + " must be greater than zero");
       return false;
     }

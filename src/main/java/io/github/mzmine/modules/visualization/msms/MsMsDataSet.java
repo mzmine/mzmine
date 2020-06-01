@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
+import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 
@@ -197,11 +198,14 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
       processedColors++;
     }
 
-    fireDatasetChanged();
+    refresh();
     status = TaskStatus.FINISHED;
 
   }
 
+  private void refresh() {
+    Platform.runLater(this::fireDatasetChanged);
+  }
   @Override
   public int getSeriesCount() {
     return 1;
@@ -339,7 +343,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
     }
 
-    fireDatasetChanged();
+    refresh();
   }
 
   public RawDataFile getDataFile() {
