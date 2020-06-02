@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.visualization.productionfilter;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,20 +36,10 @@ import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+import javafx.application.Platform;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
 
 class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -126,8 +124,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     for (int scanNumber : scanNumbers) {
 
       // Cancel?
-      if (status == TaskStatus.CANCELED)
+      if (status == TaskStatus.CANCELED) {
         return;
+      }
 
       Scan scan = rawDataFile.getScan(scanNumber);
 
@@ -153,8 +152,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
       for (int i = 0; i < scanDataPoints.length; i++) {
         // Cancel?
-        if (status == TaskStatus.CANCELED)
+        if (status == TaskStatus.CANCELED) {
           return;
+        }
 
         if ((scanDataPoints[i].getIntensity()) > highestIntensity) {
           // add the peaks
@@ -185,23 +185,26 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // scan through each m/z within scan m/z peaks
         for (int h = 0; h < topPeaks.length; h++) {
           // Cancel?
-          if (status == TaskStatus.CANCELED)
+          if (status == TaskStatus.CANCELED) {
             return;
+          }
 
           int peakIndex = topPeaks[h];
-          if (peakIndex < 0)
+          if (peakIndex < 0) {
             break;
+          }
           double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[peakIndex].getMZ();
 
           // scan for all m/z values if more than one, set pass to
           // true if all m/z values are found
           for (int j = 0; j < targetedMZ_List.size(); j++) {
             // Cancel?
-            if (status == TaskStatus.CANCELED)
+            if (status == TaskStatus.CANCELED) {
               return;
+            }
 
             if (mzDifference.getToleranceRange(targetedMZ_List.get(j))
-                .contains(scanDataPoints[peakIndex].getMZ()) == true) {
+                .contains(scanDataPoints[peakIndex].getMZ())) {
               booleanValuesA[j] = true;
             }
           }
@@ -215,11 +218,12 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
           // values are found
           for (int j = 0; j < targetedNF_List.size(); j++) {
             // Cancel?
-            if (status == TaskStatus.CANCELED)
+            if (status == TaskStatus.CANCELED) {
               return;
+            }
 
             if (mzDifference.getToleranceRange(targetedNF_List.get(j))
-                .contains(neutralLoss) == true) {
+                .contains(neutralLoss)) {
               booleanValuesB[j] = true;
             }
           }
@@ -238,17 +242,18 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // if found in scan
       } else if (targetedMZ_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (int h = 0; h < topPeaks.length; h++) {
-          int peakIndex = topPeaks[h];
-          if (peakIndex < 0)
+        for (int peakIndex : topPeaks) {
+          if (peakIndex < 0) {
             break;
+          }
           for (int j = 0; j < targetedMZ_List.size(); j++) {
             // Cancel?
-            if (status == TaskStatus.CANCELED)
+            if (status == TaskStatus.CANCELED) {
               return;
+            }
 
             if (mzDifference.getToleranceRange(targetedMZ_List.get(j))
-                .contains(scanDataPoints[peakIndex].getMZ()) == true) {
+                .contains(scanDataPoints[peakIndex].getMZ())) {
               booleanValues[j] = true;
             }
           }
@@ -261,22 +266,25 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // searched for
       } else if (targetedNF_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (int h = 0; h < topPeaks.length; h++) {
+        for (Integer topPeak : topPeaks) {
           // Cancel?
-          if (status == TaskStatus.CANCELED)
+          if (status == TaskStatus.CANCELED) {
             return;
+          }
 
-          int peakIndex = topPeaks[h];
-          if (peakIndex < 0)
+          int peakIndex = topPeak;
+          if (peakIndex < 0) {
             break;
+          }
           double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[peakIndex].getMZ();
           for (int j = 0; j < targetedNF_List.size(); j++) {
             // Cancel?
-            if (status == TaskStatus.CANCELED)
+            if (status == TaskStatus.CANCELED) {
               return;
+            }
 
             if (mzDifference.getToleranceRange(targetedNF_List.get(j))
-                .contains(neutralLoss) == true) {
+                .contains(neutralLoss)) {
               booleanValues[j] = true;
             }
           }
@@ -292,19 +300,21 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       }
       // If pass is set to true, include scan in output file and visual
       // plot
-      if (pass == true) {
+      if (pass) {
 
         // Add all data points to visual plot and output file from scan
-        for (int i = 0; i < topPeaks.length; i++) {
+        for (Integer topPeak : topPeaks) {
           // Cancel?
-          if (status == TaskStatus.CANCELED)
+          if (status == TaskStatus.CANCELED) {
             return;
+          }
 
-          int peakIndex = topPeaks[i];
+          int peakIndex = topPeak;
 
           // if we have a very few peaks, the array may not be full
-          if (peakIndex < 0)
+          if (peakIndex < 0) {
             break;
+          }
 
           ProductIonFilterDataPoint newPoint =
               new ProductIonFilterDataPoint(scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
@@ -314,9 +324,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
           // Grab product ion, precursor ion, and retention time for
           // sending to output file
-          String temp = Double.toString(scan.getPrecursorMZ()) + ","
-              + Double.toString(scanDataPoints[peakIndex].getMZ()) + ","
-              + Double.toString(scan.getRetentionTime());
+          String temp = scan.getPrecursorMZ() + ","
+              + scanDataPoints[peakIndex].getMZ() + ","
+              + scan.getRetentionTime();
           // add to output file
           dataListVisual.add(temp);
         }
@@ -337,8 +347,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // Write output to csv file - for targeted feature detection module.
     try {
       // Cancel?
-      if (status == TaskStatus.CANCELED)
+      if (status == TaskStatus.CANCELED) {
         return;
+      }
 
       String namePattern = "{}";
       File curFile = fileName;
@@ -362,7 +373,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       System.out.print("Could not output to file");
       System.out.print(e.getStackTrace());
 
-      fireDatasetChanged();
+      refresh();
       setStatus(TaskStatus.FINISHED);
     }
 
@@ -371,8 +382,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // retention times.
     try {
       // Cancel?
-      if (status == TaskStatus.CANCELED)
+      if (status == TaskStatus.CANCELED) {
         return;
+      }
 
       String namePattern = "{}";
       File curFile = fileName;
@@ -399,13 +411,17 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       System.out.print("Could not output to file");
       System.out.print(e.getStackTrace());
 
-      fireDatasetChanged();
+      refresh();
       setStatus(TaskStatus.FINISHED);
     }
 
-    fireDatasetChanged();
+    refresh();
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private void refresh() {
+    Platform.runLater(this::fireDatasetChanged);
   }
 
   public void updateOnRangeDataPoints(String rangeType) {
@@ -416,8 +432,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
     // Set type of search
     int level = NEUTRALLOSS_LEVEL;
-    if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+    if (rangeType.equals("HIGHLIGHT_PRECURSOR")) {
       level = PRECURSOR_LEVEL;
+    }
 
     // Clean previous selection
     dataSeries.get(level).clear();
@@ -427,15 +444,17 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     for (int i = 0; i < dataSeries.get(RAW_LEVEL).size(); i++) {
       point = dataSeries.get(RAW_LEVEL).get(i);
       // Verify if the point is on range
-      if (level == PRECURSOR_LEVEL)
+      if (level == PRECURSOR_LEVEL) {
         b = prRange.contains(point.getPrecursorMass());
-      else
+      } else {
         b = nlRange.contains(point.getProductMZ());
-      if (b)
+      }
+      if (b) {
         dataSeries.get(level).add(point);
+      }
     }
 
-    fireDatasetChanged();
+    refresh();
   }
 
   /**
@@ -465,11 +484,11 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   public Number getX(int series, int item) {
     ProductIonFilterDataPoint point = dataSeries.get(series).get(item);
     if (xAxisType.equals(ProductIonFilterParameters.xAxisPrecursor)) {
-      // double mz = point.getPrecursorMass();
       double mz = point.getPrecursorMZ();
       return mz;
-    } else
+    } else {
       return point.getRetentionTime();
+    }
 
   }
 
@@ -492,21 +511,24 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     double currentX, currentY;
     while (it.hasNext()) {
       ProductIonFilterDataPoint point = it.next();
-      if (xAxisType == ProductIonFilterParameters.xAxisPrecursor)
+      if (xAxisType == ProductIonFilterParameters.xAxisPrecursor) {
         currentX = point.getPrecursorMass();
-      else
+      } else {
         currentX = point.getRetentionTime();
+      }
       currentY = point.getProductMZ();
       // check for equality
-      if ((Math.abs(currentX - xValue) < 0.00000001) && (Math.abs(currentY - yValue) < 0.00000001))
+      if ((Math.abs(currentX - xValue) < 0.00000001) && (Math.abs(currentY - yValue)
+          < 0.00000001)) {
         return point;
+      }
     }
     return null;
   }
 
   /**
    * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-   *      int, int)
+   * int, int)
    */
   public String generateToolTip(XYDataset dataset, int series, int item) {
     return dataSeries.get(series).get(item).getName();
@@ -521,10 +543,11 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   }
 
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
+    } else {
       return ((double) processedScans / totalScans);
+    }
   }
 
   public TaskStatus getStatus() {
@@ -536,7 +559,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   }
 
   /**
-   * @see io.github.mzmine.taskcontrol.Task#setStatus()
+   *
    */
   public void setStatus(TaskStatus newStatus) {
     this.status = newStatus;
@@ -547,9 +570,11 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   }
 
   public static boolean isAllTrue(boolean[] array) {
-    for (boolean b : array)
-      if (!b)
+    for (boolean b : array) {
+      if (!b) {
         return false;
+      }
+    }
     return true;
   }
 

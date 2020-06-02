@@ -33,6 +33,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+
 public class HeadLessDesktop implements Desktop {
 
   private static final String MODULE_NAME = "Desktop";

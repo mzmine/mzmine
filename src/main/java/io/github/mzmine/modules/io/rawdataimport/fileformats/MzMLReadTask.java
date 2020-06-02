@@ -139,12 +139,14 @@ public class MzMLReadTask extends AbstractTask {
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
         DataPoint dataPoints[] = extractDataPoints(spectrum);
+        double mobility = extractMobility(spectrum);
 
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, precursorMz,
-                precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null);
+        SimpleScan scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility,  precursorMz,
+                 precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition,
+                null);
 
         for (SimpleScan s : parentStack) {
           if (s.getScanNumber() == parentScan) {
@@ -506,6 +508,46 @@ public class MzMLReadTask extends AbstractTask {
 
     // By default, let's assume unidentified spectra are MS spectra
     return true;
+  }
+
+  /**
+   * <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value=
+   * "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+   *
+   * @param spectrum
+   * @return
+   */
+  private double extractMobility(Spectrum spectrum) {
+    ScanList scanListElement = spectrum.getScanList();
+    if (scanListElement == null)
+      return 0;
+    List<Scan> scanElements = scanListElement.getScan();
+    if (scanElements == null)
+      return 0;
+    for (Scan scan : scanElements) {
+      List<CVParam> cvParams = scan.getCvParam();
+      if (cvParams == null)
+        continue;
+      for (CVParam param : cvParams) {
+        String accession = param.getAccession();
+        String unitAccession = param.getUnitAccession();
+        String value = param.getValue();
+        if ((accession == null) || (value == null))
+          continue;
+        // Retention time (actually "Scan start time") MS:1000016
+        if (accession.equals("MS:1002476")) {
+          // UO:0000028 unitAcession for mobility in Waters files converted to mzML
+          double mobility;
+          if ((unitAccession == null) || (unitAccession.equals("UO:0000028"))) {
+            mobility = Double.parseDouble(value);
+          } else {
+            mobility = Double.parseDouble(value) / 60d;
+          }
+          return mobility;
+        }
+      }
+    }
+    return 0;
   }
 
 }

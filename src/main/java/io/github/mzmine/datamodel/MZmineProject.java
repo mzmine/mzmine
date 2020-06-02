@@ -116,6 +116,7 @@ public interface MZmineProject {
    */
   public void addPeakList(PeakList peaklist);
 
+
   /**
    * Removes a feature list from the project
    */
@@ -146,8 +147,8 @@ public interface MZmineProject {
 
     // public void notifyObjectChanged(Object object, boolean structureChanged);
 
-  // public void addProjectListener(MZmineProjectListener newListener);
+   // public void addProjectListener(MZmineProjectListener newListener);
 
-  // public void removeProjectListener(MZmineProjectListener listener);
+  //public void removeProjectListener(MZmineProjectListener listener);
 
 }

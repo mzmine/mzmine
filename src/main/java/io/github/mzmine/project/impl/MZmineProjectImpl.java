@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;

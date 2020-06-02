@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import java.awt.Font;
-import java.util.Collections;
-import java.util.Vector;
-import java.util.logging.Logger;
-import org.jfree.chart.plot.XYPlot;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
@@ -34,11 +29,17 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.PeakListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.awt.Font;
+import java.util.Collections;
+import java.util.Vector;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import org.jfree.chart.plot.XYPlot;
 
 /**
  * MS/MS visualizer's bottom panel
@@ -62,16 +63,7 @@ class MsMsBottomPanel extends HBox {
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;
 
-    // setBackground(Color.white);
-    // setBorder(new EmptyBorder(5, 5, 5, 0));
-
-    // add(Box.createHorizontalGlue());
-
-
     thresholdCombo = new ComboBox<>(FXCollections.observableArrayList(PeakThresholdMode.values()));
-    // thresholdCombo.getSelectionModel().select(PeakThresholdMode.NONE);
-    // thresholdCombo.setBackground(Color.white);
-    // thresholdCombo.setFont(smallFont);
     thresholdCombo.setOnAction(e -> {
       PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
 
@@ -92,14 +84,12 @@ class MsMsBottomPanel extends HBox {
 
       thresholdSettings.setMode(mode);
       PeakList selectedPeakList = getPeaksInThreshold();
-      if (selectedPeakList != null)
+      if (selectedPeakList != null) {
         masterFrame.getPlot().loadPeakList(selectedPeakList);
+      }
     });
 
-
     peakTextField = new TextField();
-    // peakTextField.setPreferredSize(new Dimension(50, 15));
-    // peakTextField.setFont(smallFont);
     peakTextField.setOnAction(e -> {
       PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
       String value = peakTextField.getText();
@@ -117,25 +107,19 @@ class MsMsBottomPanel extends HBox {
           break;
       }
       PeakList selectedPeakList = getPeaksInThreshold();
-      if (selectedPeakList != null)
+      if (selectedPeakList != null) {
         masterFrame.getPlot().loadPeakList(selectedPeakList);
+      }
 
     });
 
-
     peakListSelector =
         new ComboBox<>(MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
-    // peakListSelector.setBackground(Color.white);
-    // peakListSelector.setFont(smallFont);
-    // peakListSelector.setActionCommand("PEAKLIST_CHANGE");
 
     thresholdSettings = parameters.getParameter(MsMsParameters.peakThresholdSettings);
 
     thresholdCombo.getSelectionModel().select(thresholdSettings.getMode());
-
-    // add(Box.createHorizontalStrut(10));
-
-    // add(Box.createHorizontalGlue());
+    setSpacing(10);
     getChildren().addAll( //
         new Label("Show: "), //
         thresholdCombo, //
@@ -176,15 +160,17 @@ class MsMsBottomPanel extends HBox {
    */
   PeakList getIntensityThresholdPeakList(double intensity) {
     PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    if (selectedPeakList == null)
+    if (selectedPeakList == null) {
       return null;
+    }
     SimplePeakList newList =
         new SimplePeakList(selectedPeakList.getName(), selectedPeakList.getRawDataFiles());
 
     for (PeakListRow peakRow : selectedPeakList.getRows()) {
       Feature peak = peakRow.getPeak(dataFile);
-      if (peak == null)
+      if (peak == null) {
         continue;
+      }
       if (peak.getRawDataPointsIntensityRange().upperEndpoint() > intensity) {
         newList.addRow(peakRow);
       }
@@ -198,8 +184,9 @@ class MsMsBottomPanel extends HBox {
   PeakList getTopThresholdPeakList(int threshold) {
 
     PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    if (selectedPeakList == null)
+    if (selectedPeakList == null) {
       return null;
+    }
     SimplePeakList newList =
         new SimplePeakList(selectedPeakList.getName(), selectedPeakList.getRawDataFiles());
 
@@ -226,8 +213,9 @@ class MsMsBottomPanel extends HBox {
     Collections.sort(peakRows,
         new PeakListRowSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
-    if (threshold > peakRows.size())
+    if (threshold > peakRows.size()) {
       threshold = peakRows.size();
+    }
     for (int i = 0; i < threshold; i++) {
       newList.addRow(peakRows.elementAt(i));
     }
@@ -241,7 +229,6 @@ class MsMsBottomPanel extends HBox {
     PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
     return selectedPeakList;
   }
-
 
 
 }

@@ -55,6 +55,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
   private int msLevel;
   private int[] fragmentScan;
   private int numberOfFragments;
+  private double mobility;
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
@@ -176,6 +177,10 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_2_3.PRECURSOR_MZ.getElementName())) {
       precursorMZ = Double.parseDouble(getTextOfElement());
     }
+    // need to work
+    if (qName.equals(RawDataElementName_2_3.ION_MOBILITY.getElementName())){
+      mobility = Double.parseDouble(getTextOfElement());
+    }
 
     if (qName.equals(RawDataElementName_2_3.PRECURSOR_CHARGE.getElementName())) {
       precursorCharge = Integer.parseInt(getTextOfElement());
@@ -221,7 +226,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
           newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
 
         StorableScan storableScan = new StorableScan(newRawDataFile, newStorageID, dataPointsNumber,
-            scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScan,
+            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge, fragmentScan,
             spectrumType, PolarityType.UNKNOWN, "", null);
         newRawDataFile.addScan(storableScan);
 
