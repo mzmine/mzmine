@@ -18,36 +18,35 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
+import io.github.mzmine.util.FormulaUtils;
+
 import java.util.Comparator;
 
 public class StandardsListItem {
-	protected String molecularFormula;
-	protected double retentionTimeSec;
-	protected double mzValue;
+  public static final Comparator<StandardsListItem> mzComparator =
+          Comparator.comparing(StandardsListItem::getMzRatio);
+  public static final Comparator<StandardsListItem> retentionTimeComparator =
+          Comparator.comparing(StandardsListItem::getRetentionTimeSec);
 
-	/*public static int compareByMZValue(StandardsListItem item1, StandardsListItem item2){
+  protected String molecularFormula;
+  protected double retentionTimeSec;
+  protected double mzRatio;
 
-	}*/
+  public StandardsListItem(String molecularFormula, double retentionTimeSec) {
+    this.molecularFormula = molecularFormula;
+    this.retentionTimeSec = retentionTimeSec;
+    this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
+  }
 
-	public static final Comparator<StandardsListItem> mzComparator = 
-		Comparator.comparing(StandardsListItem::getMzValue);
-	public static final Comparator<StandardsListItem> retentionTimeComparator = 
-		Comparator.comparing(StandardsListItem::getRetentionTimeSec);
+  public String getMolecularFormula() {
+    return molecularFormula;
+  }
 
-	public StandardsListItem(String molecularFormula, double retentionTimeSec){
-		this.molecularFormula = molecularFormula;
-		this.retentionTimeSec = retentionTimeSec;
-	}
+  public double getRetentionTimeSec() {
+    return retentionTimeSec;
+  }
 
-	public String getMolecularFormula(){
-		return molecularFormula;
-	}
-
-	public double getRetentionTimeSec(){
-		return retentionTimeSec;
-	}
-
-	public double getMzValue(){
-		return mzValue;
-	}
+  public double getMzRatio() {
+    return mzRatio;
+  }
 }

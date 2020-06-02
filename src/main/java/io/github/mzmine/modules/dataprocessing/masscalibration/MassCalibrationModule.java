@@ -71,7 +71,6 @@ public class MassCalibrationModule implements MZmineProcessingModule {
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
             .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      // Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet());
       Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet(), standardsListExtractor);
       tasks.add(newTask);
     }
