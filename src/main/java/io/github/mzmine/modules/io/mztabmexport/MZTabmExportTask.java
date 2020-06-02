@@ -110,6 +110,8 @@ public class MZTabmExportTask extends AbstractTask {
                 }
 
                 MzTab mzTabFile = new MzTab();
+
+
                 //Metadata
                 Metadata mtd= new Metadata();
 //                mtd.setMzTabVersion();
@@ -178,16 +180,22 @@ public class MZTabmExportTask extends AbstractTask {
                 mzTabFile.metadata(mtd);
 
                 //Write data rows
-                for(PeakListRow peakListRow: peakList.getRows()){
+                for(int i=0;i<peakList.getRows().size();++i){
+                    PeakListRow peakListRow = peakList.getRows().get(i);
                     SmallMoleculeSummary sm = new SmallMoleculeSummary();
-//                    System.out.println(peakList.getRows().size());
+                    sm.setSmlId(i+1);
+                    //TODO multiple smfs for each sml
+                    SmallMoleculeFeature smf = new SmallMoleculeFeature();
+                    smf.setSmfId(i+1);
+                    //TODO muliple smes for each smfs and vice versa
+                    SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
+                    sme.setSmeId(i+1);
                     //Cancelled?
                     if(isCanceled()){
                         return;
                     }
                     PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
                     if(exportAll || peakIdentity !=null){
-//                        System.out.println("reaching?");
                         if(peakIdentity != null){
                             //Identity Information
                             String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
@@ -195,42 +203,45 @@ public class MZTabmExportTask extends AbstractTask {
                             String formula = peakIdentity.getPropertyValue("Molecular formula");
                             String description = escapeString(peakIdentity.getPropertyValue("Name"));
                             String url = peakIdentity.getPropertyValue("URL");
-//                            System.out.println(identifier+" "+method+" "+formula+" "+description);
                             if(identifier != null){
                                 sm.addDatabaseIdentifierItem(identifier);
+                                sme.setDatabaseIdentifier(identifier);
                             }
                             if(method != null){
-                                //TODO
+                                sme.setIdentificationMethod(new Parameter().name("").value(method));
                             }
                             if(formula != null){
                                 ArrayList<String> formulaList = new ArrayList<>();
                                 formulaList.add(formula);
                                 sm.setChemicalFormula(formulaList);
+                                sme.setChemicalFormula(formula);
                             }
                             if(description != null){
                                 ArrayList<String> chemicalName = new ArrayList<>();
                                 chemicalName.add(description);
                                 sm.setChemicalName(chemicalName);
+                                sme.setChemicalName(description);
                             }
                             if(url!=null){
                                 ArrayList<String> uris = new ArrayList<>();
                                 uris.add(url);
                                 sm.setUri(uris);
+                                sme.setUri(url);
                             }
                         }
 
                         Double rowMZ = peakListRow .getAverageMZ();
                         int rowCharge = peakListRow.getRowCharge();
-                        String rowRT = String.valueOf(peakListRow.getAverageRT());
+                        Double rowRT = peakListRow.getAverageRT();
 
                         if(rowMZ != null){
-                            //TODO in SMF
+                            smf.setExpMassToCharge(rowMZ);
                         }
                         if(rowCharge > 0){
-                            //TODO in SMF/E
+                            smf.setCharge(rowCharge);
                         }
                         if(rowRT != null){
-                            //TODO in SMF
+                            smf.setRetentionTimeInSeconds(rowRT);
                         }
                         int dataFileCount = 0;
                         for(RawDataFile dataFile : rawDataFiles){
@@ -241,21 +252,23 @@ public class MZTabmExportTask extends AbstractTask {
                                 String peakRT = String.valueOf(peak.getRT());
                                 String peakHeight = String.valueOf(peak.getHeight());
                                 Double peakArea = peak.getArea();
-                                System.out.println(peakArea);
-
                                 sm.addOptItem(peak_mzList.get(dataFileCount-1).build(peakMZ));
                                 sm.addOptItem(peak_rtList.get(dataFileCount-1).build(peakRT));
                                 sm.addOptItem(peak_heightList.get(dataFileCount-1).build(peakHeight));
                                 sm.addAbundanceAssayItem(peakArea);
-
+                                smf.addAbundanceAssayItem(peakArea);
+                                //TODO sum of smf abundance assay to be used in sm
                             }
                         }
                     }
+
+                    sm.addSmfIdRefsItem(smf.getSmfId());
+                    smf.addSmeIdRefsItem(sme.getSmeId());
                     mzTabFile.addSmallMoleculeSummaryItem(sm);
+                    mzTabFile.addSmallMoleculeFeatureItem(smf);
+                    mzTabFile.addSmallMoleculeEvidenceItem(sme);
                 }
-//                List <SmallMoleculeSummary> smList = new ArrayList<>();
-//                smList.add(sm);
-//                mzTabFile.setSmallMoleculeSummary(smList);
+                //TODO non validating writer to validating writer
                 MzTabNonValidatingWriter validatingWriter = new MzTabNonValidatingWriter();
                 validatingWriter.write(curFile.toPath(),mzTabFile);
             } catch (Exception e){

@@ -298,7 +298,8 @@ public class MzTabmImportTask extends AbstractTask {
         double mzExp = 0, abundance = 0, peak_mz = 0, peak_rt = 0, peak_height = 0, rtValue = 0;
         // int charge = 0;
         int rowCounter = 0;
-        List <SmallMoleculeFeature> smfs = mzTabmFile.getSmallMoleculeFeature();
+        List <SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
+        List <SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
 
         for (SmallMoleculeSummary smallMoleculeSummary: smallMoleculeSummaryList){
             //Stop the process if cancel() is called
@@ -312,28 +313,53 @@ public class MzTabmImportTask extends AbstractTask {
 //            List<String> inchiKey = smallMoleculeSummary.getInchi();
             description = smallMoleculeSummary.getChemicalName().get(0);
 //             species = smallMoleculeSummary.getSpecies();?
-            Database db = mzTabmFile.getMetadata().getDatabase().get(0);
-            method = db.getPrefix()+'@'+db.getVersion();
+//            Database db = mzTabmFile.getMetadata().getDatabase().get(0); for method?
 //             String reliability = smallMoleculeSummary.getReliability();
 
             if(smallMoleculeSummary.getUri().size() != 0){
                 url = smallMoleculeSummary.getUri().get(0);
             }
 
-//            TODO modifications
-            String identifier = smallMoleculeSummary.getDatabaseIdentifier().get(0);
-//            Average Retention Time
-            List <Integer> smfIdRefs = smallMoleculeSummary.getSmfIdRefs();
-            for(SmallMoleculeFeature smf : smfs){
-                if(smf.getSmfId().equals(smfIdRefs.get(0))){
-                    rtValue = smf.getRetentionTimeInSeconds();
+//            TODO identifier from SME
+            List <Integer> smfIDRefList = smallMoleculeSummary.getSmfIdRefs();
+            List <SmallMoleculeFeature> corrSMFList = new ArrayList<>();
+//            Get SMF objects from SMF reference IDs corresponding to a SML object
+            for(SmallMoleculeFeature smf : smfList){
+                for(Integer x: smfIDRefList){
+                    if(smf.getSmfId().equals(x)){
+                        corrSMFList.add(smf);
+                        break;
+                    }
                 }
             }
+//            Avg retention time
+            rtValue = corrSMFList.get(0).getRetentionTimeInSeconds();
+//            Get SME objects from SMFs
+            List<List<SmallMoleculeEvidence>> corrSMEList = new ArrayList<>();
+            for(SmallMoleculeFeature smf:corrSMFList){
+                List<SmallMoleculeEvidence> corrSME = new ArrayList<>();
+                List<Integer> smeIDRefList = smf.getSmeIdRefs();
+                for(SmallMoleculeEvidence sme : smeList){
+                    for(Integer x : smeIDRefList){
+                        if(sme.getSmeId().equals(x)){
+                            corrSME.add(sme);
+                            break;
+                        }
+                    }
+                    if(corrSME.size() == smeIDRefList.size())
+                        break;
+                }
+                corrSMEList.add(corrSME);
+            }
+
+            method = corrSMEList.get(0).get(0).getIdentificationMethod().getName();
+//            Identifier
+            String identifier = smallMoleculeSummary.getDatabaseIdentifier().get(0);
 
             if((url != null )&& (url.equals("null"))){
                 url = null;
             }
-            if(identifier.equals("null")){
+            if(identifier != null && identifier.equals("null")){
                 identifier = null;
             }
             if(description == null && identifier!=null){
@@ -368,15 +394,17 @@ public class MzTabmImportTask extends AbstractTask {
                 //TODO sout dataFileAssay.getName(); //to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
                 peak_mz = mzExp;
                 peak_rt = rtValue;
-                for(OptColumnMapping optCol: optColList){
-                    if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_mz")){
-                        peak_mz = Double.parseDouble(optCol.getParam().getValue());
-                    }
-                    if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_rt")){
-                        peak_rt = Double.parseDouble(optCol.getParam().getValue());
-                    }
-                    if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_height")){
-                        peak_height = Double.parseDouble(optCol.getParam().getValue());
+                if(optColList != null){
+                    for(OptColumnMapping optCol: optColList){
+                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_mz")){
+                            peak_mz = Double.parseDouble(optCol.getParam().getValue());
+                        }
+                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_rt")){
+                            peak_rt = Double.parseDouble(optCol.getParam().getValue());
+                        }
+                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_height")){
+                            peak_height = Double.parseDouble(optCol.getParam().getValue());
+                        }
                     }
                 }
 
