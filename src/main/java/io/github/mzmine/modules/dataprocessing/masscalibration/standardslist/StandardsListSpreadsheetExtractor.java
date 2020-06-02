@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;

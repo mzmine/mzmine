@@ -14,3 +14,5 @@ bio
 not-bio
 /libglpk*
 /*.log
+/out
+

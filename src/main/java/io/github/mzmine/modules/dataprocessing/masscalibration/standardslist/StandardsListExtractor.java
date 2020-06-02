@@ -16,7 +16,7 @@
 * USA
 */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
 import java.io.IOException;
 import com.google.common.io.Files;

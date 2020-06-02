@@ -16,26 +16,25 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
- * Class for maintaing a list of standard molecules 
+ * Class for maintaining a list of standard molecules
  * expected to appear in the dataset
  */
 public class StandardsList {
-
   protected ArrayList<StandardsListItem> standardMolecules;
 
-  public StandardsList(List<StandardsListItem> standardMolecules){
+  public StandardsList(List<StandardsListItem> standardMolecules) {
     this.standardMolecules = new ArrayList<StandardsListItem>(standardMolecules);
     this.standardMolecules.sort(StandardsListItem.mzComparator);
   }
 
-  public ArrayList<StandardsListItem> getStandardsMolecules(){
+  public ArrayList<StandardsListItem> getStandardsMolecules() {
     return standardMolecules;
   }
 }

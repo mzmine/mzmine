@@ -18,13 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
+import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import java.util.logging.Logger;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
