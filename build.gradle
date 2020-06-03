@@ -244,8 +244,8 @@ runtime {
             installerOptions = ["--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isLinux()) {
-            // rpmbuild and rpm tools need to be installed
-            installerType = ["rpm", "deb"]
+            // rpmbuild and rpm tools need to be installed, rpm and deb are the default targets on linux, the list definition fails build
+            // installerType = ["rpm", "deb"]
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
