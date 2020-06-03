@@ -4,10 +4,17 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -28,6 +35,7 @@ import org.jfree.data.xy.XYZDataset;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -85,8 +93,12 @@ public class imsVisualizerTask extends AbstractTask {
         // Create IMS plot Window
         //imsVisualizerWindow frame = new imsVisualizerWindow(chart);
 
-        // create chart JPanel
-        EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+        // create chart EchartViewer.
+        EChartViewer eChartViewer = new EChartViewer(chart, true, true, true, true, false);
+
+        // get the plot for the customization
+        XYPlot plot = new XYPlot();
+
         //frame.add(chartPanel, BorderLayout.CENTER);
 
         // set title properties
@@ -95,11 +107,33 @@ public class imsVisualizerTask extends AbstractTask {
         chartTitle.setFont(titleFont);
         LegendTitle legend = chart.getLegend();
         legend.setVisible(false);
-        //frame.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
-        //frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        //frame.setBackground(Color.white);
-        //frame.setVisible(true);
-        //frame.pack();
+
+        // Create ims plot Window
+            Platform.runLater(()-> {
+                FXMLLoader loader = new FXMLLoader((getClass().getResource("ImsVisualizerWindow.fxml")));
+                Stage stage = new Stage();
+
+                try {
+                    AnchorPane root = (AnchorPane)loader.load();
+                    Scene scene = new Scene(root, 800, 700);
+                    stage.setScene(scene);
+                    logger.finest("Stage has been successfully loaded from the FXML loader.");
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                // Get controller
+                ImsVisualizerWindowController controller = loader.getController();
+                BorderPane plotPane = controller.getPlotPane();
+                plotPane.setCenter(eChartViewer);
+
+                stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
+                stage.show();
+                stage.setMinWidth(stage.getWidth());
+                stage.setMinHeight(stage.getHeight());
+
+            });
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished IMS visualization of" + dataFiles[0]);
@@ -127,15 +161,25 @@ public class imsVisualizerTask extends AbstractTask {
         // get index in accordance to percentile windows
         int minScaleIndex = 0;
         int maxScaleIndex = copyZValues.length - 1;
+
         double min = copyZValues[minScaleIndex];
         double max = copyZValues[maxScaleIndex];
-
-        LookupPaintScale scale = null;
-        scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
         Paint[] contourColors =
                 XYBlockPixelSizePaintScales.getPaintColors("percentile", Range.closed(min, max), "IMS");
-        double[] scaleValues = new double[contourColors.length];
-        double delta = (max - min) / (contourColors.length - 1);
+        LookupPaintScale scale = null;
+        scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
+        int contourColorsSize;
+        try{
+         contourColorsSize = contourColors.length;
+        }
+        catch (NullPointerException ex)
+        {
+            contourColorsSize = 1;
+
+        }
+        System.out.println(contourColorsSize);
+        double[] scaleValues = new double[contourColorsSize];
+        double delta = (contourColorsSize-1)>0 ?(max - min) / (contourColorsSize):0;
         double value = min;
 
         // only show data if there is a drift time dimension

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
+   <children>
+      <BorderPane fx:id="plotPane" layoutX="13.0" layoutY="14.0" prefHeight="375.0" prefWidth="563.0" />
+   </children>
+</AnchorPane>

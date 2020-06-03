@@ -37,7 +37,7 @@ public class imsVisualizerModule implements MZmineRunnableModule{
     @Override
     public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        Task newTask = new KendrickMassPlotTask(parameters);
+        Task newTask = new imsVisualizerTask(parameters);
         tasks.add(newTask);
         return ExitCode.OK;
     }
