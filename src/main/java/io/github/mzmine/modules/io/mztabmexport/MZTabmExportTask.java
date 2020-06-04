@@ -114,22 +114,21 @@ public class MZTabmExportTask extends AbstractTask {
 
                 //Metadata
                 Metadata mtd= new Metadata();
-//                mtd.setMzTabVersion();
-//                mtd.setMzTabID();
+                mtd.setMzTabVersion("2.0.0-M");
+                //TODO mzTabID
+                mtd.setMzTabID("");
                 mtd.setDescription(peakList.getName());
                 //TODO no settings for parameters
                 mtd.addSoftwareItem(new Software().id(1).parameter(
                         new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine").value(MZmineCore.getMZmineVersion())));
                 //TODO value null?
                 mtd.setSmallMoleculeQuantificationUnit(new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330").name("Arbitrary quantification unit"));
-//                TODO addSmallMoleculeSearchEngineScoreParam
-//                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
+                mtd.addIdConfidenceMeasureItem(new Parameter().cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
 //                TODO addFixedModParam
 //                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1002453").name("No fixed modifications searched"));
 //                TODO addVariableModParam
 //                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1002454").name("No variable modifications searched"));
 
-                //TODO any use for optColumnFactory?
                 List<IOptColumnMappingBuilder> peak_mzList = new ArrayList<>();
                 List<IOptColumnMappingBuilder> peak_rtList = new ArrayList<>();
                 List<IOptColumnMappingBuilder> peak_heightList = new ArrayList<>();
@@ -169,14 +168,6 @@ public class MZTabmExportTask extends AbstractTask {
                     peak_heightList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_height"));
                 }
 
-                //Variable descriptions
-//                int parameterCounter = 0;
-//                for(UserParameter <?,?> p:project.getParameters()){
-//                    for(Object e:((ComboParameter<?>) p).getChoices()){
-//                        parameterCounter++;
-//                        //TODO this
-//                    }
-//                }
                 mzTabFile.metadata(mtd);
 
                 //Write data rows

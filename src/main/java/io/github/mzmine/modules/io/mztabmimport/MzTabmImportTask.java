@@ -139,7 +139,7 @@ public class MzTabmImportTask extends AbstractTask {
             if (isCanceled())
                 return;
             // import small molecules (=feature list rows)
-            importSummaryTable(newPeakList, mzTabFile, rawDataFiles);
+            importTablesData(newPeakList, mzTabFile, rawDataFiles);
 
             // Check if not canceled
             if (isCanceled())
@@ -289,7 +289,7 @@ public class MzTabmImportTask extends AbstractTask {
         }
     }
 
-    private void importSummaryTable(PeakList newPeakList, MzTab mzTabmFile, List<RawDataFile> rawDataFiles){
+    private void importTablesData(PeakList newPeakList, MzTab mzTabmFile, List<RawDataFile> rawDataFiles){
         List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
         List<SmallMoleculeSummary> smallMoleculeSummaryList =  mzTabmFile.getSmallMoleculeSummary();
 
@@ -365,6 +365,8 @@ public class MzTabmImportTask extends AbstractTask {
             if(description == null && identifier!=null){
                 description = identifier;
             }
+            //m/z value
+            mzExp = corrSMFList.get(0).getExpMassToCharge();
 
             // Add shared information to row
             SimplePeakListRow newRow = new SimplePeakListRow(rowCounter);
@@ -381,8 +383,6 @@ public class MzTabmImportTask extends AbstractTask {
                 Assay dataFileAssay =  assayList.get(i);
                 RawDataFile rawData = rawDataFiles.get(i);
                 abundance = 0;
-                peak_mz = 0;
-                peak_rt = 0;
                 peak_height = 0;
 
                 if(smallMoleculeSummary.getAbundanceAssay().get(i) != null){
