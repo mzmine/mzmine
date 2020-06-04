@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collections;
 
-class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
+public class FixedLengthRangeBiasEstimator extends MassMeasurementBiasEstimator
 {
 	protected double maxRangeLength;
 	protected int mostErrorsStart;

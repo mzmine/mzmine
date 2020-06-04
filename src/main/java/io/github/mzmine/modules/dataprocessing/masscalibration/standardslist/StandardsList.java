@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
+import com.google.common.collect.Range;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,17 @@ public class StandardsList {
   public StandardsList(List<StandardsListItem> standardMolecules) {
     this.standardMolecules = new ArrayList<StandardsListItem>(standardMolecules);
     this.standardMolecules.sort(StandardsListItem.mzComparator);
+  }
+
+//  public ArrayList<StandardsListItem> getInMzRange(){
+  public ArrayList<StandardsListItem> getInRanges(Range<Double> mzRange, Range<Double> rtSecRange){
+    ArrayList<StandardsListItem> withinRange = new ArrayList<>();
+    for(StandardsListItem molecule: standardMolecules){
+      if(mzRange.contains(molecule.getMzRatio()) && rtSecRange.contains(molecule.getRetentionTimeSec())){
+        withinRange.add(molecule);
+      }
+    }
+    return withinRange;
   }
 
   public ArrayList<StandardsListItem> getStandardsMolecules() {

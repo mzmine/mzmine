@@ -44,6 +44,14 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           "Range tolerance is the max distance allowed between errors to be included in the range.",
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
 
+  public static final DoubleParameter mzRatioTolerance = new DoubleParameter("mz ratio tolerance",
+          "Max difference between actual mz peaks and standard calibrants to consider a match",
+          NumberFormat.getNumberInstance(), 0.01, 0.0, Double.POSITIVE_INFINITY);
+
+  public static final DoubleParameter retentionTimeSecTolerance = new DoubleParameter("Retention time tolerance",
+          "Max retention time difference in seconds between mass peaks and standard calibrants to consider a match.",
+          NumberFormat.getNumberInstance(), 60.0, 0.0, Double.POSITIVE_INFINITY);
+
   public static final StringParameter suffix = new StringParameter("Suffix",
           "This string is added to mass list name as a suffix", "calibrated");
 
@@ -52,7 +60,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[]{dataFiles, massList, standardsList, tolerance, suffix, autoRemove});
+    super(new Parameter[]{dataFiles, massList, standardsList, tolerance, mzRatioTolerance,
+            retentionTimeSecTolerance, suffix, autoRemove});
   }
 
   /*@Override

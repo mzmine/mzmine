@@ -18,7 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -33,14 +38,15 @@ public class MassCalibrationTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
-
   // User parameters
   private final String massListName;
   private final String suffix;
   private final boolean autoRemove;
   private final ParameterSet parameters;
-
   private final StandardsListExtractor standardsListExtractor;
+  // scan counter
+  protected int processedScans = 0, totalScans;
+  protected int[] scanNumbers;
 
   /**
    * @param dataFile
@@ -72,7 +78,10 @@ public class MassCalibrationTask extends AbstractTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    return 0;
+    if (totalScans == 0)
+      return 0;
+    else
+      return (double) processedScans / totalScans;
   }
 
   public RawDataFile getDataFile() {
@@ -86,11 +95,12 @@ public class MassCalibrationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started mass calibration on " + dataFile);
 
-    standardsListExtractor.extractStandardsList();
+    Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
+    Double mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+    Double rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeSecTolerance).getValue();
 
-    /*setStatus(TaskStatus.PROCESSING);
-
-    logger.info("Started mass filter on " + dataFile);
+    StandardsList standardsList = standardsListExtractor.extractStandardsList();
+    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, standardsList);
 
     scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;
@@ -127,12 +137,12 @@ public class MassCalibrationTask extends AbstractTask {
         continue;
       }
 
-      DataPoint mzPeaks[] = massList.getDataPoints();
+      DataPoint[] mzPeaks = massList.getDataPoints();
 
-      DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(mzPeaks, parameters);
+      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, scan.getRetentionTime() * 60);
 
       SimpleMassList newMassList =
-          new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
+              new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
 
       scan.addMassList(newMassList);
 
@@ -145,7 +155,7 @@ public class MassCalibrationTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished shoulder peaks filter on " + dataFile);*/
+    logger.info("Finished mass calibration on " + dataFile);
 
   }
 

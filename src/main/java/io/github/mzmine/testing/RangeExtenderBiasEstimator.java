@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collections;
 
-class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
+public class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 {
 	protected double stretchGapToMeanRatio;
 	protected int mostErrorsStart;
