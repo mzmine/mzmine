@@ -15,16 +15,19 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
@@ -46,7 +49,6 @@ public class imsVisualizerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private XYZDataset datasetIMS;
     private XYDataset datasetXIC;
     private JFreeChart chart;
     private RawDataFile dataFiles[];
@@ -147,137 +149,67 @@ public class imsVisualizerTask extends AbstractTask {
         logger.info("Creating new IMS chart instance");
         appliedSteps++;
 
-
         // load dataseta for IMS and XIC
-        datasetIMS = new imsVisualizerXYZDataset(parameterSet);
         datasetXIC = new imsVisualizerXYDataset(parameterSet);
 
-        // copy and sort z-Values for min and max of the paint scale
-        double[] copyZValues = new double[datasetIMS.getItemCount(0)];
-        for (int i = 0; i < datasetIMS.getItemCount(0); i++) {
-            copyZValues[i] = datasetIMS.getZValue(0, i);
-        }
-        Arrays.sort(copyZValues);
-        // get index in accordance to percentile windows
-        int minScaleIndex = 0;
-        int maxScaleIndex = copyZValues.length - 1;
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                "XY line chart",
+                "m/z",
+                "mobility",
+                datasetXIC,
+                PlotOrientation.VERTICAL,
+                true,
+                false,
+                false
+        );
+        XYPlot plot = chart.getXYPlot();
+        var renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.GREEN);
+        renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 
-        double min = copyZValues[minScaleIndex];
-        double max = copyZValues[maxScaleIndex];
-        Paint[] contourColors =
-                XYBlockPixelSizePaintScales.getPaintColors("percentile", Range.closed(min, max), "IMS");
-        LookupPaintScale scale = null;
-        scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
-        int contourColorsSize;
-        try{
-         contourColorsSize = contourColors.length;
-        }
-        catch (NullPointerException ex)
-        {
-            contourColorsSize = 1;
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.GREEN);
 
-        }
-        System.out.println(contourColorsSize);
-        double[] scaleValues = new double[contourColorsSize];
-        double delta = (contourColorsSize-1)>0 ?(max - min) / (contourColorsSize):0;
-        double value = min;
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.WHITE);
 
-        // only show data if there is a drift time dimension
-        if (datasetIMS.getItemCount(0) == datasetXIC.getItemCount(0)) {
-            scale.add(min, Color.black);
-            scale.add(max, Color.black);
-        } else {
-            for (int i = 0; i < contourColors.length; i++) {
-                scale.add(value, contourColors[i]);
-                scaleValues[i] = value;
-                value = value + delta;
-            }
-        }
+        plot.setDomainGridlinePaint(Color.WHITE);
+        plot.setDomainGridlinesVisible(true);
+
+        chart.getLegend().setFrame(BlockBorder.NONE);
+        chart.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
+
 
         // set axis
-        NumberAxis domain = new NumberAxis("Retention time (min)");
-        // parent plot
-        CombinedDomainXYPlot plot = new CombinedDomainXYPlot(domain);
-        plot.setGap(5.0);
+//        NumberAxis domain = new NumberAxis("m/z");
+//        // parent plot
+//        CombinedDomainXYPlot plot = new CombinedDomainXYPlot(domain);
+//        plot.setGap(5.0);
+//        plot.setBackgroundPaint(Color.BLACK);
+//        // copy and sort x-Values for min and max of the domain axis
+//        double[] copyXValues = new double[datasetXIC.getItemCount(0)];
+//        for (int i = 0; i < datasetXIC.getItemCount(0); i++) {
+//            copyXValues[i] = datasetXIC.getXValue(0, i);
+//        }
+//        // set renderer
+//        appliedSteps++;
 
-        // copy and sort x-Values for min and max of the domain axis
-        double[] copyXValues = new double[datasetXIC.getItemCount(0)];
-        for (int i = 0; i < datasetXIC.getItemCount(0); i++) {
-            copyXValues[i] = datasetXIC.getXValue(0, i);
-        }
-        // set renderer
-        XYBlockRenderer rendererIMS = new XYBlockRenderer();
-        // double retentionTimeWidthInSec = copyXValues[1] / 60 - copyXValues[0] / 60;
-        double retentionTimeWidthInSec = copyXValues[1] - copyXValues[0];
-        // rendererIMS.setBlockWidth(retentionTimeWidthInSec + retentionTimeWidthInSec * 0.3);
-        rendererIMS.setBlockWidth(retentionTimeWidthInSec);
-        rendererIMS.setBlockHeight(1);
-        appliedSteps++;
+//
+//        NumberAxis rangeXIC = new NumberAxis("mobility");
+//
+//        final XYItemRenderer rendererXIC = new StandardXYItemRenderer();
+//        rendererXIC.setSeriesPaint(0, Color.black);
+//        final XYPlot subplotXIC = new XYPlot(datasetXIC, null, rangeXIC, rendererXIC);
+//        subplotXIC.setBackgroundPaint(Color.white);
+//        subplotXIC.setRangeGridlinePaint(Color.white);
+//        subplotXIC.setDomainGridlinePaint(Color.white);
+//        subplotXIC.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+//        subplotXIC.setOutlinePaint(Color.black);
+//
+//        plot.add(subplotXIC);
+//        chart = new JFreeChart("IMS of " + dataFiles[0] + "m/z Range " + mzRange,
+//                JFreeChart.DEFAULT_TITLE_FONT, plot, true);
 
-        // Set paint scale
-        rendererIMS.setPaintScale(scale);
-
-        // copy and sort y-Values for min and max of the paint scale
-        double[] copyYValues = new double[datasetIMS.getItemCount(0)];
-        for (int i = 0; i < datasetIMS.getItemCount(0); i++) {
-            copyYValues[i] = datasetIMS.getYValue(0, i);
-        }
-
-        NumberAxis rangeIMS = new NumberAxis("Drift Time (bins)");
-        NumberAxis rangeXIC = new NumberAxis("Intensity");
-
-        XYPlot subplotIMS = new XYPlot(datasetIMS, null, rangeIMS, rendererIMS);
-        subplotIMS.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-        domain.setRange(new org.jfree.data.Range(copyXValues[0], copyXValues[copyXValues.length - 1]));
-        try {
-            rangeIMS
-                    .setRange(new org.jfree.data.Range(copyYValues[0], copyYValues[copyYValues.length - 1]));
-        } catch (Exception e) {
-            rangeIMS.setRange(new org.jfree.data.Range(0, 1));
-        }
-
-        subplotIMS.setRenderer(rendererIMS);
-        subplotIMS.setBackgroundPaint(Color.black);
-        subplotIMS.setRangeGridlinePaint(Color.black);
-        subplotIMS.setDomainGridlinePaint(Color.black);
-        subplotIMS.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-        subplotIMS.setOutlinePaint(Color.black);
-
-        // Legend
-        NumberAxis scaleAxis = new NumberAxis("Intensity");
-        scaleAxis.setRange(min, max);
-        scaleAxis.setAxisLinePaint(Color.white);
-        scaleAxis.setTickMarkPaint(Color.white);
-        PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
-
-        legend.setStripOutlineVisible(false);
-        legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-        legend.setAxisOffset(5.0);
-        legend.setMargin(new RectangleInsets(5, 5, 5, 5));
-        legend.setFrame(new BlockBorder(Color.white));
-        legend.setPadding(new RectangleInsets(10, 10, 10, 10));
-        legend.setStripWidth(10);
-        legend.setPosition(RectangleEdge.LEFT);
-        legend.getAxis().setLabelFont(legendFont);
-        legend.getAxis().setTickLabelFont(legendFont);
-
-
-        final XYItemRenderer rendererXIC = new StandardXYItemRenderer();
-        rendererXIC.setSeriesPaint(0, Color.black);
-        final XYPlot subplotXIC = new XYPlot(datasetXIC, null, rangeXIC, rendererXIC);
-        subplotXIC.setBackgroundPaint(Color.white);
-        subplotXIC.setRangeGridlinePaint(Color.white);
-        subplotXIC.setDomainGridlinePaint(Color.white);
-        subplotXIC.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-        subplotXIC.setOutlinePaint(Color.black);
-
-        plot.add(subplotXIC);
-        plot.add(subplotIMS);
-
-        chart = new JFreeChart("IMS of " + dataFiles[0] + "m/z Range " + mzRange,
-                JFreeChart.DEFAULT_TITLE_FONT, plot, true);
-
-        chart.addSubtitle(legend);
         appliedSteps++;
         return chart;
     }

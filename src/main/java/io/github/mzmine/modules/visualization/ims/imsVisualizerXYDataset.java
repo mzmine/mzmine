@@ -2,6 +2,7 @@ package io.github.mzmine.modules.visualization.ims;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
@@ -13,7 +14,8 @@ public class imsVisualizerXYDataset extends AbstractXYDataset {
     private RawDataFile dataFiles[];
     private Scan scans[];
     private Range<Double> mzRange;
-    ArrayList<Double> retentionTimes;
+    ArrayList<Double> mzValues;
+    ArrayList<Double> mobility;
     private double[] xValues;
     private double[] yValues;
 
@@ -28,35 +30,28 @@ public class imsVisualizerXYDataset extends AbstractXYDataset {
         mzRange = parameters.getParameter(imsVisualizerParameters.mzRange).getValue();
 
         // Calc xValues retention time
-        retentionTimes = new ArrayList<Double>();
+        mzValues = new ArrayList<Double>();
+        mobility = new ArrayList<Double>();
+
         for (int i = 0; i < scans.length; i++) {
-            if (i == 0) {
-                retentionTimes.add(scans[i].getRetentionTime());
-            } else if (scans[i].getRetentionTime() != scans[i - 1].getRetentionTime()) {
-                retentionTimes.add(scans[i].getRetentionTime());
+            DataPoint dataPoint[] = scans[i].getDataPoints();
+            double sum = 0.0;
+            for ( int k = 0; k < dataPoint.length; k++ )
+            {
+                sum += dataPoint[k].getMZ();
             }
+            mobility.add(scans[i].getMobility());
+            double avarageMZ = dataPoint.length > 0 ? sum / dataPoint.length : 0.0;
+            mzValues.add(avarageMZ);
         }
 
-        xValues = new double[retentionTimes.size()];
-        for (int i = 0; i < retentionTimes.size(); i++) {
-            xValues[i] = retentionTimes.get(i);
-        }
+        yValues = new double[ mobility.size() ];
+        xValues = new double[ mzValues.size() ];
 
-        // Calc yValues Intensity
-        yValues = new double[retentionTimes.size()];
-        for (int k = 0; k < retentionTimes.size(); k++) {
-            for (int i = 0; i < scans.length; i++) {
-                if (scans[i].getRetentionTime() == retentionTimes.get(k)) {
-                    DataPoint dataPoints[] = scans[i].getDataPoints();
-                    for (int j = 0; j < dataPoints.length; j++) {
-                        if (mzRange.contains(dataPoints[j].getMZ())) {
-                            yValues[k] = yValues[k] + dataPoints[j].getIntensity();
-                        }
-                    }
-                } else {
-                    continue;
-                }
-            }
+        for ( int k = 0; k < mobility.size(); k++ )
+        {
+            yValues[ k ] = mobility.get( k );
+            xValues[ k ] = mzValues.get( k );
         }
     }
 
@@ -74,7 +69,7 @@ public class imsVisualizerXYDataset extends AbstractXYDataset {
     }
     @Override
     public int getItemCount(int series) {
-        return retentionTimes.size();
+        return mobility.size();
     }
 
     @Override
