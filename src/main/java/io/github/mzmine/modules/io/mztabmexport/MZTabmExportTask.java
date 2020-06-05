@@ -18,31 +18,24 @@
 
 package io.github.mzmine.modules.io.mztabmexport;
 
-import com.fasterxml.jackson.databind.deser.DeserializerCache;
 import de.isas.mztab2.io.MzTabNonValidatingWriter;
-import de.isas.mztab2.io.MzTabValidatingWriter;
-import de.isas.mztab2.io.MzTabWriter;
 import de.isas.mztab2.model.*;
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import uk.ac.ebi.pride.jmztab2.model.*;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class MZTabmExportTask extends AbstractTask {
 
     private int processedRows = 0, totalRows = 0;
-    String newLine = System.lineSeparator();
 
     // parameter values
     private final MZmineProject project;
@@ -99,16 +92,6 @@ public class MZTabmExportTask extends AbstractTask {
                     curFile = new File(newFilename);
                 }
 
-                //Open File
-                FileWriter writer;
-                try{
-                    writer = new FileWriter(curFile);
-                } catch (Exception e){
-                    setStatus(TaskStatus.ERROR);
-                    setErrorMessage("Could not open file "+ curFile+ " for writing.");
-                    return;
-                }
-
                 MzTab mzTabFile = new MzTab();
 
 
@@ -116,12 +99,10 @@ public class MZTabmExportTask extends AbstractTask {
                 Metadata mtd= new Metadata();
                 mtd.setMzTabVersion("2.0.0-M");
                 //TODO mzTabID
-                mtd.setMzTabID("");
+                mtd.setMzTabID("1");
                 mtd.setDescription(peakList.getName());
-                //TODO no settings for parameters
                 mtd.addSoftwareItem(new Software().id(1).parameter(
                         new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine").value(MZmineCore.getMZmineVersion())));
-                //TODO value null?
                 mtd.setSmallMoleculeQuantificationUnit(new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330").name("Arbitrary quantification unit"));
                 mtd.addIdConfidenceMeasureItem(new Parameter().cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
 //                TODO addFixedModParam
@@ -135,6 +116,10 @@ public class MZTabmExportTask extends AbstractTask {
 
                 final RawDataFile rawDataFiles[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
                 int fileCounter = 0;
+                // Study Variable name and descriptions
+                Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
+                Hashtable<RawDataFile, Assay> rawDataFileToAssay = new Hashtable<>();
+
                 for(RawDataFile file : rawDataFiles){
                     fileCounter++;
                     /**
@@ -147,25 +132,42 @@ public class MZTabmExportTask extends AbstractTask {
                     mtd.addMsRunItem(msRun);
                     // Add Assay
                     Assay assay = new Assay();
+                    rawDataFileToAssay.put(file,assay);
                     assay.id(fileCounter);
                     assay.addMsRunRefItem(msRun);
                     //TODO add sample ref for assay, quantification  reagent?
                     mtd.addAssayItem(assay);
 
-                    //Add samples to study variable assay
-                    for(UserParameter<?,?> p : project.getParameters()){
-                        for(StudyVariable studyVariable: mtd.getStudyVariable()){
-                            if(studyVariable.getDescription().equals(
-                                    p.toString()+": "+project.getParameterValue(p,file).toString())){
-                                studyVariable.addAssayRefsItem(assay);
+                    for(UserParameter<?,?> p: project.getParameters()){
+                        if(p.getName().contains("study variable")){
+                            if(svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))){
+                                svhash.get(String.valueOf(project.getParameterValue(p,file))).add(file);
                             }
+                            else{
+                                List<RawDataFile> l = new ArrayList<>();
+                                l.add(file);
+                                svhash.put(String.valueOf(project.getParameterValue(p,file)), l);
+                            }
+                            break;
                         }
                     }
+
 
                     //Optional Columns
                     peak_mzList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_mz"));
                     peak_rtList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_rt"));
                     peak_heightList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("peak_height"));
+                }
+                int studyVarCount = 0;
+                for(String key: svhash.keySet()){
+                    studyVarCount++;
+                    StudyVariable studyVariable = new StudyVariable().id(studyVarCount).name(key).description(key).
+                            averageFunction(new Parameter().cvLabel("MS").cvAccession("MS:1002883").name("mean"));
+                    //TODO check cvAccession
+                    for(RawDataFile file : svhash.get(key)){
+                        studyVariable =  studyVariable.addAssayRefsItem(rawDataFileToAssay.get(file));
+                    }
+                    mtd.addStudyVariableItem(studyVariable);
                 }
 
                 mzTabFile.metadata(mtd);
@@ -235,6 +237,7 @@ public class MZTabmExportTask extends AbstractTask {
                             smf.setRetentionTimeInSeconds(rowRT);
                         }
                         int dataFileCount = 0;
+                        Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
                         for(RawDataFile dataFile : rawDataFiles){
                             dataFileCount++;
                             Feature peak = peakListRow.getPeak(dataFile);
@@ -248,9 +251,53 @@ public class MZTabmExportTask extends AbstractTask {
                                 sm.addOptItem(peak_heightList.get(dataFileCount-1).build(peakHeight));
                                 sm.addAbundanceAssayItem(peakArea);
                                 smf.addAbundanceAssayItem(peakArea);
+                                for(String sampleVariable : svhash.keySet()){
+                                    if(svhash.get(sampleVariable).contains(dataFile)){
+                                        if(sampleVariableAbundancehash.containsKey(sampleVariable)){
+                                            sampleVariableAbundancehash.get(sampleVariable).add(peakArea);
+                                        }
+                                        else{
+                                            List<Double> l = new ArrayList<>();
+                                            l.add(peakArea);
+                                            sampleVariableAbundancehash.put(sampleVariable,l);
+                                        }
+                                    }
+                                }
                                 //TODO sum of smf abundance assay to be used in sm
                             }
                         }
+                        for(String studyVariable:sampleVariableAbundancehash.keySet()){
+                            Double averageSV = 0.0;
+                            //Using mean as average function for abundance of Study Variable
+                            for(Double d : sampleVariableAbundancehash.get(studyVariable)){
+                                averageSV+=d;
+                            }
+                            int totalSV =sampleVariableAbundancehash.get(studyVariable).size();
+                            if(totalSV ==0){
+                                averageSV = 0.0;
+                            }
+                            else {
+                                averageSV /=totalSV;
+                            }
+                            //Coefficient of variation
+                            Double covSV = 0.0;
+                            for(Double d:sampleVariableAbundancehash.get(studyVariable)){
+                                covSV += (d - averageSV)*(d - averageSV);
+                            }
+                            if(totalSV == 0 || totalSV == 1) {
+                                covSV = 0.0;
+                            }
+                            else{
+                                covSV/=(totalSV-1);
+                                covSV = Math.sqrt(covSV);
+                                if(averageSV != 0.0){
+                                    covSV = covSV/averageSV *100.0;
+                                }
+                            }
+                            sm.addAbundanceStudyVariableItem(averageSV);
+                            sm.addAbundanceVariationStudyVariableItem(covSV);
+                        }
+
                     }
 
                     sm.addSmfIdRefsItem(smf.getSmfId());
@@ -261,6 +308,7 @@ public class MZTabmExportTask extends AbstractTask {
                 }
                 //TODO non validating writer to validating writer
                 MzTabNonValidatingWriter validatingWriter = new MzTabNonValidatingWriter();
+//                MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
                 validatingWriter.write(curFile.toPath(),mzTabFile);
             } catch (Exception e){
                 e.printStackTrace();
