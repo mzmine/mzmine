@@ -89,26 +89,14 @@ public class imsVisualizerTask extends AbstractTask {
         if (isCanceled())
             return;
 
-        chart = createPlot();
-        chart.setBackgroundPaint(Color.white);
-
         // Create IMS plot Window
-        //imsVisualizerWindow frame = new imsVisualizerWindow(chart);
+        chart = createPlot();
 
+        XYPlot plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.BLACK);
+        plot.setDomainGridlinesVisible(true);
         // create chart EchartViewer.
-        EChartViewer eChartViewer = new EChartViewer(chart, true, true, true, true, false);
-
-        // get the plot for the customization
-        XYPlot plot = new XYPlot();
-
-        //frame.add(chartPanel, BorderLayout.CENTER);
-
-        // set title properties
-        TextTitle chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
-        chartTitle.setFont(titleFont);
-        LegendTitle legend = chart.getLegend();
-        legend.setVisible(false);
+        EChartViewer eChartViewer = new EChartViewer(chart, true, true, true, false, false);
 
         // Create ims plot Window
             Platform.runLater(()-> {
@@ -117,7 +105,7 @@ public class imsVisualizerTask extends AbstractTask {
 
                 try {
                     AnchorPane root = (AnchorPane)loader.load();
-                    Scene scene = new Scene(root, 800, 700);
+                    Scene scene = new Scene(root, 700, 500);
                     stage.setScene(scene);
                     logger.finest("Stage has been successfully loaded from the FXML loader.");
                 }
@@ -125,7 +113,7 @@ public class imsVisualizerTask extends AbstractTask {
                     e.printStackTrace();
                     return;
                 }
-                // Get controller
+                 //Get controller
                 ImsVisualizerWindowController controller = loader.getController();
                 BorderPane plotPane = controller.getPlotPane();
                 plotPane.setCenter(eChartViewer);
@@ -151,11 +139,12 @@ public class imsVisualizerTask extends AbstractTask {
 
         // load dataseta for IMS and XIC
         datasetXIC = new imsVisualizerXYDataset(parameterSet);
-
+        String xAxisLabel = "mobility";
+        String yAxisLabel = "intensity";
         JFreeChart chart = ChartFactory.createXYLineChart(
-                "XY line chart",
-                "m/z",
-                "mobility",
+                null,
+                xAxisLabel,
+                yAxisLabel,
                 datasetXIC,
                 PlotOrientation.VERTICAL,
                 true,
@@ -163,52 +152,22 @@ public class imsVisualizerTask extends AbstractTask {
                 false
         );
         XYPlot plot = chart.getXYPlot();
+
         var renderer = new XYLineAndShapeRenderer();
+        appliedSteps++;
         renderer.setSeriesPaint(0, Color.GREEN);
-        renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+        renderer.setSeriesStroke(0, new BasicStroke(.01f));
 
         plot.setRenderer(renderer);
-        plot.setBackgroundPaint(Color.GREEN);
-
-        plot.setRangeGridlinesVisible(true);
-        plot.setRangeGridlinePaint(Color.WHITE);
-
-        plot.setDomainGridlinePaint(Color.WHITE);
-        plot.setDomainGridlinesVisible(true);
+        plot.setBackgroundPaint(Color.BLACK);
+//
+//        plot.setRangeGridlinesVisible(true);
+//        plot.setRangeGridlinePaint(Color.WHITE);
+//
+//        plot.setDomainGridlinePaint(Color.WHITE);
+//        plot.setDomainGridlinesVisible(true);
 
         chart.getLegend().setFrame(BlockBorder.NONE);
-        chart.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
-
-
-        // set axis
-//        NumberAxis domain = new NumberAxis("m/z");
-//        // parent plot
-//        CombinedDomainXYPlot plot = new CombinedDomainXYPlot(domain);
-//        plot.setGap(5.0);
-//        plot.setBackgroundPaint(Color.BLACK);
-//        // copy and sort x-Values for min and max of the domain axis
-//        double[] copyXValues = new double[datasetXIC.getItemCount(0)];
-//        for (int i = 0; i < datasetXIC.getItemCount(0); i++) {
-//            copyXValues[i] = datasetXIC.getXValue(0, i);
-//        }
-//        // set renderer
-//        appliedSteps++;
-
-//
-//        NumberAxis rangeXIC = new NumberAxis("mobility");
-//
-//        final XYItemRenderer rendererXIC = new StandardXYItemRenderer();
-//        rendererXIC.setSeriesPaint(0, Color.black);
-//        final XYPlot subplotXIC = new XYPlot(datasetXIC, null, rangeXIC, rendererXIC);
-//        subplotXIC.setBackgroundPaint(Color.white);
-//        subplotXIC.setRangeGridlinePaint(Color.white);
-//        subplotXIC.setDomainGridlinePaint(Color.white);
-//        subplotXIC.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-//        subplotXIC.setOutlinePaint(Color.black);
-//
-//        plot.add(subplotXIC);
-//        chart = new JFreeChart("IMS of " + dataFiles[0] + "m/z Range " + mzRange,
-//                JFreeChart.DEFAULT_TITLE_FONT, plot, true);
 
         appliedSteps++;
         return chart;

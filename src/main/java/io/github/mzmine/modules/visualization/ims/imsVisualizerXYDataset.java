@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYDataset;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 
 public class imsVisualizerXYDataset extends AbstractXYDataset {
@@ -34,25 +35,42 @@ public class imsVisualizerXYDataset extends AbstractXYDataset {
         mobility = new ArrayList<Double>();
 
         for (int i = 0; i < scans.length; i++) {
-            DataPoint dataPoint[] = scans[i].getDataPoints();
-            double sum = 0.0;
-            for ( int k = 0; k < dataPoint.length; k++ )
-            {
-                sum += dataPoint[k].getMZ();
-            }
-            mobility.add(scans[i].getMobility());
-            double avarageMZ = dataPoint.length > 0 ? sum / dataPoint.length : 0.0;
-            mzValues.add(avarageMZ);
+           if ( i == 0 )
+           {
+               mobility.add(scans[i].getMobility());
+           }
+           else{
+               if(scans[i].getMobility() != scans[i-1].getMobility())
+               {
+                   mobility.add(scans[i].getMobility());
+               }
+           }
         }
 
+        xValues = new double[ mobility.size() ];
         yValues = new double[ mobility.size() ];
-        xValues = new double[ mzValues.size() ];
 
-        for ( int k = 0; k < mobility.size(); k++ )
+        for ( int i = 0; i < (int)mobility.size(); i++)
         {
-            yValues[ k ] = mobility.get( k );
-            xValues[ k ] = mzValues.get( k );
+           xValues[ i ] = mobility.get( i );
         }
+
+        for ( int i = 0;i<mobility.size(); i++ )
+        {
+            for( int k = 0;k < scans.length; k++ )
+            {
+                if( scans[ k ].getMobility() == mobility.get( i ))
+                {
+                    DataPoint dataPoint[] = scans[ k ].getDataPoints();
+
+                    for ( int j = 0; j<dataPoint.length; j++ )
+                    {
+                        yValues[ i ] += dataPoint[ j ].getIntensity();
+                    }
+                }
+            }
+        }
+
     }
 
     @Override
