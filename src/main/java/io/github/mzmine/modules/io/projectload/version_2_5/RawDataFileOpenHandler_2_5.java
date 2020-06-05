@@ -261,6 +261,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       scanNumber = -1;
       msLevel = -1;
       retentionTime = -1;
+      mobility = -1;
       precursorMZ = -1;
       precursorCharge = -1;
       fragmentScan = null;

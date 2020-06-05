@@ -17,25 +17,24 @@ import java.util.ResourceBundle;
 public class ImsVisualizerWindowController {
 
     @FXML
-    private BorderPane plotPane;
+    public FlowPane flowPane;
 
-    public void initialize(Parameter parameter)
-    {
+    @FXML
+    public BorderPane plotePaneMI;
+
+    @FXML
+    public BorderPane plotePaneMMZ;
+    @FXML
+    public BorderPane plotePane2;
+    @FXML
+    public BorderPane plotePane3;
 
 
+    BorderPane getPlotPaneMI(){
+        return  plotePaneMI;
     }
-
-
-    BorderPane getPlotPane(){
-        return  plotPane;
-    }
-
-    private JFreeChart getChart() {
-        if (plotPane.getChildren().get(0) instanceof EChartViewer) {
-            EChartViewer viewer = (EChartViewer) plotPane.getChildren().get(0);
-            return viewer.getChart();
-        }
-        return null;
+    BorderPane getPlotPaneMMZ(){
+        return  plotePaneMMZ;
     }
 
 
