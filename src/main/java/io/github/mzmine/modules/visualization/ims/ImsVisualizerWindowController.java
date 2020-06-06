@@ -25,7 +25,7 @@ public class ImsVisualizerWindowController {
     @FXML
     public BorderPane plotePaneMMZ;
     @FXML
-    public BorderPane plotePane2;
+    public BorderPane plotePaneIRT;
     @FXML
     public BorderPane plotePane3;
 
@@ -36,6 +36,7 @@ public class ImsVisualizerWindowController {
     BorderPane getPlotPaneMMZ(){
         return  plotePaneMMZ;
     }
+    BorderPane getPlotePaneIRT(){ return  plotePaneIRT; }
 
 
 }

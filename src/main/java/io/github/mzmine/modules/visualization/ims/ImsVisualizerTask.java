@@ -19,7 +19,10 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.*;
 import java.io.IOException;
@@ -33,9 +36,11 @@ public class ImsVisualizerTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private XYDataset datasetMI;
-    private XYDataset datasetIMZ;
+    private XYDataset datasetMMZ;
+    private XYDataset datasetIRT;
     private JFreeChart chartMI;
     private JFreeChart chartMMZ;
+    private JFreeChart chartIRT;
     private RawDataFile dataFiles[];
     private Scan scans[];
     private Range<Double> mzRange;
@@ -79,9 +84,13 @@ public class ImsVisualizerTask extends AbstractTask {
 
         EChartViewer eChartViewerMI  = new EChartViewer(chartMI, true, true, true, true, false);
 
-        // create  mobility mz values
+        // create  mobility mz plot
         chartMMZ = createPlotMMZ();
         EChartViewer eChartViewerMMZ = new EChartViewer(chartMMZ, true, true, true, true, false);
+
+        // create intensity rention time
+        chartIRT  =  createPlotIRT();
+        EChartViewer eChartViewerIRT = new EChartViewer(chartIRT, true, true, true, true, false);
 
     // Create ims plot Window
     Platform.runLater(
@@ -108,6 +117,9 @@ public class ImsVisualizerTask extends AbstractTask {
             BorderPane plotePaneMMZ = controller.getPlotPaneMMZ();
             plotePaneMMZ.setCenter(eChartViewerMMZ);
 
+          // add intensity retention time plot
+            BorderPane plotePaneIRT = controller.getPlotePaneIRT();
+            plotePaneIRT.setCenter(eChartViewerIRT);
 
           stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
           stage.show();
@@ -138,7 +150,7 @@ public class ImsVisualizerTask extends AbstractTask {
                 datasetMI,
                 PlotOrientation.VERTICAL,
                 true,
-                false,
+                true,
                 false
         );
         XYPlot plot = chart.getXYPlot();
@@ -165,17 +177,17 @@ public class ImsVisualizerTask extends AbstractTask {
         appliedSteps++;
 
         // load dataseta for IMS and XIC
-        datasetIMZ = new ImsVisualizerIMZXYDataset(parameterSet);
+        datasetMMZ = new ImsVisualizerMMZXYDataset(parameterSet);
         String xAxisLabel = "mobility";
         String yAxisLabel = "m/z";
         JFreeChart chart = ChartFactory.createXYLineChart(
                 null,
                 xAxisLabel,
                 yAxisLabel,
-                datasetIMZ,
+                datasetMMZ,
                 PlotOrientation.VERTICAL,
                 true,
-                false,
+                true,
                 false
         );
         XYPlot plot = chart.getXYPlot();
@@ -184,6 +196,44 @@ public class ImsVisualizerTask extends AbstractTask {
         appliedSteps++;
         renderer.setSeriesPaint(0, Color.GREEN);
         renderer.setSeriesStroke(0, new BasicStroke(.01f));
+
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.BLACK);
+
+        chart.getLegend().setFrame(BlockBorder.NONE);
+
+        appliedSteps++;
+        return chart;
+    }
+
+    /**
+     * Intensity retentTime plot
+     */
+    private JFreeChart createPlotIRT() {
+
+        logger.info("Creating new IMS chart instance");
+        appliedSteps++;
+
+        // load dataseta for IMS and XIC
+        datasetIRT = new ImsVisualizerIRTXYDataset(parameterSet);
+        String xAxisLabel = "retention time";
+        String yAxisLabel = "intensity";
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                null,
+                xAxisLabel,
+                yAxisLabel,
+                datasetIRT,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+        XYPlot plot = chart.getXYPlot();
+
+        var renderer = new XYLineAndShapeRenderer();
+        appliedSteps++;
+        renderer.setSeriesPaint(0, Color.GREEN);
+        renderer.setSeriesStroke(0, new BasicStroke(5.0f));
 
         plot.setRenderer(renderer);
         plot.setBackgroundPaint(Color.BLACK);

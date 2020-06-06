@@ -9,7 +9,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 import java.util.ArrayList;
 
-public class ImsVisualizerIMZXYDataset extends AbstractXYDataset {
+public class ImsVisualizerMMZXYDataset extends AbstractXYDataset {
     private RawDataFile dataFiles[];
     private Scan scans[];
     private Range<Double> mzRange;
@@ -17,7 +17,7 @@ public class ImsVisualizerIMZXYDataset extends AbstractXYDataset {
     private double[] xValues;
     private double[] yValues;
 
-    public ImsVisualizerIMZXYDataset(ParameterSet parameters) {
+    public ImsVisualizerMMZXYDataset(ParameterSet parameters) {
 
         dataFiles = parameters.getParameter(ImsVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
