@@ -98,13 +98,15 @@ public class MZTabmExportTask extends AbstractTask {
                 //Metadata
                 Metadata mtd= new Metadata();
                 mtd.setMzTabVersion("2.0.0-M");
-                //TODO mzTabID
+                //TODO verification of these metadata values
                 mtd.setMzTabID("1");
                 mtd.setDescription(peakList.getName());
                 mtd.addSoftwareItem(new Software().id(1).parameter(
                         new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine").value(MZmineCore.getMZmineVersion())));
                 mtd.setSmallMoleculeQuantificationUnit(new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330").name("Arbitrary quantification unit"));
-                mtd.addIdConfidenceMeasureItem(new Parameter().cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
+                mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
+                mtd.setSmallMoleculeIdentificationReliability(new Parameter().cvLabel("MS").cvAccession("MS:1002896").name("compound identification confidence level"));
+                mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834").name("LC-MS label-free quantification analysis"));
 //                TODO addFixedModParam
 //                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1002453").name("No fixed modifications searched"));
 //                TODO addVariableModParam
@@ -187,6 +189,8 @@ public class MZTabmExportTask extends AbstractTask {
                     if(isCanceled()){
                         return;
                     }
+                    //TODO check reliability value
+                    sm.setReliability("2");
                     PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
                     if(exportAll || peakIdentity !=null){
                         if(peakIdentity != null){

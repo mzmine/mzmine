@@ -293,7 +293,7 @@ public class MzTabmImportTask extends AbstractTask {
         List<Assay> assayList = mzTabmFile.getMetadata().getAssay();
         List<SmallMoleculeSummary> smallMoleculeSummaryList =  mzTabmFile.getSmallMoleculeSummary();
 
-        //Loop through SML data
+        //Loop through SMF data
         String formula,description,method, url="";
         double mzExp = 0, abundance = 0, peak_mz = 0, peak_rt = 0, peak_height = 0, rtValue = 0;
         // int charge = 0;
@@ -301,61 +301,40 @@ public class MzTabmImportTask extends AbstractTask {
         List <SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
         List <SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
 
-        for (SmallMoleculeSummary smallMoleculeSummary: smallMoleculeSummaryList){
+        for (SmallMoleculeFeature smf :smfList){
             //Stop the process if cancel() is called
             if(isCanceled())
                 return;
-
             rowCounter++;
-            //TODO multiple values support in MZmine required
-            formula = smallMoleculeSummary.getChemicalFormula().get(0);
-//            List<String> smile = smallMoleculeSummary.getSmiles();
-//            List<String> inchiKey = smallMoleculeSummary.getInchi();
-            description = smallMoleculeSummary.getChemicalName().get(0);
-//             species = smallMoleculeSummary.getSpecies();?
-//            Database db = mzTabmFile.getMetadata().getDatabase().get(0); for method?
-//             String reliability = smallMoleculeSummary.getReliability();
-
-            if(smallMoleculeSummary.getUri().size() != 0){
-                url = smallMoleculeSummary.getUri().get(0);
-            }
-
-//            TODO identifier from SME
-            List <Integer> smfIDRefList = smallMoleculeSummary.getSmfIdRefs();
-            List <SmallMoleculeFeature> corrSMFList = new ArrayList<>();
-//            Get SMF objects from SMF reference IDs corresponding to a SML object
-            for(SmallMoleculeFeature smf : smfList){
-                for(Integer x: smfIDRefList){
-                    if(smf.getSmfId().equals(x)){
-                        corrSMFList.add(smf);
-                        break;
-                    }
+            //getSML object corresponding to the SMF object
+            SmallMoleculeSummary sml = new SmallMoleculeSummary();
+            for(SmallMoleculeSummary sm : smallMoleculeSummaryList){
+                if(sm.getSmfIdRefs().contains(smf.getSmfId())){
+                    sml = sm;
+                    break;
                 }
             }
-//            Avg retention time
-            rtValue = corrSMFList.get(0).getRetentionTimeInSeconds();
-//            Get SME objects from SMFs
-            List<List<SmallMoleculeEvidence>> corrSMEList = new ArrayList<>();
-            for(SmallMoleculeFeature smf:corrSMFList){
-                List<SmallMoleculeEvidence> corrSME = new ArrayList<>();
-                List<Integer> smeIDRefList = smf.getSmeIdRefs();
-                for(SmallMoleculeEvidence sme : smeList){
-                    for(Integer x : smeIDRefList){
-                        if(sme.getSmeId().equals(x)){
-                            corrSME.add(sme);
-                            break;
-                        }
-                    }
-                    if(corrSME.size() == smeIDRefList.size())
-                        break;
-                }
-                corrSMEList.add(corrSME);
+            //TODO multiple value support
+            formula = sml.getChemicalFormula().get(0);
+            description = sml.getChemicalName().get(0);
+            //sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability ->getReliability)
+            if(sml.getUri().size() != 0){
+                url = sml.getUri().get(0);
             }
-
-            method = corrSMEList.get(0).get(0).getIdentificationMethod().getName();
+//            Average Retention Time
+            rtValue = smf.getRetentionTimeInSeconds();
+//            Get corresponding SME objects from SMF
+            List<SmallMoleculeEvidence> corrSMEList = new ArrayList<>();
+            List<Integer> smeIDRefList = smf.getSmeIdRefs();
+            for(SmallMoleculeEvidence sme : smeList){
+                if(smeIDRefList.contains(sme.getSmeId())){
+                    corrSMEList.add(sme);
+                }
+            }
+//            Identification Method
+            method = corrSMEList.get(0).getIdentificationMethod().getName();
 //            Identifier
-            String identifier = smallMoleculeSummary.getDatabaseIdentifier().get(0);
-
+            String identifier = sml.getDatabaseIdentifier().get(0);
             if((url != null )&& (url.equals("null"))){
                 url = null;
             }
@@ -365,10 +344,9 @@ public class MzTabmImportTask extends AbstractTask {
             if(description == null && identifier!=null){
                 description = identifier;
             }
-            //m/z value
-            mzExp = corrSMFList.get(0).getExpMassToCharge();
-
-            // Add shared information to row
+//            m/z value
+            mzExp = smf.getExpMassToCharge();
+//            Add shared infor to peakListRow
             SimplePeakListRow newRow = new SimplePeakListRow(rowCounter);
             newRow.setAverageMZ(mzExp);
             newRow.setAverageRT(rtValue);
@@ -382,20 +360,21 @@ public class MzTabmImportTask extends AbstractTask {
             for(int i=0;i<rawDataFiles.size();i++){
                 Assay dataFileAssay =  assayList.get(i);
                 RawDataFile rawData = rawDataFiles.get(i);
-                abundance = 0;
-                peak_height = 0;
 
-                if(smallMoleculeSummary.getAbundanceAssay().get(i) != null){
-                    abundance = smallMoleculeSummary.getAbundanceAssay().get(i);
+                if(smf.getAbundanceAssay().get(i) != null){
+                    abundance = smf.getAbundanceAssay().get(i);
                 }
-                List<OptColumnMapping> optColList =  smallMoleculeSummary.getOpt();
+                List<OptColumnMapping> optColList = sml.getOpt();
                 String assayName = dataFileAssay.getName();
                 boolean hasAssayIdentifier = false;
-                //TODO sout dataFileAssay.getName(); //to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
+                //TODO dataFileAssay.getName() would give assay[1]   to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
+                //Use average values if optional data for each msrun is not provided
                 peak_mz = mzExp;
                 peak_rt = rtValue;
                 if(optColList != null){
-                    for(OptColumnMapping optCol: optColList){
+                    for(OptColumnMapping optCol : optColList){
+//                        System.out.println("sur"+dataFileAssay.getName()+" "+optCol.getIdentifier());
+
                         if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_mz")){
                             peak_mz = Double.parseDouble(optCol.getParam().getValue());
                         }
@@ -407,10 +386,9 @@ public class MzTabmImportTask extends AbstractTask {
                         }
                     }
                 }
-
                 int scanNumbers[] = {};
                 DataPoint finalDataPoint[] = new DataPoint[1];
-                finalDataPoint[0] = new SimpleDataPoint(peak_mz,peak_height);
+                finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
                 int representativeScan = 0;
                 int fragmentScan = 0;
                 int[] allFragmentScans = new int[] {0};
@@ -419,22 +397,19 @@ public class MzTabmImportTask extends AbstractTask {
                 Range<Double> finalMZRange = Range.singleton(peak_mz);
                 Range<Double> finalIntensityRange = Range.singleton(peak_height);
                 FeatureStatus status = FeatureStatus.DETECTED;
+                if(abundance == 0){
+                    status = FeatureStatus.UNKNOWN;
+                }
 
                 Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
                         scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
                         finalRTRange, finalMZRange, finalIntensityRange);
 
-                if (abundance > 0) {
-                    newRow.addPeak(rawData, peak);
-                }
+                newRow.addPeak(rawData, peak);
             }
 
             // Add row to feature list
             newPeakList.addRow(newRow);
-
         }
-
     }
-
-
 }
