@@ -1,12 +1,7 @@
-package io.github.mzmine.testing;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.net.URL;
-import java.nio.file.Paths;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 

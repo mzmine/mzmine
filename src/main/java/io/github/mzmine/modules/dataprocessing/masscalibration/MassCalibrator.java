@@ -23,8 +23,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
-import io.github.mzmine.testing.FixedLengthRangeBiasEstimator;
-import io.github.mzmine.testing.RangeExtenderBiasEstimator;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling.FixedLengthRangeBiasEstimator;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling.RangeExtenderBiasEstimator;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;

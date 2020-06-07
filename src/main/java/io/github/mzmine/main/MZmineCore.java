@@ -52,8 +52,6 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Application;
-import io.github.mzmine.testing.BiasEstimator;
-import io.github.mzmine.testing.Testing;
 
 /**
  * MZmine main class

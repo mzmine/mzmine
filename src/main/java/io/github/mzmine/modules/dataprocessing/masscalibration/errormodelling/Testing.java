@@ -1,4 +1,4 @@
-package io.github.mzmine.testing;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling;
 
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.openscience.cdk.interfaces.IMolecularFormula;

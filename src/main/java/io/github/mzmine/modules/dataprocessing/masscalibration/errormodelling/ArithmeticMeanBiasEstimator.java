@@ -1,4 +1,4 @@
-package io.github.mzmine.testing;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling;
 
 import java.util.ArrayList;
 

@@ -1,8 +1,6 @@
-package io.github.mzmine.testing;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Collections;
 
 public class RangeExtenderBiasEstimator extends MassMeasurementBiasEstimator
 {

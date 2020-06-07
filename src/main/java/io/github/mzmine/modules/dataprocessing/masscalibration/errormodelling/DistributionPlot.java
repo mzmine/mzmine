@@ -1,6 +1,5 @@
-package io.github.mzmine.testing;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling;
 
-import java.awt.Font;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,11 +7,8 @@ import java.io.File;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
