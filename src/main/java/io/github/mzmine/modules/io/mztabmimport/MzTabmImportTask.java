@@ -39,6 +39,7 @@ import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 public class MzTabmImportTask extends AbstractTask {
@@ -373,16 +374,19 @@ public class MzTabmImportTask extends AbstractTask {
                 peak_rt = rtValue;
                 if(optColList != null){
                     for(OptColumnMapping optCol : optColList){
-//                        System.out.println("sur"+dataFileAssay.getName()+" "+optCol.getIdentifier());
-
-                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_mz")){
-                            peak_mz = Double.parseDouble(optCol.getParam().getValue());
-                        }
-                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_rt")){
-                            peak_rt = Double.parseDouble(optCol.getParam().getValue());
-                        }
-                        if(dataFileAssay.getName().equals(optCol.getIdentifier()) && optCol.getParam().getName().equals("peak_height")){
-                            peak_height = Double.parseDouble(optCol.getParam().getValue());
+                        MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
+                        Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol,mzTabmFile.getMetadata());
+                        if(!optAssay.isEmpty()){
+                            String optIdentifier = optAssay.get().getName();
+                            if(dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier().contains("peak_mz")){
+                                peak_mz = Double.parseDouble(optCol.getValue());
+                            }
+                            else if(dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier().contains("peak_rt")){
+                                peak_rt = Double.parseDouble(optCol.getValue());
+                            }
+                            else if(dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier().contains("peak_height")){
+                                peak_height = Double.parseDouble(optCol.getValue());
+                            }
                         }
                     }
                 }
