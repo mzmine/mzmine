@@ -233,7 +233,7 @@ public class ImsVisualizerTask extends AbstractTask {
         var renderer = new XYLineAndShapeRenderer();
         appliedSteps++;
         renderer.setSeriesPaint(0, Color.GREEN);
-        renderer.setSeriesStroke(0, new BasicStroke(5.0f));
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
 
         plot.setRenderer(renderer);
         plot.setBackgroundPaint(Color.BLACK);
