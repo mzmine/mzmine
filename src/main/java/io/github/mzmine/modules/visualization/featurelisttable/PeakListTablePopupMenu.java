@@ -435,9 +435,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       ScanSelection scanSelection = new ScanSelection(selectedDataFile.getDataRTRange(1), 1);
 
-      ChromatogramVisualizerModule.showNewTICVisualizerWindow(new RawDataFile[] {selectedDataFile},
-          selectedPeaks.toArray(new Feature[selectedPeaks.size()]), labelsMap, scanSelection,
-          TICPlotType.BASEPEAK, mzRange);
+      final Range<Double> r = mzRange;
+
+      Platform.runLater(() -> ChromatogramVisualizerModule
+          .showNewTICVisualizerWindow(new RawDataFile[]{selectedDataFile},
+              selectedPeaks.toArray(new Feature[selectedPeaks.size()]), labelsMap, scanSelection,
+              TICPlotType.BASEPEAK, r));
     }
 
     if (showXICSetupItem.equals(src) && allClickedPeakListRows.length != 0) {

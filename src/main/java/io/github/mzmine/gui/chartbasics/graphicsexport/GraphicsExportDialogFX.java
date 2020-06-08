@@ -54,7 +54,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected JFreeChart chart;
   protected EChartViewer chartPanel;
   protected ChartThemeParameters chartParam;
-  protected SimpleColorPalette colors;
+  protected SimpleColorPalette colorPalette;
 
   private Button btnRenewPreview;
   private Button btnApply;
@@ -68,7 +68,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     chartParam = (ChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
 
-    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
+    colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
 
     try {
       this.chart = (JFreeChart) chart.clone();
@@ -111,10 +111,11 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
     updateParameterSetFromComponents();
     chartParam = (ChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
-    colors = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
+    colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
     // apply settings
     chartParam.applyToChartTheme(theme);
-    setStandardColors();
+    colorPalette.applyToChartTheme(theme);
+
     theme.apply(chartPanel.getChart());
     disableCrosshair();
     // renewPreview();
@@ -123,19 +124,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected void disableCrosshair() {
     chart.getXYPlot().setRangeCrosshairVisible(false);
     chart.getXYPlot().setDomainCrosshairVisible(false);
-  }
-
-  protected void setStandardColors() {
-    Color[] clrs = new Color[colors.size()];
-    for(int i = 0; i < colors.size(); i++)
-      clrs[i] = colors.getAWT(i);
-
-    DrawingSupplier ds = new DefaultDrawingSupplier(clrs, clrs, clrs,
-        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);
-    
-    theme.setDrawingSupplier(ds);
   }
 
   /**
@@ -167,7 +155,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
             (int) parameterSet.getHeightPixel());
         chartPanel.setMaxSize((int) parameterSet.getWidthPixel(),
             (int) parameterSet.getHeightPixel());
-        // getPnChartPreview().repaint(); TODO
       } else {
         chartPanel.setMinSize((int) parameterSet.getWidthPixel(),
             (int) parameterSet.getHeightPixel());
@@ -175,7 +162,6 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
             (int) parameterSet.getHeightPixel());
         chartPanel.setMaxSize((int) parameterSet.getWidthPixel(),
             (int) parameterSet.getHeightPixel());
-        // chartPanel.repaint(); TODO
       }
     } catch (Exception ex) {
       ex.printStackTrace();

@@ -72,8 +72,6 @@ public class GraphicsExportParameters extends SimpleParameterSet {
           "Fixed size for the plot (the data space without axes and titles) or the whole chart.",
           FixedSize.values(), FixedSize.Chart);
 
-  public static final ColorParameter color =
-      new ColorParameter("Background", "Background color", Color.WHITE);
   public static final DoubleParameter alpha = new DoubleParameter("Transparency",
       "Transparency from 0.0-1.0 (fully visible)", DecimalFormat.getInstance(), 1.0, 0.0, 1.0);
 
@@ -86,7 +84,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
   public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
 
   public GraphicsExportParameters() {
-    super(new Parameter[] {path, unit, exportFormat, fixedSize, width, height, dpi, color, alpha,
+    super(new Parameter[]{path, unit, exportFormat, fixedSize, width, height, dpi, alpha,
         chartParameters, colorPalette});
     height.setValue(true);
   }
@@ -163,15 +161,6 @@ public class GraphicsExportParameters extends SimpleParameterSet {
 
   public double getDPI() {
     return this.getParameter(dpi).getValue();
-  }
-
-  public Color getColor() {
-    return this.getParameter(color).getValue();
-  }
-
-  public Color getColorWithAlpha() {
-    Color c = getColor();
-    return new Color(c.getRed(), c.getGreen(), c.getBlue(), getTransparency());
   }
 
   public DimUnit getUnit() {
