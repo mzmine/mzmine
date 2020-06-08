@@ -16,22 +16,32 @@
  * USA
  */
 
-
 package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
 
 import java.util.List;
 
 public class DistributionExtract {
-  /**
-   * Values extracted from a distribution
-   */
-  protected List<Double> items;
 
-  public DistributionExtract(List<Double> items) {
-    this.items = items;
+  /**
+   * Original distribution of values
+   */
+  protected List<Double> originalItems;
+
+  /**
+   * Values extracted from the original distribution
+   */
+  protected List<Double> extractedItems;
+
+  public DistributionExtract(List<Double> originalItems, List<Double> extractedItems) {
+    this.originalItems = originalItems;
+    this.extractedItems = extractedItems;
   }
 
-  public List<Double> getItems() {
-    return items;
+  public List<Double> getOriginalItems() {
+    return originalItems;
+  }
+
+  public List<Double> getExtractedItems() {
+    return extractedItems;
   }
 }

@@ -79,16 +79,12 @@ public class DistributionExtractor {
   /**
    * Extend range by including subsequent items within given distance tolerance
    *
-   * @param items     original distribution
    * @param range     extracted range
    * @param tolerance distance tolerance
    * @return distribution range object with extended size
    */
-  public static DistributionRange fixedToleranceExtensionRange(List<Double> items,
-                                                               DistributionRange range, double tolerance) {
-    if (items.isEmpty()) {
-      throw new IllegalArgumentException("Empty items list");
-    }
+  public static DistributionRange fixedToleranceExtensionRange(DistributionRange range, double tolerance) {
+    var items = range.getOriginalItems();
     if (tolerance <= 0) {
       throw new IllegalArgumentException("Non-positive distance tolerance");
     }
@@ -115,6 +111,6 @@ public class DistributionExtractor {
     Range<Double> valueRange = Range.closed(items.get(startIndex), items.get(endIndex));
     List<Double> extractedItems = items.subList(startIndex, endIndex + 1);
 
-    return new DistributionRange(extractedItems, indexRange, valueRange);
+    return new DistributionRange(items, extractedItems, indexRange, valueRange);
   }
 }

@@ -103,8 +103,8 @@ public class MassCalibrator {
     double stretchedRangeEstimate = rangeExtender.getBiasEstimate();*/
 
     DistributionRange range = DistributionExtractor.fixedLengthRange(ppmErrors, 2);
-    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(ppmErrors, range, 0.4);
-    double stretchedRangeEstimate = BiasEstimator.arithmeticMean(stretchedRange.getItems());
+    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range, 0.4);
+    double stretchedRangeEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
 
 //    logger.info(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));
     System.out.println(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));

@@ -24,10 +24,6 @@ import com.google.common.collect.Range;
 import java.util.List;
 
 public class DistributionRange extends DistributionExtract {
-  /**
-   * Values extracted from a distribution
-   */
-  protected List<Double> items;
 
   /**
    * Range of index values from original distribution that were extracted
@@ -39,17 +35,13 @@ public class DistributionRange extends DistributionExtract {
    */
   protected Range<Double> valueRange;
 
-  public DistributionRange(List<Double> items, Range<Integer> indexRange, Range<Double> valueRange) {
-    super(items);
-    this.items = items;
+  public DistributionRange(List<Double> originalItems, List<Double> extractedItems,
+                           Range<Integer> indexRange, Range<Double> valueRange) {
+    super(originalItems, extractedItems);
     this.indexRange = indexRange;
     this.valueRange = valueRange;
   }
-
-  public List<Double> getItems() {
-    return items;
-  }
-
+  
   public Range<Integer> getIndexRange() {
     return indexRange;
   }
