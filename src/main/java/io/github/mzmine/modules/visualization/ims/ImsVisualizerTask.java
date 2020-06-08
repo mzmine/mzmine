@@ -4,6 +4,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -16,12 +17,17 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -53,6 +59,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private int totalSteps = 3, appliedSteps = 0;
     private Range<Double> zScaleRange;
     private String paintScaleStyle;
+    private JFreeChart chart3d;
 
 
 
@@ -266,6 +273,9 @@ public class ImsVisualizerTask extends AbstractTask {
         logger.info("Creating new IMS chart instance");
         appliedSteps++;
 
+        String xAxisLabel = "retention time";
+        String yAxisLabel = "mobility";
+
         // load dataseta for IMS and XIC
         dataset3d = new ImsVisualizerXYZDataset(parameterSet);
 
@@ -284,10 +294,74 @@ public class ImsVisualizerTask extends AbstractTask {
 
         Paint[] contourColors =
                 XYBlockPixelSizePaintScales.getPaintColors("IMS", zScaleRange, paintScaleStyle);
-        LookupPaintScale scale = new LookupPaintScale(min, max, new Color(100, 100, 100));
+        LookupPaintScale scale = new LookupPaintScale(min, max, new Color(0, 0, 0));
         double[] scaleValues = new double[contourColors.length];
+        double delta = (max - min) / (contourColors.length - 1);
+        double value = min;
+        for (int i = 0; i < contourColors.length; i++) {
+            scale.add(value, contourColors[i]);
+            scaleValues[i] = value;
+            value = value + delta;
+        }
+
+        // create chart
+        chart3d = ChartFactory.createXYLineChart(
+                null,
+                xAxisLabel,
+                yAxisLabel,
+                dataset3d,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                true
+        );
+
+        XYPlot plot = chart3d.getXYPlot();
+
+        // set axis
+        NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+        NumberAxis range = (NumberAxis) plot.getRangeAxis();
+//        range.setRange(0, 1);
+
+        // set renderer
+        XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+        appliedSteps++;
+
+        // Legend
+        NumberAxis scaleAxis = new NumberAxis("Intensity");
+        scaleAxis.setRange(min, max);
+        scaleAxis.setAxisLinePaint(Color.white);
+        scaleAxis.setTickMarkPaint(Color.white);
+        PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+
+        legend.setStripOutlineVisible(false);
+        legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+        legend.setAxisOffset(5.0);
+        legend.setMargin(new RectangleInsets(5, 5, 5, 5));
+        legend.setFrame(new BlockBorder(Color.white));
+        legend.setPadding(new RectangleInsets(10, 10, 10, 10));
+        legend.setStripWidth(10);
+        legend.setPosition(RectangleEdge.LEFT);
+        legend.getAxis().setLabelFont(legendFont);
+        legend.getAxis().setTickLabelFont(legendFont);
 
 
-        return  createPlotIRT();
+        // Set paint scale
+        renderer.setPaintScale(scale);
+
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.white);
+        plot.setRangeGridlinePaint(Color.white);
+        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+        plot.setOutlinePaint(Color.black);
+        plot.setBackgroundPaint(Color.white);
+        plot.setDomainCrosshairPaint(Color.GRAY);
+        plot.setRangeCrosshairPaint(Color.GRAY);
+        plot.setDomainCrosshairVisible(true);
+        plot.setRangeCrosshairVisible(true);
+
+        chart3d.addSubtitle(legend);
+
+        return chart3d;
     }
 }
