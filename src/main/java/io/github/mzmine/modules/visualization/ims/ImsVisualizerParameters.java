@@ -24,15 +24,12 @@ public class ImsVisualizerParameters extends SimpleParameterSet {
     public static final ComboParameter<String> paintScale = new ComboParameter<>("Heatmap style",
             "Select the style for the third dimension", new String[] {"Rainbow", "Monochrome red",
             "Monochrome green", "Monochrome yellow", "Monochrome cyan"});
-    public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
-            "Select Z-Axis scale", new String[] {"percentile", "custom"});
-
     /**
      * Windows size and position
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
     public ImsVisualizerParameters() {
-        super(new Parameter[] {dataFiles, scanSelection, paintScale,  mzRange,zScaleRange, zScaleType ,windowSettings});
+        super(new Parameter[] {dataFiles, scanSelection, paintScale,  mzRange,zScaleRange ,windowSettings});
     }
 
 }

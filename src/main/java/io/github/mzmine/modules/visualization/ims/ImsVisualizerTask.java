@@ -53,7 +53,6 @@ public class ImsVisualizerTask extends AbstractTask {
     private int totalSteps = 3, appliedSteps = 0;
     private Range<Double> zScaleRange;
     private String paintScaleStyle;
-    private String zAxisScaleType;
 
 
 
@@ -70,8 +69,6 @@ public class ImsVisualizerTask extends AbstractTask {
          zScaleRange = parameters.getParameter(ImsVisualizerParameters.zScaleRange).getValue();
 
          paintScaleStyle = parameters.getParameter(ImsVisualizerParameters.paintScale).getValue();
-
-        zAxisScaleType = parameters.getParameter(ImsVisualizerParameters.zScaleType).getValue();
 
         parameterSet = parameters;
     }
@@ -105,7 +102,8 @@ public class ImsVisualizerTask extends AbstractTask {
         EChartViewer eChartViewerMMZ = new EChartViewer(chartMMZ, true, true, true, true, false);
 
         // create intensity rention time
-        chartIRT  =  createPlotIRT();
+        //todo: delete this.
+        chartIRT  =  createPlot3D();//createPlotIRT();
         EChartViewer eChartViewerIRT = new EChartViewer(chartIRT, true, true, true, true, false);
 
     // Create ims plot Window
@@ -284,7 +282,12 @@ public class ImsVisualizerTask extends AbstractTask {
         double min = copyZValues[ minIndexScale ];
         double max = copyZValues[ maxIndexScale ];
 
-        LookupPaintScale scale = new LookupPaintScale(max, min, new Color(100, 100, 100));
+        Paint[] contourColors =
+                XYBlockPixelSizePaintScales.getPaintColors("IMS", zScaleRange, paintScaleStyle);
+        LookupPaintScale scale = new LookupPaintScale(min, max, new Color(100, 100, 100));
+        double[] scaleValues = new double[contourColors.length];
+
+
         return  createPlotIRT();
     }
 }

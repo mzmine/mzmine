@@ -42,14 +42,15 @@ public class ImsVisualizerXYZDataset extends AbstractXYZDataset {
     // Calculte yvalues mobility value.
     yValues = new double[scanSize];
     for (int i = 0; i < scanSize; i++) {
-      yValues[i] = scans[i].getRetentionTime();
+      yValues[i] = scans[i].getMobility();
     }
 
     // Calculate zValues intensity.
+      zValues = new double[scanSize];
     for (int i = 0; i < scanSize; i++) {
       DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
 
-      for (int j = 0; j < scanSize; j++) {
+      for (int j = 0; j < dataPoint.length; j++) {
         zValues[i] += dataPoint[j].getIntensity();
       }
     }
