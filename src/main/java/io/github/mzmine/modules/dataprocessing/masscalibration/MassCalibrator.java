@@ -21,10 +21,11 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.BiasEstimator;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionExtractor;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling.FixedLengthRangeBiasEstimator;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodelling.RangeExtenderBiasEstimator;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -87,19 +88,23 @@ public class MassCalibrator {
     ArrayList<Pair<Double, Double>> mzMatches = matchPeaksWithCalibrants(massList, retentionTimeSec);
 
     System.out.println(String.format("mzmatches length %d", mzMatches.size()));
-    if(mzMatches.size() == 0){
+    if (mzMatches.size() == 0) {
 //      logger.info("No matches, shifting masses by zero");
       System.out.println("No matches, shifting masses by zero");
       return massList.clone();
     }
     ArrayList<Double> ppmErrors = getPpmErrors(mzMatches);
 
-    FixedLengthRangeBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(ppmErrors, 2);
+    /*FixedLengthRangeBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(ppmErrors, 2);
     double fixedRangeEstimate = fixedRangeEstimator.getBiasEstimate();
 
     RangeExtenderBiasEstimator rangeExtender = new RangeExtenderBiasEstimator(ppmErrors,
             fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 5);
-    double stretchedRangeEstimate = rangeExtender.getBiasEstimate();
+    double stretchedRangeEstimate = rangeExtender.getBiasEstimate();*/
+
+    DistributionRange range = DistributionExtractor.fixedLengthRange(ppmErrors, 2);
+    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(ppmErrors, range, 0.4);
+    double stretchedRangeEstimate = BiasEstimator.arithmeticMean(stretchedRange.getItems());
 
 //    logger.info(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));
     System.out.println(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));
@@ -163,14 +168,14 @@ public class MassCalibrator {
 
       all++;
 
-      if(dataPointMatches.size() > 1){
+      if (dataPointMatches.size() > 1) {
         System.out.println(String.format("Found %d matches for data point", dataPointMatches.size()));
         multiple++;
         continue;
       }
 
       if (dataPointMatches.size() != 1) {
-          zero++;
+        zero++;
 //        logger.info(String.format("Found %d matches for data point", dataPointMatches.size()));
         continue;
       }

@@ -71,14 +71,7 @@ public final class MZmineCore {
   /**
    * Main method
    */
-  public static void main(String args[]) throws Exception {
-
-    /*if(true)
-    {
-      // BiasEstimator.main(args);
-      Testing.main(args);
-      return;
-    }*/
+  public static void main(final String args[]) {
 
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
