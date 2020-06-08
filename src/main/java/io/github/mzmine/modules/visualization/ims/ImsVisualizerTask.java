@@ -3,6 +3,7 @@ package io.github.mzmine.modules.visualization.ims;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -18,14 +19,17 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
@@ -38,6 +42,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private XYDataset datasetMI;
     private XYDataset datasetMMZ;
     private XYDataset datasetIRT;
+    private XYZDataset dataset3d;
     private JFreeChart chartMI;
     private JFreeChart chartMMZ;
     private JFreeChart chartIRT;
@@ -46,6 +51,11 @@ public class ImsVisualizerTask extends AbstractTask {
     private Range<Double> mzRange;
     private ParameterSet parameterSet;
     private int totalSteps = 3, appliedSteps = 0;
+    private Range<Double> zScaleRange;
+    private String paintScaleStyle;
+    private String zAxisScaleType;
+
+
 
     public ImsVisualizerTask(ParameterSet parameters)
     {
@@ -56,6 +66,12 @@ public class ImsVisualizerTask extends AbstractTask {
                 .getMatchingScans(dataFiles[0]);
 
         mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
+
+         zScaleRange = parameters.getParameter(ImsVisualizerParameters.zScaleRange).getValue();
+
+         paintScaleStyle = parameters.getParameter(ImsVisualizerParameters.paintScale).getValue();
+
+        zAxisScaleType = parameters.getParameter(ImsVisualizerParameters.zScaleType).getValue();
 
         parameterSet = parameters;
     }
@@ -242,5 +258,33 @@ public class ImsVisualizerTask extends AbstractTask {
 
         appliedSteps++;
         return chart;
+    }
+
+    /**
+     * Intensity retentTime plot
+     */
+    private JFreeChart createPlot3D() {
+
+        logger.info("Creating new IMS chart instance");
+        appliedSteps++;
+
+        // load dataseta for IMS and XIC
+        dataset3d = new ImsVisualizerXYZDataset(parameterSet);
+
+        // copy and sort z-Values for min and max of the paint scale
+        double[] copyZValues = new double[dataset3d.getItemCount(0)];
+        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
+            copyZValues[i] = dataset3d.getZValue(0, i);
+        }
+        Arrays.sort(copyZValues);
+
+        // get index in accordance to percentile windows
+        int minIndexScale = 0;
+        int maxIndexScale = copyZValues.length - 1;
+        double min = copyZValues[ minIndexScale ];
+        double max = copyZValues[ maxIndexScale ];
+
+        LookupPaintScale scale = new LookupPaintScale(max, min, new Color(100, 100, 100));
+        return  createPlotIRT();
     }
 }
