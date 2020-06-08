@@ -73,11 +73,7 @@ public class DistributionExtractor {
       }
     }
 
-    Range<Integer> indexRange = Range.closed(mostItemsStart, mostItemsEnd);
-    Range<Double> valueRange = Range.closed(items.get(mostItemsStart), items.get(mostItemsEnd));
-    List<Double> extractedItems = items.subList(mostItemsStart, mostItemsEnd + 1);
-
-    return new DistributionRange(extractedItems, indexRange, valueRange);
+    return buildDistributionRange(items, mostItemsStart, mostItemsEnd);
   }
 
   /**
@@ -90,6 +86,13 @@ public class DistributionExtractor {
    */
   public static DistributionRange fixedToleranceExtensionRange(List<Double> items,
                                                                DistributionRange range, double tolerance) {
+    if (items.isEmpty()) {
+      throw new IllegalArgumentException("Empty items list");
+    }
+    if (tolerance <= 0) {
+      throw new IllegalArgumentException("Non-positive distance tolerance");
+    }
+
     int mostItemsStart = range.getIndexRange().lowerEndpoint();
     int mostItemsEnd = range.getIndexRange().upperEndpoint();
 
@@ -104,9 +107,13 @@ public class DistributionExtractor {
 
     }
 
-    Range<Integer> indexRange = Range.closed(mostItemsStart, mostItemsEnd);
-    Range<Double> valueRange = Range.closed(items.get(mostItemsStart), items.get(mostItemsEnd));
-    List<Double> extractedItems = items.subList(mostItemsStart, mostItemsEnd + 1);
+    return buildDistributionRange(items, mostItemsStart, mostItemsEnd);
+  }
+
+  protected static DistributionRange buildDistributionRange(List<Double> items, int startIndex, int endIndex){
+    Range<Integer> indexRange = Range.closed(startIndex, endIndex);
+    Range<Double> valueRange = Range.closed(items.get(startIndex), items.get(endIndex));
+    List<Double> extractedItems = items.subList(startIndex, endIndex + 1);
 
     return new DistributionRange(extractedItems, indexRange, valueRange);
   }

@@ -40,7 +40,7 @@ public class DistributionRange extends DistributionExtract {
   protected Range<Double> valueRange;
 
   public DistributionRange(List<Double> items, Range<Integer> indexRange, Range<Double> valueRange) {
-    super();
+    super(items);
     this.items = items;
     this.indexRange = indexRange;
     this.valueRange = valueRange;

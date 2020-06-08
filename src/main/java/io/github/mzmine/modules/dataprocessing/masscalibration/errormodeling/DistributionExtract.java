@@ -31,9 +31,6 @@ public class DistributionExtract {
     this.items = items;
   }
 
-  public DistributionExtract() {
-  }
-
   public List<Double> getItems() {
     return items;
   }

@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class BiasEstimator {
   /**
-   * Returns arithmetic mean of a distibution of items
+   * Returns arithmetic mean of a distribution of items
    *
    * @param items
    * @return
