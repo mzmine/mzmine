@@ -29,7 +29,7 @@ public class ImsVisualizerParameters extends SimpleParameterSet {
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
     public ImsVisualizerParameters() {
-        super(new Parameter[] {dataFiles, scanSelection, paintScale,  mzRange,zScaleRange ,windowSettings});
+        super(new Parameter[] {dataFiles, scanSelection, paintScale,  mzRange ,windowSettings});
     }
 
 }

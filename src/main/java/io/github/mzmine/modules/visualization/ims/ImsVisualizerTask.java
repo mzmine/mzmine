@@ -23,6 +23,8 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
@@ -276,7 +278,8 @@ public class ImsVisualizerTask extends AbstractTask {
     Paint[] contourColors =
         XYBlockPixelSizePaintScales.getPaintColors(
             "percentile", Range.closed(min, max), paintScaleStyle);
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.RED);
+    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
+
     double[] scaleValues = new double[contourColors.length];
     double delta = (max - min) / (contourColors.length - 1);
     double value = min;
@@ -285,9 +288,6 @@ public class ImsVisualizerTask extends AbstractTask {
       scaleValues[i] = value;
       value = value + delta;
     }
-      // set axis
-      NumberAxis domain = new NumberAxis("Retention time (min)");
-      NumberAxis range = new NumberAxis("mobility");
 
     // create chart
     chart3d =
@@ -295,31 +295,20 @@ public class ImsVisualizerTask extends AbstractTask {
             null, xAxisLabel, yAxisLabel, dataset3d, PlotOrientation.VERTICAL, true, true, true);
 
     XYPlot plot = chart3d.getXYPlot();
-    plot.setDomainAxis(domain);
 
+    // set the block renderer renderer
+    XYBlockRenderer renderer = new XYBlockRenderer();
 
-    domain.setRange(new org.jfree.data.Range(copyXValues[0], copyXValues[copyXValues.length-1]));
-    try{
-        range.setRange(new org.jfree.data.Range(copyYValues[0], copyYValues[copyYValues.length-1]));
-    }
-    catch (Exception e)
-    {
-        range.setRange(new org.jfree.data.Range(0, 1));
-    }
+    // todo : take suggetions not sure about the exact blockwidth.
 
+    double retentionWidth = copyXValues[copyXValues.length-1 ] - copyXValues[0];
+    double mobilityWidth = copyYValues[copyYValues.length - 1] - copyYValues[0];
 
-    // set renderer
-    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+    if ( retentionWidth <= 0.0 )retentionWidth = 1;
+    if ( mobilityWidth <= 0.0 ) mobilityWidth = 1;
 
-    // todo : take suggetions.
-
-      double retentionWidth = copyXValues[copyXValues.length-1] - copyXValues[0];
-
-      if(retentionWidth > 0.0)
-      {
-          renderer.setBlockWidth(retentionWidth);
-          renderer.setBlockHeight(1);
-      }
+    renderer.setBlockHeight( retentionWidth );
+    renderer.setBlockWidth( mobilityWidth );
 
     appliedSteps++;
 
@@ -345,11 +334,10 @@ public class ImsVisualizerTask extends AbstractTask {
     renderer.setPaintScale(scale);
 
     plot.setRenderer(renderer);
-    plot.setBackgroundPaint(Color.white);
-    plot.setRangeGridlinePaint(Color.white);
+    plot.setBackgroundPaint(Color.black);
+    plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
-    plot.setBackgroundPaint(Color.white);
     plot.setDomainCrosshairPaint(Color.GRAY);
     plot.setRangeCrosshairPaint(Color.GRAY);
     plot.setDomainCrosshairVisible(true);
