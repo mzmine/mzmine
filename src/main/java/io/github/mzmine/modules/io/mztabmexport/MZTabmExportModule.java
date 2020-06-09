@@ -30,38 +30,43 @@ import java.util.Collection;
 
 public class MZTabmExportModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Export to mzTab-m file.";
-    //TODO modify desc
-    private static final String MODULE_DESCRIPTION = //
-            "This method exports the feature list contents into a mzTab-m file.";
+  private static final String MODULE_NAME = "Export to mzTab-m file.";
+  //TODO modify desc
+  private static final String MODULE_DESCRIPTION = //
+      "This method exports the feature list contents into a mzTab-m file.";
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Override
+  public @Nonnull
+  String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
 
 
-    @Override
-    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        MZTabmExportTask task = new MZTabmExportTask(project,parameters);
-        tasks.add(task);
-        return ExitCode.OK;
-    }
+  @Override
+  public @Nonnull
+  ExitCode runModule(@Nonnull MZmineProject project,
+      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+    MZTabmExportTask task = new MZTabmExportTask(project, parameters);
+    tasks.add(task);
+    return ExitCode.OK;
+  }
 
-    //TODO update on addition of SMF and SME support
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTEXPORT;
-    }
+  //TODO update on addition of SMF and SME support
+  @Override
+  public @Nonnull
+  MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTEXPORT;
+  }
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+  @Override
+  public @Nonnull
+  String getName() {
+    return MODULE_NAME;
+  }
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return MZTabmExportParameters.class;
-    }
+  @Override
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
+    return MZTabmExportParameters.class;
+  }
 }

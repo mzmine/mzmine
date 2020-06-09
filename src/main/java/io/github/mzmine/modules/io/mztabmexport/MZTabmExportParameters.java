@@ -26,17 +26,19 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class MZTabmExportParameters extends SimpleParameterSet {
-    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    public static final FileNameParameter filename = new FileNameParameter("Filename",
-            "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                    + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-                    + "If the file already exists, it will be overwritten.",
-            "mzTab", 32, FileSelectionType.SAVE);
+  public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    public static final BooleanParameter exportAll = new BooleanParameter("Include all peaks"//
-            ,"Include peaks with unknown identity");
-    public MZTabmExportParameters() {
-        super(new Parameter[]{peakLists, filename, exportAll});
-    }
+  public static final FileNameParameter filename = new FileNameParameter("Filename",
+      "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
+          + "If the file already exists, it will be overwritten.",
+      "mzTab", 32, FileSelectionType.SAVE);
+
+  public static final BooleanParameter exportAll = new BooleanParameter("Include all peaks"//
+      , "Include peaks with unknown identity");
+
+  public MZTabmExportParameters() {
+    super(new Parameter[]{peakLists, filename, exportAll});
+  }
 }

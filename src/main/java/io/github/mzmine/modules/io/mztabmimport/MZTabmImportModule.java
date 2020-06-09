@@ -32,42 +32,43 @@ import java.util.Collection;
 
 public class MZTabmImportModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Import mzTab-m file";
-    private static final String MODULE_DESCRIPTION =
-            "This method imports a feature list from a mzTab-m file.";
+  private static final String MODULE_NAME = "Import mzTab-m file";
+  private static final String MODULE_DESCRIPTION =
+      "This method imports a feature list from a mzTab-m file.";
 
-    @Nonnull
-    @Override
-    public String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+  @Nonnull
+  @Override
+  public String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
 
-    @Nonnull
-    @Override
-    public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        File inputFiles[] = parameters.getParameter(MzTabmImportParameters.file).getValue();
-        for (File inputFile : inputFiles) {
-            MzTabmImportTask task = new MzTabmImportTask(project, parameters, inputFile);
-            tasks.add(task);
-        }
-        return ExitCode.OK;
+  @Nonnull
+  @Override
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+    File inputFiles[] = parameters.getParameter(MzTabmImportParameters.file).getValue();
+    for (File inputFile : inputFiles) {
+      MzTabmImportTask task = new MzTabmImportTask(project, parameters, inputFile);
+      tasks.add(task);
     }
+    return ExitCode.OK;
+  }
 
-    @Nonnull
-    @Override
-    public MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTIMPORT;
-    }
+  @Nonnull
+  @Override
+  public MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTIMPORT;
+  }
 
-    @Nonnull
-    @Override
-    public String getName() {
-        return MODULE_NAME;
-    }
+  @Nonnull
+  @Override
+  public String getName() {
+    return MODULE_NAME;
+  }
 
-    @Nullable
-    @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
-        return MzTabmImportParameters.class;
-    }
+  @Nullable
+  @Override
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return MzTabmImportParameters.class;
+  }
 }
