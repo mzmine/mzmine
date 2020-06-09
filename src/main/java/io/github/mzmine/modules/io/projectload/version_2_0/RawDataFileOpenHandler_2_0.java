@@ -53,6 +53,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
+  private double mobility;
   private MassSpectrumType spectrumType;
   private int dataPointsNumber;
   private long storageFileOffset;
@@ -164,6 +165,11 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
+    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
+    {
+      mobility = Double.parseDouble(getTextOfElement());
+    }
+
     if (qName.equals(RawDataElementName_2_0.CENTROIDED.getElementName())) {
       boolean centroided = Boolean.parseBoolean(getTextOfElement());
       if (centroided)
@@ -190,7 +196,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
           newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
 
         StorableScan storableScan = new StorableScan(newRawDataFile, newStorageID, dataPointsNumber,
-            scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScan,
+            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge, fragmentScan,
             spectrumType, PolarityType.UNKNOWN, "", null);
         newRawDataFile.addScan(storableScan);
 

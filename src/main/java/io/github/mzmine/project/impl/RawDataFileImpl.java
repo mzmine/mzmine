@@ -481,6 +481,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return getDataRTRange(0);
   }
 
+  @Nonnull
+  @Override
+  public Range<Double> getDataMobilityRange() {
+    return null;
+  }
+
   @Override
   public @Nonnull Range<Double> getDataRTRange(int msLevel) {
 
@@ -511,6 +517,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     return rtRange;
 
+  }
+
+  @Nonnull
+  @Override
+  public Range<Double> getDataMobilityRange(int msLevel) {
+    return null;
   }
 
   public void setRTRange(int msLevel, Range<Double> rtRange) {

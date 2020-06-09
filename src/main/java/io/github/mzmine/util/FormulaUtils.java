@@ -161,6 +161,47 @@ public class FormulaUtils {
     return formattedFormula.toString();
   }
 
+  /**
+   * Calculate m/z ratio for given ionic formula string
+   *
+   * This method utilizes existing cdk codebase to parse the ionic formula string
+   * and then obtain its exact mass and charge
+   * Seems like the cdk builder used does not support isotopic notation such as (15N)5
+   * but recursive subformulas should be supported
+   * If no charge is given then +1 is used
+   * For charge of more than -1 or +1 use square brackets
+   * Uses monoisotopic masses of each atom present in the compound
+   *
+   * Example outputs
+   * C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1)
+   * C23H39N7O17P3S-    gives 810.1341472579095 (charge is -1)
+   * C10H16N5O10P2+     gives 428.03669139209063 (charge is +1)
+   * C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1)
+   * [C21H30N7O17P3]2+  gives 372.54500261509054 (charge is +2)
+   * 
+   * @param  ionicFormula ionic formula string
+   * @return              ion m/z ratio
+   */
+  public static double calculateMzRatio(String ionicFormula) {
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(ionicFormula, builder);
+
+    int charge = 1;
+    char lastChar = ionicFormula.charAt(ionicFormula.length() - 1);
+    if(lastChar == '-') {
+      charge = -1;
+    }
+    if(mf.getCharge() != null) {
+      charge = mf.getCharge();
+    }
+
+    double mass = MolecularFormulaManipulator.getMass(mf, MolecularFormulaManipulator.MonoIsotopic);
+    mass -= charge * electronMass;
+
+    double mz = Math.abs(mass / charge);
+    return mz;
+  }
+
   public static double calculateExactMass(String formula) {
     return calculateExactMass(formula, 0);
   }

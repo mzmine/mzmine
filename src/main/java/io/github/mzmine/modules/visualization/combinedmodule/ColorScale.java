@@ -16,25 +16,18 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.projectload.version_2_3;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
-enum RawDataElementName_2_3 {
+public enum ColorScale {
+  PRECURSORION("Precursor ion intensity"), //
+  PRODUCTION("Product ion intensity"); //
+  private String type;
 
-  RAWDATA("rawdata"), NAME("name"), QUANTITY_SCAN("num_scans"), ID("id"), SCAN("scan"), SCAN_ID(
-      "id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN("fragmentscans"), FRAGMENT_SCAN(
-          "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN(
-              "parent"), PRECURSOR_MZ("precursor_mz"), PRECURSOR_CHARGE(
-                  "precursor_charge"), RETENTION_TIME("rt"), ION_MOBILITY("mobility"), CENTROIDED(
-                      "centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST("mass_list");
-
-  private String elementName;
-
-  private RawDataElementName_2_3(String itemName) {
-    this.elementName = itemName;
+  ColorScale(String type) {
+    this.type = type;
   }
 
-  public String getElementName() {
-    return elementName;
+  public String toString() {
+    return type;
   }
-
 }

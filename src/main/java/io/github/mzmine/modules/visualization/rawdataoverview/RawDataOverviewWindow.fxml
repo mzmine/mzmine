@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
+<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
    <top>
       <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
          <children>
@@ -38,7 +38,8 @@
                         <TableColumn fx:id="mzRangeColumn" prefWidth="75.0" text="m/z Range" />
                         <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="75.0" text="Scan Type" />
                         <TableColumn fx:id="polarityColumn" editable="false" prefWidth="75.0" text="Polarity" />
-                        <TableColumn fx:id="definitionColumn" prefWidth="75.0" text="Scan definition" />
+                        <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="0.0" text="Scan definition" />
+                        <TableColumn fx:id="mobilityColumn" prefWidth="101.0" text="Mobility" />
                     </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

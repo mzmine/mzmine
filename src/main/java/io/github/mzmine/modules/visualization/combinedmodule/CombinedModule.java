@@ -16,10 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.neutralloss;
+package io.github.mzmine.modules.visualization.combinedmodule;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -28,14 +27,11 @@ import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
-/**
- * Neutral loss (MS/MS) visualizer
- */
-public class NeutralLossVisualizerModule implements MZmineRunnableModule {
+public class CombinedModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Neutral loss visualizer";
-  private static final String MODULE_DESCRIPTION =
-      "This visualizer plots neutral losses from MS/MS scans.";
+  private static final String MODULE_NAME = "MS/MS data visualizer";
+  private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS data of 3 modules (neutralloss,productionfilter & msms)";
+
 
   @Override
   public @Nonnull
@@ -54,11 +50,7 @@ public class NeutralLossVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    RawDataFile dataFiles[] = parameters.getParameter(NeutralLossParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    NeutralLossVisualizerWindow newWindow =
-        new NeutralLossVisualizerWindow(dataFiles[0], parameters);
+    CombinedModuleVisualizerWindow newWindow = new CombinedModuleVisualizerWindow(parameters);
     newWindow.show();
 
     return ExitCode.OK;
@@ -73,7 +65,7 @@ public class NeutralLossVisualizerModule implements MZmineRunnableModule {
   @Override
   public @Nonnull
   Class<? extends ParameterSet> getParameterSetClass() {
-    return NeutralLossParameters.class;
+    return CombinedModuleParameters.class;
   }
 
 }

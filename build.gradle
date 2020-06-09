@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.8.4"
+    id "org.beryx.runtime" version "1.8.5"
 }
 
 group = "io.github.mzmine"
@@ -240,7 +240,7 @@ runtime {
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$uuid",
                                 "--license-file", "LICENSE.txt"
-                               ]
+            ]
         }
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
@@ -249,15 +249,14 @@ runtime {
             installerOptions = ["--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isLinux()) {
-            // rpmbuild and rpm tools need to be installed
-            installerType = ["rpm", "deb"]
+            // rpmbuild and rpm tools need to be installed (rpm and deb are the default targets on linux)
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
                                 "--linux-menu-group","MZmine",
                                 "--license-file", "LICENSE.txt",
                                 "--linux-deb-maintainer", "plusik@gmail.com"
-                               ]
+            ]
 
         }
         installerName = "MZmine"
@@ -269,7 +268,7 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
-                  ]
+        ]
     }
 }
 
@@ -290,4 +289,3 @@ processResources {
         expand(project.properties)
     }
 }
-

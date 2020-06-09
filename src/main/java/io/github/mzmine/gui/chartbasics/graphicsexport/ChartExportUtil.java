@@ -77,7 +77,7 @@ public class ChartExportUtil {
   /**
    * Add export dialog to popup menu of a chartpanel
    *
-   * @param plotChartPanel
+   * @param cp
    */
   public static void addExportDialogToMenu(final ChartPanel cp) {
     JMenuItem exportGraphics = new JMenuItem("Export graphics...");
@@ -187,30 +187,31 @@ public class ChartExportUtil {
    *
    * @param chart
    * @param sett
-   * @param chartRenderingInfo
+   * @param info
    */
   private static void writeChartToImage(JFreeChart chart, GraphicsExportParameters sett,
       ChartRenderingInfo info) throws Exception {
     // Background color
     Paint saved = chart.getBackgroundPaint();
-    Color awtColor = FxColorUtil.fxColorToAWT(sett.getColorWithAlpha());
-    chart.setBackgroundPaint(awtColor);
-    chart.setBackgroundImageAlpha((float) sett.getTransparency());
-    if (chart.getLegend() != null)
-      chart.getLegend().setBackgroundPaint(awtColor);
+//    Color awtColor = FxColorUtil.fxColorToAWT(sett.getColorWithAlpha());
+//    chart.setBackgroundPaint(awtColor);
+//    chart.setBackgroundImageAlpha((float) sett.getTransparency());
+//    if (chart.getLegend() != null)
+//      chart.getLegend().setBackgroundPaint(awtColor);
     // legends and stuff
-    for (int i = 0; i < chart.getSubtitleCount(); i++)
-      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
-        ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(awtColor);
+//    for (int i = 0; i < chart.getSubtitleCount(); i++)
+//      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
+//        ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(awtColor);
 
     // apply bg
-    chart.getPlot().setBackgroundPaint(awtColor);
+//    chart.getPlot().setBackgroundPaint(awtColor);
 
     // create folder
     File f = sett.getFullpath();
     if (!f.exists()) {
-      if (f.getParentFile() != null)
+      if (f.getParentFile() != null) {
         f.getParentFile().mkdirs();
+      }
       // f.createNewFile();
     }
 
