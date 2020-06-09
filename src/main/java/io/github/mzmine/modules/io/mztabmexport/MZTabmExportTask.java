@@ -29,7 +29,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import uk.ac.ebi.pride.jmztab2.model.*;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -107,10 +106,7 @@ public class MZTabmExportTask extends AbstractTask {
                 mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS:1001153").name("search engine specific score"));
                 mtd.setSmallMoleculeIdentificationReliability(new Parameter().cvLabel("MS").cvAccession("MS:1002896").name("compound identification confidence level"));
                 mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834").name("LC-MS label-free quantification analysis"));
-//                TODO addFixedModParam
-//                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1002453").name("No fixed modifications searched"));
-//                TODO addVariableModParam
-//                mtd.(new Parameter().cvLabel("MS").cvAccession("MS:1002454").name("No variable modifications searched"));
+
 
                 List<IOptColumnMappingBuilder> peak_mzList = new ArrayList<>();
                 List<IOptColumnMappingBuilder> peak_rtList = new ArrayList<>();
@@ -124,9 +120,6 @@ public class MZTabmExportTask extends AbstractTask {
 
                 for(RawDataFile file : rawDataFiles){
                     fileCounter++;
-                    /**
-                     * TO DO: Add path to original imported raw file to MZmine and write it out here instead
-                     */
                     // MS run location
                     MsRun msRun = new MsRun();
                     msRun.id(fileCounter);
@@ -137,7 +130,6 @@ public class MZTabmExportTask extends AbstractTask {
                     rawDataFileToAssay.put(file,assay);
                     assay.id(fileCounter);
                     assay.addMsRunRefItem(msRun);
-                    //TODO add sample ref for assay, quantification  reagent?
                     mtd.addAssayItem(assay);
 
                     for(UserParameter<?,?> p: project.getParameters()){
@@ -200,31 +192,21 @@ public class MZTabmExportTask extends AbstractTask {
                             String formula = peakIdentity.getPropertyValue("Molecular formula");
                             String description = escapeString(peakIdentity.getPropertyValue("Name"));
                             String url = peakIdentity.getPropertyValue("URL");
-                            if(identifier != null){
-                                sm.addDatabaseIdentifierItem(identifier);
-                                sme.setDatabaseIdentifier(identifier);
-                            }
-                            if(method != null){
-                                sme.setIdentificationMethod(new Parameter().name("").value(method));
-                            }
-                            if(formula != null){
-                                ArrayList<String> formulaList = new ArrayList<>();
-                                formulaList.add(formula);
-                                sm.setChemicalFormula(formulaList);
-                                sme.setChemicalFormula(formula);
-                            }
-                            if(description != null){
-                                ArrayList<String> chemicalName = new ArrayList<>();
-                                chemicalName.add(description);
-                                sm.setChemicalName(chemicalName);
-                                sme.setChemicalName(description);
-                            }
-                            if(url!=null){
-                                ArrayList<String> uris = new ArrayList<>();
-                                uris.add(url);
-                                sm.setUri(uris);
-                                sme.setUri(url);
-                            }
+                            sm.addDatabaseIdentifierItem(identifier);
+                            sme.setDatabaseIdentifier(identifier);
+                            sme.setIdentificationMethod(new Parameter().name("").value(method));
+                            ArrayList<String> formulaList = new ArrayList<>();
+                            formulaList.add(formula);
+                            sm.setChemicalFormula(formulaList);
+                            sme.setChemicalFormula(formula);
+                            ArrayList<String> chemicalName = new ArrayList<>();
+                            chemicalName.add(description);
+                            sm.setChemicalName(chemicalName);
+                            sme.setChemicalName(description);
+                            ArrayList<String> uris = new ArrayList<>();
+                            uris.add(url);
+                            sm.setUri(uris);
+                            sme.setUri(url);
                         }
 
                         Double rowMZ = peakListRow .getAverageMZ();
@@ -267,7 +249,7 @@ public class MZTabmExportTask extends AbstractTask {
                                         }
                                     }
                                 }
-                                //TODO sum of smf abundance assay to be used in sm
+                                //TODO sum of multiple smf abundance assay to be used in sm
                             }
                         }
                         for(String studyVariable:sampleVariableAbundancehash.keySet()){

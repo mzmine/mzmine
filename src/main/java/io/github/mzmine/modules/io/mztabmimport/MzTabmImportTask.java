@@ -108,7 +108,8 @@ public class MzTabmImportTask extends AbstractTask {
             if(!errors.isEmpty()){
                 setStatus(TaskStatus.ERROR);
                 setErrorMessage(
-                        "Error processing"+ inputFile + ":\n"+mzTabmFileParser​.getErrorList().toString()
+                        "Error processing"+ inputFile + ":\n"+mzTabmFileParser​.getErrorList().toString()+"\n"
+                                +messages.toString()
                 );
                 return;
             }
@@ -139,7 +140,7 @@ public class MzTabmImportTask extends AbstractTask {
             // Check if not canceled
             if (isCanceled())
                 return;
-            // import small molecules (=feature list rows)
+            // import small molecules feature (=feature list rows)
             importTablesData(newPeakList, mzTabFile, rawDataFiles);
 
             // Check if not canceled
@@ -167,8 +168,8 @@ public class MzTabmImportTask extends AbstractTask {
 
     private List<RawDataFile> importRawDataFiles(MzTab mzTabmFile) throws Exception{
         List<MsRun> msrun = mzTabmFile.getMetadata().getMsRun();
-        List<RawDataFile> rawDataFiles = new ArrayList<RawDataFile>();
-        //Used in getting reference for files imported from file name
+        List<RawDataFile> rawDataFiles = new ArrayList<>();
+        //Used in getting reference for files imported from file name if name is changed by user on import
         String filesNameprefix = null;
         //if Import option is selected in parameters window
         if(importRawFiles){
@@ -366,9 +367,7 @@ public class MzTabmImportTask extends AbstractTask {
                     abundance = smf.getAbundanceAssay().get(i);
                 }
                 List<OptColumnMapping> optColList = sml.getOpt();
-                String assayName = dataFileAssay.getName();
-                boolean hasAssayIdentifier = false;
-                //TODO dataFileAssay.getName() would give assay[1]   to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
+                //TODO dataFileAssay.getName() would give assay[1] to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
                 //Use average values if optional data for each msrun is not provided
                 peak_mz = mzExp;
                 peak_rt = rtValue;
@@ -377,7 +376,6 @@ public class MzTabmImportTask extends AbstractTask {
                         MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
                         Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol,mzTabmFile.getMetadata());
                         if(!optAssay.isEmpty()){
-                            String optIdentifier = optAssay.get().getName();
                             if(dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier().contains("peak_mz")){
                                 peak_mz = Double.parseDouble(optCol.getValue());
                             }
