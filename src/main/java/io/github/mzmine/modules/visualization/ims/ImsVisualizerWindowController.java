@@ -12,7 +12,7 @@ public class ImsVisualizerWindowController {
 
   @FXML public BorderPane plotePaneMMZ;
   @FXML public BorderPane plotePaneIRT;
-  @FXML public BorderPane plotePane3;
+  @FXML public BorderPane plotePaneHeatMap;
 
   BorderPane getPlotPaneMI() {
     return plotePaneMI;
@@ -24,5 +24,10 @@ public class ImsVisualizerWindowController {
 
   BorderPane getPlotePaneIRT() {
     return plotePaneIRT;
+  }
+
+  BorderPane getPlotePaneHeatMap()
+  {
+    return plotePaneHeatMap;
   }
 }

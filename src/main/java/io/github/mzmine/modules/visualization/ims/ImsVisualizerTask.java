@@ -51,6 +51,7 @@ public class ImsVisualizerTask extends AbstractTask {
   private JFreeChart chartMI;
   private JFreeChart chartMMZ;
   private JFreeChart chartIRT;
+  private JFreeChart chartHeatMap;
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
@@ -102,14 +103,13 @@ public class ImsVisualizerTask extends AbstractTask {
 
     EChartViewer eChartViewerMI = new EChartViewer(chartMI, true, true, true, true, false);
 
-    // create  mobility mz plot
-    chartMMZ = createPlotMMZ();
-    EChartViewer eChartViewerMMZ = new EChartViewer(chartMMZ, true, true, true, true, false);
-
-    // create intensity rention time
-    // todo: delete this.
-    chartIRT = createPlot3D(); // createPlotIRT();
+    //create intensity retention time plot
+    chartIRT = createPlotIRT();
     EChartViewer eChartViewerIRT = new EChartViewer(chartIRT, true, true, true, true, false);
+
+    // create heatmap plot
+    chartHeatMap = createPlot3D();
+    EChartViewer eChartViewerHeatMap = new EChartViewer(chartHeatMap, true, true, true, true, false);
 
     // Create ims plot Window
     Platform.runLater(
@@ -128,17 +128,18 @@ public class ImsVisualizerTask extends AbstractTask {
           }
           // Get controller
           ImsVisualizerWindowController controller = loader.getController();
-          BorderPane plotPaneMI = controller.getPlotPaneMI();
-          // add mobility-intensity plot.
+
+            // add mobility-intensity plot.
+            BorderPane plotPaneMI = controller.getPlotPaneMI();
           plotPaneMI.setCenter(eChartViewerMI);
 
           // add mobility-m/z plot to border
-          BorderPane plotePaneMMZ = controller.getPlotPaneMMZ();
-          plotePaneMMZ.setCenter(eChartViewerMMZ);
-
-          // add intensity retention time plot
           BorderPane plotePaneIRT = controller.getPlotePaneIRT();
           plotePaneIRT.setCenter(eChartViewerIRT);
+
+          // add intensity retention time plot
+          BorderPane heatmap = controller.getPlotePaneHeatMap();
+            heatmap.setCenter(eChartViewerHeatMap);
 
           stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
           stage.show();
@@ -301,14 +302,20 @@ public class ImsVisualizerTask extends AbstractTask {
 
     // todo : take suggetions not sure about the exact blockwidth.
 
-    double retentionWidth = copyXValues[copyXValues.length-1 ] - copyXValues[0];
-    double mobilityWidth = copyYValues[copyYValues.length - 1] - copyYValues[0];
-
-    if ( retentionWidth <= 0.0 )retentionWidth = 1;
-    if ( mobilityWidth <= 0.0 ) mobilityWidth = 1;
-
-    renderer.setBlockHeight( retentionWidth );
-    renderer.setBlockWidth( mobilityWidth );
+      double retentionWidth = 1;
+      double mobilityWidth = 1;
+      for (int i = 1; i < copyXValues.length; i++) {
+          if (copyXValues[i] - copyXValues[i - 1] > 0.0) {
+              retentionWidth = copyXValues[i] - copyXValues[i - 1];
+          }
+      }
+      for (int i = 1; i < copyYValues.length; i++) {
+          if (copyYValues[i] - copyYValues[i - 1] > 0.0) {
+              mobilityWidth = copyYValues[i] - copyYValues[i - 1];
+          }
+      }
+      renderer.setBlockHeight(mobilityWidth);
+      renderer.setBlockWidth(retentionWidth);
 
     appliedSteps++;
 
