@@ -54,7 +54,7 @@ public class MassCalibrator {
    * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and actual mz peaks
    * @param errorDistributionDistance clustering distance parameter for extracting high density range of errors
    *                                  that are meant to approximate the set of substantial errors to the bias estimate
-   * @param standardsList             list of standard calibrants used for bias estimation
+   * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
    */
   public MassCalibrator(double retentionTimeSecTolerance, double mzRatioTolerance,
                         double errorDistributionDistance, StandardsList standardsList) {
@@ -67,76 +67,72 @@ public class MassCalibrator {
   }
 
   /**
+   * Find a list of ppm errors from a mass list at certain retention time
+   * all the m/z peaks are matched against the list of standard calibrants used
+   * and when a match is made, the ppm error is calculated and added to the list
+   *
+   * @param massList
+   * @param retentionTimeSec
+   * @return
+   */
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTimeSec){
+    List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTimeSec);
+    ArrayList<Double> ppmErrors = getPpmErrors(matches);
+    return ppmErrors;
+  }
+
+  /**
+   * Estimate measurement bias from errors
+   *
+   * @param errors list of errors
+   * @return measurement bias estimate
+   */
+  public double estimateBiasFromErrors(List<Double> errors) {
+    DistributionRange range = DistributionExtractor.fixedLengthRange(errors, 2);
+    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+            errorDistributionDistance);
+    double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
+    return stretchedRangeBiasEstimate;
+  }
+
+  /**
    * Calibrates the mass list
+   * shifts all m/z peaks against a bias estimate
+   * bias estimate is currently given by an estimate of an overall ppm error of mass measurement
+   * should be obtained by other methods in this class
    *
    * @param massList         the list of mz peaks to calibrate
-   * @param retentionTimeSec the retention time of the scan that the mass list comes from
+   * @param biasEstimate     bias estimate against which the mass list should be calibrated
    * @return new mass calibrated list of mz peaks
    */
-  public DataPoint[] calibrateMassList(DataPoint[] massList, double retentionTimeSec) {
-//    all, zero, single, multiple = 0;
+  public DataPoint[] calibrateMassList(DataPoint[] massList, double biasEstimate) {
     massListsCount++;
-
-    int oldall = all;
-    int oldzero = zero;
-    int oldsingle = single;
-    int oldmultiple = multiple;
-
-//    logger.info("Calibrating mass list at retention time of " + retentionTimeSec + " seconds");
-    System.out.println("Calibrating mass list at retention time of " + retentionTimeSec + " seconds");
-
-    ArrayList<Pair<Double, Double>> mzMatches = matchPeaksWithCalibrants(massList, retentionTimeSec);
-
-    System.out.println(String.format("mzmatches length %d", mzMatches.size()));
-    if (mzMatches.size() == 0) {
-//      logger.info("No matches, shifting masses by zero");
-      System.out.println("No matches, shifting masses by zero");
-      return massList.clone();
-    }
-    ArrayList<Double> ppmErrors = getPpmErrors(mzMatches);
-
-    /*FixedLengthRangeBiasEstimator fixedRangeEstimator = new FixedLengthRangeBiasEstimator(ppmErrors, 2);
-    double fixedRangeEstimate = fixedRangeEstimator.getBiasEstimate();
-
-    RangeExtenderBiasEstimator rangeExtender = new RangeExtenderBiasEstimator(ppmErrors,
-            fixedRangeEstimator.getMostErrorsStart(), fixedRangeEstimator.getMostErrorsEnd(), 5);
-    double stretchedRangeEstimate = rangeExtender.getBiasEstimate();*/
-
-    DistributionRange range = DistributionExtractor.fixedLengthRange(ppmErrors, 2);
-    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range, 0.4);
-    double stretchedRangeEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
-
-//    logger.info(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));
-    System.out.println(String.format("Found %d matches, bias estimate %f", ppmErrors.size(), stretchedRangeEstimate));
 
     DataPoint[] calibratedMassList = new DataPoint[massList.length];
     for (int i = 0; i < massList.length; i++) {
       DataPoint oldDataPoint = massList[i];
-      calibratedMassList[i] = new SimpleDataPoint(oldDataPoint.getMZ() + stretchedRangeEstimate,
-              oldDataPoint.getIntensity());
+      double oldMz = oldDataPoint.getMZ();
+//      double calibratedMz = oldMz - biasEstimate * oldMz / 1_000_000;
+      double calibratedMz = oldMz / (1 + biasEstimate / 1_000_000);
+      calibratedMassList[i] = new SimpleDataPoint(calibratedMz, oldDataPoint.getIntensity());
     }
-
-    System.out.printf("Mass list having %d peaks, %d zero matches, %d single matches, %d multiple matches %n",
-            all - oldall, zero - oldzero, single - oldsingle, multiple - oldmultiple);
-    System.out.printf("All mass list having %d peaks, %d zero matches, %d single matches, %d multiple matches %n",
-            all, zero, single, multiple);
 
     return calibratedMassList;
   }
 
   /**
-   * Returns a list of ppm errors given a list of measured and predicted mz values
+   * Returns a list of ppm errors of mass measurement given a list of mass peak matches
    *
    * @param mzMatches
    * @return
    */
-  protected ArrayList<Double> getPpmErrors(ArrayList<Pair<Double, Double>> mzMatches) {
-//    ArrayList<Double> ppmErrors = new ArrayList<>(mzMatches.size());
+  protected ArrayList<Double> getPpmErrors(List<MassPeakMatch> mzMatches) {
     ArrayList<Double> ppmErrors = new ArrayList<>();
     for (int i = 0; i < mzMatches.size(); i++) {
-//      System.out.println(ppmErrors.size() + " " + mzMatches.size());
-//      ppmErrors.set(i, (mzMatches.get(i).getLeft() - mzMatches.get(i).getRight()) / mzMatches.get(i).getRight() * 1_000_000);
-      ppmErrors.add(mzMatches.get(i).getLeft() - mzMatches.get(i).getRight() / mzMatches.get(i).getRight() * 1_000_000);
+      MassPeakMatch match = mzMatches.get(i);
+      double fractionalError = (match.getMeasuredMzRatio() - match.getMatchedMzRatio()) / match.getMatchedMzRatio();
+      double ppmError = fractionalError * 1_000_000;
+      ppmErrors.add(ppmError);
     }
     return ppmErrors;
   }
@@ -148,14 +144,10 @@ public class MassCalibrator {
    *
    * @param massList
    * @param retentionTimeSec
-   * @return a list of pairs, left is actual measured mz peak, right is predicted mz value of a matched calibrant
+   * @return list of mass peak matches
    */
-  protected ArrayList<Pair<Double, Double>> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTimeSec) {
-//    logger.info(String.format("Matching peaks with calibrants, %d peaks %f rt seconds",
-    System.out.println(String.format("Matching peaks with calibrants, %d peaks %f rt seconds",
-            massList.length, retentionTimeSec));
-
-    ArrayList<Pair<Double, Double>> matches = new ArrayList<>();
+  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTimeSec) {
+    ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
     Range<Double> rtSecRange = Range.closed(retentionTimeSec - retentionTimeSecTolerance,
             retentionTimeSec + retentionTimeSecTolerance);
@@ -169,32 +161,23 @@ public class MassCalibrator {
       all++;
 
       if (dataPointMatches.size() > 1) {
-        System.out.println(String.format("Found %d matches for data point", dataPointMatches.size()));
         multiple++;
         continue;
       }
 
       if (dataPointMatches.size() != 1) {
         zero++;
-//        logger.info(String.format("Found %d matches for data point", dataPointMatches.size()));
         continue;
       }
 
       single++;
 
-
       StandardsListItem matchedItem = dataPointMatches.get(0);
       double matchedMz = matchedItem.getMzRatio();
+      double matchedRetentionTime = matchedItem.getRetentionTimeSec();
 
-//      logger.info(String.format("Matched data point mz %f, rt %f with mz %f, rt %f",
-      System.out.println(String.format("Matched data point mz %f, rt %f with mz %f, rt %f",
-              mz, retentionTimeSec, matchedMz, matchedItem.getRetentionTimeSec()));
-
-      matches.add(Pair.of(mz, matchedMz));
+      matches.add(new MassPeakMatch(mz, retentionTimeSec, matchedMz, matchedRetentionTime));
     }
-
-//    logger.info(String.format("Found %d matches", matches.size()));
-    System.out.println(String.format("Found %d matches", matches.size()));
 
     return matches;
   }

@@ -29,6 +29,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -81,7 +83,9 @@ public class MassCalibrationTask extends AbstractTask {
     if (totalScans == 0)
       return 0;
     else
-      return (double) processedScans / totalScans;
+      // processed scans are added twice, when errors are obtain and when mass lists are shifted
+      // so to get finished percentage of the task, divide processed scans by double total scans
+      return (double) processedScans / totalScans / 2;
   }
 
   public RawDataFile getDataFile() {
@@ -102,6 +106,8 @@ public class MassCalibrationTask extends AbstractTask {
     StandardsList standardsList = standardsListExtractor.extractStandardsList();
     MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, standardsList);
 
+    ArrayList<Double> errors = new ArrayList<Double>();
+
     scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;
 
@@ -121,7 +127,7 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
-    // Process all scans
+    // obtain errors from all scans
     for (int i = 0; i < totalScans; i++) {
 
       if (isCanceled())
@@ -139,7 +145,33 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, scan.getRetentionTime() * 60);
+      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime() * 60);
+      errors.addAll(massListErrors);
+
+      processedScans++;
+    }
+
+    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors);
+
+    // mass calibrate all mass lists
+    for (int i = 0; i < totalScans; i++) {
+
+      if (isCanceled())
+        return;
+
+      Scan scan = dataFile.getScan(scanNumbers[i]);
+
+      MassList massList = scan.getMassList(massListName);
+
+      // Skip those scans which do not have a mass list of given name
+      if (massList == null) {
+        processedScans++;
+        continue;
+      }
+
+      DataPoint[] mzPeaks = massList.getDataPoints();
+
+      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
 
       SimpleMassList newMassList =
               new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);

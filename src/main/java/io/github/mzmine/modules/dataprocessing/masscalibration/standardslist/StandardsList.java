@@ -35,8 +35,7 @@ public class StandardsList {
     this.standardMolecules = new ArrayList<StandardsListItem>(standardMolecules);
     this.standardMolecules.sort(StandardsListItem.mzComparator);
   }
-
-//  public ArrayList<StandardsListItem> getInMzRange(){
+  
   public ArrayList<StandardsListItem> getInRanges(Range<Double> mzRange, Range<Double> rtSecRange){
     ArrayList<StandardsListItem> withinRange = new ArrayList<>();
     for(StandardsListItem molecule: standardMolecules){
