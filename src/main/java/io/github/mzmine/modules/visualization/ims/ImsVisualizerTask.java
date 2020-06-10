@@ -302,18 +302,11 @@ public class ImsVisualizerTask extends AbstractTask {
 
     // todo : take suggetions not sure about the exact blockwidth.
 
-      double retentionWidth = 1;
-      double mobilityWidth = 1;
-      for (int i = 1; i < copyXValues.length; i++) {
-          if (copyXValues[i] - copyXValues[i - 1] > 0.0) {
-              retentionWidth = copyXValues[i] - copyXValues[i - 1];
-          }
-      }
-      for (int i = 1; i < copyYValues.length; i++) {
-          if (copyYValues[i] - copyYValues[i - 1] > 0.0) {
-              mobilityWidth = copyYValues[i] - copyYValues[i - 1];
-          }
-      }
+    double retentionWidth = copyXValues[copyXValues.length-1 ] - copyXValues[0];
+    double mobilityWidth = copyYValues[copyYValues.length - 1] - copyYValues[0];
+
+    if ( retentionWidth <= 0.0 )retentionWidth = 1;
+    if ( mobilityWidth <= 0.0 ) mobilityWidth = 1;
       renderer.setBlockHeight(mobilityWidth);
       renderer.setBlockWidth(retentionWidth);
 
