@@ -41,10 +41,13 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import java.util.EnumSet;
+import java.util.stream.Collectors;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -471,7 +474,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       dataMZRange.put(msLevel, mzRange);
     else
       mzRange = Range.singleton(0.0);
-
+    
     return mzRange;
 
   }
@@ -544,6 +547,19 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   public synchronized TreeMap<Integer, Integer> getDataPointsLengths() {
     return dataPointsLengths;
+  }
+
+  @Override
+  public List<PolarityType> getDataPolarity() {
+    Enumeration<StorableScan> scansEnum = scans.elements();
+    // create an enum set to store different polarity types encountered within the file
+    EnumSet<PolarityType> polarityTypes = EnumSet.noneOf(PolarityType.class);
+    while (scansEnum.hasMoreElements()) {
+      Scan scan = scansEnum.nextElement();
+      polarityTypes.add(scan.getPolarity());
+    }
+    // return as list
+    return polarityTypes.stream().collect(Collectors.toList());
   }
 
   @Override
