@@ -15,4 +15,4 @@ not-bio
 /libglpk*
 /*.log
 /out
-
+/*.xlsx
