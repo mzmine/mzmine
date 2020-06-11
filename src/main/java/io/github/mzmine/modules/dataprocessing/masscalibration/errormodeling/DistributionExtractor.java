@@ -85,8 +85,8 @@ public class DistributionExtractor {
    */
   public static DistributionRange fixedToleranceExtensionRange(DistributionRange range, double tolerance) {
     var items = range.getOriginalItems();
-    if (tolerance <= 0) {
-      throw new IllegalArgumentException("Non-positive distance tolerance");
+    if (tolerance < 0) {
+      throw new IllegalArgumentException("Negative distance tolerance");
     }
 
     int mostItemsStart = range.getIndexRange().lowerEndpoint();

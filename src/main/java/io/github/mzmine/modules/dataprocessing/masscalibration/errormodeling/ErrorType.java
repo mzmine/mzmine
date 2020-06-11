@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
 
-//public interface <N extends Number> ErrorType {
 public interface ErrorType {
   /**
    * Calculate error given measured and actual values

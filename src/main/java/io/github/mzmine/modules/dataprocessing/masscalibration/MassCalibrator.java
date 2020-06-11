@@ -69,7 +69,7 @@ public class MassCalibrator {
    * Find a list of errors from a mass list at certain retention time
    * all the m/z peaks are matched against the list of standard calibrants used
    * and when a match is made, the error is calculated and added to the list
-   * currently, ppm errors are used by default, as massError is instantiated
+   * currently, ppm errors are used by default, as per massError instantiation above
    *
    * @param massList
    * @param retentionTimeSec

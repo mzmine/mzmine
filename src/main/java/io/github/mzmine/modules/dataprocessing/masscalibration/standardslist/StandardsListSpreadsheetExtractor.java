@@ -73,10 +73,10 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
    * @throws RuntimeException         thrown when required column names are missing
    */
   public StandardsList extractStandardsList() {
-    logger.info("Extracting standards list " + filename + " sheet index " + sheetIndex);
+    logger.fine("Extracting standards list " + filename + " sheet index " + sheetIndex);
 
     if (this.extractedData != null) {
-      logger.info("Using cached list");
+      logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
     this.extractedData = new ArrayList<StandardsListItem>();
@@ -119,8 +119,8 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
           String molecularFormula = molecularCell.getStringCellValue();
           extractedData.add(new StandardsListItem(molecularFormula, retentionTimeSec));
         } catch (Exception e) {
-          logger.info("Exception occurred when reading row index " + rowIndex);
-          logger.info(e.toString());
+          logger.fine("Exception occurred when reading row index " + rowIndex);
+          logger.fine(e.toString());
         }
 
       }
