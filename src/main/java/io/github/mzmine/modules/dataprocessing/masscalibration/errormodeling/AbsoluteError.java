@@ -19,11 +19,11 @@
 package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
 
 public class AbsoluteError implements ErrorType {
-  public double calculateError(double measured, double actual){
+  public double calculateError(double measured, double actual) {
     return measured - actual;
   }
 
-  public double calibrateAgainstError(double value, double error){
+  public double calibrateAgainstError(double value, double error) {
     return value - error;
   }
 }

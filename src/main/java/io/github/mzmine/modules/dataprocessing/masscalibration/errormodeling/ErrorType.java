@@ -26,13 +26,13 @@ public interface ErrorType {
    * @param actual
    * @return
    */
-  public double calculateError(double measured, double actual);
+  double calculateError(double measured, double actual);
 
   /**
    * Calibrate a value against an error
    * given measured and its error towards actual should return back actual value
    * ie, the methods should be related as:
-   *
+   * <p>
    * error = calculateError(measured, actual)
    * calibrated = calibrateAgainstError(measured, error)
    * calibrated == actual
@@ -41,5 +41,5 @@ public interface ErrorType {
    * @param error
    * @return
    */
-  public double calibrateAgainstError(double value, double error);
+  double calibrateAgainstError(double value, double error);
 }

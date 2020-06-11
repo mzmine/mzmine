@@ -41,7 +41,7 @@ public class DistributionRange extends DistributionExtract {
     this.indexRange = indexRange;
     this.valueRange = valueRange;
   }
-  
+
   public Range<Integer> getIndexRange() {
     return indexRange;
   }

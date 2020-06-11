@@ -50,7 +50,7 @@ repositories {
     maven { // For cpdetector
         url = "https://nexus.nuiton.org/nexus/content/groups/releases/"
     }
-    mavenCentral()
+
 }
 
 ext {

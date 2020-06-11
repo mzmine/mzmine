@@ -23,12 +23,12 @@ package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
  * parts per million is just fractional multiplied by 10^6
  */
 public class PpmError implements ErrorType {
-  public double calculateError(double measured, double actual){
-    double fractionalError =  (measured - actual) / actual;
+  public double calculateError(double measured, double actual) {
+    double fractionalError = (measured - actual) / actual;
     return fractionalError * 1_000_000;
   }
 
-  public double calibrateAgainstError(double value, double error){
+  public double calibrateAgainstError(double value, double error) {
     double fractionalError = error / 1_000_000;
     return value / (1 + fractionalError);
   }
