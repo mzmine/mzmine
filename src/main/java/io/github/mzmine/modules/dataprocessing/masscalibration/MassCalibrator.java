@@ -21,12 +21,9 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.BiasEstimator;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionExtractor;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.*;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +33,8 @@ import java.util.logging.Logger;
  * Class for calibrating mass spectra
  */
 public class MassCalibrator {
+
+  protected static final ErrorType massError = new PpmError();
 
   protected final double retentionTimeSecTolerance;
   protected final double mzRatioTolerance;
@@ -67,18 +66,19 @@ public class MassCalibrator {
   }
 
   /**
-   * Find a list of ppm errors from a mass list at certain retention time
+   * Find a list of errors from a mass list at certain retention time
    * all the m/z peaks are matched against the list of standard calibrants used
-   * and when a match is made, the ppm error is calculated and added to the list
+   * and when a match is made, the error is calculated and added to the list
+   * currently, ppm errors are used by default, as massError is instantiated
    *
    * @param massList
    * @param retentionTimeSec
    * @return
    */
-  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTimeSec){
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTimeSec) {
     List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTimeSec);
-    ArrayList<Double> ppmErrors = getPpmErrors(matches);
-    return ppmErrors;
+    ArrayList<Double> errors = getErrors(matches);
+    return errors;
   }
 
   /**
@@ -101,8 +101,8 @@ public class MassCalibrator {
    * bias estimate is currently given by an estimate of an overall ppm error of mass measurement
    * should be obtained by other methods in this class
    *
-   * @param massList         the list of mz peaks to calibrate
-   * @param biasEstimate     bias estimate against which the mass list should be calibrated
+   * @param massList     the list of mz peaks to calibrate
+   * @param biasEstimate bias estimate against which the mass list should be calibrated
    * @return new mass calibrated list of mz peaks
    */
   public DataPoint[] calibrateMassList(DataPoint[] massList, double biasEstimate) {
@@ -112,8 +112,7 @@ public class MassCalibrator {
     for (int i = 0; i < massList.length; i++) {
       DataPoint oldDataPoint = massList[i];
       double oldMz = oldDataPoint.getMZ();
-//      double calibratedMz = oldMz - biasEstimate * oldMz / 1_000_000;
-      double calibratedMz = oldMz / (1 + biasEstimate / 1_000_000);
+      double calibratedMz = massError.calibrateAgainstError(oldMz, biasEstimate);
       calibratedMassList[i] = new SimpleDataPoint(calibratedMz, oldDataPoint.getIntensity());
     }
 
@@ -121,20 +120,17 @@ public class MassCalibrator {
   }
 
   /**
-   * Returns a list of ppm errors of mass measurement given a list of mass peak matches
+   * Returns a list of errors of mass measurement given a list of mass peak matches
    *
    * @param mzMatches
    * @return
    */
-  protected ArrayList<Double> getPpmErrors(List<MassPeakMatch> mzMatches) {
-    ArrayList<Double> ppmErrors = new ArrayList<>();
-    for (int i = 0; i < mzMatches.size(); i++) {
-      MassPeakMatch match = mzMatches.get(i);
-      double fractionalError = (match.getMeasuredMzRatio() - match.getMatchedMzRatio()) / match.getMatchedMzRatio();
-      double ppmError = fractionalError * 1_000_000;
-      ppmErrors.add(ppmError);
+  protected ArrayList<Double> getErrors(List<MassPeakMatch> mzMatches) {
+    ArrayList<Double> errors = new ArrayList<>();
+    for (MassPeakMatch match : mzMatches) {
+      errors.add(massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio()));
     }
-    return ppmErrors;
+    return errors;
   }
 
   /**

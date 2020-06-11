@@ -16,7 +16,6 @@
  * USA
  */
 
-
 package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
 
 import org.jfree.chart.ChartPanel;
