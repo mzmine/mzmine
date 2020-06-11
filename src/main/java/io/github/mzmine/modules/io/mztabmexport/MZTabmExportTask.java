@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.mztabmexport;
 
 import de.isas.mztab2.io.MzTabNonValidatingWriter;
 import de.isas.mztab2.model.*;
+import de.isas.mztab2.model.Metadata.PrefixEnum;
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -68,7 +69,6 @@ public class MZTabmExportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    //TODO Shall export several files?
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Total Number of rows
@@ -96,7 +96,6 @@ public class MZTabmExportTask extends AbstractTask {
         //Metadata
         Metadata mtd = new Metadata();
         mtd.setMzTabVersion("2.0.0-M");
-        //TODO verification of these metadata values
         mtd.setMzTabID("1");
         mtd.setDescription(peakList.getName());
         mtd.addSoftwareItem(new Software().id(1).parameter(
@@ -105,6 +104,9 @@ public class MZTabmExportTask extends AbstractTask {
         mtd.setSmallMoleculeQuantificationUnit(
             new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
                 .name("Arbitrary quantification unit"));
+        mtd.setSmallMoleculeFeatureQuantificationUnit(
+            new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
+            .name("Arbitrary quantification unit"));
         mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS:1001153")
             .name("search engine specific score"));
         mtd.setSmallMoleculeIdentificationReliability(
@@ -112,6 +114,13 @@ public class MZTabmExportTask extends AbstractTask {
                 .name("compound identification confidence level"));
         mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
             .name("LC-MS label-free quantification analysis"));
+        mtd.addCvItem(new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").
+            version("4.0.9").
+            uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
+
+        mtd.addDatabaseItem(new Database().id(1).
+            param(new Parameter().name("no database").value("null")).
+              prefix("null").version("Unknown").uri("null"));
 
         List<IOptColumnMappingBuilder> peak_mzList = new ArrayList<>();
         List<IOptColumnMappingBuilder> peak_rtList = new ArrayList<>();
@@ -129,6 +138,33 @@ public class MZTabmExportTask extends AbstractTask {
           MsRun msRun = new MsRun();
           msRun.id(fileCounter);
           msRun.setLocation("file://" + file.getName());
+          int dotIn = file.getName().indexOf(".");
+          String fileFormat = "";
+          if(dotIn != -1){
+            fileFormat = file.getName().substring(dotIn+1);
+          }
+          msRun.setFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000584").name(fileFormat+" file"));
+          msRun.setIdFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000768").name("Thermo nativeID format"));
+
+
+          List<Parameter> polPara = new ArrayList<>();
+          for(PolarityType scanPol : file.getDataPolarity()){
+            Integer pol = scanPol.getSign();
+            String polarity = "";
+            if(pol == 1){
+              polarity = "positive scan";
+            }
+            else if(pol == -1){
+              polarity = "negative scan";
+            }
+            else{
+              polarity = "neutral scan";
+            }
+            Parameter p = new Parameter().cvLabel("MS").cvAccession("MS:1000130").name(polarity);
+            polPara.add(p);
+          }
+
+          msRun.setScanPolarity(polPara);
           mtd.addMsRunItem(msRun);
           // Add Assay
           Assay assay = new Assay();
@@ -163,7 +199,6 @@ public class MZTabmExportTask extends AbstractTask {
               .description(key).
                   averageFunction(
                       new Parameter().cvLabel("MS").cvAccession("MS:1002883").name("mean"));
-          //TODO check cvAccession
           for (RawDataFile file : svhash.get(key)) {
             studyVariable = studyVariable.addAssayRefsItem(rawDataFileToAssay.get(file));
           }
@@ -177,17 +212,21 @@ public class MZTabmExportTask extends AbstractTask {
           PeakListRow peakListRow = peakList.getRows().get(i);
           SmallMoleculeSummary sm = new SmallMoleculeSummary();
           sm.setSmlId(i + 1);
-          //TODO multiple smfs for each sml
           SmallMoleculeFeature smf = new SmallMoleculeFeature();
           smf.setSmfId(i + 1);
-          //TODO muliple smes for each smfs and vice versa
           SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
           sme.setSmeId(i + 1);
+
+          sme.setMsLevel(new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value("1"));
+          sme.setEvidenceInputId(String.valueOf(i+1));
+          List<Double> confidences = new ArrayList<>();
+          confidences.add(0.0);
+          sme.setIdConfidenceMeasure(confidences);
+
           //Cancelled?
           if (isCanceled()) {
             return;
           }
-          //TODO check reliability value
           sm.setReliability("2");
           PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
           if (exportAll || peakIdentity != null) {
@@ -200,7 +239,7 @@ public class MZTabmExportTask extends AbstractTask {
               String url = peakIdentity.getPropertyValue("URL");
               sm.addDatabaseIdentifierItem(identifier);
               sme.setDatabaseIdentifier(identifier);
-              sme.setIdentificationMethod(new Parameter().name("").value(method));
+              sme.setIdentificationMethod(new Parameter().name(method).value(""));
               ArrayList<String> formulaList = new ArrayList<>();
               formulaList.add(formula);
               sm.setChemicalFormula(formulaList);
@@ -213,6 +252,9 @@ public class MZTabmExportTask extends AbstractTask {
               uris.add(url);
               sm.setUri(uris);
               sme.setUri(url);
+              if(url == null || url.equals("")){
+                sme.setUri("null");
+              }
             }
 
             Double rowMZ = peakListRow.getAverageMZ();
@@ -221,6 +263,7 @@ public class MZTabmExportTask extends AbstractTask {
 
             if (rowMZ != null) {
               smf.setExpMassToCharge(rowMZ);
+              sme.setExpMassToCharge(rowMZ);
             }
             if (rowCharge > 0) {
               smf.setCharge(rowCharge);
@@ -254,7 +297,6 @@ public class MZTabmExportTask extends AbstractTask {
                     }
                   }
                 }
-                //TODO sum of multiple smf abundance assay to be used in sm
               }
             }
             for (String studyVariable : sampleVariableAbundancehash.keySet()) {
@@ -295,10 +337,9 @@ public class MZTabmExportTask extends AbstractTask {
           mzTabFile.addSmallMoleculeFeatureItem(smf);
           mzTabFile.addSmallMoleculeEvidenceItem(sme);
         }
-        //TODO non validating writer to validating writer
-        MzTabNonValidatingWriter validatingWriter = new MzTabNonValidatingWriter();
+        MzTabNonValidatingWriter nonvalidatingWriter = new MzTabNonValidatingWriter();
 //                MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
-        validatingWriter.write(curFile.toPath(), mzTabFile);
+        nonvalidatingWriter.write(curFile.toPath(), mzTabFile);
       } catch (Exception e) {
         e.printStackTrace();
         setStatus(TaskStatus.ERROR);

@@ -328,7 +328,6 @@ public class MzTabmImportTask extends AbstractTask {
           break;
         }
       }
-      //TODO multiple value support
       formula = sml.getChemicalFormula().get(0);
       description = sml.getChemicalName().get(0);
       //sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability ->getReliability)
@@ -379,7 +378,6 @@ public class MzTabmImportTask extends AbstractTask {
           abundance = smf.getAbundanceAssay().get(i);
         }
         List<OptColumnMapping> optColList = sml.getOpt();
-        //TODO dataFileAssay.getName() would give assay[1] to check whether dataFileAssay.getName().equals(optCol.getIdentifier() is correct or not
         //Use average values if optional data for each msrun is not provided
         peak_mz = mzExp;
         peak_rt = rtValue;
