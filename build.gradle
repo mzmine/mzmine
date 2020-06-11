@@ -192,8 +192,16 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+    options.compilerArgs += "--enable-preview"
 }
 
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs += '--enable-preview'
+}
 
 /*
  * Set the basic Java runtime parameters (heap size etc.)
@@ -249,7 +257,8 @@ runtime {
             installerOptions = ["--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isLinux()) {
-            // rpmbuild and rpm tools need to be installed (rpm and deb are the default targets on linux)
+            // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
+            installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
@@ -267,7 +276,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   "--enable-preview"
         ]
     }
 }

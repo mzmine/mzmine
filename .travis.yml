@@ -1,5 +1,8 @@
 language: java
 
+before_install:
+  - sudo apt-get -y install build-essential fakeroot devscripts
+
 script: ./gradlew
 
 jdk:
