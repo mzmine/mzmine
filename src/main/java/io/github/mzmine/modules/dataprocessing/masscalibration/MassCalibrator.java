@@ -26,7 +26,9 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.Sta
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -88,10 +90,14 @@ public class MassCalibrator {
    * @return measurement bias estimate
    */
   public double estimateBiasFromErrors(List<Double> errors) {
-    DistributionRange range = DistributionExtractor.fixedLengthRange(errors, 2);
+    Set<Double> errorsSet = new HashSet<Double>(errors);
+    List<Double> errorsUniqueList = new ArrayList<Double>(errorsSet);
+    DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, 2);
     DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
             errorDistributionDistance);
     double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
+    logger.info(String.format("Errors %d, unique %d, bias estimate %f",
+            errors.size(), errorsUniqueList.size(), stretchedRangeBiasEstimate));
     return stretchedRangeBiasEstimate;
   }
 
