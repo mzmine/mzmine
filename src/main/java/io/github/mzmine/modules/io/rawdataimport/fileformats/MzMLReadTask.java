@@ -36,6 +36,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.logging.Level;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -176,6 +177,12 @@ public class MzMLReadTask extends AbstractTask {
       }
 
       finalRawDataFile = newMZmineFile.finishWriting();
+
+      if (logger.isLoggable(Level.FINEST)) {
+        List<PolarityType> polarities = finalRawDataFile.getDataPolarity();
+        logger.finest("Scan polarities of file " + file + ": " + polarities);
+      }
+
       project.addFile(finalRawDataFile);
 
     } catch (Throwable e) {

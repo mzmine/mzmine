@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
+import java.util.List;
 
 public interface RawDataFile {
 
@@ -106,6 +106,14 @@ public interface RawDataFile {
   public double getDataMaxBasePeakIntensity(int msLevel);
 
   public double getDataMaxTotalIonCurrent(int msLevel);
+
+  /**
+   * Returns a list of the different scan polarity types found in the raw data file.
+   * 
+   * @return Scan polarity types.
+   */
+  @Nonnull
+  public List<PolarityType> getDataPolarity();
 
   /**
    * Close the file in case it is removed from the project
