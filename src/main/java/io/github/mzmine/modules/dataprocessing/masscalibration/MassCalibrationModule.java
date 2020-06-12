@@ -22,15 +22,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 public class MassCalibrationModule implements MZmineProcessingModule {
 
@@ -56,22 +53,10 @@ public class MassCalibrationModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
                             @Nonnull Collection<Task> tasks) {
 
-    String standardsListFilename = null;
-    StandardsListExtractor standardsListExtractor;
-    try {
-      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue().getName();
-      standardsListExtractor = StandardsListExtractor.createFromFilename(standardsListFilename);
-    } catch (IOException e) {
-      Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.warning("Exception when extracting standards list from " + standardsListFilename);
-      logger.warning(e.toString());
-      return ExitCode.ERROR;
-    }
-
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
             .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet(), standardsListExtractor);
+      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet());
       tasks.add(newTask);
     }
 

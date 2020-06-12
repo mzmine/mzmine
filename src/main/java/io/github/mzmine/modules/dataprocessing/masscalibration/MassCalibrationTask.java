@@ -45,17 +45,16 @@ public class MassCalibrationTask extends AbstractTask {
   private final String suffix;
   private final boolean autoRemove;
   private final ParameterSet parameters;
-  private final StandardsListExtractor standardsListExtractor;
   // scan counter
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
+  private StandardsListExtractor standardsListExtractor;
 
   /**
    * @param dataFile
    * @param parameters
    */
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-                             StandardsListExtractor standardsListExtractor) {
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
 
     this.dataFile = dataFile;
     this.parameters = parameters;
@@ -64,8 +63,6 @@ public class MassCalibrationTask extends AbstractTask {
 
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
     this.autoRemove = parameters.getParameter(MassCalibrationParameters.autoRemove).getValue();
-
-    this.standardsListExtractor = standardsListExtractor;
 
   }
 
@@ -98,6 +95,17 @@ public class MassCalibrationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started mass calibration on " + dataFile);
+
+    String standardsListFilename = null;
+    try {
+      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue().getName();
+      standardsListExtractor = StandardsListExtractor.createFromFilename(standardsListFilename);
+    } catch (Exception e) {
+      logger.warning("Exception when extracting standards list from " + standardsListFilename);
+      logger.warning(e.toString());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
     Double mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
