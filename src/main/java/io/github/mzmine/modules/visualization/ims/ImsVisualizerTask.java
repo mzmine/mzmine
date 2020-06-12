@@ -4,7 +4,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -23,7 +22,6 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
@@ -103,13 +101,14 @@ public class ImsVisualizerTask extends AbstractTask {
 
     EChartViewer eChartViewerMI = new EChartViewer(chartMI, true, true, true, true, false);
 
-    //create intensity retention time plot
+    // create intensity retention time plot
     chartIRT = createPlotIRT();
     EChartViewer eChartViewerIRT = new EChartViewer(chartIRT, true, true, true, true, false);
 
     // create heatmap plot
     chartHeatMap = createPlot3D();
-    EChartViewer eChartViewerHeatMap = new EChartViewer(chartHeatMap, true, true, true, true, false);
+    EChartViewer eChartViewerHeatMap =
+        new EChartViewer(chartHeatMap, true, true, true, true, false);
 
     // Create ims plot Window
     Platform.runLater(
@@ -129,8 +128,8 @@ public class ImsVisualizerTask extends AbstractTask {
           // Get controller
           ImsVisualizerWindowController controller = loader.getController();
 
-            // add mobility-intensity plot.
-            BorderPane plotPaneMI = controller.getPlotPaneMI();
+          // add mobility-intensity plot.
+          BorderPane plotPaneMI = controller.getPlotPaneMI();
           plotPaneMI.setCenter(eChartViewerMI);
 
           // add mobility-m/z plot to border
@@ -139,7 +138,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
           // add intensity retention time plot
           BorderPane heatmap = controller.getPlotePaneHeatMap();
-            heatmap.setCenter(eChartViewerHeatMap);
+          heatmap.setCenter(eChartViewerHeatMap);
 
           stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
           stage.show();
@@ -302,13 +301,28 @@ public class ImsVisualizerTask extends AbstractTask {
 
     // todo : take suggetions not sure about the exact blockwidth.
 
-    double retentionWidth = copyXValues[copyXValues.length-1 ] - copyXValues[0];
-    double mobilityWidth = copyYValues[copyYValues.length - 1] - copyYValues[0];
+    double retentionWidth = 0.0;
+    double mobilityWidth = 0.0;
 
-    if ( retentionWidth <= 0.0 )retentionWidth = 1;
-    if ( mobilityWidth <= 0.0 ) mobilityWidth = 1;
-      renderer.setBlockHeight(mobilityWidth);
-      renderer.setBlockWidth(retentionWidth);
+    for (int i = 0; i + 1 < copyXValues.length; i++) {
+      if (copyXValues[i] != copyXValues[i + 1]) {
+        retentionWidth = copyXValues[i + 1] - copyXValues[i];
+        break;
+      }
+    }
+    for (int i = 0; i + 1 < copyYValues.length; i++) {
+      if (copyYValues[i] != copyYValues[i + 1]) {
+        mobilityWidth = copyYValues[i + 1] - copyYValues[i];
+        break;
+      }
+    }
+
+    if (mobilityWidth <= 0.0 || retentionWidth <= 0.0) {
+      throw new IllegalArgumentException(
+          "there must be atleast two unique value of retentio time and mobility");
+    }
+    renderer.setBlockHeight(mobilityWidth);
+    renderer.setBlockWidth(retentionWidth);
 
     appliedSteps++;
 
