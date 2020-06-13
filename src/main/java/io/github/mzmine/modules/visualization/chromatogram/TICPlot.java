@@ -28,6 +28,7 @@ import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.Scene;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -55,7 +56,7 @@ import javafx.stage.Window;
 
 /**
  * TIC plot.
- *
+ * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
 public class TICPlot extends EChartViewer {
@@ -179,8 +180,6 @@ public class TICPlot extends EChartViewer {
 
     // }
 
-
-
     // Set the x-axis (retention time) properties.
     final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
@@ -235,7 +234,6 @@ public class TICPlot extends EChartViewer {
     // popupMenu.addSeparator();
     // RemoveFilePopupMenu.setEnabled(false);
 
-
     // GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
     // GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
 
@@ -263,7 +261,12 @@ public class TICPlot extends EChartViewer {
     chart.addProgressListener(event -> {
       if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
-        Window myWindow = this.getScene().getWindow();
+        Scene myScene = this.getScene();
+        if (myScene == null) {
+          return;
+        }
+
+        Window myWindow = myScene.getWindow();
         if (myWindow instanceof TICVisualizerWindow) {
           ((TICVisualizerWindow) myWindow).updateTitle();
         }
@@ -279,8 +282,9 @@ public class TICPlot extends EChartViewer {
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
 
     // theme.apply(this.getChart());
   }
@@ -292,14 +296,13 @@ public class TICPlot extends EChartViewer {
 
     final String command = event.getActionCommand();
 
-
     if ("ZOOM_IN".equals(command)) {
       getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
       getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
     }
 
     // Set tick size to auto when zooming
-    String[] zoomList = new String[] {"ZOOM_IN_BOTH", "ZOOM_IN_DOMAIN", "ZOOM_IN_RANGE",
+    String[] zoomList = new String[]{"ZOOM_IN_BOTH", "ZOOM_IN_DOMAIN", "ZOOM_IN_RANGE",
         "ZOOM_OUT_BOTH", "ZOOM_DOMAIN_BOTH", "ZOOM_RANGE_BOTH", "ZOOM_RESET_BOTH",
         "ZOOM_RESET_DOMAIN", "ZOOM_RESET_RANGE"};
     if (Arrays.asList(zoomList).contains(command)) {
@@ -344,7 +347,6 @@ public class TICPlot extends EChartViewer {
         }
       }
     }
-
 
 
   }
@@ -403,7 +405,6 @@ public class TICPlot extends EChartViewer {
     }
 
   }
-
 
 
   public void switchLegendVisible() {
@@ -479,9 +480,11 @@ public class TICPlot extends EChartViewer {
 
   public synchronized void addTICDataset(final XYDataset dataSet) {
     // Check if the dataSet to be added is compatible with the type of plot.
-    if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType() != this.plotType))
+    if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
+        != this.plotType)) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
           + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
+    }
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
       // SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -570,8 +573,9 @@ public class TICPlot extends EChartViewer {
 
   public void setPlotType(final TICPlotType plotType) {
 
-    if (this.plotType == plotType)
+    if (this.plotType == plotType) {
       return;
+    }
     /*
      * // Plot type if (visualizer instanceof TICVisualizerWindow) { this.plotType =
      * ((TICVisualizerWindow) visualizer).getPlotType(); } else { }
