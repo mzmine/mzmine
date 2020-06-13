@@ -46,8 +46,10 @@ public class ImsVisualizerTask extends AbstractTask {
   private XYDataset datasetMMZ;
   private XYDataset datasetIRT;
   private XYZDataset dataset3d;
+  private XYZDataset datasetMF;
   private JFreeChart chartMI;
   private JFreeChart chartMMZ;
+  private JFreeChart chart3dMF;
   private JFreeChart chartIRT;
   private JFreeChart chartHeatMap;
   private RawDataFile dataFiles[];
@@ -95,10 +97,12 @@ public class ImsVisualizerTask extends AbstractTask {
     logger.info("IMS visualization of " + dataFiles[0]);
     // Task canceled?
     if (isCanceled()) return;
+    // Create Mobility Intesity plot Window
+    chart3dMF = createPlotMF();
+    EChartViewer eChartViewerMF = new EChartViewer(chart3dMF, true, true, true, true, false);
 
     // Create Mobility Intesity plot Window
     chartMI = createPlotMI();
-
     EChartViewer eChartViewerMI = new EChartViewer(chartMI, true, true, true, true, false);
 
     // create intensity retention time plot
@@ -127,6 +131,10 @@ public class ImsVisualizerTask extends AbstractTask {
           }
           // Get controller
           ImsVisualizerWindowController controller = loader.getController();
+
+          // add mobility-mz plot.
+          BorderPane plotPaneMF = controller.getPlotPaneMF();
+          plotPaneMF.setCenter(eChartViewerMF);
 
           // add mobility-intensity plot.
           BorderPane plotPaneMI = controller.getPlotPaneMI();
@@ -298,9 +306,6 @@ public class ImsVisualizerTask extends AbstractTask {
 
     // set the block renderer renderer
     XYBlockRenderer renderer = new XYBlockRenderer();
-
-    // todo : take suggetions not sure about the exact blockwidth.
-
     double retentionWidth = 0.0;
     double mobilityWidth = 0.0;
 
@@ -360,5 +365,126 @@ public class ImsVisualizerTask extends AbstractTask {
     chart3d.addSubtitle(legend);
 
     return chart3d;
+  }
+
+  /** Mobility mz plot for one frame.* */
+  private JFreeChart createPlotMF() {
+    logger.info("Creating new Mobility frame chart instance");
+    appliedSteps++;
+    String xAxisLabel = "m/z";
+    String yAxisLabel = "mobility";
+
+    // load dataseta for IMS and XIC
+    datasetMF = new ImsVisualizerMFXYZDataset(parameterSet);
+
+    // copy and sort z-Values for min and max of the paint scale
+    double[] copyZValues = new double[datasetMF.getItemCount(0)];
+    for (int i = 0; i < datasetMF.getItemCount(0); i++) {
+      copyZValues[i] = datasetMF.getZValue(0, i);
+    }
+    Arrays.sort(copyZValues);
+
+    // copy and sort x-values.
+    double[] copyXValues = new double[datasetMF.getItemCount(0)];
+    for (int i = 0; i < datasetMF.getItemCount(0); i++) {
+      copyXValues[i] = datasetMF.getXValue(0, i);
+    }
+    Arrays.sort(copyXValues);
+
+    // copy and sort y-values.
+    double[] copyYValues = new double[datasetMF.getItemCount(0)];
+    for (int i = 0; i < datasetMF.getItemCount(0); i++) {
+      copyYValues[i] = datasetMF.getYValue(0, i);
+    }
+    Arrays.sort(copyYValues);
+
+    // get index in accordance to percentile windows
+    int minIndexScale = 0;
+    int maxIndexScale = copyZValues.length - 1;
+    double min = copyZValues[minIndexScale];
+    double max = copyZValues[maxIndexScale];
+
+    Paint[] contourColors =
+        XYBlockPixelSizePaintScales.getPaintColors(
+            "percentile", Range.closed(min, max), paintScaleStyle);
+    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
+
+    double[] scaleValues = new double[contourColors.length];
+    double delta = (max - min) / (contourColors.length - 1);
+    double value = min;
+    for (int i = 0; i < contourColors.length; i++) {
+      scale.add(value, contourColors[i]);
+      scaleValues[i] = value;
+      value = value + delta;
+    }
+
+    // create chart
+    chart3dMF =
+        ChartFactory.createScatterPlot(
+            null, xAxisLabel, yAxisLabel, datasetMF, PlotOrientation.VERTICAL, true, true, true);
+
+    XYPlot plot = chart3dMF.getXYPlot();
+
+    // set the block renderer renderer
+    XYBlockRenderer renderer = new XYBlockRenderer();
+    double mzWidth = 0.0;
+    double mobilityWidth = 0.0;
+
+    for (int i = 0; i + 1 < copyXValues.length; i++) {
+      if (copyXValues[i] != copyXValues[i + 1]) {
+        mobilityWidth = copyXValues[i + 1] - copyXValues[i];
+        break;
+      }
+    }
+    for (int i = 0; i + 1 < copyYValues.length; i++) {
+      if (copyYValues[i] != copyYValues[i + 1]) {
+        mzWidth = copyYValues[i + 1] - copyYValues[i];
+        break;
+      }
+    }
+
+    if (mobilityWidth <= 0.0 || mzWidth <= 0.0) {
+      throw new IllegalArgumentException(
+          "there must be atleast two unique value of retentio time and mobility");
+    }
+
+    renderer.setBlockHeight(mobilityWidth);
+    renderer.setBlockWidth(mzWidth);
+    appliedSteps++;
+
+    // Legend
+    NumberAxis scaleAxis = new NumberAxis("Intensity");
+    scaleAxis.setRange(min, max);
+    scaleAxis.setAxisLinePaint(Color.white);
+    scaleAxis.setTickMarkPaint(Color.white);
+    PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+
+    legend.setStripOutlineVisible(false);
+    legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+    legend.setAxisOffset(5.0);
+    legend.setMargin(new RectangleInsets(5, 5, 5, 5));
+    legend.setFrame(new BlockBorder(Color.white));
+    legend.setPadding(new RectangleInsets(10, 10, 10, 10));
+    legend.setStripWidth(10);
+    legend.setPosition(RectangleEdge.LEFT);
+    legend.getAxis().setLabelFont(legendFont);
+    legend.getAxis().setTickLabelFont(legendFont);
+
+    // Set paint scale
+    renderer.setPaintScale(scale);
+
+    plot.setRenderer(renderer);
+    plot.setBackgroundPaint(Color.black);
+    plot.setRangeGridlinePaint(Color.black);
+    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+    plot.setOutlinePaint(Color.black);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
+
+    chart3dMF.addSubtitle(legend);
+
+    return chart3dMF;
   }
 }

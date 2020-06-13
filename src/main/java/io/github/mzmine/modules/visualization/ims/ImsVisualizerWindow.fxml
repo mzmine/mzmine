@@ -2,13 +2,13 @@
 
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="547.0" prefWidth="910.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
+<AnchorPane prefHeight="500.0" prefWidth="887.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
     <children>
-        <FlowPane fx:id="flowPane" prefHeight="547.0" prefWidth="910.0">
+        <FlowPane fx:id="flowPane" layoutX="13.0" layoutY="23.0" prefHeight="496.0" prefWidth="887.0">
             <children>
-                <BorderPane fx:id="plotePaneMMZ" prefHeight="302.0" prefWidth="316.0" />
-                <BorderPane fx:id="plotePaneIRT" prefHeight="346.0" prefWidth="488.0" />
-                <BorderPane fx:id="plotePaneMI" prefHeight="376.0" prefWidth="435.0" />
+                <BorderPane fx:id="plotePaneMF" prefHeight="340.0" prefWidth="423.0" />
+                <BorderPane fx:id="plotePaneMI" prefHeight="340.0" prefWidth="430.0" />
+                <BorderPane fx:id="plotePaneIRT" prefHeight="228.0" prefWidth="405.0" />
                 <BorderPane fx:id="plotePaneHeatMap" prefHeight="376.0" prefWidth="470.0" />
             </children>
         </FlowPane>
