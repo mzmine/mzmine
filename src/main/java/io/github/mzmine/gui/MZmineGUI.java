@@ -19,6 +19,7 @@
 package io.github.mzmine.gui;
 
 
+import io.github.mzmine.gui.mainwindow.MainWindowControllerNew;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -82,7 +83,7 @@ public class MZmineGUI extends Application implements Desktop {
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
-  private static MainWindowController mainWindowController;
+  private static MainWindowControllerNew mainWindowController;
 
   private static Stage mainStage;
   private static Scene rootScene;

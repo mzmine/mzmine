@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -50,10 +50,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import org.jmol.awtjs.swing.Grid;
 
 /*
  * Raw data overview window controller class
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class RawDataOverviewWindowController {
@@ -121,8 +122,13 @@ public class RawDataOverviewWindowController {
     negColor = palette.getNegativeColorAWT();
     neuColor = palette.getNeutralColorAWT();
 
+    // clear previous info
+    metaDataGridPane.getChildren().removeIf(
+        node -> GridPane.getColumnIndex(node) != null && GridPane.getColumnIndex(node) == 1);
+    rawDataTableView.getItems().clear();
+
     // add meta data
-    rawDataLabel.setText(rawDataLabel.getText() + " " + rawDataFile.getName());
+    rawDataLabel.setText("Overview of raw data file: " + rawDataFile.getName());
 
     String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
     Label labelScansMSLevel = new Label();
@@ -139,9 +145,9 @@ public class RawDataOverviewWindowController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
+          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
           + "-" + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
+          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
           + " [min] ";
       labelRtRangeLevel.setText(rtRangeMSLevel);
     }
@@ -152,9 +158,9 @@ public class RawDataOverviewWindowController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
+          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
           + "-" + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
+          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
           + " ";
       labelMzRangeMSLevel.setText(mzRangeMSLevel);
     }
@@ -173,14 +179,14 @@ public class RawDataOverviewWindowController {
       } else {
         precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
       }
-      String mobility="";
-     mobility =  MZminePreferences.mzFormat.getValue().format(scan.getMobility());
+      String mobility = "";
+      mobility = MZminePreferences.mzFormat.getValue().format(scan.getMobility());
 
       // format mzRange
       String mzRange =
           MZminePreferences.mzFormat.getValue().format(scan.getDataPointMZRange().lowerEndpoint())
               + "-" + MZminePreferences.mzFormat.getValue()
-                  .format(scan.getDataPointMZRange().upperEndpoint());
+              .format(scan.getDataPointMZRange().upperEndpoint());
 
       tableData.add(new ScanDescription(Integer.toString(i), // scan number
           MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
@@ -190,7 +196,7 @@ public class RawDataOverviewWindowController {
           scan.getSpectrumType().toString(), // profile/centroid
           scan.getPolarity().toString(), // polarity
           scan.getScanDefinition(),      // definition
-              mobility) // mobility
+          mobility) // mobility
       );
     }
 
@@ -218,7 +224,7 @@ public class RawDataOverviewWindowController {
     ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
 
     // get TIC window
-    ticWindow = new TICVisualizerWindow(new RawDataFile[] {rawDataFile}, // raw
+    ticWindow = new TICVisualizerWindow(new RawDataFile[]{rawDataFile}, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         rawDataFile.getDataMZRange(), // mz range
@@ -240,7 +246,8 @@ public class RawDataOverviewWindowController {
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
 
       @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {}
+      public void chartMouseMoved(ChartMouseEventFX event) {
+      }
 
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
