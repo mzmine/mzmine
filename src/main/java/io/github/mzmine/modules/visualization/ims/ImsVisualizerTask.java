@@ -4,6 +4,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -32,6 +33,7 @@ import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -170,7 +172,7 @@ public class ImsVisualizerTask extends AbstractTask {
     String yAxisLabel = "intensity";
     JFreeChart chart =
         ChartFactory.createXYLineChart(
-            null, xAxisLabel, yAxisLabel, datasetMI, PlotOrientation.VERTICAL, true, true, false);
+            "Mobility-intensity plot", xAxisLabel, yAxisLabel, datasetMI, PlotOrientation.VERTICAL, true, true, false);
     XYPlot plot = chart.getXYPlot();
 
     var renderer = new XYLineAndShapeRenderer();
@@ -285,27 +287,29 @@ public class ImsVisualizerTask extends AbstractTask {
 
     Paint[] contourColors =
         XYBlockPixelSizePaintScales.getPaintColors(
-            "percentile", Range.closed(min, max), paintScaleStyle);
+            "percentile", Range.open(min, max), paintScaleStyle);
     LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
 
     double[] scaleValues = new double[contourColors.length];
     double delta = (max - min) / (contourColors.length - 1);
     double value = min;
     for (int i = 0; i < contourColors.length; i++) {
-      scale.add(value, contourColors[i]);
       scaleValues[i] = value;
+      scale.add(value, contourColors[i]);
       value = value + delta;
     }
-
     // create chart
     chart3d =
         ChartFactory.createScatterPlot(
-            null, xAxisLabel, yAxisLabel, dataset3d, PlotOrientation.VERTICAL, true, true, true);
+            "Heatmap plot mobility-rt", xAxisLabel, yAxisLabel, dataset3d, PlotOrientation.VERTICAL, true, true, true);
 
     XYPlot plot = chart3d.getXYPlot();
 
-    // set the block renderer renderer
-    XYBlockRenderer renderer = new XYBlockRenderer();
+    // set the pixel renderer
+   XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
+   pixelRenderer.setPaintScale(scale);
+    // set the block renderer
+    XYBlockRenderer blockRenderer = new XYBlockRenderer();
     double retentionWidth = 0.0;
     double mobilityWidth = 0.0;
 
@@ -326,8 +330,8 @@ public class ImsVisualizerTask extends AbstractTask {
       throw new IllegalArgumentException(
           "there must be atleast two unique value of retentio time and mobility");
     }
-    renderer.setBlockHeight(mobilityWidth);
-    renderer.setBlockWidth(retentionWidth);
+    blockRenderer.setBlockHeight(mobilityWidth);
+    blockRenderer.setBlockWidth(retentionWidth);
 
     appliedSteps++;
 
@@ -350,9 +354,9 @@ public class ImsVisualizerTask extends AbstractTask {
     legend.getAxis().setTickLabelFont(legendFont);
 
     // Set paint scale
-    renderer.setPaintScale(scale);
+    blockRenderer.setPaintScale(scale);
 
-    plot.setRenderer(renderer);
+    plot.setRenderer(blockRenderer);
     plot.setBackgroundPaint(Color.black);
     plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
@@ -413,8 +417,9 @@ public class ImsVisualizerTask extends AbstractTask {
     double delta = (max - min) / (contourColors.length - 1);
     double value = min;
     for (int i = 0; i < contourColors.length; i++) {
-      scale.add(value, contourColors[i]);
+
       scaleValues[i] = value;
+      scale.add(value, contourColors[i]);
       value = value + delta;
     }
 
@@ -436,12 +441,19 @@ public class ImsVisualizerTask extends AbstractTask {
         break;
       }
     }
+    ArrayList<Double> deltas = new ArrayList<>();
     for (int i = 0; i + 1 < copyYValues.length; i++) {
       if (copyYValues[i] != copyYValues[i + 1]) {
-        mzWidth = copyYValues[i + 1] - copyYValues[i];
-        break;
+        deltas.add(copyYValues[i+1] - copyYValues[i]);
       }
     }
+
+    for(int i = 0; i < deltas.size(); i++ )
+    {
+      mzWidth += deltas.get(i);
+    }
+
+    mzWidth = deltas.size() > 0 ?mzWidth/deltas.size() : 0.0;
 
     if (mobilityWidth <= 0.0 || mzWidth <= 0.0) {
       throw new IllegalArgumentException(

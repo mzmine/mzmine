@@ -15,7 +15,7 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
   private Scan scans[];
   private Range<Double> mzRange;
   ArrayList<Double> mobility;
-  ArrayList<Double> mzAverage;
+  ArrayList<Double> mzValues;
   ArrayList<Double> intensity;
   private double[] xValues;
   private double[] yValues;
@@ -36,35 +36,38 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
     mobility = new ArrayList<>();
+    mzValues = new ArrayList<>();
+    intensity = new ArrayList<>();
     for (int i = 0; i + 1 < scans.length; i++) {
       if (scans[i].getRetentionTime() == scans[i + 1].getRetentionTime()) {
         mobility.add(scans[i].getMobility());
-      }
-    }
-
-    xValues = new double[mobility.size()];
-    for (int i = 0; i < mobility.size(); i++) {
-      xValues[i] = mobility.get(i);
-    }
-
-    yValues = new double[mobility.size()];
-    zValues = new double[mobility.size()];
-
-    for (int i = 0; i < mobility.size(); i++) {
-      for (int k = 0; k < scans.length; k++) {
-        if (scans[k].getMobility() == mobility.get(i)) {
-          // Take value in only selected mz range.
-          DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
-          double mzSum = 0;
-          for (int j = 0; j < dataPoint.length; j++) {
-            zValues[i] += dataPoint[j].getIntensity();
-            mzSum += dataPoint[j].getMZ();
-          }
-          yValues[i] = dataPoint.length > 0 ? mzSum / dataPoint.length : 0;
+        // Take value in only selected mz range.
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+         double intensitySum = 0;
+        for ( int j = 0; j < dataPoint.length; j++ )
+        {
+          mzValues.add(dataPoint[j].getMZ());
+          intensitySum += dataPoint[j].getIntensity();
         }
+
+        intensity.add(intensitySum);
+
       }
     }
 
+     yValues = new double[mobility.size()];
+     zValues = new double[ intensity.size() ];
+    for (int i = 0; i < mobility.size(); i++) {
+      yValues[i] = mobility.get(i);
+      zValues[i] = intensity.get(i);
+    }
+
+    xValues = new double[ mzValues.size() ];
+
+    for ( int i = 0; i < xValues.length; i++ )
+    {
+      xValues[i] = mzValues.get(i);
+    }
   }
 
   @Override
