@@ -235,7 +235,7 @@ public class ImsVisualizerTask extends AbstractTask {
     var renderer = new XYLineAndShapeRenderer();
     appliedSteps++;
     renderer.setSeriesPaint(0, Color.GREEN);
-    renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+    renderer.setSeriesStroke(0, new BasicStroke(.5f));
 
     plot.setRenderer(renderer);
     plot.setBackgroundPaint(Color.BLACK);
@@ -435,16 +435,16 @@ public class ImsVisualizerTask extends AbstractTask {
     double mzWidth = 0.0;
     double mobilityWidth = 0.0;
 
-    for (int i = 0; i + 1 < copyXValues.length; i++) {
-      if (copyXValues[i] != copyXValues[i + 1]) {
-        mobilityWidth = copyXValues[i + 1] - copyXValues[i];
+    for (int i = 0; i + 1 < copyYValues.length; i++) {
+      if (copyYValues[i] != copyYValues[i + 1]) {
+        mobilityWidth = copyYValues[i + 1] - copyYValues[i];
         break;
       }
     }
     ArrayList<Double> deltas = new ArrayList<>();
-    for (int i = 0; i + 1 < copyYValues.length; i++) {
-      if (copyYValues[i] != copyYValues[i + 1]) {
-        deltas.add(copyYValues[i+1] - copyYValues[i]);
+    for (int i = 0; i + 1 < copyXValues.length; i++) {
+      if (copyXValues[i] != copyXValues[i + 1]) {
+        deltas.add(copyXValues[i+1] - copyXValues[i]);
       }
     }
 
