@@ -18,10 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
-import com.google.common.io.Files;
-
-import java.io.IOException;
-
 /**
  * Interface for extracting a list of standard molecules
  * given a file with specific format,

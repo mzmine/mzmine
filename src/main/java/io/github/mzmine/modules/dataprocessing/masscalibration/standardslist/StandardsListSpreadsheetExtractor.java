@@ -66,7 +66,7 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
   }
 
   /**
-   * Extracts standards list
+   * Extracts standards list caching underlying list data
    *
    * @return new standards list object
    * @throws IllegalArgumentException thrown when sheet index is out of range available

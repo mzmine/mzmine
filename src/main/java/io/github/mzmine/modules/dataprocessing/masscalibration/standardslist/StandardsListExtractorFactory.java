@@ -24,7 +24,8 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Static factory for StandardsListExtractor implementations picked by filename with caching
+ * Static factory for StandardsListExtractor implementations picked by filename
+ * with thread-safe caching of extractor objects and also their underlying extracted list data
  */
 public class StandardsListExtractorFactory {
 
@@ -42,31 +43,31 @@ public class StandardsListExtractorFactory {
    */
   public static StandardsListExtractor createFromFilename(String filename) throws IOException {
 
-    /*if(cache.containsKey(filename)){
-      return cache.get(filename);
-    }*/
-
     StandardsListExtractor cachedExtractor = cache.get(filename);
-    if(cachedExtractor != null){
+    if (cachedExtractor != null) {
       return cachedExtractor;
     }
 
     synchronized (lock) {
-      if(cache.containsKey(filename)){
+      if (cache.containsKey(filename)) {
         return cache.get(filename);
       }
 
       String extension = Files.getFileExtension(filename);
+      StandardsListExtractor extractor;
 
       if (extension.equals("xls") || extension.equals("xlsx")) {
-        StandardsListExtractor extractor = new StandardsListSpreadsheetExtractor(filename);
-        extractor.extractStandardsList();
-        cache.put(filename, extractor);
-        return extractor;
+        extractor = new StandardsListSpreadsheetExtractor(filename);
+      } else {
+        throw new IllegalArgumentException("Unsupported extension " + extension +
+                " in spreadsheet file " + filename);
       }
 
-      throw new IllegalArgumentException("Unsupported extension " + extension +
-              " in spreadsheet file " + filename);
+      // use synchronization to extract the standards list
+      // extractor caches the list, so subsequent method calls should just read from cached list data
+      extractor.extractStandardsList();
+      cache.put(filename, extractor);
+      return extractor;
     }
 
   }
