@@ -28,25 +28,10 @@ import java.io.IOException;
  * extract data on molecules and return StandardsList object
  */
 public interface StandardsListExtractor {
-
   /**
-   * Static factory method for returning appropriate implementation
-   * based on filename extension
+   * Extract standards list, should cache the list
    *
-   * @param filename spreadsheet filename
-   * @return instantiated extractor object
-   * @throws IOException thrown by concrete extractor while opening the file
+   * @return extracted and cached standards list
    */
-  static StandardsListExtractor createFromFilename(String filename) throws IOException {
-    String extension = Files.getFileExtension(filename);
-
-    if (extension.equals("xls") || extension.equals("xlsx")) {
-      return new StandardsListSpreadsheetExtractor(filename);
-    }
-
-    throw new IllegalArgumentException("Unsupported extension " + extension +
-            " in spreadsheet file " + filename);
-  }
-
   StandardsList extractStandardsList();
 }

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
+import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractorFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -99,7 +100,7 @@ public class MassCalibrationTask extends AbstractTask {
     String standardsListFilename = null;
     try {
       standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue().getName();
-      standardsListExtractor = StandardsListExtractor.createFromFilename(standardsListFilename);
+      standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename);
     } catch (Exception e) {
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
