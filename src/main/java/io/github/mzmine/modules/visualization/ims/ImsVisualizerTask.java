@@ -35,6 +35,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
@@ -448,10 +450,8 @@ public class ImsVisualizerTask extends AbstractTask {
       }
     }
 
-    for(int i = 0; i < deltas.size(); i++ )
-    {
-      mzWidth += deltas.get(i);
-    }
+      Collections.sort(deltas);
+      mzWidth = deltas.get(deltas.size()/2);
 
     mzWidth = deltas.size() > 0 ?mzWidth/deltas.size() : 0.0;
 
