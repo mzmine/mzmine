@@ -4,6 +4,7 @@ import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.tabs.processingreport.TextAreaProcessingReportTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
@@ -260,6 +261,10 @@ public class MainWindowControllerNew {
      * instanceof MZmineTask) { MZmineTask mzmineTask = (MZmineTask) task;
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
+
+    TextAreaProcessingReportTab reportTab = new TextAreaProcessingReportTab("Report: Deisotoping");
+    reportTab.setDemoText();
+    getOverviewTabPane().getTabs().add(reportTab);
   }
 
   public ListView<RawDataFile> getRawDataTree() {
@@ -439,6 +444,10 @@ public class MainWindowControllerNew {
       logger.info("Freeing unused memory");
       System.gc();
     }).start();
+  }
+
+  public TabPane getOverviewTabPane() {
+    return tpOverview;
   }
 
 }

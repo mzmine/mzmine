@@ -117,7 +117,7 @@
 
           <!--          Right side, main panel -->
           <TabPane fx:id="tpOverview" prefHeight="200.0" prefWidth="200.0"
-            tabClosingPolicy="UNAVAILABLE">
+            tabClosingPolicy="ALL_TABS">
             <tabs>
               <Tab fx:id="tabRawDataOverview" closable="false" text="Raw data overview">
                 <content>
