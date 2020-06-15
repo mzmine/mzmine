@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 
+import java.io.IOException;
+
 /**
  * Interface for extracting a list of standard molecules
  * given a file with specific format,
@@ -28,6 +30,7 @@ public interface StandardsListExtractor {
    * Extract standards list, should cache the list
    *
    * @return extracted and cached standards list
+   * @throws IOException
    */
-  StandardsList extractStandardsList();
+  StandardsList extractStandardsList() throws IOException;
 }

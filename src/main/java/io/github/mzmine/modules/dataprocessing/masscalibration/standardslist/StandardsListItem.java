@@ -38,6 +38,11 @@ public class StandardsListItem {
     this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
   }
 
+  @Override
+  public String toString() {
+    return "StandardsListItem: " + molecularFormula + " " + retentionTimeSec + "s " + mzRatio + "mz";
+  }
+
   public String getMolecularFormula() {
     return molecularFormula;
   }

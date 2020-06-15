@@ -98,9 +98,11 @@ public class MassCalibrationTask extends AbstractTask {
     logger.info("Started mass calibration on " + dataFile);
 
     String standardsListFilename = null;
+    StandardsList standardsList;
     try {
       standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue().getName();
       standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename);
+      standardsList = standardsListExtractor.extractStandardsList();
     } catch (Exception e) {
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
@@ -112,7 +114,6 @@ public class MassCalibrationTask extends AbstractTask {
     Double mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     Double rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeSecTolerance).getValue();
 
-    StandardsList standardsList = standardsListExtractor.extractStandardsList();
     MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, standardsList);
 
     ArrayList<Double> errors = new ArrayList<Double>();

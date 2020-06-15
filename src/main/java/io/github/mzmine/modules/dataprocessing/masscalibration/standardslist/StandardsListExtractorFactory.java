@@ -58,6 +58,8 @@ public class StandardsListExtractorFactory {
 
       if (extension.equals("xls") || extension.equals("xlsx")) {
         extractor = new StandardsListSpreadsheetExtractor(filename);
+      } else if (extension.equals("csv")) {
+        extractor = new StandardsListCsvExtractor(filename);
       } else {
         throw new IllegalArgumentException("Unsupported extension " + extension +
                 " in spreadsheet file " + filename);
