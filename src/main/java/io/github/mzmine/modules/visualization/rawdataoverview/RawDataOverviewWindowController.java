@@ -109,6 +109,18 @@ public class RawDataOverviewWindowController {
   @FXML
   private BorderPane spectraPane;
 
+  @FXML
+  private Label lblNumScans;
+
+  @FXML
+  private Label lblRtRange;
+
+  @FXML
+  private Label lblMzRange;
+
+  @FXML
+  private Label lblMaxTIC;
+
   ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
 
   public void initialize(RawDataFile rawDataFile) {
@@ -131,17 +143,13 @@ public class RawDataOverviewWindowController {
     rawDataLabel.setText("Overview of raw data file: " + rawDataFile.getName());
 
     String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
-    Label labelScansMSLevel = new Label();
-    metaDataGridPane.add(labelScansMSLevel, 1, 0);
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       scansMSLevel = scansMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level ("
           + rawDataFile.getScanNumbers(i + 1).length + ") ";
-      labelScansMSLevel.setText(scansMSLevel);
+      lblNumScans.setText(scansMSLevel);
     }
 
     String rtRangeMSLevel = "";
-    Label labelRtRangeLevel = new Label();
-    metaDataGridPane.add(labelRtRangeLevel, 1, 1);
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.rtFormat.getValue()
@@ -149,12 +157,10 @@ public class RawDataOverviewWindowController {
           + "-" + MZminePreferences.rtFormat.getValue()
           .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
           + " [min] ";
-      labelRtRangeLevel.setText(rtRangeMSLevel);
+      lblRtRange.setText(rtRangeMSLevel);
     }
 
     String mzRangeMSLevel = "";
-    Label labelMzRangeMSLevel = new Label();
-    metaDataGridPane.add(labelMzRangeMSLevel, 1, 2);
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
           + MZminePreferences.mzFormat.getValue()
@@ -162,11 +168,11 @@ public class RawDataOverviewWindowController {
           + "-" + MZminePreferences.mzFormat.getValue()
           .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
           + " ";
-      labelMzRangeMSLevel.setText(mzRangeMSLevel);
+      lblMzRange.setText(mzRangeMSLevel);
     }
 
-    metaDataGridPane.add(new Label(MZminePreferences.intensityFormat.getValue()
-        .format(rawDataFile.getDataMaxTotalIonCurrent(1))), 1, 3);
+    lblMaxTIC.setText(MZminePreferences.intensityFormat.getValue()
+        .format(rawDataFile.getDataMaxTotalIonCurrent(1)));
 
     // add raw data to table
     for (int i = 1; i < numberOfScans + 1; i++) {
