@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 public class MobilityRetentionHeatMap extends EChartViewer {
 
   private XYPlot plot;
-  private ParameterSet parameterSet;
   private String paintScaleStyle;
   private JFreeChart chart3d;
   private XYZDataset dataset3d;
@@ -37,7 +36,7 @@ public class MobilityRetentionHeatMap extends EChartViewer {
 
     super(
         ChartFactory.createScatterPlot(
-            "null",
+            "",
             "retention time",
             "mobility",
             dataset,

@@ -17,10 +17,13 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
   ArrayList<Double> mobility;
   ArrayList<Double> mzValues;
   ArrayList<Double> intensity;
-  private double[] xValues;
-  private double[] yValues;
-  private double[] zValues;
-  public ImsVisualizerMFXYZDataset(ParameterSet parameters) {
+  private Double[] xValues;
+  private Double[] yValues;
+  private Double[] zValues;
+  private Double selectedRetentionTime;
+  private int itemSize;
+
+  public ImsVisualizerMFXYZDataset(ParameterSet parameters, double retentionTime) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -35,39 +38,31 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
 
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
+    selectedRetentionTime = retentionTime;
+
     mobility = new ArrayList<>();
     mzValues = new ArrayList<>();
     intensity = new ArrayList<>();
-    for (int i = 0; i + 1 < scans.length; i++) {
-      if (scans[i].getRetentionTime() == scans[i + 1].getRetentionTime()) {
-        mobility.add(scans[i].getMobility());
-        // Take value in only selected mz range.
+
+    for (int i = 0; i < scans.length; i++) {
+      if (scans[i].getRetentionTime() == selectedRetentionTime) {
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
-         double intensitySum = 0;
-        for ( int j = 0; j < dataPoint.length; j++ )
-        {
+
+        for (int j = 0; j < dataPoint.length; j++) {
+          mobility.add(scans[i].getMobility());
           mzValues.add(dataPoint[j].getMZ());
-          intensitySum += dataPoint[j].getIntensity();
+          intensity.add(dataPoint[j].getIntensity());
         }
-
-        intensity.add(intensitySum);
-
       }
     }
 
-     yValues = new double[mobility.size()];
-     zValues = new double[ intensity.size() ];
-    for (int i = 0; i < mobility.size(); i++) {
-      yValues[i] = mobility.get(i);
-      zValues[i] = intensity.get(i);
-    }
-
-    xValues = new double[ mzValues.size() ];
-
-    for ( int i = 0; i < xValues.length; i++ )
-    {
-      xValues[i] = mzValues.get(i);
-    }
+    itemSize = mobility.size();
+    xValues = new Double[itemSize];
+    yValues = new Double[itemSize];
+    zValues = new Double[itemSize];
+    xValues = mzValues.toArray(new Double[itemSize]);
+    yValues = mobility.toArray(new Double[itemSize]);
+    zValues = intensity.toArray(new Double[itemSize]);
   }
 
   @Override
@@ -86,7 +81,7 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getItemCount(int series) {
-    return mobility.size();
+    return itemSize;
   }
 
   @Override
