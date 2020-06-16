@@ -126,7 +126,6 @@ public class RawDataOverviewWindowController {
   public void initialize(RawDataFile rawDataFile) {
 
     this.rawDataFile = rawDataFile;
-    int numberOfScans = rawDataFile.getNumOfScans();
 
     // set colors depending on vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -134,10 +133,99 @@ public class RawDataOverviewWindowController {
     negColor = palette.getNegativeColorAWT();
     neuColor = palette.getNeutralColorAWT();
 
+    updateRawDataFileInfo();
+    updateScanTable(rawDataFile);
+    initialiseTICPlot();
+
+    addTICMouseListener();
+
+    updatePlots();
+  }
+
+  private void initialiseTICPlot() {
+    // get MS1 scan selection to draw base peak plot
+    ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
+
+    // get TIC window
+    ticWindow = new TICVisualizerWindow(new RawDataFile[]{rawDataFile}, // raw
+        TICPlotType.BASEPEAK, // plot type
+        scanSelection, // scan selection
+        rawDataFile.getDataMZRange(), // mz range
+        null, // selected features
+        null); // labels
+
+    // get TIC Plot
+    this.ticPlot = ticWindow.getTICPlot();
+    ticPlot.getChart().getLegend().setVisible(false);
+    chromatogramPane.setCenter(ticPlot.getParent());
+
+    // get plot
+    XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+    plot.setDomainCrosshairVisible(false);
+    plot.setRangeCrosshairVisible(false);
+  }
+
+  private void updateScanTable(RawDataFile rawDataFile) {
+
+    int numberOfScans = rawDataFile.getNumOfScans();
+
+    scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
+    rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
+    msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
+    precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
+    mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
+    scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
+    polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
+    definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
+    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
+
+    tableData.clear();
+    // add raw data to table
+    for (int i = 1; i < numberOfScans + 1; i++) {
+      Scan scan = rawDataFile.getScan(i);
+
+      // check for precursor
+      String precursor = "";
+      if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
+        precursor = "";
+      } else {
+        precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
+      }
+      String mobility = "";
+      mobility = MZminePreferences.mzFormat.getValue().format(scan.getMobility());
+
+      // format mzRange
+      String mzRange =
+          MZminePreferences.mzFormat.getValue().format(scan.getDataPointMZRange().lowerEndpoint())
+              + "-" + MZminePreferences.mzFormat.getValue()
+              .format(scan.getDataPointMZRange().upperEndpoint());
+
+      tableData.add(new ScanDescription(Integer.toString(i), // scan number
+          MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
+          Integer.toString(scan.getMSLevel()), // MS level
+          precursor, // precursor mz
+          mzRange, // mz range
+          scan.getSpectrumType().toString(), // profile/centroid
+          scan.getPolarity().toString(), // polarity
+          scan.getScanDefinition(),      // definition
+          mobility) // mobility
+      );
+    }
+    rawDataTableView.setItems(tableData);
+
+    // add action listener to row selection
+    rawDataTableView.getSelectionModel().selectedItemProperty().addListener((tableData) -> {
+      updatePlots();
+    });
+
+    // select first row
+    rawDataTableView.getSelectionModel().select(0);
+  }
+
+  private void updateRawDataFileInfo() {
     // clear previous info
     metaDataGridPane.getChildren().removeIf(
         node -> GridPane.getColumnIndex(node) != null && GridPane.getColumnIndex(node) == 1);
-    rawDataTableView.getItems().clear();
 
     // add meta data
     rawDataLabel.setText("Overview of raw data file: " + rawDataFile.getName());
@@ -173,80 +261,9 @@ public class RawDataOverviewWindowController {
 
     lblMaxTIC.setText(MZminePreferences.intensityFormat.getValue()
         .format(rawDataFile.getDataMaxTotalIonCurrent(1)));
+  }
 
-    // add raw data to table
-    for (int i = 1; i < numberOfScans + 1; i++) {
-      Scan scan = rawDataFile.getScan(i);
-
-      // check for precursor
-      String precursor = "";
-      if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
-        precursor = "";
-      } else {
-        precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
-      }
-      String mobility = "";
-      mobility = MZminePreferences.mzFormat.getValue().format(scan.getMobility());
-
-      // format mzRange
-      String mzRange =
-          MZminePreferences.mzFormat.getValue().format(scan.getDataPointMZRange().lowerEndpoint())
-              + "-" + MZminePreferences.mzFormat.getValue()
-              .format(scan.getDataPointMZRange().upperEndpoint());
-
-      tableData.add(new ScanDescription(Integer.toString(i), // scan number
-          MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
-          Integer.toString(scan.getMSLevel()), // MS level
-          precursor, // precursor mz
-          mzRange, // mz range
-          scan.getSpectrumType().toString(), // profile/centroid
-          scan.getPolarity().toString(), // polarity
-          scan.getScanDefinition(),      // definition
-          mobility) // mobility
-      );
-    }
-
-    scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
-    rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
-    msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
-    precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
-    mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
-    scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
-    polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
-    definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
-    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
-
-    rawDataTableView.setItems(tableData);
-
-    // add action listener to row selection
-    rawDataTableView.getSelectionModel().selectedItemProperty().addListener((tableData) -> {
-      updatePlots();
-    });
-
-    // select first row
-    rawDataTableView.getSelectionModel().select(0);
-
-    // get MS1 scan selection to draw base peak plot
-    ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
-
-    // get TIC window
-    ticWindow = new TICVisualizerWindow(new RawDataFile[]{rawDataFile}, // raw
-        TICPlotType.BASEPEAK, // plot type
-        scanSelection, // scan selection
-        rawDataFile.getDataMZRange(), // mz range
-        null, // selected features
-        null); // labels
-
-    // get TIC Plot
-    this.ticPlot = ticWindow.getTICPlot();
-    ticPlot.getChart().getLegend().setVisible(false);
-    chromatogramPane.setCenter(ticPlot.getParent());
-
-    // get plot
-    XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
-    plot.setDomainCrosshairVisible(false);
-    plot.setRangeCrosshairVisible(false);
-
+  private void addTICMouseListener() {
     // Add mouse listener to chromatogram
     // mouse listener
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
@@ -291,8 +308,6 @@ public class RawDataOverviewWindowController {
         }
       }
     });
-
-    updatePlots();
   }
 
   private void updatePlots() {
@@ -326,7 +341,7 @@ public class RawDataOverviewWindowController {
           // add a retention time Marker to the TIC
           ValueMarker marker = new ValueMarker(rawDataFile.getScan(scanNumber).getRetentionTime());
           marker.setPaint(negColor);
-          marker.setStroke(new BasicStroke(3.0f));
+          marker.setStroke(new BasicStroke(1.0f));
           XYPlot plotTic = (XYPlot) ticPlot.getChart().getPlot();
 
           // set color
