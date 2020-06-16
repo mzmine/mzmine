@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,7 +21,6 @@ package io.github.mzmine.modules.io.rawdataimport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -54,14 +53,13 @@ public class RawDataFileTypeDetector {
 
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
-      new char[] {0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
+      new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
 
-  private static final String GZIP_HEADER = String.valueOf(new char[] {0x1f, 0x8b});
+  private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
 
-  private static final String ZIP_HEADER = String.valueOf(new char[] {'P', 'K', 0x03, 0x04});
+  private static final String ZIP_HEADER = String.valueOf(new char[]{'P', 'K', 0x03, 0x04});
 
   /**
-   * 
    * @return Detected file type or null if the file is not of any supported type
    */
   public static RawDataFileType detectDataFileType(File fileName) {
@@ -69,10 +67,13 @@ public class RawDataFileTypeDetector {
     if (fileName.isDirectory()) {
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
+        if (f.isFile() && f.getName().toUpperCase().contains("analysis.tdf")) {
+          return RawDataFileType.BRUKER_TIMS_TOF;
+        }
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
           return RawDataFileType.WATERS_RAW;
+        }
       }
-      // We don't recognize any other directory type than Waters
       return null;
     }
 
@@ -111,14 +112,17 @@ public class RawDataFileTypeDetector {
         return RawDataFileType.NETCDF;
       }
 
-      if (fileHeader.contains(MZML_HEADER))
+      if (fileHeader.contains(MZML_HEADER)) {
         return RawDataFileType.MZML;
+      }
 
-      if (fileHeader.contains(MZDATA_HEADER))
+      if (fileHeader.contains(MZDATA_HEADER)) {
         return RawDataFileType.MZDATA;
+      }
 
-      if (fileHeader.contains(MZXML_HEADER))
+      if (fileHeader.contains(MZXML_HEADER)) {
         return RawDataFileType.MZXML;
+      }
 
     } catch (Exception e) {
       e.printStackTrace();
