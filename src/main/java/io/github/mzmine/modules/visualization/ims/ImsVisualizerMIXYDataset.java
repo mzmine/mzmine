@@ -9,7 +9,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 import java.util.ArrayList;
 
-public class ImsVisualizerMMZXYDataset extends AbstractXYDataset {
+public class ImsVisualizerMIXYDataset extends AbstractXYDataset {
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
@@ -17,7 +17,7 @@ public class ImsVisualizerMMZXYDataset extends AbstractXYDataset {
   private double[] xValues;
   private double[] yValues;
 
-  public ImsVisualizerMMZXYDataset(ParameterSet parameters) {
+  public ImsVisualizerMIXYDataset(ParameterSet parameters) {
 
     dataFiles =
         parameters
@@ -35,6 +35,7 @@ public class ImsVisualizerMMZXYDataset extends AbstractXYDataset {
 
     // Calc xValues retention time
     mobility = new ArrayList<Double>();
+
     for (int i = 0; i < scans.length; i++) {
       if (i == 0) {
         mobility.add(scans[i].getMobility());
@@ -59,7 +60,7 @@ public class ImsVisualizerMMZXYDataset extends AbstractXYDataset {
           DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
 
           for (int j = 0; j < dataPoint.length; j++) {
-            yValues[i] += dataPoint[j].getMZ();
+            yValues[i] += dataPoint[j].getIntensity();
           }
         }
       }
