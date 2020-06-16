@@ -53,21 +53,39 @@
                               <Insets left="5.0" />
                            </GridPane.margin>
                         </Label>
-                        <Label style="-fx-font-weight: bold;" text="m/z range:" GridPane.rowIndex="4">
-                           <GridPane.margin>
-                              <Insets left="5.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <Label style="-fx-font-weight: bold;" text="Maximum TIC:" GridPane.rowIndex="6">
-                           <GridPane.margin>
-                              <Insets left="5.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <Label fx:id="lblNumScans" text="Label" GridPane.rowIndex="1" />
-                        <Label fx:id="lblRtRange" text="Label" GridPane.rowIndex="3" />
-                        <Label fx:id="lblMzRange" text="Label" GridPane.rowIndex="5" />
-                        <Label fx:id="lblMaxTIC" text="Label" GridPane.rowIndex="7" />
-                               </children>
+                       <Label style="-fx-font-weight: bold;" text="m/z range:"
+                         GridPane.rowIndex="4">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                       <Label style="-fx-font-weight: bold;" text="Maximum TIC:"
+                         GridPane.rowIndex="6">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                       <Label fx:id="lblNumScans" text="Label" GridPane.rowIndex="1">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                       <Label fx:id="lblRtRange" text="Label" GridPane.rowIndex="3">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                       <Label fx:id="lblMzRange" text="Label" GridPane.rowIndex="5">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                       <Label fx:id="lblMaxTIC" text="Label" GridPane.rowIndex="7">
+                         <GridPane.margin>
+                           <Insets left="5.0"/>
+                         </GridPane.margin>
+                       </Label>
+                     </children>
                   </GridPane>
                </right>
                <center>
