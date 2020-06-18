@@ -256,12 +256,17 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void applyToTitles(@Nonnull JFreeChart chart) {
-    chart.getTitle().setVisible(isShowTitle());
-    if (isChangeTitle()) {
-      chart.getTitle().setText(getTitle());
+    TextTitle title = chart.getTitle();
+    if(title != null) {
+      title.setVisible(isShowTitle());
+      if (isChangeTitle()) {
+        chart.getTitle().setText(getTitle());
+      }
     }
+
     chart.getSubtitles().forEach(s -> {
-      if (s != chart.getTitle() && s instanceof TextTitle textTitle) {
+      if (s != chart.getTitle() && s instanceof TextTitle) {
+        TextTitle textTitle = (TextTitle)s;
 //        ((TextTitle) s).setFont(getRegularFont());
 //        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
         textTitle.setVisible(isShowSubtitles());
@@ -273,7 +278,8 @@ public class EStandardChartTheme extends StandardChartTheme {
 //              .setBackgroundPaint(this.getChartBackgroundPaint());
 //        }
       }
-      if (s instanceof LegendTitle legendTitle) {
+      if (s instanceof LegendTitle) {
+        LegendTitle legendTitle = (LegendTitle) s;
         legendTitle.setVisible(isShowLegend());
       }
     });
