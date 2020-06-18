@@ -3,6 +3,7 @@ package io.github.mzmine.modules.visualization.ims;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.ims.imsVisualizer.*;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -36,7 +37,7 @@ public class ImsVisualizerTask extends AbstractTask {
   private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
   private String paintScaleStyle;
-  private double selectedRetentionTime = 21.5631;
+  private double selectedRetentionTime = -1;
   private FXMLLoader loader;
   private ImsVisualizerWindowController controller;
 
@@ -62,6 +63,10 @@ public class ImsVisualizerTask extends AbstractTask {
 
   public void setSelectedRetentionTime(double retentionTime) {
     this.selectedRetentionTime = retentionTime;
+  }
+
+  public double getSelectedRetentionTime() {
+    return this.selectedRetentionTime;
   }
 
   @Override
@@ -99,29 +104,29 @@ public class ImsVisualizerTask extends AbstractTask {
           controller = loader.getController();
 
           // add mobility-mz plot.
-          //          if (selectedRetentionTime >= 0.0) {
-          //            datasetMF = new ImsVisualizerMFXYZDataset(parameterSet,
-          // selectedRetentionTime);
-          //            BorderPane plotPaneMF = controller.getPlotPaneMF();
-          //            plotPaneMF.setCenter(new MzMobilityPlotHeatMap(datasetMF, paintScaleStyle));
-          //          }
+          if (selectedRetentionTime == -1) {
+            datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
+            BorderPane plotPaneMF = controller.getPlotPaneMF();
+            plotPaneMF.setCenter(new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle));
+          }
 
           // add mobility-intensity plot.
           BorderPane plotPaneMI = controller.getPlotPaneMI();
-          datasetMI = new ImsVisualizerMIXYDataset(parameterSet);
+          datasetMI = new MobilityIntensityXYDataset(parameterSet);
           plotPaneMI.setCenter(new MobilityIntensityPlot(datasetMI));
-
-          // add mobility-m/z plot to border
-          BorderPane plotePaneIRT = controller.getPlotePaneIRT();
-          datasetIRT = new ImsVisualizerIRTXYDataset(parameterSet);
-          plotePaneIRT.setCenter(
-              new IntensityRetentionTimePlot(datasetIRT, this));
 
           // add intensity retention time plot
           BorderPane heatmap = controller.getPlotePaneHeatMap();
+          dataset3d = new RetentionTimeMobilityXYZDataset(parameterSet);
+          MobilityRetentionHeatMapPlot mobilityRetentionHeatMapPlot =
+              new MobilityRetentionHeatMapPlot(dataset3d, paintScaleStyle);
+          heatmap.setCenter(mobilityRetentionHeatMapPlot);
 
-          dataset3d = new ImsVisualizerXYZDataset(parameterSet);
-          heatmap.setCenter(new MobilityRetentionHeatMap(dataset3d, paintScaleStyle));
+          // add mobility-m/z plot to border
+          BorderPane plotePaneIRT = controller.getPlotePaneIRT();
+          datasetIRT = new IntensityRetentionTimeXYDataset(parameterSet);
+          plotePaneIRT.setCenter(
+              new IntensityRetentionTimePlot(datasetIRT, this, mobilityRetentionHeatMapPlot));
 
           stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
           stage.show();
@@ -134,8 +139,8 @@ public class ImsVisualizerTask extends AbstractTask {
   }
 
   public void runMoblityMZHeatMap() {
-    datasetMF = new ImsVisualizerMFXYZDataset(parameterSet, selectedRetentionTime);
+    datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
     BorderPane plotPaneMF = controller.getPlotPaneMF();
-    plotPaneMF.setCenter(new MzMobilityPlotHeatMap(datasetMF, paintScaleStyle));
+    plotPaneMF.setCenter(new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle));
   }
 }

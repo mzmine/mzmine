@@ -1,21 +1,26 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
@@ -24,7 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Logger;
 
-public class MzMobilityPlotHeatMap extends EChartViewer {
+public class MzMobilityPlotHeatMapPlot extends EChartViewer {
 
   private XYPlot plot;
   private String paintScaleStyle;
@@ -32,13 +37,15 @@ public class MzMobilityPlotHeatMap extends EChartViewer {
   private XYZDataset dataset3d;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+  private EStandardChartTheme theme;
 
-  public MzMobilityPlotHeatMap(XYZDataset dataset, String paintScaleStyle) {
+
+  public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
     super(
         ChartFactory.createScatterPlot(
-            "null",
-            "retention time",
+            "",
+            "m/z",
             "mobility",
             dataset,
             PlotOrientation.VERTICAL,
@@ -90,6 +97,8 @@ public class MzMobilityPlotHeatMap extends EChartViewer {
       value = value + delta;
     }
     plot = chart.getXYPlot();
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(chart);
 
     // set the pixel renderer
     XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();

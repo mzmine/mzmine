@@ -1,15 +1,16 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYDataset;
 
 import java.util.ArrayList;
 
-public class ImsVisualizerIRTXYDataset extends AbstractXYDataset {
+public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {
 
   private RawDataFile dataFiles[];
   private Scan scans[];
@@ -18,7 +19,7 @@ public class ImsVisualizerIRTXYDataset extends AbstractXYDataset {
   private double[] xValues;
   private double[] yValues;
 
-  public ImsVisualizerIRTXYDataset(ParameterSet parameters) {
+  public IntensityRetentionTimeXYDataset(ParameterSet parameters) {
 
     dataFiles =
         parameters

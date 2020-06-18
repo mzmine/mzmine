@@ -1,9 +1,11 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -23,16 +25,18 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-public class MobilityRetentionHeatMap extends EChartViewer {
+public class MobilityRetentionHeatMapPlot extends EChartViewer {
 
   private XYPlot plot;
   private String paintScaleStyle;
-  private JFreeChart chart3d;
+  private JFreeChart chart;
   private XYZDataset dataset3d;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+  private EStandardChartTheme theme;
 
-  public MobilityRetentionHeatMap(XYZDataset dataset, String paintScaleStyle) {
+
+  public MobilityRetentionHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
     super(
         ChartFactory.createScatterPlot(
@@ -45,7 +49,7 @@ public class MobilityRetentionHeatMap extends EChartViewer {
             true,
             true));
 
-    chart3d = getChart();
+    chart = getChart();
     this.dataset3d = dataset;
     this.paintScaleStyle = paintScaleStyle;
 
@@ -89,7 +93,9 @@ public class MobilityRetentionHeatMap extends EChartViewer {
       value = value + delta;
     }
 
-    plot = chart3d.getXYPlot();
+    plot = chart.getXYPlot();
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(chart);
 
     // set the pixel renderer
     XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
@@ -152,6 +158,8 @@ public class MobilityRetentionHeatMap extends EChartViewer {
     plot.setOutlinePaint(Color.red);
     plot.setOutlineStroke(new BasicStroke(2.5f));
 
-    chart3d.addSubtitle(legend);
+    chart.addSubtitle(legend);
   }
+
+  public XYPlot getPlot(){ return plot;}
 }

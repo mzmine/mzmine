@@ -1,15 +1,16 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 import java.util.ArrayList;
 
-public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
+public class MobilityFrameXYZDataset extends AbstractXYZDataset {
 
   private RawDataFile dataFiles[];
   private Scan scans[];
@@ -23,7 +24,7 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
   private Double selectedRetentionTime;
   private int itemSize;
 
-  public ImsVisualizerMFXYZDataset(ParameterSet parameters, double retentionTime) {
+  public MobilityFrameXYZDataset(ParameterSet parameters, double retentionTime) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -43,6 +44,22 @@ public class ImsVisualizerMFXYZDataset extends AbstractXYZDataset {
     mobility = new ArrayList<>();
     mzValues = new ArrayList<>();
     intensity = new ArrayList<>();
+    double maxIntensity = -1;
+    if (selectedRetentionTime == -1) {
+      for (int i = 0; i < scans.length; i++) {
+
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+        double intensitySum = 0;
+        for (int j = 0; j < dataPoint.length; j++) {
+          intensitySum += dataPoint[j].getIntensity();
+        }
+
+        if (maxIntensity < intensitySum) {
+          maxIntensity = intensitySum;
+          selectedRetentionTime = scans[i].getRetentionTime();
+        }
+      }
+    }
 
     for (int i = 0; i < scans.length; i++) {
       if (scans[i].getRetentionTime() == selectedRetentionTime) {

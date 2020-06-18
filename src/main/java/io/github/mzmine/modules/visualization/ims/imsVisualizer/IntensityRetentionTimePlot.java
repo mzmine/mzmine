@@ -1,10 +1,10 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.parameters.ParameterSet;
-import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.layout.BorderPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
@@ -13,10 +13,12 @@ import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.ui.RectangleAnchor;
+import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
 import java.util.logging.Logger;
@@ -28,13 +30,14 @@ public class IntensityRetentionTimePlot extends EChartViewer {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private double selectedRetention;
-  private XYZDataset dataset3d;
   private ParameterSet parameterSet;
-  private XYZDataset datasetMF;
-  private String paintScaleStyle;
+  private ValueMarker marker;
+  private EStandardChartTheme theme;
 
-
-  public IntensityRetentionTimePlot(XYDataset dataset, ImsVisualizerTask imsVisualizerTask) {
+  public IntensityRetentionTimePlot(
+      XYDataset dataset,
+      ImsVisualizerTask imsVisualizerTask,
+      MobilityRetentionHeatMapPlot mobilityRetentionHeatMapPlot) {
 
     super(
         ChartFactory.createXYLineChart(
@@ -46,9 +49,10 @@ public class IntensityRetentionTimePlot extends EChartViewer {
             true,
             true,
             false));
-      this.parameterSet = parameterSet;
+    this.parameterSet = parameterSet;
     chart = getChart();
-
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(chart);
     plot = chart.getXYPlot();
     var renderer = new XYLineAndShapeRenderer();
     renderer.setSeriesPaint(0, Color.GREEN);
@@ -75,6 +79,21 @@ public class IntensityRetentionTimePlot extends EChartViewer {
               // Get controller
               imsVisualizerTask.setSelectedRetentionTime(selectedRetention);
               imsVisualizerTask.runMoblityMZHeatMap();
+
+              // setting the marker at seleted range.
+              plot.clearDomainMarkers();
+              marker = new ValueMarker(selectedRetention);
+              marker.setLabel("Selected RT");
+              marker.setPaint(Color.red);
+              marker.setLabelFont(legendFont);
+              marker.setStroke(new BasicStroke(2));
+              marker.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
+              marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
+              plot.addDomainMarker(marker);
+
+              // marker to the mobility-retention time heatmap plot.
+              mobilityRetentionHeatMapPlot.getPlot().clearDomainMarkers();
+              mobilityRetentionHeatMapPlot.getPlot().addDomainMarker(marker);
             }
           }
 

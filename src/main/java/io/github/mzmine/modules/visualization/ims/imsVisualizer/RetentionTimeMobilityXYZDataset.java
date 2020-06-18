@@ -1,13 +1,14 @@
-package io.github.mzmine.modules.visualization.ims;
+package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class ImsVisualizerXYZDataset extends AbstractXYZDataset {
+public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
 
   private RawDataFile dataFiles[];
   private Scan scans[];
@@ -17,7 +18,7 @@ public class ImsVisualizerXYZDataset extends AbstractXYZDataset {
   private double[] zValues;
   private int scanSize;
 
-  public ImsVisualizerXYZDataset(ParameterSet parameters) {
+  public RetentionTimeMobilityXYZDataset(ParameterSet parameters) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -46,7 +47,7 @@ public class ImsVisualizerXYZDataset extends AbstractXYZDataset {
     }
 
     // Calculate zValues intensity.
-      zValues = new double[scanSize];
+    zValues = new double[scanSize];
     for (int i = 0; i < scanSize; i++) {
       DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
 
