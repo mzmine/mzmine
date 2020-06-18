@@ -260,7 +260,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     if(title != null) {
       title.setVisible(isShowTitle());
       if (isChangeTitle()) {
-        chart.getTitle().setText(getTitle());
+        title.setText(getTitle());
       }
     }
 
