@@ -10,8 +10,11 @@ plugins {
 group = "io.github.mzmine"
 version = "3.0"
 description = "MZmine"
-sourceCompatibility = "14"
-targetCompatibility = "14"
+
+// JDK 14+ is needed for jpackage, but we maintain Java 11 source/target
+// compatibility to avoid problems with JavaFX Scene Builder
+sourceCompatibility = "11"
+targetCompatibility = "11"
 defaultTasks "jpackage"
 
 // Check the OS
@@ -187,7 +190,6 @@ javafx {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs += "--enable-preview"
 }
 
 tasks.withType(Test) {
