@@ -118,10 +118,6 @@ public class MZTabmExportTask extends AbstractTask {
             version("4.0.9").
             uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
 
-        mtd.addDatabaseItem(new Database().id(1).
-            param(new Parameter().name("no database").value("null")).
-              prefix("null").version("Unknown").uri("null"));
-
         List<IOptColumnMappingBuilder> peak_mzList = new ArrayList<>();
         List<IOptColumnMappingBuilder> peak_rtList = new ArrayList<>();
         List<IOptColumnMappingBuilder> peak_heightList = new ArrayList<>();
@@ -144,23 +140,29 @@ public class MZTabmExportTask extends AbstractTask {
             fileFormat = file.getName().substring(dotIn+1);
           }
           msRun.setFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000584").name(fileFormat+" file"));
-          msRun.setIdFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000768").name("Thermo nativeID format"));
+          msRun.setIdFormat(new Parameter().cvLabel("MS").cvAccession("MS:1000774").name("multiple peak list nativeID format"));
 
 
           List<Parameter> polPara = new ArrayList<>();
           for(PolarityType scanPol : file.getDataPolarity()){
             Integer pol = scanPol.getSign();
             String polarity = "";
+            String polCVA = "";
             if(pol == 1){
               polarity = "positive scan";
+              polCVA = "MS:1000130";
             }
             else if(pol == -1){
               polarity = "negative scan";
+              polCVA = "MS:1000129";
             }
             else{
-              polarity = "neutral scan";
+              setStatus(TaskStatus.ERROR);
+              setErrorMessage("Invalid scan polarity " + pol + " encountered for file "+
+                  file.getName() + ".");
+              return;
             }
-            Parameter p = new Parameter().cvLabel("MS").cvAccession("MS:1000130").name(polarity);
+            Parameter p = new Parameter().cvLabel("MS").cvAccession(polCVA).name(polarity);
             polPara.add(p);
           }
 
@@ -205,9 +207,8 @@ public class MZTabmExportTask extends AbstractTask {
           mtd.addStudyVariableItem(studyVariable);
         }
 
-        mzTabFile.metadata(mtd);
-
         //Write data rows
+        List<PeakIdentity> peakIdentityList = new ArrayList<>();
         for (int i = 0; i < peakList.getRows().size(); ++i) {
           PeakListRow peakListRow = peakList.getRows().get(i);
           SmallMoleculeSummary sm = new SmallMoleculeSummary();
@@ -231,15 +232,25 @@ public class MZTabmExportTask extends AbstractTask {
           PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
           if (exportAll || peakIdentity != null) {
             if (peakIdentity != null) {
+              boolean shouldAdd = true;
+              for(PeakIdentity p: peakIdentityList){
+                if(p.getPropertyValue(PeakIdentity.PROPERTY_METHOD).
+                    equals(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD))){
+                  shouldAdd = false;
+                  break;
+                }
+              }
+              if(shouldAdd)
+                peakIdentityList.add(peakIdentity);
               //Identity Information
-              String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
-              String method = peakIdentity.getPropertyValue("Identification method");
-              String formula = peakIdentity.getPropertyValue("Molecular formula");
-              String description = escapeString(peakIdentity.getPropertyValue("Name"));
-              String url = peakIdentity.getPropertyValue("URL");
+              String identifier = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID));
+              String method = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD);
+              String formula = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+              String description = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_NAME));
+              String url = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
               sm.addDatabaseIdentifierItem(identifier);
               sme.setDatabaseIdentifier(identifier);
-              sme.setIdentificationMethod(new Parameter().name(method).value(""));
+              sme.setIdentificationMethod(new Parameter().name(method));
               ArrayList<String> formulaList = new ArrayList<>();
               formulaList.add(formula);
               sm.setChemicalFormula(formulaList);
@@ -337,6 +348,22 @@ public class MZTabmExportTask extends AbstractTask {
           mzTabFile.addSmallMoleculeFeatureItem(smf);
           mzTabFile.addSmallMoleculeEvidenceItem(sme);
         }
+        //cv term
+        int cvcnt = 0;
+        for(PeakIdentity p : peakIdentityList){
+          cvcnt++;
+          String dbURI = (p.getPropertyValue(PeakIdentity.PROPERTY_URL) == null ||
+              p.getPropertyValue(PeakIdentity.PROPERTY_URL).equals("")) ? "null":
+              p.getPropertyValue(PeakIdentity.PROPERTY_URL);
+          mtd.addDatabaseItem(new Database().id(cvcnt).param(
+              new Parameter().name(p.getPropertyValue(PeakIdentity.PROPERTY_METHOD)))
+              .prefix(p.getClass().getSimpleName())
+              .version(MZmineCore.getMZmineVersion())
+              .uri(dbURI)
+          );
+        }
+
+        mzTabFile.metadata(mtd);
         MzTabNonValidatingWriter nonvalidatingWriter = new MzTabNonValidatingWriter();
 //                MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
         nonvalidatingWriter.write(curFile.toPath(), mzTabFile);
