@@ -167,7 +167,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     chart.setAntiAlias(isAntiAliased());
     p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
 
-    //applyToTitles(chart);
+    applyToTitles(chart);
     applyToLegend(chart);
 
   }
@@ -255,29 +255,35 @@ public class EStandardChartTheme extends StandardChartTheme {
     fixLegend(chart);
   }
 
-//  public void applyToTitles(@Nonnull JFreeChart chart) {
-//    chart.getTitle().setVisible(isShowTitle());
-//    if (isChangeTitle()) {
-//      chart.getTitle().setText(getTitle());
-//    }
-//    chart.getSubtitles().forEach(s -> {
-//      if (s != chart.getTitle() && s instanceof TextTitle textTitle) {
-////        ((TextTitle) s).setFont(getRegularFont());
-////        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
-//        textTitle.setVisible(isShowSubtitles());
-////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
-////        subtitle color is set by the chart theme parameters
-//
-////        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
-////          ((PaintScaleLegend) s)
-////              .setBackgroundPaint(this.getChartBackgroundPaint());
-////        }
-//      }
-//      if (s instanceof LegendTitle legendTitle) {
-//        legendTitle.setVisible(isShowLegend());
-//      }
-//    });
-//  }
+  public void applyToTitles(@Nonnull JFreeChart chart) {
+    TextTitle title = chart.getTitle();
+    if(title != null) {
+      title.setVisible(isShowTitle());
+      if (isChangeTitle()) {
+        title.setText(getTitle());
+      }
+    }
+
+    chart.getSubtitles().forEach(s -> {
+      if (s != chart.getTitle() && s instanceof TextTitle) {
+        TextTitle textTitle = (TextTitle)s;
+//        ((TextTitle) s).setFont(getRegularFont());
+//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+        textTitle.setVisible(isShowSubtitles());
+//        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+//        subtitle color is set by the chart theme parameters
+
+//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+//          ((PaintScaleLegend) s)
+//              .setBackgroundPaint(this.getChartBackgroundPaint());
+//        }
+      }
+      if (s instanceof LegendTitle) {
+        LegendTitle legendTitle = (LegendTitle) s;
+        legendTitle.setVisible(isShowLegend());
+      }
+    });
+  }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
