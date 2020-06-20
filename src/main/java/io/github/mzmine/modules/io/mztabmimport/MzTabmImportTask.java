@@ -309,7 +309,7 @@ public class MzTabmImportTask extends AbstractTask {
     //Loop through SMF data
     String formula, description, method, url = "";
     double mzExp = 0, abundance = 0, peak_mz = 0, peak_rt = 0, peak_height = 0, rtValue = 0;
-    // int charge = 0;
+     int charge = 0;
     int rowCounter = 0;
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
@@ -330,6 +330,7 @@ public class MzTabmImportTask extends AbstractTask {
       }
       formula = sml.getChemicalFormula().get(0);
       description = sml.getChemicalName().get(0);
+      charge = smf.getCharge();
       //sm. (smile ->getSmiles(), inchikey -> getInchi(), database ->getDatabase(), reliability ->getReliability)
       if (sml.getUri().size() != 0) {
         url = sml.getUri().get(0);
@@ -417,7 +418,7 @@ public class MzTabmImportTask extends AbstractTask {
         Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
-
+        peak.setCharge(charge);
         newRow.addPeak(rawData, peak);
       }
 
