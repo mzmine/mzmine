@@ -19,9 +19,20 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.collections.ObservableMap;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.ValueMarker;
@@ -31,7 +42,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
@@ -39,18 +49,12 @@ import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.color.Vision;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import org.jmol.awtjs.swing.Grid;
 
 /*
  * Raw data overview window controller class
@@ -59,49 +63,26 @@ import org.jmol.awtjs.swing.Grid;
  */
 public class RawDataOverviewWindowController {
 
-  private RawDataFile rawDataFile;
-  private TICPlot ticPlot;
+  public static final Logger logger = Logger
+      .getLogger(RawDataOverviewWindowController.class.getName());
+
+  private TICPlot bpcPlot;
   private TICVisualizerWindow ticWindow;
   private Color posColor;
   private Color negColor;
   private Color neuColor;
   private Vision vision;
+  private boolean initialized = false;
+
+  private RawDataFile selectedRawDataFile;
+
+  private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
+      .observableMap(new HashMap<>());
+  private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
+      .observableMap(new HashMap<>());
 
   @FXML
   private Label rawDataLabel;
-
-  @FXML
-  private TableView<ScanDescription> rawDataTableView;
-
-  @FXML
-  private TableColumn<ScanDescription, String> scanColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> rtColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> msLevelColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> precursorMzColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> mzRangeColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> scanTypeColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> polarityColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> definitionColumn;
-
-  @FXML
-  private TableColumn<ScanDescription, String> mobilityColumn;
-
-  @FXML
-  private GridPane metaDataGridPane;
 
   @FXML
   private BorderPane chromatogramPane;
@@ -110,22 +91,13 @@ public class RawDataOverviewWindowController {
   private BorderPane spectraPane;
 
   @FXML
-  private Label lblNumScans;
-
-  @FXML
-  private Label lblRtRange;
-
-  @FXML
-  private Label lblMzRange;
-
-  @FXML
-  private Label lblMaxTIC;
-
-  ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
+  private TabPane tpRawDataInfo;
 
   public void initialize(RawDataFile rawDataFile) {
 
-    this.rawDataFile = rawDataFile;
+//    this.rawDataFile = rawDataFile;
+    // add meta data
+    rawDataLabel.setText("Overview of raw data file(s): " + rawDataFile.getName());
 
     // set colors depending on vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -133,16 +105,105 @@ public class RawDataOverviewWindowController {
     negColor = palette.getNegativeColorAWT();
     neuColor = palette.getNeutralColorAWT();
 
-    updateRawDataFileInfo();
-    updateScanTable(rawDataFile);
-    initialiseTICPlot();
+    initialized = true;
 
+    addRawDataFile(rawDataFile);
     addTICMouseListener();
 
     updatePlots();
+
   }
 
-  private void initialiseTICPlot() {
+  /**
+   * Sets the raw data files to be displayed. Already present files are not removed to optimise
+   * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFile}
+   * if possible.
+   *
+   * @param rawDataFiles
+   */
+  public void setRawDataFiles(List<RawDataFile> rawDataFiles) {
+    // remove files first
+    List<RawDataFile> filesToProcess = new ArrayList<>();
+    for (RawDataFile rawDataFile : rawDataFilesAndControllers.keySet()) {
+      if (!rawDataFiles.contains(rawDataFile)) {
+        filesToProcess.add(rawDataFile);
+      }
+    }
+    filesToProcess.forEach(r -> removeRawDataFile(r));
+
+    // presence of file is checked in the add method
+    rawDataFiles.forEach(r -> addRawDataFile(r));
+  }
+
+  /**
+   * Adds a raw data file to the overview.
+   * <p>
+   * Will overlay  plots if multiple raw data files are selected.
+   *
+   * @param raw
+   */
+  public void addRawDataFile(RawDataFile raw) {
+
+    if (!initialized) {
+      initialize(raw);
+    }
+    if (rawDataFilesAndControllers.containsKey(raw)) {
+      return;
+    }
+
+    try {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("RawDataFileInfoPane.fxml"));
+      BorderPane pane = loader.load();
+      rawDataFilesAndControllers.put(raw, loader.getController());
+      RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(raw);
+      con.getRawDataTableView().getSelectionModel().selectedItemProperty().addListener(c -> {
+        setSelectedRawDataFile(raw);
+        updatePlots();
+      });
+
+      Tab rawDataFileTab = new Tab(raw.getName());
+      rawDataFileTab.setContent(pane);
+      tpRawDataInfo.getTabs().add(rawDataFileTab);
+
+      rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
+        if (n == true) {
+          con.populate(raw);
+        }
+      });
+
+      rawDataFileTab.setOnClosed((e) -> {
+        logger.fine("Removing raw data file " + raw.getName());
+        removeRawDataFile(raw);
+      });
+
+      rawDataFilesAndTabs.put(raw, rawDataFileTab);
+
+      if (ticWindow == null) {
+        initialiseBPCPlot(raw);
+      } else {
+        ticWindow.addRawDataFile(raw);
+      }
+      if (rawDataFileTab.selectedProperty().getValue()) {
+        con.populate(raw);
+      }
+
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Could not load RawDataFileInfoPane.fxml", e);
+    }
+
+    logger.fine("Added raw data file " + raw.getName());
+  }
+
+  public void removeRawDataFile(RawDataFile raw) {
+    ticWindow.removeRawDataFile(raw);
+    rawDataFilesAndControllers.remove(raw);
+    Tab tab = rawDataFilesAndTabs.remove(raw);
+    tpRawDataInfo.getTabs().remove(tab);
+  }
+
+  // plot update methods
+
+  private void initialiseBPCPlot(RawDataFile rawDataFile) {
     // get MS1 scan selection to draw base peak plot
     ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
 
@@ -152,121 +213,24 @@ public class RawDataOverviewWindowController {
         scanSelection, // scan selection
         rawDataFile.getDataMZRange(), // mz range
         null, // selected features
-        null); // labels
+        null); // labels+
 
     // get TIC Plot
-    this.ticPlot = ticWindow.getTICPlot();
-    ticPlot.getChart().getLegend().setVisible(false);
-    chromatogramPane.setCenter(ticPlot.getParent());
+    this.bpcPlot = ticWindow.getTICPlot();
+    bpcPlot.getChart().getLegend().setVisible(false);
+    chromatogramPane.setCenter(bpcPlot.getParent());
 
     // get plot
-    XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+    XYPlot plot = (XYPlot) bpcPlot.getChart().getPlot();
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
-  }
-
-  private void updateScanTable(RawDataFile rawDataFile) {
-
-    int numberOfScans = rawDataFile.getNumOfScans();
-
-    scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
-    rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
-    msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
-    precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
-    mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
-    scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
-    polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
-    definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
-    mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
-
-    tableData.clear();
-    // add raw data to table
-    for (int i = 1; i < numberOfScans + 1; i++) {
-      Scan scan = rawDataFile.getScan(i);
-
-      // check for precursor
-      String precursor = "";
-      if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
-        precursor = "";
-      } else {
-        precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
-      }
-      String mobility = "";
-      mobility = MZminePreferences.mzFormat.getValue().format(scan.getMobility());
-
-      // format mzRange
-      String mzRange =
-          MZminePreferences.mzFormat.getValue().format(scan.getDataPointMZRange().lowerEndpoint())
-              + "-" + MZminePreferences.mzFormat.getValue()
-              .format(scan.getDataPointMZRange().upperEndpoint());
-
-      tableData.add(new ScanDescription(Integer.toString(i), // scan number
-          MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
-          Integer.toString(scan.getMSLevel()), // MS level
-          precursor, // precursor mz
-          mzRange, // mz range
-          scan.getSpectrumType().toString(), // profile/centroid
-          scan.getPolarity().toString(), // polarity
-          scan.getScanDefinition(),      // definition
-          mobility) // mobility
-      );
-    }
-    rawDataTableView.setItems(tableData);
-
-    // add action listener to row selection
-    rawDataTableView.getSelectionModel().selectedItemProperty().addListener((tableData) -> {
-      updatePlots();
-    });
-
-    // select first row
-    rawDataTableView.getSelectionModel().select(0);
-  }
-
-  private void updateRawDataFileInfo() {
-    // clear previous info
-    metaDataGridPane.getChildren().removeIf(
-        node -> GridPane.getColumnIndex(node) != null && GridPane.getColumnIndex(node) == 1);
-
-    // add meta data
-    rawDataLabel.setText("Overview of raw data file: " + rawDataFile.getName());
-
-    String scansMSLevel = "Total scans (" + rawDataFile.getNumOfScans() + ") ";
-    for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
-      scansMSLevel = scansMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level ("
-          + rawDataFile.getScanNumbers(i + 1).length + ") ";
-      lblNumScans.setText(scansMSLevel);
-    }
-
-    String rtRangeMSLevel = "";
-    for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
-      rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.rtFormat.getValue()
-          .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
-          + " [min] ";
-      lblRtRange.setText(rtRangeMSLevel);
-    }
-
-    String mzRangeMSLevel = "";
-    for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
-      mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.mzFormat.getValue()
-          .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
-          + " ";
-      lblMzRange.setText(mzRangeMSLevel);
-    }
-
-    lblMaxTIC.setText(MZminePreferences.intensityFormat.getValue()
-        .format(rawDataFile.getDataMaxTotalIonCurrent(1)));
+    setSelectedRawDataFile(rawDataFile);
   }
 
   private void addTICMouseListener() {
     // Add mouse listener to chromatogram
     // mouse listener
-    ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
+    bpcPlot.addChartMouseListener(new ChartMouseListenerFX() {
 
       @Override
       public void chartMouseMoved(ChartMouseEventFX event) {
@@ -275,32 +239,30 @@ public class RawDataOverviewWindowController {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
 
+        CursorPosition pos = ticWindow.getCursorPosition();
+        RawDataFile selectedRawDataFile = pos.getDataFile();
+        setSelectedRawDataFile(selectedRawDataFile);
+
+        RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
+        if (con == null || selectedRawDataFile == null) {
+          logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
+          return;
+        }
+
+        TableView<ScanDescription> rawDataTableView = con.getRawDataTableView();
+        tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
+
         if (rawDataTableView.getItems() != null) {
           if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
             try {
-
-              // get plot
-              XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
-
-              double xValue = plot.getDomainCrosshairValue();
-              if (plot.getDataset() instanceof TICDataSet) {
-
-                // get MS1 scan based on retention time
-                double d = Math.pow(10, 2);
-                Range<Double> rtRange = Range.open(Math.round(xValue * d) / d - 0.01,
-                    Math.round(xValue * d) / d + 0.01);
-                ScanSelection selection = new ScanSelection(rtRange, 1);
-                String scanNumberString =
-                    Integer.toString(selection.getMatchingScanNumbers(rawDataFile)[0]);
-                rawDataTableView.getItems().stream()
-                    .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
-                    .ifPresent(item -> {
-                      rawDataTableView.getSelectionModel().select(item);
-                      rawDataTableView.scrollTo(item);
-                    });
-
-              }
-              chromatogramPane.setCenter(ticPlot.getParent());
+              String scanNumberString = String.valueOf(pos.getScanNumber());
+              rawDataTableView.getItems().stream()
+                  .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
+                  .ifPresent(item -> {
+                    rawDataTableView.getSelectionModel().select(item);
+                    rawDataTableView.scrollTo(item);
+                  });
+              chromatogramPane.setCenter(bpcPlot.getParent());
             } catch (Exception e) {
               e.getStackTrace();
             }
@@ -310,7 +272,21 @@ public class RawDataOverviewWindowController {
     });
   }
 
+  private void initialiseSpectrumPlot() {
+
+  }
+
   private void updatePlots() {
+
+    if (getSelectedRawDataFile() == null) {
+      return;
+    }
+
+    RawDataFile selectedRawDataFile = getSelectedRawDataFile();
+
+    TableView<ScanDescription> rawDataTableView = rawDataFilesAndControllers
+        .get(getSelectedRawDataFile()).getRawDataTableView();
+
     if (rawDataTableView.getItems() != null) {
       if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
         try {
@@ -319,8 +295,8 @@ public class RawDataOverviewWindowController {
           String scanNumberString =
               rawDataTableView.getSelectionModel().getSelectedItem().getScanNumber();
           int scanNumber = Integer.parseInt(scanNumberString);
-          Scan scan = rawDataFile.getScan(scanNumber);
-          SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(rawDataFile);
+          Scan scan = selectedRawDataFile.getScan(scanNumber);
+          SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(selectedRawDataFile);
           spectraWindow.loadRawData(scan);
 
           // set color
@@ -330,7 +306,7 @@ public class RawDataOverviewWindowController {
           plotSpectra.getRenderer().setSeriesPaint(0, posColor);
 
           // add mass list
-          MassList[] massLists = rawDataFile.getScan(scanNumber).getMassLists();
+          MassList[] massLists = selectedRawDataFile.getScan(scanNumber).getMassLists();
           for (MassList massList : massLists) {
             MassListDataSet dataset = new MassListDataSet(massList);
             spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
@@ -339,10 +315,11 @@ public class RawDataOverviewWindowController {
           spectraPane.setCenter(spectraWindow.getScene().getRoot());
 
           // add a retention time Marker to the TIC
-          ValueMarker marker = new ValueMarker(rawDataFile.getScan(scanNumber).getRetentionTime());
+          ValueMarker marker = new ValueMarker(
+              selectedRawDataFile.getScan(scanNumber).getRetentionTime());
           marker.setPaint(negColor);
           marker.setStroke(new BasicStroke(1.0f));
-          XYPlot plotTic = (XYPlot) ticPlot.getChart().getPlot();
+          XYPlot plotTic = (XYPlot) bpcPlot.getChart().getPlot();
 
           // set color
           plotTic.getRenderer().setSeriesPaint(0, posColor);
@@ -358,7 +335,7 @@ public class RawDataOverviewWindowController {
 
           // get MS1 scan selection to draw tic plot
           if (scan.getMSLevel() == 1 || scan.getMSLevel() == 2) {
-            ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
+            ScanSelection scanSelection = new ScanSelection(selectedRawDataFile.getDataRTRange(1), 1);
 
             // mz range for 10 ppm window
             Range<Double> mzRange = null;
@@ -377,8 +354,8 @@ public class RawDataOverviewWindowController {
             mzRange = Range.closed(lower - tenppm, upper + tenppm);
             scan.getDataPointsByMass(mzRange);
 
-            TICDataSet dataset = new TICDataSet(rawDataFile,
-                scanSelection.getMatchingScans(rawDataFile), mzRange, ticWindow);
+            TICDataSet dataset = new TICDataSet(selectedRawDataFile,
+                scanSelection.getMatchingScans(selectedRawDataFile), mzRange, ticWindow);
 
             XYAreaRenderer renderer = new XYAreaRenderer();
             renderer.setSeriesPaint(0, neuColor);
@@ -386,7 +363,7 @@ public class RawDataOverviewWindowController {
             plotTic.setRenderer(1, renderer);
             plotTic.setDataset(1, dataset);
 
-            chromatogramPane.setCenter(ticPlot.getParent());
+            chromatogramPane.setCenter(bpcPlot.getParent());
           } else {
             plotTic.setDataset(1, null);
           }
@@ -398,4 +375,11 @@ public class RawDataOverviewWindowController {
     }
   }
 
+  public RawDataFile getSelectedRawDataFile() {
+    return selectedRawDataFile;
+  }
+
+  private void setSelectedRawDataFile(RawDataFile selectedRawDataFile) {
+    this.selectedRawDataFile = selectedRawDataFile;
+  }
 }

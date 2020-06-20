@@ -31,6 +31,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -157,10 +158,14 @@ public class MainWindowControllerNew {
       }
     });
 
-    rawDataTree.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
-      tpOverview.getSelectionModel().select(tabRawDataOverview);
-      rawDataOverviewController.initialize(n);
-    });
+    rawDataTree.getSelectionModel().getSelectedItems().addListener(
+        new ListChangeListener<>() {
+          @Override
+          public void onChanged(Change<? extends RawDataFile> c) {
+            c.next();
+            rawDataOverviewController.setRawDataFiles((List<RawDataFile>) c.getList());
+          }
+        });
 
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
