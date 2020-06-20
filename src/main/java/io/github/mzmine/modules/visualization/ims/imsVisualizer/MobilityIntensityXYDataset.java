@@ -51,7 +51,7 @@ public class MobilityIntensityXYDataset extends AbstractXYDataset {
     yValues = new double[mobility.size()];
 
     for (int i = 0; i < (int) mobility.size(); i++) {
-      xValues[i] = mobility.get(i);
+      yValues[i] = mobility.get(i);
     }
 
     for (int i = 0; i < mobility.size(); i++) {
@@ -61,7 +61,7 @@ public class MobilityIntensityXYDataset extends AbstractXYDataset {
           DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
 
           for (int j = 0; j < dataPoint.length; j++) {
-            yValues[i] += dataPoint[j].getIntensity();
+            xValues[i] += dataPoint[j].getIntensity();
           }
         }
       }

@@ -15,7 +15,7 @@ public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
-  ArrayList<Double> retentionTime;
+  private ArrayList<Double> retentionTime;
   private double[] xValues;
   private double[] yValues;
 

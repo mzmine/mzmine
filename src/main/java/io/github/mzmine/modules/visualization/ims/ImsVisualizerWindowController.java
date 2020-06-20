@@ -6,28 +6,14 @@ import javafx.scene.layout.FlowPane;
 
 public class ImsVisualizerWindowController {
 
-  @FXML public FlowPane flowPane;
+  @FXML public BorderPane topPlot;
+  @FXML public BorderPane bottomPlot;
 
-  @FXML public BorderPane plotePaneMI;
 
-  @FXML public BorderPane plotePaneMF;
-  @FXML public BorderPane plotePaneIRT;
-  @FXML public BorderPane plotePaneHeatMap;
 
-  BorderPane getPlotPaneMI() {
-    return plotePaneMI;
-  }
-
-  BorderPane getPlotPaneMF() {
-    return plotePaneMF;
-  }
-
-  BorderPane getPlotePaneIRT() {
-    return plotePaneIRT;
-  }
-
-  BorderPane getPlotePaneHeatMap()
+  BorderPane getTopPlot()
   {
-    return plotePaneHeatMap;
+    return topPlot;
   }
+  BorderPane getbottomPlot(){return  bottomPlot;}
 }

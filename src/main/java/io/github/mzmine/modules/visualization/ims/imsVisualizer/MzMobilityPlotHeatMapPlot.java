@@ -6,21 +6,20 @@ import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import org.jfree.chart.ChartFactory;
+import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.plot.Marker;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
@@ -31,51 +30,54 @@ import java.util.logging.Logger;
 
 public class MzMobilityPlotHeatMapPlot extends EChartViewer {
 
-  private XYPlot plot;
+  private XYPlot plot3d;
+  private XYPlot plot2d;
+  private XYPlot getPlot3d;
   private String paintScaleStyle;
   private JFreeChart chart;
   private XYZDataset dataset3d;
+  private XYDataset dataset2d;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
+  private ParameterSet parameterSet;
+  private double selectedRetention;
 
+  public MzMobilityPlotHeatMapPlot(
+      ParameterSet parameterSet, String paintScaleStyle, double selectedRetention) {
 
-  public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
-
-    super(
-        ChartFactory.createScatterPlot(
-            "",
-            "m/z",
-            "mobility",
-            dataset,
-            PlotOrientation.VERTICAL,
-            true,
-            true,
-            true));
-
-    chart = getChart();
-    this.dataset3d = dataset;
+    this.parameterSet = parameterSet;
+    this.dataset3d = new MobilityFrameXYZDataset(parameterSet, selectedRetention);
+    this.dataset2d = new MobilityIntensityXYDataset(parameterSet);
     this.paintScaleStyle = paintScaleStyle;
+    this.selectedRetention = selectedRetention;
 
-    // copy and sort z-Values for min and max of the paint scale
+    // create 2d plot.
+    var renderer2d = new XYLineAndShapeRenderer();
+    renderer2d.setSeriesPaint(0, Color.GREEN);
+    renderer2d.setSeriesStroke(0, new BasicStroke(1.0f));
+
+    NumberAxis domain2d = new NumberAxis("intensity");
+    plot2d = new XYPlot(dataset2d, domain2d, null, renderer2d);
+    plot2d.setRenderer(renderer2d);
+    plot2d.setBackgroundPaint(Color.BLACK);
+    plot2d.setRangeGridlinePaint(Color.BLACK);
+    plot2d.setDomainGridlinePaint(Color.BLACK);
+    plot2d.setOutlinePaint(Color.red);
+    plot2d.setOutlineStroke(new BasicStroke(2.5f));
+
+    // add 3d plot to the combined plots.
+
     double[] copyZValues = new double[dataset3d.getItemCount(0)];
-    for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-      copyZValues[i] = dataset3d.getZValue(0, i);
-    }
-    Arrays.sort(copyZValues);
-
-    // copy and sort x-values.
     double[] copyXValues = new double[dataset3d.getItemCount(0)];
-    for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-      copyXValues[i] = dataset3d.getXValue(0, i);
-    }
-    Arrays.sort(copyXValues);
-
-    // copy and sort y-values.
     double[] copyYValues = new double[dataset3d.getItemCount(0)];
     for (int i = 0; i < dataset3d.getItemCount(0); i++) {
+      copyZValues[i] = dataset3d.getZValue(0, i);
+      copyXValues[i] = dataset3d.getXValue(0, i);
       copyYValues[i] = dataset3d.getYValue(0, i);
     }
+    Arrays.sort(copyZValues);
+    Arrays.sort(copyXValues);
     Arrays.sort(copyYValues);
 
     // get index in accordance to percentile windows
@@ -96,14 +98,7 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
       scale.add(value, contourColors[i]);
       value = value + delta;
     }
-    plot = chart.getXYPlot();
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
-
-    // set the pixel renderer
-    XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
-    pixelRenderer.setPaintScale(scale);
-
+    
     // set the block renderer renderer
     XYBlockRenderer blockRenderer = new XYBlockRenderer();
     double mzWidth = 0.0;
@@ -132,6 +127,8 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
 
     blockRenderer.setBlockHeight(mobilityWidth);
     blockRenderer.setBlockWidth(mzWidth);
+    NumberAxis domain3d = new NumberAxis("mz");
+    plot3d = new XYPlot(dataset3d, domain3d,null,blockRenderer);
 
     // Legend
     NumberAxis scaleAxis = new NumberAxis("Intensity");
@@ -147,25 +144,32 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
     legend.setFrame(new BlockBorder(Color.white));
     legend.setPadding(new RectangleInsets(10, 10, 10, 10));
     legend.setStripWidth(10);
-    legend.setPosition(RectangleEdge.LEFT);
+    legend.setPosition(RectangleEdge.RIGHT);
     legend.getAxis().setLabelFont(legendFont);
     legend.getAxis().setTickLabelFont(legendFont);
 
     // Set paint scale
     blockRenderer.setPaintScale(scale);
+    plot3d.setRenderer(blockRenderer);
+    plot3d.setBackgroundPaint(Color.black);
+    plot3d.setRangeGridlinePaint(Color.black);
+    plot3d.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+    plot3d.setOutlinePaint(Color.black);
+    plot3d.setDomainCrosshairPaint(Color.GRAY);
+    plot3d.setRangeCrosshairPaint(Color.GRAY);
+    plot3d.setDomainCrosshairVisible(true);
+    plot3d.setRangeCrosshairVisible(true);
+    plot3d.setOutlinePaint(Color.red);
+    plot3d.setOutlineStroke(new BasicStroke(2.5f));
 
-    plot.setRenderer(blockRenderer);
-    plot.setBackgroundPaint(Color.black);
-    plot.setRangeGridlinePaint(Color.black);
-    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-    plot.setOutlinePaint(Color.black);
-    plot.setDomainCrosshairPaint(Color.GRAY);
-    plot.setRangeCrosshairPaint(Color.GRAY);
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-    plot.setOutlinePaint(Color.red);
-    plot.setOutlineStroke(new BasicStroke(2.5f));
+    CombinedRangeXYPlot plot = new CombinedRangeXYPlot(new NumberAxis("mobility"));
+    //add all plots.
+    plot.add(plot2d);
+    plot.add(plot3d);
 
+    chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     chart.addSubtitle(legend);
+
+    setChart(chart);
   }
 }
