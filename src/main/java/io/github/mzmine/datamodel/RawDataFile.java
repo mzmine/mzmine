@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -52,7 +52,7 @@ public interface RawDataFile {
 
   /**
    * Returns sorted array of all scan numbers in this file
-   * 
+   *
    * @return Sorted array of scan numbers, never returns null
    */
   @Nonnull
@@ -60,7 +60,7 @@ public interface RawDataFile {
 
   /**
    * Returns sorted array of all scan numbers in given MS level
-   * 
+   *
    * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
@@ -69,7 +69,7 @@ public interface RawDataFile {
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
-   * 
+   *
    * @param msLevel MS level
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
@@ -83,7 +83,16 @@ public interface RawDataFile {
    * @param scan Desired scan number
    * @return Desired scan
    */
-  public @Nullable Scan getScan(int scan);
+  public @Nullable
+  Scan getScan(int scan);
+
+  /**
+   * @param rt      The rt
+   * @param mslevel The ms level
+   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
+   * the rt range of this file.
+   */
+  public int getScanNumberAtRT(double rt, int mslevel);
 
   @Nonnull
   public Range<Double> getDataMZRange();
@@ -109,11 +118,17 @@ public interface RawDataFile {
 
   /**
    * Returns a list of the different scan polarity types found in the raw data file.
-   * 
+   *
    * @return Scan polarity types.
    */
   @Nonnull
   public List<PolarityType> getDataPolarity();
+
+  public java.awt.Color getColorAWT();
+
+  public javafx.scene.paint.Color getColor();
+
+  public void setColor(javafx.scene.paint.Color color);
 
   /**
    * Close the file in case it is removed from the project

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -35,6 +37,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
@@ -78,6 +81,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   private File dataPointsFileName;
   private RandomAccessFile dataPointsFile;
 
+  private Color color;
+
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
   // notifyUpdatedMassLists() method
@@ -102,6 +107,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsOffsets = new TreeMap<Integer, Long>();
     dataPointsLengths = new TreeMap<Integer, Integer>();
 
+    color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
   }
 
   @Override
@@ -168,17 +174,46 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * @see io.github.mzmine.datamodel.RawDataFile#getScan(int)
    */
   @Override
-  public @Nullable Scan getScan(int scanNumber) {
+  public @Nullable
+  Scan getScan(int scanNumber) {
     return scans.get(scanNumber);
+  }
+
+  @Override
+  @Nullable
+  public int getScanNumberAtRT(double rt, int mslevel) {
+    if (rt > getDataRTRange(mslevel).upperEndpoint()) {
+      return -1;
+    }
+
+    // get a range first, 0.2 min should be appropriate.
+    Range<Double> range = Range.closed(rt - 0.2, rt + 0.2);
+
+    int[] scanNumbers = getScanNumbers(mslevel, range);
+
+    double minDiff = 10;
+    for (int i = 0; i < scanNumbers.length; i++) {
+      int scanNum = scanNumbers[i];
+      double diff = Math.abs(rt - getScan(scanNum).getRetentionTime());
+      if (diff < minDiff) {
+        minDiff = diff;
+      } else if (diff > minDiff) { // not triggered in first run
+        return scanNumbers[i - 1]; // the previous one was better
+      }
+    }
+
+    return -1;
   }
 
   /**
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int)
    */
   @Override
-  public @Nonnull int[] getScanNumbers(int msLevel) {
-    if (scanNumbersCache.containsKey(msLevel))
+  public @Nonnull
+  int[] getScanNumbers(int msLevel) {
+    if (scanNumbersCache.containsKey(msLevel)) {
       return scanNumbersCache.get(msLevel);
+    }
     Range<Double> all = Range.all();
     int scanNumbers[] = getScanNumbers(msLevel, all);
     scanNumbersCache.put(msLevel, scanNumbers);
@@ -560,6 +595,21 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
     // return as list
     return polarityTypes.stream().collect(Collectors.toList());
+  }
+
+  @Override
+  public java.awt.Color getColorAWT() {
+    return FxColorUtil.fxColorToAWT(color);
+  }
+
+  @Override
+  public javafx.scene.paint.Color getColor() {
+    return color;
+  }
+
+  @Override
+  public void setColor(javafx.scene.paint.Color color) {
+    this.color = color;
   }
 
   @Override
