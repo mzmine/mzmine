@@ -68,7 +68,8 @@ public class TextAreaProcessingReportTab extends Tab {
     }
 
     appendLine("Module: " + module.getName());
-    if (module instanceof MZmineRunnableModule runnableModule) {
+    if (module instanceof MZmineRunnableModule) {
+      MZmineRunnableModule runnableModule = (MZmineRunnableModule) module;
       appendLine(runnableModule.getDescription());
       appendLine("Module category: " + runnableModule.getModuleCategory());
     }
