@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.io.rawdataimport.fileformats;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.bruker;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
@@ -11,6 +11,7 @@ import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.io.rawdataimport.RawDataFileType;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.bruker.TDFBinaryReader.TDFLibrary;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -72,6 +73,11 @@ public class BrukerTimsTofReadTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + file);
+
+    long handle = TDFLibrary.INSTANCE
+        .tims_open("/home/aiden/Downloads/tdf-sdk/example_data/200ngHeLaPASEF_2min_compressed.d",
+            0);
+    System.out.printf("Open tims_bin, handle: %d", handle).println();
 
     // Check the OS we are running
     String osName = System.getProperty("os.name").toUpperCase();
