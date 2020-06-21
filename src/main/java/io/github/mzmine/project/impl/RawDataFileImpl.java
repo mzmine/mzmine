@@ -108,6 +108,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsLengths = new TreeMap<Integer, Integer>();
 
     color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+    logger.info(dataFileName + " clr: " + color);
   }
 
   @Override
