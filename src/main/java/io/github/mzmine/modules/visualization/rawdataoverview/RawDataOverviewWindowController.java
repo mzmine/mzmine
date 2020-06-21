@@ -19,9 +19,8 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
+import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,25 +30,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYAreaRenderer;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.color.Vision;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -66,12 +50,9 @@ public class RawDataOverviewWindowController {
   public static final Logger logger = Logger
       .getLogger(RawDataOverviewWindowController.class.getName());
 
-  private TICPlot bpcPlot;
-  private TICVisualizerWindow ticWindow;
   private Color posColor;
   private Color negColor;
   private Color neuColor;
-  private Vision vision;
   private boolean initialized = false;
 
   private RawDataFile selectedRawDataFile;
@@ -85,19 +66,22 @@ public class RawDataOverviewWindowController {
   private Label rawDataLabel;
 
   @FXML
-  private BorderPane chromatogramPane;
-
-  @FXML
-  private BorderPane spectraPane;
+  private ChromatogramAndSpectraVisualizer visualizer;
 
   @FXML
   private TabPane tpRawDataInfo;
 
-  public void initialize(RawDataFile rawDataFile) {
+  @FXML
+  private BorderPane pnMaster;
+
+  @FXML
+  private SplitPane pnMain;
+
+  public void initialize() {
 
 //    this.rawDataFile = rawDataFile;
     // add meta data
-    rawDataLabel.setText("Overview of raw data file(s): " + rawDataFile.getName());
+    rawDataLabel.setText("Overview of raw data file(s): ");
 
     // set colors depending on vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
@@ -105,18 +89,14 @@ public class RawDataOverviewWindowController {
     negColor = palette.getNegativeColorAWT();
     neuColor = palette.getNeutralColorAWT();
 
+    addChromatogramSelectedScanListener();
+
     initialized = true;
-
-    addRawDataFile(rawDataFile);
-    addTICMouseListener();
-
-    updatePlots();
-
   }
 
   /**
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
-   * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFile}
+   * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFileTab}
    * if possible.
    *
    * @param rawDataFiles
@@ -124,7 +104,7 @@ public class RawDataOverviewWindowController {
   public void setRawDataFiles(List<RawDataFile> rawDataFiles) {
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
-    for (RawDataFile rawDataFile : rawDataFilesAndControllers.keySet()) {
+    for (RawDataFile rawDataFile : rawDataFilesAndTabs.keySet()) {
       if (!rawDataFiles.contains(rawDataFile)) {
         filesToProcess.add(rawDataFile);
       }
@@ -132,20 +112,19 @@ public class RawDataOverviewWindowController {
     filesToProcess.forEach(r -> removeRawDataFile(r));
 
     // presence of file is checked in the add method
-    rawDataFiles.forEach(r -> addRawDataFile(r));
+    rawDataFiles.forEach(r -> addRawDataFileTab(r));
+    visualizer.setRawDataFiles(rawDataFiles);
   }
 
   /**
-   * Adds a raw data file to the overview.
-   * <p>
-   * Will overlay  plots if multiple raw data files are selected.
+   * Adds a raw data file table to the tab.
    *
-   * @param raw
+   * @param raw The raw dataFile
    */
-  public void addRawDataFile(RawDataFile raw) {
+  public void addRawDataFileTab(RawDataFile raw) {
 
     if (!initialized) {
-      initialize(raw);
+      initialize();
     }
     if (rawDataFilesAndControllers.containsKey(raw)) {
       return;
@@ -156,10 +135,16 @@ public class RawDataOverviewWindowController {
       BorderPane pane = loader.load();
       rawDataFilesAndControllers.put(raw, loader.getController());
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(raw);
-      con.getRawDataTableView().getSelectionModel().selectedItemProperty().addListener(c -> {
-        setSelectedRawDataFile(raw);
-        updatePlots();
-      });
+      con.getRawDataTableView().getSelectionModel().selectedItemProperty()
+          .addListener(((obs, old, newValue) -> {
+            if (newValue == null) {
+              // this is the case it the table was not populated before.
+              // in that case we just select the table.
+              return;
+            }
+            Integer scanNum = Integer.valueOf(newValue.getScanNumber());
+            visualizer.setFocusedScanSilent(raw, scanNum);
+          }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
       rawDataFileTab.setContent(pane);
@@ -167,6 +152,7 @@ public class RawDataOverviewWindowController {
 
       rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
         if (n == true) {
+          logger.fine("Populating table for raw data file " + raw.getName());
           con.populate(raw);
         }
       });
@@ -176,26 +162,20 @@ public class RawDataOverviewWindowController {
         removeRawDataFile(raw);
       });
 
-      rawDataFilesAndTabs.put(raw, rawDataFileTab);
-
-      if (ticWindow == null) {
-        initialiseBPCPlot(raw);
-      } else {
-        ticWindow.addRawDataFile(raw);
-      }
       if (rawDataFileTab.selectedProperty().getValue()) {
         con.populate(raw);
       }
 
+      rawDataFilesAndTabs.put(raw, rawDataFileTab);
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Could not load RawDataFileInfoPane.fxml", e);
     }
 
-    logger.fine("Added raw data file " + raw.getName());
+    logger.fine("Added raw data file tab for " + raw.getName());
   }
 
   public void removeRawDataFile(RawDataFile raw) {
-    ticWindow.removeRawDataFile(raw);
+    visualizer.removeRawDataFile(raw);
     rawDataFilesAndControllers.remove(raw);
     Tab tab = rawDataFilesAndTabs.remove(raw);
     tpRawDataInfo.getTabs().remove(tab);
@@ -203,80 +183,43 @@ public class RawDataOverviewWindowController {
 
   // plot update methods
 
-  private void initialiseBPCPlot(RawDataFile rawDataFile) {
-    // get MS1 scan selection to draw base peak plot
-    ScanSelection scanSelection = new ScanSelection(rawDataFile.getDataRTRange(1), 1);
+  /**
+   * Updates the selected row in the raw data table if the user clicks in the chromatogram plot.
+   */
+  private void addChromatogramSelectedScanListener() {
 
-    // get TIC window
-    ticWindow = new TICVisualizerWindow(new RawDataFile[]{rawDataFile}, // raw
-        TICPlotType.BASEPEAK, // plot type
-        scanSelection, // scan selection
-        rawDataFile.getDataMZRange(), // mz range
-        null, // selected features
-        null); // labels+
+    visualizer.currentSelectionProperty().addListener((observable, oldValue, pos) -> {
+      RawDataFile selectedRawDataFile = pos.getDataFile();
 
-    // get TIC Plot
-    this.bpcPlot = ticWindow.getTICPlot();
-    bpcPlot.getChart().getLegend().setVisible(false);
-    chromatogramPane.setCenter(bpcPlot.getParent());
-
-    // get plot
-    XYPlot plot = (XYPlot) bpcPlot.getChart().getPlot();
-    plot.setDomainCrosshairVisible(false);
-    plot.setRangeCrosshairVisible(false);
-    setSelectedRawDataFile(rawDataFile);
-  }
-
-  private void addTICMouseListener() {
-    // Add mouse listener to chromatogram
-    // mouse listener
-    bpcPlot.addChartMouseListener(new ChartMouseListenerFX() {
-
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
+      RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
+      if (con == null || selectedRawDataFile == null) {
+        logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
+        return;
       }
 
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
+      TableView<ScanDescription> rawDataTableView = con.getRawDataTableView();
+      tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
 
-        CursorPosition pos = ticWindow.getCursorPosition();
-        RawDataFile selectedRawDataFile = pos.getDataFile();
-        setSelectedRawDataFile(selectedRawDataFile);
-
-        RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
-        if (con == null || selectedRawDataFile == null) {
-          logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
-          return;
+      if (rawDataTableView.getItems() != null) {
+//        if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
+        try {
+          String scanNumberString = String.valueOf(pos.getScanNumber());
+          rawDataTableView.getItems().stream()
+              .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
+              .ifPresent(item -> {
+                rawDataTableView.getSelectionModel().select(item);
+                rawDataTableView.scrollTo(item);
+              });
+        } catch (Exception e) {
+          e.getStackTrace();
         }
-
-        TableView<ScanDescription> rawDataTableView = con.getRawDataTableView();
-        tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
-
-        if (rawDataTableView.getItems() != null) {
-          if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
-            try {
-              String scanNumberString = String.valueOf(pos.getScanNumber());
-              rawDataTableView.getItems().stream()
-                  .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
-                  .ifPresent(item -> {
-                    rawDataTableView.getSelectionModel().select(item);
-                    rawDataTableView.scrollTo(item);
-                  });
-              chromatogramPane.setCenter(bpcPlot.getParent());
-            } catch (Exception e) {
-              e.getStackTrace();
-            }
-          }
-        }
+//        }
       }
     });
-  }
-
-  private void initialiseSpectrumPlot() {
 
   }
 
-  private void updatePlots() {
+/*  private void updatePlots() {
 
     if (getSelectedRawDataFile() == null) {
       return;
@@ -370,16 +313,15 @@ public class RawDataOverviewWindowController {
         } catch (Exception e) {
           e.getStackTrace();
         }
-
       }
     }
-  }
+  }*/
 
   public RawDataFile getSelectedRawDataFile() {
-    return selectedRawDataFile;
+    return visualizer.getSelectedRawDataFile();
   }
 
-  private void setSelectedRawDataFile(RawDataFile selectedRawDataFile) {
-    this.selectedRawDataFile = selectedRawDataFile;
-  }
+//  private void setSelectedRawDataFile(RawDataFile selectedRawDataFile) {
+//    this.selectedRawDataFile = selectedRawDataFile;
+//  }
 }

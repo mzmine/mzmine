@@ -20,6 +20,7 @@ import javafx.scene.layout.GridPane;
 public class RawDataFileInfoPaneController {
 
   private RawDataFile rawDataFile;
+  private boolean populated = false;
 
   @FXML
   private TableView<ScanDescription> rawDataTableView;
@@ -73,6 +74,11 @@ public class RawDataFileInfoPaneController {
    * @param rawDataFile
    */
   protected void populate(RawDataFile rawDataFile) {
+    if (populated == true) {
+      return;
+    }
+
+    populated = true;
     this.rawDataFile = rawDataFile;
     updateRawDataFileInfo(rawDataFile);
     updateScanTable(rawDataFile);
@@ -129,7 +135,6 @@ public class RawDataFileInfoPaneController {
     mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
-
   }
 
   /**
@@ -146,8 +151,8 @@ public class RawDataFileInfoPaneController {
     private ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
 
     private double perc = 0;
-    private TaskStatus status = TaskStatus.PROCESSING;
-    private boolean isCanceled = false;
+    private TaskStatus status;
+    private boolean isCanceled;
     private RawDataFile rawDataFile;
 
     public PopulateTask(RawDataFile rawDataFile) {
@@ -156,7 +161,6 @@ public class RawDataFileInfoPaneController {
       isCanceled = false;
       this.rawDataFile = rawDataFile;
     }
-
 
     @Override
     public void run() {
@@ -206,7 +210,7 @@ public class RawDataFileInfoPaneController {
 
       Platform.runLater(() -> {
         rawDataTableView.setItems(tableData);
-        rawDataTableView.getSelectionModel().select(0);
+//        rawDataTableView.getSelectionModel().select(0);
       });
 
       status = TaskStatus.FINISHED;
