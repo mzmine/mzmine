@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import java.util.Arrays;
+import java.util.Objects;
 import org.jfree.data.xy.AbstractXYDataset;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -137,5 +139,30 @@ public class PeakDataSet extends AbstractXYDataset {
 
   public boolean isPeak(final int item) {
     return item == peakItem;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PeakDataSet)) {
+      return false;
+    }
+    PeakDataSet that = (PeakDataSet) o;
+    return peakItem == that.peakItem &&
+        Objects.equals(peak, that.peak) &&
+        Arrays.equals(retentionTimes, that.retentionTimes) &&
+        Arrays.equals(intensities, that.intensities) &&
+        Arrays.equals(mzValues, that.mzValues) &&
+        Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(peak);
+    result = 31 * result + Arrays.hashCode(retentionTimes);
+    result = 31 * result + Arrays.hashCode(mzValues);
+    return result;
   }
 }
