@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
+import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -103,7 +105,7 @@ public class TICPlot extends EChartViewer {
 
   private MenuItem RemoveFilePopupMenu;
 
-  EStandardChartTheme theme;
+  protected EStandardChartTheme theme;
 
   /**
    * Indicates whether we have a request to show spectra visualizer for selected data point. Since
@@ -478,6 +480,26 @@ public class TICPlot extends EChartViewer {
     return plot;
   }
 
+  public synchronized void addTICDataset(final XYDataset dataSet, Color color) {
+    // Check if the dataSet to be added is compatible with the type of plot.
+    if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
+        != this.plotType)) {
+      throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
+          + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
+    }
+    try {
+      final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
+      renderer.setSeriesPaint(0, color);
+      renderer.setSeriesFillPaint(0, color);
+      renderer.setSeriesShape(0, DATA_POINT_SHAPE);
+      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+      addDataSetRenderer(dataSet, renderer);
+      numOfDataSets++;
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
+    }
+  }
+
   public synchronized void addTICDataset(final XYDataset dataSet) {
     // Check if the dataSet to be added is compatible with the type of plot.
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
@@ -487,10 +509,6 @@ public class TICPlot extends EChartViewer {
     }
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-      // SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-      // final Color rendererColor = palette.getAWT(numOfDataSets % palette.size());
-      // renderer.setSeriesPaint(0, rendererColor);
-      // renderer.setSeriesFillPaint(0, rendererColor);
       renderer.setSeriesPaint(0, plot.getDrawingSupplier().getNextPaint());
       renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
@@ -508,7 +526,6 @@ public class TICPlot extends EChartViewer {
   }
 
   public synchronized void addPeakDataset(final XYDataset dataSet) {
-
     final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
     // renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
@@ -516,17 +533,54 @@ public class TICPlot extends EChartViewer {
     numOfPeaks++;
   }
 
+  public synchronized void addPeakDataset(final XYDataset dataSet,
+      final PeakTICPlotRenderer renderer) {
+    addDataSetRenderer(dataSet, renderer);
+    numOfPeaks++;
+  }
+
+  public synchronized XYDataset removeDataSet(int index) {
+    XYDataset ds = plot.getDataset(index);
+    plot.setDataset(index, null);
+    plot.setRenderer(index, null);
+    return ds;
+  }
+
+  /**
+   * @param file The raw data file
+   */
+  @Nullable
+  public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds != null && ds instanceof PeakDataSet) {
+        PeakDataSet pds = (PeakDataSet) ds;
+        if (pds.getFeature().getDataFile() == file) {
+          plot.setDataset(getXYPlot().indexOf(pds), null);
+          plot.setRenderer(getXYPlot().indexOf(pds), null);
+        }
+      }
+    }
+  }
+
+  @Nullable
+  public synchronized void removeAllFeatureDataSets() {
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset ds = plot.getDataset(i);
+      if (ds != null && ds instanceof PeakDataSet) {
+        plot.setDataset(getXYPlot().indexOf(ds), null);
+        plot.setRenderer(getXYPlot().indexOf(ds), null);
+      }
+    }
+    numOfPeaks = 0;
+  }
+
   // add data set
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
-
     XYItemRenderer newRenderer = new DefaultXYItemRenderer();
-
     newRenderer.setDefaultFillPaint(color);
-
-    plot.setDataset(numOfDataSets, dataSet);
-    plot.setRenderer(numOfDataSets, newRenderer);
+    addDataSetRenderer(dataSet, newRenderer);
     numOfDataSets++;
-
   }
 
   public synchronized void addLabelledPeakDataset(final XYDataset dataSet, final String label) {
@@ -555,10 +609,8 @@ public class TICPlot extends EChartViewer {
   }
 
   public void removeAllTICDataSets() {
-
     final int dataSetCount = plot.getDatasetCount();
     for (int index = 0; index < dataSetCount; index++) {
-
       plot.setDataset(index, null);
     }
     numOfPeaks = 0;
@@ -588,8 +640,11 @@ public class TICPlot extends EChartViewer {
 
   }
 
-  private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
+  public TICPlotType getPlotType() {
+    return this.plotType;
+  }
 
+  private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
     final int index = numOfDataSets + numOfPeaks;
     plot.setRenderer(index, renderer);
     plot.setDataset(index, dataSet);
