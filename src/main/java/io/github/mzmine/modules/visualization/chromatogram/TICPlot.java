@@ -645,7 +645,19 @@ public class TICPlot extends EChartViewer {
   }
 
   private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
-    final int index = numOfDataSets + numOfPeaks;
+    int index = numOfDataSets + numOfPeaks;
+
+    // when removing and adding data sets this happens a lot. If it happens we set the
+    // index to 0 and start from there. If we find a free spot, put it in there, otherwise
+    // append it to the end.
+    // generally, we should update this class, the data set handling is a mess. ~SteffenHeu
+    if (plot.getDataset(index) != null) {
+      index = 0;
+      while (plot.getDataset(index) != null) {
+        index++;
+      }
+    }
+
     plot.setRenderer(index, renderer);
     plot.setDataset(index, dataSet);
   }
