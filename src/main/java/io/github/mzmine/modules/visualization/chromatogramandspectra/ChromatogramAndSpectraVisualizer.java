@@ -39,6 +39,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ManualFeatureUtils;
 import java.awt.BasicStroke;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -60,6 +61,9 @@ import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.ValueMarker;
 
 public class ChromatogramAndSpectraVisualizer extends SplitPane {
+
+  private final NumberFormat mzFormat;
+  private final NumberFormat rtFormat;
 
   public static final Logger logger = Logger
       .getLogger(ChromatogramAndSpectraVisualizer.class.getName());
@@ -98,6 +102,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   public ChromatogramAndSpectraVisualizer(@NamedArg("orientation") Orientation orientation) {
     super();
+
+    mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
     filesAndDataSets = FXCollections.synchronizedObservableMap(FXCollections.observableMap(
         new Hashtable<RawDataFile, TICDataSet>()));
@@ -228,7 +235,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       updateDomainMarker(pos);
       spectrumPlot.removeAllDataSets();
 
-      final String[] title = {""};
       if (showSpectraOfEveryRawFile) {
         double rt = pos.getRetentionTime();
         filesAndDataSets.keySet().forEach(rawDataFile -> {
@@ -237,15 +243,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
             Scan scan = rawDataFile.getScan(num);
             ScanDataSet dataSet = new ScanDataSet(scan);
             spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false);
-            title[0] += rawDataFile.getName() + "(#" + num + ") ";
           }
         });
       } else {
         ScanDataSet dataSet = new ScanDataSet(file.getScan(pos.getScanNumber()));
         spectrumPlot.addDataSet(dataSet, pos.getDataFile().getColorAWT(), false);
-        title[0] = file.getName() + "(#" + pos.getScanNumber() + ")";
       }
-      spectrumPlot.setTitle(title[0], "");
     });
   }
 
@@ -496,7 +499,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     @Override
     public String getTaskDescription() {
-      return "Calculating base peak chromatograms of m/z" + mzRange.toString();
+      return "Calculating base peak chromatograms of m/z" + mzFormat
+          .format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles
+          .size() + " files.";
     }
 
     @Override
@@ -515,8 +520,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
         ManualPeak feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
             rawDataFile.getDataRTRange(getScanSelection().getMsLevel()), mzRange);
-        if (feature.getScanNumbers() != null && feature.getScanNumbers().length > 0) {
+        if (feature != null && feature.getScanNumbers() != null
+            && feature.getScanNumbers().length > 0) {
           features.add(new PeakDataSet(feature));
+        } else {
+          logger.finest("No scans found for " + rawDataFile.getName());
         }
         doneFiles++;
       }

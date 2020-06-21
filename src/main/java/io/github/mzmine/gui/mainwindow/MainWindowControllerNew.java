@@ -147,6 +147,7 @@ public class MainWindowControllerNew {
           return;
         }
         setText(item.getName());
+        setTextFill(item.getColor());
         setGraphic(new ImageView(rawDataFileIcon));
       }
     });

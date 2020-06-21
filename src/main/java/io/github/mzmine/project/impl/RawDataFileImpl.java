@@ -192,7 +192,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (rt > getDataRTRange(mslevel).upperEndpoint()) {
       return -1;
     }
-    Range<Double> range = Range.closed(rt - 1, rt + 1);
+    Range<Double> range = Range.closed(rt - 2, rt + 2);
     int[] scanNumbers = getScanNumbers(mslevel, range);
     double minDiff = 10;
 
