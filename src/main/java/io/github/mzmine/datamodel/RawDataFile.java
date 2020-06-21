@@ -83,8 +83,8 @@ public interface RawDataFile {
    * @param scan Desired scan number
    * @return Desired scan
    */
-  public @Nullable
-  Scan getScan(int scan);
+  @Nullable
+  public Scan getScan(int scan);
 
   /**
    * @param rt      The rt
