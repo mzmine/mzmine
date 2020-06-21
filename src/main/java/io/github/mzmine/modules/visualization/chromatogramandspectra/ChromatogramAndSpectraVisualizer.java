@@ -337,7 +337,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Triggers {@link ChromatogramAndSpectraVisualizer#currentSelectionProperty()}'s listeners.
+   * Sets a single scan into the spectrum plot. Triggers {@link ChromatogramAndSpectraVisualizer#currentSelectionProperty()}'s
+   * listeners.
    *
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum     The scan number.

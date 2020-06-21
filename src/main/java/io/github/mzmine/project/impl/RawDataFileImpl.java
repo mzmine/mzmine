@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -180,19 +180,22 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return scans.get(scanNumber);
   }
 
+  /**
+   * @param rt      The rt
+   * @param mslevel The ms level
+   * @return The scan number at a given retention time within a range of 1 (min/sec?) or -1 if no
+   * scan can be found.
+   */
   @Override
   @Nullable
   public int getScanNumberAtRT(double rt, int mslevel) {
     if (rt > getDataRTRange(mslevel).upperEndpoint()) {
       return -1;
     }
-
-    // get a range first, 0.2 min should be appropriate.
-    Range<Double> range = Range.closed(rt - 0.2, rt + 0.2);
-
+    Range<Double> range = Range.closed(rt - 1, rt + 1);
     int[] scanNumbers = getScanNumbers(mslevel, range);
-
     double minDiff = 10;
+
     for (int i = 0; i < scanNumbers.length; i++) {
       int scanNum = scanNumbers[i];
       double diff = Math.abs(rt - getScan(scanNum).getRetentionTime());
@@ -202,7 +205,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         return scanNumbers[i - 1]; // the previous one was better
       }
     }
-
     return -1;
   }
 
@@ -225,7 +227,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
    */
   @Override
-  public @Nonnull int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
+  public @Nonnull
+  int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
 
     assert rtRange != null;
 
@@ -235,8 +238,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     while (scansEnum.hasMoreElements()) {
       Scan scan = scansEnum.nextElement();
 
-      if ((scan.getMSLevel() == msLevel) && (rtRange.contains(scan.getRetentionTime())))
+      if ((scan.getMSLevel() == msLevel) && (rtRange.contains(scan.getRetentionTime()))) {
         eligibleScanNumbers.add(scan.getScanNumber());
+      }
     }
 
     int[] numbersArray = Ints.toArray(eligibleScanNumbers);
@@ -249,10 +253,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers()
    */
   @Override
-  public @Nonnull int[] getScanNumbers() {
+  @Nonnull
+  public int[] getScanNumbers() {
 
-    if (scanNumbersCache.containsKey(0))
+    if (scanNumbersCache.containsKey(0)) {
       return scanNumbersCache.get(0);
+    }
 
     Set<Integer> allScanNumbers = scans.keySet();
     int[] numbersArray = Ints.toArray(allScanNumbers);
@@ -268,7 +274,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
    * @see io.github.mzmine.datamodel.RawDataFile#getMSLevels()
    */
   @Override
-  public @Nonnull int[] getMSLevels() {
+  @Nonnull
+  public int[] getMSLevels() {
 
     Set<Integer> msLevelsSet = new HashSet<Integer>();
 
@@ -292,8 +299,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     // check if we have this value already cached
     Double maxBasePeak = dataMaxBasePeakIntensity.get(msLevel);
-    if (maxBasePeak != null)
+    if (maxBasePeak != null) {
       return maxBasePeak;
+    }
 
     // find the value
     Enumeration<StorableScan> scansEnum = scans.elements();
@@ -301,21 +309,25 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       Scan scan = scansEnum.nextElement();
 
       // ignore scans of other ms levels
-      if (scan.getMSLevel() != msLevel)
+      if (scan.getMSLevel() != msLevel) {
         continue;
+      }
 
       DataPoint scanBasePeak = scan.getHighestDataPoint();
-      if (scanBasePeak == null)
+      if (scanBasePeak == null) {
         continue;
+      }
 
-      if ((maxBasePeak == null) || (scanBasePeak.getIntensity() > maxBasePeak))
+      if ((maxBasePeak == null) || (scanBasePeak.getIntensity() > maxBasePeak)) {
         maxBasePeak = scanBasePeak.getIntensity();
+      }
 
     }
 
     // return -1 if no scan at this MS level
-    if (maxBasePeak == null)
+    if (maxBasePeak == null) {
       maxBasePeak = -1d;
+    }
 
     // cache the value
     dataMaxBasePeakIntensity.put(msLevel, maxBasePeak);
@@ -332,8 +344,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     // check if we have this value already cached
     Double maxTIC = dataMaxTIC.get(msLevel);
-    if (maxTIC != null)
+    if (maxTIC != null) {
       return maxTIC.doubleValue();
+    }
 
     // find the value
     Enumeration<StorableScan> scansEnum = scans.elements();
@@ -341,17 +354,20 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       Scan scan = scansEnum.nextElement();
 
       // ignore scans of other ms levels
-      if (scan.getMSLevel() != msLevel)
+      if (scan.getMSLevel() != msLevel) {
         continue;
+      }
 
-      if ((maxTIC == null) || (scan.getTIC() > maxTIC))
+      if ((maxTIC == null) || (scan.getTIC() > maxTIC)) {
         maxTIC = scan.getTIC();
+      }
 
     }
 
     // return -1 if no scan at this MS level
-    if (maxTIC == null)
+    if (maxTIC == null) {
       maxTIC = -1d;
+    }
 
     // cache the value
     dataMaxTIC.put(msLevel, maxTIC);
@@ -370,10 +386,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     final long currentOffset = dataPointsFile.length();
 
     final int currentID;
-    if (!dataPointsOffsets.isEmpty())
+    if (!dataPointsOffsets.isEmpty()) {
       currentID = dataPointsOffsets.lastKey() + 1;
-    else
+    } else {
       currentID = 1;
+    }
 
     final int numOfDataPoints = dataPoints.length;
 
@@ -479,44 +496,51 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
-  public @Nonnull Range<Double> getDataMZRange() {
+  @Nonnull
+  public Range<Double> getDataMZRange() {
     return getDataMZRange(0);
   }
 
   @Override
-  public @Nonnull Range<Double> getDataMZRange(int msLevel) {
+  @Nonnull
+  public Range<Double> getDataMZRange(int msLevel) {
 
     // check if we have this value already cached
     Range<Double> mzRange = dataMZRange.get(msLevel);
-    if (mzRange != null)
+    if (mzRange != null) {
       return mzRange;
+    }
 
     // find the value
     for (Scan scan : scans.values()) {
 
       // ignore scans of other ms levels
-      if ((msLevel != 0) && (scan.getMSLevel() != msLevel))
+      if ((msLevel != 0) && (scan.getMSLevel() != msLevel)) {
         continue;
+      }
 
-      if (mzRange == null)
+      if (mzRange == null) {
         mzRange = scan.getDataPointMZRange();
-      else
+      } else {
         mzRange = mzRange.span(scan.getDataPointMZRange());
+      }
 
     }
 
     // cache the value, if we found any
-    if (mzRange != null)
+    if (mzRange != null) {
       dataMZRange.put(msLevel, mzRange);
-    else
+    } else {
       mzRange = Range.singleton(0.0);
-    
+    }
+
     return mzRange;
 
   }
 
   @Override
-  public @Nonnull Range<Double> getDataRTRange() {
+  @Nonnull
+  public Range<Double> getDataRTRange() {
     return getDataRTRange(0);
   }
 
@@ -527,32 +551,37 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
-  public @Nonnull Range<Double> getDataRTRange(int msLevel) {
+  @Nonnull
+  public Range<Double> getDataRTRange(int msLevel) {
 
     // check if we have this value already cached
     Range<Double> rtRange = dataRTRange.get(msLevel);
-    if (rtRange != null)
+    if (rtRange != null) {
       return rtRange;
+    }
 
     // find the value
     for (Scan scan : scans.values()) {
 
       // ignore scans of other ms levels
-      if ((msLevel != 0) && (scan.getMSLevel() != msLevel))
+      if ((msLevel != 0) && (scan.getMSLevel() != msLevel)) {
         continue;
+      }
 
-      if (rtRange == null)
+      if (rtRange == null) {
         rtRange = Range.singleton(scan.getRetentionTime());
-      else
+      } else {
         rtRange = rtRange.span(Range.singleton(scan.getRetentionTime()));
+      }
 
     }
 
     // cache the value
-    if (rtRange != null)
+    if (rtRange != null) {
       dataRTRange.put(msLevel, rtRange);
-    else
+    } else {
       rtRange = Range.singleton(0.0);
+    }
 
     return rtRange;
 
@@ -626,7 +655,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   @Override
-  public @Nonnull String getName() {
+  @Nonnull
+  public String getName() {
     return dataFileName;
   }
 
