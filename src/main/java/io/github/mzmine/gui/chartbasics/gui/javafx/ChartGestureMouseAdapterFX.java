@@ -21,6 +21,8 @@ package io.github.mzmine.gui.chartbasics.gui.javafx;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.logging.Logger;
+import javafx.geometry.Insets;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
@@ -52,6 +54,8 @@ import javafx.scene.input.ScrollEvent;
  */
 public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHandlerFX {
 
+  public static final Logger logger = Logger.getLogger(ChartGestureMouseAdapterFX.class.getName());
+
   private ChartViewer chartViewer;
   private ChartViewWrapper cw;
   private int lastEntityX = -1, lastEntityY = -1;
@@ -68,9 +72,9 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
 
   /**
    * Creates a new instance with no modifier keys required.
-   * 
-   * @param id the handler ID ({@code null} not permitted).
-   * @param parent the chart viewer.
+   *
+   * @param id          the handler ID ({@code null} not permitted).
+   * @param chartViewer the chart viewer.
    */
   public ChartGestureMouseAdapterFX(String id, ChartViewer chartViewer) {
     this.id = id;
@@ -200,14 +204,14 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
    * @return
    */
   private ChartEntity findChartEntity(MouseEventWrapper e) {
-    // TODO check if insets were needed
     // coordinates to find chart entities
-    int x = (int) ((e.getX()) / chartViewer.getCanvas().getScaleX());
-    int y = (int) ((e.getY()) / chartViewer.getCanvas().getScaleY());
+    Insets insets = chartViewer.getInsets();
+    int x = (int) ((e.getX() - insets.getLeft()) / chartViewer.getCanvas().getScaleX());
+    int y = (int) ((e.getY() - insets.getTop()) / chartViewer.getCanvas().getScaleY());
 
-    if (lastEntity != null && x == lastEntityX && y == lastEntityY)
+    if (lastEntity != null && x == lastEntityX && y == lastEntityY) {
       return lastEntity;
-    else {
+    } else {
       ChartRenderingInfo info = chartViewer.getCanvas().getRenderingInfo();
       ChartEntity entity = null;
       if (info != null) {
@@ -350,9 +354,9 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Handles a mouse dragged event. This implementation does nothing, override the method if
    * required.
-   * 
-   * @param canvas the canvas ({@code null} not permitted).
-   * @param e the event ({@code null} not permitted).
+   *
+   * @param chartPanel the canvas ({@code null} not permitted).
+   * @param eOrig the event ({@code null} not permitted).
    */
   @Override
   public void handleMouseDragged(ChartCanvas chartPanel, MouseEvent eOrig) {
