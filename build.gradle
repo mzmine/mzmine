@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.8.5"
+    id "org.beryx.runtime" version "1.9.1"
 }
 
 group = "io.github.mzmine"
