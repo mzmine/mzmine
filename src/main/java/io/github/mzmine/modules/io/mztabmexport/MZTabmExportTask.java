@@ -207,7 +207,8 @@ public class MZTabmExportTask extends AbstractTask {
         }
 
         //Write data rows
-        List<PeakIdentity> peakIdentityList = new ArrayList<>();
+        Map<Parameter, Database> databases = new LinkedHashMap<>();
+
         for (int i = 0; i < peakList.getRows().size(); ++i) {
           PeakListRow peakListRow = peakList.getRows().get(i);
           SmallMoleculeSummary sm = new SmallMoleculeSummary();
@@ -232,15 +233,17 @@ public class MZTabmExportTask extends AbstractTask {
           if (exportAll || peakIdentity != null) {
             if (peakIdentity != null) {
               boolean shouldAdd = true;
-              for(PeakIdentity p: peakIdentityList){
-                if(p.getPropertyValue(PeakIdentity.PROPERTY_METHOD).
-                    equals(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD))){
-                  shouldAdd = false;
-                  break;
-                }
-              }
-              if(shouldAdd)
-                peakIdentityList.add(peakIdentity);
+              Parameter dbParam = new Parameter().
+                  name(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD));
+              String dbURI = (peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL) == null ||
+                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL).equals("")) ?
+                  "mzmine://"+peakIdentity.getClass().getSimpleName():
+                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
+              databases.putIfAbsent(dbParam, new Database().param(dbParam)
+                  .prefix(peakIdentity.getClass().getSimpleName())
+                  .version(MZmineCore.getMZmineVersion())
+                  .uri(dbURI));
+
               //Identity Information
               String identifier = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID));
               String method = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD);
@@ -364,18 +367,10 @@ public class MZTabmExportTask extends AbstractTask {
           mzTabFile.addSmallMoleculeEvidenceItem(sme);
         }
         //cv term
-        int cvcnt = 0;
-        for(PeakIdentity p : peakIdentityList){
-          cvcnt++;
-          String dbURI = (p.getPropertyValue(PeakIdentity.PROPERTY_URL) == null ||
-              p.getPropertyValue(PeakIdentity.PROPERTY_URL).equals("")) ? "file://null":
-              p.getPropertyValue(PeakIdentity.PROPERTY_URL);
-          mtd.addDatabaseItem(new Database().id(cvcnt).param(
-              new Parameter().name(p.getPropertyValue(PeakIdentity.PROPERTY_METHOD)))
-              .prefix(p.getClass().getSimpleName())
-              .version(MZmineCore.getMZmineVersion())
-              .uri(dbURI)
-          );
+        int dbId = 1;
+        //set ids sequentially, starting from 1
+        for(Map.Entry<Parameter, Database> entry: databases.entrySet()) {
+          mtd.addDatabaseItem(entry.getValue().id(dbId++));
         }
 
         mzTabFile.metadata(mtd);
