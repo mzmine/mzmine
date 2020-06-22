@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ManualFeatureUtils;
 import java.awt.BasicStroke;
@@ -74,11 +75,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected TICPlot chromPlot;
   protected SpectraPlot spectrumPlot;
   protected ValueMarker rtMarker;
-
   protected boolean showSpectraOfEveryRawFile;
 
-  protected ObjectProperty<ScanSelection> scanSelection;
 
+  protected ObjectProperty<ScanSelection> scanSelection;
   /**
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
@@ -96,7 +96,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   protected ObjectProperty<Range<Double>> mzRange;
 
+  /**
+   * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
+   * listener in the future, if needed.
+   */
   protected ObservableMap<RawDataFile, TICDataSet> filesAndDataSets;
+
+  protected SpectraDataSetCalc currentSpectraDataSetCalc;
+  protected FeatureDataSetCalc currentFeatureDataSetCalc;
 
   public ChromatogramAndSpectraVisualizer() {
     this(Orientation.HORIZONTAL);
@@ -133,7 +140,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
-
   }
 
   private void updateAllChromatogramDataSets() {
@@ -237,10 +243,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // update spectrum plots
     updateDomainMarker(pos);
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
-  }
-
-  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
-    MZmineCore.getTaskController().addTask(new SpectraDataSetCalc(rawDataFiles, pos));
   }
 
   /**
@@ -396,9 +398,42 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // mz of the base peak in the selected scan of the selected raw data file.
     double mzBasePeak = mainRaw.getScan(mainScanNum).getHighestDataPoint().getMZ();
     Range<Double> bpcChromToleranceRange = getBpcChromTolerance().getToleranceRange(mzBasePeak);
+    FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
+        bpcChromToleranceRange);
+    thread.addTaskStatusListener((task, oldStatus, newStatus) -> {
+      if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
+          || newStatus == TaskStatus.ERROR) {
+        logger.info("FeatureUpdate status changed from " + oldStatus.toString() + " to " + newStatus
+            .toString());
+        currentFeatureDataSetCalc = null;
+      }
+    });
+    if (currentFeatureDataSetCalc != null) {
+      currentFeatureDataSetCalc.setStatus(TaskStatus.CANCELED);
+    }
+    currentFeatureDataSetCalc = thread;
     MZmineCore.getTaskController()
-        .addTask(new FeatureDataSetCalc(filesAndDataSets.keySet(), bpcChromToleranceRange));
+        .addTask(thread);
   }
+
+  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
+    SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles,
+        pos);
+    thread.addTaskStatusListener((task, oldStatus, newStatus) -> {
+      if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
+          || newStatus == TaskStatus.ERROR) {
+        logger.info("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
+            .toString());
+        currentSpectraDataSetCalc = null;
+      }
+    });
+    if (currentSpectraDataSetCalc != null) {
+      currentSpectraDataSetCalc.setStatus(TaskStatus.CANCELED);
+    }
+    currentSpectraDataSetCalc = thread;
+    MZmineCore.getTaskController().addTask(thread);
+  }
+
 
   public Range<Double> getMzRange() {
     return mzRange.get();
@@ -476,8 +511,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     private final Collection<RawDataFile> rawDataFiles;
     private final Range<Double> mzRange;
-    int doneFiles;
+    private int doneFiles;
     private final List<PeakDataSet> features;
+    private final HashMap<PeakDataSet, PeakTICPlotRenderer> dataSetsAndRenderers;
 
     public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles,
         final Range<Double> mzRange) {
@@ -486,18 +522,20 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       doneFiles = 0;
       setStatus(TaskStatus.WAITING);
       features = new ArrayList<>();
+      dataSetsAndRenderers = new HashMap<>();
     }
 
     @Override
     public String getTaskDescription() {
-      return "Calculating base peak chromatograms of m/z" + mzFormat
+      return "Calculating base peak chromatogram(s) of m/z " + mzFormat
           .format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles
-          .size() + " files.";
+          .size() + " file(s).";
     }
 
     @Override
     public double getFinishedPercentage() {
-      return ((double) doneFiles / rawDataFiles.size());
+      // + 1 because we count the generation of the data sets, too.
+      return ((double) doneFiles / (rawDataFiles.size() + 1));
     }
 
     @Override
@@ -505,10 +543,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       setStatus(TaskStatus.PROCESSING);
 
       for (RawDataFile rawDataFile : rawDataFiles) {
-        if (getStatus() == TaskStatus.CANCELED) {
-          return;
-        }
-
         ManualPeak feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
             rawDataFile.getDataRTRange(getScanSelection().getMsLevel()), mzRange);
         if (feature != null && feature.getScanNumbers() != null
@@ -518,18 +552,27 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
           logger.finest("No scans found for " + rawDataFile.getName());
         }
         doneFiles++;
+
+        if (getStatus() == TaskStatus.CANCELED) {
+          return;
+        }
       }
 
+      features.forEach(dataSet -> {
+        PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
+        renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
+        renderer.setSeriesPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
+        renderer.setSeriesFillPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
+        dataSetsAndRenderers.put(dataSet, renderer);
+      });
+
       Platform.runLater(() -> {
+        if (getStatus() == TaskStatus.CANCELED) {
+          return;
+        }
         chromPlot.removeAllFeatureDataSets();
-        features.forEach(dataSet -> {
-          PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
-          renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-          renderer.setSeriesPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-          renderer.setSeriesFillPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-          chromPlot.addPeakDataset(dataSet,
-              renderer);
-        });
+        dataSetsAndRenderers
+            .forEach((dataSet, renderer) -> chromPlot.addPeakDataset(dataSet, renderer));
       });
 
       setStatus(TaskStatus.FINISHED);
@@ -541,22 +584,28 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     private final CursorPosition pos;
     private final HashMap<RawDataFile, ScanDataSet> filesAndDataSets;
     private final Collection<RawDataFile> rawDataFiles;
+    private int doneFiles;
+    private double finishedPerc;
 
-    public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles, final CursorPosition pos) {
+    public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles,
+        final CursorPosition pos) {
       filesAndDataSets = new HashMap<>();
       this.rawDataFiles = rawDataFiles;
       this.pos = pos;
       setStatus(TaskStatus.WAITING);
+      doneFiles = 0;
+      finishedPerc = 0;
     }
 
     @Override
     public String getTaskDescription() {
-      return "Calculating scan data sets.";
+      return "Calculating scan data sets for " + rawDataFiles.size() + " raw data file(s).";
     }
 
     @Override
     public double getFinishedPercentage() {
-      return 0;
+      // + 1 because we count the generation of the data sets, too.
+      return doneFiles / (rawDataFiles.size() + 1);
     }
 
     @Override
@@ -572,6 +621,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
             ScanDataSet dataSet = new ScanDataSet(scan);
             filesAndDataSets.put(rawDataFile, dataSet);
           }
+          doneFiles++;
+
+          if (getStatus() == TaskStatus.CANCELED) {
+            return;
+          }
+
         });
       } else {
         ScanDataSet dataSet = new ScanDataSet(pos.getDataFile().getScan(pos.getScanNumber()));
@@ -579,10 +634,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       }
 
       Platform.runLater(() -> {
+        if (getStatus() == TaskStatus.CANCELED) {
+          return;
+        }
         spectrumPlot.removeAllDataSets();
         filesAndDataSets.keySet().forEach(rawDataFile -> spectrumPlot
             .addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true));
       });
+      finishedPerc = 1.d;
       setStatus(TaskStatus.FINISHED);
     }
   }
