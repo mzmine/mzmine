@@ -136,7 +136,7 @@ public class RawDataOverviewWindowController {
       rawDataFilesAndControllers.put(raw, loader.getController());
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(raw);
       con.getRawDataTableView().getSelectionModel().selectedItemProperty()
-          // TODO: this clears the spectrum plot, somehow bind to mouse input
+          // TODO: this clears the spectrum plot, somehow bind to mouse input, currenty it is just slower than the thread
           .addListener(((obs, old, newValue) -> {
             if (newValue == null) {
               // this is the case it the table was not populated before.

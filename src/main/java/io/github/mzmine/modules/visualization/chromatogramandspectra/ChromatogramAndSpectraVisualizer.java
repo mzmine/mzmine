@@ -236,11 +236,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     updateFeatureDataSets(file, pos.getScanNumber());
     // update spectrum plots
     updateDomainMarker(pos);
-    updateSpectraPlot(pos);
+    updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
 
-  private void updateSpectraPlot(CursorPosition pos) {
-    MZmineCore.getTaskController().addTask(new SpectraDataSetCalc(pos));
+  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
+    MZmineCore.getTaskController().addTask(new SpectraDataSetCalc(rawDataFiles, pos));
   }
 
   /**
@@ -474,13 +474,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   private class FeatureDataSetCalc extends AbstractTask {
 
-    Collection<RawDataFile> rawDataFiles;
-    Range<Double> mzRange;
+    private final Collection<RawDataFile> rawDataFiles;
+    private final Range<Double> mzRange;
     int doneFiles;
-    List<PeakDataSet> features;
+    private final List<PeakDataSet> features;
 
-    public FeatureDataSetCalc(Collection<RawDataFile> rawDataFiles,
-        Range<Double> mzRange) {
+    public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles,
+        final Range<Double> mzRange) {
       this.rawDataFiles = rawDataFiles;
       this.mzRange = mzRange;
       doneFiles = 0;
@@ -539,8 +539,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private class SpectraDataSetCalc extends AbstractTask {
 
     private final CursorPosition pos;
+    private final HashMap<RawDataFile, ScanDataSet> filesAndDataSets;
+    private final Collection<RawDataFile> rawDataFiles;
 
-    public SpectraDataSetCalc(CursorPosition pos) {
+    public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles, final CursorPosition pos) {
+      filesAndDataSets = new HashMap<>();
+      this.rawDataFiles = rawDataFiles;
       this.pos = pos;
       setStatus(TaskStatus.WAITING);
     }
@@ -557,12 +561,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     @Override
     public void run() {
-      HashMap<RawDataFile, ScanDataSet> filesAndDataSets = new HashMap<>();
       setStatus(TaskStatus.PROCESSING);
 
       if (showSpectraOfEveryRawFile) {
         double rt = pos.getRetentionTime();
-        filesAndDataSets.keySet().forEach(rawDataFile -> {
+        rawDataFiles.forEach(rawDataFile -> {
           int num = rawDataFile.getScanNumberAtRT(rt, getScanSelection().getMsLevel());
           if (num != -1) {
             Scan scan = rawDataFile.getScan(num);
