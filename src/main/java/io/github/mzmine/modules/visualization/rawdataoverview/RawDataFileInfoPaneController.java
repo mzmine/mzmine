@@ -7,6 +7,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.text.NumberFormat;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,6 +31,12 @@ public class RawDataFileInfoPaneController {
 
   @FXML
   private TableColumn<ScanDescription, String> rtColumn;
+
+  @FXML
+  private TableColumn<ScanDescription, Double> basePeakColumn;
+
+  @FXML
+  private TableColumn<ScanDescription, Integer> basePeakIntensityColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> msLevelColumn;
@@ -127,6 +134,8 @@ public class RawDataFileInfoPaneController {
     scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
     rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
     msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
+    basePeakColumn.setCellValueFactory(new PropertyValueFactory<>("basePeak"));
+    basePeakIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("basePeakIntensity"));
     precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
     mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
@@ -165,6 +174,10 @@ public class RawDataFileInfoPaneController {
     @Override
     public void run() {
 
+      NumberFormat mzFormat = MZminePreferences.mzFormat.getValue();
+      NumberFormat rtFormat = MZminePreferences.rtFormat.getValue();
+      NumberFormat itFormat = MZminePreferences.intensityFormat.getValue();
+
       tableData.clear();
 
       int numberOfScans = rawDataFile.getNumOfScans();
@@ -178,27 +191,27 @@ public class RawDataFileInfoPaneController {
         if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
           precursor = "";
         } else {
-          precursor = MZminePreferences.mzFormat.getValue().format(scan.getPrecursorMZ());
+          precursor = mzFormat.format(scan.getPrecursorMZ());
         }
         String mobility = "";
-        mobility = MZminePreferences.mzFormat.getValue().format(scan.getMobility());
+        mobility = mzFormat.format(scan.getMobility());
 
         // format mzRange
         String mzRange =
-            MZminePreferences.mzFormat.getValue()
-                .format(scan.getDataPointMZRange().lowerEndpoint())
-                + "-" + MZminePreferences.mzFormat.getValue()
-                .format(scan.getDataPointMZRange().upperEndpoint());
+            mzFormat.format(scan.getDataPointMZRange().lowerEndpoint())
+                + "-" + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
 
         tableData.add(new ScanDescription(Integer.toString(i), // scan number
-            MZminePreferences.rtFormat.getValue().format(scan.getRetentionTime()), // rt
+            rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
             mzRange, // mz range
             scan.getSpectrumType().toString(), // profile/centroid
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(),      // definition
-            mobility) // mobility
+            mobility,  // mobility
+            mzFormat.format(scan.getHighestDataPoint().getMZ()), // base peak mz
+            itFormat.format(scan.getHighestDataPoint().getIntensity())) // base peak intensity
         );
 
         perc = i / (numberOfScans + 1);
