@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
+
 import com.google.common.collect.Range;
 import com.google.common.io.ByteStreams;
 import com.google.common.math.DoubleMath;
@@ -51,6 +53,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.application.Platform;
 import uk.ac.ebi.pride.jmztab.model.Assay;
 import uk.ac.ebi.pride.jmztab.model.MZTabFile;
 import uk.ac.ebi.pride.jmztab.model.MsRun;
@@ -222,7 +225,12 @@ class MzTabImportTask extends AbstractTask {
       rdiParameters.getParameter(RawDataImportParameters.fileNames)
           .setValue(filesToImport.toArray(new File[0]));
       synchronized (underlyingTasks) {
-        RDI.runModule(project, rdiParameters, underlyingTasks);
+        final CountDownLatch doneLatch = new CountDownLatch(1);
+        Platform.runLater(()-> {
+          RDI.runModule(project, rdiParameters, underlyingTasks);
+          doneLatch.countDown();
+        });
+        doneLatch.await();
       }
       if (underlyingTasks.size() > 0) {
         MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
