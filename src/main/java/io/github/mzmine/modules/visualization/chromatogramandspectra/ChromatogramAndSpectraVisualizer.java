@@ -75,10 +75,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected TICPlot chromPlot;
   protected SpectraPlot spectrumPlot;
   protected ValueMarker rtMarker;
+
   protected boolean showSpectraOfEveryRawFile;
 
-
   protected ObjectProperty<ScanSelection> scanSelection;
+
   /**
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
@@ -140,6 +141,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
+
   }
 
   private void updateAllChromatogramDataSets() {
@@ -243,6 +245,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // update spectrum plots
     updateDomainMarker(pos);
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
+  }
+
+  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
+    MZmineCore.getTaskController().addTask(new SpectraDataSetCalc(rawDataFiles, pos));
   }
 
   /**
@@ -434,7 +440,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     MZmineCore.getTaskController().addTask(thread);
   }
 
-
   public Range<Double> getMzRange() {
     return mzRange.get();
   }
@@ -522,7 +527,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       doneFiles = 0;
       setStatus(TaskStatus.WAITING);
       features = new ArrayList<>();
-      dataSetsAndRenderers = new HashMap<>();
     }
 
     @Override
@@ -543,6 +547,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       setStatus(TaskStatus.PROCESSING);
 
       for (RawDataFile rawDataFile : rawDataFiles) {
+        if (getStatus() == TaskStatus.CANCELED) {
+          return;
+        }
+
         ManualPeak feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
             rawDataFile.getDataRTRange(getScanSelection().getMsLevel()), mzRange);
         if (feature != null && feature.getScanNumbers() != null
@@ -552,10 +560,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
           logger.finest("No scans found for " + rawDataFile.getName());
         }
         doneFiles++;
-
-        if (getStatus() == TaskStatus.CANCELED) {
-          return;
-        }
       }
 
       features.forEach(dataSet -> {
@@ -570,9 +574,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         if (getStatus() == TaskStatus.CANCELED) {
           return;
         }
+        chromPlot.getXYPlot().setNotify(false);
         chromPlot.removeAllFeatureDataSets();
         dataSetsAndRenderers
             .forEach((dataSet, renderer) -> chromPlot.addPeakDataset(dataSet, renderer));
+        chromPlot.getXYPlot().setNotify(true);
+        chromPlot.getChart().fireChartChanged();
       });
 
       setStatus(TaskStatus.FINISHED);
@@ -637,11 +644,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         if (getStatus() == TaskStatus.CANCELED) {
           return;
         }
+        spectrumPlot.getXYPlot().setNotify(false);
         spectrumPlot.removeAllDataSets();
         filesAndDataSets.keySet().forEach(rawDataFile -> spectrumPlot
             .addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true));
+        spectrumPlot.getXYPlot().setNotify(true);
+        spectrumPlot.getChart().fireChartChanged();
       });
-      finishedPerc = 1.d;
       setStatus(TaskStatus.FINISHED);
     }
   }
