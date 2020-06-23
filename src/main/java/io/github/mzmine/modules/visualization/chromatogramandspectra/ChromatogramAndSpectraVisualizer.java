@@ -521,6 +521,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       }
 
       Platform.runLater(() -> {
+        chromPlot.getXYPlot().setNotify(false);
         chromPlot.removeAllFeatureDataSets();
         features.forEach(dataSet -> {
           PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
@@ -530,6 +531,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
           chromPlot.addPeakDataset(dataSet,
               renderer);
         });
+        chromPlot.getXYPlot().setNotify(true);
+        chromPlot.getChart().fireChartChanged();
       });
 
       setStatus(TaskStatus.FINISHED);
@@ -579,9 +582,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       }
 
       Platform.runLater(() -> {
+        spectrumPlot.getXYPlot().setNotify(false);
         spectrumPlot.removeAllDataSets();
         filesAndDataSets.keySet().forEach(rawDataFile -> spectrumPlot
             .addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true));
+        spectrumPlot.getXYPlot().setNotify(true);
+        spectrumPlot.getChart().fireChartChanged();
       });
       setStatus(TaskStatus.FINISHED);
     }
