@@ -119,6 +119,8 @@
 		<Menu text="Import feature list">
 			<MenuItem text="mzTab" onAction="#runModule"
 				userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
+			<MenuItem text="mzTab-m" onAction="#runModule"
+					  userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule" />
 		</Menu>
 
 		<Menu text="Export feature list">
@@ -127,7 +129,9 @@
 			<MenuItem text="MetaboAnalyst" onAction="#runModule"
 				userData="io.github.mzmine.modules.io.metaboanalystexport.MetaboAnalystExportModule" />
 			<MenuItem text="mzTab" onAction="#runModule"
-				userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+					  userData="io.github.mzmine.modules.io.mztabexport.MzTabExportModule" />
+			<MenuItem text="mzTab-m" onAction="#runModule"
+					  userData="io.github.mzmine.modules.io.mztabmexport.MZTabmExportModule" />
 			<MenuItem text="SQL Database" onAction="#runModule"
 				userData="io.github.mzmine.modules.io.sqlexport.SQLExportModule" />
 			<MenuItem text="MSP file (ADAP)" onAction="#runModule"
