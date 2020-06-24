@@ -1,10 +1,29 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.visualization.ims;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.ims.imsVisualizer.MobilityRetentionHeatMapPlot;
-import io.github.mzmine.modules.visualization.ims.imsVisualizer.MzMobilityPlotHeatMapPlot;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.modules.visualization.ims.imsVisualizer.*;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -104,16 +123,49 @@ public class ImsVisualizerTask extends AbstractTask {
           // Get controller
           controller = loader.getController();
 
-          // add mobility-mz heatmap and mobility intensity heatmap plot.
-          BorderPane bottomPane = controller.getbottomPlot();
-          bottomPane.setCenter(
-              new MzMobilityPlotHeatMapPlot(parameterSet, paintScaleStyle, selectedRetentionTime));
+          // add mobility-mz plot.
+          BorderPane topRightpane = null;
+          MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot = null;
+          if (selectedRetentionTime == -1) {
+            datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
+            mzMobilityPlotHeatMapPlot = new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
+            topRightpane = controller.getBottomRightPane();
+            topRightpane.setCenter(mzMobilityPlotHeatMapPlot);
+          }
 
-            // add mobility-intensity heatmap and mobility intensity heatmap plot.
-            BorderPane topPane = controller.getTopPlot();
-            topPane.setCenter(
-                    new MobilityRetentionHeatMapPlot(parameterSet, paintScaleStyle));
+          datasetMI = new MobilityIntensityXYDataset(parameterSet);
+          MobilityIntensityPlot mobilityIntensityPlot = new MobilityIntensityPlot(datasetMI);
+          BorderPane topLeftPane = controller.getBottomLeftPane();
+          topLeftPane.setCenter(mobilityIntensityPlot);
 
+          ChartGroup groupMobility = new ChartGroup(false, true, false, true);
+          groupMobility.setShowCrosshair(true, true);
+
+          groupMobility.add((new ChartViewWrapper(mobilityIntensityPlot)));
+          if (mzMobilityPlotHeatMapPlot != null)
+            groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
+
+          // setup bottom part
+
+          // add intensity retention time plot
+          dataset3d = new RetentionTimeMobilityXYZDataset(parameterSet);
+          MobilityRetentionHeatMapPlot mobilityRetentionHeatMapPlot =
+              new MobilityRetentionHeatMapPlot(dataset3d, paintScaleStyle);
+          BorderPane heatmap = controller.getTopRightPane();
+          heatmap.setCenter(mobilityRetentionHeatMapPlot);
+
+          // add mobility-m/z plot to border
+          BorderPane plotePaneIRT = controller.getTopLeftPane();
+          datasetIRT = new IntensityRetentionTimeXYDataset(parameterSet);
+          IntensityRetentionTimePlot intensityRetentionTimePlot =
+              new IntensityRetentionTimePlot(datasetIRT, this, mobilityRetentionHeatMapPlot);
+          plotePaneIRT.setCenter(intensityRetentionTimePlot);
+
+          ChartGroup groupRetentionTime = new ChartGroup(false, true, true, false);
+          groupMobility.setShowCrosshair(true, true);
+
+          groupRetentionTime.add(new ChartViewWrapper(intensityRetentionTimePlot));
+          groupRetentionTime.add(new ChartViewWrapper(mobilityRetentionHeatMapPlot));
 
           stage.setTitle("IMS of " + dataFiles[0] + "m/z Range " + mzRange);
           stage.show();
@@ -125,10 +177,9 @@ public class ImsVisualizerTask extends AbstractTask {
     logger.info("Finished IMS visualization of" + dataFiles[0]);
   }
 
-  //  public void runMoblityMZHeatMap() {
-  //    datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
-  //    BorderPane plotPaneMF = controller.getPlotPaneMF();
-  //    plotPaneMF.setCenter(
-  //        new MzMobilityPlotHeatMapPlot(parameterSet, paintScaleStyle, selectedRetentionTime));
-  //  }
+  public void runMoblityMZHeatMap() {
+    datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
+    BorderPane plotPaneMF = controller.getBottomRightPane();
+    plotPaneMF.setCenter(new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle));
+  }
 }

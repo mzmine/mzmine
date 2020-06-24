@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="658.0" prefWidth="908.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
-    <children>
-        <FlowPane fx:id="flowPane" layoutX="14.0" layoutY="11.0" prefHeight="634.0" prefWidth="881.0">
-            <children>
-                <BorderPane fx:id="topPlot" prefHeight="340.0" prefWidth="873.0" />
-                <BorderPane fx:id="bottomPlot" prefHeight="304.0" prefWidth="873.0" />
-            </children>
-        </FlowPane>
-    </children>
+<AnchorPane prefHeight="791.0" prefWidth="864.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
+   <children>
+      <FlowPane fx:id="flotPane" layoutY="7.0" prefHeight="363.0" prefWidth="905.0">
+         <children>
+            <BorderPane fx:id="topLeftPane" prefHeight="363.0" prefWidth="452.0" />
+            <BorderPane fx:id="topRightPane" prefHeight="363.0" prefWidth="452.0" />
+         </children>
+      </FlowPane>
+      <Label layoutX="320.0" layoutY="391.0" prefHeight="43.0" prefWidth="195.0" text="                 Label" />
+      <FlowPane layoutY="443.0" prefHeight="363.0" prefWidth="905.0">
+         <children>
+            <BorderPane fx:id="bottomLeftPane" prefHeight="356.0" prefWidth="452.0" />
+            <BorderPane fx:id="bottomRightPane" prefHeight="356.0" prefWidth="452.0" />
+         </children>
+      </FlowPane>
+   </children>
 </AnchorPane>

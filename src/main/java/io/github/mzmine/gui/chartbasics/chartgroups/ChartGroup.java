@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+
+import javafx.scene.Node;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -44,7 +46,7 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class ChartGroup {
+public class ChartGroup extends Node {
   // Logger.
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -349,5 +351,4 @@ public class ChartGroup {
     if (maxRange != null)
       rangeHasChanged(maxRange[1]);
   }
-
 }
