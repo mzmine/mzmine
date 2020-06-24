@@ -247,10 +247,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
 
-  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
-    MZmineCore.getTaskController().addTask(new SpectraDataSetCalc(rawDataFiles, pos));
-  }
-
   /**
    * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
    */
@@ -527,6 +523,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       doneFiles = 0;
       setStatus(TaskStatus.WAITING);
       features = new ArrayList<>();
+      dataSetsAndRenderers = new HashMap<>();
     }
 
     @Override
@@ -638,6 +635,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       } else {
         ScanDataSet dataSet = new ScanDataSet(pos.getDataFile().getScan(pos.getScanNumber()));
         filesAndDataSets.put(pos.getDataFile(), dataSet);
+        doneFiles++;
       }
 
       Platform.runLater(() -> {
