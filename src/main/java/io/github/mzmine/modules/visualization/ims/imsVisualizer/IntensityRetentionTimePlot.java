@@ -22,9 +22,9 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
-import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
@@ -48,7 +48,6 @@ public class IntensityRetentionTimePlot extends EChartViewer {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private double selectedRetention;
-  private ParameterSet parameterSet;
   private ValueMarker marker;
   private EStandardChartTheme theme;
 
@@ -59,7 +58,7 @@ public class IntensityRetentionTimePlot extends EChartViewer {
 
     super(
         ChartFactory.createXYLineChart(
-            null,
+            "",
             "retention time",
             "intensity",
             dataset,
@@ -67,7 +66,6 @@ public class IntensityRetentionTimePlot extends EChartViewer {
             true,
             true,
             false));
-    this.parameterSet = parameterSet;
     chart = getChart();
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
@@ -82,8 +80,8 @@ public class IntensityRetentionTimePlot extends EChartViewer {
     plot.setDomainGridlinePaint(Color.RED);
     plot.setOutlinePaint(Color.red);
     plot.setOutlineStroke(new BasicStroke(2.5f));
-
     chart.getLegend().setFrame(BlockBorder.NONE);
+
     addChartMouseListener(
         new ChartMouseListenerFX() {
           @Override
@@ -109,7 +107,7 @@ public class IntensityRetentionTimePlot extends EChartViewer {
               marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
               plot.addDomainMarker(marker);
 
-             //  marker to the mobility-retention time heatmap plot.
+              //  marker to the mobility-retention time heatmap plot.
               mobilityRetentionHeatMapPlot.getPlot().clearDomainMarkers();
               mobilityRetentionHeatMapPlot.getPlot().addDomainMarker(marker);
             }

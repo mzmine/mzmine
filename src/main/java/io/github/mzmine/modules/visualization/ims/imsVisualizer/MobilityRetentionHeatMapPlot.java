@@ -52,19 +52,11 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
 
-
   public MobilityRetentionHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
     super(
         ChartFactory.createScatterPlot(
-            "",
-            "retention time",
-            "mobility",
-            dataset,
-            PlotOrientation.VERTICAL,
-            true,
-            true,
-            true));
+            "", "retention time", "mobility", dataset, PlotOrientation.VERTICAL, true, true, true));
 
     chart = getChart();
     this.dataset3d = dataset;
@@ -178,5 +170,7 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
     chart.addSubtitle(legend);
   }
 
-  public XYPlot getPlot(){ return plot;}
+  public XYPlot getPlot() {
+    return plot;
+  }
 }

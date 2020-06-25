@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.visualization.ims.imsVisualizer.*;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -30,6 +31,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -113,7 +115,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
           try {
             AnchorPane root = (AnchorPane) loader.load();
-            Scene scene = new Scene(root, 1028, 800);
+            Scene scene = new Scene(root);
             stage.setScene(scene);
             logger.finest("Stage has been successfully loaded from the FXML loader.");
           } catch (IOException e) {
@@ -127,10 +129,11 @@ public class ImsVisualizerTask extends AbstractTask {
           BorderPane topRightpane = null;
           MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot = null;
           if (selectedRetentionTime == -1) {
-            datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
+            datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime, this);
             mzMobilityPlotHeatMapPlot = new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
             topRightpane = controller.getBottomRightPane();
             topRightpane.setCenter(mzMobilityPlotHeatMapPlot);
+            updateRTlebel();
           }
 
           datasetMI = new MobilityIntensityXYDataset(parameterSet);
@@ -154,12 +157,21 @@ public class ImsVisualizerTask extends AbstractTask {
           BorderPane heatmap = controller.getTopRightPane();
           heatmap.setCenter(mobilityRetentionHeatMapPlot);
 
+          // set the label for retentiontime-mobility plot.
+            Label mobilityRTLabel = controller.getMobilityRTLabel();
+           mobilityRTLabel.setText("M/Z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
+
+
           // add mobility-m/z plot to border
           BorderPane plotePaneIRT = controller.getTopLeftPane();
           datasetIRT = new IntensityRetentionTimeXYDataset(parameterSet);
           IntensityRetentionTimePlot intensityRetentionTimePlot =
               new IntensityRetentionTimePlot(datasetIRT, this, mobilityRetentionHeatMapPlot);
           plotePaneIRT.setCenter(intensityRetentionTimePlot);
+
+          // set label for the the intensity-rt plot.
+            Label intensityRTLabel = controller.getIntensityRTLabel();
+            intensityRTLabel.setText("M/Z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
 
           ChartGroup groupRetentionTime = new ChartGroup(false, true, true, false);
           groupMobility.setShowCrosshair(true, true);
@@ -178,8 +190,15 @@ public class ImsVisualizerTask extends AbstractTask {
   }
 
   public void runMoblityMZHeatMap() {
-    datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime);
+    datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime, this);
     BorderPane plotPaneMF = controller.getBottomRightPane();
     plotPaneMF.setCenter(new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle));
+    updateRTlebel();
+  }
+
+  public void updateRTlebel() {
+    Label rtLabel = controller.getRtLabel();
+
+    rtLabel.setText("RT: " + MZminePreferences.rtFormat.getValue().format(selectedRetentionTime) + " min");
   }
 }

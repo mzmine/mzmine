@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYZDataset;
 
@@ -41,8 +42,9 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
   private Double[] zValues;
   private Double selectedRetentionTime;
   private int itemSize;
+  private ImsVisualizerTask imsVisualizerTask;
 
-  public MobilityFrameXYZDataset(ParameterSet parameters, double retentionTime) {
+  public MobilityFrameXYZDataset(ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -58,6 +60,8 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
     selectedRetentionTime = retentionTime;
+
+    imsVisualizerTask = imsVisualizerTask;
 
     mobility = new ArrayList<>();
     mzValues = new ArrayList<>();
@@ -77,6 +81,7 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
           selectedRetentionTime = scans[i].getRetentionTime();
         }
       }
+      imsVisualizerTask.setSelectedRetentionTime(selectedRetentionTime);
     }
 
     for (int i = 0; i < scans.length; i++) {
@@ -98,6 +103,10 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
     xValues = mzValues.toArray(new Double[itemSize]);
     yValues = mobility.toArray(new Double[itemSize]);
     zValues = intensity.toArray(new Double[itemSize]);
+  }
+
+  public double getselectedRetentionTime() {
+    return selectedRetentionTime;
   }
 
   @Override

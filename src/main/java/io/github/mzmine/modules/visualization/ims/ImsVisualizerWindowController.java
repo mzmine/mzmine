@@ -19,9 +19,8 @@
 package io.github.mzmine.modules.visualization.ims;
 
 import javafx.fxml.FXML;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 
 public class ImsVisualizerWindowController {
 
@@ -29,11 +28,20 @@ public class ImsVisualizerWindowController {
   @FXML public BorderPane topRightPane;
   @FXML public BorderPane bottomLeftPane;
   @FXML public BorderPane bottomRightPane;
+  @FXML public Label rtLabel;
+  @FXML public Label intensityRTLabel;
+  @FXML public Label mobilityRTLabel;
+
 
 
   public BorderPane getTopLeftPane(){return topLeftPane;}
   public BorderPane getTopRightPane(){return topRightPane;}
   public BorderPane getBottomLeftPane(){return bottomLeftPane;}
   public BorderPane getBottomRightPane(){return bottomRightPane;}
+
+  public Label getRtLabel(){return rtLabel;}
+  public Label getIntensityRTLabel(){ return  intensityRTLabel; }
+  public Label getMobilityRTLabel(){ return mobilityRTLabel; }
+
 
 }

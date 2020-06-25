@@ -17,6 +17,7 @@
  */
 
 package io.github.mzmine.modules.visualization.ims;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;

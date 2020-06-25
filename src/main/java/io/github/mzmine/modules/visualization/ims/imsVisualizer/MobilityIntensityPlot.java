@@ -23,6 +23,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -40,29 +41,28 @@ public class MobilityIntensityPlot extends EChartViewer {
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
 
-
   public MobilityIntensityPlot(XYDataset dataset) {
     super(
         ChartFactory.createXYLineChart(
             "", "intensity", "mobility", dataset, PlotOrientation.VERTICAL, true, true, false));
-        chart = getChart();
-        plot = chart.getXYPlot();
-        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-        theme.apply(chart);
-
+    chart = getChart();
+    plot = chart.getXYPlot();
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(chart);
 
     var renderer = new XYLineAndShapeRenderer();
-      renderer.setSeriesPaint(0, Color.GREEN);
-      renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+    renderer.setSeriesPaint(0, Color.GREEN);
+    renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 
-      plot.setRenderer(renderer);
-      plot.setBackgroundPaint(Color.BLACK);
-      plot.setRangeGridlinePaint(Color.BLACK);
-      plot.setDomainGridlinePaint(Color.BLACK);
-      plot.setOutlinePaint(Color.red);
-      plot.setOutlineStroke(new BasicStroke(2.5f));
-
-      chart.getLegend().setFrame(BlockBorder.NONE);
-
+    plot.setRenderer(renderer);
+    plot.setBackgroundPaint(Color.BLACK);
+    plot.setRangeGridlinePaint(Color.BLACK);
+    plot.setDomainGridlinePaint(Color.BLACK);
+    plot.setOutlinePaint(Color.red);
+    plot.setOutlineStroke(new BasicStroke(2.5f));
+    plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
+    plot.setDomainAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+    plot.getDomainAxis().setInverted(true);
+    chart.getLegend().setFrame(BlockBorder.NONE);
   }
 }

@@ -65,7 +65,7 @@ public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
     }
 
     // Calculate zValues intensity.
-      zValues = new double[scanSize];
+    zValues = new double[scanSize];
     for (int i = 0; i < scanSize; i++) {
       DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
 

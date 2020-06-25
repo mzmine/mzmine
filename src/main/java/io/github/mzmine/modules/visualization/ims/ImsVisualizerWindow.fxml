@@ -2,21 +2,31 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <AnchorPane prefHeight="791.0" prefWidth="864.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
-   <children>
-      <FlowPane fx:id="flotPane" layoutY="7.0" prefHeight="363.0" prefWidth="905.0">
-         <children>
-            <BorderPane fx:id="topLeftPane" prefHeight="363.0" prefWidth="452.0" />
-            <BorderPane fx:id="topRightPane" prefHeight="363.0" prefWidth="452.0" />
-         </children>
-      </FlowPane>
-      <Label layoutX="320.0" layoutY="391.0" prefHeight="43.0" prefWidth="195.0" text="                 Label" />
-      <FlowPane layoutY="443.0" prefHeight="363.0" prefWidth="905.0">
-         <children>
-            <BorderPane fx:id="bottomLeftPane" prefHeight="356.0" prefWidth="452.0" />
-            <BorderPane fx:id="bottomRightPane" prefHeight="356.0" prefWidth="452.0" />
-         </children>
-      </FlowPane>
-   </children>
+    <children>
+        <FlowPane fx:id="flotPane" layoutY="45.0" prefHeight="325.0" prefWidth="864.0">
+            <children>
+                <BorderPane fx:id="topLeftPane" prefHeight="340.0" prefWidth="432.0" />
+                <BorderPane fx:id="topRightPane" prefHeight="363.0" prefWidth="432.0" />
+            </children>
+        </FlowPane>
+        <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="310.0" layoutY="415.0" prefHeight="39.0" prefWidth="286.0" text="" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="22.0" />
+         </font></Label>
+        <FlowPane layoutY="457.0" prefHeight="372.0" prefWidth="864.0">
+            <children>
+                <BorderPane fx:id="bottomLeftPane" prefHeight="363.0" prefWidth="432.0" />
+                <BorderPane fx:id="bottomRightPane" prefHeight="363.0" prefWidth="432.0" />
+            </children>
+        </FlowPane>
+      <Label fx:id="intensityRTLabel" layoutX="33.0" prefHeight="46.0" prefWidth="354.0" text=""><font>
+        <Font name="System Bold" size="18.0" />
+      </font></Label>
+      <Label fx:id="mobilityRTLabel" layoutX="535.0" layoutY="-3.0" prefHeight="46.0" prefWidth="286.0" text=""><font>
+        <Font name="System Bold" size="18.0" />
+      </font></Label>
+    </children>
 </AnchorPane>

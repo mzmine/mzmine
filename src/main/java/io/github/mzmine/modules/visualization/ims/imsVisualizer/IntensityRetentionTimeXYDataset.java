@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYDataset;
+
 import java.util.ArrayList;
 
 public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {

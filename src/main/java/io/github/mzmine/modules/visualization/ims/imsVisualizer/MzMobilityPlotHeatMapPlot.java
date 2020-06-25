@@ -54,19 +54,11 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
 
-
   public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
     super(
         ChartFactory.createScatterPlot(
-            "",
-            "m/z",
-            "mobility",
-            dataset,
-            PlotOrientation.VERTICAL,
-            true,
-            true,
-            true));
+            "", "m/z", "mobility", dataset, PlotOrientation.VERTICAL, true, true, true));
 
     chart = getChart();
     this.dataset3d = dataset;
