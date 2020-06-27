@@ -31,10 +31,10 @@ import io.github.mzmine.datamodel.RawDataFile;
  * Integrated peak area data set. Separate data set is created for every peak shown in this
  * visualizer window.
  */
-public class PeakDataSet extends AbstractXYDataset {
+public class FeatureDataSet extends AbstractXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final Feature peak;
@@ -50,7 +50,7 @@ public class PeakDataSet extends AbstractXYDataset {
    * @param p the peak.
    * @param id peak identity to use as a label.
    */
-  public PeakDataSet(final Feature p, final String id) {
+  public FeatureDataSet(final Feature p, final String id) {
 
     peak = p;
     name = id;
@@ -97,7 +97,7 @@ public class PeakDataSet extends AbstractXYDataset {
    *
    * @param p the peak.
    */
-  public PeakDataSet(final Feature p) {
+  public FeatureDataSet(final Feature p) {
     this(p, null);
   }
 
@@ -147,10 +147,10 @@ public class PeakDataSet extends AbstractXYDataset {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof PeakDataSet)) {
+    if (!(o instanceof FeatureDataSet)) {
       return false;
     }
-    PeakDataSet that = (PeakDataSet) o;
+    FeatureDataSet that = (FeatureDataSet) o;
     return peakItem == that.peakItem &&
         Objects.equals(peak, that.peak) &&
         Arrays.equals(retentionTimes, that.retentionTimes) &&

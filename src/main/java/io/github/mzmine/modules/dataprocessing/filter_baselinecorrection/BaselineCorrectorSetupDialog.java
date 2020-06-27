@@ -211,7 +211,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         // set_VK_ESCAPE_KeyListener();
 
         // Reset TIC plot
-        ticPlot.removeAllTICDataSets();
+        ticPlot.removeAllDataSets();
         ticPlot.setPlotType(getPlotType());
 
         // Add the original raw data file
@@ -219,7 +219,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         Scan scans[] = sel.getMatchingScans(dataFile);
 
         TICDataSet ticDataset = new TICDataSet(dataFile, scans, mzRange, null, getPlotType());
-        ticPlot.addTICDataset(ticDataset);
+        ticPlot.addTICDataSet(ticDataset);
 
         try {
 
@@ -237,11 +237,11 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
             scans = sel.getMatchingScans(newDataFile);
             final TICDataSet newDataset =
                 new TICDataSet(newDataFile, scans, mzRange, null, getPlotType());
-            ticPlot.addTICDataset(newDataset);
+            ticPlot.addTICDataSet(newDataset);
 
             // Show the trend line as well
             XYDataset tlDataset = createBaselineDataset(dataFile, newDataFile, getPlotType());
-            ticPlot.addTICDataset(tlDataset);
+            ticPlot.addDataSet(tlDataset);
           }
         } catch (IOException | RSessionWrapperException e) {
           if (!this.userCanceled) {

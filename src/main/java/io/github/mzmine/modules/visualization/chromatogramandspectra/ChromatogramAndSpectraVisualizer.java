@@ -24,19 +24,17 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
 import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
-import io.github.mzmine.modules.visualization.chromatogram.PeakDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.PeakTICPlotRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICToolTipGenerator;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ManualFeatureUtils;
 import java.awt.BasicStroke;
@@ -57,6 +55,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
@@ -72,30 +72,34 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       .getLogger(ChromatogramAndSpectraVisualizer.class.getName());
 
   private static final BasicStroke MARKER_STROKE = new BasicStroke(2.0f);
-  protected TICPlot chromPlot;
-  protected SpectraPlot spectrumPlot;
+
+  protected FlowPane pnSpectrumControls;
+  protected ChromatogramPlotControlPane pnChromControls;
+
+  protected final TICPlot chromPlot;
+  protected final SpectraPlot spectrumPlot;
   protected ValueMarker rtMarker;
 
   protected boolean showSpectraOfEveryRawFile;
 
-  protected ObjectProperty<ScanSelection> scanSelection;
+  protected final ObjectProperty<ScanSelection> scanSelection;
 
   /**
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
    */
-  protected ObjectProperty<CursorPosition> currentSelection;
+  protected final ObjectProperty<CursorPosition> currentSelection;
 
   /**
    * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
    * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(RawDataFile, int)}.
    */
-  protected ObjectProperty<MZTolerance> bpcChromTolerance;
+  protected final ObjectProperty<MZTolerance> bpcChromTolerance;
   /**
    * Tolerance for the generation of the TICDataset. If set to 0, the whole m/z range is displayed.
    * To display extracted ion chromatograms set the plotType to TIC and select a m/z range.
    */
-  protected ObjectProperty<Range<Double>> mzRange;
+  protected final ObjectProperty<Range<Double>> mzRange;
 
   /**
    * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
@@ -122,9 +126,17 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     setOrientation(orientation);
     showSpectraOfEveryRawFile = true;
 
+    pnChromControls = new ChromatogramPlotControlPane();
+    pnSpectrumControls = new FlowPane();
     chromPlot = new TICPlot();
     spectrumPlot = new SpectraPlot();
-    getItems().addAll(chromPlot, spectrumPlot);
+    BorderPane pnWrapSpectrum = new BorderPane();
+    BorderPane pnWrapChrom = new BorderPane();
+    pnWrapChrom.setCenter(chromPlot);
+    pnWrapChrom.setBottom(pnChromControls);
+    pnWrapSpectrum.setCenter(spectrumPlot);
+    pnWrapSpectrum.setBottom(pnSpectrumControls);
+    getItems().addAll(pnWrapChrom, pnWrapSpectrum);
 
     bpcChromTolerance = new SimpleObjectProperty<>(new MZTolerance(0.001, 10));
     bpcChromToleranceProperty().addListener(
@@ -138,6 +150,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     scanSelection = new SimpleObjectProperty<>(new ScanSelection(1));
     scanSelectionProperty().addListener((obs, old, val) -> updateAllChromatogramDataSets());
+
+    mzRange = new SimpleObjectProperty<>();
 
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
@@ -156,8 +170,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param plotType The new plot type.
    */
-  public void setPlotType(TICPlotType plotType) {
-    chromPlot.removeAllTICDataSets();
+  public void setPlotType(@Nonnull TICPlotType plotType) {
+    chromPlot.removeAllDataSets();
     chromPlot.setPlotType(plotType);
     // since this is a member of TICPlot we cannot wrap it in a property. -> update manually
     updateAllChromatogramDataSets();
@@ -178,7 +192,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFiles
    */
-  public void setRawDataFiles(List<RawDataFile> rawDataFiles) {
+  public void setRawDataFiles(@Nonnull List<RawDataFile> rawDataFiles) {
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
     for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
@@ -210,10 +224,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       return;
     }
 
-    Range<Double> rawMZRange = (this.mzRange == null) ? rawDataFile.getDataMZRange() : getMzRange();
+    Range<Double> rawMZRange = (getMzRange() == null) ? rawDataFile.getDataMZRange() : getMzRange();
     TICDataSet ticDataset = new TICDataSet(rawDataFile, scans, rawMZRange, null, getPlotType());
     filesAndDataSets.put(rawDataFile, ticDataset);
-    chromPlot.addTICDataset(ticDataset, rawDataFile.getColorAWT());
+    chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
 
     logger.fine("Added raw data file " + rawDataFile.getName());
   }
@@ -223,7 +237,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param file The raw data file
    */
-  public void removeRawDataFile(final RawDataFile file) {
+  public void removeRawDataFile(@Nonnull final RawDataFile file) {
     logger.fine("Removing raw data file " + file.getName());
     TICDataSet dataset = filesAndDataSets.get(file);
     chromPlot.getXYPlot().setDataset(chromPlot.getXYPlot().indexOf(dataset), null);
@@ -342,7 +356,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum     The scan number.
    */
-  public void setFocusedScan(RawDataFile rawDataFile, int scanNum) {
+  public void setFocusedScan(@Nonnull RawDataFile rawDataFile, int scanNum) {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
       return;
     }
@@ -358,7 +372,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The raw data file
    * @param scanNum     The number of the scan
    */
-  private void forceScanDataSet(RawDataFile rawDataFile, int scanNum) {
+  private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, int scanNum) {
     spectrumPlot.removeAllDataSets();
     ScanDataSet dataSet = new ScanDataSet(rawDataFile.getScan(scanNum));
     spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false);
@@ -372,7 +386,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum     The scan number.
    */
-  public void setFocusedScanSilent(RawDataFile rawDataFile, int scanNum) {
+  public void setFocusedScanSilent(@Nonnull RawDataFile rawDataFile, int scanNum) {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
       return;
     }
@@ -391,12 +405,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Calculates {@link PeakDataSet}s for the m/z range of the base peak in the selected scan.
+   * Calculates {@link FeatureDataSet}s for the m/z range of the base peak in the selected scan.
    *
    * @param mainRaw
    * @param mainScanNum
    */
-  private void updateFeatureDataSets(RawDataFile mainRaw, int mainScanNum) {
+  private void updateFeatureDataSets(@Nonnull RawDataFile mainRaw, int mainScanNum) {
     // mz of the base peak in the selected scan of the selected raw data file.
     double mzBasePeak = mainRaw.getScan(mainScanNum).getHighestDataPoint().getMZ();
     Range<Double> bpcChromToleranceRange = getBpcChromTolerance().getToleranceRange(mzBasePeak);
@@ -418,7 +432,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         .addTask(thread);
   }
 
-  private void updateSpectraPlot(Collection<RawDataFile> rawDataFiles, CursorPosition pos) {
+  private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
+      @Nonnull CursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles,
         pos);
     thread.addTaskStatusListener((task, oldStatus, newStatus) -> {
@@ -436,14 +451,16 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     MZmineCore.getTaskController().addTask(thread);
   }
 
+  @Nullable
   public Range<Double> getMzRange() {
     return mzRange.get();
   }
 
-  public void setMzRange(Range<Double> mzRange) {
+  public void setMzRange(@Nullable Range<Double> mzRange) {
     this.mzRange.set(mzRange);
   }
 
+  @Nonnull
   public ObjectProperty<Range<Double>> mzRangeProperty() {
     return mzRange;
   }
@@ -453,27 +470,31 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param selection The new scan selection.
    */
-  public void setScanSelection(ScanSelection selection) {
+  public void setScanSelection(@Nonnull ScanSelection selection) {
     scanSelection.set(selection);
   }
 
+  @Nonnull
   public ScanSelection getScanSelection() {
     return scanSelection.get();
   }
 
+  @Nonnull
   public ObjectProperty<ScanSelection> scanSelectionProperty() {
     return scanSelection;
   }
 
+  @Nonnull
   public MZTolerance getBpcChromTolerance() {
     return bpcChromTolerance.get();
   }
 
+  @Nonnull
   public ObjectProperty<MZTolerance> bpcChromToleranceProperty() {
     return bpcChromTolerance;
   }
 
-  public void setBpcChromTolerance(MZTolerance bpcChromTolerance) {
+  public void setBpcChromTolerance(@Nonnull MZTolerance bpcChromTolerance) {
     this.bpcChromTolerance.set(bpcChromTolerance);
   }
 
@@ -513,8 +534,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     private final Collection<RawDataFile> rawDataFiles;
     private final Range<Double> mzRange;
     private int doneFiles;
-    private final List<PeakDataSet> features;
-    private final HashMap<PeakDataSet, PeakTICPlotRenderer> dataSetsAndRenderers;
+    private final List<FeatureDataSet> features;
+    private final HashMap<FeatureDataSet, PeakTICPlotRenderer> dataSetsAndRenderers;
 
     public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles,
         final Range<Double> mzRange) {
@@ -552,31 +573,30 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
             rawDataFile.getDataRTRange(getScanSelection().getMsLevel()), mzRange);
         if (feature != null && feature.getScanNumbers() != null
             && feature.getScanNumbers().length > 0) {
-          features.add(new PeakDataSet(feature));
+          features.add(new FeatureDataSet(feature));
         } else {
           logger.finest("No scans found for " + rawDataFile.getName());
         }
         doneFiles++;
       }
 
-      features.forEach(dataSet -> {
-        PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
-        renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-        renderer.setSeriesPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-        renderer.setSeriesFillPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-        dataSetsAndRenderers.put(dataSet, renderer);
-      });
+//      features.forEach(dataSet -> {
+//        PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
+//        renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
+//        renderer.setSeriesPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
+//        renderer.setSeriesFillPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
+//        dataSetsAndRenderers.put(dataSet, renderer);
+//      });
 
       Platform.runLater(() -> {
         if (getStatus() == TaskStatus.CANCELED) {
           return;
         }
-        chromPlot.getXYPlot().setNotify(false);
-        chromPlot.removeAllFeatureDataSets();
-        dataSetsAndRenderers
-            .forEach((dataSet, renderer) -> chromPlot.addPeakDataset(dataSet, renderer));
-        chromPlot.getXYPlot().setNotify(true);
-        chromPlot.getChart().fireChartChanged();
+//        chromPlot.getXYPlot().setNotify(false);
+        chromPlot.removeAllFeatureDataSets(false);
+//        dataSetsAndRenderers
+//            .forEach((dataSet, renderer) -> chromPlot.addPeakDataset(dataSet, renderer));
+        chromPlot.addFeatureDataSets(features);
       });
 
       setStatus(TaskStatus.FINISHED);

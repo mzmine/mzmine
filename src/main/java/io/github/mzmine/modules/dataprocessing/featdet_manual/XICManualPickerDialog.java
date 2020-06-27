@@ -217,7 +217,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     Scan[] scans = sel.getMatchingScans(rawDataFile);
     dataSet = new TICDataSet(rawDataFile, scans, mzRange, null);
 
-    getTicPlot().addTICDataset(dataSet);
+    getTicPlot().addTICDataSet(dataSet);
     getTicPlot().setPlotType(TICPlotType.TIC);
 
     lower = rtRange.lowerEndpoint();

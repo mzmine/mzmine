@@ -198,11 +198,11 @@ public class TICVisualizerWindow extends Stage {
         if (peakLabels != null && peakLabels.containsKey(peak)) {
 
           final String label = peakLabels.get(peak);
-          ticPlot.addLabelledPeakDataset(new PeakDataSet(peak, label), label);
+          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(peak, label), label);
 
         } else {
 
-          ticPlot.addPeakDataset(new PeakDataSet(peak));
+          ticPlot.addFeatureDataSet(new FeatureDataSet(peak));
         }
       }
     }
@@ -407,7 +407,7 @@ public class TICVisualizerWindow extends Stage {
 
     TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
     ticDataSets.put(newFile, ticDataset);
-    ticPlot.addTICDataset(ticDataset);
+    ticPlot.addTICDataSet(ticDataset);
 
   }
 

@@ -22,14 +22,16 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Ellipse2D;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -53,7 +55,6 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import javafx.scene.Cursor;
 import javafx.scene.control.MenuItem;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
@@ -69,12 +70,8 @@ public class TICPlot extends EChartViewer {
   // Zoom factor.
   private static final double ZOOM_FACTOR = 1.2;
 
-  // peak labels color - moved to EStandardChartTheme ~SteffenHeu
-
   // data points shape
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
-
-  // Fonts. - moved to EStandardChartTheme ~SteffenHeu
 
   // Axis margins.
   private static final double AXIS_MARGINS = 0.001;
@@ -83,7 +80,7 @@ public class TICPlot extends EChartViewer {
   // private static final double TITLE_TOP_MARGIN = 5.0;
 
   // Plot type.
-  private TICPlotType plotType;
+  private ObjectProperty<TICPlotType> plotType;
 
   private final JFreeChart chart;
   // The plot.
@@ -100,8 +97,7 @@ public class TICPlot extends EChartViewer {
   private final TICPlotRenderer defaultRenderer;
 
   // Counters.
-  private int numOfDataSets;
-  private int numOfPeaks;
+  private int nextDataSetNum;
 
   private MenuItem RemoveFilePopupMenu;
 
@@ -137,8 +133,6 @@ public class TICPlot extends EChartViewer {
     // visualizer = listener;
     labelsVisible = 1;
     havePeakLabels = false;
-    numOfDataSets = 0;
-    numOfPeaks = 0;
     showSpectrumRequest = false;
 
     setMinWidth(300.0);
@@ -148,9 +142,10 @@ public class TICPlot extends EChartViewer {
     setPrefHeight(400.0);
 
     // Plot type
+    plotType = new SimpleObjectProperty<>();
     // Y-axis label.
     final String yAxisLabel =
-        (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
+        (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
 
     // Initialize the chart by default time series chart from factory.
     chart = getChart();
@@ -282,76 +277,12 @@ public class TICPlot extends EChartViewer {
       }
     });
 
-    // reset zoom history
     ZoomHistory history = getZoomHistory();
     if (history != null) {
       history.clear();
     }
-
-    // theme.apply(this.getChart());
   }
 
-  // @Override
-  public void actionPerformed(final ActionEvent event) {
-
-    // super.actionPerformed(event);
-
-    final String command = event.getActionCommand();
-
-    if ("ZOOM_IN".equals(command)) {
-      getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
-      getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-    }
-
-    // Set tick size to auto when zooming
-    String[] zoomList = new String[]{"ZOOM_IN_BOTH", "ZOOM_IN_DOMAIN", "ZOOM_IN_RANGE",
-        "ZOOM_OUT_BOTH", "ZOOM_DOMAIN_BOTH", "ZOOM_RANGE_BOTH", "ZOOM_RESET_BOTH",
-        "ZOOM_RESET_DOMAIN", "ZOOM_RESET_RANGE"};
-    if (Arrays.asList(zoomList).contains(command)) {
-      getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-      getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-    }
-
-    if ("ZOOM_OUT".equals(command)) {
-
-      getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
-      getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-      // if (getXYPlot().getDomainAxis().getRange().contains(0.0000001)) {
-      // getXYPlot().getDomainAxis().setAutoRange(true);
-      // getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-      // }
-    }
-
-    if ("ZOOM_AUTO".equals(command)) {
-      getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-      getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-      // restoreAutoDomainBounds();
-      // restoreAutoRangeBounds();
-    }
-
-    if ("SET_SAME_RANGE".equals(command)) {
-
-      // Get current axes range.
-      final NumberAxis xAxis = (NumberAxis) getXYPlot().getDomainAxis();
-      final NumberAxis yAxis = (NumberAxis) getXYPlot().getRangeAxis();
-      final double xMin = xAxis.getRange().getLowerBound();
-      final double xMax = xAxis.getRange().getUpperBound();
-      final double xTick = xAxis.getTickUnit().getSize();
-      final double yMin = yAxis.getRange().getLowerBound();
-      final double yMax = yAxis.getRange().getUpperBound();
-      final double yTick = yAxis.getTickUnit().getSize();
-
-      // Set the range of these frames
-      for (final Window frame : Stage.getWindows()) {
-        if (frame instanceof TICVisualizerWindow) {
-          final TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;
-          ticFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
-        }
-      }
-    }
-
-
-  }
 
   // @Override
   public void mouseWheelMoved(MouseWheelEvent event) {
@@ -413,11 +344,9 @@ public class TICPlot extends EChartViewer {
     // Toggle legend visibility.
     final LegendTitle legend = getChart().getLegend();
     legend.setVisible(!legend.isVisible());
-
   }
 
   public void switchItemLabelsVisible() {
-
     // Switch to next mode. Include peaks mode only if peak labels are
     // present.
     labelsVisible = (labelsVisible + 1) % (havePeakLabels ? 3 : 2);
@@ -428,23 +357,16 @@ public class TICPlot extends EChartViewer {
       final XYDataset dataSet = plot.getDataset(i);
       final XYItemRenderer renderer = plot.getRenderer(i);
       if (dataSet instanceof TICDataSet) {
-
         renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-
-      } else if (dataSet instanceof PeakDataSet) {
-
+      } else if (dataSet instanceof FeatureDataSet) {
         renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
-
       } else {
-
         renderer.setDefaultItemLabelsVisible(false);
-
       }
     }
   }
 
   public void switchDataPointsVisible() {
-
     Boolean dataPointsVisible = null;
     final int count = plot.getDatasetCount();
     for (int i = 0; i < count; i++) {
@@ -480,32 +402,12 @@ public class TICPlot extends EChartViewer {
     return plot;
   }
 
-  public synchronized void addTICDataset(final XYDataset dataSet, Color color) {
-    // Check if the dataSet to be added is compatible with the type of plot.
+  public synchronized void addDataSet(final XYDataset dataSet) {
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
-        != this.plotType)) {
+        != getPlotType())) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-          + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
-    }
-    try {
-      final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
-      renderer.setSeriesPaint(0, color);
-      renderer.setSeriesFillPaint(0, color);
-      renderer.setSeriesShape(0, DATA_POINT_SHAPE);
-      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-      addDataSetRenderer(dataSet, renderer);
-      numOfDataSets++;
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, "Unable to clone renderer", e);
-    }
-  }
-
-  public synchronized void addTICDataset(final XYDataset dataSet) {
-    // Check if the dataSet to be added is compatible with the type of plot.
-    if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
-        != this.plotType)) {
-      throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-          + "' does not have a compatible plotType. Expected '" + this.plotType.toString() + "'");
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
     }
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
@@ -513,30 +415,146 @@ public class TICPlot extends EChartViewer {
       renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
       renderer.setSeriesShape(0, DATA_POINT_SHAPE);
       renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-      addDataSetRenderer(dataSet, renderer);
-      numOfDataSets++;
-
-      // Enable remove plot menu
-      // if (visualizer instanceof TICVisualizerWindow && numOfDataSets > 1) {
-      // RemoveFilePopupMenu.setEnabled(true);
-      // }
+      addDataSetAndRenderer(dataSet, renderer);
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unable to clone renderer", e);
     }
   }
 
-  public synchronized void addPeakDataset(final XYDataset dataSet) {
-    final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
-    renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-    // renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
-    addDataSetRenderer(dataSet, renderer);
-    numOfPeaks++;
+  public synchronized void addDataSet(XYDataset dataSet, Color color) {
+    XYItemRenderer newRenderer = new DefaultXYItemRenderer();
+    newRenderer.setDefaultFillPaint(color);
+    addDataSetAndRenderer(dataSet, newRenderer);
   }
 
-  public synchronized void addPeakDataset(final XYDataset dataSet,
+  public synchronized void addTICDataSet(final TICDataSet dataSet, Color color) {
+    addTICDataSet(dataSet, color, color);
+  }
+
+  public synchronized void addTICDataSet(final TICDataSet dataSet, Color lineColor,
+      Color fillColor) {
+    try {
+      final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
+      renderer.setSeriesPaint(0, lineColor);
+      renderer.setSeriesFillPaint(0, fillColor);
+      renderer.setSeriesShape(0, DATA_POINT_SHAPE);
+      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+      addTICDataSet(dataSet, renderer);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
+    }
+  }
+
+  public synchronized void addTICDataSet(final TICDataSet dataSet, TICPlotRenderer renderer) {
+    // Check if the dataSet to be added is compatible with the type of plot.
+    if (dataSet.getPlotType()
+        != getPlotType()) {
+      throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
+    }
+    addDataSetAndRenderer(dataSet, renderer);
+  }
+
+  /**
+   * Adds a data set with the color specified in the color associated with the raw data file. If a
+   * specific color needs to be added, use {@link TICPlot#addTICDataSet(TICDataSet, Color)} or
+   * {@link TICPlot#addTICDataSet(TICDataSet, Color, Color)}
+   *
+   * @param dataSet
+   */
+  public synchronized void addTICDataSet(final TICDataSet dataSet) {
+    Color clr = null;
+    if (dataSet.getDataFile() != null) {
+      clr = dataSet.getDataFile().getColorAWT();
+    }
+
+    try {
+      final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
+      if (clr != null) {
+        renderer.setSeriesPaint(0, clr);
+        renderer.setSeriesFillPaint(0, clr);
+      } else {
+        renderer.setSeriesPaint(0, plot.getDrawingSupplier().getNextPaint());
+        renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
+      }
+      renderer.setSeriesShape(0, DATA_POINT_SHAPE);
+      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+      addTICDataSet(dataSet, renderer);
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.WARNING, "Unable to clone renderer", e);
+    }
+  }
+
+  /**
+   * Adds multiple data sets at once. Only triggers {@link JFreeChart#fireChartChanged()} once to
+   * save performance.
+   *
+   * @param dataSets
+   */
+  public synchronized void addTICDataSets(final Collection<TICDataSet> dataSets) {
+    plot.setNotify(false);
+    dataSets.forEach(ds -> addTICDataSet(ds));
+    plot.setNotify(true);
+    chart.fireChartChanged();
+  }
+
+  /**
+   * Adds a {@link FeatureDataSet} with in the color linked to the feature's raw data file to the
+   * plot.
+   *
+   * @param dataSet
+   */
+  public synchronized void addFeatureDataSet(final FeatureDataSet dataSet) {
+    final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
+    if (dataSet.getFeature() != null && dataSet.getFeature().getDataFile() != null
+        && dataSet.getFeature().getDataFile().getColor() != null) {
+      Color clr = dataSet.getFeature().getDataFile().getColorAWT();
+      renderer.setSeriesPaint(0, clr);
+      renderer.setSeriesFillPaint(0, clr);
+    } else {
+      renderer.setSeriesPaint(0, plot.getDrawingSupplier().getNextPaint());
+      renderer.setSeriesFillPaint(0, plot.getDrawingSupplier().getNextFillPaint());
+    }
+    renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
+    addDataSetAndRenderer(dataSet, renderer);
+  }
+
+  public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
+    plot.setNotify(false);
+    dataSets.forEach(ds -> addFeatureDataSet(ds));
+    plot.setNotify(true);
+    chart.fireChartChanged();
+  }
+
+
+  public synchronized void addFeatureDataSet(final FeatureDataSet dataSet,
       final PeakTICPlotRenderer renderer) {
-    addDataSetRenderer(dataSet, renderer);
-    numOfPeaks++;
+    addDataSetAndRenderer(dataSet, renderer);
+  }
+
+  public synchronized void addLabelledPeakDataSet(final FeatureDataSet dataSet,
+      final String label) {
+    // Add standard peak data set.
+    addFeatureDataSet(dataSet);
+
+    // Do we have a label?
+    if (label != null && label.length() > 0) {
+      // Add peak label renderer and data set.
+      final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
+      renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
+      renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+      addDataSetAndRenderer(dataSet, renderer);
+      renderer.setDrawSeriesLineAsPath(true);
+      renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
+        @Override
+        public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
+          return ((FeatureDataSet) xyDataSet).isPeak(item) ? label : null;
+        }
+      });
+
+      havePeakLabels = true;
+    }
   }
 
   public synchronized XYDataset removeDataSet(int index) {
@@ -547,105 +565,126 @@ public class TICPlot extends EChartViewer {
   }
 
   /**
-   * @param file The raw data file
+   * @param file   The raw data file
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
+   *               added right after and the plot shall not be updated until then.
    */
   @Nullable
-  public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
+  public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file, boolean notify) {
+    plot.setNotify(false);
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset ds = plot.getDataset(i);
-      if (ds != null && ds instanceof PeakDataSet) {
-        PeakDataSet pds = (PeakDataSet) ds;
+      if (ds != null && ds instanceof FeatureDataSet) {
+        FeatureDataSet pds = (FeatureDataSet) ds;
         if (pds.getFeature().getDataFile() == file) {
           plot.setDataset(getXYPlot().indexOf(pds), null);
           plot.setRenderer(getXYPlot().indexOf(pds), null);
         }
       }
     }
+    plot.setNotify(true);
+    if (notify) {
+      chart.fireChartChanged();
+    }
   }
 
+  /**
+   * @param file The raw data file and notifies the plot.
+   */
   @Nullable
-  public synchronized void removeAllFeatureDataSets() {
+  public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
+    removeFeatureDataSetsOfFile(file, true);
+  }
+
+  /**
+   * Removes all feature data sets.
+   *
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
+   *               added right after and the plot shall not be updated until then.
+   */
+  @Nullable
+  public synchronized void removeAllFeatureDataSets(boolean notify) {
+    plot.setNotify(false);
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset ds = plot.getDataset(i);
-      if (ds != null && ds instanceof PeakDataSet) {
+      if (ds != null && ds instanceof FeatureDataSet) {
         plot.setDataset(getXYPlot().indexOf(ds), null);
         plot.setRenderer(getXYPlot().indexOf(ds), null);
       }
     }
-    numOfPeaks = 0;
-  }
-
-  // add data set
-  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
-    XYItemRenderer newRenderer = new DefaultXYItemRenderer();
-    newRenderer.setDefaultFillPaint(color);
-    addDataSetRenderer(dataSet, newRenderer);
-    numOfDataSets++;
-  }
-
-  public synchronized void addLabelledPeakDataset(final XYDataset dataSet, final String label) {
-
-    // Add standard peak data set.
-    addPeakDataset(dataSet);
-
-    // Do we have a label?
-    if (label != null && label.length() > 0) {
-
-      // Add peak label renderer and data set.
-      final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
-      renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
-      renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
-      addDataSetRenderer(dataSet, renderer);
-      renderer.setDrawSeriesLineAsPath(true);
-      renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
-        @Override
-        public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
-          return ((PeakDataSet) xyDataSet).isPeak(item) ? label : null;
-        }
-      });
-
-      havePeakLabels = true;
+    plot.setNotify(true);
+    if (notify) {
+      chart.fireChartChanged();
     }
   }
 
-  public void removeAllTICDataSets() {
+  /**
+   * Removes all feature data sets and notifies the plot.
+   */
+  @Nullable
+  public synchronized void removeAllFeatureDataSets() {
+    removeAllFeatureDataSets(true);
+  }
+
+  /**
+   * Removes all data sets.
+   *
+   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
+   *               added right after and the plot shall not be updated until then.
+   */
+  public void removeAllDataSets(boolean notify) {
+    plot.setNotify(false);
     final int dataSetCount = plot.getDatasetCount();
     for (int index = 0; index < dataSetCount; index++) {
       plot.setDataset(index, null);
     }
-    numOfPeaks = 0;
-    numOfDataSets = 0;
+    plot.setNotify(true);
+    if (notify) {
+      chart.fireChartChanged();
+    }
+    nextDataSetNum = 0;
+  }
+
+  /**
+   * Removes all data sets and notifies the plot.
+   */
+  public void removeAllDataSets() {
+    removeAllDataSets(true);
   }
 
   public void setTitle(final String titleText, final String subTitleText) {
-
     chartTitle.setText(titleText);
     chartSubTitle.setText(subTitleText);
   }
 
+  @Nonnull
+  public ObjectProperty<TICPlotType> plotTypeProperty() {
+    return plotType;
+  }
+
   public void setPlotType(final TICPlotType plotType) {
 
-    if (this.plotType == plotType) {
+    if (getPlotType() == plotType) {
       return;
     }
     /*
      * // Plot type if (visualizer instanceof TICVisualizerWindow) { this.plotType =
      * ((TICVisualizerWindow) visualizer).getPlotType(); } else { }
      */
-    this.plotType = plotType;
+
+    plotTypeProperty().set(plotType);
     // Y-axis label.
     String yAxisLabel =
-        (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
+        (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
     getXYPlot().getRangeAxis().setLabel(yAxisLabel);
-
   }
 
   public TICPlotType getPlotType() {
-    return this.plotType;
+    return plotType.get();
   }
 
-  private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
-    int index = numOfDataSets + numOfPeaks;
+  private void addDataSetAndRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
+    int index = nextDataSetNum;
 
     // when removing and adding data sets this happens a lot. If it happens we set the
     // index to 0 and start from there. If we find a free spot, put it in there, otherwise
@@ -660,5 +699,6 @@ public class TICPlot extends EChartViewer {
 
     plot.setRenderer(index, renderer);
     plot.setDataset(index, dataSet);
+    nextDataSetNum++;
   }
 }
