@@ -1,6 +1,7 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Table;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
@@ -45,14 +46,12 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -204,32 +203,6 @@ public class MainWindowControllerNew {
     ObservableList<WrappedTask> tasksQueue =
         MZmineCore.getTaskController().getTaskQueue().getTasks();
     tasksView.setItems(tasksQueue);
-
-    tasksView.setRowFactory(row -> new TableRow<>() {
-
-      {
-        itemProperty().addListener((obs, old, newTask) -> {
-          if (newTask != null) {
-            updateItem(newTask, false);
-          }
-        });
-      }
-
-      @Override
-      public void updateItem(WrappedTask task, boolean empty) {
-        super.updateItem(task, empty);
-        if (empty) {
-          return;
-        }
-
-        ProgressBar bar = new ProgressBar(task.getActualTask().getFinishedPercentage());
-        bar.setOpacity(0.5);
-        bar.prefWidthProperty().bind(tasksView.widthProperty().subtract(20));
-        FlowPane pane = new FlowPane(bar);
-        setGraphic(pane);
-        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-      }
-    });
 
     taskNameColumn.setCellValueFactory(
         cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getTaskDescription()));
