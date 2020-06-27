@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.util.PeakUtils;
 import java.util.Arrays;
 import java.util.Objects;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -107,7 +108,7 @@ public class PeakDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(final int series) {
-    return peak.toString();
+    return PeakUtils.peakToString(peak);
   }
 
   @Override
