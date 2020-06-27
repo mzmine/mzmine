@@ -82,6 +82,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   protected boolean showSpectraOfEveryRawFile;
 
+  protected final ObjectProperty<TICPlotType> plotType;
   protected final ObjectProperty<ScanSelection> scanSelection;
 
   /**
@@ -95,6 +96,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(RawDataFile, int)}.
    */
   protected final ObjectProperty<MZTolerance> bpcChromTolerance;
+
   /**
    * Tolerance for the generation of the TICDataset. If set to 0, the whole m/z range is displayed.
    * To display extracted ion chromatograms set the plotType to TIC and select a m/z range.
@@ -138,6 +140,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     pnWrapSpectrum.setBottom(pnSpectrumControls);
     getItems().addAll(pnWrapChrom, pnWrapSpectrum);
 
+    plotType = new SimpleObjectProperty<>();
+    plotType.bindBidirectional(chromPlot.plotTypeProperty());
+    plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
+    plotType.addListener(((observable, oldValue, newValue) -> {
+      chromPlot.removeAllDataSets(false);
+      updateAllChromatogramDataSets();
+    }));
+
     bpcChromTolerance = new SimpleObjectProperty<>(new MZTolerance(0.001, 10));
     bpcChromToleranceProperty().addListener(
         (obs, old, val) -> updateFeatureDataSets(getCursorPosition().getDataFile(),
@@ -171,14 +181,15 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param plotType The new plot type.
    */
   public void setPlotType(@Nonnull TICPlotType plotType) {
-    chromPlot.removeAllDataSets();
-    chromPlot.setPlotType(plotType);
-    // since this is a member of TICPlot we cannot wrap it in a property. -> update manually
-    updateAllChromatogramDataSets();
+    this.plotType.set(plotType);
   }
 
   public TICPlotType getPlotType() {
-    return chromPlot.getPlotType();
+    return plotType.get();
+  }
+
+  public ObjectProperty<TICPlotType> plotTypeProperty() {
+    return plotType;
   }
 
   public RawDataFile[] getRawDataFiles() {
@@ -580,22 +591,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         doneFiles++;
       }
 
-//      features.forEach(dataSet -> {
-//        PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
-//        renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
-//        renderer.setSeriesPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-//        renderer.setSeriesFillPaint(0, dataSet.getFeature().getDataFile().getColorAWT());
-//        dataSetsAndRenderers.put(dataSet, renderer);
-//      });
-
       Platform.runLater(() -> {
         if (getStatus() == TaskStatus.CANCELED) {
           return;
         }
-//        chromPlot.getXYPlot().setNotify(false);
         chromPlot.removeAllFeatureDataSets(false);
-//        dataSetsAndRenderers
-//            .forEach((dataSet, renderer) -> chromPlot.addPeakDataset(dataSet, renderer));
         chromPlot.addFeatureDataSets(features);
       });
 
