@@ -28,7 +28,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CollectionUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -36,6 +38,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 
 /**
  * This class extends ParameterSetupDialog class, including a SpectraPlot. This is used to preview
@@ -48,7 +51,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
   // Dialog components
   private final BorderPane pnlPreviewFields;
-  private final FlowPane pnlLab, pnlScanArrows, pnlFlds;
+  private final FlowPane pnlDataFile, pnlScanArrows, pnlScanNumber;
+  private final VBox pnlControls;
   private final ComboBox<RawDataFile> comboDataFileName;
   private final ComboBox<Integer> comboScanNumber;
   private final CheckBox previewCheckBox;
@@ -71,44 +75,41 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
-    if (selectedFiles.length > 0)
+    if (selectedFiles.length > 0) {
       previewDataFile = selectedFiles[0];
-    else
+    } else {
       previewDataFile = dataFiles[0];
+    }
 
     previewCheckBox = new CheckBox("Show preview");
-    // previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
     paramsPane.add(previewCheckBox, 0, getNumberOfParameters() + 2);
 
     // Elements of pnlLab
-    pnlLab = new FlowPane(Orientation.VERTICAL);
-    // pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
-    // pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    pnlDataFile = new FlowPane();
+    pnlDataFile.getChildren().add(new Label("Data file "));
 
-    pnlLab.getChildren().add(new Label("Data file "));
-    // pnlLab.add(Box.createVerticalStrut(25));
-    pnlLab.getChildren().add(new Label("Scan number "));
-
-    // Elements of pnlFlds
-    pnlFlds = new FlowPane(Orientation.VERTICAL);
-    // pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    pnlScanNumber = new FlowPane();
+    pnlScanNumber.getChildren().add(new Label("Scan number "));
 
     int scanNumbers[] = previewDataFile.getScanNumbers();
     ObservableList<Integer> scanNums =
         FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers));
     comboScanNumber = new ComboBox<Integer>(scanNums);
     comboScanNumber.getSelectionModel().select(0);
-
+    comboScanNumber.getSelectionModel().selectedItemProperty().addListener((obs, old, newIndex) -> {
+      parametersChanged();
+    });
 
     comboDataFileName = new ComboBox<RawDataFile>(
         MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       var previewDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
-      if (previewDataFile == null)
+      if (previewDataFile == null) {
         return;
+      }
       int scanNumbers2[] = previewDataFile.getScanNumbers();
       ObservableList<Integer> scanNums2 =
           FXCollections.observableArrayList(CollectionUtils.toIntegerArray(scanNumbers2));
@@ -118,51 +119,46 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       parametersChanged();
     });
 
-
-    // comboScanNumber.addActionListener(this);
-
-    pnlFlds.getChildren().add(comboDataFileName);
-    // pnlFlds.add(Box.createVerticalStrut(10));
-
-    // --> Elements of pnlScanArrows
+    pnlDataFile.getChildren().add(comboDataFileName);
 
     pnlScanArrows = new FlowPane();
-    // pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows, BoxLayout.X_AXIS));
-    final String leftArrow = new String(new char[] {'\u2190'});
+    final String leftArrow = new String(new char[]{'\u2190'});
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() - 1;
-      if (ind >= 0)
+      if (ind >= 0) {
         comboScanNumber.getSelectionModel().select(ind);
+      }
     });
 
-    // pnlScanArrows.add(Box.createHorizontalStrut(5));
-    // pnlScanArrows.add(comboScanNumber);
-    // pnlScanArrows.add(Box.createHorizontalStrut(5));
-
-    final String rightArrow = new String(new char[] {'\u2192'});
+    final String rightArrow = new String(new char[]{'\u2192'});
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = comboScanNumber.getSelectionModel().getSelectedIndex() + 1;
-      if (ind < (comboScanNumber.getItems().size() - 1))
+      if (ind < (comboScanNumber.getItems().size() - 1)) {
         comboScanNumber.getSelectionModel().select(ind);
+      }
     });
 
     pnlScanArrows.getChildren().addAll(leftArrowButton, comboScanNumber, rightArrowButton);
-    pnlFlds.getChildren().add(pnlScanArrows);
-
-    // Put all together
-    pnlPreviewFields = new BorderPane();
-
-    pnlPreviewFields.setLeft(pnlLab);
-    pnlPreviewFields.setCenter(pnlFlds);
-    pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
+    pnlScanNumber.getChildren().add(pnlScanArrows);
 
     spectrumPlot = new SpectraPlot();
-    // spectrumPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-    // spectrumPlot.setMinimumSize(new Dimension(400, 300));
+    spectrumPlot.setMinSize(400, 300);
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3);
+    pnlControls = new VBox();
+    pnlControls.setSpacing(5);
+    BorderPane.setAlignment(pnlControls, Pos.CENTER);
+
+    // Put all together
+    pnlControls.getChildren().add(pnlDataFile);
+    pnlControls.getChildren().add(pnlScanNumber);
+    pnlPreviewFields = new BorderPane();
+    pnlPreviewFields.setCenter(spectrumPlot);
+    pnlPreviewFields.setBottom(pnlControls);
+    pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
+
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
   }
 
   /**
@@ -193,28 +189,23 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
   }
 
-
-
   @Override
   protected void parametersChanged() {
 
     // Update preview as parameters have changed
-    if ((comboScanNumber == null) || (!previewCheckBox.isSelected()))
+    if ((comboScanNumber == null) || (!previewCheckBox.isSelected())) {
       return;
+    }
 
     Integer scanNumber = comboScanNumber.getSelectionModel().getSelectedItem();
-    if (scanNumber == null)
+    if (scanNumber == null) {
       return;
+    }
+
     Scan currentScan = previewDataFile.getScan(scanNumber);
-
     updateParameterSetFromComponents();
-
     loadPreview(spectrumPlot, currentScan);
-
     updateTitle(currentScan);
 
   }
-
-
-
 }
