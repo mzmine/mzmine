@@ -18,7 +18,6 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import java.text.NumberFormat;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -26,10 +25,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.CollectionUtils;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -38,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
@@ -154,9 +153,23 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlControls.getChildren().add(pnlDataFile);
     pnlControls.getChildren().add(pnlScanNumber);
     pnlPreviewFields = new BorderPane();
-    pnlPreviewFields.setCenter(spectrumPlot);
-    pnlPreviewFields.setBottom(pnlControls);
+    pnlPreviewFields.setCenter(pnlControls);
     pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
+    spectrumPlot.visibleProperty().bind(previewCheckBox.selectedProperty());
+    spectrumPlot.visibleProperty().addListener((c, o, n) -> {
+      if (n == true) {
+        mainPane.setCenter(spectrumPlot);
+        mainPane.setLeft(mainScrollPane);
+        mainPane.autosize();
+        mainPane.getScene().getWindow().sizeToScene();
+        parametersChanged();
+      } else {
+        mainPane.setLeft(null);
+        mainPane.setCenter(mainScrollPane);
+        mainPane.autosize();
+        mainPane.getScene().getWindow().sizeToScene();
+      }
+    });
 
     paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
   }
@@ -206,6 +219,5 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     updateParameterSetFromComponents();
     loadPreview(spectrumPlot, currentScan);
     updateTitle(currentScan);
-
   }
 }
