@@ -82,8 +82,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   protected boolean showSpectraOfEveryRawFile;
 
-  protected final ObjectProperty<TICPlotType> plotType;
+
   protected final ObjectProperty<ScanSelection> scanSelection;
+  /**
+   * Type of chromatogram to be displayed. This is bound bidirectional to the {@link
+   * TICPlot#plotTypeProperty()} and the {@link ChromatogramPlotControlPane#cbPlotType#plotTypeProperty()}
+   */
+  protected final ObjectProperty<TICPlotType> plotType;
 
   /**
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
@@ -173,23 +178,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     filesAndDataSets.keySet().forEach(raw -> rawDataFiles.add(raw));
     rawDataFiles.forEach(raw -> removeRawDataFile(raw));
     rawDataFiles.forEach(raw -> addRawDataFile(raw));
-  }
-
-  /**
-   * Changes the plot type. Also recalculates the all data sets if changed from BPC to TIC.
-   *
-   * @param plotType The new plot type.
-   */
-  public void setPlotType(@Nonnull TICPlotType plotType) {
-    this.plotType.set(plotType);
-  }
-
-  public TICPlotType getPlotType() {
-    return plotType.get();
-  }
-
-  public ObjectProperty<TICPlotType> plotTypeProperty() {
-    return plotType;
   }
 
   public RawDataFile[] getRawDataFiles() {
@@ -316,29 +304,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().addDomainMarker(rtMarker);
   }
 
-  public ObjectProperty<CursorPosition> currentSelectionProperty() {
-    return currentSelection;
-  }
-
-  private void setCurrentSelection(CursorPosition currentSelection) {
-    this.currentSelection.set(currentSelection);
-  }
-
-  public CursorPosition getCurrentSelection() {
-    return currentSelection.get();
-  }
-
-  /**
-   * To listen to changes in the selected raw data file, use {@link ChromatogramAndSpectraVisualizer#currentSelectionProperty#addListener}.
-   *
-   * @return Returns the currently selected raw data file. Could be null.
-   */
-  @Nullable
-  public RawDataFile getSelectedRawDataFile() {
-    CursorPosition pos = getCursorPosition();
-    return (pos == null) ? null : pos.getDataFile();
-  }
-
   /**
    * @return current cursor position
    */
@@ -411,9 +376,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     return chromPlot;
   }
 
+
   public SpectraPlot getSpectrumPlot() {
     return spectrumPlot;
   }
+
+  // ----- Plot updaters -----
 
   /**
    * Calculates {@link FeatureDataSet}s for the m/z range of the base peak in the selected scan.
@@ -430,8 +398,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     thread.addTaskStatusListener((task, oldStatus, newStatus) -> {
       if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
           || newStatus == TaskStatus.ERROR) {
-        logger.info("FeatureUpdate status changed from " + oldStatus.toString() + " to " + newStatus
-            .toString());
+        logger
+            .finest("FeatureUpdate status changed from " + oldStatus.toString() + " to " + newStatus
+                .toString());
         currentFeatureDataSetCalc = null;
       }
     });
@@ -443,6 +412,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         .addTask(thread);
   }
 
+  /**
+   * Updates the {@link ChromatogramAndSpectraVisualizer#spectrumPlot} with the scan data sets of
+   * the currently selected retention time in the {@link ChromatogramAndSpectraVisualizer#chromPlot}.
+   *
+   * @param rawDataFiles The raw data files in the chromatogram plot.
+   * @param pos          the currently selected {@link CursorPosition}.
+   */
   private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
       @Nonnull CursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles,
@@ -450,8 +426,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     thread.addTaskStatusListener((task, oldStatus, newStatus) -> {
       if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
           || newStatus == TaskStatus.ERROR) {
-        logger.info("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
-            .toString());
+        logger
+            .finest("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
+                .toString());
         currentSpectraDataSetCalc = null;
       }
     });
@@ -460,6 +437,52 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     }
     currentSpectraDataSetCalc = thread;
     MZmineCore.getTaskController().addTask(thread);
+  }
+
+  // ----- Property getters and setters -----
+
+  /**
+   * Changes the plot type. Also recalculates the all data sets if changed from BPC to TIC.
+   *
+   * @param plotType The new plot type.
+   */
+  public void setPlotType(@Nonnull TICPlotType plotType) {
+    this.plotType.set(plotType);
+  }
+
+  @Nonnull
+  public TICPlotType getPlotType() {
+    return plotType.get();
+  }
+
+  @Nonnull
+  public ObjectProperty<TICPlotType> plotTypeProperty() {
+    return plotType;
+  }
+
+  @Nonnull
+  public ObjectProperty<CursorPosition> currentSelectionProperty() {
+    return currentSelection;
+  }
+
+  private void setCurrentSelection(@Nonnull CursorPosition currentSelection) {
+    this.currentSelection.set(currentSelection);
+  }
+
+  @Nonnull
+  public CursorPosition getCurrentSelection() {
+    return currentSelection.get();
+  }
+
+  /**
+   * To listen to changes in the selected raw data file, use {@link ChromatogramAndSpectraVisualizer#currentSelectionProperty#addListener}.
+   *
+   * @return Returns the currently selected raw data file. Could be null.
+   */
+  @Nullable
+  public RawDataFile getSelectedRawDataFile() {
+    CursorPosition pos = getCursorPosition();
+    return (pos == null) ? null : pos.getDataFile();
   }
 
   @Nullable
@@ -509,6 +532,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     this.bpcChromTolerance.set(bpcChromTolerance);
   }
 
+
+  // ----- Object method overrides -----
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -521,11 +546,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     return showSpectraOfEveryRawFile == that.showSpectraOfEveryRawFile &&
         chromPlot.equals(that.chromPlot) &&
         spectrumPlot.equals(that.spectrumPlot) &&
-        Objects.equals(scanSelection, that.scanSelection) &&
-        Objects.equals(mzRange, that.mzRange) &&
-        Objects.equals(currentSelection, that.currentSelection) &&
+        Objects.equals(scanSelection.get(), that.scanSelection.get()) &&
+        Objects.equals(mzRange.get(), that.mzRange.get()) &&
+        Objects.equals(currentSelection.get(), that.currentSelection.get()) &&
         Objects.equals(rtMarker, that.rtMarker) &&
-        bpcChromTolerance.equals(that.bpcChromTolerance) &&
+        bpcChromTolerance.get().equals(that.bpcChromTolerance.get()) &&
         Objects.equals(filesAndDataSets, that.filesAndDataSets);
   }
 
@@ -534,6 +559,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     return Objects.hash(chromPlot, spectrumPlot, scanSelection, mzRange, currentSelection,
         showSpectraOfEveryRawFile, rtMarker, bpcChromTolerance, filesAndDataSets);
   }
+
+  // ----- Inner classes -----
 
   /**
    * Calculates The feature data sets in a new thread to safe perfomance and not make the gui
