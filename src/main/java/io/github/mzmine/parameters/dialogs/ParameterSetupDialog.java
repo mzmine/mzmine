@@ -401,7 +401,6 @@ public class ParameterSetupDialog extends Stage {
    * overridden in extending classes to update the preview components, for example.
    */
   protected void parametersChanged() {
-    System.out.print("param changed");
   }
 
 
