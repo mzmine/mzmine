@@ -31,11 +31,22 @@ public class ChromatogramPlotControlPane extends VBox {
     super(5);
     setAlignment(Pos.CENTER);
     cbPlotType = new ChoiceBox<>();
-    cbPlotType.setItems(FXCollections.observableArrayList(TICPlotType.values()));
-    cbPlotType.setValue(TICPlotType.BASEPEAK);
     cbXIC = new CheckBox("XIC: ");
+
+    cbPlotType.setItems(FXCollections.observableArrayList(TICPlotType.values()));
+    cbPlotType.valueProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue == TICPlotType.TIC) {
+        cbXIC.disableProperty().set(false);
+      } else {
+        cbXIC.disableProperty().set(true);
+      }
+    }));
+    cbPlotType.setValue(TICPlotType.BASEPEAK);
+
     mzRangeNode = new MZRangeComponent();
+    mzRangeNode.disableProperty().bind(cbXIC.disableProperty());
     mzRangeNode.disableProperty().bind(cbXIC.selectedProperty().not());
+
     FlowPane xicWrap = new FlowPane(5, 0);
     xicWrap.getChildren().addAll(cbXIC, mzRangeNode);
     getChildren().addAll(cbPlotType, xicWrap);
