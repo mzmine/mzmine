@@ -125,6 +125,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   public ChromatogramAndSpectraVisualizer(@NamedArg("orientation") Orientation orientation) {
     super();
 
+    getStyleClass().add("white-region");
+
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
@@ -157,6 +159,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // property bindings
     plotType.bindBidirectional(chromPlot.plotTypeProperty());
     plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
+    mzRange.bind(pnChromControls.mzRange);
 
     // property listeners
     plotType.addListener(((observable, oldValue, newValue) -> {
@@ -174,6 +177,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     scanSelectionProperty().addListener((obs, old, val) -> updateAllChromatogramDataSets());
 
+    pnChromControls.getBtnUpdateXIC().setOnAction(event -> {
+      if (mzRange.getValue() != null && getPlotType() == TICPlotType.TIC) {
+        updateAllChromatogramDataSets();
+      }
+    });
+
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
   }
@@ -181,8 +190,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void updateAllChromatogramDataSets() {
     List<RawDataFile> rawDataFiles = new ArrayList<>();
     filesAndDataSets.keySet().forEach(raw -> rawDataFiles.add(raw));
+    chromPlot.getXYPlot().setNotify(false);
     rawDataFiles.forEach(raw -> removeRawDataFile(raw));
     rawDataFiles.forEach(raw -> addRawDataFile(raw));
+    chromPlot.getXYPlot().setNotify(true);
+    chromPlot.getChart().fireChartChanged();
   }
 
   public RawDataFile[] getRawDataFiles() {
@@ -228,7 +240,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       return;
     }
 
-    Range<Double> rawMZRange = (getMzRange() == null) ? rawDataFile.getDataMZRange() : getMzRange();
+    Range<Double> rawMZRange =
+        (getMzRange() != null && pnChromControls.cbXIC.isSelected()
+            && plotType.getValue() == TICPlotType.TIC) ? getMzRange()
+            : rawDataFile.getDataMZRange();
+
     TICDataSet ticDataset = new TICDataSet(rawDataFile, scans, rawMZRange, null, getPlotType());
     filesAndDataSets.put(rawDataFile, ticDataset);
     chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
