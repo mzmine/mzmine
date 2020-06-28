@@ -30,15 +30,20 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -51,11 +56,12 @@ import javafx.stage.Stage;
  * This class represents the parameter setup dialog to set the values of SimpleParameterSet. Each
  * Parameter is represented by a component. The component can be obtained by calling
  * getComponentForParameter(). Type of component depends on parameter type:
- *
+ * <p>
  * TODO: parameter setup dialog should show the name of the module in the title
- *
  */
 public class ParameterSetupDialog extends Stage {
+
+  public static final Logger logger = Logger.getLogger(ParameterSetupDialog.class.getName());
 
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -117,7 +123,6 @@ public class ParameterSetupDialog extends Stage {
     this.helpURL = parameters.getClass().getResource("help/help.html");
     this.footerMessage = message;
 
-
     // Main panel which holds all the components in a grid
     mainPane = new BorderPane();
     Scene scene = new Scene(mainPane);
@@ -157,8 +162,9 @@ public class ParameterSetupDialog extends Stage {
     // Create labels and components for each parameter
     for (Parameter<?> p : parameterSet.getParameters()) {
 
-      if (!(p instanceof UserParameter))
+      if (!(p instanceof UserParameter)) {
         continue;
+      }
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
@@ -174,11 +180,12 @@ public class ParameterSetupDialog extends Stage {
 
       // Set the initial value
       Object value = up.getValue();
-      if (value != null)
+      if (value != null) {
         up.setValueToComponent(comp, value);
+      }
 
       // Add listeners so we are notified about any change in the values
-      // addListenersToComponent(comp);
+      addListenersToNode(comp);
 
       // By calling this we make sure the components will never be resized
       // smaller than their optimal size
@@ -215,7 +222,6 @@ public class ParameterSetupDialog extends Stage {
     // JComponent emptySpace = (JComponent) Box.createVerticalStrut(1);
     // mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
 
-
     btnOK = new Button("OK");
     btnOK.setOnAction(e -> {
       closeDialog(ExitCode.OK);
@@ -232,7 +238,6 @@ public class ParameterSetupDialog extends Stage {
     pnlButtons = new ButtonBar();
     pnlButtons.getButtons().addAll(btnOK, btnCancel);
     pnlButtons.setPadding(new Insets(10.0));
-
 
     if (helpURL != null) {
       btnHelp = new Button("Help");
@@ -323,7 +328,6 @@ public class ParameterSetupDialog extends Stage {
    */
 
 
-
   /**
    * Method for reading exit code
    */
@@ -340,20 +344,23 @@ public class ParameterSetupDialog extends Stage {
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
-      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter))
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
+      }
       UserParameter up;
-      if (p instanceof UserParameter)
+      if (p instanceof UserParameter) {
         up = (UserParameter) p;
-      else
+      } else {
         up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+      }
 
       Node component = parametersAndComponents.get(p.getName());
 
       // if a parameter is a HiddenParameter it does not necessarily have
       // component
-      if (component != null)
+      if (component != null) {
         up.setValueFromComponent(component);
+      }
     }
   }
 
@@ -394,26 +401,45 @@ public class ParameterSetupDialog extends Stage {
    * overridden in extending classes to update the preview components, for example.
    */
   protected void parametersChanged() {
-
+    System.out.print("param changed");
   }
 
-  /*
-   * protected void addListenersToComponent(JComponent comp) { if (comp instanceof JTextComponent) {
-   * JTextComponent textComp = (JTextComponent) comp;
-   * textComp.getDocument().addDocumentListener(this); } if (comp instanceof JComboBox) {
-   * JComboBox<?> comboComp = (JComboBox<?>) comp; comboComp.addActionListener(this); } if (comp
-   * instanceof JCheckBox) { JCheckBox checkComp = (JCheckBox) comp;
-   * checkComp.addActionListener(this); } if (comp instanceof JPanel) { JPanel panelComp = (JPanel)
-   * comp; for (int i = 0; i < panelComp.getComponentCount(); i++) { Component child =
-   * panelComp.getComponent(i); if (!(child instanceof JComponent)) continue;
-   * addListenersToComponent((JComponent) child); } } }
-   *
-   * @Override public void changedUpdate(DocumentEvent event) { parametersChanged(); }
-   *
-   * @Override public void insertUpdate(DocumentEvent event) { parametersChanged(); }
-   *
-   * @Override public void removeUpdate(DocumentEvent event) { parametersChanged(); }
-   */
+
+  protected void addListenersToNode(Node node) {
+    if (node instanceof TextField) {
+      TextField textField = (TextField) node;
+      textField.textProperty().addListener(((observable, oldValue, newValue) -> {
+        parametersChanged();
+      }));
+    }
+    if (node instanceof ComboBox) {
+      ComboBox<?> comboComp = (ComboBox<?>) node;
+      comboComp.valueProperty()
+          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+    }
+    if (node instanceof ChoiceBox) {
+      ChoiceBox<?> choiceBox = (ChoiceBox) node;
+      choiceBox.valueProperty()
+          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+    }
+    if (node instanceof CheckBox) {
+      CheckBox checkBox = (CheckBox) node;
+      checkBox.selectedProperty()
+          .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+    }
+    if (node instanceof Region) {
+      Region panelComp = (Region)
+          node;
+      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
+        Node child =
+            panelComp.getChildrenUnmodifiable().get(i);
+        if (!(child instanceof Control)) {
+          continue;
+        }
+        addListenersToNode(child);
+      }
+    }
+  }
 
   public boolean isValueCheckRequired() {
     return valueCheckRequired;
