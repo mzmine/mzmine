@@ -44,7 +44,7 @@ public class MobilityIntensityPlot extends EChartViewer {
   public MobilityIntensityPlot(XYDataset dataset) {
     super(
         ChartFactory.createXYLineChart(
-            "", "intensity", "mobility", dataset, PlotOrientation.VERTICAL, true, true, false));
+            "", "intensity", "", dataset, PlotOrientation.VERTICAL, true, true, false));
     chart = getChart();
     plot = chart.getXYPlot();
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
@@ -53,16 +53,16 @@ public class MobilityIntensityPlot extends EChartViewer {
     var renderer = new XYLineAndShapeRenderer();
     renderer.setSeriesPaint(0, Color.GREEN);
     renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+    renderer.setSeriesShapesVisible(0, false);
 
     plot.setRenderer(renderer);
-    plot.setBackgroundPaint(Color.BLACK);
-    plot.setRangeGridlinePaint(Color.BLACK);
-    plot.setDomainGridlinePaint(Color.BLACK);
-    plot.setOutlinePaint(Color.red);
-    plot.setOutlineStroke(new BasicStroke(2.5f));
-    plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
-    plot.setDomainAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-    plot.getDomainAxis().setInverted(true);
+    plot.setBackgroundPaint(Color.WHITE);
+    plot.setRangeGridlinePaint(Color.WHITE);
+    plot.setDomainGridlinePaint(Color.WHITE);
+    //plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
+//    plot.getDomainAxis().setInverted(true);
+    plot.getRangeAxis().setVisible(false);
     chart.getLegend().setFrame(BlockBorder.NONE);
+
   }
 }

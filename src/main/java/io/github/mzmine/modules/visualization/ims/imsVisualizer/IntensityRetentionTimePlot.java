@@ -22,6 +22,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
+import javafx.scene.shape.Circle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -70,17 +71,33 @@ public class IntensityRetentionTimePlot extends EChartViewer {
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
     plot = chart.getXYPlot();
-    var renderer = new XYLineAndShapeRenderer();
+    this.selectedRetention = imsVisualizerTask.getSelectedRetentionTime();
+    var renderer = new XYLineAndShapeRenderer(true, true);
     renderer.setSeriesPaint(0, Color.GREEN);
+    renderer.setSeriesShapesVisible(0, false);
     renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 
     plot.setRenderer(renderer);
-    plot.setBackgroundPaint(Color.BLACK);
-    plot.setRangeGridlinePaint(Color.RED);
-    plot.setDomainGridlinePaint(Color.RED);
-    plot.setOutlinePaint(Color.red);
-    plot.setOutlineStroke(new BasicStroke(2.5f));
+    plot.setBackgroundPaint(Color.WHITE);
+    plot.setRangeGridlinePaint(Color.WHITE);
+    plot.setDomainGridlinePaint(Color.WHITE);
     chart.getLegend().setFrame(BlockBorder.NONE);
+
+    plot.clearDomainMarkers();
+    marker = new ValueMarker(selectedRetention);
+    marker.setPaint(Color.red);
+    marker.setLabelFont(legendFont);
+    marker.setStroke(new BasicStroke(2));
+    marker.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
+    marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
+    marker.setLabel("Selected RT");
+    plot.addDomainMarker(marker);
+
+    imsVisualizerTask.setSelectedRetentionTime(selectedRetention);
+    imsVisualizerTask.runMoblityMZHeatMap();
+    //  marker to the mobility-retention time heatmap plot.
+    mobilityRetentionHeatMapPlot.getPlot().clearDomainMarkers();
+    mobilityRetentionHeatMapPlot.getPlot().addDomainMarker(marker);
 
     addChartMouseListener(
         new ChartMouseListenerFX() {
@@ -99,12 +116,12 @@ public class IntensityRetentionTimePlot extends EChartViewer {
               // setting the marker at seleted range.
               plot.clearDomainMarkers();
               marker = new ValueMarker(selectedRetention);
-              marker.setLabel("Selected RT");
               marker.setPaint(Color.red);
               marker.setLabelFont(legendFont);
               marker.setStroke(new BasicStroke(2));
               marker.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
               marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
+              marker.setLabel("Selected RT");
               plot.addDomainMarker(marker);
 
               //  marker to the mobility-retention time heatmap plot.

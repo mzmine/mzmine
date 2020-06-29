@@ -170,8 +170,6 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
     plot.setRangeCrosshairPaint(Color.GRAY);
     plot.setDomainCrosshairVisible(true);
     plot.setRangeCrosshairVisible(true);
-    plot.setOutlinePaint(Color.red);
-    plot.setOutlineStroke(new BasicStroke(2.5f));
 
     chart.addSubtitle(legend);
   }

@@ -145,10 +145,7 @@ public class ImsVisualizerTask extends AbstractTask {
           groupMobility.setShowCrosshair(true, true);
 
           groupMobility.add((new ChartViewWrapper(mobilityIntensityPlot)));
-          if (mzMobilityPlotHeatMapPlot != null)
-            groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
-
-          // setup bottom part
+          groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
 
           // add intensity retention time plot
           dataset3d = new RetentionTimeMobilityXYZDataset(parameterSet);
@@ -159,7 +156,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
           // set the label for retentiontime-mobility plot.
             Label mobilityRTLabel = controller.getMobilityRTLabel();
-           mobilityRTLabel.setText("M/Z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
+           mobilityRTLabel.setText("m/z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
 
 
           // add mobility-m/z plot to border
@@ -171,10 +168,10 @@ public class ImsVisualizerTask extends AbstractTask {
 
           // set label for the the intensity-rt plot.
             Label intensityRTLabel = controller.getIntensityRTLabel();
-            intensityRTLabel.setText("M/Z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
+            intensityRTLabel.setText("m/z: " + mzRange.lowerEndpoint()+" - "+mzRange.upperEndpoint());
 
-          ChartGroup groupRetentionTime = new ChartGroup(false, true, true, false);
-          groupMobility.setShowCrosshair(true, true);
+            ChartGroup groupRetentionTime = new ChartGroup(true, false, true, false);
+            groupRetentionTime.setShowCrosshair(true, true);
 
           groupRetentionTime.add(new ChartViewWrapper(intensityRetentionTimePlot));
           groupRetentionTime.add(new ChartViewWrapper(mobilityRetentionHeatMapPlot));
