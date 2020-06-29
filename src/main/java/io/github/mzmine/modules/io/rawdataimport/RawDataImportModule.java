@@ -59,6 +59,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Raw data import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
+  private String commonPrefix = null;
 
   @Override
   public @Nonnull String getName() {
@@ -70,6 +71,17 @@ public class RawDataImportModule implements MZmineProcessingModule {
     return MODULE_DESCRIPTION;
   }
 
+
+  /**
+   * return the prefix used in last call to runModule
+   * @return String
+   */
+  public @Nonnull String getLastCommonPrefix(){
+    if(commonPrefix==null){
+      commonPrefix = "";
+    }
+    return commonPrefix;
+  }
   @Override
   @Nonnull
   public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
@@ -89,6 +101,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
           }
         }
       }
+      this.commonPrefix = commonPrefix;
 
       if (!Strings.isNullOrEmpty(commonPrefix)) {
 
@@ -129,6 +142,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
           commonPrefix = textField.getText();
         } else {
           commonPrefix = null;
+          this.commonPrefix = null;
         }
       }
     }
