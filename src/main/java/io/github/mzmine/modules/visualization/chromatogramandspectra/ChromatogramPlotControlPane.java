@@ -38,7 +38,7 @@ public class ChromatogramPlotControlPane extends VBox {
 
     setPadding(new Insets(5));
 
-    getStyleClass().add("white-region");
+    getStyleClass().add("region-match-chart-bg");
 
 //    setAlignment(Pos.CENTER);
     cbPlotType = new ChoiceBox<>();

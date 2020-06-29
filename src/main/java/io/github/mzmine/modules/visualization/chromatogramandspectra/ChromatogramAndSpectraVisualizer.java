@@ -125,7 +125,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   public ChromatogramAndSpectraVisualizer(@NamedArg("orientation") Orientation orientation) {
     super();
 
-    getStyleClass().add("white-region");
+    getStyleClass().add("region-match-chart-bg");
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -155,6 +155,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     pnWrapSpectrum.setCenter(spectrumPlot);
     pnWrapSpectrum.setBottom(pnSpectrumControls);
     getItems().addAll(pnWrapChrom, pnWrapSpectrum);
+
+    chromPlot.setLabelColorMatch(true);
+    spectrumPlot.setLabelColorMatch(true);
 
     // property bindings
     plotType.bindBidirectional(chromPlot.plotTypeProperty());
