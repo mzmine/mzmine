@@ -13,26 +13,24 @@
     <URL value="@MZmine.css"/>
   </stylesheets>
   <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-    prefHeight="680.0" prefWidth="1140.0" xmlns="http://javafx.com/javafx/14.0.1"
+    prefHeight="800.0" prefWidth="1475.0" xmlns="http://javafx.com/javafx/14.0.1"
     xmlns:fx="http://javafx.com/fxml/1">
     <top>
       <fx:include source="MainMenu.fxml"/>
     </top>
     <center>
-      <SplitPane dividerPositions="0.25" BorderPane.alignment="CENTER">
+      <SplitPane dividerPositions="0.2" BorderPane.alignment="CENTER">
         <items>
           <SplitPane orientation="VERTICAL" SplitPane.resizableWithParent="false">
             <items>
               <!--              Left side-->
-              <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
+              <TabPane tabClosingPolicy="UNAVAILABLE">
                 <tabs>
                   <Tab closable="false" text="Raw files">
                     <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0"
-                        prefWidth="200.0">
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
                           <ListView fx:id="rawDataTree" editable="true"
-                            prefHeight="548.1868963442331" prefWidth="282.6168123542282"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
@@ -65,11 +63,9 @@
                   </Tab>
                   <Tab closable="false" text="Feature lists">
                     <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0"
-                        prefWidth="200.0">
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
                           <ListView fx:id="featureTree" editable="true"
-                            prefHeight="548.1868963442331" prefWidth="282.6168123542282"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <contextMenu>
@@ -103,7 +99,6 @@
                         prefWidth="200.0">
                         <children>
                           <TreeView fx:id="tvAlignedFeatureLists" layoutX="63.0" layoutY="58.0"
-                            prefHeight="572.4111945460241" prefWidth="309.5326992451071"
                             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                         </children>
@@ -116,7 +111,7 @@
           </SplitPane>
 
           <!--          Right side, main panel -->
-          <TabPane fx:id="tpOverview" prefHeight="200.0" prefWidth="200.0"
+          <TabPane fx:id="tpOverview"
             tabClosingPolicy="ALL_TABS">
             <tabs>
               <Tab fx:id="tabRawDataOverview" closable="false" text="Raw data overview">
@@ -127,8 +122,7 @@
               </Tab>
               <Tab fx:id="tabFeatureListOverview" closable="false" text="Feature table">
                 <content>
-                  <AnchorPane fx:id="tbFeatureTable" minHeight="0.0" minWidth="0.0"
-                    prefHeight="180.0" prefWidth="200.0"/>
+                  <AnchorPane fx:id="tbFeatureTable" minHeight="0.0" minWidth="0.0"/>
                 </content>
               </Tab>
             </tabs>

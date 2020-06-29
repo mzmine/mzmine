@@ -10,6 +10,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -35,9 +36,11 @@ public class ChromatogramPlotControlPane extends VBox {
   public ChromatogramPlotControlPane() {
     super(5);
 
+    setPadding(new Insets(5));
+
     getStyleClass().add("white-region");
 
-    setAlignment(Pos.CENTER);
+//    setAlignment(Pos.CENTER);
     cbPlotType = new ChoiceBox<>();
     cbXIC = new CheckBox("Show XIC");
     btnUpdateXIC = new Button("Update chromatogram(s)");
@@ -60,9 +63,14 @@ public class ChromatogramPlotControlPane extends VBox {
     // also disable the mz range node if xic is not selected
     cbXIC.selectedProperty().addListener((obs, old, val) -> mzRangeNode.setDisable(!val));
 
+    // hide components if they're not needed
+    btnUpdateXIC.visibleProperty().bind(btnUpdateXIC.disableProperty().not());
+    mzRangeNode.visibleProperty().bind(mzRangeNode.disableProperty().not());
+    cbXIC.visibleProperty().bind(cbXIC.disableProperty().not());
+
     HBox controlsWrap = new HBox(5, cbPlotType, cbXIC, btnUpdateXIC);
-    controlsWrap.setAlignment(Pos.CENTER);
-    mzRangeNode.setAlignment(Pos.CENTER);
+//    controlsWrap.setAlignment(Pos.CENTER);
+//    mzRangeNode.setAlignment(Pos.CENTER);
     getChildren().addAll(controlsWrap, mzRangeNode);
 
     // set here, so all the listeners trigger and disable the other components.
