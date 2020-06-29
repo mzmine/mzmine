@@ -1,7 +1,8 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import it.unimi.dsi.fastutil.Hash;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,7 +12,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
-import javolution.io.Struct.Bool;
 
 public class NetworkCliqueMS {
 
@@ -419,6 +419,23 @@ public class NetworkCliqueMS {
       loglResult.add(logl);
     return loglResult;
   }
+
+  public void importData(PeakList peakList, RawDataFile file){
+    for(int z: file.getScanNumbers()){
+      System.out.println(file.getScan(z).getScanNumber()+" "+file.getScan(z).getRetentionTime()
+          +" "+file.getScan(z).getScanningMZRange());
+      for(DataPoint dp : file.getScan(z).getDataPoints()){
+        System.out.print(dp.getMZ()+"@"+dp.getIntensity()+" ");
+      }
+      System.out.println();
+    }
+  }
+
+  //Temporary for testing
+  public void runp(PeakList peakList){
+    System.out.println(peakList);
+  }
+
 }
 
 // Nodelogl class to return an object with the change in logl, the new edges inside clique and the
