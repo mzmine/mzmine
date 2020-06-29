@@ -189,7 +189,7 @@ public class RawDataOverviewWindowController {
    */
   private void addChromatogramSelectedScanListener() {
 
-    visualizer.currentSelectionProperty().addListener((observable, oldValue, pos) -> {
+    visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
 
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);

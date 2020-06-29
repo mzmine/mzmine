@@ -42,6 +42,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -69,46 +71,27 @@ import javafx.stage.Window;
  */
 public class TICPlot extends EChartViewer implements LabelColorMatch {
 
-  // Logger.
   private static final Logger logger = Logger.getLogger(TICPlot.class.getName());
 
-  // Zoom factor.
   private static final double ZOOM_FACTOR = 1.2;
-
-  // data points shape
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
-
-  // Axis margins.
   private static final double AXIS_MARGINS = 0.001;
 
-  // Title margin.
-  // private static final double TITLE_TOP_MARGIN = 5.0;
-
-  // Plot type.
-  private ObjectProperty<TICPlotType> plotType;
-
-  private BooleanProperty matchLabelColors;
-
-  private final JFreeChart chart;
-  // The plot.
+  protected final JFreeChart chart;
+  protected EStandardChartTheme theme;
   private final XYPlot plot;
 
-  // TICVisualizerWindow visualizer.
-  // private final ActionListener visualizer;
+  // properties
+  private ObjectProperty<TICPlotType> plotType;
+  private final ObjectProperty<ChromatogramCursorPosition> cursorPosition;
+  private final BooleanProperty matchLabelColors;
 
-  // Titles.
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-
-  // Renderer.
   private final TICPlotRenderer defaultRenderer;
-
-  // Counters.
-  private int nextDataSetNum;
-
   private MenuItem RemoveFilePopupMenu;
 
-  protected EStandardChartTheme theme;
+  private int nextDataSetNum;
 
   /**
    * Indicates whether we have a request to show spectra visualizer for selected data point. Since
@@ -119,9 +102,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private boolean showSpectrumRequest;
 
   // Label visibility: 0 -> none; 1 -> m/z; 2 -> identities
+
   private int labelsVisible;
   private boolean havePeakLabels;
-
   public TICPlot() {
 
     super(ChartFactory.createXYLineChart("", // title
@@ -150,6 +133,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     // Plot type
     plotType = new SimpleObjectProperty<>();
+    cursorPosition = new SimpleObjectProperty<>();
+    matchLabelColors = new SimpleBooleanProperty(false);
+    initializeChromatogramMouseListener();
+    addMatchLabelColorsListener();
+
     // Y-axis label.
     final String yAxisLabel =
         (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
@@ -158,9 +146,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     chart = getChart();
     chart.getXYPlot().getRangeAxis().setLabel(yAxisLabel);
     // setChart(chart);
-
-    matchLabelColors = new SimpleBooleanProperty(false);
-    addMatchLabelColorsListener();
 
     // Title.
     chartTitle = chart.getTitle();
@@ -294,6 +279,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   // @Override
+
   public void mouseWheelMoved(MouseWheelEvent event) {
     int notches = event.getWheelRotation();
     if (notches < 0) {
@@ -302,16 +288,16 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
     }
   }
-
   // @Override
+
   public void restoreAutoBounds() {
     getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
     getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
     // restoreAutoDomainBounds();
     // restoreAutoRangeBounds();
   }
-
   // @Override
+
   public void mouseClicked(final MouseEvent event) {
 
     // Let the parent handle the event (selection etc.)
@@ -347,7 +333,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     }
 
   }
-
 
   public void switchLegendVisible() {
     // Toggle legend visibility.
@@ -747,5 +732,62 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
         }
       }
     }));
+  }
+
+  public ChromatogramCursorPosition getCursorPosition() {
+    return cursorPosition.get();
+  }
+
+  public ObjectProperty<ChromatogramCursorPosition> cursorPositionProperty() {
+    return cursorPosition;
+  }
+
+  public void setCursorPosition(ChromatogramCursorPosition cursorPosition) {
+    this.cursorPosition.set(cursorPosition);
+  }
+
+  /**
+   * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
+   */
+  private void initializeChromatogramMouseListener() {
+    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        ChromatogramCursorPosition pos = updateCursorPosition();
+        if (pos != null) {
+          setCursorPosition(pos);
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+        // currently not in use
+      }
+    });
+  }
+
+  /**
+   * @return current cursor position
+   */
+  public ChromatogramCursorPosition updateCursorPosition() {
+    double selectedRT = getXYPlot().getDomainCrosshairValue();
+    double selectedIT = getXYPlot().getRangeCrosshairValue();
+    for (int i = 0; i < nextDataSetNum; i++) {
+      XYDataset ds = getXYPlot().getDataset(i);
+      if (ds == null || !(ds instanceof TICDataSet)) {
+        continue;
+      }
+      TICDataSet dataSet = (TICDataSet) ds;
+      int index = dataSet.getIndex(selectedRT, selectedIT);
+      if (index >= 0) {
+        double mz = 0;
+        if (getPlotType() == TICPlotType.BASEPEAK) {
+          mz = dataSet.getZValue(0, index);
+        }
+        return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
+            dataSet.getScanNumber(index));
+      }
+    }
+    return null;
   }
 }
