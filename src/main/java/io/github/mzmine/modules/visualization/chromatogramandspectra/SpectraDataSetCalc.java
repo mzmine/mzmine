@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -32,7 +32,7 @@ import javafx.application.Platform;
 
 public class SpectraDataSetCalc extends AbstractTask {
 
-  private final CursorPosition pos;
+  private final ChromatogramCursorPosition pos;
   private final HashMap<RawDataFile, ScanDataSet> filesAndDataSets;
   private final Collection<RawDataFile> rawDataFiles;
   private final ScanSelection scanSelection;
@@ -41,7 +41,7 @@ public class SpectraDataSetCalc extends AbstractTask {
   private int doneFiles;
 
   public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles,
-      final CursorPosition pos, final ScanSelection scanSelection,
+      final ChromatogramCursorPosition pos, final ScanSelection scanSelection,
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot) {
     filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;

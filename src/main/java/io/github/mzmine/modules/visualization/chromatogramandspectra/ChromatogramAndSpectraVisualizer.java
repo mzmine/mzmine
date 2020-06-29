@@ -22,10 +22,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
-import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.PeakTICPlotRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
@@ -34,19 +32,15 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ManualFeatureUtils;
 import java.awt.BasicStroke;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -94,7 +88,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * Current position of the crosshair in the chromatogram plot. Changes to the position should be
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
    */
-  protected final ObjectProperty<CursorPosition> currentSelection;
+  protected final ObjectProperty<ChromatogramCursorPosition> currentSelection;
 
   /**
    * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
@@ -273,9 +267,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * triggered by a change to the {@link ChromatogramAndSpectraVisualizer#currentSelection}
    * property.
    */
-  private void onCurrentSelectionChanged(ObservableValue<? extends CursorPosition> obs,
-      CursorPosition old,
-      CursorPosition pos) {
+  private void onCurrentSelectionChanged(ObservableValue<? extends ChromatogramCursorPosition> obs,
+      ChromatogramCursorPosition old,
+      ChromatogramCursorPosition pos) {
     RawDataFile file = pos.getDataFile();
     // update feature data sets
     updateFeatureDataSets(file, pos.getScanNumber());
@@ -293,7 +287,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
-        CursorPosition pos = getCursorPosition();
+        ChromatogramCursorPosition pos = getCursorPosition();
         if (pos != null) {
           setCurrentSelection(pos);
         }
@@ -309,11 +303,11 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   /**
    * Changes the position of the domain marker. Is called by the mouse listener initialized in
    * {@link ChromatogramAndSpectraVisualizer#onCurrentSelectionChanged(ObservableValue,
-   * CursorPosition, CursorPosition)}
+   * ChromatogramCursorPosition, ChromatogramCursorPosition)}
    *
    * @param pos
    */
-  private void updateDomainMarker(@Nonnull CursorPosition pos) {
+  private void updateDomainMarker(@Nonnull ChromatogramCursorPosition pos) {
     chromPlot.getXYPlot().clearDomainMarkers();
 
     if (rtMarker == null) {
@@ -331,7 +325,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   /**
    * @return current cursor position
    */
-  public CursorPosition getCursorPosition() {
+  public ChromatogramCursorPosition getCursorPosition() {
     double selectedRT = chromPlot.getXYPlot().getDomainCrosshairValue();
     double selectedIT = chromPlot.getXYPlot().getRangeCrosshairValue();
     Collection<TICDataSet> set = filesAndDataSets.values();
@@ -342,7 +336,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         if (getPlotType() == TICPlotType.BASEPEAK) {
           mz = dataSet.getZValue(0, index);
         }
-        return new CursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
+        return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
             dataSet.getScanNumber(index));
       }
     }
@@ -360,7 +354,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
       return;
     }
-    CursorPosition pos = new CursorPosition(rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0,
+    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(
+        rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0,
         rawDataFile, scanNum);
     setCurrentSelection(pos);
   }
@@ -390,7 +385,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || rawDataFile.getScan(scanNum) == null) {
       return;
     }
-    CursorPosition pos = new CursorPosition(rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0,
+    ChromatogramCursorPosition pos = new ChromatogramCursorPosition(
+        rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0,
         rawDataFile, scanNum);
     updateDomainMarker(pos);
     forceScanDataSet(rawDataFile, scanNum);
@@ -439,10 +435,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * the currently selected retention time in the {@link ChromatogramAndSpectraVisualizer#chromPlot}.
    *
    * @param rawDataFiles The raw data files in the chromatogram plot.
-   * @param pos          the currently selected {@link CursorPosition}.
+   * @param pos          the currently selected {@link ChromatogramCursorPosition}.
    */
   private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
-      @Nonnull CursorPosition pos) {
+      @Nonnull ChromatogramCursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles,
         pos, getScanSelection(), showSpectraOfEveryRawFile, getSpectrumPlot());
 
@@ -482,16 +478,16 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   @Nonnull
-  public ObjectProperty<CursorPosition> currentSelectionProperty() {
+  public ObjectProperty<ChromatogramCursorPosition> currentSelectionProperty() {
     return currentSelection;
   }
 
-  private void setCurrentSelection(@Nonnull CursorPosition currentSelection) {
+  private void setCurrentSelection(@Nonnull ChromatogramCursorPosition currentSelection) {
     this.currentSelection.set(currentSelection);
   }
 
   @Nonnull
-  public CursorPosition getCurrentSelection() {
+  public ChromatogramCursorPosition getCurrentSelection() {
     return currentSelection.get();
   }
 
@@ -502,7 +498,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    */
   @Nullable
   public RawDataFile getSelectedRawDataFile() {
-    CursorPosition pos = getCursorPosition();
+    ChromatogramCursorPosition pos = getCursorPosition();
     return (pos == null) ? null : pos.getDataFile();
   }
 
