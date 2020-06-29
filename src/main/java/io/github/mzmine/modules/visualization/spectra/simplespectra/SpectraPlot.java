@@ -345,7 +345,7 @@ public class SpectraPlot extends EChartViewer {
       SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+      newRenderer.setDefaultItemLabelPaint(color);
 
     } else {
       newRenderer = new PeakRenderer(color, transparency);
@@ -378,14 +378,14 @@ public class SpectraPlot extends EChartViewer {
       // Add label generator for the dataset
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+      newRenderer.setDefaultItemLabelPaint(color);
 
     } else {
       newRenderer = new PeakRenderer(color, transparency);
       // Add label generator for the dataset
       newRenderer.setDefaultItemLabelGenerator(labelGenerator);
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      newRenderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+      newRenderer.setDefaultItemLabelPaint(color);
     }
 
     plot.setDataset(numOfDataSets, dataSet);
