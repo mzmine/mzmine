@@ -29,6 +29,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -71,6 +72,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final TICPlot chromPlot;
   protected final SpectraPlot spectrumPlot;
   protected ValueMarker rtMarker;
+  protected ValueMarker mzMarker;
 
   protected boolean showSpectraOfEveryRawFile;
 
@@ -87,6 +89,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * reflected in the {@link ChromatogramAndSpectraVisualizer#spectrumPlot}.
    */
   protected final ObjectProperty<ChromatogramCursorPosition> chromPosition;
+
+  /**
+   * Current position of the crosshair in the spectrum plot. Changes in the position update the
+   * {@link ChromatogramAndSpectraVisualizer#chromPlot} via {@link ChromatogramAndSpectraVisualizer#onSpectrumSelectionChanged(ObservableValue,
+   * SpectrumCursorPosition, SpectrumCursorPosition)}.
+   */
+  protected final ObjectProperty<SpectrumCursorPosition> spectrumPosition;
 
   /**
    * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
@@ -132,6 +141,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     plotType = new SimpleObjectProperty<>();
     bpcChromTolerance = new SimpleObjectProperty<>(new MZTolerance(0.001, 10));
     chromPosition = new SimpleObjectProperty<>();
+    spectrumPosition = new SimpleObjectProperty<>();
     scanSelection = new SimpleObjectProperty<>(new ScanSelection(1));
     mzRange = new SimpleObjectProperty<>();
 
@@ -154,7 +164,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     // property bindings
     plotType.bindBidirectional(chromPlot.plotTypeProperty());
     plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
-    mzRange.bind(pnChromControls.mzRange);
+    chromPosition.bindBidirectional(chromPlot.cursorPositionProperty());
+    spectrumPosition.bindBidirectional(spectrumPlot.cursorPositionProperty());
+    mzRange.bindBidirectional(pnChromControls.mzRange);
 
     // property listeners
     plotType.addListener(((observable, oldValue, newValue) -> {
@@ -162,14 +174,21 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       updateAllChromatogramDataSets();
     }));
 
+    // update feature data sets if the tolerance for the extraction changes
     bpcChromToleranceProperty().addListener(
         (obs, old, val) -> updateFeatureDataSets(getChromPosition().getDataFile(),
             getChromPosition().getScanNumber()));
 
-    chromPositionProperty().bindBidirectional(chromPlot.cursorPositionProperty());
+    // update spectrum plot if the user clicks in chromatogram plot
     chromPositionProperty()
-        .addListener((obs, old, pos) -> onCurrentSelectionChanged(obs, old, pos));
+        .addListener((obs, old, pos) -> onChromatogramSelectionChanged(obs, old, pos));
 
+    spectrumPositionProperty()
+        .addListener(((obs, old, pos) -> {
+          onSpectrumSelectionChanged(obs, old, pos);
+        }));
+
+    // update chromatogram plot if the ScanSelection changes
     scanSelectionProperty().addListener((obs, old, val) -> updateAllChromatogramDataSets());
 
     pnChromControls.getBtnUpdateXIC().setOnAction(event -> {
@@ -261,28 +280,49 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Adds a listener to the currentPostion to update the spectraPlot accordingly. The listener is
-   * triggered by a change to the {@link ChromatogramAndSpectraVisualizer#chromPosition} property.
+   * Called by a listener to the currentPostion to update the spectraPlot accordingly. The listener
+   * is triggered by a change to the {@link ChromatogramAndSpectraVisualizer#chromPosition}
+   * property.
    */
-  private void onCurrentSelectionChanged(ObservableValue<? extends ChromatogramCursorPosition> obs,
+  private void onChromatogramSelectionChanged(
+      ObservableValue<? extends ChromatogramCursorPosition> obs,
       ChromatogramCursorPosition old,
       ChromatogramCursorPosition pos) {
     RawDataFile file = pos.getDataFile();
+
+    updateChromatogramDomainMarker(pos);
     // update feature data sets
     updateFeatureDataSets(file, pos.getScanNumber());
     // update spectrum plots
-    updateDomainMarker(pos);
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
 
   /**
+   * Called by changes to {@link ChromatogramAndSpectraVisualizer#spectrumPosition}.
+   *
+   * @param obs
+   * @param old
+   * @param pos
+   */
+  private void onSpectrumSelectionChanged(ObservableValue<? extends SpectrumCursorPosition> obs,
+      SpectrumCursorPosition old,
+      SpectrumCursorPosition pos) {
+    if (!(pnChromControls.cbXIC.isSelected() && !pnChromControls.cbXIC.isDisabled())) {
+      return;
+    }
+    updateSpectrumMzMarker(pos);
+    mzRangeProperty().set(getBpcChromTolerance().getToleranceRange(pos.getMz()));
+    updateAllChromatogramDataSets(); // TODO: Add feature data sets instead of recalculating TIC data sets
+  }
+
+  /**
    * Changes the position of the domain marker. Is called by the mouse listener initialized in
-   * {@link ChromatogramAndSpectraVisualizer#onCurrentSelectionChanged(ObservableValue,
+   * {@link ChromatogramAndSpectraVisualizer#onChromatogramSelectionChanged(ObservableValue,
    * ChromatogramCursorPosition, ChromatogramCursorPosition)}
    *
    * @param pos
    */
-  private void updateDomainMarker(@Nonnull ChromatogramCursorPosition pos) {
+  private void updateChromatogramDomainMarker(@Nonnull ChromatogramCursorPosition pos) {
     chromPlot.getXYPlot().clearDomainMarkers();
 
     if (rtMarker == null) {
@@ -295,6 +335,20 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     rtMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
     chromPlot.getXYPlot().addDomainMarker(rtMarker);
+  }
+
+  private void updateSpectrumMzMarker(@Nonnull SpectrumCursorPosition pos) {
+    spectrumPlot.getXYPlot().clearDomainMarkers();
+
+    if (mzMarker == null) {
+      mzMarker = new ValueMarker(pos.getMz());
+      mzMarker.setStroke(MARKER_STROKE);
+    } else {
+      mzMarker.setValue(pos.getMz());
+    }
+    mzMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
+
+    spectrumPlot.getXYPlot().addDomainMarker(mzMarker);
   }
 
   /**
@@ -342,7 +396,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     ChromatogramCursorPosition pos = new ChromatogramCursorPosition(
         rawDataFile.getScan(scanNum).getRetentionTime(), 0, 0,
         rawDataFile, scanNum);
-    updateDomainMarker(pos);
+    updateChromatogramDomainMarker(pos);
     forceScanDataSet(rawDataFile, scanNum);
   }
 
@@ -443,6 +497,18 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   @Nonnull
   public ChromatogramCursorPosition getChromPosition() {
     return chromPosition.get();
+  }
+
+  public SpectrumCursorPosition getSpectrumPosition() {
+    return spectrumPosition.get();
+  }
+
+  public ObjectProperty<SpectrumCursorPosition> spectrumPositionProperty() {
+    return spectrumPosition;
+  }
+
+  public void setSpectrumPosition(SpectrumCursorPosition spectrumPosition) {
+    this.spectrumPosition.set(spectrumPosition);
   }
 
   /**

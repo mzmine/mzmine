@@ -24,9 +24,12 @@ import java.text.NumberFormat;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
@@ -90,6 +93,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
+  protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
 
   // Spectra processing
   protected DataPointProcessingController controller;
@@ -116,6 +120,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // setBackground(Color.white);
     setCursor(Cursor.CROSSHAIR);
 
+    cursorPosition = new SimpleObjectProperty<>();
+    initializeSpectrumMouseListener();
     matchLabelColors = new SimpleBooleanProperty(false);
     addMatchLabelColorsListener();
 
@@ -524,5 +530,56 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         }
       }
     }));
+  }
+
+  /**
+   * Listens to clicks in the Spectrum plot and updates the selected position accordingly.
+   */
+  private void initializeSpectrumMouseListener() {
+    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        SpectrumCursorPosition pos = updateCursorPosition();
+        if (pos != null) {
+          setCursorPosition(pos);
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+        // currently not in use
+      }
+    });
+  }
+
+  private SpectrumCursorPosition updateCursorPosition() {
+    double selectedMZ = getXYPlot().getDomainCrosshairValue();
+    double selectedIntensity = getXYPlot().getRangeCrosshairValue();
+
+    for (int i = 0; i < numOfDataSets; i++) {
+      XYDataset ds = getXYPlot().getDataset(i);
+
+      if (ds == null || !(ds instanceof ScanDataSet)) {
+        continue;
+      }
+      ScanDataSet scanDataSet = (ScanDataSet) ds;
+      int index = scanDataSet.getIndex(selectedMZ, selectedIntensity);
+      if (index >= 0) {
+        return new SpectrumCursorPosition(selectedIntensity, selectedMZ, scanDataSet.getScan());
+      }
+    }
+    return null;
+  }
+
+  public SpectrumCursorPosition getCursorPosition() {
+    return cursorPosition.get();
+  }
+
+  public ObjectProperty<SpectrumCursorPosition> cursorPositionProperty() {
+    return cursorPosition;
+  }
+
+  public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
+    this.cursorPosition.set(cursorPosition);
   }
 }

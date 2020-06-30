@@ -9,14 +9,12 @@ import java.text.ParseException;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -45,45 +43,49 @@ public class ChromatogramPlotControlPane extends VBox {
     cbXIC = new CheckBox("Show XIC");
     btnUpdateXIC = new Button("Update chromatogram(s)");
     btnUpdateXIC.setTooltip(new Tooltip("Applies the current m/z range to the TIC/XIC plot."));
+    mzRangeNode = new MZRangeComponent();
 
     cbPlotType.setItems(FXCollections.observableArrayList(TICPlotType.values()));
-    cbPlotType.valueProperty().addListener(((observable, oldValue, newValue) -> {
-      if (newValue == TICPlotType.TIC) {
+    cbPlotType.valueProperty().addListener(((obs, old, val) -> {
+      if (val == TICPlotType.TIC) {
         cbXIC.disableProperty().set(false);
+        if (!getChildren().contains(mzRangeNode) && cbXIC.isSelected()) {
+          getChildren().add(mzRangeNode);
+        }
       } else {
         cbXIC.disableProperty().set(true);
+        getChildren().remove(mzRangeNode);
       }
     }));
 
-    mzRangeNode = new MZRangeComponent();
     // disable mz range and button if xic is not selected
     btnUpdateXIC.disableProperty().bind(cbXIC.disableProperty());
-    cbXIC.disableProperty().addListener((obs, old, val) ->
-        mzRangeNode.setDisable(!(!val && cbXIC.isSelected())));
-    // also disable the mz range node if xic is not selected
-    cbXIC.selectedProperty().addListener((obs, old, val) -> mzRangeNode.setDisable(!val));
-
-    // hide components if they're not needed
-    btnUpdateXIC.visibleProperty().bind(btnUpdateXIC.disableProperty().not());
-    mzRangeNode.visibleProperty().bind(mzRangeNode.disableProperty().not());
-    cbXIC.visibleProperty().bind(cbXIC.disableProperty().not());
+    // also remove the mz range node if xic is not selected
+    cbXIC.selectedProperty().addListener((obs, old, val) -> {
+      if (val && !getChildren().contains(mzRangeNode)) {
+        getChildren().add(mzRangeNode);
+      } else {
+        getChildren().remove(mzRangeNode);
+      }
+    });
 
     HBox controlsWrap = new HBox(5, cbPlotType, cbXIC, btnUpdateXIC);
-//    controlsWrap.setAlignment(Pos.CENTER);
-//    mzRangeNode.setAlignment(Pos.CENTER);
-    getChildren().addAll(controlsWrap, mzRangeNode);
+    controlsWrap.setAlignment(Pos.CENTER);
+    mzRangeNode.setAlignment(Pos.CENTER);
+    getChildren().addAll(controlsWrap);
 
     // set here, so all the listeners trigger and disable the other components.
     cbPlotType.setValue(TICPlotType.BASEPEAK);
 
-    addListenersToMzRange();
+    addListenersToMzRangeNode();
     mzRange = new SimpleObjectProperty<>();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     min = null;
     max = null;
     mzRangeProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue != null) {
-        System.out.println(newValue.toString());
+        mzRangeNode.getMinTxtField().setText(mzFormat.format(newValue.lowerEndpoint()));
+        mzRangeNode.getMaxTxtField().setText(mzFormat.format(newValue.upperEndpoint()));
       }
     }));
   }
@@ -112,7 +114,7 @@ public class ChromatogramPlotControlPane extends VBox {
     return btnUpdateXIC;
   }
 
-  private void addListenersToMzRange() {
+  private void addListenersToMzRangeNode() {
     Range<Double> range;
     mzRangeNode.getMinTxtField().textProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue == null) {
