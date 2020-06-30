@@ -111,10 +111,12 @@ public class MassCalibrationTask extends AbstractTask {
     }
 
     Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
+    Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();
     Double mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     Double rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeSecTolerance).getValue();
 
-    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, standardsList);
+    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
+            standardsList);
 
     ArrayList<Double> errors = new ArrayList<Double>();
 

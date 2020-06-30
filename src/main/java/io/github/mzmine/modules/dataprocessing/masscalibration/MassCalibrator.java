@@ -41,6 +41,7 @@ public class MassCalibrator {
   protected final double retentionTimeSecTolerance;
   protected final double mzRatioTolerance;
   protected final double errorDistributionDistance;
+  protected final double errorMaxRangeLength;
   protected final StandardsList standardsList;
 
   protected final Logger logger;
@@ -55,13 +56,15 @@ public class MassCalibrator {
    * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and actual mz peaks
    * @param errorDistributionDistance clustering distance parameter for extracting high density range of errors
    *                                  that are meant to approximate the set of substantial errors to the bias estimate
+   * @param errorMaxRangeLength       max length of the range to be found containing most errors in it
    * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
    */
   public MassCalibrator(double retentionTimeSecTolerance, double mzRatioTolerance,
-                        double errorDistributionDistance, StandardsList standardsList) {
+                        double errorDistributionDistance, double errorMaxRangeLength, StandardsList standardsList) {
     this.retentionTimeSecTolerance = retentionTimeSecTolerance;
     this.mzRatioTolerance = mzRatioTolerance;
     this.errorDistributionDistance = errorDistributionDistance;
+    this.errorMaxRangeLength = errorMaxRangeLength;
     this.standardsList = standardsList;
 
     this.logger = Logger.getLogger(this.getClass().getName());
@@ -92,7 +95,7 @@ public class MassCalibrator {
   public double estimateBiasFromErrors(List<Double> errors) {
     Set<Double> errorsSet = new HashSet<Double>(errors);
     List<Double> errorsUniqueList = new ArrayList<Double>(errorsSet);
-    DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, 2);
+    DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, errorMaxRangeLength);
     DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
             errorDistributionDistance);
     double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());

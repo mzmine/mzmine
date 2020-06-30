@@ -37,12 +37,16 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final MassListParameter massList = new MassListParameter();
 
   public static final FileNameParameter standardsList = new FileNameParameter("Standards list",
-          "File with a list of standard molecules expected to appear in the dataset",
-          FileSelectionType.OPEN);
+          "File with a list of standard calibrants (ionic formula and retention time)" +
+                  " expected to appear in the dataset", FileSelectionType.OPEN);
 
   public static final DoubleParameter tolerance = new DoubleParameter("Range tolerance",
-          "Range tolerance is the max distance allowed between errors to be included in the range.",
+          "Range tolerance is the max distance allowed between errors to be included in the same range.",
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
+
+  public static final DoubleParameter rangeSize = new DoubleParameter("Most populated error range size",
+          "The maximum length of the range that contains the most errors.",
+          NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
   public static final DoubleParameter mzRatioTolerance = new DoubleParameter("mz ratio tolerance",
           "Max difference between actual mz peaks and standard calibrants to consider a match",
@@ -60,7 +64,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[]{dataFiles, massList, standardsList, tolerance, mzRatioTolerance,
+    super(new Parameter[]{dataFiles, massList, standardsList, tolerance, rangeSize, mzRatioTolerance,
             retentionTimeSecTolerance, suffix, autoRemove});
   }
 

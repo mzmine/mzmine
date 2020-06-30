@@ -1,0 +1,124 @@
+<html>
+<head>
+    <title>Mass list processing - Mass calibration</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    <style>
+        img {
+            width: 95%;
+            height: auto;
+            margin: 10px 2.5%;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Mass calibration</h1>
+
+<h2>Description</h2>
+
+<p>
+    Mass spectrometry instruments might introduce mass measurement errors. Some of these errors are systematic and the
+    purpose of this module is to model these errors and calibrate mass spectra (on the mass list level) against them.
+    <br/>
+    First, the mass measurement errors are obtained. This is done by matching detected mass peaks across all scans
+    against a list of standard calibrants. A fixed tolerance for m/z ratio and retention time is used and if a single
+    candidate calibrant is found within the tolerance ranges for a given mass peak, a match is considered.
+    <br/>
+    Then having a list of matches, measurement errors are calculated, their distribution is built and the measurement
+    bias is estimated. Currently m/z ratio PPM error type is used. A certain subset of the distribution of errors needs
+    to be extracted as likely not all errors come from correct matches, ie: when a wrong match is made an error value is
+    obtained that is not substantial towards the estimation of measurement error. We model this substantial error subset
+    by extracting a high-density error range from the distribution. This is done in two steps, first a range of errors
+    with a maximum allowed length such that it contains the most errors in it is found. Then this range is additionally
+    extended with a certain tolerance such that if there is an error within the tolerance of any of these errors that
+    are already in the range, the range is extended to include this newly considered error and the process continues
+    until the range cannot be extended anymore to include any new errors within the tolerance, ie: if errors outside the
+    range exist, they are further away then the tolerance parameter. This resembles single-link clustering, but with an
+    upper bound on what can be merged together.
+    <br/>
+    Then having extracted the substantial subset of errors from the initial distribution, a systematic error of
+    measurement is estimated. This is currently done just by calculating the arithmetic mean of the extracted errors.
+    The bias is estimated globally - a single value that is optimized globally for the whole dataset.
+    <br/>
+    After estimating the mass measurement bias, mass lists across all scans are calibrated according to the value. This
+    is done by shifting all mass peaks in the mass lists against the bias estimate. The resulting mass spectra are
+    calibrated accounting for the systematic errors of mass measurement estimated in the above process.
+    <br/>
+    This module is still in its early stages and there is a lot of potential improvements to consider. Next updates
+    might include live distribution plots and more considerate error modeling. This help file was last updated on 30
+    June 2020.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+
+    <dt>Mass list name</dt>
+    <dd>Choose a name of the mass lists to be filtered. The mass lists must be previously generated for each scan by the
+        Mass detector module.
+    </dd>
+
+    <dt>Standards list</dt>
+    <dd>File with a list of standard calibrants - ion formulas together with retention times. This is the list that the
+        peaks are matched against, the list should contain ions that are expected to appear in the dataset. Currently
+        spreadsheet (xls and xlsx) and csv files are supported. They should contain columns with names 'Ion formula' and
+        'Retention time (min)'.
+    </dd>
+
+    <dt>Range tolerance</dt>
+    <dd>This is the max distance between errors to be included within the same range. The errors are PPM m/z ratio
+        errors and this is the unit of the range tolerance parameter. See above description for more details, when the
+        range is extended this parameter is used to decide whether the range should be stretched to include the next
+        closest error. Use zero to skip this step, ie: do not extend the range after the most populated fixed length
+        range is found.
+    </dd>
+
+    <dt>Most populated error range size</dt>
+    <dd>This is the max length of the range containing most errors. The errors are PPM m/z ratio
+        errors and this is the unit of the range size parameter. See above description for more details. Use zero to
+        skip this step, ie: do find the most populated range as the basis for later extension with range tolerance, in
+        such case the distribution is split into subranges containing all the errors within the tolerance and the
+        biggest such subrange is used. When both these parameters are set to zero, no error extraction from the
+        distribution takes place and all errors obtained by matching with calibrants are used for the bias estimation.
+    </dd>
+
+    <dt>m/z ratio tolerance</dt>
+    <dd>The max difference in m/z ratio between an actual measured mass peak and a standard calibrant to consider a
+        match
+    </dd>
+
+    <dt>Retention time tolerance</dt>
+    <dd>The max difference in retention time seconds between an actual measured mass peak and a standard calibrant to
+        consider a match
+    </dd>
+
+    <dt>Suffix</dt>
+    <dd>This string is added to the resulting calibrated mass list name as a suffix</dd>
+
+    <dt>Remove original mass list</dt>
+    <dd>If checked, original mass list will be removed and only calibrated version remains</dd>
+
+</dl>
+
+<h4>Visualization</h4>
+
+<p>
+    Below two plots are rough conceptual visualizations of extracting error ranges and obtaining global bias estimates
+    from them.
+    <br/>
+    The plots show a sorted list of PPM m/z ratio measurement errors. Arithmetic mean label represents the arithmetic
+    mean of all errors in the distribution. Range smallest/biggest value represent the endpoints of the fixed range of
+    length 2 in the y-axis that contains most errors in it. Range mean represents the arithmetic mean of the errors
+    included in that range. In the plot below, range length extender smallest/biggest value represent the endpoints of
+    the above fixed length range extended in process described above with a fixed tolerance of 0.4 in the y-axis, the
+    error value. Range length extender mean is the arithmetic mean of the errors contained in the stretched error range.
+</p>
+
+<img src="error-distribution-fixed-range.png"/>
+<img src="error-distribution-stretched-range.png"/>
+
+
+</body>
+</html>
