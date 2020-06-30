@@ -99,7 +99,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   /**
    * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
-   * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(RawDataFile, int)}.
+   * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(double)}.
    */
   protected final ObjectProperty<MZTolerance> bpcChromTolerance;
 
@@ -176,8 +176,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     // update feature data sets if the tolerance for the extraction changes
     bpcChromToleranceProperty().addListener(
-        (obs, old, val) -> updateFeatureDataSets(getChromPosition().getDataFile(),
-            getChromPosition().getScanNumber()));
+        (obs, old, val) -> updateFeatureDataSets(
+            getChromPosition().getDataFile().getScan(getChromPosition().getScanNumber())
+                .getHighestDataPoint().getMZ()));
 
     // update spectrum plot if the user clicks in chromatogram plot
     chromPositionProperty()
@@ -205,6 +206,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     List<RawDataFile> rawDataFiles = new ArrayList<>();
     filesAndDataSets.keySet().forEach(raw -> rawDataFiles.add(raw));
     chromPlot.getXYPlot().setNotify(false);
+    chromPlot.getXYPlot().clearDomainMarkers();
     rawDataFiles.forEach(raw -> removeRawDataFile(raw));
     rawDataFiles.forEach(raw -> addRawDataFile(raw));
     chromPlot.getXYPlot().setNotify(true);
@@ -292,7 +294,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     updateChromatogramDomainMarker(pos);
     // update feature data sets
-    updateFeatureDataSets(file, pos.getScanNumber());
+    updateFeatureDataSets(file.getScan(pos.getScanNumber()).getHighestDataPoint().getMZ());
     // update spectrum plots
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
   }
@@ -307,12 +309,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void onSpectrumSelectionChanged(ObservableValue<? extends SpectrumCursorPosition> obs,
       SpectrumCursorPosition old,
       SpectrumCursorPosition pos) {
-    if (!(pnChromControls.cbXIC.isSelected() && !pnChromControls.cbXIC.isDisabled())) {
-      return;
-    }
-    updateSpectrumMzMarker(pos);
+    updateSpectrumDomainMarker(pos);
     mzRangeProperty().set(getBpcChromTolerance().getToleranceRange(pos.getMz()));
-    updateAllChromatogramDataSets(); // TODO: Add feature data sets instead of recalculating TIC data sets
+    updateFeatureDataSets(pos.getMz());
   }
 
   /**
@@ -337,7 +336,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().addDomainMarker(rtMarker);
   }
 
-  private void updateSpectrumMzMarker(@Nonnull SpectrumCursorPosition pos) {
+  private void updateSpectrumDomainMarker(@Nonnull SpectrumCursorPosition pos) {
     spectrumPlot.getXYPlot().clearDomainMarkers();
 
     if (mzMarker == null) {
@@ -412,15 +411,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   // ----- Plot updaters -----
 
   /**
-   * Calculates {@link FeatureDataSet}s for the m/z range of the base peak in the selected scan.
+   * Calculates {@link FeatureDataSet}s for the given m/z range.
    *
-   * @param mainRaw
-   * @param mainScanNum
+   * @param mz
    */
-  private void updateFeatureDataSets(@Nonnull RawDataFile mainRaw, int mainScanNum) {
+  private void updateFeatureDataSets(double mz) {
     // mz of the base peak in the selected scan of the selected raw data file.
-    double mzBasePeak = mainRaw.getScan(mainScanNum).getHighestDataPoint().getMZ();
-    Range<Double> bpcChromToleranceRange = getBpcChromTolerance().getToleranceRange(mzBasePeak);
+    Range<Double> bpcChromToleranceRange = getBpcChromTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
 
@@ -461,6 +458,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       currentSpectraDataSetCalc.setStatus(TaskStatus.CANCELED);
     }
     currentSpectraDataSetCalc = thread;
+    getSpectrumPlot().getXYPlot().clearDomainMarkers();
     MZmineCore.getTaskController().addTask(thread);
   }
 
