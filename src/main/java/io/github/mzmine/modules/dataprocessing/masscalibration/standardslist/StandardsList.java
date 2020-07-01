@@ -36,6 +36,13 @@ public class StandardsList {
     this.standardMolecules.sort(StandardsListItem.mzComparator);
   }
 
+  protected StandardsList(List<StandardsListItem> standardMolecules, boolean sorted) {
+    this.standardMolecules = new ArrayList<StandardsListItem>(standardMolecules);
+    if (sorted == false) {
+      this.standardMolecules.sort(StandardsListItem.mzComparator);
+    }
+  }
+
   /**
    * Return a list of standard calibrants that are within given ranges of mz ratios and retention times
    * when a null is given, the range is skipped / assumed to contain all mz or rt values
@@ -44,7 +51,7 @@ public class StandardsList {
    * @param rtSecRange
    * @return
    */
-  public ArrayList<StandardsListItem> getInRanges(Range<Double> mzRange, Range<Double> rtSecRange) {
+  public StandardsList getInRanges(Range<Double> mzRange, Range<Double> rtSecRange) {
     ArrayList<StandardsListItem> withinRange = new ArrayList<>();
     for (StandardsListItem molecule : standardMolecules) {
       if ((mzRange == null || mzRange.contains(molecule.getMzRatio()))
@@ -52,10 +59,10 @@ public class StandardsList {
         withinRange.add(molecule);
       }
     }
-    return withinRange;
+    return new StandardsList(withinRange, true);
   }
 
-  public ArrayList<StandardsListItem> getStandardsMolecules() {
+  public ArrayList<StandardsListItem> getStandardMolecules() {
     return standardMolecules;
   }
 }

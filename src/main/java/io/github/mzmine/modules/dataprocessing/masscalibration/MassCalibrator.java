@@ -24,6 +24,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.*;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,8 +40,8 @@ public class MassCalibrator {
 
   protected static final ErrorType massError = new PpmError();
 
-  protected final double retentionTimeSecTolerance;
-  protected final double mzRatioTolerance;
+  protected final RTTolerance retentionTimeSecTolerance;
+  protected final MZTolerance mzRatioTolerance;
   protected final double errorDistributionDistance;
   protected final double errorMaxRangeLength;
   protected final StandardsList standardsList;
@@ -59,7 +61,7 @@ public class MassCalibrator {
    * @param errorMaxRangeLength       max length of the range to be found containing most errors in it
    * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
    */
-  public MassCalibrator(double retentionTimeSecTolerance, double mzRatioTolerance,
+  public MassCalibrator(RTTolerance retentionTimeSecTolerance, MZTolerance mzRatioTolerance,
                         double errorDistributionDistance, double errorMaxRangeLength, StandardsList standardsList) {
     this.retentionTimeSecTolerance = retentionTimeSecTolerance;
     this.mzRatioTolerance = mzRatioTolerance;
@@ -154,14 +156,15 @@ public class MassCalibrator {
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTimeSec) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
-    Range<Double> rtSecRange = Range.closed(retentionTimeSec - retentionTimeSecTolerance,
-            retentionTimeSec + retentionTimeSecTolerance);
+    Range<Double> rtSecRange = retentionTimeSecTolerance.getToleranceRange(retentionTimeSec);
+    StandardsList retentionTimeFiltered = standardsList.getInRanges(null, rtSecRange);
 
     for (DataPoint dataPoint : massList) {
       double mz = dataPoint.getMZ();
-      Range<Double> mzRange = Range.closed(mz - mzRatioTolerance, mz + mzRatioTolerance);
+      Range<Double> mzRange = mzRatioTolerance.getToleranceRange(mz);
 
-      List<StandardsListItem> dataPointMatches = standardsList.getInRanges(mzRange, rtSecRange);
+      List<StandardsListItem> dataPointMatches = retentionTimeFiltered.getInRanges(mzRange, null)
+              .getStandardMolecules();
 
       all++;
 

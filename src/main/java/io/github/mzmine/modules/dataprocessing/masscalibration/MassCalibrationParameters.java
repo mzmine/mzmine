@@ -27,6 +27,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 import java.text.NumberFormat;
 
@@ -41,20 +43,20 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   " expected to appear in the dataset", FileSelectionType.OPEN);
 
   public static final DoubleParameter tolerance = new DoubleParameter("Range tolerance",
-          "Range tolerance is the max distance allowed between errors to be included in the same range.",
+          "Range tolerance is the max distance allowed between errors to be included in the same range," +
+                  " in PPM m/z ratio.",
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
 
   public static final DoubleParameter rangeSize = new DoubleParameter("Most populated error range size",
-          "The maximum length of the range that contains the most errors.",
+          "The maximum length of the range that contains the most errors, in PPM m/z ratio.",
           NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
-  public static final DoubleParameter mzRatioTolerance = new DoubleParameter("mz ratio tolerance",
-          "Max difference between actual mz peaks and standard calibrants to consider a match",
-          NumberFormat.getNumberInstance(), 0.01, 0.0, Double.POSITIVE_INFINITY);
+  public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
+          "Max difference between actual mz peaks and standard calibrants to consider a match," +
+                  " max of m/z and ppm is used", 0.001, 5, true);
 
-  public static final DoubleParameter retentionTimeSecTolerance = new DoubleParameter("Retention time tolerance",
-          "Max retention time difference in seconds between mass peaks and standard calibrants to consider a match.",
-          NumberFormat.getNumberInstance(), 60.0, 0.0, Double.POSITIVE_INFINITY);
+  public static final RTToleranceParameter retentionTimeSecTolerance = new RTToleranceParameter("Retention time tolerance",
+          "Max retention time difference in seconds between mass peaks and standard calibrants to consider a match.");
 
   public static final StringParameter suffix = new StringParameter("Suffix",
           "This string is added to mass list name as a suffix", "calibrated");
