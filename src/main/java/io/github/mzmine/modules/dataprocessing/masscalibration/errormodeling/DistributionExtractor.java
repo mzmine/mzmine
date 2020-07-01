@@ -106,6 +106,48 @@ public class DistributionExtractor {
     return buildDistributionRange(items, mostItemsStart, mostItemsEnd);
   }
 
+  /**
+   * Returns a most populated range from the distribution after splitting it into subranges by fixed tolerance
+   * Given a list of items, split them into subranges by merging points that are within given tolerance of each other
+   * This can be done by sorting the list, then iterating over it while keeping track of the longest subrange
+   * that was considered,
+   * at every iteration include the next point in the current range if it is within the tolerance of that range
+   * (its distance to the last element is smaller than the tolerance)
+   * or start a new range otherwise
+   * This methods return the (first) range containing most points found in the process
+   *
+   * @param items     distribution items
+   * @param tolerance distance tolerance between the points in the distribution
+   * @return distribution range object
+   */
+  public static DistributionRange mostPopulatedRangeCluster(List<Double> items, double tolerance) {
+    if (items.isEmpty()) {
+      throw new IllegalArgumentException("Empty items list");
+    }
+    if (tolerance <= 0) {
+      throw new IllegalArgumentException("Non-positive tolerance");
+    }
+
+    Collections.sort(items);
+    int startIndex = 0;
+    int endIndex = 0;
+    int mostItemsStart = 0;
+    int mostItemsEnd = 0;
+    while (endIndex < items.size()) {
+      while (endIndex + 1 < items.size() && items.get(endIndex + 1) - items.get(endIndex) <= tolerance) {
+        endIndex++;
+      }
+      if (endIndex - startIndex > mostItemsEnd - mostItemsStart) {
+        mostItemsStart = startIndex;
+        mostItemsEnd = endIndex;
+      }
+      startIndex = endIndex + 1;
+      endIndex = startIndex;
+    }
+
+    return buildDistributionRange(items, mostItemsStart, mostItemsEnd);
+  }
+
   protected static DistributionRange buildDistributionRange(List<Double> items, int startIndex, int endIndex) {
     Range<Integer> indexRange = Range.closed(startIndex, endIndex);
     Range<Double> valueRange = Range.closed(items.get(startIndex), items.get(endIndex));
@@ -113,4 +155,5 @@ public class DistributionExtractor {
 
     return new DistributionRange(items, extractedItems, indexRange, valueRange);
   }
+
 }

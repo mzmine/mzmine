@@ -97,13 +97,25 @@ public class MassCalibrator {
   public double estimateBiasFromErrors(List<Double> errors) {
     Set<Double> errorsSet = new HashSet<Double>(errors);
     List<Double> errorsUniqueList = new ArrayList<Double>(errorsSet);
-    DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, errorMaxRangeLength);
-    DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
-            errorDistributionDistance);
-    double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
+    double biasEstimate;
+    if (errorMaxRangeLength != 0) {
+      DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, errorMaxRangeLength);
+      DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+              errorDistributionDistance);
+      double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
+      biasEstimate = stretchedRangeBiasEstimate;
+    } else if (errorDistributionDistance != 0) {
+      DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errorsUniqueList,
+              errorDistributionDistance);
+      double biggestClusterBiasEstimate = BiasEstimator.arithmeticMean(biggestCluster.getExtractedItems());
+      biasEstimate = biggestClusterBiasEstimate;
+    } else {
+      double allErrorsBiasEstimate = BiasEstimator.arithmeticMean(errorsUniqueList);
+      biasEstimate = allErrorsBiasEstimate;
+    }
     logger.info(String.format("Errors %d, unique %d, bias estimate %f",
-            errors.size(), errorsUniqueList.size(), stretchedRangeBiasEstimate));
-    return stretchedRangeBiasEstimate;
+            errors.size(), errorsUniqueList.size(), biasEstimate));
+    return biasEstimate;
   }
 
   /**
