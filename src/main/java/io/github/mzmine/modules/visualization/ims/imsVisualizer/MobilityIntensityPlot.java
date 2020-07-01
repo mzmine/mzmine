@@ -59,8 +59,8 @@ public class MobilityIntensityPlot extends EChartViewer {
     plot.setBackgroundPaint(Color.WHITE);
     plot.setRangeGridlinePaint(Color.WHITE);
     plot.setDomainGridlinePaint(Color.WHITE);
-    //plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
-//    plot.getDomainAxis().setInverted(true);
+    plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
+    plot.getDomainAxis().setInverted(true);
     plot.getRangeAxis().setVisible(false);
     chart.getLegend().setFrame(BlockBorder.NONE);
 

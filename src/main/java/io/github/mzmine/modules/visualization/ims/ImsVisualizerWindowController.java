@@ -29,7 +29,6 @@ public class ImsVisualizerWindowController {
   @FXML public BorderPane bottomLeftPane;
   @FXML public BorderPane bottomRightPane;
   @FXML public Label rtLabel;
-  @FXML public Label intensityRTLabel;
   @FXML public Label mobilityRTLabel;
 
 
@@ -40,7 +39,6 @@ public class ImsVisualizerWindowController {
   public BorderPane getBottomRightPane(){return bottomRightPane;}
 
   public Label getRtLabel(){return rtLabel;}
-  public Label getIntensityRTLabel(){ return  intensityRTLabel; }
   public Label getMobilityRTLabel(){ return mobilityRTLabel; }
 
 

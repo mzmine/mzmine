@@ -94,7 +94,7 @@ public class IntensityRetentionTimePlot extends EChartViewer {
     plot.addDomainMarker(marker);
 
     imsVisualizerTask.setSelectedRetentionTime(selectedRetention);
-    imsVisualizerTask.runMoblityMZHeatMap();
+    imsVisualizerTask.updateMobilityGroup();
     //  marker to the mobility-retention time heatmap plot.
     mobilityRetentionHeatMapPlot.getPlot().clearDomainMarkers();
     mobilityRetentionHeatMapPlot.getPlot().addDomainMarker(marker);
@@ -111,7 +111,7 @@ public class IntensityRetentionTimePlot extends EChartViewer {
               selectedRetention = dataset.getXValue(serindex, itemindex);
               // Get controller
               imsVisualizerTask.setSelectedRetentionTime(selectedRetention);
-              imsVisualizerTask.runMoblityMZHeatMap();
+              imsVisualizerTask.updateMobilityGroup();
 
               // setting the marker at seleted range.
               plot.clearDomainMarkers();
