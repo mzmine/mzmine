@@ -42,6 +42,9 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           "File with a list of standard calibrants (ionic formula and retention time)" +
                   " expected to appear in the dataset", FileSelectionType.OPEN);
 
+  public static final BooleanParameter filterDuplicates = new BooleanParameter("Filter out duplicate errors",
+          "If checked, the distribution of errors will be filtered to remove duplicates");
+
   public static final DoubleParameter tolerance = new DoubleParameter("Range tolerance",
           "Range tolerance is the max distance allowed between errors to be included in the same range," +
                   " in PPM m/z ratio.",
@@ -66,7 +69,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[]{dataFiles, massList, standardsList, tolerance, rangeSize, mzRatioTolerance,
+    super(new Parameter[]{dataFiles, massList, standardsList, filterDuplicates, tolerance, rangeSize, mzRatioTolerance,
             retentionTimeSecTolerance, suffix, autoRemove});
   }
 

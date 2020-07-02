@@ -114,6 +114,7 @@ public class MassCalibrationTask extends AbstractTask {
 
     Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
     Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();
+    Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeSecTolerance).getValue();
 
@@ -165,7 +166,7 @@ public class MassCalibrationTask extends AbstractTask {
       processedScans++;
     }
 
-    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors, true);
+    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates);
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {

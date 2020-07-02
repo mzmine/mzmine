@@ -10,6 +10,10 @@
             margin: 10px 2.5%;
             float: left;
         }
+
+
+
+
     </style>
 </head>
 
@@ -25,7 +29,13 @@
     <br/>
     First, the mass measurement errors are obtained. This is done by matching detected mass peaks across all scans
     against a list of standard calibrants. A fixed tolerance for m/z ratio and retention time is used and if a single
-    candidate calibrant is found within the tolerance ranges for a given mass peak, a match is considered.
+    candidate calibrant is found within the tolerance ranges for a given mass peak, a match is considered. All scans
+    (mass lists) are independently matched against the list of standard calibrants and then the collective distribution
+    of errors across all scans is used to model errors globally across whole dataset. As ions are present in the mass
+    spectra across certain characteristic timeframes, a single ion might have corresponding mass peaks across multiple
+    scans (mass lists). When treating them separately, multiple errors will be added to the distribution. A simple
+    approximation to matching each ion present just once and adding just a single error for a matched ion would be to
+    filter the duplicate error values from the distribution obtained by matching all mass lists separately.
     <br/>
     Then having a list of matches, measurement errors are calculated, their distribution is built and the measurement
     bias is estimated. Currently m/z ratio PPM error type is used. A certain subset of the distribution of errors needs
@@ -65,6 +75,11 @@
         peaks are matched against, the list should contain ions that are expected to appear in the dataset. Currently
         spreadsheet (xls and xlsx) and csv files are supported. They should contain columns with names 'Ion formula' and
         'Retention time (min)'.
+    </dd>
+
+    <dt>Filter out duplicate errors</dt>
+    <dd>The collective distribution of all errors obtained by matching all mass lists separately will be filtered to
+        remove duplicate errors.
     </dd>
 
     <dt>Range tolerance</dt>
