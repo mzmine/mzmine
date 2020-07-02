@@ -67,6 +67,10 @@
 }
 
 
+.number-column {
+  -fx-alignment: CENTER-RIGHT;
+}
+
 
 
 /* Some useful CSS properties: */
