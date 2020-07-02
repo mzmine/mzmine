@@ -92,29 +92,30 @@ public class MassCalibrator {
    * Estimate measurement bias from errors
    *
    * @param errors list of errors
+   * @param unique filter out duplicates from the list of errors if unique is set to true
    * @return measurement bias estimate
    */
-  public double estimateBiasFromErrors(List<Double> errors) {
-    Set<Double> errorsSet = new HashSet<Double>(errors);
-    List<Double> errorsUniqueList = new ArrayList<Double>(errorsSet);
-    double biasEstimate;
+  public double estimateBiasFromErrors(List<Double> errors, boolean unique) {
+    if (unique) {
+      Set<Double> errorsSet = new HashSet<Double>(errors);
+      errors = new ArrayList<Double>(errorsSet);
+    }
+    List<Double> extracted;
     if (errorMaxRangeLength != 0) {
-      DistributionRange range = DistributionExtractor.fixedLengthRange(errorsUniqueList, errorMaxRangeLength);
+      DistributionRange range = DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
       DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
               errorDistributionDistance);
-      double stretchedRangeBiasEstimate = BiasEstimator.arithmeticMean(stretchedRange.getExtractedItems());
-      biasEstimate = stretchedRangeBiasEstimate;
+      extracted = stretchedRange.getExtractedItems();
     } else if (errorDistributionDistance != 0) {
-      DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errorsUniqueList,
+      DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
               errorDistributionDistance);
-      double biggestClusterBiasEstimate = BiasEstimator.arithmeticMean(biggestCluster.getExtractedItems());
-      biasEstimate = biggestClusterBiasEstimate;
+      extracted = biggestCluster.getExtractedItems();
     } else {
-      double allErrorsBiasEstimate = BiasEstimator.arithmeticMean(errorsUniqueList);
-      biasEstimate = allErrorsBiasEstimate;
+      extracted = errors;
     }
-    logger.info(String.format("Errors %d, unique %d, bias estimate %f",
-            errors.size(), errorsUniqueList.size(), biasEstimate));
+    double biasEstimate = BiasEstimator.arithmeticMean(extracted);
+    logger.info(String.format("Errors %d, extracted %d, unique %s, bias estimate %f",
+            errors.size(), extracted.size(), unique ? "true" : "false", biasEstimate));
     return biasEstimate;
   }
 

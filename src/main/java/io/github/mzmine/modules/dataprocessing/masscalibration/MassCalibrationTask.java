@@ -165,7 +165,7 @@ public class MassCalibrationTask extends AbstractTask {
       processedScans++;
     }
 
-    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors);
+    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors, true);
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {
