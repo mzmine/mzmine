@@ -102,7 +102,8 @@ public class MassCalibrationTask extends AbstractTask {
     String standardsListFilename = null;
     StandardsList standardsList;
     try {
-      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue().getName();
+      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
+              .getAbsolutePath();
       standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename);
       standardsList = standardsListExtractor.extractStandardsList();
     } catch (Exception e) {
