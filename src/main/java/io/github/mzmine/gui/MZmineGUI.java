@@ -19,7 +19,7 @@
 package io.github.mzmine.gui;
 
 
-import io.github.mzmine.gui.mainwindow.MainWindowControllerNew;
+import io.github.mzmine.gui.mainwindow.MainWindowController;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -42,7 +42,6 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
-import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -83,7 +82,7 @@ public class MZmineGUI extends Application implements Desktop {
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
-  private static MainWindowControllerNew mainWindowController;
+  private static MainWindowController mainWindowController;
 
   private static Stage mainStage;
   private static Scene rootScene;

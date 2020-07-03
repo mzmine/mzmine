@@ -21,14 +21,14 @@
 
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/8"
 	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
+	fx:controller="io.github.mzmine.gui.mainwindow.MainWindowControllerOld">
 	<stylesheets>
-		<URL value="@MZmine.css" />
+		<URL value="@MZmine.css"/>
 	</stylesheets>
 	<BorderPane fx:id="mainWindowPane" minWidth="400"
 		minHeight="400" prefWidth="1000" prefHeight="700">
 		<top>
-			<fx:include source="MainMenu.fxml" />
+			<fx:include source="MainMenu.fxml"/>
 		</top>
 		<center>
 			<SplitPane dividerPositions="0.8" minHeight="100"

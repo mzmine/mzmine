@@ -1,18 +1,37 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine 3.
+ *
+ * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.gui.mainwindow;
 
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Table;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.mainwindow.tabs.processingreport.TextAreaProcessingReportTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -25,14 +44,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -42,22 +57,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import org.controlsfx.control.StatusBar;
 
-public class MainWindowControllerNew {
+/**
+ * This class controls the main window of the application
+ */
+public class MainWindowControllerOld {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private Boolean reorderListItem = false;
@@ -76,37 +89,13 @@ public class MainWindowControllerNew {
   private Scene mainScene;
 
   @FXML
+  private BorderPane mainWindowPane;
+
+  @FXML
   private ListView<RawDataFile> rawDataTree;
 
   @FXML
   private ListView<PeakList> featureTree;
-
-  @FXML
-  private Tab tvAligned;
-
-  @FXML
-  private TreeView<?> tvAlignedFeatureLists;
-
-  @FXML
-  private AnchorPane tbRawData;
-
-  @FXML
-  private AnchorPane tbFeatureTable;
-
-  @FXML
-  private BorderPane rawDataOverview;
-
-  @FXML
-  private RawDataOverviewWindowController rawDataOverviewController;
-
-  @FXML
-  private TabPane tpOverview;
-
-  @FXML
-  private Tab tabRawDataOverview;
-
-  @FXML
-  private Tab tabFeatureListOverview;
 
   @FXML
   private TableView<WrappedTask> tasksView;
@@ -148,7 +137,6 @@ public class MainWindowControllerNew {
           return;
         }
         setText(item.getName());
-        setTextFill(item.getColor());
         setGraphic(new ImageView(rawDataFileIcon));
       }
     });
@@ -159,15 +147,6 @@ public class MainWindowControllerNew {
         handleShowChromatogram(event);
       }
     });
-
-    rawDataTree.getSelectionModel().getSelectedItems().addListener(
-        new ListChangeListener<>() {
-          @Override
-          public void onChanged(Change<? extends RawDataFile> c) {
-            c.next();
-            rawDataOverviewController.setRawDataFiles((List<RawDataFile>) c.getList());
-          }
-        });
 
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
@@ -268,10 +247,6 @@ public class MainWindowControllerNew {
      * instanceof MZmineTask) { MZmineTask mzmineTask = (MZmineTask) task;
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
-
-    TextAreaProcessingReportTab reportTab = new TextAreaProcessingReportTab("Report: Deisotoping");
-    reportTab.setDemoText();
-    getOverviewTabPane().getTabs().add(reportTab);
   }
 
   public ListView<RawDataFile> getRawDataTree() {
@@ -451,10 +426,6 @@ public class MainWindowControllerNew {
       logger.info("Freeing unused memory");
       System.gc();
     }).start();
-  }
-
-  public TabPane getOverviewTabPane() {
-    return tpOverview;
   }
 
 }

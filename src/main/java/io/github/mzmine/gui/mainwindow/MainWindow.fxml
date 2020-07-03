@@ -8,7 +8,7 @@
 
 <Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/10.0.2-internal"
   xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.gui.mainwindow.MainWindowControllerNew">
+  fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
   <stylesheets>
     <URL value="@MZmine.css"/>
   </stylesheets>
@@ -111,7 +111,7 @@
           </SplitPane>
 
           <!--          Right side, main panel -->
-          <TabPane fx:id="tpOverview"
+          <TabPane fx:id="tpMain"
             tabClosingPolicy="ALL_TABS">
             <tabs>
               <Tab fx:id="tabRawDataOverview" closable="false" text="Raw data overview">
