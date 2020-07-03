@@ -22,10 +22,8 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
-import javafx.scene.shape.Circle;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
@@ -35,6 +33,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
@@ -90,7 +89,6 @@ public class IntensityRetentionTimePlot extends EChartViewer {
     marker.setStroke(new BasicStroke(2));
     marker.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
     marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
-    marker.setLabel("Selected RT");
     plot.addDomainMarker(marker);
 
     imsVisualizerTask.setSelectedRetentionTime(selectedRetention);
@@ -121,7 +119,6 @@ public class IntensityRetentionTimePlot extends EChartViewer {
               marker.setStroke(new BasicStroke(2));
               marker.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
               marker.setLabelTextAnchor(TextAnchor.BASELINE_CENTER);
-              marker.setLabel("Selected RT");
               plot.addDomainMarker(marker);
 
               //  marker to the mobility-retention time heatmap plot.
@@ -133,5 +130,9 @@ public class IntensityRetentionTimePlot extends EChartViewer {
           @Override
           public void chartMouseMoved(ChartMouseEventFX event) {}
         });
+  }
+
+  public void setLegend(PaintScaleLegend legend) {
+    chart.addSubtitle(legend);
   }
 }

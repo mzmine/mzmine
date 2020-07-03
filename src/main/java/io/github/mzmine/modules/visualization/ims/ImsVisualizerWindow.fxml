@@ -1,27 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-
-<AnchorPane prefHeight="890.0" prefWidth="628.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
-   <children>
-      <Pane layoutX="-1.0" layoutY="40.0" prefHeight="497.0" prefWidth="628.0">
-         <children>
-            <BorderPane fx:id="topLeftPane" layoutX="2.0" layoutY="-2.0" prefHeight="219.0" prefWidth="469.0" />
-            <BorderPane fx:id="topRightPane" layoutX="1.0" layoutY="216.0" prefHeight="284.0" prefWidth="628.0" />
-         </children>
-      </Pane>
-      <Pane layoutY="577.0" prefHeight="310.0" prefWidth="628.0">
-         <children>
-            <BorderPane fx:id="bottomLeftPane" layoutX="2.0" layoutY="-1.0" prefHeight="310.0" prefWidth="158.0" />
-            <BorderPane fx:id="bottomRightPane" layoutX="148.0" layoutY="-1.0" prefHeight="310.0" prefWidth="479.0" />
-         </children></Pane>
-      <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="89.0" layoutY="534.0" prefHeight="43.0" prefWidth="419.0" text="" textAlignment="CENTER"><font>
-       <Font name="System Bold" size="18.0" />
-      </font></Label>
-      <Label fx:id="mobilityRTLabel" layoutX="160.0" prefHeight="43.0" prefWidth="322.0" text=""><font>
-       <Font name="System Bold" size="18.0" />
-      </font></Label>
-   </children>
+<?import javafx.scene.text.Font?>
+<AnchorPane prefHeight="890.0" prefWidth="628.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.mzmine.modules.visualization.ims.ImsVisualizerWindowController">
+    <children>
+        <Pane layoutX="-1.0" layoutY="40.0" prefHeight="497.0" prefWidth="628.0">
+            <children>
+                <BorderPane fx:id="topLeftPane" layoutX="2.0" layoutY="-2.0" prefHeight="219.0" prefWidth="628.0"/>
+                <BorderPane fx:id="topRightPane" layoutX="1.0" layoutY="216.0" prefHeight="284.0" prefWidth="628.0"/>
+            </children>
+        </Pane>
+        <Pane layoutY="577.0" prefHeight="310.0" prefWidth="628.0">
+            <children>
+                <BorderPane fx:id="bottomLeftPane" layoutX="2.0" layoutY="-1.0" prefHeight="310.0" prefWidth="158.0"/>
+                <BorderPane fx:id="bottomRightPane" layoutX="148.0" layoutY="-1.0" prefHeight="310.0"
+                            prefWidth="479.0"/>
+            </children>
+        </Pane>
+        <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="89.0" layoutY="534.0"
+               prefHeight="43.0" prefWidth="419.0" text="" textAlignment="CENTER">
+            <font>
+                <Font name="System Bold" size="18.0"/>
+            </font>
+        </Label>
+        <Label fx:id="mobilityRTLabel" layoutX="160.0" prefHeight="43.0" prefWidth="322.0" text="">
+            <font>
+                <Font name="System Bold" size="18.0"/>
+            </font>
+        </Label>
+    </children>
 </AnchorPane>

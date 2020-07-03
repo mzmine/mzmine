@@ -135,7 +135,8 @@ public class ImsVisualizerTask extends AbstractTask {
           updateRTlebel();
 
           datasetMI = new MobilityIntensityXYDataset(parameterSet);
-          MobilityIntensityPlot mobilityIntensityPlot = new MobilityIntensityPlot(datasetMI);
+          MobilityIntensityPlot mobilityIntensityPlot =
+              new MobilityIntensityPlot(datasetMI, parameterSet);
           BorderPane bottomLeftPane = controller.getBottomLeftPane();
           bottomLeftPane.setCenter(mobilityIntensityPlot);
 
@@ -162,6 +163,7 @@ public class ImsVisualizerTask extends AbstractTask {
           datasetIRT = new IntensityRetentionTimeXYDataset(parameterSet);
           IntensityRetentionTimePlot intensityRetentionTimePlot =
               new IntensityRetentionTimePlot(datasetIRT, this, mobilityRetentionHeatMapPlot);
+          intensityRetentionTimePlot.setLegend(mobilityRetentionHeatMapPlot.getLegend());
           topLeftPane.setCenter(intensityRetentionTimePlot);
 
           ChartGroup groupRetentionTime = new ChartGroup(true, false, true, false);
@@ -183,13 +185,15 @@ public class ImsVisualizerTask extends AbstractTask {
   public void updateMobilityGroup() {
     datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime, this);
     BorderPane plotPaneMF = controller.getBottomRightPane();
-      MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot = new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
+    MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
+        new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
     plotPaneMF.setCenter(mzMobilityPlotHeatMapPlot);
 
-      datasetMI = new MobilityIntensityXYDataset(parameterSet);
-      MobilityIntensityPlot mobilityIntensityPlot = new MobilityIntensityPlot(datasetMI);
-      BorderPane bottomLeftPane = controller.getBottomLeftPane();
-      bottomLeftPane.setCenter(mobilityIntensityPlot);
+    datasetMI = new MobilityIntensityXYDataset(parameterSet);
+    MobilityIntensityPlot mobilityIntensityPlot =
+        new MobilityIntensityPlot(datasetMI, parameterSet);
+    BorderPane bottomLeftPane = controller.getBottomLeftPane();
+    bottomLeftPane.setCenter(mobilityIntensityPlot);
     groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
     groupMobility.add(new ChartViewWrapper(mobilityIntensityPlot));
     updateRTlebel();

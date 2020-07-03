@@ -43,8 +43,10 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
   private Double selectedRetentionTime;
   private int itemSize;
   private ImsVisualizerTask imsVisualizerTask;
+  private Scan selectedMobilityScan;
 
-  public MobilityFrameXYZDataset(ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
+  public MobilityFrameXYZDataset(
+      ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -103,10 +105,6 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
     xValues = mzValues.toArray(new Double[itemSize]);
     yValues = mobility.toArray(new Double[itemSize]);
     zValues = intensity.toArray(new Double[itemSize]);
-  }
-
-  public double getselectedRetentionTime() {
-    return selectedRetentionTime;
   }
 
   @Override

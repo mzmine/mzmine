@@ -51,6 +51,7 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
+  PaintScaleLegend legend;
 
   public MobilityRetentionHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
@@ -139,7 +140,7 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
     scaleAxis.setRange(min, max);
     scaleAxis.setAxisLinePaint(Color.white);
     scaleAxis.setTickMarkPaint(Color.white);
-    PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+    legend = new PaintScaleLegend(scale, scaleAxis);
 
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -169,5 +170,9 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
 
   public XYPlot getPlot() {
     return plot;
+  }
+
+  public PaintScaleLegend getLegend() {
+    return legend;
   }
 }
