@@ -109,6 +109,7 @@ public class MassCalibrationTask extends AbstractTask {
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
       setStatus(TaskStatus.ERROR);
+      setErrorMessage("Exception when extracting standards list from " + standardsListFilename + "\n" + e.toString());
       return;
     }
 
