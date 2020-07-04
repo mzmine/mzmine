@@ -18,6 +18,9 @@
 
 package io.github.mzmine.gui.mainwindow.tabs.processingreport;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -25,6 +28,7 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Collection;
 import java.util.logging.Logger;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
@@ -32,7 +36,7 @@ import javafx.scene.text.Font;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class TextAreaProcessingReportTab extends Tab {
+public class TextAreaProcessingReportTab extends MZmineTab {
 
   public static final Logger logger = Logger.getLogger(TextAreaProcessingReportTab.class.getName());
 
@@ -40,7 +44,7 @@ public class TextAreaProcessingReportTab extends Tab {
   private final Font font;
 
   public TextAreaProcessingReportTab(String title) {
-    super(title);
+    super(title, false, false);
     setClosable(true);
 
     textArea = new TextArea();
@@ -49,6 +53,37 @@ public class TextAreaProcessingReportTab extends Tab {
 
     font = new Font("Courier New", 11);
     textArea.setFont(font);
+  }
+
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return null;
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return null;
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return null;
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 
   public TextAreaProcessingReportTab(String title, Class<? extends MZmineModule> moduleClass,
