@@ -89,13 +89,13 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String typeAttr = xmlElement.getAttribute("type");
-    boolean isAbsolute = !typeAttr.equals("percent");
+    String unitAttr = xmlElement.getAttribute("unit");
+    RTTolerance.Unit toleranceUnit = RTTolerance.Unit.valueOf(unitAttr);
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
       return;
     double tolerance = Double.valueOf(toleranceNum);
-    this.value = new RTTolerance(isAbsolute, tolerance);
+    this.value = new RTTolerance(tolerance, toleranceUnit);
   }
 
   @Override
@@ -103,11 +103,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
     if (value == null) {
       return;
     }
-    if (value.isAbsolute()) {
-      xmlElement.setAttribute("type", "absolute");
-    } else {
-      xmlElement.setAttribute("type", "percent");
-    }
+    xmlElement.setAttribute("unit", value.getUnit().name());
     double tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
@@ -128,7 +124,7 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
       }
     } else {
       double relativeTolerance = value.getTolerance();
-      if ((relativeTolerance < 0) || (relativeTolerance > 1)) {
+      if ((relativeTolerance < 0) || (relativeTolerance > 100)) {
         errorMessages.add("Invalid retention time tolerance value.");
         return false;
 
