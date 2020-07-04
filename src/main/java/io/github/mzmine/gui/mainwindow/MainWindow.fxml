@@ -111,21 +111,8 @@
           </SplitPane>
 
           <!--          Right side, main panel -->
-          <TabPane fx:id="tpMain"
+          <TabPane fx:id="mainTabPane"
             tabClosingPolicy="ALL_TABS">
-            <tabs>
-              <Tab fx:id="tabRawDataOverview" closable="false" text="Raw data overview">
-                <content>
-                  <fx:include fx:id="rawDataOverview"
-                    source="../../modules/visualization/rawdataoverview/RawDataOverviewWindow.fxml"/>
-                </content>
-              </Tab>
-              <Tab fx:id="tabFeatureListOverview" closable="false" text="Feature table">
-                <content>
-                  <AnchorPane fx:id="tbFeatureTable" minHeight="0.0" minWidth="0.0"/>
-                </content>
-              </Tab>
-            </tabs>
           </TabPane>
         </items>
       </SplitPane>

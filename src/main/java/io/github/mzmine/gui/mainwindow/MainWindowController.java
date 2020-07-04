@@ -1,8 +1,27 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.mainwindow.tabs.processingreport.TextAreaProcessingReportTab;
 import io.github.mzmine.main.MZmineCore;
@@ -11,6 +30,8 @@ import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParamete
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
@@ -24,17 +45,23 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -46,6 +73,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -53,6 +81,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.StatusBar;
 
@@ -84,7 +113,7 @@ public class MainWindowController {
   private Tab tvAligned;
 
   @FXML
-  private TreeView<?> tvAlignedFeatureLists;
+  private TreeView<ModularFeatureList> tvAlignedFeatureLists;
 
   @FXML
   private AnchorPane tbRawData;
@@ -95,11 +124,11 @@ public class MainWindowController {
   @FXML
   private BorderPane rawDataOverview;
 
-  @FXML
-  private RawDataOverviewWindowController rawDataOverviewController;
+//  @FXML
+//  private RawDataOverviewWindowController rawDataOverviewController;
 
   @FXML
-  private TabPane tpMain;
+  private TabPane mainTabPane;
 
   @FXML
   private Tab tabRawDataOverview;
@@ -159,15 +188,6 @@ public class MainWindowController {
       }
     });
 
-    rawDataTree.getSelectionModel().getSelectedItems().addListener(
-        new ListChangeListener<>() {
-          @Override
-          public void onChanged(Change<? extends RawDataFile> c) {
-            c.next();
-            rawDataOverviewController.setRawDataFiles((List<RawDataFile>) c.getList());
-          }
-        });
-
     featureTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // featureTree.setShowRoot(true);
 
@@ -192,6 +212,41 @@ public class MainWindowController {
     featureTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleOpenFeatureList(event);
+      }
+    });
+
+    // notify selected tab about raw file selection change
+    rawDataTree.getSelectionModel().getSelectedItems().addListener(
+        (ListChangeListener<RawDataFile>) c -> {
+          c.next();
+          for (Tab tab : getMainTabPane().getTabs()) {
+            if (tab instanceof MZmineTab && tab.isSelected()) {
+              ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
+            }
+          }
+        });
+
+    // TODO: Uncomment when the feature model is finally done
+    /*featureTree.getSelectionModel().getSelectedItems().addListener((ListChangeListener<ModularFeatureList>) c -> {
+      c.next();
+      for (Tab tab : getMainTabPane().getTabs()) {
+        if (tab instanceof MZmineTab && tab.isSelected()) {
+          ((MZmineTab) tab).onRawDataFileSelectionChanged(
+              (Collection<? extends RawDataFile>) c.getList());
+        }
+      }
+    });*/
+
+    getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
+      if (val instanceof MZmineTab) {
+        if (!((MZmineTab) val).getRawDataFiles()
+            .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
+            || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
+            .getSelectedItems().size()) {
+          ((MZmineTab) val)
+              .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+        }
+        // TODO: Add the same for feature lists
       }
     });
 
@@ -268,9 +323,13 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
+    RawDataOverviewPane rop = new RawDataOverviewPane();
+    rop.setClosable(false);
+    getMainTabPane().getTabs().add(rop);
+
     TextAreaProcessingReportTab reportTab = new TextAreaProcessingReportTab("Report: Deisotoping");
     reportTab.setDemoText();
-    getOverviewTabPane().getTabs().add(reportTab);
+    getMainTabPane().getTabs().add(reportTab);
   }
 
   public ListView<RawDataFile> getRawDataTree() {
@@ -452,8 +511,8 @@ public class MainWindowController {
     }).start();
   }
 
-  public TabPane getOverviewTabPane() {
-    return tpMain;
+  public TabPane getMainTabPane() {
+    return mainTabPane;
   }
 
 }

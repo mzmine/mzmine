@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui;
 
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -107,5 +108,13 @@ public interface Desktop extends MZmineModule {
   public TableView<WrappedTask> getTasksView();
 
   public void openWebPage(@Nonnull URL url);
+
+  /**
+   * Adds a tab to the main window.
+   *
+   * @param tab The tab {@link MZmineTab}
+   * @return {@link java.util.Collection#add(Object)}
+   */
+  public boolean addTab(MZmineTab tab);
 
 }

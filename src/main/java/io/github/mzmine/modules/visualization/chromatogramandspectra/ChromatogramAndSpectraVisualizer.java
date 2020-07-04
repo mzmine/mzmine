@@ -213,8 +213,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getChart().fireChartChanged();
   }
 
-  public RawDataFile[] getRawDataFiles() {
-    return filesAndDataSets.keySet().toArray(new RawDataFile[0]);
+  /**
+   * @return The raw data files currently visualised.
+   */
+  @Nonnull
+  public Collection<RawDataFile> getRawDataFiles() {
+    return filesAndDataSets.keySet();
   }
 
   /**
@@ -224,7 +228,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFiles
    */
-  public void setRawDataFiles(@Nonnull List<RawDataFile> rawDataFiles) {
+  public void setRawDataFiles(@Nonnull Collection<RawDataFile> rawDataFiles) {
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
     for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {

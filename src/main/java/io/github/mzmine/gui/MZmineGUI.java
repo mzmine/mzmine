@@ -19,6 +19,7 @@
 package io.github.mzmine.gui;
 
 
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import java.io.File;
 import java.net.URL;
@@ -388,6 +389,11 @@ public class MZmineGUI extends Application implements Desktop {
   public void openWebPage(URL url) {
     HostServices openWPService = getHostServices();
     openWPService.showDocument(String.valueOf(url));
+  }
+
+  @Override
+  public boolean addTab(MZmineTab tab) {
+    return mainWindowController.getMainTabPane().getTabs().add(tab);
   }
 
   @Override

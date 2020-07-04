@@ -18,12 +18,10 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
-import io.github.mzmine.util.color.SimpleColorPalette;
-import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,6 +37,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import javax.annotation.Nonnull;
 
 /*
  * Raw data overview window controller class
@@ -50,12 +49,7 @@ public class RawDataOverviewWindowController {
   public static final Logger logger = Logger
       .getLogger(RawDataOverviewWindowController.class.getName());
 
-  private Color posColor;
-  private Color negColor;
-  private Color neuColor;
   private boolean initialized = false;
-
-  private RawDataFile selectedRawDataFile;
 
   private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
       .observableMap(new HashMap<>());
@@ -83,12 +77,6 @@ public class RawDataOverviewWindowController {
     // add meta data
     rawDataLabel.setText("Overview of raw data file(s): ");
 
-    // set colors depending on vision
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    posColor = palette.getPositiveColorAWT();
-    negColor = palette.getNegativeColorAWT();
-    neuColor = palette.getNeutralColorAWT();
-
     addChromatogramSelectedScanListener();
 
     initialized = true;
@@ -101,7 +89,7 @@ public class RawDataOverviewWindowController {
    *
    * @param rawDataFiles
    */
-  public void setRawDataFiles(List<RawDataFile> rawDataFiles) {
+  public void setRawDataFiles(Collection<RawDataFile> rawDataFiles) {
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
     for (RawDataFile rawDataFile : rawDataFilesAndTabs.keySet()) {
@@ -220,109 +208,13 @@ public class RawDataOverviewWindowController {
 
   }
 
-/*  private void updatePlots() {
-
-    if (getSelectedRawDataFile() == null) {
-      return;
-    }
-
-    RawDataFile selectedRawDataFile = getSelectedRawDataFile();
-
-    TableView<ScanDescription> rawDataTableView = rawDataFilesAndControllers
-        .get(getSelectedRawDataFile()).getRawDataTableView();
-
-    if (rawDataTableView.getItems() != null) {
-      if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
-        try {
-
-          // draw spectra plot
-          String scanNumberString =
-              rawDataTableView.getSelectionModel().getSelectedItem().getScanNumber();
-          int scanNumber = Integer.parseInt(scanNumberString);
-          Scan scan = selectedRawDataFile.getScan(scanNumber);
-          SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(selectedRawDataFile);
-          spectraWindow.loadRawData(scan);
-
-          // set color
-          XYPlot plotSpectra = (XYPlot) spectraWindow.getSpectrumPlot().getChart().getPlot();
-
-          // set color
-          plotSpectra.getRenderer().setSeriesPaint(0, posColor);
-
-          // add mass list
-          MassList[] massLists = selectedRawDataFile.getScan(scanNumber).getMassLists();
-          for (MassList massList : massLists) {
-            MassListDataSet dataset = new MassListDataSet(massList);
-            spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
-          }
-
-          spectraPane.setCenter(spectraWindow.getScene().getRoot());
-
-          // add a retention time Marker to the TIC
-          ValueMarker marker = new ValueMarker(
-              selectedRawDataFile.getScan(scanNumber).getRetentionTime());
-          marker.setPaint(negColor);
-          marker.setStroke(new BasicStroke(1.0f));
-          XYPlot plotTic = (XYPlot) bpcPlot.getChart().getPlot();
-
-          // set color
-          plotTic.getRenderer().setSeriesPaint(0, posColor);
-
-          // delete old marker
-          plotTic.clearDomainMarkers();
-
-          // add new marker
-          plotTic.addDomainMarker(marker);
-
-          // add EIC of scan base peak if selected scan is MS1 level, when MS2 show base peak of
-          // precursor
-
-          // get MS1 scan selection to draw tic plot
-          if (scan.getMSLevel() == 1 || scan.getMSLevel() == 2) {
-            ScanSelection scanSelection = new ScanSelection(selectedRawDataFile.getDataRTRange(1), 1);
-
-            // mz range for 10 ppm window
-            Range<Double> mzRange = null;
-            double mzHighestDataPoint = 0.0;
-            if (scan.getMSLevel() == 1) {
-              mzHighestDataPoint = scan.getHighestDataPoint().getMZ();
-            } else if (scan.getMSLevel() == 2) {
-              mzHighestDataPoint = scan.getPrecursorMZ();
-            } else {
-              plotTic.setDataset(1, null);
-            }
-
-            double tenppm = (mzHighestDataPoint * 10E-6);
-            double upper = mzHighestDataPoint + tenppm;
-            double lower = mzHighestDataPoint - tenppm;
-            mzRange = Range.closed(lower - tenppm, upper + tenppm);
-            scan.getDataPointsByMass(mzRange);
-
-            TICDataSet dataset = new TICDataSet(selectedRawDataFile,
-                scanSelection.getMatchingScans(selectedRawDataFile), mzRange, ticWindow);
-
-            XYAreaRenderer renderer = new XYAreaRenderer();
-            renderer.setSeriesPaint(0, neuColor);
-
-            plotTic.setRenderer(1, renderer);
-            plotTic.setDataset(1, dataset);
-
-            chromatogramPane.setCenter(bpcPlot.getParent());
-          } else {
-            plotTic.setDataset(1, null);
-          }
-        } catch (Exception e) {
-          e.getStackTrace();
-        }
-      }
-    }
-  }*/
-
   public RawDataFile getSelectedRawDataFile() {
     return visualizer.getSelectedRawDataFile();
   }
 
-//  private void setSelectedRawDataFile(RawDataFile selectedRawDataFile) {
-//    this.selectedRawDataFile = selectedRawDataFile;
-//  }
+  @Nonnull
+  public Collection<RawDataFile> getRawDataFiles() {
+    return visualizer.getRawDataFiles();
+  }
+
 }
