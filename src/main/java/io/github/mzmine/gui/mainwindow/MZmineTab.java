@@ -22,7 +22,11 @@ import com.google.errorprone.annotations.ForOverride;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.Collection;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
+import javafx.scene.control.Tooltip;
 
 
 /**
@@ -35,8 +39,27 @@ import javafx.scene.control.Tab;
  */
 public abstract class MZmineTab extends Tab {
 
-  public MZmineTab(String title) {
+  private final CheckBox cbUpdateOnSelection;
+
+  private final BooleanProperty updateOnSelection;
+
+  public MZmineTab(String title, boolean showBinding, boolean defaultBindingState) {
     super(title);
+
+    cbUpdateOnSelection = new CheckBox("");
+    cbUpdateOnSelection.setTooltip(new Tooltip(
+        "If selected this tab is updated according to the current selection of raw files or feature lists."));
+    cbUpdateOnSelection.setSelected(defaultBindingState);
+    if (showBinding) {
+      setGraphic(cbUpdateOnSelection);
+    }
+
+    updateOnSelection = new SimpleBooleanProperty();
+    updateOnSelection.bindBidirectional(cbUpdateOnSelection.selectedProperty());
+  }
+
+  public MZmineTab(String title) {
+    this(title, false, false);
   }
 
   @ForOverride
@@ -59,5 +82,17 @@ public abstract class MZmineTab extends Tab {
   @ForOverride
   public abstract void onAlignedFeatureListSelectionChanged(
       Collection<? extends ModularFeatureList> featurelists);
+
+  public boolean isUpdateOnSelection() {
+    return updateOnSelection.get();
+  }
+
+  public BooleanProperty updateOnSelectionProperty() {
+    return updateOnSelection;
+  }
+
+  public void setUpdateOnSelection(boolean updateOnSelection) {
+    this.updateOnSelection.set(updateOnSelection);
+  }
 
 }

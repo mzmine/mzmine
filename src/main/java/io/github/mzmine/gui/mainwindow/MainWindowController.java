@@ -216,26 +216,18 @@ public class MainWindowController {
     });
 
     // notify selected tab about raw file selection change
+    // TODO: Add the same when the feature model is finally done
     rawDataTree.getSelectionModel().getSelectedItems().addListener(
         (ListChangeListener<RawDataFile>) c -> {
           c.next();
           for (Tab tab : getMainTabPane().getTabs()) {
-            if (tab instanceof MZmineTab && tab.isSelected()) {
+            if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
+                .isUpdateOnSelection()) {
               ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
             }
           }
         });
 
-    // TODO: Uncomment when the feature model is finally done
-    /*featureTree.getSelectionModel().getSelectedItems().addListener((ListChangeListener<ModularFeatureList>) c -> {
-      c.next();
-      for (Tab tab : getMainTabPane().getTabs()) {
-        if (tab instanceof MZmineTab && tab.isSelected()) {
-          ((MZmineTab) tab).onRawDataFileSelectionChanged(
-              (Collection<? extends RawDataFile>) c.getList());
-        }
-      }
-    });*/
 
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
       if (val instanceof MZmineTab) {
@@ -243,8 +235,10 @@ public class MainWindowController {
             .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
             || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
             .getSelectedItems().size()) {
-          ((MZmineTab) val)
-              .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+          if (((MZmineTab) val).isUpdateOnSelection()) {
+            ((MZmineTab) val)
+                .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+          }
         }
         // TODO: Add the same for feature lists
       }
@@ -323,13 +317,13 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
-    RawDataOverviewPane rop = new RawDataOverviewPane();
+    RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     rop.setClosable(false);
-    getMainTabPane().getTabs().add(rop);
+    addTab(rop);
 
     TextAreaProcessingReportTab reportTab = new TextAreaProcessingReportTab("Report: Deisotoping");
     reportTab.setDemoText();
-    getMainTabPane().getTabs().add(reportTab);
+    addTab(reportTab);
   }
 
   public ListView<RawDataFile> getRawDataTree() {
@@ -515,4 +509,22 @@ public class MainWindowController {
     return mainTabPane;
   }
 
+  public boolean addTab(Tab tab) {
+    if (tab instanceof MZmineTab) {
+      ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
+        if (val.booleanValue()) {
+          if (!((MZmineTab) tab).getRawDataFiles()
+              .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
+              || ((MZmineTab) tab).getRawDataFiles().size() != rawDataTree.getSelectionModel()
+              .getSelectedItems().size()) {
+            ((MZmineTab) tab)
+                .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
+          }
+        }
+      }));
+      // TODO: add same for feature lists
+    }
+
+    return getMainTabPane().getTabs().add(tab);
+  }
 }

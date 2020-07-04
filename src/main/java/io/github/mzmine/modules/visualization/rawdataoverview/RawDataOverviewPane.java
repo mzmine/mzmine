@@ -16,8 +16,8 @@ public class RawDataOverviewPane extends MZmineTab {
 
   private RawDataOverviewWindowController controller;
 
-  public RawDataOverviewPane() {
-    super("Raw data overview");
+  public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState) {
+    super("Raw data overview", showBinding, defaultBindingState);
 
     controller = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("RawDataOverviewWindow.fxml")));
@@ -31,6 +31,10 @@ public class RawDataOverviewPane extends MZmineTab {
       logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
       return;
     }
+  }
+
+  public RawDataOverviewPane() {
+    this(false, false);
   }
 
   @Override
