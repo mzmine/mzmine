@@ -129,7 +129,7 @@ public class ImsVisualizerTask extends AbstractTask {
           // add mobility-mz plot.
           datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime, this);
           MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
-              new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
+              new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
           BorderPane bottomRightpane = controller.getBottomRightPane();
           bottomRightpane.setCenter(mzMobilityPlotHeatMapPlot);
           updateRTlebel();
@@ -186,7 +186,7 @@ public class ImsVisualizerTask extends AbstractTask {
     datasetMF = new MobilityFrameXYZDataset(parameterSet, selectedRetentionTime, this);
     BorderPane plotPaneMF = controller.getBottomRightPane();
     MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
-        new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle);
+        new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
     plotPaneMF.setCenter(mzMobilityPlotHeatMapPlot);
 
     datasetMI = new MobilityIntensityXYDataset(parameterSet);

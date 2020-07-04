@@ -19,16 +19,29 @@
 package io.github.mzmine.modules.visualization.ims.imsVisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import javafx.application.Platform;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.XYItemEntity;
+import org.jfree.chart.fx.interaction.ChartMouseEventFX;
+import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -53,8 +66,10 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
-
-  public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
+  private Scan selectedMobilityScan;
+  private Scan scans[];
+  private RawDataFile dataFiles[];
+  public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle, ParameterSet parameters ) {
 
     super(
         ChartFactory.createScatterPlot(
@@ -63,6 +78,16 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
     chart = getChart();
     this.dataset3d = dataset;
     this.paintScaleStyle = paintScaleStyle;
+    dataFiles =
+            parameters
+                    .getParameter(ImsVisualizerParameters.dataFiles)
+                    .getValue()
+                    .getMatchingRawDataFiles();
+    scans =
+            parameters
+                    .getParameter(ImsVisualizerParameters.scanSelection)
+                    .getValue()
+                    .getMatchingScans(dataFiles[0]);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3d.getItemCount(0)];
@@ -172,5 +197,57 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
     plot.setRangeCrosshairVisible(true);
 
     chart.addSubtitle(legend);
+
+    // mouse listener.
+    addChartMouseListener(
+            new ChartMouseListenerFX() {
+              @Override
+              public void chartMouseClicked(ChartMouseEventFX event) {
+                ChartEntity chartEntity = event.getEntity();
+                if (chartEntity instanceof XYItemEntity) {
+                  XYItemEntity entity = (XYItemEntity) chartEntity;
+                  int serindex = entity.getSeriesIndex();
+                  int itemindex = entity.getItem();
+                  double mobility = 0;
+                  mobility = dataset.getYValue(serindex, itemindex);
+                  System.out.println(mobility);
+                  for (int i = 0; i < scans.length; i++) {
+                    if (scans[i].getMobility() == mobility) {
+                      selectedMobilityScan = scans[i];
+                      break;
+                    }
+                  }
+                  updateChart();
+                }
+              }
+
+              @Override
+              public void chartMouseMoved(ChartMouseEventFX event) {}
+            });
+
+  }
+
+  void updateChart() {
+    SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(dataFiles[0]);
+    spectraWindow.loadRawData(selectedMobilityScan);
+
+    // set colors depending on vision
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    Color posColor = palette.getPositiveColorAWT();
+    Color negColor = palette.getNegativeColorAWT();
+
+    // set color
+    XYPlot plotSpectra = (XYPlot) spectraWindow.getSpectrumPlot().getChart().getPlot();
+
+    // set color
+    plotSpectra.getRenderer().setSeriesPaint(0, posColor);
+
+    // add mass list
+    MassList[] massLists = selectedMobilityScan.getMassLists();
+    for (MassList massList : massLists) {
+      MassListDataSet dataset = new MassListDataSet(massList);
+      spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
+    }
+    Platform.runLater(() -> spectraWindow.show());
   }
 }
