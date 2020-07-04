@@ -230,7 +230,7 @@ public class MainWindowController {
 
 
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
-      if (val instanceof MZmineTab) {
+      if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
         if (!((MZmineTab) val).getRawDataFiles()
             .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
             || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
@@ -513,10 +513,10 @@ public class MainWindowController {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
         if (val.booleanValue()) {
-          if (!((MZmineTab) tab).getRawDataFiles()
+          if (((MZmineTab) tab).getRawDataFiles() != null && (!((MZmineTab) tab).getRawDataFiles()
               .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
               || ((MZmineTab) tab).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-              .getSelectedItems().size()) {
+              .getSelectedItems().size())) {
             ((MZmineTab) tab)
                 .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
           }
