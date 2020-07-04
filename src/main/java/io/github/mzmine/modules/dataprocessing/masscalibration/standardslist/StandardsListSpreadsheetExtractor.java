@@ -115,9 +115,9 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
         try {
           Cell retentionCell = row.getCell(retentionTimeCellIndex);
           Cell molecularCell = row.getCell(molecularFormulaCellIndex);
-          double retentionTimeSec = retentionCell.getNumericCellValue() * 60;
+          double retentionTime = retentionCell.getNumericCellValue();
           String molecularFormula = molecularCell.getStringCellValue();
-          extractedData.add(new StandardsListItem(molecularFormula, retentionTimeSec));
+          extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
         } catch (Exception e) {
           logger.fine("Exception occurred when reading row index " + rowIndex);
           logger.fine(e.toString());

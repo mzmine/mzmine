@@ -82,8 +82,8 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       }
 
       try {
-        double retentionTimeSec = Double.valueOf(retentionTimeString) * 60;
-        extractedData.add(new StandardsListItem(molecularFormula, retentionTimeSec));
+        double retentionTime = Double.valueOf(retentionTimeString);
+        extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
       } catch (Exception e) {
         logger.fine("Exception occurred when reading row index " + csvReader.getLastLineNumber());
         logger.fine(e.toString());

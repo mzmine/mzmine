@@ -40,7 +40,7 @@ public class MassCalibrator {
 
   protected static final ErrorType massError = new PpmError();
 
-  protected final RTTolerance retentionTimeSecTolerance;
+  protected final RTTolerance retentionTimeTolerance;
   protected final MZTolerance mzRatioTolerance;
   protected final double errorDistributionDistance;
   protected final double errorMaxRangeLength;
@@ -54,16 +54,16 @@ public class MassCalibrator {
   /**
    * Create new mass calibrator
    *
-   * @param retentionTimeSecTolerance max difference in RT between standard calibrants and actual mz peaks
+   * @param retentionTimeTolerance    max difference in RT between standard calibrants and actual mz peaks
    * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and actual mz peaks
    * @param errorDistributionDistance clustering distance parameter for extracting high density range of errors
    *                                  that are meant to approximate the set of substantial errors to the bias estimate
    * @param errorMaxRangeLength       max length of the range to be found containing most errors in it
    * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
    */
-  public MassCalibrator(RTTolerance retentionTimeSecTolerance, MZTolerance mzRatioTolerance,
+  public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
                         double errorDistributionDistance, double errorMaxRangeLength, StandardsList standardsList) {
-    this.retentionTimeSecTolerance = retentionTimeSecTolerance;
+    this.retentionTimeTolerance = retentionTimeTolerance;
     this.mzRatioTolerance = mzRatioTolerance;
     this.errorDistributionDistance = errorDistributionDistance;
     this.errorMaxRangeLength = errorMaxRangeLength;
@@ -79,11 +79,11 @@ public class MassCalibrator {
    * currently, ppm errors are used by default, as per massError instantiation above
    *
    * @param massList
-   * @param retentionTimeSec
+   * @param retentionTime
    * @return
    */
-  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTimeSec) {
-    List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTimeSec);
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
+    List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime);
     ArrayList<Double> errors = getErrors(matches);
     return errors;
   }
@@ -163,14 +163,14 @@ public class MassCalibrator {
    * as the peak might correspond to different ions, giving different mz error in later calibration stages
    *
    * @param massList
-   * @param retentionTimeSec
+   * @param retentionTime
    * @return list of mass peak matches
    */
-  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTimeSec) {
+  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
-    Range<Double> rtSecRange = retentionTimeSecTolerance.getToleranceRange(retentionTimeSec);
-    StandardsList retentionTimeFiltered = standardsList.getInRanges(null, rtSecRange);
+    Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
+    StandardsList retentionTimeFiltered = standardsList.getInRanges(null, rtRange);
 
     for (DataPoint dataPoint : massList) {
       double mz = dataPoint.getMZ();
@@ -195,9 +195,9 @@ public class MassCalibrator {
 
       StandardsListItem matchedItem = dataPointMatches.get(0);
       double matchedMz = matchedItem.getMzRatio();
-      double matchedRetentionTime = matchedItem.getRetentionTimeSec();
+      double matchedRetentionTime = matchedItem.getRetentionTime();
 
-      matches.add(new MassPeakMatch(mz, retentionTimeSec, matchedMz, matchedRetentionTime));
+      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime));
     }
 
     return matches;

@@ -58,8 +58,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           "Max difference between actual mz peaks and standard calibrants to consider a match," +
                   " max of m/z and ppm is used", 0.001, 5, true);
 
-  public static final RTToleranceParameter retentionTimeSecTolerance = new RTToleranceParameter("Retention time tolerance",
-          "Max retention time difference in seconds between mass peaks and standard calibrants to consider a match.");
+  public static final RTToleranceParameter retentionTimeTolerance = new RTToleranceParameter("Retention time tolerance",
+          "Max retention time difference between mass peaks and standard calibrants to consider a match.");
 
   public static final StringParameter suffix = new StringParameter("Suffix",
           "This string is added to mass list name as a suffix", "calibrated");
@@ -70,7 +70,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public MassCalibrationParameters() {
     super(new Parameter[]{dataFiles, massList, standardsList, filterDuplicates, tolerance, rangeSize, mzRatioTolerance,
-            retentionTimeSecTolerance, suffix, autoRemove});
+            retentionTimeTolerance, suffix, autoRemove});
   }
 
   /*@Override

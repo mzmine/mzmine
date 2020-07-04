@@ -48,14 +48,14 @@ public class StandardsList {
    * when a null is given, the range is skipped / assumed to contain all mz or rt values
    *
    * @param mzRange
-   * @param rtSecRange
+   * @param rtRange
    * @return
    */
-  public StandardsList getInRanges(Range<Double> mzRange, Range<Double> rtSecRange) {
+  public StandardsList getInRanges(Range<Double> mzRange, Range<Double> rtRange) {
     ArrayList<StandardsListItem> withinRange = new ArrayList<>();
     for (StandardsListItem molecule : standardMolecules) {
       if ((mzRange == null || mzRange.contains(molecule.getMzRatio()))
-              && (rtSecRange == null || rtSecRange.contains(molecule.getRetentionTimeSec()))) {
+              && (rtRange == null || rtRange.contains(molecule.getRetentionTime()))) {
         withinRange.add(molecule);
       }
     }

@@ -26,29 +26,29 @@ public class StandardsListItem {
   public static final Comparator<StandardsListItem> mzComparator =
           Comparator.comparing(StandardsListItem::getMzRatio);
   public static final Comparator<StandardsListItem> retentionTimeComparator =
-          Comparator.comparing(StandardsListItem::getRetentionTimeSec);
+          Comparator.comparing(StandardsListItem::getRetentionTime);
 
   protected String molecularFormula;
-  protected double retentionTimeSec;
+  protected double retentionTime;
   protected double mzRatio;
 
-  public StandardsListItem(String molecularFormula, double retentionTimeSec) {
+  public StandardsListItem(String molecularFormula, double retentionTime) {
     this.molecularFormula = molecularFormula;
-    this.retentionTimeSec = retentionTimeSec;
+    this.retentionTime = retentionTime;
     this.mzRatio = FormulaUtils.calculateMzRatio(molecularFormula);
   }
 
   @Override
   public String toString() {
-    return "StandardsListItem: " + molecularFormula + " " + retentionTimeSec + "s " + mzRatio + "mz";
+    return "StandardsListItem: " + molecularFormula + " " + retentionTime + "rt " + mzRatio + "mz";
   }
 
   public String getMolecularFormula() {
     return molecularFormula;
   }
 
-  public double getRetentionTimeSec() {
-    return retentionTimeSec;
+  public double getRetentionTime() {
+    return retentionTime;
   }
 
   public double getMzRatio() {

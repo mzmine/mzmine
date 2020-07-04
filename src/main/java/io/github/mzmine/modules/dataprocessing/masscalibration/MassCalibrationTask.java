@@ -118,7 +118,7 @@ public class MassCalibrationTask extends AbstractTask {
     Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
-    RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeSecTolerance).getValue();
+    RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
 
     MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
             standardsList);
@@ -162,7 +162,7 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime() * 60);
+      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime());
       errors.addAll(massListErrors);
 
       processedScans++;

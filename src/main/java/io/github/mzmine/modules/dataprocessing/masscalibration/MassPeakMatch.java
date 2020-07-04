@@ -20,31 +20,31 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 public class MassPeakMatch {
   protected double measuredMzRatio;
-  protected double measuredRetentionTimeSec;
+  protected double measuredRetentionTime;
   protected double matchedMzRatio;
-  protected double matchedRetentionTimeSec;
+  protected double matchedRetentionTime;
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTimeSec,
-                       double matchedMzRatio, double matchedRetentionTimeSec) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime) {
     this.measuredMzRatio = measuredMzRatio;
-    this.measuredRetentionTimeSec = measuredRetentionTimeSec;
+    this.measuredRetentionTime = measuredRetentionTime;
     this.matchedMzRatio = matchedMzRatio;
-    this.matchedRetentionTimeSec = matchedRetentionTimeSec;
+    this.matchedRetentionTime = matchedRetentionTime;
   }
 
   public double getMeasuredMzRatio() {
     return measuredMzRatio;
   }
 
-  public double getMeasuredRetentionTimeSec() {
-    return measuredRetentionTimeSec;
+  public double getMeasuredRetentionTime() {
+    return measuredRetentionTime;
   }
 
   public double getMatchedMzRatio() {
     return matchedMzRatio;
   }
 
-  public double getMatchedRetentionTimeSec() {
-    return matchedRetentionTimeSec;
+  public double getMatchedRetentionTime() {
+    return matchedRetentionTime;
   }
 }
