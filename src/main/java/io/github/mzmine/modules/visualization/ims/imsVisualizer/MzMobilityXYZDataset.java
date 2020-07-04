@@ -23,21 +23,30 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.parameters.ParameterSet;
-import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 import java.util.ArrayList;
 
-public class MobilityIntensityXYDataset extends AbstractXYDataset {
+public class MzMobilityXYZDataset extends AbstractXYZDataset {
+
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
   ArrayList<Double> mobility;
-  private double[] xValues;
-  private double[] yValues;
+  ArrayList<Double> mzValues;
+  ArrayList<Double> intensity;
+  private Double[] xValues;
+  private Double[] yValues;
+  private Double[] zValues;
+  private Double selectedRetentionTime;
+  private int itemSize;
+  private ImsVisualizerTask imsVisualizerTask;
+  private Scan selectedMobilityScan;
 
-  public MobilityIntensityXYDataset(ParameterSet parameters) {
-
+  public MzMobilityXYZDataset(
+      ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -52,38 +61,50 @@ public class MobilityIntensityXYDataset extends AbstractXYDataset {
 
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
-    // Calc xValues retention time
-    mobility = new ArrayList<Double>();
+    selectedRetentionTime = retentionTime;
+
+    imsVisualizerTask = imsVisualizerTask;
+
+    mobility = new ArrayList<>();
+    mzValues = new ArrayList<>();
+    intensity = new ArrayList<>();
+    double maxIntensity = -1;
+    if (selectedRetentionTime == -1) {
+      for (int i = 0; i < scans.length; i++) {
+
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+        double intensitySum = 0;
+        for (int j = 0; j < dataPoint.length; j++) {
+          intensitySum += dataPoint[j].getIntensity();
+        }
+
+        if (maxIntensity < intensitySum) {
+          maxIntensity = intensitySum;
+          selectedRetentionTime = scans[i].getRetentionTime();
+        }
+      }
+      imsVisualizerTask.setSelectedRetentionTime(selectedRetentionTime);
+    }
 
     for (int i = 0; i < scans.length; i++) {
-      if (i == 0) {
-        mobility.add(scans[i].getMobility());
-      } else {
-        if (scans[i].getMobility() != scans[i - 1].getMobility()) {
+      if (scans[i].getRetentionTime() == selectedRetentionTime) {
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+
+        for (int j = 0; j < dataPoint.length; j++) {
           mobility.add(scans[i].getMobility());
+          mzValues.add(dataPoint[j].getMZ());
+          intensity.add(dataPoint[j].getIntensity());
         }
       }
     }
 
-    xValues = new double[mobility.size()];
-    yValues = new double[mobility.size()];
-
-    for (int i = 0; i < (int) mobility.size(); i++) {
-      yValues[i] = mobility.get(i);
-    }
-
-    for (int i = 0; i < mobility.size(); i++) {
-      for (int k = 0; k < scans.length; k++) {
-        if (scans[k].getMobility() == mobility.get(i)) {
-          // Take value in only selected mz range.
-          DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
-
-          for (int j = 0; j < dataPoint.length; j++) {
-            xValues[i] += dataPoint[j].getIntensity();
-          }
-        }
-      }
-    }
+    itemSize = mobility.size();
+    xValues = new Double[itemSize];
+    yValues = new Double[itemSize];
+    zValues = new Double[itemSize];
+    xValues = mzValues.toArray(new Double[itemSize]);
+    yValues = mobility.toArray(new Double[itemSize]);
+    zValues = intensity.toArray(new Double[itemSize]);
   }
 
   @Override
@@ -102,7 +123,7 @@ public class MobilityIntensityXYDataset extends AbstractXYDataset {
 
   @Override
   public int getItemCount(int series) {
-    return mobility.size();
+    return itemSize;
   }
 
   @Override
@@ -113,5 +134,10 @@ public class MobilityIntensityXYDataset extends AbstractXYDataset {
   @Override
   public Number getY(int series, int item) {
     return yValues[item];
+  }
+
+  @Override
+  public Number getZ(int series, int item) {
+    return zValues[item];
   }
 }

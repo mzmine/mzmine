@@ -42,7 +42,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-public class MobilityRetentionHeatMapPlot extends EChartViewer {
+public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
   private XYPlot plot;
   private String paintScaleStyle;
@@ -53,7 +53,7 @@ public class MobilityRetentionHeatMapPlot extends EChartViewer {
   private EStandardChartTheme theme;
   PaintScaleLegend legend;
 
-  public MobilityRetentionHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
+  public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
     super(
         ChartFactory.createScatterPlot(

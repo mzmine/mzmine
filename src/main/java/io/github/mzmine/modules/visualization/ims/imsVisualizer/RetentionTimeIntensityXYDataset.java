@@ -23,30 +23,22 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
-import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.parameters.ParameterSet;
-import org.jfree.data.xy.AbstractXYZDataset;
+import org.jfree.data.xy.AbstractXYDataset;
 
 import java.util.ArrayList;
 
-public class MobilityFrameXYZDataset extends AbstractXYZDataset {
+public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
 
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
-  ArrayList<Double> mobility;
-  ArrayList<Double> mzValues;
-  ArrayList<Double> intensity;
-  private Double[] xValues;
-  private Double[] yValues;
-  private Double[] zValues;
-  private Double selectedRetentionTime;
-  private int itemSize;
-  private ImsVisualizerTask imsVisualizerTask;
-  private Scan selectedMobilityScan;
+  ArrayList<Double> retentionTime;
+  private double[] xValues;
+  private double[] yValues;
 
-  public MobilityFrameXYZDataset(
-      ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
+  public RetentionTimeIntensityXYDataset(ParameterSet parameters) {
+
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -61,50 +53,37 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
 
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
-    selectedRetentionTime = retentionTime;
-
-    imsVisualizerTask = imsVisualizerTask;
-
-    mobility = new ArrayList<>();
-    mzValues = new ArrayList<>();
-    intensity = new ArrayList<>();
-    double maxIntensity = -1;
-    if (selectedRetentionTime == -1) {
-      for (int i = 0; i < scans.length; i++) {
-
-        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
-        double intensitySum = 0;
-        for (int j = 0; j < dataPoint.length; j++) {
-          intensitySum += dataPoint[j].getIntensity();
-        }
-
-        if (maxIntensity < intensitySum) {
-          maxIntensity = intensitySum;
-          selectedRetentionTime = scans[i].getRetentionTime();
-        }
-      }
-      imsVisualizerTask.setSelectedRetentionTime(selectedRetentionTime);
-    }
-
+    // Calc xValues retention time
+    retentionTime = new ArrayList<Double>();
     for (int i = 0; i < scans.length; i++) {
-      if (scans[i].getRetentionTime() == selectedRetentionTime) {
-        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
-
-        for (int j = 0; j < dataPoint.length; j++) {
-          mobility.add(scans[i].getMobility());
-          mzValues.add(dataPoint[j].getMZ());
-          intensity.add(dataPoint[j].getIntensity());
+      if (i == 0) {
+        retentionTime.add(scans[i].getRetentionTime());
+      } else {
+        if (scans[i].getRetentionTime() != scans[i - 1].getRetentionTime()) {
+          retentionTime.add(scans[i].getRetentionTime());
         }
       }
     }
 
-    itemSize = mobility.size();
-    xValues = new Double[itemSize];
-    yValues = new Double[itemSize];
-    zValues = new Double[itemSize];
-    xValues = mzValues.toArray(new Double[itemSize]);
-    yValues = mobility.toArray(new Double[itemSize]);
-    zValues = intensity.toArray(new Double[itemSize]);
+    xValues = new double[retentionTime.size()];
+    yValues = new double[retentionTime.size()];
+
+    for (int i = 0; i < (int) retentionTime.size(); i++) {
+      xValues[i] = retentionTime.get(i);
+    }
+
+    for (int i = 0; i < retentionTime.size(); i++) {
+      for (int k = 0; k < scans.length; k++) {
+        if (scans[k].getRetentionTime() == retentionTime.get(i)) {
+          // Take value in only selected mz range.
+          DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
+
+          for (int j = 0; j < dataPoint.length; j++) {
+            yValues[i] += dataPoint[j].getIntensity();
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -123,7 +102,7 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getItemCount(int series) {
-    return itemSize;
+    return retentionTime.size();
   }
 
   @Override
@@ -134,10 +113,5 @@ public class MobilityFrameXYZDataset extends AbstractXYZDataset {
   @Override
   public Number getY(int series, int item) {
     return yValues[item];
-  }
-
-  @Override
-  public Number getZ(int series, int item) {
-    return zValues[item];
   }
 }

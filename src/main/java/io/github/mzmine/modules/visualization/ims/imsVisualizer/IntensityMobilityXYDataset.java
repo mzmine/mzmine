@@ -28,16 +28,15 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 import java.util.ArrayList;
 
-public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {
-
+public class IntensityMobilityXYDataset extends AbstractXYDataset {
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
-  ArrayList<Double> retentionTime;
+  ArrayList<Double> mobility;
   private double[] xValues;
   private double[] yValues;
 
-  public IntensityRetentionTimeXYDataset(ParameterSet parameters) {
+  public IntensityMobilityXYDataset(ParameterSet parameters) {
 
     dataFiles =
         parameters
@@ -54,32 +53,33 @@ public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
     // Calc xValues retention time
-    retentionTime = new ArrayList<Double>();
+    mobility = new ArrayList<Double>();
+
     for (int i = 0; i < scans.length; i++) {
       if (i == 0) {
-        retentionTime.add(scans[i].getRetentionTime());
+        mobility.add(scans[i].getMobility());
       } else {
-        if (scans[i].getRetentionTime() != scans[i - 1].getRetentionTime()) {
-          retentionTime.add(scans[i].getRetentionTime());
+        if (scans[i].getMobility() != scans[i - 1].getMobility()) {
+          mobility.add(scans[i].getMobility());
         }
       }
     }
 
-    xValues = new double[retentionTime.size()];
-    yValues = new double[retentionTime.size()];
+    xValues = new double[mobility.size()];
+    yValues = new double[mobility.size()];
 
-    for (int i = 0; i < (int) retentionTime.size(); i++) {
-      xValues[i] = retentionTime.get(i);
+    for (int i = 0; i < (int) mobility.size(); i++) {
+      yValues[i] = mobility.get(i);
     }
 
-    for (int i = 0; i < retentionTime.size(); i++) {
+    for (int i = 0; i < mobility.size(); i++) {
       for (int k = 0; k < scans.length; k++) {
-        if (scans[k].getRetentionTime() == retentionTime.get(i)) {
+        if (scans[k].getMobility() == mobility.get(i)) {
           // Take value in only selected mz range.
           DataPoint dataPoint[] = scans[k].getDataPointsByMass(mzRange);
 
           for (int j = 0; j < dataPoint.length; j++) {
-            yValues[i] += dataPoint[j].getIntensity();
+            xValues[i] += dataPoint[j].getIntensity();
           }
         }
       }
@@ -102,7 +102,7 @@ public class IntensityRetentionTimeXYDataset extends AbstractXYDataset {
 
   @Override
   public int getItemCount(int series) {
-    return retentionTime.size();
+    return mobility.size();
   }
 
   @Override

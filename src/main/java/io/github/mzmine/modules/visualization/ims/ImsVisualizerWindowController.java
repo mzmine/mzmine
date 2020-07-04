@@ -31,15 +31,27 @@ public class ImsVisualizerWindowController {
   @FXML public Label rtLabel;
   @FXML public Label mobilityRTLabel;
 
+  public BorderPane getTopLeftPane() {
+    return topLeftPane;
+  }
 
+  public BorderPane getTopRightPane() {
+    return topRightPane;
+  }
 
-  public BorderPane getTopLeftPane(){return topLeftPane;}
-  public BorderPane getTopRightPane(){return topRightPane;}
-  public BorderPane getBottomLeftPane(){return bottomLeftPane;}
-  public BorderPane getBottomRightPane(){return bottomRightPane;}
+  public BorderPane getBottomLeftPane() {
+    return bottomLeftPane;
+  }
 
-  public Label getRtLabel(){return rtLabel;}
-  public Label getMobilityRTLabel(){ return mobilityRTLabel; }
+  public BorderPane getBottomRightPane() {
+    return bottomRightPane;
+  }
 
+  public Label getRtLabel() {
+    return rtLabel;
+  }
 
+  public Label getMobilityRTLabel() {
+    return mobilityRTLabel;
+  }
 }

@@ -210,7 +210,6 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
                   int itemindex = entity.getItem();
                   double mobility = 0;
                   mobility = dataset.getYValue(serindex, itemindex);
-                  System.out.println(mobility);
                   for (int i = 0; i < scans.length; i++) {
                     if (scans[i].getMobility() == mobility) {
                       selectedMobilityScan = scans[i];
