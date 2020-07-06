@@ -1,8 +1,16 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+
+import dulab.adap.datamodel.Peak;
+import io.github.msdk.util.DataPointSorter;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,8 +25,8 @@ public class NetworkCliqueMS {
 
   private Logger logger = Logger.getLogger(getClass().getName());
   //Edges and Vertices for undirected graph network
-  private HashMap<Pair<Integer,Integer>, Double> edges;
-  private HashMap<Integer,Integer> nodes;
+  private final HashMap<Pair<Integer,Integer>, Double> edges = new HashMap<>();
+  private final HashMap<Integer,Integer> nodes = new HashMap<>();
   //Indicates if edge is inside or not a clique
   private HashMap<Pair<Integer,Integer>, Boolean> edgeClique;
   private HashMap<Integer, List<Integer>> neighbours;
@@ -26,10 +34,18 @@ public class NetworkCliqueMS {
   private HashMap<Pair<Integer,Integer>, Double> logEdges;
   private HashMap<Pair<Integer,Integer>, Double> minusLogEdges;
 
-  private void addEdge(Integer a, Integer b, Double weight){
-    Pair<Integer, Integer> p = new Pair(a,b);
-    edges.put(p,weight);
+  private void createEdges(double[][] adjacencyMatrix){
+    for(int i=0; i<adjacencyMatrix.length ; i++){
+      for(int j=i+1; j<adjacencyMatrix[0].length ; j++ ){
+        if(adjacencyMatrix[i][j]>0.0){
+          //TODO see if i,j works (quickfix ;))
+          Pair<Integer, Integer> p = new Pair(i+1,j+1);
+          this.edges.put(p,adjacencyMatrix[i][j]);
+        }
+      }
+    }
   }
+
 
   private void computeNodes(){
     for(Pair<Integer,Integer> p : edges.keySet()){
@@ -89,8 +105,10 @@ public class NetworkCliqueMS {
   }
 
   //initializeNetwork
-  private void createNetwork(RawDataFile df, Double exp ){
+  private void createNetwork(double [][] adjacencyMatrix){
     //import edges
+    double exp = 2.0;
+    createEdges(adjacencyMatrix);
     computeNodes();
     computeNeighbours();
     computeClique();
@@ -420,20 +438,15 @@ public class NetworkCliqueMS {
     return loglResult;
   }
 
-  public void importData(PeakList peakList, RawDataFile file){
-    for(int z: file.getScanNumbers()){
-      System.out.println(file.getScan(z).getScanNumber()+" "+file.getScan(z).getRetentionTime()
-          +" "+file.getScan(z).getScanningMZRange());
-      for(DataPoint dp : file.getScan(z).getDataPoints()){
-        System.out.print(dp.getMZ()+"@"+dp.getIntensity()+" ");
-      }
-      System.out.println();
+  public void returnCliques(double[][] adjacencyMatrix, double tolerance){
+//    createNetwork(adjacencyMatrix);
+    createEdges(adjacencyMatrix);
+    for(Pair<Integer,Integer> p : edges.keySet()){
+      System.out.print(p.getKey() + " " + p.getValue()+ " " + edges.get(p)+"\n");
     }
-  }
+    System.out.println(edges.size());
 
-  //Temporary for testing
-  public void runp(PeakList peakList){
-    System.out.println(peakList);
+
   }
 
 }

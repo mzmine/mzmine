@@ -3,9 +3,11 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.NetworkCliqueMS;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
 
 public class CliqueMSTask extends AbstractTask {
@@ -50,7 +52,17 @@ public class CliqueMSTask extends AbstractTask {
 
   @Override
   public void run() {
-    NetworkCliqueMS nms = new NetworkCliqueMS();
-    nms.runp(peakList);
+    try {
+      setStatus(TaskStatus.PROCESSING);
+
+      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0));
+      cm.getClique();
+
+      // Finished.
+      setStatus(TaskStatus.FINISHED);
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
   }
 }
