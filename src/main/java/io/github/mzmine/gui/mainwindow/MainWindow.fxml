@@ -12,14 +12,14 @@
   <stylesheets>
     <URL value="@MZmine.css"/>
   </stylesheets>
-  <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-    prefHeight="800.0" prefWidth="1475.0" xmlns="http://javafx.com/javafx/14.0.1"
+  <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="700" minWidth="1000"
+    xmlns="http://javafx.com/javafx/14.0.1"
     xmlns:fx="http://javafx.com/fxml/1">
     <top>
       <fx:include source="MainMenu.fxml"/>
     </top>
     <center>
-      <SplitPane dividerPositions="0.2" BorderPane.alignment="CENTER">
+      <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.27">
         <items>
           <SplitPane orientation="VERTICAL" SplitPane.resizableWithParent="false">
             <items>

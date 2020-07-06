@@ -112,8 +112,8 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
-    stage.setMinWidth(600);
-    stage.setMinHeight(400);
+    stage.setMinWidth(1200);
+    stage.setMinHeight(800);
 
     // Set application icon
     stage.getIcons().setAll(mzMineIcon);
