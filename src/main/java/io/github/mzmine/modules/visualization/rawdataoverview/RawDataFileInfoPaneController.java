@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import com.google.common.collect.Range;
@@ -8,9 +26,11 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.javafx.StringToDoubleComparator;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -30,7 +50,6 @@ public class RawDataFileInfoPaneController {
 
   private RawDataFile rawDataFile;
   private boolean populated = false;
-
   private List<TableRow> rawDataTableViewRows;
 
   @FXML
@@ -46,7 +65,7 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, Double> basePeakColumn;
 
   @FXML
-  private TableColumn<ScanDescription, Integer> basePeakIntensityColumn;
+  private TableColumn<ScanDescription, String> basePeakIntensityColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> msLevelColumn;
@@ -151,6 +170,13 @@ public class RawDataFileInfoPaneController {
     polarityColumn.setCellValueFactory(new PropertyValueFactory<>("polarity"));
     definitionColumn.setCellValueFactory(new PropertyValueFactory<>("definition"));
     mobilityColumn.setCellValueFactory(new PropertyValueFactory<>("mobility"));
+
+    scanColumn.setComparator(new StringToDoubleComparator());
+    rtColumn.setComparator(new StringToDoubleComparator());
+    msLevelColumn.setComparator(new StringToDoubleComparator());
+//    basePeakColumn.setComparator(new StringToDoubleComparator());
+    basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
+    mobilityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
   }
