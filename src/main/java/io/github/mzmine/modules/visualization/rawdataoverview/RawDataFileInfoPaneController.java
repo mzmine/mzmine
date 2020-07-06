@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
@@ -8,20 +9,29 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
+import javax.annotation.Nonnull;
 
 public class RawDataFileInfoPaneController {
 
   private RawDataFile rawDataFile;
   private boolean populated = false;
+
+  private List<TableRow> rawDataTableViewRows;
 
   @FXML
   private TableView<ScanDescription> rawDataTableView;
@@ -84,7 +94,6 @@ public class RawDataFileInfoPaneController {
     if (populated == true) {
       return;
     }
-
     populated = true;
     this.rawDataFile = rawDataFile;
     updateRawDataFileInfo(rawDataFile);
@@ -146,6 +155,32 @@ public class RawDataFileInfoPaneController {
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
   }
 
+  @Nonnull
+  public Range<Integer> getVisibleRange() {
+    TableViewSkin<?> skin = (TableViewSkin) rawDataTableView.getSkin();
+    if (skin == null) {
+      return Range.closed(0, 0);
+    }
+    VirtualFlow<?> flow = (VirtualFlow) skin.getChildren().get(1);
+    int indexFirst;
+    int indexLast;
+    if (flow != null && flow.getFirstVisibleCell() != null
+        && flow.getLastVisibleCell() != null) {
+      indexFirst = flow.getFirstVisibleCell().getIndex();
+      if (indexFirst >= rawDataTableView.getItems().size()) {
+        indexFirst = rawDataTableView.getItems().size() - 1;
+      }
+      indexLast = flow.getLastVisibleCell().getIndex();
+      if (indexLast >= rawDataTableView.getItems().size()) {
+        indexLast = rawDataTableView.getItems().size() - 1;
+      }
+    } else {
+      indexFirst = 0;
+      indexLast = 0;
+    }
+    return Range.closed(indexFirst, indexLast);
+  }
+
   /**
    * Used to add action listener for table selection
    *
@@ -201,6 +236,14 @@ public class RawDataFileInfoPaneController {
             mzFormat.format(scan.getDataPointMZRange().lowerEndpoint())
                 + "-" + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
 
+        String basePeakMZ = "-";
+        String basePeakIntensity = "-";
+
+        if (scan.getHighestDataPoint() != null) {
+          basePeakMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
+          basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
+        }
+
         tableData.add(new ScanDescription(Integer.toString(i), // scan number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
@@ -210,8 +253,8 @@ public class RawDataFileInfoPaneController {
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(),      // definition
             mobility,  // mobility
-            mzFormat.format(scan.getHighestDataPoint().getMZ()), // base peak mz
-            itFormat.format(scan.getHighestDataPoint().getIntensity())) // base peak intensity
+            basePeakMZ, // base peak mz
+            basePeakIntensity) // base peak intensity
         );
 
         perc = i / (numberOfScans + 1);
@@ -258,5 +301,6 @@ public class RawDataFileInfoPaneController {
     public void cancel() {
       this.isCanceled = true;
     }
+
   }
 }

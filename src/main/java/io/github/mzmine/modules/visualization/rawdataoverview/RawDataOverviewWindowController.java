@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +37,8 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.BorderPane;
 import javax.annotation.Nonnull;
 
@@ -55,6 +58,8 @@ public class RawDataOverviewWindowController {
       .observableMap(new HashMap<>());
   private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
       .observableMap(new HashMap<>());
+
+  private boolean scroll;
 
   @FXML
   private Label rawDataLabel;
@@ -79,6 +84,7 @@ public class RawDataOverviewWindowController {
 
     addChromatogramSelectedScanListener();
 
+    scroll = true;
     initialized = true;
   }
 
@@ -132,7 +138,7 @@ public class RawDataOverviewWindowController {
               return;
             }
             Integer scanNum = Integer.valueOf(newValue.getScanNumber());
-            visualizer.setFocusedScanSilent(raw, scanNum);
+            visualizer.setFocusedScan(raw, scanNum);
           }));
 
       Tab rawDataFileTab = new Tab(raw.getName());
@@ -190,19 +196,20 @@ public class RawDataOverviewWindowController {
       tpRawDataInfo.getSelectionModel().select(rawDataFilesAndTabs.get(selectedRawDataFile));
 
       if (rawDataTableView.getItems() != null) {
-//        if (rawDataTableView.getSelectionModel().getSelectedItem() != null) {
         try {
           String scanNumberString = String.valueOf(pos.getScanNumber());
           rawDataTableView.getItems().stream()
               .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
               .ifPresent(item -> {
                 rawDataTableView.getSelectionModel().select(item);
-                rawDataTableView.scrollTo(item);
+                if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
+                  rawDataTableView.scrollTo(item);
+                }
+
               });
         } catch (Exception e) {
           e.getStackTrace();
         }
-//        }
       }
     });
 
