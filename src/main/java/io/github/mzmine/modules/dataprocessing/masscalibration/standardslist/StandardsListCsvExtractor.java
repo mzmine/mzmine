@@ -77,8 +77,8 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       String retentionTimeString = csvReader.getValueByLabel(retentionTimeColumnName);
       String molecularFormula = csvReader.getValueByLabel(molecularFormulaColumnName);
       if (retentionTimeString == null || molecularFormula == null) {
-        throw new RuntimeException("Csv file " + filename + " missing retention time"
-                + " or molecular formula columns");
+        throw new RuntimeException(String.format("Csv file %s missing retention time [%s]"
+                + " or molecular formula [%s] columns", filename, retentionTimeColumnName, molecularFormulaColumnName));
       }
 
       try {

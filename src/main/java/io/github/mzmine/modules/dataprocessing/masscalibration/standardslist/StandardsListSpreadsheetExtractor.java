@@ -107,8 +107,9 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
         }
 
         if (retentionTimeCellIndex == -1 || molecularFormulaCellIndex == -1) {
-          throw new RuntimeException("Spreadsheet " + filename + " missing retention time"
-                  + " or molecular formula columns");
+          throw new RuntimeException(String.format("Spreadsheet %s missing retention time [%s]"
+                  + " or molecular formula [%s] columns",
+                  filename, retentionTimeColumnName, molecularFormulaColumnName));
         }
       } else {
 

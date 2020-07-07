@@ -45,13 +45,19 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final BooleanParameter filterDuplicates = new BooleanParameter("Filter out duplicate errors",
           "If checked, the distribution of errors will be filtered to remove duplicates");
 
-  public static final DoubleParameter tolerance = new DoubleParameter("Range tolerance",
-          "Range tolerance is the max distance allowed between errors to be included in the same range," +
-                  " in PPM m/z ratio.",
+  public static final DoubleParameter tolerance = new DoubleParameter("Error range tolerance",
+          "Error range tolerance is the max distance allowed between errors to be included in the same range." +
+                  " This is used when extending the most populated error range, if next closest error is within that" +
+                  " tolerance, the range is extended to contain it. The process is repeated until no new errors can" +
+                  " be included that range. The tolerance is the absolute difference in PPM errors of m/z ratio." +
+                  " See help for more details.",
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
 
   public static final DoubleParameter rangeSize = new DoubleParameter("Most populated error range size",
-          "The maximum length of the range that contains the most errors, in PPM m/z ratio.",
+          "The maximum length of the range that contains the most errors. The module searches for a range" +
+                  " of error values that is up to this size and contains the most errors, this way a high-density error" +
+                  " range can be established. The range size is the difference between upper and lower endpoint" +
+                  " of the range, both are values of PPM errors of m/z ratio. See help for more details.",
           NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
   public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
@@ -69,8 +75,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[]{dataFiles, massList, standardsList, filterDuplicates, tolerance, rangeSize, mzRatioTolerance,
-            retentionTimeTolerance, suffix, autoRemove});
+    super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
+            filterDuplicates, rangeSize, tolerance, suffix, autoRemove});
   }
 
   /*@Override

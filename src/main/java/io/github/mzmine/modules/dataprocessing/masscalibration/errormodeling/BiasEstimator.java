@@ -19,6 +19,8 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
 
+import com.google.common.math.Stats;
+
 import java.util.List;
 
 /**
@@ -32,6 +34,8 @@ import java.util.List;
 public class BiasEstimator {
   /**
    * Returns arithmetic mean of a distribution of items
+   * when the list of items is empty, zero is returned
+   * (conveniently, as this method is used to estimate bias from a distribution of errors)
    *
    * @param items
    * @return
@@ -40,7 +44,6 @@ public class BiasEstimator {
     if (items.size() == 0) {
       return 0;
     }
-    double sum = items.stream().mapToDouble(Double::doubleValue).sum();
-    return sum / items.size();
+    return Stats.meanOf(items);
   }
 }
