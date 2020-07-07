@@ -29,14 +29,14 @@ import java.util.logging.Logger;
 
 /**
  * StandardsListExtractor for csv files
- * expects fixed column names
- * 'Retention time (min)' and 'Ion formula'
- * for storing needed data
+ * expects columns at fixed positions for storing needed data
+ * first column is retention time (min) and second column is ion formula
+ * first row (column headers) is skipped
  */
 public class StandardsListCsvExtractor implements StandardsListExtractor {
 
-  protected static final String retentionTimeColumnName = "Retention time (min)";
-  protected static final String molecularFormulaColumnName = "Ion formula";
+  protected static final int retentionTimeColumn = 0;
+  protected static final int ionFormulaColumn = 1;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -61,8 +61,7 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
    * Extracts standards list caching underlying list data
    *
    * @return new standards list object
-   * @throws RuntimeException thrown when required column names are missing
-   * @throws IOException      thrown when issues extracting from the file occur
+   * @throws IOException thrown when issues extracting from the file occur
    */
   public StandardsList extractStandardsList() throws IOException {
     logger.fine("Extracting standards list " + filename);
@@ -73,15 +72,11 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
     }
     this.extractedData = new ArrayList<StandardsListItem>();
 
-    while (csvReader.getLine() != null) {
-      String retentionTimeString = csvReader.getValueByLabel(retentionTimeColumnName);
-      String molecularFormula = csvReader.getValueByLabel(molecularFormulaColumnName);
-      if (retentionTimeString == null || molecularFormula == null) {
-        throw new RuntimeException(String.format("Csv file %s missing retention time [%s]"
-                + " or molecular formula [%s] columns", filename, retentionTimeColumnName, molecularFormulaColumnName));
-      }
-
+    String[] lineValues;
+    while ((lineValues = csvReader.getLine()) != null) {
       try {
+        String retentionTimeString = lineValues[retentionTimeColumn];
+        String molecularFormula = lineValues[ionFormulaColumn];
         double retentionTime = Double.valueOf(retentionTimeString);
         extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
       } catch (Exception e) {

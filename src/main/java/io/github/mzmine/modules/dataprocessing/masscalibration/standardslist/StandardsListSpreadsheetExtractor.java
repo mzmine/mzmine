@@ -29,14 +29,14 @@ import java.util.logging.Logger;
 /**
  * StandardsListExtractor for xls and xlsx spreadsheets
  * uses sheet at specified index, first sheet available by default
- * expects fixed case-insensitive column names
- * 'retention time (min)' and 'ion formula'
- * for storing needed data
+ * expects columns at fixed positions for storing needed data
+ * first column is retention time (min) and second column is ion formula
+ * first row (column headers) is skipped
  */
 public class StandardsListSpreadsheetExtractor implements StandardsListExtractor {
 
-  protected static final String retentionTimeColumnName = "retention time (min)";
-  protected static final String molecularFormulaColumnName = "ion formula";
+  protected static final int retentionTimeColumn = 0;
+  protected static final int ionFormulaColumn = 1;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -70,7 +70,6 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
    *
    * @return new standards list object
    * @throws IllegalArgumentException thrown when sheet index is out of range available
-   * @throws RuntimeException         thrown when required column names are missing
    */
   public StandardsList extractStandardsList() {
     logger.fine("Extracting standards list " + filename + " sheet index " + sheetIndex);
@@ -83,41 +82,18 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
 
     Sheet sheet = spreadsheet.getSheetAt(sheetIndex);
 
-    int rowIndex = 0;
-    int retentionTimeCellIndex = -1;
-    int molecularFormulaCellIndex = -1;
-
+    int rowIndex = -1;
     for (Row row : sheet) {
+      rowIndex++;
 
       if (rowIndex == 0) {
-        int cellIndex = 0;
-        for (Cell cell : row) {
-
-          try {
-            String value = cell.getStringCellValue();
-            if (value.equalsIgnoreCase(retentionTimeColumnName)) {
-              retentionTimeCellIndex = cellIndex;
-            } else if (value.equalsIgnoreCase(molecularFormulaColumnName)) {
-              molecularFormulaCellIndex = cellIndex;
-            }
-          } catch (Exception e) {
-          }
-
-          cellIndex++;
-        }
-
-        if (retentionTimeCellIndex == -1 || molecularFormulaCellIndex == -1) {
-          throw new RuntimeException(String.format("Spreadsheet %s missing retention time [%s]"
-                  + " or molecular formula [%s] columns",
-                  filename, retentionTimeColumnName, molecularFormulaColumnName));
-        }
+        continue;
       } else {
-
         try {
-          Cell retentionCell = row.getCell(retentionTimeCellIndex);
-          Cell molecularCell = row.getCell(molecularFormulaCellIndex);
+          Cell retentionCell = row.getCell(retentionTimeColumn);
+          Cell ionCell = row.getCell(ionFormulaColumn);
           double retentionTime = retentionCell.getNumericCellValue();
-          String molecularFormula = molecularCell.getStringCellValue();
+          String molecularFormula = ionCell.getStringCellValue();
           extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
         } catch (Exception e) {
           logger.fine("Exception occurred when reading row index " + rowIndex);
@@ -126,7 +102,6 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
 
       }
 
-      rowIndex++;
     }
 
     logger.info("Extracted " + extractedData.size() + " standard molecules from " + rowIndex + " rows");
