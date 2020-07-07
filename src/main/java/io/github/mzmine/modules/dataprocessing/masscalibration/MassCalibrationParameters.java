@@ -48,8 +48,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final DoubleParameter tolerance = new DoubleParameter("Error range tolerance",
           "Error range tolerance is the max distance allowed between errors to be included in the same range." +
                   " This is used when extending the most populated error range, if next closest error is within that" +
-                  " tolerance, the range is extended to contain it. The process is repeated until no new errors can" +
-                  " be included that range. The tolerance is the absolute difference in PPM errors of m/z ratio." +
+                  " tolerance, the range is extended to contain it. The process is repeated until no new errors can be" +
+                  " included in that range. The tolerance is the absolute difference between PPM errors of m/z ratio." +
                   " See help for more details.",
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
 
