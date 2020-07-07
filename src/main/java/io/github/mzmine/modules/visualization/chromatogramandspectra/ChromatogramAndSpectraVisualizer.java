@@ -50,6 +50,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javax.annotation.Nonnull;
@@ -200,6 +202,21 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
+
+    setOnMouseClicked(e -> requestFocus());
+
+    setOnKeyPressed(e -> {
+      logger.info("Key pressed " + e.getCode().toString() );
+      if(e.getCode() == KeyCode.LEFT && e.isControlDown() && getChromPosition() != null) {
+        logger.info("Loading previous scan");
+        setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() - 1);
+        requestFocus();
+      } else if(e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
+        logger.info("Loading next scan");
+        setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() + 1);
+        requestFocus();
+      }
+    });
   }
 
   private void updateAllChromatogramDataSets() {
