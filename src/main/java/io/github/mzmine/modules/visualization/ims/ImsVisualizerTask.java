@@ -63,6 +63,7 @@ public class ImsVisualizerTask extends AbstractTask {
   private FXMLLoader loader;
   private ImsVisualizerWindowController controller;
   private ChartGroup groupMobility;
+  private DataFactory dataFactory;
 
   public ImsVisualizerTask(ParameterSet parameters) {
     dataFiles =
@@ -126,6 +127,9 @@ public class ImsVisualizerTask extends AbstractTask {
           // Get controller
           controller = loader.getController();
 
+          //initialize data factory for the plots data.
+            dataFactory = new DataFactory(parameterSet);
+
           // add mobility-mz plot.
           datasetMF = new MzMobilityXYZDataset(parameterSet, selectedRetentionTime, this);
           MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
@@ -134,7 +138,7 @@ public class ImsVisualizerTask extends AbstractTask {
           bottomRightpane.setCenter(mzMobilityPlotHeatMapPlot);
           updateRTlebel();
 
-          datasetMI = new IntensityMobilityXYDataset(parameterSet);
+          datasetMI = new IntensityMobilityXYDataset(dataFactory);
           IntensityMobilityPlot intensityMobilityPlot =
               new IntensityMobilityPlot(datasetMI, parameterSet);
           BorderPane bottomLeftPane = controller.getBottomLeftPane();
@@ -147,7 +151,7 @@ public class ImsVisualizerTask extends AbstractTask {
           groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
 
           // add intensity retention time plot
-          dataset3d = new RetentionTimeMobilityXYZDataset(parameterSet);
+          dataset3d = new RetentionTimeMobilityXYZDataset(dataFactory);
           RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot =
               new RetentionTimeMobilityHeatMapPlot(dataset3d, paintScaleStyle);
           BorderPane topRightPane = controller.getTopRightPane();
@@ -160,7 +164,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
           // add mobility-m/z plot to border
           BorderPane topLeftPane = controller.getTopLeftPane();
-          datasetIRT = new RetentionTimeIntensityXYDataset(parameterSet);
+          datasetIRT = new RetentionTimeIntensityXYDataset(dataFactory);
           RetentionTimeIntensityPlot retentionTimeIntensityPlot =
               new RetentionTimeIntensityPlot(datasetIRT, this, retentionTimeMobilityHeatMapPlot);
           retentionTimeIntensityPlot.setLegend(retentionTimeMobilityHeatMapPlot.getLegend());
@@ -189,7 +193,7 @@ public class ImsVisualizerTask extends AbstractTask {
         new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
     plotPaneMF.setCenter(mzMobilityPlotHeatMapPlot);
 
-    datasetMI = new IntensityMobilityXYDataset(parameterSet);
+    datasetMI = new IntensityMobilityXYDataset(dataFactory);
     IntensityMobilityPlot intensityMobilityPlot =
         new IntensityMobilityPlot(datasetMI, parameterSet);
     BorderPane bottomLeftPane = controller.getBottomLeftPane();
