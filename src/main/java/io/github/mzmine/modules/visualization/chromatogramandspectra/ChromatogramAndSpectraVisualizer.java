@@ -204,15 +204,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().setRangeCrosshairVisible(false);
 
     setOnMouseClicked(e -> requestFocus());
-
     setOnKeyPressed(e -> {
-      logger.info("Key pressed " + e.getCode().toString() );
       if(e.getCode() == KeyCode.LEFT && e.isControlDown() && getChromPosition() != null) {
-        logger.info("Loading previous scan");
+        logger.finest("Loading previous scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() - 1);
         requestFocus();
       } else if(e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
-        logger.info("Loading next scan");
+        logger.finest("Loading next scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() + 1);
         requestFocus();
       }
