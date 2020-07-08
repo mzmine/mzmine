@@ -53,6 +53,10 @@
                                   <MenuItem onAction="#handleExportFile" text="Export file"/>
                                   <MenuItem onAction="#handleRenameFile" text="Rename file"/>
                                   <MenuItem onAction="#handleRemoveRawData" text="Remove file"/>
+
+                                  <SeparatorMenuItem/>
+                                  <MenuItem onAction="#handleSetRawDataFileColor" text="Set color"/>
+
                                 </items>
                               </ContextMenu>
                             </contextMenu>

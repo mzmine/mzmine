@@ -30,9 +30,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParamete
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -45,27 +43,29 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
@@ -73,14 +73,16 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.StatusBar;
@@ -176,7 +178,8 @@ public class MainWindowController {
           return;
         }
         setText(item.getName());
-        setTextFill(item.getColor());
+//        setTextFill(item.getColor());
+        textFillProperty().bind(item.colorProperty());
         setGraphic(new ImageView(rawDataFileIcon));
       }
     });
@@ -526,5 +529,44 @@ public class MainWindowController {
     }
 
     return getMainTabPane().getTabs().add(tab);
+  }
+
+  @FXML
+  public void handleSetRawDataFileColor(Event event) {
+    BooleanProperty apply = new SimpleBooleanProperty(false);
+
+    if(getRawDataTree().getSelectionModel().getSelectedItem() == null) {
+      return;
+    }
+
+    Stage popup = new Stage();
+
+    ColorPicker picker = new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
+    picker.getCustomColors().addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
+
+    VBox box = new VBox(5);
+
+    Button btnApply = new Button("Apply");
+    Button btnCancel = new Button("Cancel");
+    btnApply.setOnAction(e -> {
+      apply.set(true);
+      popup.hide();
+    });
+    btnCancel.setOnAction(e -> popup.hide());
+    ButtonBar.setButtonData(btnApply, ButtonData.APPLY);
+    ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
+
+    ButtonBar btnBar = new ButtonBar();
+    btnBar.getButtons().addAll(btnApply, btnCancel);
+    box.getChildren().addAll(picker, btnBar);
+
+    popup.setScene(new Scene(box));
+    popup.setTitle("Please choose a color for " + getRawDataTree().getSelectionModel().getSelectedItem().getName());
+    popup.show();
+
+    popup.setOnHiding(e -> {
+      if(picker.getValue() != null && apply.get())
+        getRawDataTree().getSelectionModel().getSelectedItem().setColor(picker.getValue());
+    });
   }
 }

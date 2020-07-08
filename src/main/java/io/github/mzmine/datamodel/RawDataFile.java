@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
+import javafx.beans.property.ObjectProperty;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
@@ -129,6 +130,8 @@ public interface RawDataFile {
   public javafx.scene.paint.Color getColor();
 
   public void setColor(javafx.scene.paint.Color color);
+
+  public ObjectProperty<javafx.scene.paint.Color> colorProperty();
 
   /**
    * Close the file in case it is removed from the project

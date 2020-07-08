@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -81,7 +83,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   private File dataPointsFileName;
   private RandomAccessFile dataPointsFile;
 
-  private Color color;
+  private ObjectProperty<Color> color;
 
   // To store mass lists that have been added but not yet reflected in the GUI
   // by the
@@ -107,7 +109,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsOffsets = new TreeMap<Integer, Long>();
     dataPointsLengths = new TreeMap<Integer, Integer>();
 
-    color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+    color = new SimpleObjectProperty<>();
+    color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
     logger.info(dataFileName + " clr: " + color);
   }
 
@@ -629,17 +632,22 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   @Override
   public java.awt.Color getColorAWT() {
-    return FxColorUtil.fxColorToAWT(color);
+    return FxColorUtil.fxColorToAWT(color.getValue());
   }
 
   @Override
   public javafx.scene.paint.Color getColor() {
-    return color;
+    return color.getValue();
   }
 
   @Override
   public void setColor(javafx.scene.paint.Color color) {
-    this.color = color;
+    this.color.setValue(color);
+  }
+
+  @Override
+  public ObjectProperty<javafx.scene.paint.Color> colorProperty() {
+    return color;
   }
 
   @Override
