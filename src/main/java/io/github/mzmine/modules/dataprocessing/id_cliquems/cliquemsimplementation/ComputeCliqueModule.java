@@ -1,7 +1,5 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
-import com.google.common.collect.Range;
-import dulab.adap.datamodel.Peak;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -10,8 +8,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.util.Pair;
 
 public class ComputeCliqueModule {
+
+  private Logger logger = Logger.getLogger(getClass().getName());
 
   private AnClique anClique;
   private PeakList peakList;
@@ -20,15 +23,16 @@ public class ComputeCliqueModule {
   private double[][] cosineCorrelation;
 
   public ComputeCliqueModule(PeakList peakList, RawDataFile rdf){
-    this.peakList = peakList;
     this.rawDataFile = rdf;
+    this.peakList =peakList;
     peakDataList = getPeakDatafromPeaks(peakList,rdf);
     anClique = new AnClique(peakDataList,rdf);
   }
 
   private List<PeakData> getPeakDatafromPeaks(PeakList peakList, RawDataFile dataFile){
     List<PeakData> peakDataList = new ArrayList<>();
-    for(PeakListRow peak : peakList.getRows()){
+    for(int i=0;i<peakList.getRows().size() ; i++){
+      PeakListRow peak = peakList.getRows().get(i);
       double mz ;
       double mzmin ;
       double mzmax ;
@@ -36,6 +40,7 @@ public class ComputeCliqueModule {
       double rtmin ;
       double rtmax ;
       double intensity;
+      int peakListRowID;
       mz = peak.getPeak(dataFile).getMZ();
       mzmin  = peak.getPeak(dataFile).getRawDataPointsMZRange().lowerEndpoint();
       mzmax = peak.getPeak(dataFile).getRawDataPointsMZRange().upperEndpoint();
@@ -43,7 +48,8 @@ public class ComputeCliqueModule {
       rtmin = peak.getPeak(dataFile).getRawDataPointsRTRange().lowerEndpoint();
       rtmax = peak.getPeak(dataFile).getRawDataPointsRTRange().upperEndpoint();
       intensity = peak.getPeak(dataFile).getHeight();
-      PeakData peakData = new PeakData(mz,mzmin,mzmax,rt,rtmin,rtmax,intensity);
+      peakListRowID = peak.getID();
+      PeakData peakData = new PeakData(mz,mzmin,mzmax,rt,rtmin,rtmax,intensity,i+1,peakListRowID);
       peakDataList.add(peakData);
     }
     return peakDataList;
@@ -74,22 +80,16 @@ public class ComputeCliqueModule {
       int posrtmax = rts.indexOf(pd.getRtmax() * 60.0); // position where peak matches rtmax
 
       for(int j = posrtmin ; j<posrtmax ; j+=1){
-//        System.out.println("Datapoints");
         List<Double> intensities = new ArrayList<>();
         for(DataPoint dp : dataPoints.get(j)){
-//          if(j==231 && flag){
-//            System.out.println(dp.getMZ()+" "+pd.getMzmax()+" "+pd.getMzmin());
-////            flag = false;
-//          }
-//          Range<Double> mzRange = Range.closed(pd.getMzmin(),pd.getMzmax());
-//          if(mzRange.contains(dp.getMZ())){
           //TODO precision only for testing
-          Double mzmin = Double.parseDouble(String.format("%.5f", pd.getMzmin()));
-          Double mzmax = Double.parseDouble(String.format("%.5f", pd.getMzmax()));
-          Double dpmz = Double.parseDouble(String.format("%.5f", dp.getMZ()));
-//          if(dp.getMZ()<=pd.getMzmax() && dp.getMZ()>=pd.getMzmin()){
+//          Double mzmin = Double.parseDouble(String.format("%.5f", pd.getMzmin()));
+//          Double mzmax = Double.parseDouble(String.format("%.5f", pd.getMzmax()));
+//          Double dpmz = Double.parseDouble(String.format("%.5f", dp.getMZ()));
+          Double mzmin = pd.getMzmin();
+          Double mzmax = pd.getMzmax();
+          Double dpmz =  dp.getMZ();
           if(dpmz<=mzmax && dpmz>=mzmin){
-//            intensities.add(Double.parseDouble(String.format("%.7f",dp.getIntensity())));
             intensities.add(dp.getIntensity());
           }
         }
@@ -109,18 +109,18 @@ public class ComputeCliqueModule {
       }
     }
 
-    for(int i= 0 ;i< EIC[0].length ; i++){
-      for(int j = 0 ; j<EIC.length ; j++){
-        System.out.print(EIC[j][i]+" ");
-      }
-      System.out.println();
-    }
-    System.out.println();
+//    for(int i= 0 ;i< EIC[0].length ; i++){
+//      for(int j = 0 ; j<EIC.length ; j++){
+//        System.out.print(EIC[j][i]+" ");
+//      }
+//      System.out.println();
+//    }
+//    System.out.println();
     return EIC;
 
   }
 
-  //TODO time complexity
+  //TODO make use of sparse matrix, make algo time efficient
   private double[][] cosCorrbyColumn (double [][] data){
     int row = data.length, col = data[0].length;
     double [][] corr = new double[col][col];
@@ -143,13 +143,6 @@ public class ComputeCliqueModule {
         corr[i][j] = corr[i][j]/(modi*modj);
       }
     }
-
-    for(int i=0; i<col ; i++){
-      for(int j=0; j<col; j++){
-        System.out.print(corr[i][j]+" ");
-      }
-      System.out.println();
-    }
     return corr;
   }
 
@@ -159,7 +152,8 @@ public class ComputeCliqueModule {
       double  intdiff){
 //    double mzdiff = 0.000005, rtdiff = 0.0001, intdiff = 0.0001; // constant parameters
     //find all elements in cosineCorr with i<j and value > 0.99
-    List<Integer> edgeX = new ArrayList<>(), edgeY = new ArrayList<>();
+    List<Integer> edgeX = new ArrayList<>();
+    List<Integer> edgeY = new ArrayList<>();
     for(int i=0; i<cosineCorr.length; i++){
       for(int j=i+1; j<cosineCorr[0].length; j++){
         if(cosineCorr[i][j]>0.99){
@@ -191,7 +185,10 @@ public class ComputeCliqueModule {
       double  intdiff){
     List<PeakData> modifiedPeakDataList = new ArrayList<>();
     List<Integer> deleteIndices = similarFeatures(cosinus, peakDL, mzdiff, rtdiff, intdiff);
-
+    if(deleteIndices.size()==0){
+      logger.log(Level.INFO,"No feature deleted");
+      return;
+    }
     for(PeakData pd : peakDataList){
       if(deleteIndices.contains(peakDataList.indexOf(pd))){
         continue;
@@ -221,9 +218,44 @@ public class ComputeCliqueModule {
 
     this.cosineCorrelation = modifiedCosineCorr;
     anClique.changePeakDataList(modifiedPeakDataList);
+    logger.log(Level.INFO,deleteIndices.size()+" features deleted.");
 
 
   }
+
+  /**
+   * This function is to assign a clique group value to nodes that do not have links, because they
+   * did not appear in the edgelists
+   */
+   private void updateCliques(){
+    List<Pair<Integer,Integer>> nodeCliqueList = this.anClique.getNetwork().getResultNode_clique();
+    List<PeakData> ungroupedFeatures = new ArrayList<>();
+    Integer maxClique = 0;
+    for(Pair nodeClique: nodeCliqueList){
+      if(maxClique < (Integer) nodeClique.getKey()){
+        maxClique = (Integer) nodeClique.getKey();
+      }
+    }
+    for(PeakData pd : this.peakDataList){
+      boolean present = false;
+      for(Pair nodeClique : nodeCliqueList){
+        if(nodeClique.getKey().equals(pd.getNodeID())){
+          present = true;
+          break;
+        }
+      }
+      if(!present){
+        ungroupedFeatures.add(pd);
+      }
+    }
+    System.out.println("These many peaks not cliqued"+ ungroupedFeatures.size());
+    for(PeakData pd : ungroupedFeatures){
+      maxClique+=1;
+      Pair <Integer, Integer> p = new Pair<>(pd.getNodeID(),maxClique);
+      nodeCliqueList.add(p);
+    }
+    //TODO sorting if required
+   }
 
 
   public AnClique getClique(boolean filter, double mzdiff, double rtdiff, double  intdiff,
@@ -232,18 +264,20 @@ public class ComputeCliqueModule {
     double EIC[][] = getEIC(rawDataFile, peakDataList);
     this.cosineCorrelation = cosCorrbyColumn(EIC);
     if(filter)
-      filterFeatures(cosineCorrelation,peakDataList, mzdiff, rtdiff, intdiff);
-//    anClique.getNetwork().returnCliques(cosineCorrelation, tol);
-//    for(int i=0;i<cosineCorrelation.length ; i++){
-//      for(int j=0;j<cosineCorrelation[0].length ; j++){
-//        System.out.print(cosineCorrelation[i][j]+" ");
-//      }
-//      System.out.println();
-//    }
+      filterFeatures(cosineCorrelation, peakDataList, mzdiff, rtdiff, intdiff);
+    List<Integer> nodeIDList = new ArrayList<>();
+    for(PeakData pd : peakDataList)
+      nodeIDList.add(pd.getNodeID());
+    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false );
+    updateCliques();
+    System.out.println(anClique.getNetwork().getResultNode_clique());
+    this.anClique.cliquesFound = true;
+
     return anClique;
   }
 
+  //TODO check filter
   public AnClique getClique() {
-    return getClique(true, 0.000005, 0.0001, 0.0001, .00001);
+    return getClique(false, 0.000005, 0.0001, 0.0001, .00001);
   }
 }

@@ -1,16 +1,5 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
-
-import dulab.adap.datamodel.Peak;
-import io.github.msdk.util.DataPointSorter;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,103 +13,106 @@ import javafx.util.Pair;
 public class NetworkCliqueMS {
 
   private Logger logger = Logger.getLogger(getClass().getName());
-  //Edges and Vertices for undirected graph network
-  private final HashMap<Pair<Integer,Integer>, Double> edges = new HashMap<>();
-  private final HashMap<Integer,Integer> nodes = new HashMap<>();
-  //Indicates if edge is inside or not a clique
-  private HashMap<Pair<Integer,Integer>, Boolean> edgeClique;
-  private HashMap<Integer, List<Integer>> neighbours;
-  private HashMap<Integer, List<Integer>> cliques;
-  private HashMap<Pair<Integer,Integer>, Double> logEdges;
-  private HashMap<Pair<Integer,Integer>, Double> minusLogEdges;
 
-  private void createEdges(double[][] adjacencyMatrix){
+
+  private final HashMap<Pair<Integer,Integer>, Double> edges = new HashMap<>();//Edges of the undirected graph network
+  private final HashMap<Integer,Integer> nodes = new HashMap<>(); // Indicates if edge is inside or not a clique
+  private final HashMap<Pair<Integer,Integer>, Boolean> edgeClique = new HashMap<>(); // Hashmap of edges containing if they belong or not to a clique
+  private final HashMap<Integer, List<Integer>> neighbours = new HashMap<>();// Hashmap containing list of nodes for each node
+  private final HashMap<Integer, List<Integer>> cliques = new HashMap<>(); // unordered map of key clique name with a vector of the nodes of that clique
+  private final HashMap<Pair<Integer,Integer>, Double> logEdges = new HashMap<>();  // log value of weigth powered to some exponent
+  private final HashMap<Pair<Integer,Integer>, Double> minusLogEdges = new HashMap<>();  // 1 - log value of weight powered to some exponent
+
+  //Result of Kernighan and aggregate algorithm
+  private final List<Pair<Integer,Integer>> resultNode_clique = new ArrayList<>();
+
+  private void createEdges(double[][] adjacencyMatrix, List<Integer> nodeIDList){
     for(int i=0; i<adjacencyMatrix.length ; i++){
       for(int j=i+1; j<adjacencyMatrix[0].length ; j++ ){
         if(adjacencyMatrix[i][j]>0.0){
-          //TODO see if i,j works (quickfix ;))
-          Pair<Integer, Integer> p = new Pair(i+1,j+1);
+          Pair<Integer, Integer> p = new Pair(nodeIDList.get(i), nodeIDList.get(j));
           this.edges.put(p,adjacencyMatrix[i][j]);
         }
       }
     }
   }
 
-
-  private void computeNodes(){
-    for(Pair<Integer,Integer> p : edges.keySet()){
-      if(!nodes.containsKey(p.getKey())){
-        nodes.put(p.getKey(),p.getKey());
+// Function createNodes, with node x you can access clique value y
+  private void createNodesFromEdges(){
+    for(Pair<Integer,Integer> p : this.edges.keySet()){
+      if(!this.nodes.containsKey(p.getKey())){
+        this.nodes.put(p.getKey(),p.getKey());
       }
-      if(!nodes.containsKey(p.getValue())){
-        nodes.put(p.getValue(),p.getValue());
+      if(!this.nodes.containsKey(p.getValue())){
+        this.nodes.put(p.getValue(),p.getValue());
       }
     }
   }
 
-  private void computeNeighbours(){
-    for(Pair<Integer,Integer> p : edges.keySet()){
+  //create neighbour for each node
+  private void createNeighboursFromEdges(){
+    for(Pair<Integer,Integer> p : this.edges.keySet()){
       Integer n1 = p.getKey();
       Integer n2 = p.getValue();
       {
-        if (neighbours.containsKey(n1)) {
-          neighbours.get(n1).add(n2);
+        if (this.neighbours.containsKey(n1)) {
+          this.neighbours.get(n1).add(n2);
         } else {
           List<Integer> l = new ArrayList();
           l.add(n2);
-          neighbours.put(n1, l);
+          this.neighbours.put(n1, l);
         }
       }
       {
-        if (neighbours.containsKey(n2)) {
-          neighbours.get(n2).add(n1);
+        if (this.neighbours.containsKey(n2)) {
+          this.neighbours.get(n2).add(n1);
         } else {
           List<Integer> l = new ArrayList();
           l.add(n1);
-          neighbours.put(n2, l);
+          this.neighbours.put(n2, l);
         }
       }
     }
   }
 
 
-  //TODO initializeEdgeCliques?
-  private void computeEdgeCliques (){
-    for(Pair<Integer,Integer> p : edges.keySet()){
-      edgeClique.put(p, false);
+// Function createEdgeclique for creating boolean variable to indicate if this edge is inside or not a clique
+  private void createEdgeCliques (){
+    for(Pair<Integer,Integer> p : this.edges.keySet()){
+      this.edgeClique.put(p, false);// at the beginning, all edges are outside of cliques
     }
   }
 
-  private void computeClique(){
-    for(Integer k : nodes.keySet()){
-      if(cliques.keySet().contains(k)){
-        cliques.get(k).add(nodes.get(k));
+// Function createCliques to create an unordered map of key clique name with a vector of the nodes of that clique
+  private void createCliques(){
+    for(Integer k : this.nodes.keySet()){
+      if(this.cliques.keySet().contains(k)){
+        this.cliques.get(k).add(this.nodes.get(k));
       }
       else{
         List <Integer> l = new ArrayList<>();
-        l.add(nodes.get(k));
-        cliques.put(k,l);
+        l.add(this.nodes.get(k));
+        this.cliques.put(k,l);
       }
     }
   }
 
   //initializeNetwork
-  private void createNetwork(double [][] adjacencyMatrix){
+  private void createNetwork(double [][] adjacencyMatrix, List<Integer> nodeIDList){
     //import edges
     double exp = 2.0;
-    createEdges(adjacencyMatrix);
-    computeNodes();
-    computeNeighbours();
-    computeClique();
-    computeEdgeCliques();
-    for(Pair<Integer,Integer> edge : edges.keySet()){
-      Pair<Integer, Integer> edgeEntry = edge;
+    createEdges(adjacencyMatrix, nodeIDList);
+    createNodesFromEdges();
+    createNeighboursFromEdges();
+    createCliques();
+    createEdgeCliques();
+    for(Pair<Integer,Integer> edge : this.edges.keySet()){
       Double weight, logPower, minuslogPower;
-      weight = edges.get(edge);
+      weight = this.edges.get(edge);
       logPower = Math.log10(Math.pow(weight,exp));
-      minuslogPower = Math.log10(1 - Math.pow(weight,exp));
-      logEdges.put(edgeEntry,logPower);
-      minusLogEdges.put(edgeEntry,minuslogPower);
+      minuslogPower = Math.log10(1.0 - Math.pow(weight,exp));
+      logEdges.put(edge,logPower);
+      minusLogEdges.put(edge,minuslogPower);
     }
   }
 
@@ -128,11 +120,11 @@ public class NetworkCliqueMS {
   private Double logltotal(){
     Double inside = 0.0, outside = 0.0 , logl = 0.0;
     for(Pair<Integer,Integer> edge : edges.keySet()){
-      if(edgeClique.get(edge)){
-        inside += logEdges.get(edge);
+      if(this.edgeClique.get(edge)){
+        inside += this.logEdges.get(edge);
       }
       else{
-        outside += minusLogEdges.get(edge);
+        outside += this.minusLogEdges.get(edge);
       }
     }
     logl = inside + outside;
@@ -155,15 +147,15 @@ public class NetworkCliqueMS {
     Double newlinks_change = 0.0, nolinks_change = 0.0, newlinks_before = 0.0, nolinks_before = 0.0;
     List<Pair<Integer,Integer>> newEdges = new ArrayList<>();
     List<Pair<Integer,Integer>> oldEdges = new ArrayList<>();
-    Integer clique1 = nodes.get(node1);
-    Integer clique2 = nodes.get(node2);
-    List<Integer> nClique1 = cliques.get(clique1);
+    Integer clique1 = this.nodes.get(node1);
+    Integer clique2 = this.nodes.get(node2);
+    List<Integer> nClique1 = new ArrayList<>(this.cliques.get(clique1));
     nClique1.remove(node1);// remove the node1 apart from the other nodes of its clique
-    List<Integer> nClique2 = cliques.get(clique2);
+    List<Integer> nClique2 = new ArrayList<>(this.cliques.get(clique2));
     nClique2.remove(node2);// remove the node1 apart from the other nodes of its clique
     if(nClique1.size() > 0){
       for(Integer i : nClique1){
-        Pair<Integer,Integer> edge = new Pair<>(i,node2);
+        Pair<Integer,Integer> edge = new Pair<>(i,0);
         edge = sortEdge(edge);
         if(!logEdges.containsKey(edge)){
           complete = false;
@@ -171,9 +163,9 @@ public class NetworkCliqueMS {
         }
         else{
           // edges that now will be part of the clique
-          newlinks_change += logEdges.get(edge);
+          newlinks_change += this.logEdges.get(edge);
           // this edges were before outside cliques
-          newlinks_before += minusLogEdges.get(edge);
+          newlinks_before += this.minusLogEdges.get(edge);
           newEdges.add(edge);
         }
       }
@@ -183,17 +175,17 @@ public class NetworkCliqueMS {
         Pair<Integer,Integer> edge = new Pair<>(i,node2);
         edge = sortEdge(edge);
         // this edges now will be outside cliques
-        nolinks_change += minusLogEdges.get(edge);
+        nolinks_change += this.minusLogEdges.get(edge);
         // this edges between node2 and its old clique members were inside cliques before
-        nolinks_before += logEdges.get(edge);
+        nolinks_before += this.logEdges.get(edge);
         oldEdges.add(edge);
       }
     }
     if(complete){
       Pair<Integer,Integer> edge = new Pair<>(node1 , node2);
       edge = sortEdge(edge);
-      newlinks_change += logEdges.get(edge);
-      newlinks_before += minusLogEdges.get(edge);
+      newlinks_change += this.logEdges.get(edge);
+      newlinks_before += this.minusLogEdges.get(edge);
       newEdges.add(edge);
       logl_change = newlinks_change + nolinks_change;
       logl_before = newlinks_before + nolinks_before;
@@ -207,20 +199,20 @@ public class NetworkCliqueMS {
   }
 
   // function to move the current node to another clique
-  Double reassignNode(int node, double logl){
+  Double reassignNode(Integer node, Double logl){
     Nodelogl maxChange = new Nodelogl();
     maxChange.logl = 0.0;
-    if(neighbours.get(node).size() > 0){ // reassign this node if it has neighbors
-      Integer ownClique = nodes.get(node);
+    if(this.neighbours.get(node).size() > 0){ // reassign this node if it has neighbors
+      Integer ownClique = this.nodes.get(node);
       Set<Integer> diffCliques = new HashSet<>();
       for(Integer n:neighbours.get(node)){
-        Integer cliqueCandidate = nodes.get(n);
-        if(cliqueCandidate != ownClique)
+        Integer cliqueCandidate = this.nodes.get(n);
+        if(!cliqueCandidate.equals(ownClique))
             diffCliques.add(cliqueCandidate);
       }
       if(diffCliques.size() > 0){
         for(Integer n: diffCliques){
-          Integer node2 = cliques.get(n).get(0); // first node in the clique candidate
+          Integer node2 = this.cliques.get(n).get(0); // first node in the clique candidate
           Nodelogl nodeChange = calcNodelogl(node2 , node); // logl change if we move node to clique of node2
           if(nodeChange.logl > maxChange.logl){ // we search for the max change in logl bigger than 0
             maxChange = nodeChange;
@@ -229,37 +221,42 @@ public class NetworkCliqueMS {
       }
       if(maxChange.logl > 0){ // if there is a positive change in logl by moving a node, now execute this change
         for(Pair<Integer, Integer> edge : maxChange.newedges)
-          edgeClique.put(edge,true); // change makes new edges are inside cliques
+          this.edgeClique.put(edge,true); // change makes new edges are inside cliques
         for(Pair<Integer, Integer> edge : maxChange.oldedges)
-          edgeClique.put(edge,false); // change puts edges outside cliques
-        Integer newClique = nodes.get(maxChange.newnode);
-        nodes.put(node, newClique); // now the clique of node is the clique of node2
-        cliques.get(ownClique).remove(node); // remove the node from clique nodes of old clique
-        cliques.get(newClique).add(node); // add node to the list of nodes of the new clique
+          this.edgeClique.put(edge,false); // change puts edges outside cliques
+        Integer newClique = this.nodes.get(maxChange.newnode);
+        this.nodes.put(node, newClique); // now the clique of node is the clique of node2
+        this.cliques.get(ownClique).remove((Integer) node); // remove the node from clique nodes of old clique
+        this.cliques.get(newClique).add(node); // add node to the list of nodes of the new clique
       }
     }
     Double newlogl = logl + maxChange.logl;
     return newlogl;
   }
 
-  Nodelogl calcCliquelogl(int clique1 ,int clique2){
+  private Nodelogl calcCliquelogl(Integer clique1 ,Integer clique2){
     Nodelogl cResult = new Nodelogl();
     Double logl = -1.0, logl_change = 0.0, logl_before = 0.0;
     Boolean complete = true;
     List<Pair<Integer,Integer>> newEdges = new ArrayList<>();
     List<Pair<Integer,Integer>> oldEdges = new ArrayList<>();
-    Outer: for(Integer v1 : cliques.get(clique1)){
-      for(Integer v2 : cliques.get(clique2)){
-        Pair<Integer, Integer> edge = new Pair(v1,v2);
-        edge = sortEdge(edge);
-        if(!logEdges.containsKey(edge)){
-          complete = false;
-          break Outer; // exit the two loops if one link between the two cliques does not exist
-        }
-        else{
-          logl_change += logEdges.get(edge);
-          logl_before += minusLogEdges.get(edge);
-          newEdges.add(edge);
+    if(clique2.equals(0)){
+      complete = false;
+    }
+    else{
+      Outer: for(Integer v1 : this.cliques.get(clique1)){
+        for(Integer v2 : this.cliques.get(clique2)){
+          Pair<Integer, Integer> edge = new Pair(v1,v2);
+          edge = sortEdge(edge);
+          if(!this.logEdges.containsKey(edge)){
+            complete = false;
+            break Outer; // exit the two loops if one link between the two cliques does not exist
+          }
+          else{
+            logl_change += this.logEdges.get(edge); // edges that now will be part of the clique
+            logl_before += this.minusLogEdges.get(edge); // this edges were before outside cliques
+            newEdges.add(edge);
+          }
         }
       }
     }
@@ -275,16 +272,16 @@ public class NetworkCliqueMS {
     Double meanV = 0.0; Double meanR = -1.0;
     Integer size = 0;
     Boolean complete = true;
-    Outer : for(Integer v1 : cliques.get(clique1)){
-      for(Integer v2 : cliques.get(clique2)){
+    Outer : for(Integer v1 : this.cliques.get(clique1)){
+      for(Integer v2 : this.cliques.get(clique2)){
         Pair<Integer,Integer>  edge = new Pair<>(v1,v2);
-        sortEdge(edge);
-        if(logEdges.containsKey(edge)){
+        edge = sortEdge(edge);
+        if(!this.logEdges.containsKey(edge)){
           complete = false;
           break Outer;
         }
         else{
-          Double weight = edges.get(edge);
+          Double weight = this.edges.get(edge);
           meanV += Math.pow(weight,2.0);
           size++;
         }
@@ -296,14 +293,13 @@ public class NetworkCliqueMS {
   }
 
 
-  //TBChecked
   Double reassignClique(Integer clique, Double logl){
     Double loglchange = 0.0; // the change in logl if we accept joining clique to another clique
-    Integer node = cliques.get(clique).get(0);
+    Integer node = this.cliques.get(clique).get(0);
     Set<Integer> diffCliques = new HashSet<>();
-    for(Integer v : neighbours.get(node)){
-      Integer cliqueCandidate = nodes.get(v);
-      if(cliqueCandidate != clique)
+    for(Integer v : this.neighbours.get(node)){
+      Integer cliqueCandidate = this.nodes.get(v);
+      if(!cliqueCandidate.equals(clique))
         diffCliques.add(cliqueCandidate);
     }
     if(diffCliques.size() > 0 ){
@@ -320,28 +316,25 @@ public class NetworkCliqueMS {
       if(loglCandidate.logl > 0){
         loglchange = loglCandidate.logl;
         for(Pair<Integer,Integer> edge : loglCandidate.newedges)
-          edgeClique.put(edge, true);// change makes new edges be inside cliques
-        for(Integer c : cliques.get(clique)){
-          nodes.put(c,maxClique); // change clique value of old clique nodes to the new
-          cliques.get(maxClique).add(c); // add nodes of old clique to the list of nodes of the new clique
+          this.edgeClique.put(edge, true);// change makes new edges be inside cliques
+        for(Integer c : this.cliques.get(clique)){
+          this.nodes.put(c,maxClique); // change clique value of old clique nodes to the new
+          this.cliques.get(maxClique).add(c); // add nodes of old clique to the list of nodes of the new clique
         }
-        cliques.remove(clique); // delete old clique because it is empty
+        this.cliques.remove(clique); // delete old clique because it is empty
       }
     }
     Double loglReturn = logl + loglchange;
     return loglReturn;
   }
 
-  //csample_integer function make same effect as Collections.shuffle when size and x.size() are same and replace is set false
+  //csample_integer function of R  code makes same effect as Collections.shuffle when size and x.size() are same and replace is set false
 
-  //TODO code efficient possible
   List<Double> itReassign(Double tol, Double logl){
     Double currentlogl = logl;
     List<Double> loglResult = new ArrayList<>();
     loglResult.add(currentlogl);
-    List<Integer> allnodes = new ArrayList<>();
-    for(Integer v : nodes.keySet())
-      allnodes.add(v);
+    List<Integer> allnodes = new ArrayList<>(this.nodes.keySet());
     List<Integer> randallnodes = new ArrayList<>(allnodes);
     Collections.shuffle(randallnodes);
     for(Integer v : randallnodes){
@@ -368,18 +361,18 @@ public class NetworkCliqueMS {
   List<Double> aggregateAndKernighan (Double tol, Integer step, Boolean silent ){
     Double currentlogl = logltotal();
     List<Double> loglResult = new ArrayList<>();
+    loglResult.add(currentlogl);
     // round 1
-    List<Integer> allNodes = new ArrayList<>();
     List<Integer> randallNodes;
-    for(Integer v : nodes.keySet())
-      allNodes.add(v); // insert allnodes values in vector of nodes
+    // insert allnodes values in list of nodes
+    List<Integer> allNodes = new ArrayList<>(this.nodes.keySet());
     randallNodes = new ArrayList<>(allNodes);
-    Collections.shuffle(allNodes);
+    Collections.shuffle(randallNodes);
     int scount = 1; // counter of the number of rounds that are clique joining, it starts with 1
     int tcount = 1; // total number of rounds
     for(int randpos = 0; randpos < randallNodes.size(); randpos++) {
       Integer nodev = randallNodes.get(randpos);
-      Integer cliquec = nodes.get(nodev); // clique that will be joined to another clique
+      Integer cliquec = this.nodes.get(nodev); // clique that will be joined to another clique
       if (scount == step){
         currentlogl = reassignNode(nodev, currentlogl);
         loglResult.add(currentlogl);
@@ -387,7 +380,7 @@ public class NetworkCliqueMS {
         tcount++;
       }
       else{
-        currentlogl = reassignClique(nodev,currentlogl);
+        currentlogl = reassignClique(cliquec,currentlogl);
         loglResult.add(currentlogl);
         scount++;
         tcount++;
@@ -416,7 +409,7 @@ public class NetworkCliqueMS {
         else{ // join this clique if it has not been joined in this round
           if(!cliquesRound.contains(cliquecw)){
             cliquesRound.add(cliquecw);
-            currentlogl = reassignNode(nodevw , currentlogl);
+            currentlogl = reassignClique(cliquecw , currentlogl);
             loglResult.add(currentlogl);
             scount++;
             tcount++;
@@ -433,22 +426,32 @@ public class NetworkCliqueMS {
     logger.log(Level.INFO,"Aggregate cliques done, with "+tcount+" rounds.");
     // Kernighan-Lin after aggregation of cliques
     List<Double> loglLast = itReassign(tol,currentlogl);
-    for(Double logl: loglLast)
-      loglResult.add(logl);
+    loglResult.addAll(loglLast);
     return loglResult;
   }
 
-  public void returnCliques(double[][] adjacencyMatrix, double tolerance){
-//    createNetwork(adjacencyMatrix);
-    createEdges(adjacencyMatrix);
-    for(Pair<Integer,Integer> p : edges.keySet()){
-      System.out.print(p.getKey() + " " + p.getValue()+ " " + edges.get(p)+"\n");
+  public void returnCliques(double[][] adjacencyMatrix, List<Integer> nodeIDList,  double tolerance, boolean silent){
+    try{
+      createNetwork(adjacencyMatrix, nodeIDList);
+      Double logl = logltotal();
+      logger.log(Level.INFO,"Beginning value of logl is "+logl);
+      int step = 10;
+      List<Double> loglList = aggregateAndKernighan(tolerance, step, silent);
+      for(Integer v: this.nodes.keySet()){
+        Pair<Integer,Integer> p = new Pair<>(v,this.nodes.get(v));
+        resultNode_clique.add(p);
+      }
+      Double loglfinal = logltotal();
+      logger.log(Level.INFO,"Finishing value of logl is "+ loglfinal);
     }
-    System.out.println(edges.size());
-
-
+    catch (Exception e){
+      e.printStackTrace();
+    }
   }
 
+  public List<Pair<Integer, Integer>> getResultNode_clique() {
+    return resultNode_clique;
+  }
 }
 
 // Nodelogl class to return an object with the change in logl, the new edges inside clique and the

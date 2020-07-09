@@ -82,7 +82,7 @@ public class csvImportTask extends AbstractTask {
         Range<Double> finalMZRange;
         Range<Double> finalIntensityRange;
 
-        SimplePeakListRow newRow = new SimplePeakListRow(i-1);
+        SimplePeakListRow newRow = new SimplePeakListRow(i);
         for(int j=0 ; j<data.get(0).length ; j++){
           switch(j){
             case 1:

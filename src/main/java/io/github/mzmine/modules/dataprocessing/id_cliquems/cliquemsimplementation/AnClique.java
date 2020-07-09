@@ -7,11 +7,12 @@ import java.util.List;
 
 public class AnClique {
 
-  //TODO is RawDatafile required later?
+  //TODO is RawDatafile required later in annotation?
 
   private List<PeakData> peakData;
   private RawDataFile dataFile;
   private NetworkCliqueMS network = new NetworkCliqueMS();
+  boolean cliquesFound = false;
 
   AnClique(List<PeakData> peakData, RawDataFile file){
     this.peakData = peakData;
