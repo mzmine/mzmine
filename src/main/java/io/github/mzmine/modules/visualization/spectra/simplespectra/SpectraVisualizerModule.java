@@ -58,8 +58,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
         .getValue().getMatchingRawDataFiles();
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
+    String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
 
-    showNewSpectrumWindow(dataFiles[0], scanNumber);
+    showNewSpectrumWindow(dataFiles[0], scanNumber, massList);
 
     return ExitCode.OK;
   }
@@ -67,6 +68,11 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
       int scanNumber) {
     return showNewSpectrumWindow(dataFile, scanNumber, null, null, null, null);
+  }
+
+  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
+      int scanNumber, String massList) {
+    return showNewSpectrumWindow(dataFile, scanNumber, null, null, null, null, massList);
   }
 
   public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
@@ -87,7 +93,13 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
   public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
-      IsotopePattern spectrum) {
+      IsotopePattern spectrum){
+    return showNewSpectrumWindow(dataFile, scanNumber, peak, detectedPattern, predictedPattern, spectrum, null);
+  }
+
+  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+      Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
+      IsotopePattern spectrum, String massList) {
 
     Scan scan = dataFile.getScan(scanNumber);
 
@@ -97,7 +109,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       return null;
     }
 
-    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, true);
+    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, massList, true);
     newWindow.loadRawData(scan);
 
     if (peak != null)
