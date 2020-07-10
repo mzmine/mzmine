@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -248,13 +249,18 @@ public class ComputeCliqueModule {
         ungroupedFeatures.add(pd);
       }
     }
-    System.out.println("These many peaks not cliqued"+ ungroupedFeatures.size());
     for(PeakData pd : ungroupedFeatures){
       maxClique+=1;
       Pair <Integer, Integer> p = new Pair<>(pd.getNodeID(),maxClique);
       nodeCliqueList.add(p);
     }
-    //TODO sorting if required
+
+    Collections.sort(nodeCliqueList, new Comparator<Pair<Integer, Integer>>() {
+      @Override
+      public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
+        return o1.getKey()-o2.getKey();
+      }
+    });
    }
 
 
@@ -272,12 +278,13 @@ public class ComputeCliqueModule {
     updateCliques();
     System.out.println(anClique.getNetwork().getResultNode_clique());
     this.anClique.cliquesFound = true;
+    this.anClique.computeCliqueFromResult();
+    System.out.println(this.anClique.cliques);
 
     return anClique;
   }
 
-  //TODO check filter
   public AnClique getClique() {
-    return getClique(false, 0.000005, 0.0001, 0.0001, .00001);
+    return getClique(true, 0.000005, 0.0001, 0.0001, .00001);
   }
 }

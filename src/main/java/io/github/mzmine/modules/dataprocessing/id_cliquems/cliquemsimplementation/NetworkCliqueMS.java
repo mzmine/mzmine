@@ -399,7 +399,7 @@ public class NetworkCliqueMS {
       Collections.shuffle(randallNodes);
       for(int randposw = 0; randposw < randallNodes.size();randposw++){
         Integer nodevw = randallNodes.get(randposw);
-        Integer cliquecw = nodes.get(nodevw); // clique that will be joined to another clique
+        Integer cliquecw = this.nodes.get(nodevw); // clique that will be joined to another clique
         if(scount == step){
           currentlogl = reassignNode(nodevw , currentlogl);
           loglResult.add(currentlogl);
