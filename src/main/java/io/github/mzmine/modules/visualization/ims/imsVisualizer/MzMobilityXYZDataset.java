@@ -22,9 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
-import io.github.mzmine.parameters.ParameterSet;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 import java.util.ArrayList;
@@ -46,20 +44,11 @@ public class MzMobilityXYZDataset extends AbstractXYZDataset {
   private Scan selectedMobilityScan;
 
   public MzMobilityXYZDataset(
-      ParameterSet parameters, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
-    dataFiles =
-        parameters
-            .getParameter(ImsVisualizerParameters.dataFiles)
-            .getValue()
-            .getMatchingRawDataFiles();
+      DataFactory dataFactory, double retentionTime, ImsVisualizerTask imsVisualizerTask) {
 
-    scans =
-        parameters
-            .getParameter(ImsVisualizerParameters.scanSelection)
-            .getValue()
-            .getMatchingScans(dataFiles[0]);
+    scans = dataFactory.getScans();
 
-    mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
+    mzRange = dataFactory.getmzRange();
 
     selectedRetentionTime = retentionTime;
 
@@ -69,6 +58,7 @@ public class MzMobilityXYZDataset extends AbstractXYZDataset {
     mzValues = new ArrayList<>();
     intensity = new ArrayList<>();
     double maxIntensity = -1;
+
     if (selectedRetentionTime == -1) {
       for (int i = 0; i < scans.length; i++) {
 

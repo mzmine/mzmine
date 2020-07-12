@@ -127,11 +127,11 @@ public class ImsVisualizerTask extends AbstractTask {
           // Get controller
           controller = loader.getController();
 
-          //initialize data factory for the plots data.
-            dataFactory = new DataFactory(parameterSet);
+          // initialize data factory for the plots data.
+          dataFactory = new DataFactory(parameterSet);
 
           // add mobility-mz plot.
-          datasetMF = new MzMobilityXYZDataset(parameterSet, selectedRetentionTime, this);
+          datasetMF = new MzMobilityXYZDataset(dataFactory, selectedRetentionTime, this);
           MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
               new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
           BorderPane bottomRightpane = controller.getBottomRightPane();
@@ -187,7 +187,7 @@ public class ImsVisualizerTask extends AbstractTask {
   }
 
   public void updateMobilityGroup() {
-    datasetMF = new MzMobilityXYZDataset(parameterSet, selectedRetentionTime, this);
+    datasetMF = new MzMobilityXYZDataset(dataFactory, selectedRetentionTime, this);
     BorderPane plotPaneMF = controller.getBottomRightPane();
     MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
         new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
