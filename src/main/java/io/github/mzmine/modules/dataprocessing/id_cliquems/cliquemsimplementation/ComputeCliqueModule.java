@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -266,7 +284,11 @@ public class ComputeCliqueModule {
 
   public AnClique getClique(boolean filter, double mzdiff, double rtdiff, double  intdiff,
       double tol){
+    System.out.println(mzdiff+" " +rtdiff+" " +intdiff+" " +tol);
 
+     if(anClique.cliquesFound){
+       logger.log(Level.WARNING,"cliques have already been computed!");
+     }
     double EIC[][] = getEIC(rawDataFile, peakDataList);
     this.cosineCorrelation = cosCorrbyColumn(EIC);
     if(filter)
@@ -276,15 +298,12 @@ public class ComputeCliqueModule {
       nodeIDList.add(pd.getNodeID());
     anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false );
     updateCliques();
-    System.out.println(anClique.getNetwork().getResultNode_clique());
     this.anClique.cliquesFound = true;
     this.anClique.computeCliqueFromResult();
-    System.out.println(this.anClique.cliques);
-
-    return anClique;
+    return this.anClique;
   }
 
   public AnClique getClique() {
-    return getClique(true, 0.000005, 0.0001, 0.0001, .00001);
+    return getClique(true, 0.000005, 0.0001, 0.0001, .000001);
   }
 }
