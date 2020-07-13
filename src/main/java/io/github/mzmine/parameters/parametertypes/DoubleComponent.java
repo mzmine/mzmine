@@ -30,13 +30,14 @@ public class DoubleComponent extends FlowPane {
   private final Double maximum;
   private final TextField textField;
 
-  public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format) {
+  public DoubleComponent(int inputsize, Double minimum, Double maximum, NumberFormat format, Double defvalue) {
     this.minimum = minimum;
     this.maximum = maximum;
 
     textField = new TextField();
     textField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(format)));
     textField.setPrefWidth(inputsize);
+    textField.setPromptText(String.valueOf(defvalue));
 
     // Add an input verifier if any bounds are specified.
     if (minimum != null || maximum != null) {
