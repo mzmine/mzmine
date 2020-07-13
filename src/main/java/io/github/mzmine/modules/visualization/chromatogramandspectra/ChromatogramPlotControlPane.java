@@ -46,20 +46,9 @@ public class ChromatogramPlotControlPane extends VBox {
     mzRangeNode = new MZRangeComponent();
 
     cbPlotType.setItems(FXCollections.observableArrayList(TICPlotType.values()));
-    cbPlotType.valueProperty().addListener(((obs, old, val) -> {
-      if (val == TICPlotType.TIC) {
-        cbXIC.disableProperty().set(false);
-        if (!getChildren().contains(mzRangeNode) && cbXIC.isSelected()) {
-          getChildren().add(mzRangeNode);
-        }
-      } else {
-        cbXIC.disableProperty().set(true);
-        getChildren().remove(mzRangeNode);
-      }
-    }));
 
     // disable mz range and button if xic is not selected
-    btnUpdateXIC.disableProperty().bind(cbXIC.disableProperty());
+    btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
     // also remove the mz range node if xic is not selected
     cbXIC.selectedProperty().addListener((obs, old, val) -> {
       if (val && !getChildren().contains(mzRangeNode)) {

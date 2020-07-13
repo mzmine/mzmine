@@ -186,18 +186,42 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @param rt      The rt
    * @param mslevel The ms level
-   * @return The scan number at a given retention time within a range of 1 (min/sec?) or -1 if no
+   * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
    * scan can be found.
    */
   @Override
-  @Nullable
   public int getScanNumberAtRT(double rt, int mslevel) {
     if (rt > getDataRTRange(mslevel).upperEndpoint()) {
       return -1;
     }
     Range<Double> range = Range.closed(rt - 2, rt + 2);
     int[] scanNumbers = getScanNumbers(mslevel, range);
-    double minDiff = 10;
+    double minDiff = 10E6;
+
+    for (int i = 0; i < scanNumbers.length; i++) {
+      int scanNum = scanNumbers[i];
+      double diff = Math.abs(rt - getScan(scanNum).getRetentionTime());
+      if (diff < minDiff) {
+        minDiff = diff;
+      } else if (diff > minDiff) { // not triggered in first run
+        return scanNumbers[i - 1]; // the previous one was better
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * @param rt The rt
+   * @return The scan number at a given retention time within a range of 2 (min/sec?) or -1 if no
+   * scan can be found.
+   */
+  @Override
+  public int getScanNumberAtRT(double rt) {
+    if (rt > getDataRTRange().upperEndpoint()) {
+      return -1;
+    }
+    int[] scanNumbers = getScanNumbers();
+    double minDiff = 10E10;
 
     for (int i = 0; i < scanNumbers.length; i++) {
       int scanNum = scanNumbers[i];
@@ -553,10 +577,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return null;
   }
 
-  @Override
   @Nonnull
-  public Range<Double> getDataRTRange(int msLevel) {
-
+  @Override
+  public Range<Double> getDataRTRange(Integer msLevel) {
+    if (msLevel == null) {
+      return getDataRTRange();
+    }
     // check if we have this value already cached
     Range<Double> rtRange = dataRTRange.get(msLevel);
     if (rtRange != null) {
@@ -587,7 +613,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     return rtRange;
-
   }
 
   @Nonnull

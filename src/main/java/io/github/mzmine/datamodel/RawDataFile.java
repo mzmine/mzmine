@@ -95,6 +95,13 @@ public interface RawDataFile {
    */
   public int getScanNumberAtRT(double rt, int mslevel);
 
+  /**
+   * @param rt The rt
+   * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
+   * the rt range of this file.
+   */
+  public int getScanNumberAtRT(double rt);
+
   @Nonnull
   public Range<Double> getDataMZRange();
 
@@ -108,7 +115,7 @@ public interface RawDataFile {
   public Range<Double> getDataMZRange(int msLevel);
 
   @Nonnull
-  public Range<Double> getDataRTRange(int msLevel);
+  public Range<Double> getDataRTRange(Integer msLevel);
 
   @Nonnull
   public Range<Double> getDataMobilityRange(int msLevel);
