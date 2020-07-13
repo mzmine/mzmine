@@ -19,6 +19,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+/**
+ * Data taken from PeakListRow necessary for CliqueMS grouping and annotation
+ */
 public class PeakData {
 
 
@@ -31,6 +34,7 @@ public class PeakData {
   private double rtmax ;
   private double intensity;
   private int nodeID;
+  // To get the peakListRow corresponding to this node.
   private int peakListRowID;
 
   public double getMz() {

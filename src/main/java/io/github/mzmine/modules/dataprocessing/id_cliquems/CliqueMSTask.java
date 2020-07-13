@@ -73,6 +73,7 @@ public class CliqueMSTask extends AbstractTask {
     try {
       setStatus(TaskStatus.PROCESSING);
       this.progress = 0.0;
+      //TODO multiple rawDataFile support
       ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0));
       this.progress = 0.2;
       AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),

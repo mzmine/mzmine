@@ -31,6 +31,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
 
+/**
+ * This class contains all the data members and functions for finding cliques or groups using
+ * CliqueMSR algorithm. Input is peakList and corresponding rawDatafile, and parameters to the
+ * algorithm.
+ */
 public class ComputeCliqueModule {
 
   private Logger logger = Logger.getLogger(getClass().getName());
@@ -48,6 +53,12 @@ public class ComputeCliqueModule {
     anClique = new AnClique(peakDataList,rdf);
   }
 
+  /**
+   * Extracts necessary data from rawdatafile
+   * @param peakList
+   * @param dataFile
+   * @return
+   */
   private List<PeakData> getPeakDatafromPeaks(PeakList peakList, RawDataFile dataFile){
     List<PeakData> peakDataList = new ArrayList<>();
     for(int i=0;i<peakList.getRows().size() ; i++){
@@ -74,7 +85,12 @@ public class ComputeCliqueModule {
     return peakDataList;
   }
 
-
+  /**
+   * return EIC matrix of intensities, which is used to calculate cosine similarity matrix
+   * @param file raw data file
+   * @param peakDataList
+   * @return
+   */
   private double[][] getEIC(RawDataFile file, List<PeakData> peakDataList){
     List<List<DataPoint>> dataPoints = new ArrayList<>(); // contains m/z and intensity data
     List<Double> rts = new ArrayList<>(); // holds Retention Time values in seconds
@@ -92,7 +108,6 @@ public class ComputeCliqueModule {
       }
     }
 
-//    boolean flag = true;
     for(int i=0; i<peakDataList.size() ; i++){
       PeakData pd = peakDataList.get(i);
       int posrtmin = rts.indexOf(pd.getRtmin() * 60.0); // position where peak matches rtmin
@@ -101,10 +116,6 @@ public class ComputeCliqueModule {
       for(int j = posrtmin ; j<posrtmax ; j+=1){
         List<Double> intensities = new ArrayList<>();
         for(DataPoint dp : dataPoints.get(j)){
-          //TODO precision only for testing
-//          Double mzmin = Double.parseDouble(String.format("%.5f", pd.getMzmin()));
-//          Double mzmax = Double.parseDouble(String.format("%.5f", pd.getMzmax()));
-//          Double dpmz = Double.parseDouble(String.format("%.5f", dp.getMZ()));
           Double mzmin = pd.getMzmin();
           Double mzmax = pd.getMzmax();
           Double dpmz =  dp.getMZ();
@@ -128,18 +139,18 @@ public class ComputeCliqueModule {
       }
     }
 
-//    for(int i= 0 ;i< EIC[0].length ; i++){
-//      for(int j = 0 ; j<EIC.length ; j++){
-//        System.out.print(EIC[j][i]+" ");
-//      }
-//      System.out.println();
-//    }
-//    System.out.println();
     return EIC;
 
   }
 
   //TODO make use of sparse matrix, make algo time efficient
+
+  /**
+   * Computes cosine correlation of data (EIC) matrix, of the columns, so i*j data matrix returns j*j
+   * cosine similarity matrix
+   * @param data EIC matrix
+   * @return cosine correlation matrix
+   */
   private double[][] cosCorrbyColumn (double [][] data){
     int row = data.length, col = data[0].length;
     double [][] corr = new double[col][col];
@@ -166,10 +177,16 @@ public class ComputeCliqueModule {
   }
 
 
-  //  identify peaks with very similar cosine correlation, m/z, rt and intensity
+
+  /**
+   *
+   * identify peaks with very similar cosine correlation, m/z, rt and intensity
+   *
+   *
+   * @return node ID of similar features
+   */
   private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList, double mzdiff, double rtdiff,
       double  intdiff){
-//    double mzdiff = 0.000005, rtdiff = 0.0001, intdiff = 0.0001; // constant parameters
     //find all elements in cosineCorr with i<j and value > 0.99
     List<Integer> edgeX = new ArrayList<>();
     List<Integer> edgeY = new ArrayList<>();
@@ -199,7 +216,14 @@ public class ComputeCliqueModule {
     return nodesToDelete;
   }
 
-
+  /**
+   * Removes nodes that are too similar in rt, mz and intensity values
+   * @param cosinus cosine correlation matrix
+   * @param peakDL peak Data list
+   * @param mzdiff tolerance values for similarity
+   * @param rtdiff tolerance values for similarity
+   * @param intdiff tolerance values for similarity
+   */
   private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, double mzdiff, double rtdiff,
       double  intdiff){
     List<PeakData> modifiedPeakDataList = new ArrayList<>();
@@ -281,7 +305,15 @@ public class ComputeCliqueModule {
     });
    }
 
-
+  /**
+   * Driver function for calculating clique groups
+   * @param filter filter similar features
+   * @param mzdiff tolerance for mz similarity
+   * @param rtdiff tolerance for rt similarity
+   * @param intdiff tolerance for intensity similarity
+   * @param tol tolerance for log likelihood function which is minimized for finding the clique.
+   * @return AnClique object with calculated cliques.
+   */
   public AnClique getClique(boolean filter, double mzdiff, double rtdiff, double  intdiff,
       double tol){
     System.out.println(mzdiff+" " +rtdiff+" " +intdiff+" " +tol);
@@ -303,6 +335,10 @@ public class ComputeCliqueModule {
     return this.anClique;
   }
 
+  /**
+   * return cliques using default parameter values
+   * @return
+   */
   public AnClique getClique() {
     return getClique(true, 0.000005, 0.0001, 0.0001, .000001);
   }

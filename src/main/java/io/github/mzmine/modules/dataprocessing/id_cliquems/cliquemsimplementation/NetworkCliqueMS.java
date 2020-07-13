@@ -28,6 +28,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
 
+/**
+ * This class builds undirected graph network for finding the cliques or groups of features.
+ */
 public class NetworkCliqueMS {
 
   private Logger logger = Logger.getLogger(getClass().getName());

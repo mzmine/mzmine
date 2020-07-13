@@ -25,6 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import javafx.util.Pair;
 
+/**
+ * AnClique Class keeps all data structures related to grouping, annotating isotopes and adducts
+ *
+ */
 public class AnClique {
 
   //TODO is RawDatafile required later in annotation?
@@ -34,6 +38,7 @@ public class AnClique {
   private NetworkCliqueMS network = new NetworkCliqueMS();
   boolean cliquesFound = false;
   boolean isoFound = false;
+  // key - clique ID, value - List of nodes which are part of the clique.
   public HashMap<Integer,List<Integer>> cliques = new HashMap<>();
 
   AnClique(List<PeakData> peakData, RawDataFile file){
