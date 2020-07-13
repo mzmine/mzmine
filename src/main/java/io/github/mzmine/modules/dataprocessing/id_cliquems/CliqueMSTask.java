@@ -21,7 +21,9 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -73,11 +75,14 @@ public class CliqueMSTask extends AbstractTask {
       this.progress = 0.0;
       ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0));
       this.progress = 0.2;
-      cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
+      AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
           parameters.getParameter(CliqueMSParameters.MZ_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.IN_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.TOL).getValue());
+      this.progress = 0.5;
+      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique);
+      cim.getIsotopes();
 
       // Finished.
       this.progress=1.0;
