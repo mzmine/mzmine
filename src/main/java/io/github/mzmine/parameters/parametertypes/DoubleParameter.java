@@ -41,7 +41,6 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   private final String description;
   private final Double minimum;
   private final Double maximum;
-  private boolean isDefaultSet = false;
 
   public DoubleParameter(final String aName, final String aDescription) {
 
@@ -58,7 +57,6 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
       final NumberFormat numberFormat, final Double defaultValue) {
 
     this(aName, aDescription, numberFormat, defaultValue, null, null);
-    isDefaultSet = true;
   }
 
   public DoubleParameter(final String aName, final String aDescription,
@@ -70,7 +68,6 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
     value = defaultValue;
     minimum = min;
     maximum = max;
-    isDefaultSet = true;
   }
 
   @Override
@@ -92,7 +89,6 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public void setValueFromComponent(final DoubleComponent component) {
     try {
       value = format.parse(component.getText()).doubleValue();
-      isDefaultSet = true;
     } catch (Exception e) {
       value = null;
     }
@@ -101,7 +97,6 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   @Override
   public void setValue(final Double newValue) {
     value = newValue;
-    isDefaultSet = true;
   }
 
   @Override
@@ -123,12 +118,10 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public void loadValueFromXML(final Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
-    if(!isDefaultSet){
       if (numString.length() > 0) {
 
         value = Double.parseDouble(numString);
       }
-    }
   }
 
   @Override
