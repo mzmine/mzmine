@@ -18,10 +18,8 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -36,6 +34,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseButton;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.ChartFactory;
@@ -753,9 +752,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
-        ChromatogramCursorPosition pos = updateCursorPosition();
-        if (pos != null) {
-          setCursorPosition(pos);
+        if(event.getTrigger().getButton() == MouseButton.PRIMARY) {
+          ChromatogramCursorPosition pos = getCurrentCursorPosition();
+          if (pos != null) {
+            setCursorPosition(pos);
+          }
         }
       }
 
@@ -770,7 +771,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @return current cursor position or null
    */
   @Nullable
-  private ChromatogramCursorPosition updateCursorPosition() {
+  private ChromatogramCursorPosition getCurrentCursorPosition() {
     double selectedRT = getXYPlot().getDomainCrosshairValue();
     double selectedIT = getXYPlot().getRangeCrosshairValue();
     for (int i = 0; i < nextDataSetNum; i++) {
