@@ -122,7 +122,7 @@
 			<MenuItem text="mzTab-m" onAction="#runModule"
 					  userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule" />
 			<MenuItem text="csv" onAction="#runModule"
-				userData="io.github.mzmine.modules.io.csvimport.csvImportModule" />
+				userData="io.github.mzmine.modules.io.csvimport.CsvImportModule" />
 		</Menu>
 
 		<Menu text="Export feature list">

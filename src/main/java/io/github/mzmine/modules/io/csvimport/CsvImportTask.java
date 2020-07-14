@@ -35,20 +35,19 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileReader;
-import java.util.List;
 
-public class csvImportTask extends AbstractTask {
+public class CsvImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private RawDataFile rawDataFile;
   private final File fileName;
   private double percent=0.0;
 
-  csvImportTask(MZmineProject project, ParameterSet parameters){
+  CsvImportTask(MZmineProject project, ParameterSet parameters){
     this.project = project;
     //first file only
-    this.rawDataFile = parameters.getParameter(csvImportParameters.dataFiles).getValue().getMatchingRawDataFiles()[0];
-    this.fileName = parameters.getParameter(csvImportParameters.filename).getValue()[0];
+    this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue().getMatchingRawDataFiles()[0];
+    this.fileName = parameters.getParameter(CsvImportParameters.filename).getValue()[0];
   }
 
 
@@ -65,15 +64,18 @@ public class csvImportTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    List<String[]> data;
-    try{
 
+    try{
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      data = csvReader.readAll();
       PeakList newPeakList = new SimplePeakList( fileName.getName(), rawDataFile);
-      for(int i=0 ; i<data.size() ; i++){
-        if(i==0){
+      String[] dataLine;
+      int counter = 0;
+      while((dataLine = csvReader.readNext()) != null){
+        if(isCanceled()){
+          return;
+        }
+        if(counter++ == 0){
           continue;
         }
         double peak_mz = 0.0, peak_rt = 0.0, peak_height = 0.0, abundance = 0.0,
@@ -82,65 +84,67 @@ public class csvImportTask extends AbstractTask {
         Range<Double> finalMZRange;
         Range<Double> finalIntensityRange;
 
-        SimplePeakListRow newRow = new SimplePeakListRow(i);
-        for(int j=0 ; j<data.get(0).length ; j++){
+        SimplePeakListRow newRow = new SimplePeakListRow(counter-1);
+        for(int j=0 ; j<dataLine.length ; j++){
           switch(j){
             case 1:
-              peak_mz = Double.parseDouble(data.get(i)[j]);
+              peak_mz = Double.parseDouble(dataLine[j]);
               break;
             case 2:
-              mzMin = Double.parseDouble(data.get(i)[j]);
+              mzMin = Double.parseDouble(dataLine[j]);
               break;
             case 3:
-              mzMax = Double.parseDouble(data.get(i)[j]);
+              mzMax = Double.parseDouble(dataLine[j]);
               break;
             case 4:
-              peak_rt = Double.parseDouble(data.get(i)[j])/60.0;
+              //Retention times are taken in minutes
+              peak_rt = Double.parseDouble(dataLine[j])/60.0;
               break;
             case 5:
-              rtMin = Double.parseDouble(data.get(i)[j])/60.0;
+              rtMin = Double.parseDouble(dataLine[j])/60.0;
               break;
             case 6:
-              rtMax = Double.parseDouble(data.get(i)[j])/60.0;
+              rtMax = Double.parseDouble(dataLine[j])/60.0;
               break;
             case 9:
-              intensity = Double.parseDouble(data.get(i)[j]);
-              peak_height = Double.parseDouble(data.get(i)[j]);
+              intensity = Double.parseDouble(dataLine[j]);
+              peak_height = Double.parseDouble(dataLine[j]);
               break;
           }
-      }
-      finalMZRange = Range.closed(mzMin, mzMax);
-      finalRTRange = Range.closed(rtMin, rtMax);
-      finalIntensityRange = Range.singleton(intensity);
-      int[] scanNumbers = {};
-      DataPoint[] finalDataPoint = new DataPoint[1];
-      finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
-      FeatureStatus status = FeatureStatus.DETECTED;
-      if (abundance == 0) {
-        status = FeatureStatus.UNKNOWN;
-      }
-      int representativeScan = 0;
-      for(int s_no : rawDataFile.getScanNumbers()){
-        if(rawDataFile.getScan(s_no).getRetentionTime() == peak_rt){
-          representativeScan = s_no;
-          for(DataPoint dp : rawDataFile.getScan(s_no).getDataPoints()){
-            if(dp.getMZ() == peak_mz){
-              finalDataPoint[0] = dp;
-              break;
+        }
+        finalMZRange = Range.closed(mzMin, mzMax);
+        finalRTRange = Range.closed(rtMin, rtMax);
+        finalIntensityRange = Range.singleton(intensity);
+        int[] scanNumbers = {};
+        DataPoint[] finalDataPoint = new DataPoint[1];
+        finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
+        FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
+        int representativeScan = 0;
+        for(int s_no : rawDataFile.getScanNumbers()){
+          if(rawDataFile.getScan(s_no).getRetentionTime() == peak_rt){
+            representativeScan = s_no;
+            for(DataPoint dp : rawDataFile.getScan(s_no).getDataPoints()){
+              if(dp.getMZ() == peak_mz){
+                finalDataPoint[0] = dp;
+                break;
+              }
             }
           }
         }
+
+        int fragmentScan = -1;
+        int[] allFragmentScans = new int[]{0};
+
+        Feature peak = new SimpleFeature(rawDataFile, peak_mz, peak_rt, peak_height, abundance,
+            scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
+            finalRTRange, finalMZRange, finalIntensityRange);
+        newRow.addPeak(rawDataFile,peak);
+        newPeakList.addRow(newRow);
       }
 
-      int fragmentScan = -1;
-      int[] allFragmentScans = new int[]{0};
+    if(isCanceled())
+      return;
 
-      Feature peak = new SimpleFeature(rawDataFile, peak_mz, peak_rt, peak_height, abundance,
-          scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
-          finalRTRange, finalMZRange, finalIntensityRange);
-      newRow.addPeak(rawDataFile,peak);
-      newPeakList.addRow(newRow);
-      }
     project.addPeakList(newPeakList);
     }
     catch (Exception e){

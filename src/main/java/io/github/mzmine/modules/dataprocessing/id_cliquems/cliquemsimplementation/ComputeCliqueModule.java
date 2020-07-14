@@ -336,8 +336,9 @@ public class ComputeCliqueModule {
   }
 
   /**
-   * return cliques using default parameter values
-   * @return
+   * return cliques using default parameter values taken from the R code
+   *
+   * @return AnClique object
    */
   public AnClique getClique() {
     return getClique(true, 0.000005, 0.0001, 0.0001, .000001);

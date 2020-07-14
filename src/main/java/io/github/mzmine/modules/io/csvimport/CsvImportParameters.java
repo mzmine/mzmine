@@ -25,7 +25,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class csvImportParameters extends SimpleParameterSet {
+public class CsvImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> filters =
       List.of(new ExtensionFilter("csv", "*.csv"));
@@ -36,7 +36,7 @@ public class csvImportParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 
-  public csvImportParameters(){
+  public CsvImportParameters(){
     super(new Parameter[]{filename, dataFiles});
   }
 }

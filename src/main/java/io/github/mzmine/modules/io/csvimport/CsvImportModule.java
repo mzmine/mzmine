@@ -27,11 +27,11 @@ import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
-public class csvImportModule implements MZmineProcessingModule {
+public class CsvImportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Import from csv file.";
 
   private static final String MODULE_DESCRIPTION = //
-      "This method exports the feature list contents into a mzTab-m file.";
+      "This method imports the feature list contents from a csv file.";
 
   @Override
   public @Nonnull
@@ -44,7 +44,7 @@ public class csvImportModule implements MZmineProcessingModule {
   public @Nonnull
   ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    csvImportTask task = new csvImportTask(project, parameters);
+    CsvImportTask task = new CsvImportTask(project, parameters);
     tasks.add(task);
     return ExitCode.OK;
   }
@@ -64,7 +64,7 @@ public class csvImportModule implements MZmineProcessingModule {
   @Override
   public @Nonnull
   Class<? extends ParameterSet> getParameterSetClass() {
-    return csvImportParameters.class;
+    return CsvImportParameters.class;
   }
 
 
