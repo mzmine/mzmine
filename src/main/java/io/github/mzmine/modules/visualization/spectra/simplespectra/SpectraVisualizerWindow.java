@@ -105,6 +105,7 @@ public class SpectraVisualizerWindow extends Stage {
 
   // initialize colors to some default before the color palette is loaded
   public static Color scanColor = new Color(0, 0, 192);
+  public static Color massListColor = Color.orange;
   public static Color peaksColor = Color.red;
   public static Color singlePeakColor = Color.magenta;
   public static Color detectedIsotopesColor = Color.magenta;
@@ -281,6 +282,7 @@ public class SpectraVisualizerWindow extends Stage {
   private void loadColorSettings() {
     SimpleColorPalette p = MZmineCore.getConfiguration().getDefaultColorPalette();
     scanColor = FxColorUtil.fxColorToAWT(p.get(0));
+    massListColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     peaksColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     singlePeakColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     detectedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
@@ -378,7 +380,7 @@ public class SpectraVisualizerWindow extends Stage {
       // Set plot data set
       spectrumPlot.removeAllDataSets();
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
-      spectrumPlot.addDataSet(massListDataSet, scanColor, false);
+      spectrumPlot.addDataSet(massListDataSet, massListColor, false);
     });
 
   }

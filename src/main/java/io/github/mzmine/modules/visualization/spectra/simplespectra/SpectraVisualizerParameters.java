@@ -20,7 +20,6 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -30,7 +29,7 @@ public class SpectraVisualizerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
-  public static final MassListParameter massList = new MassListParameter();
+  public static final MassListParameter massList = new MassListParameter(true);
 
   public static final IntegerParameter scanNumber =
       new IntegerParameter("Scan number", "Scan number");
