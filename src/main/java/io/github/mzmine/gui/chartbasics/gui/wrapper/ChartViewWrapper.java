@@ -199,7 +199,7 @@ public class ChartViewWrapper {
    */
   public ChartEntity findChartEntity(double mx, double my) {
     return cp != null ? ChartLogics.findChartEntity(cp, mx, my)
-        : ChartLogicsFX.findChartEntity(cc, mx, my);
+        : ChartLogicsFX.findChartEntity(cc.getCanvas(), mx, my);
   }
 
   /**
