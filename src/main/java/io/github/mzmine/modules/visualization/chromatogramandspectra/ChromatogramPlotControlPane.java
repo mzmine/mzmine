@@ -48,7 +48,7 @@ public class ChromatogramPlotControlPane extends VBox {
     cbPlotType.setItems(FXCollections.observableArrayList(TICPlotType.values()));
 
     // disable mz range and button if xic is not selected
-    btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
+//    btnUpdateXIC.disableProperty().bind(cbXIC.selectedProperty().not());
     // also remove the mz range node if xic is not selected
     cbXIC.selectedProperty().addListener((obs, old, val) -> {
       if (val && !getChildren().contains(mzRangeNode)) {
@@ -71,12 +71,6 @@ public class ChromatogramPlotControlPane extends VBox {
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     min = null;
     max = null;
-    mzRangeProperty().addListener(((observable, oldValue, newValue) -> {
-      if (newValue != null) {
-        mzRangeNode.getMinTxtField().setText(mzFormat.format(newValue.lowerEndpoint()));
-        mzRangeNode.getMaxTxtField().setText(mzFormat.format(newValue.upperEndpoint()));
-      }
-    }));
   }
 
   public ChoiceBox<TICPlotType> getCbPlotType() {
@@ -97,6 +91,13 @@ public class ChromatogramPlotControlPane extends VBox {
 
   public void setMzRange(Range<Double> mzRange) {
     this.mzRange.set(mzRange);
+    if (mzRange != null) {
+      mzRangeNode.getMinTxtField().setText(mzFormat.format(mzRange.lowerEndpoint()));
+      mzRangeNode.getMaxTxtField().setText(mzFormat.format(mzRange.upperEndpoint()));
+    } else {
+      mzRangeNode.getMinTxtField().setText("");
+      mzRangeNode.getMaxTxtField().setText("");
+    }
   }
 
   public Button getBtnUpdateXIC() {

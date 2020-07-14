@@ -29,7 +29,8 @@
        <items>
          <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
            prefWidth="800" prefHeight="400"/>
-         <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"/>
+         <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
+           SplitPane.resizableWithParent="false"/>
        </items>
      </SplitPane>
    </center>

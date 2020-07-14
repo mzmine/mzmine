@@ -183,14 +183,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         MZTolerance tol = parameterSet
             .getParameter(ChromatogramAndSpectraVisualizerParameters.chromMzTolerance)
             .getValue();
-        if (tol != null) {
-          chromMzTolerance.set(tol);
-        }
         ScanSelection sel = parameterSet
             .getParameter(ChromatogramAndSpectraVisualizerParameters.scanSelection)
             .getValue();
         if (sel != null) {
           scanSelection.set(sel);
+        }
+        if (tol != null) {
+          chromMzTolerance.set(tol);
         }
       }
     });
@@ -209,7 +209,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
     chromPosition.bindBidirectional(chromPlot.cursorPositionProperty());
     spectrumPosition.bindBidirectional(spectrumPlot.cursorPositionProperty());
-    mzRange.bindBidirectional(pnChromControls.mzRange);
+    mzRangeProperty().addListener((obs, old, val) -> pnChromControls.setMzRange(val));
 
     // property listeners
     plotType.addListener(((observable, oldValue, newValue) -> {
@@ -231,17 +231,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         .addListener((obs, old, pos) -> onChromatogramSelectionChanged(obs, old, pos));
 
     spectrumPositionProperty()
-        .addListener(((obs, old, pos) -> {
-          onSpectrumSelectionChanged(obs, old, pos);
-        }));
+        .addListener(((obs, old, pos) -> onSpectrumSelectionChanged(obs, old, pos)));
 
     // update chromatogram plot if the ScanSelection changes
     scanSelectionProperty().addListener((obs, old, val) -> updateAllChromatogramDataSets());
 
     pnChromControls.getBtnUpdateXIC().setOnAction(event -> {
-      if (mzRange.getValue() != null && getPlotType() == TICPlotType.TIC) {
-        updateAllChromatogramDataSets();
-      }
+      mzRange.set(pnChromControls.getMzRange());
+      updateAllChromatogramDataSets();
     });
 
     chromPlot.getXYPlot().setDomainCrosshairVisible(false);
@@ -316,6 +313,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     final Scan[] scans = getScanSelection().getMatchingScans(rawDataFile);
     if (scans.length == 0) {
       MZmineCore.getDesktop().displayErrorMessage("No scans found.");
+      chromPlot.removeAllDataSets();
       return;
     }
 
@@ -327,7 +325,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     filesAndDataSets.put(rawDataFile, ticDataset);
     chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
 
-    logger.fine("Added raw data file " + rawDataFile.getName());
+    logger.finest("Added raw data file " + rawDataFile.getName());
   }
 
   /**
