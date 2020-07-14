@@ -510,9 +510,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         pos, getScanSelection(), showSpectraOfEveryRawFile, getSpectrumPlot());
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
-      logger
-          .finest("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
-              .toString());
+//      logger
+//          .finest("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
+//              .toString());
       currentSpectraDataSetCalc = null;
     });
 

@@ -499,7 +499,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @param dataSet
    */
   public synchronized void addFeatureDataSet(final FeatureDataSet dataSet) {
-    final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
+    final FeatureTICRenderer renderer = new FeatureTICRenderer();
     if (dataSet.getFeature() != null && dataSet.getFeature().getDataFile() != null
         && dataSet.getFeature().getDataFile().getColor() != null) {
       Color clr = dataSet.getFeature().getDataFile().getColorAWT();
@@ -522,7 +522,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
 
   public synchronized void addFeatureDataSet(final FeatureDataSet dataSet,
-      final PeakTICPlotRenderer renderer) {
+      final FeatureTICRenderer renderer) {
     addDataSetAndRenderer(dataSet, renderer);
   }
 

@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.PeakTICPlotRenderer;
+import io.github.mzmine.modules.visualization.chromatogram.FeatureTICRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -50,7 +50,7 @@ public class FeatureDataSetCalc extends AbstractTask {
   private final Range<Double> mzRange;
   private int doneFiles;
   private final List<FeatureDataSet> features;
-  private final HashMap<FeatureDataSet, PeakTICPlotRenderer> dataSetsAndRenderers;
+  private final HashMap<FeatureDataSet, FeatureTICRenderer> dataSetsAndRenderers;
   private final TICPlot chromPlot;
   private final ScanSelection scanSelection;
 
