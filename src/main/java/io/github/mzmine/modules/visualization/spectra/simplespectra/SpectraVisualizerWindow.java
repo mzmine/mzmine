@@ -24,8 +24,11 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.*;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
@@ -42,10 +45,6 @@ import io.github.mzmine.modules.io.exportscans.ExportScansModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
@@ -106,6 +105,7 @@ public class SpectraVisualizerWindow extends Stage {
 
   // initialize colors to some default before the color palette is loaded
   public static Color scanColor = new Color(0, 0, 192);
+  public static Color massListColor = Color.orange;
   public static Color peaksColor = Color.red;
   public static Color singlePeakColor = Color.magenta;
   public static Color detectedIsotopesColor = Color.magenta;
@@ -121,6 +121,7 @@ public class SpectraVisualizerWindow extends Stage {
   private final SpectraBottomPanel bottomPanel;
 
   private RawDataFile dataFile;
+  private String massList;
 
   // Currently loaded scan
   private Scan currentScan;
@@ -129,6 +130,7 @@ public class SpectraVisualizerWindow extends Stage {
 
   // Current scan data set
   private ScanDataSet spectrumDataSet;
+  private MassListDataSet massListDataSet;
 
   private ParameterSet paramSet;
 
@@ -136,10 +138,11 @@ public class SpectraVisualizerWindow extends Stage {
 
   private static final double zoomCoefficient = 1.2f;
 
-  public SpectraVisualizerWindow(RawDataFile dataFile, boolean enableProcessing) {
+  public SpectraVisualizerWindow(RawDataFile dataFile, String massList, boolean enableProcessing) {
 
     setTitle("Spectrum loading...");
     this.dataFile = dataFile;
+    this.massList = massList;
 
     loadColorSettings();
 
@@ -273,12 +276,13 @@ public class SpectraVisualizerWindow extends Stage {
   }
 
   public SpectraVisualizerWindow(RawDataFile dataFile) {
-    this(dataFile, false);
+    this(dataFile, null, false);
   }
 
   private void loadColorSettings() {
     SimpleColorPalette p = MZmineCore.getConfiguration().getDefaultColorPalette();
     scanColor = FxColorUtil.fxColorToAWT(p.get(0));
+    massListColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     peaksColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     singlePeakColor = FxColorUtil.fxColorToAWT(p.getNextColor());
     detectedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
@@ -291,6 +295,9 @@ public class SpectraVisualizerWindow extends Stage {
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
 
     spectrumDataSet = new ScanDataSet(scan);
+    if (massList != null) {
+      massListDataSet = new MassListDataSet(scan.getMassList(massList));
+    }
 
     this.currentScan = scan;
 
@@ -347,8 +354,9 @@ public class SpectraVisualizerWindow extends Stage {
     bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
     // Set window and plot titles
+    String massListTitle = massList != null ? " mass list " + massList : "";
     String windowTitle =
-        "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber() + "]";
+        "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber() + massListTitle + "]";
 
     String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
@@ -372,6 +380,7 @@ public class SpectraVisualizerWindow extends Stage {
       // Set plot data set
       spectrumPlot.removeAllDataSets();
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
+      spectrumPlot.addDataSet(massListDataSet, massListColor, false);
     });
 
   }
