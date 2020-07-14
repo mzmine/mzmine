@@ -128,7 +128,8 @@ public class SpectraVisualizerWindow extends Stage {
   private File lastExportDirectory;
 
   // Current scan data set
-  private AbstractXYDataset spectrumDataSet;
+  private ScanDataSet spectrumDataSet;
+  private MassListDataSet massListDataSet;
 
   private ParameterSet paramSet;
 
@@ -291,10 +292,9 @@ public class SpectraVisualizerWindow extends Stage {
     logger.finest(
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
 
-    if (massList == null) {
-      spectrumDataSet = new ScanDataSet(scan);
-    } else {
-      spectrumDataSet = new MassListDataSet(scan.getMassList(massList));
+    spectrumDataSet = new ScanDataSet(scan);
+    if (massList != null) {
+      massListDataSet = new MassListDataSet(scan.getMassList(massList));
     }
 
     this.currentScan = scan;
@@ -378,6 +378,7 @@ public class SpectraVisualizerWindow extends Stage {
       // Set plot data set
       spectrumPlot.removeAllDataSets();
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
+      spectrumPlot.addDataSet(massListDataSet, scanColor, false);
     });
 
   }
@@ -585,11 +586,7 @@ public class SpectraVisualizerWindow extends Stage {
   }
 
   public void addAnnotation(Map<DataPoint, String> annotation) {
-    if (spectrumDataSet instanceof ScanDataSet) {
-      ((ScanDataSet) spectrumDataSet).addAnnotation(annotation);
-    } else {
-      throw new UnsupportedOperationException();
-    }
+    spectrumDataSet.addAnnotation(annotation);
   }
 
   public SpectraPlot getSpectrumPlot() {
