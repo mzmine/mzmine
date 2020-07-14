@@ -19,23 +19,31 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Data taken from PeakListRow necessary for CliqueMS grouping and annotation
+ *
+ * Corresponding to the peakList class used in the R code
+ * https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R
+ *
  */
+
+@Immutable
 public class PeakData {
 
 
 
-  private double mz ;
-  private double mzmin ;
-  private double mzmax ;
-  private double rt;
-  private double rtmin ;
-  private double rtmax ;
-  private double intensity;
-  private int nodeID;
+  private final double mz ;
+  private final double mzmin ;
+  private final double mzmax ;
+  private final double rt;
+  private final double rtmin ;
+  private final double rtmax ;
+  private final double intensity;
+  private final int nodeID;
   // To get the peakListRow corresponding to this node.
-  private int peakListRowID;
+  private final int peakListRowID;
 
   public double getMz() {
     return mz;

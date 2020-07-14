@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -25,7 +26,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,12 +39,14 @@ import javafx.util.Pair;
  */
 public class ComputeCliqueModule {
 
-  private Logger logger = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private AnClique anClique;
-  private PeakList peakList;
-  private List<PeakData> peakDataList;
-  private RawDataFile rawDataFile;
+  private final AnClique anClique;
+  private final PeakList peakList;
+  private final List<PeakData> peakDataList;
+  private final RawDataFile rawDataFile;
+
+  //cosine correlation matrix calculated over columns of EIC matrix
   private double[][] cosineCorrelation;
 
   public ComputeCliqueModule(PeakList peakList, RawDataFile rdf){
@@ -100,7 +103,7 @@ public class ComputeCliqueModule {
 
       dataPoints.add(dps);
     }
-    // nrows = #rts , ncols = # peaks, already transposed
+    // nrows = #rts , ncols = # peaks, already transposed as in R code
     double EIC[][] = new double[file.getScanNumbers().length][peakDataList.size()];
     for(int i = 0; i<file.getScanNumbers().length ; i++){
       for(int j = 0; j<peakDataList.size();j++){
@@ -199,6 +202,7 @@ public class ComputeCliqueModule {
       }
     }
     List<Integer> nodesToDelete = new ArrayList<>();
+    List<Integer> identicalNodes = new ArrayList<>();
     if(edgeX.size() > 0){
       for(int i=0; i<edgeX.size() ; i++){
         PeakData p1 = peakDataList.get(edgeX.get(i));
@@ -208,10 +212,48 @@ public class ComputeCliqueModule {
         double error_int = (p1.getIntensity() - p2.getIntensity()) / p1.getIntensity() ;
         if((error_mz < mzdiff) && (error_rt < rtdiff) && (error_int < intdiff)){
           Integer node = ( edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i) );
+          identicalNodes.add((edgeX.get(i) >= edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)));
           nodesToDelete.add(node);
         }
       }
     }
+
+    HashMap<PeakData,PeakListRow> peakMap = new HashMap<>(); // map b/w peakData and peakListRow
+    for(PeakData pd: peakDataList){
+      for(PeakListRow row: peakList.getRows()){
+        if(pd.getPeakListRowID() == row.getID()){
+          peakMap.put(pd,row);
+        }
+      }
+    }
+
+    //annotate peakList for nodes to be deleted
+    for(int i=0;i<nodesToDelete.size() ; i++){
+      Integer nodeToDeleted = nodesToDelete.get(i);
+      Integer nodeToReplace = identicalNodes.get(i);
+      PeakData pdNodeToDelete = null;
+      PeakData pdNodeToReplace = null;
+      for(PeakData pd : peakDataList){
+        if(nodeToDeleted.equals(pd.getNodeID())){
+          pdNodeToDelete = pd;
+          break;
+        }
+      }
+
+      for(PeakData pd : peakDataList){
+        if(nodeToReplace.equals(pd.getNodeID())){
+          pdNodeToReplace = pd;
+          break;
+        }
+      }
+
+      PeakListRow row = peakMap.get(pdNodeToDelete);
+      row.setComment("Similar to peak: "+pdNodeToReplace.getPeakListRowID());
+
+    }
+
+
+
     Collections.sort(nodesToDelete);
     return nodesToDelete;
   }
@@ -232,8 +274,10 @@ public class ComputeCliqueModule {
       logger.log(Level.INFO,"No feature deleted");
       return;
     }
+
+    //remove the peakdata containing
     for(PeakData pd : peakDataList){
-      if(deleteIndices.contains(peakDataList.indexOf(pd))){
+      if(deleteIndices.contains(pd.getNodeID())){
         continue;
       }
       PeakData pdmod = new PeakData(pd);
@@ -257,6 +301,7 @@ public class ComputeCliqueModule {
         modifiedCosineCorr[i-colShift][j-rowShift] = cosinus[i][j];
       }
     }
+
 
 
     this.cosineCorrelation = modifiedCosineCorr;
@@ -297,12 +342,7 @@ public class ComputeCliqueModule {
       nodeCliqueList.add(p);
     }
 
-    Collections.sort(nodeCliqueList, new Comparator<Pair<Integer, Integer>>() {
-      @Override
-      public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
-        return o1.getKey()-o2.getKey();
-      }
-    });
+    Collections.sort(nodeCliqueList, (o1, o2) -> (int)(o1.getKey() - o2.getKey()));
    }
 
   /**
@@ -316,7 +356,6 @@ public class ComputeCliqueModule {
    */
   public AnClique getClique(boolean filter, double mzdiff, double rtdiff, double  intdiff,
       double tol){
-    System.out.println(mzdiff+" " +rtdiff+" " +intdiff+" " +tol);
 
      if(anClique.cliquesFound){
        logger.log(Level.WARNING,"cliques have already been computed!");

@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
 </head>
-<body>
+<p>
   <h1>CliqueMS</h1>
 
   <h2>Description</h2>
@@ -14,16 +14,19 @@
   <p> This module uses the CliqueMS algorithm [<a href = "#ref1">1</a>] to group and annotate the features.</p>
 
   <h2>Parameters Description</h2>
-  <p><ul>
-    <li><b>Filter</b> - Filter out similar features if they pass all MZ, RT and intensity tolerances. </li>
+  <ul>
+    <li><b>PeakList</b> - Feature List on which cliqueMS algorithm is to be performed.</li>
+    <li><b>Filter</b> - Filter out similar features if they pass all MZ, RT and intensity tolerances.
+      Two features are considered similar if their relative change in m/z, rt and intensity are less than the respective tolerances. </li>
     <li><b>MZ tolerance</b> - If Filter option is set, this value determines the similarity of two
-      features, if their absolute difference of m/z values is less than this, they are considered similar. </li>
+      features, if their relative difference of m/z values is less than this, they are considered similar. </li>
     <li><b>RT tolerance</b> - If Filter option is set, this value determines the similarity of two
-      features, if their absolute difference of retention times values is less than this, they are considered similar. </li>
+      features, if their relative difference of retention times values is less than this, they are considered similar. </li>
     <li><b>Intensity tolerance</b> - If Filter option is set, this value determines the similarity of two
-      features, if their absolute difference of intensity is less than this, they are considered similar.</li>
-    <li><b>Log - likelihood tolerance</b> - Tolerance for log likelihood calculation.</li>
-  </ul></p>
+      features, if their relative difference of intensity is less than this, they are considered similar.</li>
+    <li><b>Log - likelihood tolerance</b> -  The Log likelihood function is maximised for clique formation.
+      The iterations are stopped when the relative change in current log likelihood with respect to the initial log likelihood is less than the log-likelihood tolerance value.</li>
+  </u>
 
   <p>
     <a name = "ref1"></a>

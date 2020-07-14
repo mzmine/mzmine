@@ -25,6 +25,9 @@ import javafx.util.Pair;
 
 /**
  * Calculates features for isotope calculation.
+ *
+ * See https://github.com/osenan/cliqueMS/blob/master/src/isotopesanCliqueMSR.h for Rcpp code
+ * corresponding to this class
  */
 public class IsotopeAnCliqueMS {
   private final List<Pair<Double, Pair<Double,Integer>>> isoData;

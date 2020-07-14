@@ -29,7 +29,14 @@ import java.util.logging.Logger;
 import javafx.util.Pair;
 
 /**
- * This class builds undirected graph network for finding the cliques or groups of features.
+ * This class builds undirected graph network for finding the cliques or groups of features. The
+ * network is a weighted graph, whose nodes are features and weight are cosine similarity between
+ * the nodes. Probabilistic methods are applied to find the arrangement of cliques (or groups of
+ * nodes) that maxmimize the log likelihood function of the network.
+ *
+ * See https://github.com/osenan/cliqueMS/blob/master/src/networkCliqueMSR.h for the Rcpp code
+ * corresponding to this class
+ *
  */
 public class NetworkCliqueMS {
 
@@ -107,7 +114,7 @@ public class NetworkCliqueMS {
 // Function createCliques to create an unordered map of key clique name with a vector of the nodes of that clique
   private void createCliques(){
     for(Integer k : this.nodes.keySet()){
-      if(this.cliques.keySet().contains(k)){
+      if(this.cliques.containsKey(k)){
         this.cliques.get(k).add(this.nodes.get(k));
       }
       else{

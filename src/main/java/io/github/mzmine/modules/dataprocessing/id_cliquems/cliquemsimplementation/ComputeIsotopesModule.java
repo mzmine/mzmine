@@ -31,6 +31,9 @@ import javafx.util.Pair;
 /**
  * Main class for computing isotopes provided anClique object whose cliques have been already
  * computed, if not the algorithm considers each node as 1 clique and compute isotopes.
+ *
+ * See https://github.com/osenan/cliqueMS/blob/master/R/findIsotopes.R for R code corresponding to
+ * this class
  */
 public class ComputeIsotopesModule {
 
@@ -57,19 +60,15 @@ public class ComputeIsotopesModule {
         Pair<Double,Pair<Double,Integer>> isoInput = new Pair(pd.getIntensity(),p);
         inData.add(isoInput);
       }
-      Collections.sort(inData, new Comparator<>() {
-        @Override
-        public int compare(Pair<Double, Pair<Double, Integer>> o1,
-            Pair<Double, Pair<Double, Integer>> o2) {
-          if(o1.getKey()<o2.getKey()){
-            return 1;
-          }
-          else if(o1.getKey().equals(o2.getKey())){
-            return 0;
-          }
-          else{
-            return -1;
-          }
+      Collections.sort(inData, (o1, o2) -> {
+        if(o1.getKey()<o2.getKey()){
+          return 1;
+        }
+        else if(o1.getKey().equals(o2.getKey())){
+          return 0;
+        }
+        else{
+          return -1;
         }
       });
 

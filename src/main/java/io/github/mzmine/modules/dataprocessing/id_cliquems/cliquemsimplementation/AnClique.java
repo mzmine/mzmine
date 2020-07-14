@@ -28,6 +28,8 @@ import javafx.util.Pair;
 /**
  * AnClique Class keeps all data structures related to grouping, annotating isotopes and adducts
  *
+ * See the AnClique class https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R for the
+ * R class corresponding to this class
  */
 public class AnClique {
 
