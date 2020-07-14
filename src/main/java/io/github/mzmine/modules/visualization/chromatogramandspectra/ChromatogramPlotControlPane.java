@@ -105,7 +105,6 @@ public class ChromatogramPlotControlPane extends VBox {
   }
 
   private void addListenersToMzRangeNode() {
-    Range<Double> range;
     mzRangeNode.getMinTxtField().textProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue == null) {
         return;
