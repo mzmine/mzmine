@@ -19,10 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -188,7 +190,7 @@ public class ComputeCliqueModule {
    *
    * @return node ID of similar features
    */
-  private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList, double mzdiff, double rtdiff,
+  private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList, MZTolerance mzdiff, double rtdiff,
       double  intdiff){
     //find all elements in cosineCorr with i<j and value > 0.99
     List<Integer> edgeX = new ArrayList<>();
@@ -207,10 +209,10 @@ public class ComputeCliqueModule {
       for(int i=0; i<edgeX.size() ; i++){
         PeakData p1 = peakDataList.get(edgeX.get(i));
         PeakData p2 = peakDataList.get(edgeY.get(i));
-        double error_mz = (p1.getMz() - p2.getMz()) / p1.getMz() ;
+        Range<Double> mz_Range = mzdiff.getToleranceRange(p1.getMz());
         double error_rt = (p1.getRt()- p2.getRt()) / p1.getRt() ;
         double error_int = (p1.getIntensity() - p2.getIntensity()) / p1.getIntensity() ;
-        if((error_mz < mzdiff) && (error_rt < rtdiff) && (error_int < intdiff)){
+        if((mz_Range.contains(p2.getMz())) && (error_rt < rtdiff) && (error_int < intdiff)){
           Integer node = ( edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i) );
           identicalNodes.add((edgeX.get(i) >= edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)));
           nodesToDelete.add(node);
@@ -266,7 +268,7 @@ public class ComputeCliqueModule {
    * @param rtdiff tolerance values for similarity
    * @param intdiff tolerance values for similarity
    */
-  private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, double mzdiff, double rtdiff,
+  private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, MZTolerance mzdiff, double rtdiff,
       double  intdiff){
     List<PeakData> modifiedPeakDataList = new ArrayList<>();
     List<Integer> deleteIndices = similarFeatures(cosinus, peakDL, mzdiff, rtdiff, intdiff);
@@ -354,7 +356,7 @@ public class ComputeCliqueModule {
    * @param tol tolerance for log likelihood function which is minimized for finding the clique.
    * @return AnClique object with calculated cliques.
    */
-  public AnClique getClique(boolean filter, double mzdiff, double rtdiff, double  intdiff,
+  public AnClique getClique(boolean filter, MZTolerance mzdiff, double rtdiff, double  intdiff,
       double tol){
 
      if(anClique.cliquesFound){
@@ -380,6 +382,6 @@ public class ComputeCliqueModule {
    * @return AnClique object
    */
   public AnClique getClique() {
-    return getClique(true, 0.000005, 0.0001, 0.0001, .000001);
+    return getClique(true, new MZTolerance(0,5), 0.0001, 0.0001, .000001);
   }
 }

@@ -33,7 +33,6 @@ public class CliqueMSTask extends AbstractTask {
   // Logger.
   private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
 
-  private final double PPM_CONV = 0.000001;
 
   // Feature list to process.
   private final PeakList peakList;
@@ -84,7 +83,7 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled())
         return;
       AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
-          parameters.getParameter(CliqueMSParameters.MZ_DIFF).getValue().getPpmTolerance()* PPM_CONV,
+          parameters.getParameter(CliqueMSParameters.MZ_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue().getTolerance(),
           parameters.getParameter(CliqueMSParameters.IN_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.TOL).getValue());
