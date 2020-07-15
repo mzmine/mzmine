@@ -23,14 +23,14 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class IntensityMobilityXYDataset extends AbstractXYDataset {
   private Scan scans[];
-  private double[] xValues;
-  private double[] yValues;
+  private Double[] xValues;
+  private Double[] yValues;
 
   public IntensityMobilityXYDataset(DataFactory dataFactory) {
 
     scans = dataFactory.getScans();
-    xValues = dataFactory.getIntensityMobilityValues();
-    yValues = dataFactory.getMobilityValues();
+    xValues = dataFactory.getOneFrameIntensityValues();
+    yValues = dataFactory.getUniqueMobilityFrameValues();
   }
 
   @Override

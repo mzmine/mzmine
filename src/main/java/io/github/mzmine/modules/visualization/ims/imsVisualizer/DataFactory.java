@@ -27,10 +27,12 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.parameters.ParameterSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class DataFactory {
 
@@ -46,11 +48,28 @@ public class DataFactory {
   private double[] mobilityHeatMapValues;
   private double[] intensityHeatMapValues;
   private double[] retentionTimeValues;
-  private HashMap<Double, Double> scanMobilityMap;
-  private HashMap<Double, Double> scanRetentionTimeMap;
+  public HashMap<Double, Double> scanMobilityMap = new HashMap<>();
+  public HashMap<Double, Double> scanRetentionTimeMap;
+  public HashMap<Double, Integer>uniqueMobility;
+  private Double selectedRetentionTime;
   private int scanSize;
 
-  public DataFactory(ParameterSet parameters) {
+  // ims frame.
+  private ArrayList<Double> mobilityForFrame;
+  private ArrayList<Double> mzValuesForFrame;
+  private ArrayList<Double> intensityForFrame;
+  private ArrayList<Double> oneFrameIntensity;
+  private ArrayList<Double> uniqueMobilityFrame;
+
+
+  private Double[] mobilityForFrameValues;
+  private Double[] mzValuesForFrameValues;
+  private Double[] intensityForFrameValues;
+  private Double[] oneFrameIntensityValues;
+  private Double[] uniqueMobilityFrameValues;
+
+
+  public DataFactory(ParameterSet parameters, double rt, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -65,9 +84,33 @@ public class DataFactory {
 
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
+    this.selectedRetentionTime = rt;
+
+    // prepare data sets for ims frame.
+    // if there is not selected any retention time.selet the rt for max intensity.
+    double maxIntensity = 0.0;
+    if (selectedRetentionTime == 0.0)
+    {
+      for (int i = 0; i < scans.length; i++) {
+
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+        double intensitySum = 0;
+        for (int j = 0; j < dataPoint.length; j++) {
+          intensitySum += dataPoint[j].getIntensity();
+        }
+
+        if (maxIntensity < intensitySum) {
+          maxIntensity = intensitySum;
+          this.selectedRetentionTime = scans[i].getRetentionTime();
+        }
+      }
+
+      imsVisualizerTask.setSelectedRetentionTime(selectedRetentionTime);
+    }
+    updateFrameData(selectedRetentionTime);
+
     mobility = new ArrayList<>();
     retentionTime = new ArrayList<>();
-    scanMobilityMap = new HashMap<>();
     scanRetentionTimeMap = new HashMap<>();
     scanSize = scans.length;
 
@@ -77,6 +120,7 @@ public class DataFactory {
     intensityHeatMapValues = new double[scanSize];
 
     for (int i = 0; i < scanSize; i++) {
+
       // get all unique mobility and retentionTime scans.
       if (i == 0) {
         mobility.add(scans[i].getMobility());
@@ -149,6 +193,51 @@ public class DataFactory {
       }
     }
   }
+
+  public void updateFrameData( double selectedRetentionTime ){
+    // container for mobility frame.
+    mobilityForFrame = new ArrayList<>();
+    mzValuesForFrame = new ArrayList<>();
+    intensityForFrame = new ArrayList<>();
+    oneFrameIntensity = new ArrayList<>();
+    uniqueMobilityFrame = new ArrayList<>();
+    uniqueMobility = new HashMap<>();
+
+    for (int i = 0; i < scans.length; i++) {
+      if (scans[i].getRetentionTime() == selectedRetentionTime) {
+
+        if(!uniqueMobility.containsKey(scans[i].getMobility()))
+        {
+          if (scanMobilityMap.containsKey(scans[i].getMobility())) {
+            oneFrameIntensity.add(scanMobilityMap.get(scans[i].getMobility()));
+            uniqueMobilityFrame.add(scans[i].getMobility());
+            uniqueMobility.put(scans[i].getMobility(), 1);
+          }
+        }
+
+        DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
+        for (int j = 0; j < dataPoint.length; j++) {
+          mobilityForFrame.add(scans[i].getMobility());
+          mzValuesForFrame.add(dataPoint[j].getMZ());
+          intensityForFrame.add(dataPoint[j].getIntensity());
+        }
+      }
+    }
+
+    mobilityForFrameValues = new Double[mobilityForFrame.size()];
+    mzValuesForFrameValues = new Double[mobilityForFrame.size()];
+    intensityForFrameValues = new Double[mobilityForFrame.size()];
+    oneFrameIntensityValues = new Double[oneFrameIntensity.size()];
+    uniqueMobilityFrameValues = new Double[oneFrameIntensity.size()];
+
+    mobilityForFrameValues = mobilityForFrame.toArray(new Double[mobilityForFrame.size()]);
+    mzValuesForFrameValues = mzValuesForFrame.toArray(new Double[ mobilityForFrame.size()]);
+    intensityForFrameValues = intensityForFrame.toArray(new Double[mobilityForFrame.size()]);
+    oneFrameIntensityValues = oneFrameIntensity.toArray(new Double[oneFrameIntensity.size()]);
+    uniqueMobilityFrameValues = uniqueMobilityFrame.toArray(new Double[oneFrameIntensity.size()]);
+
+
+  }
   /*
   get all the unique mobilities in all scan
   */
@@ -201,9 +290,23 @@ public class DataFactory {
   }
 
   /*
-    return the the seleted mz Range.
+    return the seleted mz Range.
   */
   public Range getmzRange() {
     return mzRange;
   }
+  /*
+   return the mobility.
+ */
+  public Double [] getMobilityForFrameValues(){ return mobilityForFrameValues; }
+
+  public Double [] getMzValuesForFrameValues(){ return mzValuesForFrameValues; }
+
+  public Double [] getIntensityForFrameValues(){ return intensityForFrameValues; }
+
+  public Double [] getOneFrameIntensityValues() { return oneFrameIntensityValues; }
+
+  public Double [] getUniqueMobilityFrameValues() { return uniqueMobilityFrameValues; }
+
+
 }

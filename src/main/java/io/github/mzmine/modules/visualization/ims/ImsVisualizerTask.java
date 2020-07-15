@@ -59,7 +59,7 @@ public class ImsVisualizerTask extends AbstractTask {
   private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
   private String paintScaleStyle;
-  private double selectedRetentionTime = -1;
+  private double selectedRetentionTime = 0.0;
   private FXMLLoader loader;
   private ImsVisualizerWindowController controller;
   private ChartGroup groupMobility;
@@ -128,10 +128,10 @@ public class ImsVisualizerTask extends AbstractTask {
           controller = loader.getController();
 
           // initialize data factory for the plots data.
-          dataFactory = new DataFactory(parameterSet);
+          dataFactory = new DataFactory(parameterSet, 0.0, this);
 
           // add mobility-mz plot.
-          datasetMF = new MzMobilityXYZDataset(dataFactory, selectedRetentionTime, this);
+          datasetMF = new MzMobilityXYZDataset(dataFactory);
           MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
               new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
           BorderPane bottomRightpane = controller.getBottomRightPane();
@@ -187,7 +187,9 @@ public class ImsVisualizerTask extends AbstractTask {
   }
 
   public void updateMobilityGroup() {
-    datasetMF = new MzMobilityXYZDataset(dataFactory, selectedRetentionTime, this);
+    dataFactory.updateFrameData(selectedRetentionTime);
+    datasetMF = new MzMobilityXYZDataset(dataFactory);
+
     BorderPane plotPaneMF = controller.getBottomRightPane();
     MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
         new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
@@ -198,8 +200,10 @@ public class ImsVisualizerTask extends AbstractTask {
         new IntensityMobilityPlot(datasetMI, parameterSet);
     BorderPane bottomLeftPane = controller.getBottomLeftPane();
     bottomLeftPane.setCenter(intensityMobilityPlot);
+
     groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
     groupMobility.add(new ChartViewWrapper(intensityMobilityPlot));
+
     updateRTlebel();
   }
 
