@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import dulab.adap.common.types.MutableDouble;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +51,15 @@ public class NetworkCliqueMS {
   private final HashMap<Integer, List<Integer>> cliques = new HashMap<>(); // unordered map of key clique name with a vector of the nodes of that clique
   private final HashMap<Pair<Integer,Integer>, Double> logEdges = new HashMap<>();  // log value of weigth powered to some exponent
   private final HashMap<Pair<Integer,Integer>, Double> minusLogEdges = new HashMap<>();  // 1 - log value of weight powered to some exponent
+
+  //For recording progress;
+  private MutableDouble progress = null;
+  private double initialProgress;
+  private double networkProgress = 0.0;
+  private void updateProgress(){
+    // TODO find percentage of network progress w.r.t. total process
+    this.progress.set(this.initialProgress+0.25*this.networkProgress); //assuming network operation takes about 25% of total time
+  }
 
   //Result of Kernighan and aggregate algorithm
   private final List<Pair<Integer,Integer>> resultNode_clique = new ArrayList<>();
@@ -142,6 +152,10 @@ public class NetworkCliqueMS {
       logEdges.put(edge,logPower);
       minusLogEdges.put(edge,minuslogPower);
     }
+
+    //update progress
+    this.networkProgress = 0.2;
+    updateProgress();
   }
 
   // Function to calculate log likelihood of the whole network
@@ -398,6 +412,9 @@ public class NetworkCliqueMS {
     Collections.shuffle(randallNodes);
     int scount = 1; // counter of the number of rounds that are clique joining, it starts with 1
     int tcount = 1; // total number of rounds
+
+    double initialNetworkProgress = networkProgress;
+
     for(int randpos = 0; randpos < randallNodes.size(); randpos++) {
       Integer nodev = randallNodes.get(randpos);
       Integer cliquec = this.nodes.get(nodev); // clique that will be joined to another clique
@@ -413,6 +430,11 @@ public class NetworkCliqueMS {
         scount++;
         tcount++;
       }
+
+      //update progress
+      networkProgress= initialNetworkProgress + 0.70*((double) (randpos+1) / (double) randallNodes.size());
+      updateProgress();
+
     }
     Double firstlogl = loglResult.get(0);
     Double diff = 1.0 - Math.abs(currentlogl/firstlogl); // difference in log likelihood after one complete round of node reassignments
@@ -458,8 +480,10 @@ public class NetworkCliqueMS {
     return loglResult;
   }
 
-  public void returnCliques(double[][] adjacencyMatrix, List<Integer> nodeIDList,  double tolerance, boolean silent){
+  public void returnCliques(double[][] adjacencyMatrix, List<Integer> nodeIDList,  double tolerance, boolean silent, MutableDouble progress){
     try{
+      this.progress = progress;
+      this.initialProgress = progress.get();
       createNetwork(adjacencyMatrix, nodeIDList);
       Double logl = logltotal();
       logger.log(Level.INFO,"Beginning value of logl is "+logl);
@@ -471,6 +495,10 @@ public class NetworkCliqueMS {
       }
       Double loglfinal = logltotal();
       logger.log(Level.INFO,"Finishing value of logl is "+ loglfinal);
+
+      //update progress
+      networkProgress = 1.0;
+      updateProgress();
     }
     catch (Exception e){
       e.printStackTrace();

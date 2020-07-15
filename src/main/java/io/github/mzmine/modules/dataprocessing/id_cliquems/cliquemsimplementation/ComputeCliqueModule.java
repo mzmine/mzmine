@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 
 
 import com.google.common.collect.Range;
+import dulab.adap.common.types.MutableDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -48,12 +49,24 @@ public class ComputeCliqueModule {
   private final List<PeakData> peakDataList;
   private final RawDataFile rawDataFile;
 
+  //variables to update progress
+  private final MutableDouble progress;
+  private final double initialProgress;
+  private double matrixCalcProgress; //variable to record matrix calculation and manipulation progress
+
+  private void updateProgress(){
+    //TODO find approx time taken for matrix calculation wrt whole process
+    this.progress.set(this.initialProgress+0.65*this.matrixCalcProgress); //Let's say matrix calculation takes 65% of whole process
+  }
+
   //cosine correlation matrix calculated over columns of EIC matrix
   private double[][] cosineCorrelation;
 
-  public ComputeCliqueModule(PeakList peakList, RawDataFile rdf){
+  public ComputeCliqueModule(PeakList peakList, RawDataFile rdf, MutableDouble progress){
     this.rawDataFile = rdf;
     this.peakList =peakList;
+    this.progress = progress;
+    initialProgress = progress.get();
     peakDataList = getPeakDatafromPeaks(peakList,rdf);
     anClique = new AnClique(peakDataList,rdf);
   }
@@ -142,6 +155,9 @@ public class ComputeCliqueModule {
 
 
       }
+//      progress update
+      matrixCalcProgress = 0.4 * ((double)i/(double)peakDataList.size()); // EIC matrix calculation takes about 40% of all matrix calculations
+      updateProgress();
     }
 
     return EIC;
@@ -165,6 +181,9 @@ public class ComputeCliqueModule {
         corr[i][j] = 0.0;
       }
     }
+
+    double initialmatProgres = matrixCalcProgress;
+
     for(int i=0; i<col ; i++){
       for(int j=0; j<col; j++){
         double modi = 0.0, modj = 0.0;
@@ -177,6 +196,9 @@ public class ComputeCliqueModule {
         modj = Math.sqrt(modj);
         corr[i][j] = corr[i][j]/(modi*modj);
       }
+      //update progress
+      matrixCalcProgress = initialmatProgres + 0.5*((double)(i+1)/(double)col); // Cosine matrix calculation takes about 50% time of all matrix calculations
+      updateProgress();
     }
     return corr;
   }
@@ -255,7 +277,6 @@ public class ComputeCliqueModule {
     }
 
 
-
     Collections.sort(nodesToDelete);
     return nodesToDelete;
   }
@@ -289,6 +310,9 @@ public class ComputeCliqueModule {
     double[][] modifiedCosineCorr = new double [cosinus.length - deleteIndices.size()][cosinus[0].length - deleteIndices.size()];
     //deleting row and columns of indices in deleteIndices
     int colShift = 0;
+
+    double initialmatProgress = matrixCalcProgress;
+
     for(int i=0; i<cosinus.length ; i++){
       int rowShift = 0;
       if(colShift < deleteIndices.size() && i==deleteIndices.get(colShift)){
@@ -302,6 +326,12 @@ public class ComputeCliqueModule {
         }
         modifiedCosineCorr[i-colShift][j-rowShift] = cosinus[i][j];
       }
+
+
+      //updateProgress();
+      matrixCalcProgress = initialmatProgress +  0.1*((double)(i+1)/(double)cosinus.length);
+      updateProgress();
+
     }
 
 
@@ -366,10 +396,15 @@ public class ComputeCliqueModule {
     this.cosineCorrelation = cosCorrbyColumn(EIC);
     if(filter)
       filterFeatures(cosineCorrelation, peakDataList, mzdiff, rtdiff, intdiff);
+
+    //update progress
+    matrixCalcProgress = 1.0;
+    updateProgress();
+
     List<Integer> nodeIDList = new ArrayList<>();
     for(PeakData pd : peakDataList)
       nodeIDList.add(pd.getNodeID());
-    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false );
+    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false ,this.progress);
     updateCliques();
     this.anClique.cliquesFound = true;
     this.anClique.computeCliqueFromResult();

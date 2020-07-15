@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
+import dulab.adap.common.types.MutableDouble;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
@@ -38,7 +39,7 @@ public class CliqueMSTask extends AbstractTask {
   private final PeakList peakList;
 
   // Task progress
-  private Double progress;
+  private final MutableDouble progress = new MutableDouble(0.0);
 
   // Project
   private final MZmineProject project;
@@ -61,7 +62,7 @@ public class CliqueMSTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return progress;
+    return progress.get();
   }
 
   @Override
@@ -73,12 +74,11 @@ public class CliqueMSTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    this.progress = 0.0;
+    this.progress.set(0.0);
 
     try {
       //TODO multiple rawDataFile support
-      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0));
-      this.progress = 0.2;
+      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0),progress);
       // Check if not canceled
       if (isCanceled())
         return;
@@ -87,7 +87,6 @@ public class CliqueMSTask extends AbstractTask {
           parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue().getTolerance(),
           parameters.getParameter(CliqueMSParameters.IN_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.TOL).getValue());
-      this.progress = 0.5;
       // Check if not canceled
       if (isCanceled())
         return;
@@ -98,7 +97,7 @@ public class CliqueMSTask extends AbstractTask {
         return;
 
       // Finished.
-      this.progress = 1.0;
+      this.progress.set(1.0);
       setStatus(TaskStatus.FINISHED);
     }
     catch(Exception e){
