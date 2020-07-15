@@ -64,6 +64,8 @@ public class ImsVisualizerTask extends AbstractTask {
   private ImsVisualizerWindowController controller;
   private ChartGroup groupMobility;
   private DataFactory dataFactory;
+  private Stage stage;
+  private Scene scene;
 
   public ImsVisualizerTask(ParameterSet parameters) {
     dataFiles =
@@ -112,30 +114,19 @@ public class ImsVisualizerTask extends AbstractTask {
     if (isCanceled()) return;
     Platform.runLater(
         () -> {
-          loader = new FXMLLoader((getClass().getResource("ImsVisualizerWindow.fxml")));
-          Stage stage = new Stage();
 
-          try {
-            AnchorPane root = (AnchorPane) loader.load();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            logger.finest("Stage has been successfully loaded from the FXML loader.");
-          } catch (IOException e) {
-            e.printStackTrace();
-            return;
-          }
-          // Get controller
-          controller = loader.getController();
+            // Initialize dataFactories.
+            InitDataFactories();
 
-          // initialize data factory for the plots data.
-          dataFactory = new DataFactory(parameterSet, 0.0, this);
+            // Initialize Scene.
+            InitGui();
 
           // add mobility-mz plot.
           datasetMF = new MzMobilityXYZDataset(dataFactory);
-          MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
-              new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
+          MzMobilityHeatMapPlot mzMobilityHeatMapPlot =
+              new MzMobilityHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
           BorderPane bottomRightpane = controller.getBottomRightPane();
-          bottomRightpane.setCenter(mzMobilityPlotHeatMapPlot);
+          bottomRightpane.setCenter(mzMobilityHeatMapPlot);
           updateRTlebel();
 
           datasetMI = new IntensityMobilityXYDataset(dataFactory);
@@ -148,7 +139,7 @@ public class ImsVisualizerTask extends AbstractTask {
           groupMobility.setShowCrosshair(true, true);
 
           groupMobility.add((new ChartViewWrapper(intensityMobilityPlot)));
-          groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
+          groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
 
           // add intensity retention time plot
           dataset3d = new RetentionTimeMobilityXYZDataset(dataFactory);
@@ -186,14 +177,35 @@ public class ImsVisualizerTask extends AbstractTask {
     logger.info("Finished IMS visualization of" + dataFiles[0]);
   }
 
+  public void InitDataFactories(){
+      // initialize data factory for the plots data.
+      dataFactory = new DataFactory(parameterSet, 0.0, this);
+  }
+
+  public void InitGui(){
+      loader = new FXMLLoader((getClass().getResource("ImsVisualizerWindow.fxml")));
+      stage = new Stage();
+
+      try {
+          AnchorPane root = (AnchorPane) loader.load();
+          scene = new Scene(root);
+          stage.setScene(scene);
+          logger.finest("Stage has been successfully loaded from the FXML loader.");
+      } catch (IOException e) {
+          e.printStackTrace();
+          return;
+      }
+      // Get controller
+      controller = loader.getController();
+  }
   public void updateMobilityGroup() {
     dataFactory.updateFrameData(selectedRetentionTime);
     datasetMF = new MzMobilityXYZDataset(dataFactory);
 
     BorderPane plotPaneMF = controller.getBottomRightPane();
-    MzMobilityPlotHeatMapPlot mzMobilityPlotHeatMapPlot =
-        new MzMobilityPlotHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
-    plotPaneMF.setCenter(mzMobilityPlotHeatMapPlot);
+    MzMobilityHeatMapPlot mzMobilityHeatMapPlot =
+        new MzMobilityHeatMapPlot(datasetMF, paintScaleStyle, parameterSet);
+    plotPaneMF.setCenter(mzMobilityHeatMapPlot);
 
     datasetMI = new IntensityMobilityXYDataset(dataFactory);
     IntensityMobilityPlot intensityMobilityPlot =
@@ -201,7 +213,7 @@ public class ImsVisualizerTask extends AbstractTask {
     BorderPane bottomLeftPane = controller.getBottomLeftPane();
     bottomLeftPane.setCenter(intensityMobilityPlot);
 
-    groupMobility.add(new ChartViewWrapper(mzMobilityPlotHeatMapPlot));
+    groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
     groupMobility.add(new ChartViewWrapper(intensityMobilityPlot));
 
     updateRTlebel();

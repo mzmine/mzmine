@@ -29,8 +29,8 @@ public class IntensityMobilityXYDataset extends AbstractXYDataset {
   public IntensityMobilityXYDataset(DataFactory dataFactory) {
 
     scans = dataFactory.getScans();
-    xValues = dataFactory.getOneFrameIntensityValues();
-    yValues = dataFactory.getUniqueMobilityFrameValues();
+    xValues = dataFactory.getIntensity_IntensityMobility();
+    yValues = dataFactory.getMobility_IntensityMobility();
   }
 
   @Override

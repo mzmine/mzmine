@@ -36,9 +36,9 @@ public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
   public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
 
        scans = dataFactory.getScans();
-       xValues = dataFactory.getRtHeatMapValues();
-       yValues = dataFactory.getMobilityHeatMapValues();
-       zValues = dataFactory.getIntensityHeatMapValues();
+       xValues = dataFactory.getRetentionTime_retentionTimeMobility();
+       yValues = dataFactory.getMobility_retentionTimeMobility();
+       zValues = dataFactory.getIntensity_retentionTimeMobility();
        scanSize = scans.length;
   }
 

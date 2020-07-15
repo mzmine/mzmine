@@ -32,41 +32,30 @@ import io.github.mzmine.parameters.ParameterSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class DataFactory {
 
   private RawDataFile dataFiles[];
   private Scan scans[];
   private Range<Double> mzRange;
-  private ArrayList<Double> mobility;
-  private ArrayList<Double> retentionTime;
-  private double[] mobilityValues;
-  private double[] intensityMobilityValues;
-  private double[] intensityRetentionValues;
-  private double[] rtHeatMapValues;
-  private double[] mobilityHeatMapValues;
-  private double[] intensityHeatMapValues;
-  private double[] retentionTimeValues;
+  private double[] mobility_retentionTimeMobility;
+  private double[] intensity_retentionTimeMobility;
+  private double[] retentionTime_retentionTimeMobility;
+
+  private double[] intensity_retentionTimeIntensity;
+  private double[] retentionTime_retentionTimeIntensity;
+
+  private Double[] mobility_MzMobility;
+  private Double[] mz_MzMobility;
+  private Double[] intensity_MzMobility;
+
+  private Double[] intensity_IntensityMobility;
+  private Double[] mobility_IntensityMobility;
+
   public HashMap<Double, Double> scanMobilityMap = new HashMap<>();
-  public HashMap<Double, Double> scanRetentionTimeMap;
-  public HashMap<Double, Integer>uniqueMobility;
+  public HashMap<Double, Double> scanRetentionTimeMap = new HashMap<>();
   private Double selectedRetentionTime;
   private int scanSize;
-
-  // ims frame.
-  private ArrayList<Double> mobilityForFrame;
-  private ArrayList<Double> mzValuesForFrame;
-  private ArrayList<Double> intensityForFrame;
-  private ArrayList<Double> oneFrameIntensity;
-  private ArrayList<Double> uniqueMobilityFrame;
-
-
-  private Double[] mobilityForFrameValues;
-  private Double[] mzValuesForFrameValues;
-  private Double[] intensityForFrameValues;
-  private Double[] oneFrameIntensityValues;
-  private Double[] uniqueMobilityFrameValues;
 
 
   public DataFactory(ParameterSet parameters, double rt, ImsVisualizerTask imsVisualizerTask) {
@@ -85,13 +74,12 @@ public class DataFactory {
     mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
     this.selectedRetentionTime = rt;
+    scanSize = scans.length;
 
-    // prepare data sets for ims frame.
-    // if there is not selected any retention time.selet the rt for max intensity.
+    // if there is not selected any retention time.select the rt for max intensity.
     double maxIntensity = 0.0;
-    if (selectedRetentionTime == 0.0)
-    {
-      for (int i = 0; i < scans.length; i++) {
+    if (selectedRetentionTime == 0.0) {
+      for (int i = 0; i < scanSize; i++) {
 
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
         double intensitySum = 0;
@@ -107,39 +95,32 @@ public class DataFactory {
 
       imsVisualizerTask.setSelectedRetentionTime(selectedRetentionTime);
     }
+
+    // prepare data's for the ims frame.( mz-mobility heatmap and intensity mobility)
     updateFrameData(selectedRetentionTime);
 
-    mobility = new ArrayList<>();
-    retentionTime = new ArrayList<>();
-    scanRetentionTimeMap = new HashMap<>();
-    scanSize = scans.length;
-
     // data for the retention time - heatMap plot.
-    rtHeatMapValues = new double[scanSize];
-    mobilityHeatMapValues = new double[scanSize];
-    intensityHeatMapValues = new double[scanSize];
+    retentionTime_retentionTimeMobility = new double[scanSize];
+    mobility_retentionTimeMobility = new double[scanSize];
+    intensity_retentionTimeMobility = new double[scanSize];
+
+    ArrayList<Double> rt_rtIntensity = new ArrayList<>();
 
     for (int i = 0; i < scanSize; i++) {
-
-      // get all unique mobility and retentionTime scans.
       if (i == 0) {
-        mobility.add(scans[i].getMobility());
-        retentionTime.add(scans[i].getRetentionTime());
-      } else {
-
-        if (scans[i].getMobility() != scans[i - 1].getMobility()) {
-          mobility.add(scans[i].getMobility());
-        }
+        rt_rtIntensity.add(scans[i].getRetentionTime());
+      }
+      else {
         if (scans[i].getRetentionTime() != scans[i - 1].getRetentionTime()) {
-          retentionTime.add(scans[i].getRetentionTime());
+          rt_rtIntensity.add(scans[i].getRetentionTime());
         }
       }
-      rtHeatMapValues[i] = scans[i].getRetentionTime();
-      mobilityHeatMapValues[i] = scans[i].getMobility();
+      retentionTime_retentionTimeMobility[i] = scans[i].getRetentionTime();
+      mobility_retentionTimeMobility[i] = scans[i].getMobility();
       double intensitySum = 0;
       DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
       for (int j = 0; j < dataPoint.length; j++) {
-        intensityHeatMapValues[i] += dataPoint[j].getIntensity();
+        intensity_retentionTimeMobility[i] += dataPoint[j].getIntensity();
         intensitySum += dataPoint[j].getIntensity();
       }
 
@@ -158,128 +139,133 @@ public class DataFactory {
       }
     }
 
-    intensityMobilityValues = new double[mobility.size()];
-    intensityRetentionValues = new double[retentionTime.size()];
-    mobilityValues = new double[mobility.size()];
-    retentionTimeValues = new double[retentionTime.size()];
+    intensity_retentionTimeIntensity = new double[rt_rtIntensity.size()];
+    retentionTime_retentionTimeIntensity = new double[rt_rtIntensity.size()];
 
-    // get the unique mobilities.
-    for (int i = 0; i < mobility.size(); i++) {
-      mobilityValues[i] = mobility.get(i);
-    }
     // get the unique retention time.
-    for (int i = 0; i < retentionTime.size(); i++) {
-      retentionTimeValues[i] = retentionTime.get(i);
+    for (int i = 0; i < rt_rtIntensity.size(); i++) {
+      retentionTime_retentionTimeIntensity[i] = rt_rtIntensity.get(i);
     }
-
-    /* scanMobilityMap : Here scanMobilityMap contains mobility as key and values as the sum of all the intensity at
-       that that mobility.
-
+    /*
        scanRetentionTimeMap : Here scanRetentionTimeMap contains retentionTime as key and values as the sum of all the intensity at
        that that retentionTime.
     */
-    for (int i = 0; i < mobility.size(); i++) {
+    for (int i = 0; i < rt_rtIntensity.size(); i++) {
 
-      if (scanMobilityMap.get(mobility.get(i)) != null) {
-
-        intensityMobilityValues[i] = scanMobilityMap.get(mobility.get(i));
-      }
-    }
-
-    for (int i = 0; i < retentionTime.size(); i++) {
-
-      if (scanRetentionTimeMap.get(retentionTime.get(i)) != null) {
-        intensityRetentionValues[i] = scanRetentionTimeMap.get(retentionTime.get(i));
+      if (scanRetentionTimeMap.get(rt_rtIntensity.get(i)) != null) {
+        intensity_retentionTimeIntensity[i] = scanRetentionTimeMap.get(rt_rtIntensity.get(i));
       }
     }
   }
 
-  public void updateFrameData( double selectedRetentionTime ){
-    // container for mobility frame.
-    mobilityForFrame = new ArrayList<>();
-    mzValuesForFrame = new ArrayList<>();
-    intensityForFrame = new ArrayList<>();
-    oneFrameIntensity = new ArrayList<>();
-    uniqueMobilityFrame = new ArrayList<>();
-    uniqueMobility = new HashMap<>();
+  public void updateFrameData(double selectedRetentionTime) {
 
-    for (int i = 0; i < scans.length; i++) {
+    class MzMobilityFields {
+      public double _mobility;
+      public double _mz;
+      public double _intensity;
+
+      public MzMobilityFields(double _mobility, double _mz, double _intensity) {
+
+        this._mobility = _mobility;
+        this._mz = _mz;
+        this._intensity = _intensity;
+      }
+    }
+
+    class IntensityMobilityFields {
+      public double _mobility;
+      public double _intensity;
+
+      public IntensityMobilityFields(double _mobility, double _intensity) {
+        this._intensity = _intensity;
+        this._mobility = _mobility;
+      }
+    }
+
+    // ims frame.
+    ArrayList<MzMobilityFields> mzMobilityFields = new ArrayList<>();
+    ArrayList<IntensityMobilityFields> intensityMobilityFields = new ArrayList<>();
+    HashMap<Double, Integer> uniqueMobility = new HashMap<>();
+
+    for (int i = 0; i < scanSize; i++) {
       if (scans[i].getRetentionTime() == selectedRetentionTime) {
 
-        if(!uniqueMobility.containsKey(scans[i].getMobility()))
-        {
+        if (!uniqueMobility.containsKey(scans[i].getMobility())) {
           if (scanMobilityMap.containsKey(scans[i].getMobility())) {
-            oneFrameIntensity.add(scanMobilityMap.get(scans[i].getMobility()));
-            uniqueMobilityFrame.add(scans[i].getMobility());
+            intensityMobilityFields.add(
+                new IntensityMobilityFields(
+                    scans[i].getMobility(), scanMobilityMap.get(scans[i].getMobility())));
             uniqueMobility.put(scans[i].getMobility(), 1);
           }
         }
 
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
         for (int j = 0; j < dataPoint.length; j++) {
-          mobilityForFrame.add(scans[i].getMobility());
-          mzValuesForFrame.add(dataPoint[j].getMZ());
-          intensityForFrame.add(dataPoint[j].getIntensity());
+
+          mzMobilityFields.add(
+              new MzMobilityFields(
+                  scans[i].getMobility(), dataPoint[j].getMZ(), dataPoint[j].getIntensity()));
         }
       }
     }
 
-    mobilityForFrameValues = new Double[mobilityForFrame.size()];
-    mzValuesForFrameValues = new Double[mobilityForFrame.size()];
-    intensityForFrameValues = new Double[mobilityForFrame.size()];
-    oneFrameIntensityValues = new Double[oneFrameIntensity.size()];
-    uniqueMobilityFrameValues = new Double[oneFrameIntensity.size()];
+    mobility_MzMobility = new Double[mzMobilityFields.size()];
+    mz_MzMobility = new Double[mzMobilityFields.size()];
+    intensity_MzMobility = new Double[mzMobilityFields.size()];
 
-    mobilityForFrameValues = mobilityForFrame.toArray(new Double[mobilityForFrame.size()]);
-    mzValuesForFrameValues = mzValuesForFrame.toArray(new Double[ mobilityForFrame.size()]);
-    intensityForFrameValues = intensityForFrame.toArray(new Double[mobilityForFrame.size()]);
-    oneFrameIntensityValues = oneFrameIntensity.toArray(new Double[oneFrameIntensity.size()]);
-    uniqueMobilityFrameValues = uniqueMobilityFrame.toArray(new Double[oneFrameIntensity.size()]);
+    for (int i = 0; i < mzMobilityFields.size(); i++) {
+      mobility_MzMobility[i] = mzMobilityFields.get(i)._mobility;
+      mz_MzMobility[i] = mzMobilityFields.get(i)._mz;
+      intensity_MzMobility[i] = mzMobilityFields.get(i)._intensity;
+    }
 
-
+    intensity_IntensityMobility = new Double[intensityMobilityFields.size()];
+    mobility_IntensityMobility = new Double[intensityMobilityFields.size()];
+    for (int i = 0; i < intensityMobilityFields.size(); i++) {
+      intensity_IntensityMobility[i] = intensityMobilityFields.get(i)._intensity;
+      mobility_IntensityMobility[i] = intensityMobilityFields.get(i)._mobility;
+    }
   }
   /*
   get all the unique mobilities in all scan
   */
-  public double[] getMobilityValues() {
-    return mobilityValues;
+  public double[] getMobility_retentionTimeMobility() {
+    return mobility_retentionTimeMobility;
   }
+
+  /*
+   Return mobilities for retentionTime-mobility heat map.
+  */
+  public double[] getRetentionTime_retentionTimeIntensity() {
+    return retentionTime_retentionTimeIntensity;
+  }
+
+  public Double[] getMobility_MzMobility() {
+    return mobility_MzMobility;
+  }
+
+  public Double[] getMobility_IntensityMobility() {
+    return mobility_IntensityMobility;
+  }
+
   /*
    get the all unique retention times in all   scan
   */
-  public double[] getRetentionTimeValues() {
-    return retentionTimeValues;
+  public double[] getIntensity_retentionTimeMobility() {
+    return intensity_retentionTimeMobility;
   }
   /*
    get all the intensities value at unique mobilities.
   */
-  public double[] getIntensityMobilityValues() {
-    return intensityMobilityValues;
+  public double[] getIntensity_retentionTimeIntensity() {
+    return intensity_retentionTimeIntensity;
   }
   /*
    get the all the intensities values at unique retention time
   */
-  public double[] getIntensityRetentionValues() {
-    return intensityRetentionValues;
-  }
-
-  /*
-  return retentionTime retentionTime-mobility heat map
-  */
-  public double[] getRtHeatMapValues() {
-    return rtHeatMapValues;
-  }
-  /*
-   Return intensities for retentionTime-mobility heat map.
-  */
-  public double[] getIntensityHeatMapValues() {
-    return intensityHeatMapValues;
-  }
-  /*
-   Return mobilities for retentionTime-mobility heat map.
-  */
-  public double[] getMobilityHeatMapValues() {
-    return mobilityHeatMapValues;
+  public double[] getRetentionTime_retentionTimeMobility() {
+    return retentionTime_retentionTimeMobility;
   }
 
   /*
@@ -296,17 +282,17 @@ public class DataFactory {
     return mzRange;
   }
   /*
-   return the mobility.
- */
-  public Double [] getMobilityForFrameValues(){ return mobilityForFrameValues; }
+    return the mobility.
+  */
+  public Double[] getMz_MzMobility() {
+    return mz_MzMobility;
+  }
 
-  public Double [] getMzValuesForFrameValues(){ return mzValuesForFrameValues; }
+  public Double[] getIntensity_MzMobility() {
+    return intensity_MzMobility;
+  }
 
-  public Double [] getIntensityForFrameValues(){ return intensityForFrameValues; }
-
-  public Double [] getOneFrameIntensityValues() { return oneFrameIntensityValues; }
-
-  public Double [] getUniqueMobilityFrameValues() { return uniqueMobilityFrameValues; }
-
-
+  public Double[] getIntensity_IntensityMobility() {
+    return intensity_IntensityMobility;
+  }
 }

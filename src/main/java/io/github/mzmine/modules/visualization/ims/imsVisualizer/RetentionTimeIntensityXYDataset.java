@@ -28,8 +28,8 @@ public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
   private double[] yValues;
 
   public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
-    xValues = dataFactory.getRetentionTimeValues();
-    yValues = dataFactory.getIntensityRetentionValues();
+    xValues = dataFactory.getRetentionTime_retentionTimeIntensity();
+    yValues = dataFactory.getIntensity_retentionTimeIntensity();
     scans = dataFactory.getScans();
   }
 

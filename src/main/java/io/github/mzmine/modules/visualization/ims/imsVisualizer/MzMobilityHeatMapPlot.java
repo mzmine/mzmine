@@ -57,7 +57,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Logger;
 
-public class MzMobilityPlotHeatMapPlot extends EChartViewer {
+public class MzMobilityHeatMapPlot extends EChartViewer {
 
   private XYPlot plot;
   private String paintScaleStyle;
@@ -69,7 +69,7 @@ public class MzMobilityPlotHeatMapPlot extends EChartViewer {
   private Scan selectedMobilityScan;
   private Scan scans[];
   private RawDataFile dataFiles[];
-  public MzMobilityPlotHeatMapPlot(XYZDataset dataset, String paintScaleStyle, ParameterSet parameters ) {
+  public MzMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle, ParameterSet parameters ) {
 
     super(
         ChartFactory.createScatterPlot(
