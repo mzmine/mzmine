@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 
 import java.text.NumberFormat;
 
@@ -79,12 +80,11 @@ public class MassCalibrationParameters extends SimpleParameterSet {
             filterDuplicates, rangeSize, tolerance, suffix, autoRemove});
   }
 
-  /*@Override
+  @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    ShoulderPeaksFilterSetupDialog dialog =
-        new ShoulderPeaksFilterSetupDialog(valueCheckRequired, this);
+    MassCalibrationSetupDialog dialog = new MassCalibrationSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }*/
+  }
 
 }

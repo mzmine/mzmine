@@ -148,6 +148,16 @@ public class DistributionExtractor {
     return buildDistributionRange(items, mostItemsStart, mostItemsEnd);
   }
 
+  /**
+   * Returns distribution range made of all items
+   *
+   * @param items distribution items
+   * @return distribution range object
+   */
+  public static DistributionRange wholeRange(List<Double> items) {
+    return buildDistributionRange(items, 0, items.size() - 1);
+  }
+
   protected static DistributionRange buildDistributionRange(List<Double> items, int startIndex, int endIndex) {
     Range<Integer> indexRange = Range.closed(startIndex, endIndex);
     Range<Double> valueRange = Range.closed(items.get(startIndex), items.get(endIndex));

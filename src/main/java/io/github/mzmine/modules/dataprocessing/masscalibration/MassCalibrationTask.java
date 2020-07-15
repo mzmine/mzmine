@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractorFactory;
@@ -33,6 +34,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -52,6 +55,11 @@ public class MassCalibrationTask extends AbstractTask {
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
   private StandardsListExtractor standardsListExtractor;
+
+  protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
+  protected ArrayList<Double> errors;
+  protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
+  protected double biasEstimate;
 
   /**
    * @param dataFile
@@ -123,7 +131,7 @@ public class MassCalibrationTask extends AbstractTask {
     MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
             standardsList);
 
-    ArrayList<Double> errors = new ArrayList<Double>();
+    errors = new ArrayList<Double>();
 
     scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;
@@ -162,13 +170,15 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime());
+      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime(),
+              massPeakMatches);
       errors.addAll(massListErrors);
 
       processedScans++;
     }
 
-    double biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates);
+    Collections.sort(errors);
+    biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {
@@ -206,6 +216,22 @@ public class MassCalibrationTask extends AbstractTask {
 
     logger.info("Finished mass calibration on " + dataFile);
 
+  }
+
+  public ArrayList<MassPeakMatch> getMassPeakMatches() {
+    return massPeakMatches;
+  }
+
+  public ArrayList<Double> getErrors() {
+    return errors;
+  }
+
+  public HashMap<String, DistributionRange> getErrorRanges() {
+    return errorRanges;
+  }
+
+  public double getBiasEstimate() {
+    return biasEstimate;
   }
 
 }

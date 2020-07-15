@@ -27,10 +27,7 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.Sta
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -80,12 +77,21 @@ public class MassCalibrator {
    *
    * @param massList
    * @param retentionTime
+   * @param matchesStore if not null, mass peak matches made in the process will be added to the list store
    * @return
    */
-  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime,
+                                              List<MassPeakMatch> matchesStore) {
     List<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime);
+    if (matchesStore != null) {
+      matchesStore.addAll(matches);
+    }
     ArrayList<Double> errors = getErrors(matches);
     return errors;
+  }
+
+   public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
+    return findMassListErrors(massList, retentionTime, null);
   }
 
   /**
@@ -93,9 +99,15 @@ public class MassCalibrator {
    *
    * @param errors list of errors
    * @param unique filter out duplicates from the list of errors if unique is set to true
+   * @param errorRangeStore if not null, error ranges extracted in the process will be added to the map store
    * @return measurement bias estimate
    */
-  public double estimateBiasFromErrors(List<Double> errors, boolean unique) {
+  public double estimateBiasFromErrors(List<Double> errors, boolean unique,
+                                       Map<String, DistributionRange> errorRangeStore) {
+    if (errorRangeStore == null) {
+      errorRangeStore = new HashMap<>();
+    }
+
     if (unique) {
       Set<Double> errorsSet = new HashSet<Double>(errors);
       errors = new ArrayList<Double>(errorsSet);
@@ -106,17 +118,32 @@ public class MassCalibrator {
       DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
               errorDistributionDistance);
       extracted = stretchedRange.getExtractedItems();
+
+      errorRangeStore.put("Most populated range", range);
+      if (errorDistributionDistance != 0) {
+        errorRangeStore.put("Tolerance extended range", stretchedRange);
+      }
+
     } else if (errorDistributionDistance != 0) {
       DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
               errorDistributionDistance);
       extracted = biggestCluster.getExtractedItems();
+
+      errorRangeStore.put("Biggest range by tolerance", biggestCluster);
+
     } else {
+      DistributionRange wholeRange = DistributionExtractor.wholeRange(errors);
       extracted = errors;
+
     }
     double biasEstimate = BiasEstimator.arithmeticMean(extracted);
     logger.info(String.format("Errors %d, extracted %d, unique %s, bias estimate %f",
             errors.size(), extracted.size(), unique ? "true" : "false", biasEstimate));
     return biasEstimate;
+  }
+
+  public double estimateBiasFromErrors(List<Double> errors, boolean unique) {
+    return estimateBiasFromErrors(errors, unique, null);
   }
 
   /**
