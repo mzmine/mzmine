@@ -20,12 +20,13 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 
 
 import com.google.common.collect.Range;
-import dulab.adap.common.types.MutableDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import org.apache.commons.lang3.mutable.MutableDouble;
 
 /**
  * This class contains all the data members and functions for finding cliques or groups using
@@ -49,33 +51,28 @@ public class ComputeCliqueModule {
   private final List<PeakData> peakDataList;
   private final RawDataFile rawDataFile;
 
+  private final CliqueMSTask drivertask;
+
   //variables to update progress
   private final MutableDouble progress;
-  private final double initialProgress;
-  private double matrixCalcProgress; //variable to record matrix calculation and manipulation progress
-
-  private void updateProgress(){
-    //TODO find approx time taken for matrix calculation wrt whole process
-    this.progress.set(this.initialProgress+0.65*this.matrixCalcProgress); //Let's say matrix calculation takes 65% of whole process
-  }
 
   //cosine correlation matrix calculated over columns of EIC matrix
   private double[][] cosineCorrelation;
 
-  public ComputeCliqueModule(PeakList peakList, RawDataFile rdf, MutableDouble progress){
+  public ComputeCliqueModule(PeakList peakList, RawDataFile rdf, MutableDouble progress, CliqueMSTask task){
     this.rawDataFile = rdf;
     this.peakList =peakList;
     this.progress = progress;
-    initialProgress = progress.get();
+    drivertask = task;
     peakDataList = getPeakDatafromPeaks(peakList,rdf);
     anClique = new AnClique(peakDataList,rdf);
   }
 
   /**
    * Extracts necessary data from rawdatafile
-   * @param peakList
-   * @param dataFile
-   * @return
+   * @param peakList feature lists
+   * @param dataFile raw Data File
+   * @return PeakData contains sufficient data for cliqueMS algorithm
    */
   private List<PeakData> getPeakDatafromPeaks(PeakList peakList, RawDataFile dataFile){
     List<PeakData> peakDataList = new ArrayList<>();
@@ -104,10 +101,16 @@ public class ComputeCliqueModule {
   }
 
   /**
-   * return EIC matrix of intensities, which is used to calculate cosine similarity matrix
+   * EIC matrix is a axb (a = #rts or #scans, b = #features) dimension matrix. The ith column
+   * corresponds for the ith feature. For each column, the jth row value is calculated as follows -
+   * 1) If j does not lies in the index of rt range of the ith feature, value is 0 (EIC[j][i] = 0)
+   * 2) Else, the value is the mean intensities for the jth scan's datapoints' intensities (only
+   *   those intensities whose corresponding mass in datapoint is in the mzRange of ith feature)
+   *
+   * EIC matrix is further used to calculate cosine similarity matrix
    * @param file raw data file
-   * @param peakDataList
-   * @return
+   * @param peakDataList contains peak data
+   * @return double [][] EIC matrix
    */
   private double[][] getEIC(RawDataFile file, List<PeakData> peakDataList){
     List<List<DataPoint>> dataPoints = new ArrayList<>(); // contains m/z and intensity data
@@ -127,6 +130,9 @@ public class ComputeCliqueModule {
     }
 
     for(int i=0; i<peakDataList.size() ; i++){
+      if(drivertask.isCanceled()){
+        return EIC;
+      }
       PeakData pd = peakDataList.get(i);
       int posrtmin = rts.indexOf(pd.getRtmin() * 60.0); // position where peak matches rtmin
       int posrtmax = rts.indexOf(pd.getRtmax() * 60.0); // position where peak matches rtmax
@@ -156,8 +162,7 @@ public class ComputeCliqueModule {
 
       }
 //      progress update
-      matrixCalcProgress = 0.4 * ((double)i/(double)peakDataList.size()); // EIC matrix calculation takes about 40% of all matrix calculations
-      updateProgress();
+      this.progress.setValue(drivertask.EIC_PROGRESS*((double)i/(double)peakDataList.size()));
     }
 
     return EIC;
@@ -167,8 +172,10 @@ public class ComputeCliqueModule {
   //TODO make use of sparse matrix, make algo time efficient
 
   /**
-   * Computes cosine correlation of data (EIC) matrix, of the columns, so i*j data matrix returns j*j
-   * cosine similarity matrix
+   * Computes cosine correlation of data (EIC) matrix over the columns, so for ixj dimension EIC
+   * matrix, the [x,y]th element of cosine correlation matrix contains the cosine similarity between
+   * the xth and the yth column of EIC matrix, so cosine correlation matrix has dimension jxj
+   *
    * @param data EIC matrix
    * @return cosine correlation matrix
    */
@@ -182,10 +189,12 @@ public class ComputeCliqueModule {
       }
     }
 
-    double initialmatProgres = matrixCalcProgress;
 
     for(int i=0; i<col ; i++){
       for(int j=0; j<col; j++){
+        if(drivertask.isCanceled()){
+          return corr;
+        }
         double modi = 0.0, modj = 0.0;
         for(int k=0;k<row;k++){
           corr[i][j] += data[k][i] * data[k][j];
@@ -197,8 +206,7 @@ public class ComputeCliqueModule {
         corr[i][j] = corr[i][j]/(modi*modj);
       }
       //update progress
-      matrixCalcProgress = initialmatProgres + 0.5*((double)(i+1)/(double)col); // Cosine matrix calculation takes about 50% time of all matrix calculations
-      updateProgress();
+      this.progress.setValue(drivertask.EIC_PROGRESS + drivertask.MATRIX_PROGRESS*((double)(i+1)/(double)col));
     }
     return corr;
   }
@@ -206,13 +214,15 @@ public class ComputeCliqueModule {
 
 
   /**
-   *
    * identify peaks with very similar cosine correlation, m/z, rt and intensity
-   *
-   *
+   * @param cosineCorr cosine correlation matrix
+   * @param peakDataList contains features' information
+   * @param mzdiff  tolerance value for mz
+   * @param intdiff tolerance value for intensity
+   * @param rtdiff tolerance value for rt
    * @return node ID of similar features
    */
-  private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList, MZTolerance mzdiff, double rtdiff,
+  private List<Integer> similarFeatures(double[][] cosineCorr, List<PeakData> peakDataList, MZTolerance mzdiff, RTTolerance rtdiff,
       double  intdiff){
     //find all elements in cosineCorr with i<j and value > 0.99
     List<Integer> edgeX = new ArrayList<>();
@@ -232,10 +242,10 @@ public class ComputeCliqueModule {
         PeakData p1 = peakDataList.get(edgeX.get(i));
         PeakData p2 = peakDataList.get(edgeY.get(i));
         Range<Double> mz_Range = mzdiff.getToleranceRange(p1.getMz());
-        double error_rt = (p1.getRt()- p2.getRt()) / p1.getRt() ;
-        double error_int = (p1.getIntensity() - p2.getIntensity()) / p1.getIntensity() ;
-        if((mz_Range.contains(p2.getMz())) && (error_rt < rtdiff) && (error_int < intdiff)){
-          Integer node = ( edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i) );
+        Range<Double> rt_Range = rtdiff.getToleranceRange(p1.getRt());
+        double error_int = Math.abs(p1.getIntensity() - p2.getIntensity()) / p1.getIntensity();
+        if((mz_Range.contains(p2.getMz())) && (rt_Range.contains(p2.getRt())) && (error_int < intdiff)){
+          Integer node = ( edgeX.get(i) < edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)) ;
           identicalNodes.add((edgeX.get(i) >= edgeY.get(i) ? edgeX.get(i) : edgeY.get(i)));
           nodesToDelete.add(node);
         }
@@ -289,12 +299,12 @@ public class ComputeCliqueModule {
    * @param rtdiff tolerance values for similarity
    * @param intdiff tolerance values for similarity
    */
-  private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, MZTolerance mzdiff, double rtdiff,
+  private void filterFeatures(double[][] cosinus, List<PeakData> peakDL, MZTolerance mzdiff, RTTolerance rtdiff,
       double  intdiff){
     List<PeakData> modifiedPeakDataList = new ArrayList<>();
     List<Integer> deleteIndices = similarFeatures(cosinus, peakDL, mzdiff, rtdiff, intdiff);
     if(deleteIndices.size()==0){
-      logger.log(Level.INFO,"No feature deleted");
+      logger.log(Level.FINEST,"No feature deleted");
       return;
     }
 
@@ -311,7 +321,6 @@ public class ComputeCliqueModule {
     //deleting row and columns of indices in deleteIndices
     int colShift = 0;
 
-    double initialmatProgress = matrixCalcProgress;
 
     for(int i=0; i<cosinus.length ; i++){
       int rowShift = 0;
@@ -328,9 +337,6 @@ public class ComputeCliqueModule {
       }
 
 
-      //updateProgress();
-      matrixCalcProgress = initialmatProgress +  0.1*((double)(i+1)/(double)cosinus.length);
-      updateProgress();
 
     }
 
@@ -338,7 +344,7 @@ public class ComputeCliqueModule {
 
     this.cosineCorrelation = modifiedCosineCorr;
     anClique.changePeakDataList(modifiedPeakDataList);
-    logger.log(Level.INFO,deleteIndices.size()+" features deleted.");
+    logger.log(Level.FINEST,deleteIndices.size()+" features deleted.");
 
 
   }
@@ -386,25 +392,30 @@ public class ComputeCliqueModule {
    * @param tol tolerance for log likelihood function which is minimized for finding the clique.
    * @return AnClique object with calculated cliques.
    */
-  public AnClique getClique(boolean filter, MZTolerance mzdiff, double rtdiff, double  intdiff,
+  public AnClique getClique(boolean filter, MZTolerance mzdiff, RTTolerance rtdiff, double  intdiff,
       double tol){
 
      if(anClique.cliquesFound){
        logger.log(Level.WARNING,"cliques have already been computed!");
      }
-    double EIC[][] = getEIC(rawDataFile, peakDataList);
+     double EIC[][] = getEIC(rawDataFile, peakDataList);
+
+     if(drivertask.isCanceled()){
+       return anClique;
+     }
+
     this.cosineCorrelation = cosCorrbyColumn(EIC);
+     if(drivertask.isCanceled()){
+       return anClique;
+     }
     if(filter)
       filterFeatures(cosineCorrelation, peakDataList, mzdiff, rtdiff, intdiff);
 
-    //update progress
-    matrixCalcProgress = 1.0;
-    updateProgress();
 
     List<Integer> nodeIDList = new ArrayList<>();
     for(PeakData pd : peakDataList)
       nodeIDList.add(pd.getNodeID());
-    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false ,this.progress);
+    anClique.getNetwork().returnCliques(cosineCorrelation, nodeIDList, tol, false ,this.progress, this.drivertask);
     updateCliques();
     this.anClique.cliquesFound = true;
     this.anClique.computeCliqueFromResult();
@@ -417,6 +428,6 @@ public class ComputeCliqueModule {
    * @return AnClique object
    */
   public AnClique getClique() {
-    return getClique(true, new MZTolerance(0,5), 0.0001, 0.0001, .000001);
+    return getClique(true, new MZTolerance(0,5),new RTTolerance(false,0.0001), 0.0001, .000001);
   }
 }

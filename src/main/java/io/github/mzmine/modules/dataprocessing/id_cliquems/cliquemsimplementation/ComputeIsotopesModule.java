@@ -19,9 +19,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import io.github.mzmine.taskcontrol.AbstractTask;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -37,12 +37,14 @@ import javafx.util.Pair;
  */
 public class ComputeIsotopesModule {
 
-  private Logger logger = Logger.getLogger(getClass().getName());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private AnClique anClique;
+  private final AbstractTask driverTask;
+  private final AnClique anClique;
 
-  public ComputeIsotopesModule(AnClique anClique){
+  public ComputeIsotopesModule(AnClique anClique, AbstractTask task){
     this.anClique = anClique;
+    this.driverTask = task;
   }
 
 
@@ -53,6 +55,9 @@ public class ComputeIsotopesModule {
       pdHash.put(pd.getNodeID(),pd);
     }
     for(Integer cliqueID : this.anClique.cliques.keySet()){
+      if(driverTask.isCanceled()){
+        return;
+      }
       List<Pair<Double, Pair<Double,Integer>>> inData = new ArrayList<>(); // contains following data -> intensity, mz value, nodeID
       for(Integer cliquenodeID : this.anClique.cliques.get(cliqueID)){
         PeakData pd = pdHash.get(cliquenodeID);
@@ -60,17 +65,8 @@ public class ComputeIsotopesModule {
         Pair<Double,Pair<Double,Integer>> isoInput = new Pair(pd.getIntensity(),p);
         inData.add(isoInput);
       }
-      Collections.sort(inData, (o1, o2) -> {
-        if(o1.getKey()<o2.getKey()){
-          return 1;
-        }
-        else if(o1.getKey().equals(o2.getKey())){
-          return 0;
-        }
-        else{
-          return -1;
-        }
-      });
+
+      Collections.sort(inData, (o1, o2) -> Double.compare(o2.getKey(),o1.getKey()));
 
       IsotopeAnCliqueMS an = new IsotopeAnCliqueMS(inData);
       an.getIsotopes(maxCharge,ppm,isom);
@@ -96,6 +92,10 @@ public class ComputeIsotopesModule {
     }
     logger.log(Level.INFO,"Computing Isotopes");
     computelistofIsoTable(maxCharge, maxGrade, ppm, isom);
+
+    if(driverTask.isCanceled()){
+      return;
+    }
   }
   public void getIsotopes(){
     getIsotopes(3,2,10,1.003355);

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
-import dulab.adap.common.types.MutableDouble;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
@@ -29,10 +29,19 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.mutable.MutableDouble;
 
 public class CliqueMSTask extends AbstractTask {
   // Logger.
   private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
+
+  //progress constants
+  //TODO change the constant values
+  public final double EIC_PROGRESS = 0.1 ; // EIC calculation takes about 10% time
+  public final double MATRIX_PROGRESS = 0.6 ; // Cosine matrix calculation takes about 60% time
+  public final double NET_PROGRESS = 0.1 ; // Network calculations takes 10% time
+
+
 
 
   // Feature list to process.
@@ -62,7 +71,7 @@ public class CliqueMSTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return progress.get();
+    return progress.getValue();
   }
 
   @Override
@@ -74,30 +83,30 @@ public class CliqueMSTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    this.progress.set(0.0);
+    this.progress.setValue(0.0);
 
     try {
       //TODO multiple rawDataFile support
-      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0),progress);
+      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0),progress, this);
       // Check if not canceled
       if (isCanceled())
         return;
       AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
           parameters.getParameter(CliqueMSParameters.MZ_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue().getTolerance(),
+          parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.IN_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.TOL).getValue());
       // Check if not canceled
       if (isCanceled())
         return;
-      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique);
+      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique,this);
       cim.getIsotopes();
       // Check if not canceled
       if (isCanceled())
         return;
 
       // Finished.
-      this.progress.set(1.0);
+      this.progress.setValue(1.0);
       setStatus(TaskStatus.FINISHED);
     }
     catch(Exception e){
