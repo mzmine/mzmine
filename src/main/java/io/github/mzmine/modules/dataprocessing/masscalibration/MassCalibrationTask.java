@@ -177,6 +177,12 @@ public class MassCalibrationTask extends AbstractTask {
       processedScans++;
     }
 
+    System.out.println("measured mz, measured rt, matched mz, matched rt");
+    for(MassPeakMatch match: massPeakMatches){
+      System.out.println(String.format("%s, %s, %s, %s", match.getMeasuredMzRatio(), match.getMeasuredRetentionTime(),
+              match.getMatchedMzRatio(), match.getMatchedRetentionTime()));
+    }
+
     Collections.sort(errors);
     biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
 
