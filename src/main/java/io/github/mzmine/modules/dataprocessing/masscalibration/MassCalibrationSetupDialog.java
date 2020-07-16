@@ -90,8 +90,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   private ParameterSet parameters;
 
-  JFreeChart distributionChart;
-  EChartViewer distributionChartViewer;
+//  JFreeChart distributionChart;
+//  EChartViewer distributionChartViewer;
+
+  private final ErrorDistributionChart errorDistributionChart;
 
   /**
    * @param parameters
@@ -180,10 +182,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     spectrumPlot = new SpectraPlot();
     spectrumPlot.setMinSize(400, 300);
 
-    distributionChart = createEmptyDistributionChart();
+    /*distributionChart = createEmptyDistributionChart();
     distributionChartViewer = new EChartViewer(distributionChart);
 //    distributionChartViewer = new EChartViewer(distributionChart, true, true, true, true, false);
-    distributionChartViewer.setMinSize(400, 300);
+    distributionChartViewer.setMinSize(400, 300);*/
+
+    errorDistributionChart = new ErrorDistributionChart();
+    errorDistributionChart.setMinSize(400, 300);
 
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
@@ -211,10 +216,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       }
     });*/
 
-    distributionChartViewer.visibleProperty().bind(previewCheckBox.selectedProperty());
-    distributionChartViewer.visibleProperty().addListener((c, o, n) -> {
+    errorDistributionChart.visibleProperty().bind(previewCheckBox.selectedProperty());
+    errorDistributionChart.visibleProperty().addListener((c, o, n) -> {
       if (n == true) {
-        mainPane.setCenter(distributionChartViewer);
+        mainPane.setCenter(errorDistributionChart);
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
@@ -298,9 +303,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 //            previewTask.getBiasEstimate());
 
 
-    XYPlot distributionPlot = distributionChart.getXYPlot();
+    /*XYPlot distributionPlot = distributionChart.getXYPlot();
     cleanDistributionPlot(distributionPlot);
     updateDistributionPlot(distributionPlot, previewTask.getErrors(), previewTask.getErrorRanges(),
+            previewTask.getBiasEstimate());*/
+
+    errorDistributionChart.cleanDistributionPlot();
+    errorDistributionChart.updateDistributionPlot(previewTask.getErrors(), previewTask.getErrorRanges(),
             previewTask.getBiasEstimate());
 
   }
