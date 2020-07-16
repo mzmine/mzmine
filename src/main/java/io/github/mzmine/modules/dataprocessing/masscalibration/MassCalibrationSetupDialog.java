@@ -127,24 +127,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane = new StackPane();
     chartsPane.getChildren().add(errorDistributionChart);
-    chartsPane.getChildren().add(errorVsMzChart);
-    chartsPane.getChildren().add(measuredVsMatchedMzChart);
     chartsPane.setMaxHeight(Double.MAX_VALUE);
     chartsPane.setMaxWidth(Double.MAX_VALUE);
 
-    errorDistributionChart.visibleProperty().bind(previewCheckBox.selectedProperty());
-    errorDistributionChart.visibleProperty().addListener((c, o, n) -> {
+    chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
+    chartsPane.visibleProperty().addListener((c, o, n) -> {
       if (n == true) {
-//        mainPane.setCenter(errorDistributionChart);
-//        mainPane.setCenter(chartsPane);
-        Toggle choice = chartChoice.getSelectedToggle();
-        mainPane.setCenter(errorDistributionChart);
-        if (choice == errorVsMzButton) {
-          mainPane.setCenter(errorVsMzChart);
-        }
-        else if (choice == measuredVsMatchedMzButton) {
-          mainPane.setCenter(measuredVsMatchedMzChart);
-        }
+        mainPane.setCenter(chartsPane);
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
@@ -180,12 +169,16 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     }
 
     Toggle choice = chartChoice.getSelectedToggle();
-    mainPane.setCenter(errorDistributionChart);
+    chartsPane.getChildren().clear();
     if (choice == errorVsMzButton) {
-      mainPane.setCenter(errorVsMzChart);
-    }
-    else if (choice == measuredVsMatchedMzButton) {
-      mainPane.setCenter(measuredVsMatchedMzChart);
+//      mainPane.setCenter(errorVsMzChart);
+      chartsPane.getChildren().add(errorVsMzChart);
+    } else if (choice == measuredVsMatchedMzButton) {
+//      mainPane.setCenter(measuredVsMatchedMzChart);
+      chartsPane.getChildren().add(measuredVsMatchedMzChart);
+    } else {
+//      mainPane.setCenter(errorDistributionChart);
+      chartsPane.getChildren().add(errorDistributionChart);
     }
 
     errorDistributionChart.cleanDistributionPlot();

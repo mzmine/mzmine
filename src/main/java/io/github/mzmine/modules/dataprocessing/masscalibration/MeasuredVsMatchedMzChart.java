@@ -19,24 +19,18 @@
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 
-import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Chart for measured mz vs matched mz plots (xy scatter plot of measured mz vs matched mz)
@@ -72,18 +66,18 @@ public class MeasuredVsMatchedMzChart extends EChartViewer {
   }
 
   public void cleanPlot() {
-    XYPlot distributionPlot = chart.getXYPlot();
-    for (int i = 0; i < distributionPlot.getDatasetCount(); i++) {
-      distributionPlot.setDataset(i, null);
+    XYPlot plot = chart.getXYPlot();
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      plot.setDataset(i, null);
     }
-    distributionPlot.clearRangeMarkers();
+    plot.clearRangeMarkers();
   }
 
   public void updatePlot(List<MassPeakMatch> matches) {
-    XYPlot distributionPlot = chart.getXYPlot();
+    XYPlot plot = chart.getXYPlot();
 
     XYDataset dataset = createChartDataset(matches);
-    distributionPlot.setDataset(dataset);
+    plot.setDataset(dataset);
   }
 
   protected XYDataset createChartDataset(List<MassPeakMatch> matches) {
@@ -93,14 +87,6 @@ public class MeasuredVsMatchedMzChart extends EChartViewer {
     }
 
     return new XYSeriesCollection(errorsXY);
-  }
-
-  protected ValueMarker createValueMarker(String label, double value) {
-    ValueMarker valueMarker = new ValueMarker(value);
-    valueMarker.setLabel(label);
-    valueMarker.setPaint(Color.black);
-    valueMarker.setLabelTextAnchor(TextAnchor.BASELINE_LEFT);
-    return valueMarker;
   }
 
 }

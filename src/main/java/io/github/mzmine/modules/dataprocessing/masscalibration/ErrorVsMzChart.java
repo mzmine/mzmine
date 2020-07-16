@@ -72,19 +72,19 @@ public class ErrorVsMzChart extends EChartViewer {
   }
 
   public void cleanPlot() {
-    XYPlot distributionPlot = chart.getXYPlot();
-    for (int i = 0; i < distributionPlot.getDatasetCount(); i++) {
-      distributionPlot.setDataset(i, null);
+    XYPlot plot = chart.getXYPlot();
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      plot.setDataset(i, null);
     }
-    distributionPlot.clearRangeMarkers();
+    plot.clearRangeMarkers();
   }
 
   public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
                          double biasEstimate) {
-    XYPlot distributionPlot = chart.getXYPlot();
+    XYPlot plot = chart.getXYPlot();
 
     XYDataset dataset = createChartDataset(matches);
-    distributionPlot.setDataset(dataset);
+    plot.setDataset(dataset);
 
     for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);
@@ -92,10 +92,10 @@ public class ErrorVsMzChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-      distributionPlot.addRangeMarker(valueMarkerLower);
-      distributionPlot.addRangeMarker(valueMarkerUpper);
+      plot.addRangeMarker(valueMarkerLower);
+      plot.addRangeMarker(valueMarkerUpper);
     }
-    distributionPlot.addRangeMarker(createValueMarker("Bias estimate", biasEstimate));
+    plot.addRangeMarker(createValueMarker("Bias estimate", biasEstimate));
   }
 
   protected XYDataset createChartDataset(List<MassPeakMatch> matches) {
