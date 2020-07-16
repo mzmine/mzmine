@@ -110,9 +110,10 @@ public class ErrorVsMzChart extends EChartViewer {
 
   protected ValueMarker createValueMarker(String label, double value) {
     ValueMarker valueMarker = new ValueMarker(value);
-    valueMarker.setLabel(label);
-    valueMarker.setPaint(Color.black);
+    valueMarker.setLabel(String.format("%s: %.4f", label, value));
+    valueMarker.setPaint(Color.blue);
     valueMarker.setLabelTextAnchor(TextAnchor.BASELINE_LEFT);
+    valueMarker.setLabelPaint(Color.blue);
     return valueMarker;
   }
 
