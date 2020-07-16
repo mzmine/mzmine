@@ -61,7 +61,7 @@ public class ErrorVsMzChart extends EChartViewer {
 
   public static JFreeChart createEmptyChart(String title) {
     XYItemRenderer renderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
-    NumberAxis xAxis = new NumberAxis("m/z ratio");
+    NumberAxis xAxis = new NumberAxis("Measured m/z ratio");
     NumberAxis yAxis = new NumberAxis("PPM error");
     XYPlot plot = new XYPlot(null, xAxis, yAxis, renderer);
     plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -102,7 +102,7 @@ public class ErrorVsMzChart extends EChartViewer {
     XYSeries errorsXY = new XYSeries("PPM errors");
     for (MassPeakMatch match : matches) {
       double error = MassCalibrator.massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio());
-      errorsXY.add(match.getMatchedMzRatio(), error);
+      errorsXY.add(match.getMeasuredMzRatio(), error);
     }
 
     return new XYSeriesCollection(errorsXY);
