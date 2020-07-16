@@ -44,12 +44,7 @@ import java.util.Map;
  */
 public class ErrorDistributionChart extends EChartViewer {
 
-  private JFreeChart distributionChart;
-
-  /*public ErrorDistributionChart(String title) {
-    chart = createEmptyDistributionChart(title);
-    super(chart);
-  }*/
+  private final JFreeChart distributionChart;
 
   protected ErrorDistributionChart(JFreeChart chart) {
     super(chart);
@@ -64,6 +59,18 @@ public class ErrorDistributionChart extends EChartViewer {
     this("Error distribution");
   }
 
+  public static JFreeChart createEmptyDistributionChart(String title) {
+    XYItemRenderer renderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
+    NumberAxis xAxis = new NumberAxis("Match number");
+    NumberAxis yAxis = new NumberAxis("PPM error");
+    XYPlot plot = new XYPlot(null, xAxis, yAxis, renderer);
+    plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+    plot.setDomainCrosshairVisible(false);
+    plot.setRangeCrosshairVisible(false);
+
+    return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+  }
+
   public void cleanDistributionPlot() {
     XYPlot distributionPlot = distributionChart.getXYPlot();
     for (int i = 0; i < distributionPlot.getDatasetCount(); i++) {
@@ -72,14 +79,14 @@ public class ErrorDistributionChart extends EChartViewer {
     distributionPlot.clearRangeMarkers();
   }
 
-  public void updateDistributionPlot(List<Double> errors, Map<String,
-            DistributionRange> errorRanges, double biasEstimate) {
+  public void updateDistributionPlot(List<Double> errors, Map<String, DistributionRange> errorRanges,
+                                     double biasEstimate) {
     XYPlot distributionPlot = distributionChart.getXYPlot();
 
     XYDataset dataset = createDistributionDataset(errors);
     distributionPlot.setDataset(dataset);
 
-    for(String label: errorRanges.keySet()) {
+    for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);
       Range<Double> errorValueRange = errorRange.getValueRange();
 
@@ -88,17 +95,16 @@ public class ErrorDistributionChart extends EChartViewer {
       distributionPlot.addRangeMarker(valueMarkerLower);
       distributionPlot.addRangeMarker(valueMarkerUpper);
     }
-		distributionPlot.addRangeMarker(createValueMarker("Bias estimate", biasEstimate));
+    distributionPlot.addRangeMarker(createValueMarker("Bias estimate", biasEstimate));
   }
 
   protected XYDataset createDistributionDataset(List<Double> errors) {
     XYSeries errorsXY = new XYSeries("PPM errors");
-		for(int i = 0; i < errors.size(); i++)
-		{
-			errorsXY.add(i+1, errors.get(i));
-		}
+    for (int i = 0; i < errors.size(); i++) {
+      errorsXY.add(i + 1, errors.get(i));
+    }
 
-		return new XYSeriesCollection(errorsXY);
+    return new XYSeriesCollection(errorsXY);
   }
 
   protected ValueMarker createValueMarker(String label, double value) {
@@ -109,20 +115,4 @@ public class ErrorDistributionChart extends EChartViewer {
     return valueMarker;
   }
 
-  public static JFreeChart createEmptyDistributionChart(String title) {
-    XYItemRenderer renderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
-		NumberAxis xAxis = new NumberAxis("Match number");
-		NumberAxis yAxis = new NumberAxis("PPM error");
-		XYPlot plot = new XYPlot(null, xAxis, yAxis, renderer);
-		plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-		plot.setDomainCrosshairVisible(false);
-		plot.setRangeCrosshairVisible(false);
-
-		return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
-  }
-
-  /*@Override
-  public JFreeChart getChart() {
-    return chart;
-  }*/
 }
