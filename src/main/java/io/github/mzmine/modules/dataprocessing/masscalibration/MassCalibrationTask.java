@@ -57,7 +57,7 @@ public class MassCalibrationTask extends AbstractTask {
   private StandardsListExtractor standardsListExtractor;
 
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
-  protected ArrayList<Double> errors;
+  protected ArrayList<Double> errors = new ArrayList<>();
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
 
@@ -131,8 +131,6 @@ public class MassCalibrationTask extends AbstractTask {
     MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
             standardsList);
 
-    errors = new ArrayList<Double>();
-
     scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;
 
@@ -175,12 +173,6 @@ public class MassCalibrationTask extends AbstractTask {
       errors.addAll(massListErrors);
 
       processedScans++;
-    }
-
-    System.out.println("measured mz, measured rt, matched mz, matched rt");
-    for(MassPeakMatch match: massPeakMatches){
-      System.out.println(String.format("%s, %s, %s, %s", match.getMeasuredMzRatio(), match.getMeasuredRetentionTime(),
-              match.getMatchedMzRatio(), match.getMatchedRetentionTime()));
     }
 
     Collections.sort(errors);
