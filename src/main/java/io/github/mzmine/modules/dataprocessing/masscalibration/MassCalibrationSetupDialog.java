@@ -159,10 +159,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    MassCalibrationTask previewTask = new MassCalibrationTask(previewDataFile, parameterSet);
+    MassCalibrationTask previewTask = new MassCalibrationTask(previewDataFile, parameterSet, false);
     previewTask.run();
 
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
+      if (previewTask.getErrorMessage() != null) {
+        MZmineCore.getDesktop().displayMessage("Mass calibration error message: " + previewTask.getErrorMessage());
+      }
       return;
     }
 

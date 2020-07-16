@@ -108,6 +108,12 @@ public class MassCalibrator {
       errorRangeStore = new HashMap<>();
     }
 
+    if (errors.size() == 0) {
+      double biasEstimate = BiasEstimator.arithmeticMean(errors);
+      logger.info("Errors zero, bias estimate zero");
+      return biasEstimate;
+    }
+
     if (unique) {
       Set<Double> errorsSet = new HashSet<Double>(errors);
       errors = new ArrayList<Double>(errorsSet);

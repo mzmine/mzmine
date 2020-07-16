@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
@@ -61,20 +62,27 @@ public class MassCalibrationTask extends AbstractTask {
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
 
+  protected boolean displayWarningMessages = true;
+
   /**
    * @param dataFile
    * @param parameters
    */
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean displayWarningMessages) {
 
     this.dataFile = dataFile;
     this.parameters = parameters;
+    this.displayWarningMessages = displayWarningMessages;
 
     this.massListName = parameters.getParameter(MassCalibrationParameters.massList).getValue();
 
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
     this.autoRemove = parameters.getParameter(MassCalibrationParameters.autoRemove).getValue();
 
+  }
+
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
+    this(dataFile, parameters, true);
   }
 
   /**
@@ -114,6 +122,12 @@ public class MassCalibrationTask extends AbstractTask {
               .getAbsolutePath();
       standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename);
       standardsList = standardsListExtractor.extractStandardsList();
+
+      if (standardsList.getStandardMolecules().size() == 0) {
+        throw new RuntimeException("Empty standards list extracted, make sure the file adheres to the expected" +
+                " format, first column is retention time given in minutes, second column is ion formula string.");
+      }
+
     } catch (Exception e) {
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
@@ -173,6 +187,16 @@ public class MassCalibrationTask extends AbstractTask {
       errors.addAll(massListErrors);
 
       processedScans++;
+    }
+
+    if (errors.size() == 0) {
+      String warningMessage = "No matches were made between the extracted standards list and the mass lists" +
+                      " in the selected raw datafile. The module will continue to calibrate mass lists using" +
+                      " no matches, the bias estimate is zero, so the mass peaks will be shifted by zero.";
+      logger.warning("Mass calibration warning: " + warningMessage);
+      if (displayWarningMessages){
+        MZmineCore.getDesktop().displayMessage("Mass calibration warning", warningMessage);
+      }
     }
 
     Collections.sort(errors);
