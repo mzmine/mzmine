@@ -28,9 +28,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.util.ArrayList;
 
@@ -40,13 +38,16 @@ import java.util.ArrayList;
  */
 public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
+  private final ErrorDistributionChart errorDistributionChart;
+  private final ErrorVsMzChart errorVsMzChart;
+
   // Dialog components
   private final BorderPane pnlPreviewFields;
   private final FlowPane pnlDataFile;
+  private final Pane chartsPane;
   private final VBox pnlControls;
   private final ComboBox<RawDataFile> comboDataFileName;
   private final CheckBox previewCheckBox;
-  private final ErrorDistributionChart errorDistributionChart;
   private final RawDataFile[] dataFiles;
   private final RawDataFile previewDataFile;
 
@@ -89,6 +90,9 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorDistributionChart = new ErrorDistributionChart();
     errorDistributionChart.setMinSize(400, 300);
 
+    errorVsMzChart = new ErrorVsMzChart();
+    errorVsMzChart.setMinSize(400, 300);
+
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
     BorderPane.setAlignment(pnlControls, Pos.CENTER);
@@ -99,10 +103,17 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlPreviewFields.setCenter(pnlControls);
     pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
 
+    chartsPane = new StackPane();
+//    chartsPane.getChildren().add(errorDistributionChart);
+    chartsPane.getChildren().add(errorVsMzChart);
+    chartsPane.setMaxHeight(Double.MAX_VALUE);
+    chartsPane.setMaxWidth(Double.MAX_VALUE);
+
     errorDistributionChart.visibleProperty().bind(previewCheckBox.selectedProperty());
     errorDistributionChart.visibleProperty().addListener((c, o, n) -> {
       if (n == true) {
-        mainPane.setCenter(errorDistributionChart);
+//        mainPane.setCenter(errorDistributionChart);
+        mainPane.setCenter(chartsPane);
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
@@ -139,6 +150,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     errorDistributionChart.cleanDistributionPlot();
     errorDistributionChart.updateDistributionPlot(previewTask.getErrors(), previewTask.getErrorRanges(),
+            previewTask.getBiasEstimate());
+
+    errorVsMzChart.cleanPlot();
+    errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
             previewTask.getBiasEstimate());
   }
 
