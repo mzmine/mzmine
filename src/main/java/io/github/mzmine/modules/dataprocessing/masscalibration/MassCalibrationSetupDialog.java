@@ -127,8 +127,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane = new StackPane();
     chartsPane.getChildren().add(errorDistributionChart);
-    chartsPane.setMaxHeight(Double.MAX_VALUE);
-    chartsPane.setMaxWidth(Double.MAX_VALUE);
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
     chartsPane.visibleProperty().addListener((c, o, n) -> {
@@ -171,13 +169,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     Toggle choice = chartChoice.getSelectedToggle();
     chartsPane.getChildren().clear();
     if (choice == errorVsMzButton) {
-//      mainPane.setCenter(errorVsMzChart);
       chartsPane.getChildren().add(errorVsMzChart);
     } else if (choice == measuredVsMatchedMzButton) {
-//      mainPane.setCenter(measuredVsMatchedMzChart);
       chartsPane.getChildren().add(measuredVsMatchedMzChart);
     } else {
-//      mainPane.setCenter(errorDistributionChart);
       chartsPane.getChildren().add(errorDistributionChart);
     }
 
