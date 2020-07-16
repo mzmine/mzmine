@@ -24,10 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.geometry.Pos;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import java.util.ArrayList;
@@ -40,12 +37,17 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   private final ErrorDistributionChart errorDistributionChart;
   private final ErrorVsMzChart errorVsMzChart;
+  private final MeasuredVsMatchedMzChart measuredVsMatchedMzChart;
 
   // Dialog components
   private final BorderPane pnlPreviewFields;
   private final FlowPane pnlDataFile;
   private final Pane chartsPane;
   private final VBox pnlControls;
+  private final ToggleGroup chartChoice;
+  private final RadioButton errorDistributionButton;
+  private final RadioButton errorVsMzButton;
+  private final RadioButton measuredVsMatchedMzButton;
   private final ComboBox<RawDataFile> comboDataFileName;
   private final CheckBox previewCheckBox;
   private final RawDataFile[] dataFiles;
@@ -93,19 +95,40 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzChart = new ErrorVsMzChart();
     errorVsMzChart.setMinSize(400, 300);
 
+    measuredVsMatchedMzChart = new MeasuredVsMatchedMzChart();
+    measuredVsMatchedMzChart.setMinSize(400, 300);
+
+    chartChoice = new ToggleGroup();
+    errorDistributionButton = new RadioButton("Error distribution");
+    errorDistributionButton.setToggleGroup(chartChoice);
+    errorDistributionButton.setSelected(true);
+    errorVsMzButton = new RadioButton("Error size vs mz ratio");
+    errorVsMzButton.setToggleGroup(chartChoice);
+    measuredVsMatchedMzButton = new RadioButton("Measured vs matched mz");
+    measuredVsMatchedMzButton.setToggleGroup(chartChoice);
+    chartChoice.selectedToggleProperty().addListener(e -> parametersChanged());
+
+    FlowPane chartChoicePane = new FlowPane();
+    chartChoicePane.getChildren().add(errorDistributionButton);
+    chartChoicePane.getChildren().add(errorVsMzButton);
+    chartChoicePane.getChildren().add(measuredVsMatchedMzButton);
+    chartChoicePane.setHgap(5);
+
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
     BorderPane.setAlignment(pnlControls, Pos.CENTER);
 
     // Put all together
     pnlControls.getChildren().add(pnlDataFile);
+    pnlControls.getChildren().add(chartChoicePane);
     pnlPreviewFields = new BorderPane();
     pnlPreviewFields.setCenter(pnlControls);
     pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
 
     chartsPane = new StackPane();
-//    chartsPane.getChildren().add(errorDistributionChart);
+    chartsPane.getChildren().add(errorDistributionChart);
     chartsPane.getChildren().add(errorVsMzChart);
+    chartsPane.getChildren().add(measuredVsMatchedMzChart);
     chartsPane.setMaxHeight(Double.MAX_VALUE);
     chartsPane.setMaxWidth(Double.MAX_VALUE);
 
@@ -113,7 +136,15 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorDistributionChart.visibleProperty().addListener((c, o, n) -> {
       if (n == true) {
 //        mainPane.setCenter(errorDistributionChart);
-        mainPane.setCenter(chartsPane);
+//        mainPane.setCenter(chartsPane);
+        Toggle choice = chartChoice.getSelectedToggle();
+        mainPane.setCenter(errorDistributionChart);
+        if (choice == errorVsMzButton) {
+          mainPane.setCenter(errorVsMzChart);
+        }
+        else if (choice == measuredVsMatchedMzButton) {
+          mainPane.setCenter(measuredVsMatchedMzChart);
+        }
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
@@ -148,6 +179,15 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       return;
     }
 
+    Toggle choice = chartChoice.getSelectedToggle();
+    mainPane.setCenter(errorDistributionChart);
+    if (choice == errorVsMzButton) {
+      mainPane.setCenter(errorVsMzChart);
+    }
+    else if (choice == measuredVsMatchedMzButton) {
+      mainPane.setCenter(measuredVsMatchedMzChart);
+    }
+
     errorDistributionChart.cleanDistributionPlot();
     errorDistributionChart.updateDistributionPlot(previewTask.getErrors(), previewTask.getErrorRanges(),
             previewTask.getBiasEstimate());
@@ -155,6 +195,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzChart.cleanPlot();
     errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
             previewTask.getBiasEstimate());
+
+    measuredVsMatchedMzChart.cleanPlot();
+    measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
+
   }
 
   @Override
