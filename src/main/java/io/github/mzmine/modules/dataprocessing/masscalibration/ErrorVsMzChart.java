@@ -30,6 +30,8 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.function.Function2D;
+import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -105,7 +107,14 @@ public class ErrorVsMzChart extends EChartViewer {
       errorsXY.add(match.getMeasuredMzRatio(), error);
     }
 
-    return new XYSeriesCollection(errorsXY);
+    XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
+
+    Function2D trend = new WeightedKnnTrend(errorsXY);
+    XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
+            dataset.getDomainUpperBound(false), 1000, "trend series");
+    dataset.addSeries(trendSeries);
+
+    return dataset;
   }
 
   protected ValueMarker createValueMarker(String label, double value) {
