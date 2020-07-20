@@ -53,11 +53,11 @@ public class ComputeIsotopesModule {
 
 
 
-  private HashSet<Integer> findBadFeatures(List<Integer> feature, List<Double> weights){
+  private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights){
     // Drop one parental mass when one isotope has two parental masses candidates
     // This code corresponds to the filterInlinks or filterOutLinks function in the R code
     HashMap <Integer,Integer> IFeatureHash = new HashMap<>();
-    HashSet<Integer> duplicateIFindex = new HashSet<>();//this contains indices to be deleted from all features
+    List<Integer> duplicateIFindex = new ArrayList<>();//this contains indices to be deleted from all features
     for(int i = 0 ; i<feature.size() ; i++){
       if(IFeatureHash.containsKey(feature.get(i))){
         Integer duplicateFeature = feature.get(i);
@@ -101,9 +101,10 @@ public class ComputeIsotopesModule {
     }
 
     // First filter isotopes pointing to two different parents
-    HashSet<Integer> deletepos = findBadFeatures(iFeature, weights);
+    List<Integer> deletepos = findBadFeatures(iFeature, weights);
     // Second filter parents pointed by two different isotopes
     deletepos.addAll(findBadFeatures(pFeature,weights));
+    Collections.sort(deletepos, Collections.reverseOrder());
     //removing the indices
     for(Integer index : deletepos){
       pFeature.remove((int)index);
