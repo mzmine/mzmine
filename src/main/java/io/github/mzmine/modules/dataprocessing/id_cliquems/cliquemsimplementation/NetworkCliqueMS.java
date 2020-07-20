@@ -66,7 +66,13 @@ public class NetworkCliqueMS {
       for(int j=i+1; j<adjacencyMatrix[0].length ; j++ ){
         if(adjacencyMatrix[i][j]>0.0){
           Pair<Integer, Integer> p = new Pair(nodeIDList.get(i), nodeIDList.get(j));
-          this.edges.put(p,adjacencyMatrix[i][j]);
+          if(adjacencyMatrix[i][j] == 1){
+            // change similarity of 1 to 0.99999999999 to non avoid NaN
+            this.edges.put(p,0.99999999999);
+          }
+          else{
+            this.edges.put(p,adjacencyMatrix[i][j]);
+          }
         }
       }
     }
