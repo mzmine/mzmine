@@ -19,7 +19,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
-import javax.annotation.concurrent.Immutable;
 
 /**
  * Data taken from PeakListRow necessary for CliqueMS grouping and annotation
@@ -29,7 +28,6 @@ import javax.annotation.concurrent.Immutable;
  *
  */
 
-@Immutable
 public class PeakData {
 
 
@@ -44,6 +42,10 @@ public class PeakData {
   private final int nodeID;
   // To get the peakListRow corresponding to this node.
   private final int peakListRowID;
+
+  private int cliqueID;
+  private String isotopeAnnotation;
+  private String adductAnnotation;
 
   public double getMz() {
     return mz;
@@ -81,6 +83,31 @@ public class PeakData {
     return peakListRowID;
   }
 
+
+  public int getCliqueID() {
+    return cliqueID;
+  }
+
+  public void setCliqueID(int cliqueID) {
+    this.cliqueID = cliqueID;
+  }
+
+  public String getIsotopeAnnotation() {
+    return isotopeAnnotation;
+  }
+
+  public void setIsotopeAnnotation(String isotopeAnnotation) {
+    this.isotopeAnnotation = isotopeAnnotation;
+  }
+
+  public String getAdductAnnotation() {
+    return adductAnnotation;
+  }
+
+  public void setAdductAnnotation(String adductAnnotation) {
+    this.adductAnnotation = adductAnnotation;
+  }
+
   PeakData(double mz, double mzmin, double mzmax, double rt, double rtmin, double rtmax, double intensity, int nodeID, int peakListRowID){
     this.mz = mz ;
     this.mzmin =  mzmin ;
@@ -103,6 +130,9 @@ public class PeakData {
     this.intensity = p.intensity;
     this.nodeID = p.nodeID;
     this.peakListRowID = p.peakListRowID;
+    this.cliqueID = p.cliqueID;
+    this.isotopeAnnotation = p.isotopeAnnotation;
+    this.adductAnnotation = p.adductAnnotation;
   }
 
 }

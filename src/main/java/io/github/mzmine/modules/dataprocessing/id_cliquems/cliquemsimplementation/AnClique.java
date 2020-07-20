@@ -35,7 +35,7 @@ public class AnClique {
 
   //TODO is RawDatafile required later in annotation?
 
-  private List<PeakData> peakData;
+  private List<PeakData> peakDataList;
   private RawDataFile dataFile;
   private NetworkCliqueMS network = new NetworkCliqueMS();
   boolean cliquesFound = false;
@@ -43,17 +43,17 @@ public class AnClique {
   // key - clique ID, value - List of nodes which are part of the clique.
   public HashMap<Integer,List<Integer>> cliques = new HashMap<>();
 
-  AnClique(List<PeakData> peakData, RawDataFile file){
-    this.peakData = peakData;
+  AnClique(List<PeakData> peakDataList, RawDataFile file){
+    this.peakDataList = peakDataList;
     this.dataFile = file;
   }
 
   public List<PeakData> getPeakList(){
-    return peakData;
+    return peakDataList;
   }
 
   public void changePeakDataList(List<PeakData> pd){
-    this.peakData = pd;
+    this.peakDataList = pd;
   }
 
   public RawDataFile getRawDataFile(){
@@ -66,6 +66,13 @@ public class AnClique {
 
   public void computeCliqueFromResult(){
     List<Pair<Integer,Integer>> nodeCliqueList = this.network.getResultNode_clique();
+
+    //firstly, generate hash from nodeID to peakData
+    HashMap<Integer, PeakData> nodeToPeak = new HashMap<>();
+    for(PeakData pd : this.peakDataList){
+      nodeToPeak.put(pd.getNodeID(),pd);
+    }
+
     for(Pair<Integer,Integer> p : nodeCliqueList){
       if(this.cliques.containsKey(p.getValue())){
         this.cliques.get(p.getValue()).add(p.getKey());
@@ -75,6 +82,9 @@ public class AnClique {
         l.add(p.getKey());
         this.cliques.put(p.getValue(), l);
       }
+
+      //update clique IDs in peakData
+      nodeToPeak.get(p.getKey()).setCliqueID(p.getValue());
     }
   }
 

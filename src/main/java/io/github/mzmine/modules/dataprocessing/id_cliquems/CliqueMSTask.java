@@ -20,14 +20,18 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.PeakData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
@@ -104,6 +108,14 @@ public class CliqueMSTask extends AbstractTask {
       // Check if not canceled
       if (isCanceled())
         return;
+      //TODO complete isotope and adduct annotation
+
+
+      addFeatureIdentity(anClique);
+      // Check if not canceled
+      if (isCanceled())
+        return;
+
 
       // Finished.
       this.progress.setValue(1.0);
@@ -114,5 +126,17 @@ public class CliqueMSTask extends AbstractTask {
       setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n" +
           e.getMessage());
     }
+  }
+
+  private void addFeatureIdentity(AnClique anClique){
+    List<PeakData> pdList =  anClique.getPeakList();
+
+    for(PeakData pd : pdList){
+      SimplePeakIdentity identity = new SimplePeakIdentity("Node #"+pd.getNodeID());
+      identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD,"CliqueMS algorithm");
+      identity.setPropertyValue("Clique-ID",String.valueOf(pd.getCliqueID()));
+      this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
+    }
+
   }
 }

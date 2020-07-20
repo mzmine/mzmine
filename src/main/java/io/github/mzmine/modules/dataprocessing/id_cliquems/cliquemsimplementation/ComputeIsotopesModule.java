@@ -90,7 +90,7 @@ public class ComputeIsotopesModule {
     if(anClique.isoFound){
       logger.log(Level.WARNING,"Isotopes have been already computed for this object");
     }
-    logger.log(Level.INFO,"Computing Isotopes");
+    logger.log(Level.FINEST,"Computing Isotopes");
     computelistofIsoTable(maxCharge, maxGrade, ppm, isom);
 
     if(driverTask.isCanceled()){
