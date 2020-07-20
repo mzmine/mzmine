@@ -61,6 +61,10 @@ public class NetworkCliqueMS {
   //Result of Kernighan and aggregate algorithm
   private final List<Pair<Integer,Integer>> resultNode_clique = new ArrayList<>();
 
+  public HashMap<Pair<Integer,Integer>, Double> getEdges(){
+    return edges;
+  }
+
   private void createEdges(double[][] adjacencyMatrix, List<Integer> nodeIDList){
     for(int i=0; i<adjacencyMatrix.length ; i++){
       for(int j=i+1; j<adjacencyMatrix[0].length ; j++ ){
@@ -390,7 +394,7 @@ public class NetworkCliqueMS {
       diff = 1 - Math.abs(currentlogl/lastlogl); // difference in log likelihood after one complete round of node reassignments
       rcount++;
     }
-    logger.log(Level.INFO, "Kernighan-Lin done with "+rcount+" rounds");
+    logger.log(Level.FINEST, "Kernighan-Lin done with "+rcount+" rounds");
     return loglResult;
   }
 
@@ -432,8 +436,8 @@ public class NetworkCliqueMS {
     Double diff = 1.0 - Math.abs(currentlogl/firstlogl); // difference in log likelihood after one complete round of node reassignments
       // rest of rounds
     if(!silent){
-      logger.log(Level.INFO,"After " + tcount + " rounds logl is " + currentlogl);
-      logger.log(Level.INFO,"Still computing cliques");
+      logger.log(Level.FINEST,"After " + tcount + " rounds logl is " + currentlogl);
+      logger.log(Level.FINEST,"Still computing cliques");
     }
     while( diff > tol ){
       Set<Integer> cliquesRound = new HashSet<>();
@@ -461,11 +465,11 @@ public class NetworkCliqueMS {
       cliquesRound.clear(); // remove all cliques from the set for the next while round
       diff = 1.0 - Math.abs(currentlogl/lastlogl);
       if(!silent){
-        logger.log(Level.INFO,"After "+tcount+" rounds logl is "+currentlogl );
-        logger.log(Level.INFO, "Still computing cliques");
+        logger.log(Level.FINEST,"After "+tcount+" rounds logl is "+currentlogl );
+        logger.log(Level.FINEST, "Still computing cliques");
       }
     }
-    logger.log(Level.INFO,"Aggregate cliques done, with "+tcount+" rounds.");
+    logger.log(Level.FINEST,"Aggregate cliques done, with "+tcount+" rounds.");
     // Kernighan-Lin after aggregation of cliques
     List<Double> loglLast = itReassign(tol,currentlogl);
     loglResult.addAll(loglLast);
@@ -478,7 +482,7 @@ public class NetworkCliqueMS {
       this.driverTask = task;
       createNetwork(adjacencyMatrix, nodeIDList);
       Double logl = logltotal();
-      logger.log(Level.INFO,"Beginning value of logl is "+logl);
+      logger.log(Level.FINEST,"Beginning value of logl is "+logl);
       int step = 10;
       List<Double> loglList = aggregateAndKernighan(tolerance, step, silent);
       for(Integer v: this.nodes.keySet()){
@@ -486,7 +490,7 @@ public class NetworkCliqueMS {
         resultNode_clique.add(p);
       }
       Double loglfinal = logltotal();
-      logger.log(Level.INFO,"Finishing value of logl is "+ loglfinal);
+      logger.log(Level.FINEST,"Finishing value of logl is "+ loglfinal);
 
     }
     catch (Exception e){

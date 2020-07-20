@@ -113,6 +113,7 @@ public class CliqueMSTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n" +
           e.getMessage());
+      e.printStackTrace();
     }
   }
 }
