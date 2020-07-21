@@ -51,12 +51,12 @@ public class WeightedKnnTrend implements Function2D {
 //    item.getXValue();
 
     ArrayList<XYDataItem> neighbors = findNeighbors(x);
-    System.out.println(x + " " + neighbors.size());
+//    System.out.println(x + " " + neighbors.size());
     double arithmeticMean = neighbors.stream().mapToDouble(item -> item.getYValue()).average().orElse(0);
-    System.out.println(arithmeticMean);
+    /*System.out.println(arithmeticMean);
     for(XYDataItem item: neighbors) {
       System.out.println(item.getXValue() + " " + item.getYValue());
-    }
+    }*/
     return arithmeticMean;
 
 //    return Arrays.stream(items).mapToDouble(item -> item.getYValue()).average().orElse(0);
@@ -68,7 +68,7 @@ public class WeightedKnnTrend implements Function2D {
     if (position < 0) {
       position = -1 * (position + 1);
     }
-    System.out.println("position: " + position);
+//    System.out.println("position: " + position);
 
     ArrayList<XYDataItem> closestNeighbors = new ArrayList<>();
     int lower = position;

@@ -90,13 +90,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlDataFile.getChildren().add(comboDataFileName);
 
     errorDistributionChart = new ErrorDistributionChart();
-    errorDistributionChart.setMinSize(400, 300);
+    errorDistributionChart.setMinSize(800, 600);
 
     errorVsMzChart = new ErrorVsMzChart();
-    errorVsMzChart.setMinSize(400, 300);
+    errorVsMzChart.setMinSize(800, 600);
 
     measuredVsMatchedMzChart = new MeasuredVsMatchedMzChart();
-    measuredVsMatchedMzChart.setMinSize(400, 300);
+    measuredVsMatchedMzChart.setMinSize(800, 600);
 
     chartChoice = new ToggleGroup();
     errorDistributionButton = new RadioButton("Error distribution");
@@ -126,6 +126,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
 
     chartsPane = new StackPane();
+    chartsPane.setMinSize(1000, 800);
     chartsPane.getChildren().add(errorDistributionChart);
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
