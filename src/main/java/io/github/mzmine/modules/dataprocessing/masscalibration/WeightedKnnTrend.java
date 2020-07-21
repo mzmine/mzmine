@@ -38,48 +38,43 @@ public class WeightedKnnTrend implements Function2D {
   protected XYDataItem[] items;
   protected int neighbors;
 
-  public WeightedKnnTrend(XYSeries dataset) {
+  public WeightedKnnTrend(XYSeries dataset, int neighbors) {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
-    this.neighbors = 10;
-    this.neighbors = (int) (items.length * 0.1);
+    this.neighbors = Math.min(Math.max(neighbors, 1), items.length);
+  }
+
+  public WeightedKnnTrend(XYSeries dataset, double neighbors) {
+    this(dataset, (int) Math.round(dataset.getItemCount() * neighbors));
+  }
+
+  public WeightedKnnTrend(XYSeries dataset) {
+    this(dataset, 0.1);
   }
 
   @Override
   public double getValue(double x) {
-//    XYDataItem item = items[0];
-//    item.getXValue();
-
     ArrayList<XYDataItem> neighbors = findNeighbors(x);
-//    System.out.println(x + " " + neighbors.size());
     double arithmeticMean = neighbors.stream().mapToDouble(item -> item.getYValue()).average().orElse(0);
-    /*System.out.println(arithmeticMean);
-    for(XYDataItem item: neighbors) {
-      System.out.println(item.getXValue() + " " + item.getYValue());
-    }*/
     return arithmeticMean;
-
-//    return Arrays.stream(items).mapToDouble(item -> item.getYValue()).average().orElse(0);
   }
 
   protected ArrayList<XYDataItem> findNeighbors(double x) {
-//    int position = Arrays.binarySearch(items, x);
     int position = Arrays.binarySearch(items, new XYDataItem(x, 0));
     if (position < 0) {
       position = -1 * (position + 1);
     }
-//    System.out.println("position: " + position);
 
     ArrayList<XYDataItem> closestNeighbors = new ArrayList<>();
     int lower = position;
     int upper = position;
-    int neighbors = Math.min(this.neighbors, this.items.length);
+    if (upper + 1 < items.length) {
+      upper++;
+    }
 
     while (closestNeighbors.size() < neighbors) {
-      Double lowerNeighbor = null;
-      Double upperNeighbor = null;
-      lowerNeighbor = Double.MIN_VALUE;
-      upperNeighbor = Double.MAX_VALUE;
+      Double lowerNeighbor = Double.NEGATIVE_INFINITY;
+      Double upperNeighbor = Double.POSITIVE_INFINITY;
 
       if (lower >= 0) {
         lowerNeighbor = items[lower].getXValue();
