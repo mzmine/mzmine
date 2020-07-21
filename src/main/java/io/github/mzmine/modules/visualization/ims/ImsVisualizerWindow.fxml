@@ -9,7 +9,7 @@
         <Pane layoutX="-1.0" layoutY="40.0" prefHeight="497.0" prefWidth="628.0">
             <children>
                 <BorderPane fx:id="topLeftPane" layoutX="2.0" layoutY="-2.0" prefHeight="219.0" prefWidth="628.0" />
-                <BorderPane fx:id="topRightPane" layoutX="1.0" layoutY="216.0" prefHeight="284.0" prefWidth="628.0" />
+                <BorderPane fx:id="topRightPane" layoutX="1.0" layoutY="208.0" prefHeight="292.0" prefWidth="628.0" />
             </children>
         </Pane>
         <Pane layoutY="577.0" prefHeight="310.0" prefWidth="628.0">

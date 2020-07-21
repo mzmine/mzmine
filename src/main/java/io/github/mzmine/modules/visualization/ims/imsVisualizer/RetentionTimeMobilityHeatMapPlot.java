@@ -149,7 +149,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     legend.setFrame(new BlockBorder(Color.white));
     legend.setPadding(new RectangleInsets(10, 10, 10, 10));
     legend.setStripWidth(10);
-    legend.setPosition(RectangleEdge.RIGHT);
+    legend.setPosition(RectangleEdge.TOP);
     legend.getAxis().setLabelFont(legendFont);
     legend.getAxis().setTickLabelFont(legendFont);
 
@@ -172,7 +172,4 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     return plot;
   }
 
-  public PaintScaleLegend getLegend() {
-    return legend;
-  }
 }
