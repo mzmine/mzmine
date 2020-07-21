@@ -121,6 +121,8 @@
 				userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule" />
 			<MenuItem text="mzTab-m" onAction="#runModule"
 					  userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule" />
+			<MenuItem text="csv" onAction="#runModule"
+				userData="io.github.mzmine.modules.io.csvimport.CsvImportModule" />
 		</Menu>
 
 		<Menu text="Export feature list">
@@ -287,6 +289,8 @@
 					userData="io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule" />
 				<MenuItem text="Complex search" onAction="#runModule"
 					userData="io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule" />
+				<MenuItem text="CliqueMS group" onAction="#runModule"
+					userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule" />
 			</Menu>
 
 		</Menu>
