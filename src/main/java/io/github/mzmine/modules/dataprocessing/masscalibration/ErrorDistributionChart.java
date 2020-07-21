@@ -60,23 +60,21 @@ public class ErrorDistributionChart extends EChartViewer {
   }
 
   public static JFreeChart createEmptyDistributionChart(String title) {
-    XYItemRenderer renderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
     NumberAxis xAxis = new NumberAxis("Match number");
     NumberAxis yAxis = new NumberAxis("PPM error");
-    XYPlot plot = new XYPlot(null, xAxis, yAxis, renderer);
+    XYPlot plot = new XYPlot(null, xAxis, yAxis, ChartUtils.createErrorsRenderer());
     plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
+
+
 
     return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
   }
 
   public void cleanDistributionPlot() {
     XYPlot distributionPlot = distributionChart.getXYPlot();
-    for (int i = 0; i < distributionPlot.getDatasetCount(); i++) {
-      distributionPlot.setDataset(i, null);
-    }
-    distributionPlot.clearRangeMarkers();
+    ChartUtils.cleanPlot(distributionPlot);
   }
 
   public void updateDistributionPlot(List<Double> errors, Map<String, DistributionRange> errorRanges,
@@ -90,12 +88,12 @@ public class ErrorDistributionChart extends EChartViewer {
       DistributionRange errorRange = errorRanges.get(label);
       Range<Double> errorValueRange = errorRange.getValueRange();
 
-      ValueMarker valueMarkerLower = createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
-      ValueMarker valueMarkerUpper = createValueMarker(label + " upper", errorValueRange.upperEndpoint());
+      ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
+      ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
       distributionPlot.addRangeMarker(valueMarkerLower);
       distributionPlot.addRangeMarker(valueMarkerUpper);
     }
-    distributionPlot.addRangeMarker(createValueMarker("Bias estimate", biasEstimate));
+    distributionPlot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
   }
 
   protected XYDataset createDistributionDataset(List<Double> errors) {
@@ -106,14 +104,4 @@ public class ErrorDistributionChart extends EChartViewer {
 
     return new XYSeriesCollection(errorsXY);
   }
-
-  protected ValueMarker createValueMarker(String label, double value) {
-    ValueMarker valueMarker = new ValueMarker(value);
-    valueMarker.setLabel(String.format("%s: %.4f", label, value));
-    valueMarker.setPaint(Color.blue);
-    valueMarker.setLabelTextAnchor(TextAnchor.BASELINE_LEFT);
-    valueMarker.setLabelPaint(Color.blue);
-    return valueMarker;
-  }
-
 }

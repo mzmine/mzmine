@@ -67,10 +67,7 @@ public class MeasuredVsMatchedMzChart extends EChartViewer {
 
   public void cleanPlot() {
     XYPlot plot = chart.getXYPlot();
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      plot.setDataset(i, null);
-    }
-    plot.clearRangeMarkers();
+    ChartUtils.cleanPlot(plot);
   }
 
   public void updatePlot(List<MassPeakMatch> matches) {
