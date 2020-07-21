@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  */
 public class MassCalibrator {
 
-  protected static final ErrorType massError = new PpmError();
+  public static final ErrorType massError = new PpmError();
 
   protected final RTTolerance retentionTimeTolerance;
   protected final MZTolerance mzRatioTolerance;

@@ -16,17 +16,15 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 
-import com.google.common.math.Stats;
 import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Weighted knn trend,
@@ -67,10 +65,7 @@ public class WeightedKnnTrend implements Function2D {
 
     ArrayList<XYDataItem> closestNeighbors = new ArrayList<>();
     int lower = position;
-    int upper = position;
-    if (upper + 1 < items.length) {
-      upper++;
-    }
+    int upper = position + 1;
 
     while (closestNeighbors.size() < neighbors) {
       Double lowerNeighbor = Double.NEGATIVE_INFINITY;
@@ -83,20 +78,12 @@ public class WeightedKnnTrend implements Function2D {
         upperNeighbor = items[upper].getXValue();
       }
 
-      if (lower == upper) {
+      if (Math.abs(x - lowerNeighbor) < Math.abs(x - upperNeighbor)) {
         closestNeighbors.add(items[lower]);
         lower--;
+      } else {
+        closestNeighbors.add(items[upper]);
         upper++;
-      }
-      else {
-        if (Math.abs(x - lowerNeighbor) < Math.abs(x - upperNeighbor)) {
-          closestNeighbors.add(items[lower]);
-          lower--;
-        }
-        else {
-          closestNeighbors.add(items[upper]);
-          upper++;
-        }
       }
 
     }

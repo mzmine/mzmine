@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
@@ -34,7 +34,7 @@ public class ChartUtils {
     plot.clearRangeMarkers();
   }
 
-   public static ValueMarker createValueMarker(String label, double value) {
+  public static ValueMarker createValueMarker(String label, double value) {
     ValueMarker valueMarker = new ValueMarker(value);
     valueMarker.setLabel(String.format("%s: %.4f", label, value));
     valueMarker.setPaint(Color.blue);

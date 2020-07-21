@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration;
+package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 
 import com.google.common.collect.Range;
@@ -25,11 +25,9 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.Dis
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.function.Function2D;
-import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -37,50 +35,49 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Chart for error size vs mz ratio plots (xy scatter plot of error values vs mz ratio)
+ * Chart for error distribution (xy scatter plot of error values vs match number, sorted by error size)
  * with additional extraction ranges and bias estimates lines shown up
  */
-public class ErrorVsMzChart extends EChartViewer {
+public class ErrorDistributionChart extends EChartViewer {
 
-  private final JFreeChart chart;
-  private final XYPlot plot;
+  private final JFreeChart distributionChart;
 
-  protected ErrorVsMzChart(JFreeChart chart) {
+  protected ErrorDistributionChart(JFreeChart chart) {
     super(chart);
-    this.chart = chart;
-    this.plot = chart.getXYPlot();
+    distributionChart = chart;
   }
 
-  public ErrorVsMzChart(String title) {
-    this(createEmptyChart(title));
+  public ErrorDistributionChart(String title) {
+    this(createEmptyDistributionChart(title));
   }
 
-  public ErrorVsMzChart() {
-    this("Error size vs mz ratio");
+  public ErrorDistributionChart() {
+    this("Error distribution");
   }
 
-  public static JFreeChart createEmptyChart(String title) {
-    NumberAxis xAxis = new NumberAxis("Measured m/z ratio");
+  public static JFreeChart createEmptyDistributionChart(String title) {
+    NumberAxis xAxis = new NumberAxis("Match number");
     NumberAxis yAxis = new NumberAxis("PPM error");
-    XYPlot plot = new XYPlot(null, xAxis, yAxis, null);
+    XYPlot plot = new XYPlot(null, xAxis, yAxis, ChartUtils.createErrorsRenderer());
     plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
 
-    plot.setRenderer(0, ChartUtils.createErrorsRenderer());
-    plot.setRenderer(1, ChartUtils.createTrendRenderer());
-    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
     return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
   }
 
-  public void cleanPlot() {
-    ChartUtils.cleanPlot(plot);
+  public void cleanDistributionPlot() {
+    XYPlot distributionPlot = distributionChart.getXYPlot();
+    ChartUtils.cleanPlot(distributionPlot);
   }
 
-  public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
-                         double biasEstimate) {
-    updateChartDataset(matches);
+  public void updateDistributionPlot(List<Double> errors, Map<String, DistributionRange> errorRanges,
+                                     double biasEstimate) {
+    XYPlot distributionPlot = distributionChart.getXYPlot();
+
+    XYDataset dataset = createDistributionDataset(errors);
+    distributionPlot.setDataset(dataset);
 
     for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);
@@ -88,26 +85,18 @@ public class ErrorVsMzChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-      plot.addRangeMarker(valueMarkerLower);
-      plot.addRangeMarker(valueMarkerUpper);
+      distributionPlot.addRangeMarker(valueMarkerLower);
+      distributionPlot.addRangeMarker(valueMarkerUpper);
     }
-    plot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+    distributionPlot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
   }
 
-  protected void updateChartDataset(List<MassPeakMatch> matches) {
+  protected XYDataset createDistributionDataset(List<Double> errors) {
     XYSeries errorsXY = new XYSeries("PPM errors");
-    for (MassPeakMatch match : matches) {
-      double error = MassCalibrator.massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio());
-      errorsXY.add(match.getMeasuredMzRatio(), error);
+    for (int i = 0; i < errors.size(); i++) {
+      errorsXY.add(i + 1, errors.get(i));
     }
 
-    XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
-    plot.setDataset(0, dataset);
-
-    Function2D trend = new WeightedKnnTrend(errorsXY);
-    XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
-            dataset.getDomainUpperBound(false), 1000, "trend series");
-    XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
-    plot.setDataset(1, trendDataset);
+    return new XYSeriesCollection(errorsXY);
   }
 }

@@ -20,6 +20,9 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.ErrorDistributionChart;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.ErrorVsMzChart;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.MeasuredVsMatchedMzChart;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
