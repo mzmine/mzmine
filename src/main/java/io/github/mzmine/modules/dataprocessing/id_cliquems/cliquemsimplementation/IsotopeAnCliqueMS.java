@@ -73,9 +73,7 @@ public class IsotopeAnCliqueMS {
     return finalIso;
   }
 
-  private IsoTest isIsotope(Double mz1, Double mz2, Integer maxCharge, Double ppm){
-    return isIsotope(mz1,mz2,maxCharge,ppm,1.003355);
-  }
+
 
   public void getIsotopes(Integer maxCharge, Double ppm, Double  isom ){
 

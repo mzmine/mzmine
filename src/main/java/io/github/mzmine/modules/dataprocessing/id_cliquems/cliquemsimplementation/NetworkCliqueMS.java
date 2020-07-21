@@ -61,6 +61,10 @@ public class NetworkCliqueMS {
   //Result of Kernighan and aggregate algorithm
   private final List<Pair<Integer,Integer>> resultNode_clique = new ArrayList<>();
 
+  public HashMap<Pair<Integer,Integer>, Double> getEdges(){
+    return edges;
+  }
+
   private void createEdges(double[][] adjacencyMatrix, List<Integer> nodeIDList){
     for(int i=0; i<adjacencyMatrix.length ; i++){
       for(int j=i+1; j<adjacencyMatrix[0].length ; j++ ){
