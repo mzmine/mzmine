@@ -20,33 +20,106 @@ package io.github.mzmine.datamodel;
 
 public enum IonizationType {
 
-  NO_IONIZATION("No ionization", "", 0, PolarityType.NEUTRAL), //
-  POSITIVE("[M]+", "+", -0.00054857990946, PolarityType.POSITIVE), //
-  NEGATIVE("[M]-", "-", 0.00054857990946, PolarityType.NEGATIVE), //
-  POSITIVE_HYDROGEN("[M+H]+", "H", 1.00728, PolarityType.POSITIVE), //
-  NEGATIVE_HYDROGEN("[M-H]-", "H-1", -1.00728, PolarityType.NEGATIVE), //
-  POTASSIUM("[M+K]+", "K", 38.96316, PolarityType.POSITIVE), //
-  SODIUM("[M+Na]+", "Na", 22.98922, PolarityType.POSITIVE), //
-  LITHIUM("[M+Li]+", "Li", 7.01546, PolarityType.POSITIVE), //
-  AMMONIUM("[M+NH4]+", "NH4", 18.03383, PolarityType.POSITIVE), //
-  CARBONATE("[M+CO3]-", "CO3", 59.98529, PolarityType.NEGATIVE), //
-  PHOSPHATE("[M+H2PO4]-", "H2PO4", 96.96962, PolarityType.NEGATIVE), //
-  FORMATE("[M+HCOO]-", "HCOO", 44.998201, PolarityType.NEGATIVE), //
-  ACETATE("[M+CH3COO]-", "CH3COO", 59.013851, PolarityType.NEGATIVE), //
-  TRIFLUORACETATE("[M+CF3COO]-", "CF3COO", 112.985586, PolarityType.NEGATIVE), //
-  CHLORIDE("[M+Cl]-", "Cl", 34.969402, PolarityType.NEGATIVE), //
-  BROMIDE("[M+Br]-", "Br", 78.918885, PolarityType.NEGATIVE); //
+  NO_IONIZATION("No ionization", "", 0, PolarityType.NEUTRAL,-6,0,0), //
+  POSITIVE("[M]+", "+", -0.00054857990946, PolarityType.POSITIVE,-6,1,1), //
+  NEGATIVE("[M]-", "-", 0.00054857990946, PolarityType.NEGATIVE,-6,1,-1), //
+  POSITIVE_HYDROGEN("[M+H]+", "H",1.007276,PolarityType.POSITIVE,-0.268998651917666,1,1), //
+  NEGATIVE_HYDROGEN("[M-H]-", "H-1",-1.007276,PolarityType.NEGATIVE,-0.172110574929576,1,-1), //
+  POTASSIUM("[M+K]+", "K", 38.963158,PolarityType.POSITIVE,-2.41599440912713,1,1), //
+  SODIUM("[M+Na]+", "Na",22.989218,PolarityType.POSITIVE,-0.963288182616102,1,1), //
+  LITHIUM("[M+Li]+", "Li", 7.01546, PolarityType.POSITIVE,-6,1,1), //
+  AMMONIUM("[M+NH4]+", "NH4",18.033823,PolarityType.POSITIVE,-2.49171512306525,1,1), //
+  CARBONATE("[M+CO3]-", "CO3", 59.98529, PolarityType.NEGATIVE,-6,1,-1), //
+  PHOSPHATE("[M+H2PO4]-", "H2PO4", 96.96962, PolarityType.NEGATIVE,-6,1,-1), //
+  FORMATE("[M+HCOO]-", "HCOO", 44.998201, PolarityType.NEGATIVE,-1,1,-1), //
+  ACETATE("[M+CH3COO]-", "CH3COO", 59.013851, PolarityType.NEGATIVE,-6,1,-1), //
+  TRIFLUORACETATE("[M+CF3COO]-", "CF3COO", 112.985586, PolarityType.NEGATIVE,-6,1,-1), //
+  CHLORIDE("[M+Cl]-", "Cl", 34.969402, PolarityType.NEGATIVE,-6,1,-1), //
+  BROMIDE("[M+Br]-", "Br", 78.918885, PolarityType.NEGATIVE,-6,1,-1), //
+
+  NAME1("[M+2H-NH3]2+","2H",-15.0120166,PolarityType.POSITIVE,-3.51290442213519,1,2),//
+
+  NAME2("[Cat]3+","+3",-0.001645737,PolarityType.POSITIVE,-3.51290442213519,1,3),//
+
+  NAME3("[Cat]2+","+2",-0.0010404,PolarityType.POSITIVE,-3.51290442213519,1,2),//
+
+  NAME4("[Cat+H]2+","+,H",1.006178842,PolarityType.POSITIVE,-3.33681316307951,1,2),//
+
+  NAME5("[M+2H]2+","2H",2.014552,PolarityType.POSITIVE,-1.81393441779917,1,2),//
+
+  NAME6("[M+H+Na]2+","H,Na",23.996494,PolarityType.POSITIVE,-2.69999106549233,1,2),//
+
+  NAME7("[M+2H+Na]3+","2H,Na",25.00377,PolarityType.POSITIVE,-3.81393441779917,1,3),//
+
+  NAME8("[M+H+K]2+","H,K",39.970434,PolarityType.POSITIVE,-2.23415082118236,1,2),//
+
+  NAME9("[M+2Na]2+","2Na",45.978436,PolarityType.POSITIVE,-2.66780638212093,1,2),//
+
+  NAME10("[M+H+2Na]3+","H,2Na",46.98573,PolarityType.POSITIVE,-3.51290442213519,1,3),//
+
+  NAME11("[M+3Na]3+","3Na",68.967654,PolarityType.POSITIVE,-3.51290442213519,1,3),//
+
+  //NAME12("[M+H]+","",1.007276,PolarityType.POSITIVE,-0.268998651917666,1,1),//
+
+  NAME13("[M+H-H2O]+","H",-17.0032778,PolarityType.POSITIVE,-0.747608492437131,1,1),//
+
+//  NAME14("[M+Na]+","",22.989218,PolarityType.POSITIVE,-0.963288182616102,1,1),//
+
+  NAME15("[M+H-NH3]+","H",-16.01927432,PolarityType.POSITIVE,-1.58862513607331,1,1),//
+
+  NAME16("[M-H+2Na]+","2Na",44.97116444,PolarityType.POSITIVE,-1.85969190835984,1,1),//
+
+  NAME17("[Cat]+","+1",-0.000548579,PolarityType.POSITIVE,-1.89485632542309,1,1),//
+
+  NAME18("[M-2H+3Na]+","3Na",66.9530814,PolarityType.POSITIVE,-1.91084443080722,1,1),//
+
+  NAME19("[M+H+H2O]+","H,H2O",19.01786821,PolarityType.POSITIVE,-2.3225727239649,1,1),//
+
+//  NAME20("[M+K]+","",38.963158,PolarityType.POSITIVE,-2.41599440912713,1,1),//
+
+//  NAME21("[M+NH4]+","",18.033823,PolarityType.POSITIVE,-2.49171512306525,1,1),//
+
+  NAME22("[M-H+2K]+","2K",76.91904,PolarityType.POSITIVE,-3.11496441346315,1,1),//
+
+  NAME_1("[M-2H]2-","2H-1",-2.014552,PolarityType.NEGATIVE,-1.4029242963981,1,-2),//
+
+  NAME_2("[M+Na-3H]2-","Na",19.96739,PolarityType.NEGATIVE,-4.24802233641235,1,-2),//
+
+  //NAME_3("[M-H]-","",-1.007276,PolarityType.NEGATIVE,-0.172110574929576,1,-1),//
+
+  NAME_4("[M-H-H2O]-","",-19.01839,PolarityType.NEGATIVE,-0.819887542383565,1,-1),//
+
+  NAME_5("[M-H-NH3]-","",-18.03381516,PolarityType.NEGATIVE,-1.94699234074837,1,-1),//
+
+  NAME_6("[M-H+H2O]-","H2O",17.003275,PolarityType.NEGATIVE,-2.13407898410552,1,-1),//
+
+  NAME_7("[Cat-2H]-","+1",-2.01506,PolarityType.NEGATIVE,-2.77090108169269,1,-1),//
+
+  NAME_8("[M+K-2H]-","K",36.9486306,PolarityType.NEGATIVE,-3.24802233641235,1,-1),//
+
+  NAME_9("[M+Na-2H]-","Na",20.974666,PolarityType.NEGATIVE,-4.24802233641235,1,-1),//
+
+  NAME_10("[2M-H]-","",-1.007276,PolarityType.NEGATIVE,-0.978509392194437,2,-1),//
+
+  NAME_11("[3M-H]-","",-1.007276,PolarityType.NEGATIVE,-1.99274983130905,3,-1);
+
+
+
 
   private final String name, adductFormula;
   private final PolarityType polarity;
-  private final double addedMass;
+  private final double addedMass, log10freq;
+  private final int numMol, charge;
 
-  IonizationType(String name, String adductFormula, double addedMass, PolarityType polarity) {
+  IonizationType(String name, String adductFormula, double addedMass, PolarityType polarity, double log10freq, int numMol, int charge) {
 
     this.name = name;
     this.adductFormula = adductFormula;
     this.addedMass = addedMass;
+    this.log10freq = log10freq;
     this.polarity = polarity;
+    this.numMol = numMol;
+    this.charge = charge;
   }
 
   public String getAdduct() {
@@ -59,6 +132,18 @@ public enum IonizationType {
 
   public PolarityType getPolarity() {
     return polarity;
+  }
+
+  public double getLog10freq(){
+    return log10freq;
+  }
+
+  public int getNumMol(){
+    return numMol;
+  }
+
+  public int getCharge(){
+    return charge;
   }
 
   @Override
