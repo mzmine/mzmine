@@ -19,18 +19,18 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
-import it.unimi.dsi.fastutil.Hash;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import org.apache.commons.lang3.mutable.MutableDouble;
 
 /**
  * Main class for computing isotopes provided anClique object whose cliques have been already
@@ -43,12 +43,14 @@ public class ComputeIsotopesModule {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private final AbstractTask driverTask;
+  private final CliqueMSTask driverTask;
   private final AnClique anClique;
+  private MutableDouble progress;
 
-  public ComputeIsotopesModule(AnClique anClique, AbstractTask task){
+  public ComputeIsotopesModule(AnClique anClique, CliqueMSTask task, MutableDouble progress){
     this.anClique = anClique;
     this.driverTask = task;
+    this.progress = progress;
   }
 
 
@@ -131,7 +133,7 @@ public class ComputeIsotopesModule {
   }
 
   /**
-   * Function to grade and isotope, starting from 0 to the parental isotpe, 1 the first isotope and
+   * Function to grade and isotope, starting from 0 to the parental isotope, 1 the first isotope and
    * further.
    * The algorithm was implemented in R through igraph, this is the equivalent algorithm. The igraph
    * was directed, unweighted and iLinks and outLinks correspond to that graph network.
@@ -261,14 +263,19 @@ public class ComputeIsotopesModule {
   }
 
 
-  private List<IsoTable> computelistofIsoTable(int maxCharge, int maxGrade, double ppm, double isom){
+  private List<IsoTable> computelistofIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
     List<PeakData> pdList = anClique.getPeakList();
     HashMap<Integer,PeakData> pdHash = new HashMap<>();
     List<IsoTable> listofIsoTable =new ArrayList<>();
     for(PeakData pd : pdList){
       pdHash.put(pd.getNodeID(),pd);
     }
+    int done = 0 ;
     for(Integer cliqueID : this.anClique.cliques.keySet()){
+      done++ ;
+      this.progress.setValue(driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS +
+          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS *((double) done /(double) this.anClique.cliques.size()));
+
       if(driverTask.isCanceled()){
         return listofIsoTable;
       }
@@ -283,7 +290,7 @@ public class ComputeIsotopesModule {
       inData.sort((o1, o2) -> Double.compare(o2.getKey(), o1.getKey()));
 
       IsotopeAnCliqueMS an = new IsotopeAnCliqueMS(inData);
-      an.getIsotopes(maxCharge,ppm,isom);
+      an.getIsotopes(maxCharge,isoMZTolerance,isom);
       IsoTable iTable = null;
       if(an.getPfeature().size() > 0){
         // filter the isotope list by charge and other inconsistencies
@@ -302,10 +309,10 @@ public class ComputeIsotopesModule {
    *
    * @param maxCharge
    * @param maxGrade
-   * @param ppm
+   * @param isoMZTolerance
    * @param isom
    */
-  public void getIsotopes(int maxCharge, int maxGrade, double ppm, double isom){
+  public void getIsotopes(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
     if(!anClique.cliquesFound){
       logger.log(Level.WARNING,"Cliques have not been computed for this object. This could lead"
           + " to long computing times for isotope annotation.");
@@ -315,7 +322,7 @@ public class ComputeIsotopesModule {
     }
 
     logger.log(Level.INFO,"Computing Isotopes");
-    List<IsoTable> isoTableList = computelistofIsoTable(maxCharge, maxGrade, ppm, isom);
+    List<IsoTable> isoTableList = computelistofIsoTable(maxCharge, maxGrade, isoMZTolerance, isom);
     if(driverTask.isCanceled()){
       return;
     }
@@ -328,17 +335,8 @@ public class ComputeIsotopesModule {
       }
       maxC = Collections.max(isoTableList.get(i).cluster);
     }
-    for(int i = 0 ; i < isoTableList.size() ; i++){
-      IsoTable isoTable = isoTableList.get(i);
-      System.out.println(isoTable.cluster);
-      System.out.println(isoTable.feature);
-      System.out.println(isoTable.grade);
-      System.out.println(isoTable.charge);
-      System.out.println();
-    }
     // give isotope labels
     Hashtable<Integer,Integer> nodeIDtoindexHash = new Hashtable<>();
-//    for(PeakData pd : this.anClique.getPeakList()){
     for(int i = 0 ; i < this.anClique.getPeakList().size() ; i++){
       PeakData pd = this.anClique.getPeakList().get(i);
       isoLabel.add("M0"); // give MO label to every peak
@@ -351,13 +349,15 @@ public class ComputeIsotopesModule {
         isoLabel.set(nodeIDtoindexHash.get(isoTable.feature.get(i)), label);
       }
     }
-    for(int i = 0 ; i < isoLabel.size() ; i++){
-      System.out.println(i+" "+isoLabel.get(i));
-    }
 
+    for(int i = 0; i < isoLabel.size() ; i++){
+      PeakData pd = this.anClique.getPeakList().get(i);
+      pd.setIsotopeAnnotation(isoLabel.get(i));
+    }
+    this.anClique.isoFound = true;
   }
   public void getIsotopes(){
-    getIsotopes(3,2,10,1.003355);
+    getIsotopes(3,2,new MZTolerance(0,10),1.003355);
   }
 
 

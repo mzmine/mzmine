@@ -19,6 +19,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.util.Pair;
@@ -41,15 +43,17 @@ public class IsotopeAnCliqueMS {
     this.isoData = isoData;
   }
 
-  private boolean errorRange( Double mz1, Double mz2, Double reference, Double ppm ){
+  private boolean errorRange( Double mz1, Double mz2, Double reference, MZTolerance isoMZTolerance ){
     boolean result = false;
-    Double error = Math.abs(mz2 - mz1 - reference)/(mz1+reference);
-    if( error <= Math.sqrt(2.0) * ppm * 0.000001)
+    MZTolerance mzTolerance_mod = new MZTolerance(isoMZTolerance.getMzTolerance()*Math.sqrt(2.0),
+        isoMZTolerance.getPpmTolerance()*Math.sqrt(2.0)); // modified value acc. to algorithm
+    Range<Double> mzRange = mzTolerance_mod.getToleranceRange(mz1+reference);
+    if(mzRange.contains(mz2))
       result = true;
     return result;
   }
 
-  private IsoTest isIsotope(Double mz1, Double mz2, Integer maxCharge, Double ppm, Double isom){
+  private IsoTest isIsotope(Double mz1, Double mz2, Integer maxCharge, MZTolerance isoMZTolerance, Double isom){
 
     IsoTest finalIso = new IsoTest();
 
@@ -61,7 +65,7 @@ public class IsotopeAnCliqueMS {
         cmz2 = mz2*charge2;
         // if isotope mass is bigger than parental mass
         if(cmz2 > cmz1){
-          currentIso.isIso = errorRange(cmz1,cmz2,isom,ppm);
+          currentIso.isIso = errorRange(cmz1,cmz2,isom,isoMZTolerance);
           if(currentIso.isIso){
               finalIso.isIso = true;
               finalIso.pCharge = charge1;
@@ -75,7 +79,7 @@ public class IsotopeAnCliqueMS {
 
 
 
-  public void getIsotopes(Integer maxCharge, Double ppm, Double  isom ){
+  public void getIsotopes(Integer maxCharge, MZTolerance isoMZTolerance, Double  isom ){
 
 
     for(int id1 = 0; id1 < isoData.size() ; id1++) {
@@ -83,7 +87,7 @@ public class IsotopeAnCliqueMS {
         if(id2>id1){
           Double mz1 = isoData.get(id1).getValue().getKey();
           Double mz2 = isoData.get(id2).getValue().getKey();
-          IsoTest iTest = isIsotope(mz1, mz2, maxCharge, ppm, isom);
+          IsoTest iTest = isIsotope(mz1, mz2, maxCharge, isoMZTolerance, isom);
           if(iTest.isIso){
             pfeature.add(isoData.get(id1).getValue().getValue());
             ifeature.add(isoData.get(id2).getValue().getValue());

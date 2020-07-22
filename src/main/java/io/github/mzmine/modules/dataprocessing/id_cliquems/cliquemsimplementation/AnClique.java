@@ -40,6 +40,7 @@ public class AnClique {
   private NetworkCliqueMS network = new NetworkCliqueMS();
   boolean cliquesFound = false;
   boolean isoFound = false;
+  boolean anFound = false;
   // key - clique ID, value - List of nodes which are part of the clique.
   public HashMap<Integer,List<Integer>> cliques = new HashMap<>();
 

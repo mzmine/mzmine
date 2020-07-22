@@ -23,6 +23,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -54,10 +55,29 @@ public class CliqueMSParameters extends SimpleParameterSet {
   public static final BooleanParameter FILTER = new BooleanParameter("Filter similar features",
       "Two features are similar if their relative change in m/z, rt and intensity are less than the respective tolerances.",true);
 
+  // Max charge.
+  public static final IntegerParameter ISOTOPES_MAX_CHARGE =
+      new IntegerParameter("Isotopes max. charge",
+          "The maximum charge considered when identifying isotopes", 3, 1, null);
+
+  // Max isotopes.
+  public static final IntegerParameter ISOTOPES_MAXIMUM_GRADE = new IntegerParameter(
+      "Isotopes max. per cluster", "The maximum number of isotopes per cluster", 2, 0, null);
+
+  // Isotope m/z tolerance
+  public static final MZToleranceParameter ISOTOPES_MZ_TOLERANCE =
+      new MZToleranceParameter("Isotopes mass tolerance",
+          "Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope");
+
+  //Isotope mass difference
+  public static final DoubleParameter ISOTOPE_MASS_DIFF= new DoubleParameter("Isotope mass difference","The mass difference of the isotope",
+      LLformatter,1.003355);
+
   public CliqueMSParameters(){
-    super(new Parameter[]{PEAK_LISTS,FILTER,MZ_DIFF,RT_DIFF,IN_DIFF,TOL});
+    super(new Parameter[]{PEAK_LISTS,FILTER,MZ_DIFF,RT_DIFF,IN_DIFF,TOL,ISOTOPES_MAX_CHARGE,ISOTOPES_MAXIMUM_GRADE,ISOTOPES_MZ_TOLERANCE,ISOTOPE_MASS_DIFF});
     MZ_DIFF.setValue(new MZTolerance(0, 5));
     RT_DIFF.setValue(new RTTolerance(false,0.0004));
+    ISOTOPES_MZ_TOLERANCE.setValue(new MZTolerance(0,10));
   }
 
 }

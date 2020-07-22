@@ -22,9 +22,11 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeAdduct;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.PeakData;
@@ -41,9 +43,10 @@ public class CliqueMSTask extends AbstractTask {
 
   //progress constants
   //TODO change the constant values
-  public final double EIC_PROGRESS = 0.1 ; // EIC calculation takes about 10% time
-  public final double MATRIX_PROGRESS = 0.6 ; // Cosine matrix calculation takes about 60% time
+  public final double EIC_PROGRESS = 0.4 ; // EIC calculation takes about 10% time
+  public final double MATRIX_PROGRESS = 0.3 ; // Cosine matrix calculation takes about 60% time
   public final double NET_PROGRESS = 0.1 ; // Network calculations takes 10% time
+  public final double ISO_PROGRESS = 0.1 ; // Isotope calculation takes 10% time
 
 
 
@@ -103,13 +106,16 @@ public class CliqueMSTask extends AbstractTask {
       // Check if not canceled
       if (isCanceled())
         return;
-      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique,this);
-      cim.getIsotopes();
+      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique,this,progress);
+      cim.getIsotopes(parameters.getParameter(CliqueMSParameters.ISOTOPES_MAX_CHARGE).getValue(),
+          parameters.getParameter(CliqueMSParameters.ISOTOPES_MAXIMUM_GRADE).getValue(),
+          parameters.getParameter(CliqueMSParameters.ISOTOPES_MZ_TOLERANCE).getValue(),
+          parameters.getParameter(CliqueMSParameters.ISOTOPE_MASS_DIFF).getValue());
       // Check if not canceled
       if (isCanceled())
         return;
-      //TODO complete isotope and adduct annotation
-
+      ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, PolarityType.POSITIVE);
+      computeAdduct.getAnnotation();
 
       addFeatureIdentity(anClique);
       // Check if not canceled
@@ -136,6 +142,7 @@ public class CliqueMSTask extends AbstractTask {
       SimplePeakIdentity identity = new SimplePeakIdentity("Node #"+pd.getNodeID());
       identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD,"CliqueMS algorithm");
       identity.setPropertyValue("Clique-ID",String.valueOf(pd.getCliqueID()));
+      identity.setPropertyValue("Isotope",pd.getIsotopeAnnotation());
       this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
     }
 
