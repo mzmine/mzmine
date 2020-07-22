@@ -74,6 +74,10 @@
     -fx-selection-bar-non-focused: #aaaaaa;
 }
 
+.number-column {
+  -fx-alignment: CENTER-RIGHT;
+}
+
 
 
 /* Some useful CSS properties: */

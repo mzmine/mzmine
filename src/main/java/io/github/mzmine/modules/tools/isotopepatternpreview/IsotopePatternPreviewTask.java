@@ -68,7 +68,6 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
       int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
-    message = "Wating for parameters";
     parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
@@ -80,22 +79,23 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     parametersChanged = true;
     pattern = null;
     displayResult = true;
+    message = "Calculating isotope pattern " + formula + ".";
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    dialog.setStatus("Calculating...");
+    message = "Calculating isotope pattern " + formula + ".";
     pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
         minIntensity, mergeWidth, charge, polarity, true);
     if (pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");
+      setStatus(TaskStatus.FINISHED);
       return;
     }
     logger.finest("Pattern " + pattern.getDescription() + " calculated.");
 
     if (displayResult) {
-      dialog.setStatus("Waiting.");
       updateWindow();
       startNextThread();
     }
@@ -103,23 +103,14 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   }
 
   public void updateWindow() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        logger.finest("Updating window");
-        dialog.updateChart(pattern);
-        dialog.updateTable(pattern);
-      }
+    Platform.runLater(() -> {
+      dialog.updateChart(pattern);
+      dialog.updateTable(pattern);
     });
   }
 
   public void startNextThread() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        dialog.startNextThread();
-      }
-    });
+    Platform.runLater(() -> dialog.startNextThread());
   }
 
   public void setDisplayResult(boolean val) {
