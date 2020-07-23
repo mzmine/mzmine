@@ -181,14 +181,13 @@ public class DataFactory {
       }
     }
 
+    ArrayList<Scan>selectedScan = new ArrayList<>();
     // ims frame.
     ArrayList<MzMobilityFields> mzMobilityFields = new ArrayList<>();
     ArrayList<IntensityMobilityFields> intensityMobilityFields = new ArrayList<>();
-    HashMap<Double, Integer> uniqueMobility = new HashMap<>();
-
     for (int i = 0; i < scanSize; i++) {
       if (scans[i].getRetentionTime() == selectedRetentionTime) {
-
+          selectedScan.add(scans[i]);
         double intensitySum = 0;
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
         for (int j = 0; j < dataPoint.length; j++) {

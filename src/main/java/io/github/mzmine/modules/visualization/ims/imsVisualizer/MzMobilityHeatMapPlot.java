@@ -28,6 +28,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,11 +67,12 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
   private Scan selectedMobilityScan;
+  private double selectedRetentionTime;
   private Scan scans[];
   private RawDataFile dataFiles[];
 
   public MzMobilityHeatMapPlot(
-      XYZDataset dataset, String paintScaleStyle, ParameterSet parameters) {
+          XYZDataset dataset, String paintScaleStyle, ParameterSet parameters, ImsVisualizerTask imsVisualizerTask) {
 
     super(
         ChartFactory.createScatterPlot(
@@ -79,6 +81,7 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     chart = getChart();
     this.dataset3d = dataset;
     this.paintScaleStyle = paintScaleStyle;
+    this.selectedRetentionTime = imsVisualizerTask.getSelectedRetentionTime();
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -202,7 +205,8 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
           public void chartMouseClicked(ChartMouseEventFX event) {
             ChartEntity chartEntity = event.getEntity();
 
-            // if chartintity is not selected any valid point find it's nearest.
+            if(event.getTrigger().getClickCount()==2){
+              // if chartintity is not selected any valid point find it's nearest.
             if (chartEntity == null || !(chartEntity instanceof XYItemEntity)) {
               int x = (int) ((event.getTrigger().getX() - getInsets().getLeft()) / getScaleX());
               int y = (int) ((event.getTrigger().getY() - getInsets().getRight()) / getScaleY());
@@ -231,12 +235,13 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
               double mobility = 0;
               mobility = dataset.getYValue(serindex, itemindex);
               for (int i = 0; i < scans.length; i++) {
-                if (scans[i].getMobility() == mobility) {
+                if (scans[i].getMobility() == mobility && selectedRetentionTime == scans[i].getRetentionTime()) {
                   selectedMobilityScan = scans[i];
                   break;
                 }
               }
               updateChart();
+            }
             }
           }
 

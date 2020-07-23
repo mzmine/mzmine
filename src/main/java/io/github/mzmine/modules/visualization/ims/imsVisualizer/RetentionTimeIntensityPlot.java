@@ -22,6 +22,8 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.ChartEntity;
@@ -101,8 +103,9 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
         new ChartMouseListenerFX() {
           @Override
           public void chartMouseClicked(ChartMouseEventFX event) {
-            ChartEntity chartEntity = event.getEntity();
 
+
+            ChartEntity chartEntity = event.getEntity();
             // If entity is not selected then calculate the nearest entity to selected one.
             if (chartEntity == null || !(chartEntity instanceof XYItemEntity)) {
               int x = (int) ((event.getTrigger().getX() - getInsets().getLeft()) / getScaleX());
@@ -151,6 +154,7 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
                 retentionTimeMobilityHeatMapPlot.getPlot().addDomainMarker(marker);
               }
             }
+
           }
 
           protected boolean isDataEntity(ChartEntity entity) {

@@ -25,6 +25,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
+import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,17 +55,19 @@ public class IntensityMobilityPlot extends EChartViewer {
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
   private Scan selectedMobilityScan;
+  private double selectedRetentionTime;
   private Scan scans[];
   private RawDataFile dataFiles[];
 
-  public IntensityMobilityPlot(XYDataset dataset, ParameterSet parameters) {
+  public IntensityMobilityPlot(XYDataset dataset, ParameterSet parameters, ImsVisualizerTask imsVisualizerTask) {
     super(
         ChartFactory.createXYLineChart(
-            "", "intensity", "", dataset, PlotOrientation.VERTICAL, true, true, false));
+            "", "intensity", "", dataset, PlotOrientation.VERTICAL, false, true, false));
     chart = getChart();
     plot = chart.getXYPlot();
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
+    this.selectedRetentionTime = imsVisualizerTask.getSelectedRetentionTime();
     dataFiles =
         parameters
             .getParameter(ImsVisualizerParameters.dataFiles)
@@ -76,7 +79,7 @@ public class IntensityMobilityPlot extends EChartViewer {
             .getValue()
             .getMatchingScans(dataFiles[0]);
 
-    var renderer = new XYLineAndShapeRenderer();
+    var renderer = new XYLineAndShapeRenderer(true, true);
     renderer.setSeriesPaint(0, Color.GREEN);
     renderer.setSeriesStroke(0, new BasicStroke(1.0f));
     renderer.setSeriesShapesVisible(0, false);
@@ -85,11 +88,10 @@ public class IntensityMobilityPlot extends EChartViewer {
     plot.setBackgroundPaint(Color.WHITE);
     plot.setRangeGridlinePaint(Color.WHITE);
     plot.setDomainGridlinePaint(Color.WHITE);
-    plot.setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
     plot.getDomainAxis().setInverted(true);
     plot.getRangeAxis().setVisible(false);
-    chart.getLegend().setFrame(BlockBorder.NONE);
-
+    plot.getDomainAxis().setAutoRange(false);
+    plot.getDomainAxis().setAutoRange(true);
     // mouse listener.
     addChartMouseListener(
         new ChartMouseListenerFX() {
@@ -102,7 +104,7 @@ public class IntensityMobilityPlot extends EChartViewer {
               int itemindex = entity.getItem();
               double mobility = dataset.getYValue(serindex, itemindex);
               for (int i = 0; i < scans.length; i++) {
-                if (scans[i].getMobility() == mobility) {
+                if (scans[i].getMobility() == mobility && scans[i].getRetentionTime() == selectedRetentionTime) {
                   selectedMobilityScan = scans[i];
                   break;
                 }

@@ -164,7 +164,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
     dataset_MzMobility = new MzMobilityXYZDataset(dataFactory);
     mzMobilityHeatMapPlot =
-        new MzMobilityHeatMapPlot(dataset_MzMobility, paintScaleStyle, parameterSet);
+        new MzMobilityHeatMapPlot(dataset_MzMobility, paintScaleStyle, parameterSet, this);
     BorderPane bottomRightpane = controller.getBottomRightPane();
     bottomRightpane.setCenter(mzMobilityHeatMapPlot);
   }
@@ -172,7 +172,7 @@ public class ImsVisualizerTask extends AbstractTask {
   public void InitIntensityMobilityGui() {
 
     dataset_IntensityMobility = new IntensityMobilityXYDataset(dataFactory);
-    intensityMobilityPlot = new IntensityMobilityPlot(dataset_IntensityMobility, parameterSet);
+    intensityMobilityPlot = new IntensityMobilityPlot(dataset_IntensityMobility, parameterSet, this);
     BorderPane bottomLeftPane = controller.getBottomLeftPane();
     bottomLeftPane.setCenter(intensityMobilityPlot);
   }
@@ -219,16 +219,16 @@ public class ImsVisualizerTask extends AbstractTask {
 
     BorderPane plotPaneMF = controller.getBottomRightPane();
     mzMobilityHeatMapPlot =
-        new MzMobilityHeatMapPlot(dataset_MzMobility, paintScaleStyle, parameterSet);
+        new MzMobilityHeatMapPlot(dataset_MzMobility, paintScaleStyle, parameterSet, this);
     plotPaneMF.setCenter(mzMobilityHeatMapPlot);
 
     dataset_IntensityMobility = new IntensityMobilityXYDataset(dataFactory);
-    intensityMobilityPlot = new IntensityMobilityPlot(dataset_IntensityMobility, parameterSet);
+    intensityMobilityPlot = new IntensityMobilityPlot(dataset_IntensityMobility, parameterSet, this);
     BorderPane bottomLeftPane = controller.getBottomLeftPane();
     bottomLeftPane.setCenter(intensityMobilityPlot);
 
-    groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
     groupMobility.add(new ChartViewWrapper(intensityMobilityPlot));
+    groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
 
     updateRTlebel();
   }
