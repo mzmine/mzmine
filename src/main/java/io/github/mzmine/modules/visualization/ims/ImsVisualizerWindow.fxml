@@ -9,9 +9,6 @@
     <children>
         <Label fx:id="mobilityRTLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="63.0" prefWidth="628.0"
                textAlignment="CENTER" VBox.vgrow="ALWAYS">
-            <font>
-                <Font name="System Bold" size="18.0"/>
-            </font>
         </Label>
         <VBox prefHeight="487.0" prefWidth="628.0">
             <children>
@@ -20,10 +17,8 @@
             </children>
         </VBox>
         <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="49.0" prefWidth="628.0"
-               textAlignment="CENTER">
-            <font>
-                <Font name="System Bold" size="18.0"/>
-            </font>
+               textAlignment="CENTER" VBox.vgrow="ALWAYS">
+
         </Label>
         <HBox prefHeight="352.0" prefWidth="628.0">
             <children>
