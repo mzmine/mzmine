@@ -149,6 +149,29 @@ public class DistributionExtractor {
   }
 
   /**
+   * Return distribution range made of items between given percentiles
+   *
+   * @param items
+   * @param lowerPercentile
+   * @param upperPercentile
+   * @return
+   */
+  public static DistributionRange interpercentileRange(List<Double> items,
+                                                       double lowerPercentile, double upperPercentile) {
+    if (items.isEmpty()) {
+      throw new IllegalArgumentException("Empty items list");
+    }
+    if (!(lowerPercentile >= 0 && lowerPercentile <= upperPercentile && upperPercentile <= 100)) {
+      throw new IllegalArgumentException("Required 0 <= lowerPercentile <= upperPercentile <= 100");
+    }
+
+    int lowerIndex = Math.max((int) Math.ceil(lowerPercentile / 100 * items.size()) - 1, 0);
+    int upperIndex = (int) Math.ceil(upperPercentile / 100 * items.size()) - 1;
+
+    return buildDistributionRange(items, lowerIndex, upperIndex);
+  }
+
+  /**
    * Returns distribution range made of all items
    *
    * @param items distribution items
