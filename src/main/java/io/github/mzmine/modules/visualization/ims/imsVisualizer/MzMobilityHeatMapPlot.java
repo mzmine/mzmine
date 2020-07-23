@@ -52,9 +52,8 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.awt.geom.Point2D;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class MzMobilityHeatMapPlot extends EChartViewer {
@@ -69,7 +68,9 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
   private Scan selectedMobilityScan;
   private Scan scans[];
   private RawDataFile dataFiles[];
-  public MzMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle, ParameterSet parameters ) {
+
+  public MzMobilityHeatMapPlot(
+      XYZDataset dataset, String paintScaleStyle, ParameterSet parameters) {
 
     super(
         ChartFactory.createScatterPlot(
@@ -79,15 +80,15 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     this.dataset3d = dataset;
     this.paintScaleStyle = paintScaleStyle;
     dataFiles =
-            parameters
-                    .getParameter(ImsVisualizerParameters.dataFiles)
-                    .getValue()
-                    .getMatchingRawDataFiles();
+        parameters
+            .getParameter(ImsVisualizerParameters.dataFiles)
+            .getValue()
+            .getMatchingRawDataFiles();
     scans =
-            parameters
-                    .getParameter(ImsVisualizerParameters.scanSelection)
-                    .getValue()
-                    .getMatchingScans(dataFiles[0]);
+        parameters
+            .getParameter(ImsVisualizerParameters.scanSelection)
+            .getValue()
+            .getMatchingScans(dataFiles[0]);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3d.getItemCount(0)];
@@ -200,30 +201,52 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
 
     // mouse listener.
     addChartMouseListener(
-            new ChartMouseListenerFX() {
-              @Override
-              public void chartMouseClicked(ChartMouseEventFX event) {
-                ChartEntity chartEntity = event.getEntity();
-                if (chartEntity instanceof XYItemEntity) {
-                  XYItemEntity entity = (XYItemEntity) chartEntity;
-                  int serindex = entity.getSeriesIndex();
-                  int itemindex = entity.getItem();
-                  double mobility = 0;
-                  mobility = dataset.getYValue(serindex, itemindex);
-                  for (int i = 0; i < scans.length; i++) {
-                    if (scans[i].getMobility() == mobility) {
-                      selectedMobilityScan = scans[i];
-                      break;
-                    }
+        new ChartMouseListenerFX() {
+          @Override
+          public void chartMouseClicked(ChartMouseEventFX event) {
+            ChartEntity chartEntity = event.getEntity();
+
+            // if chartintity is not selected any valid point find it's nearest.
+            if (chartEntity == null || !(chartEntity instanceof XYItemEntity)) {
+              int x = (int) ((event.getTrigger().getX() - getInsets().getLeft()) / getScaleX());
+              int y = (int) ((event.getTrigger().getY() - getInsets().getRight()) / getScaleY());
+              Point2D point2d = new Point2D.Double(x, y);
+              double minDistance = Integer.MAX_VALUE;
+              Collection entities = getRenderingInfo().getEntityCollection().getEntities();
+              for (Iterator iter = entities.iterator(); iter.hasNext(); ) {
+                ChartEntity element = (ChartEntity) iter.next();
+
+                if (element instanceof XYItemEntity) {
+                  Rectangle rect = element.getArea().getBounds();
+                  Point2D centerPoint = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
+
+                  if (point2d.distance(centerPoint) < minDistance) {
+                    minDistance = point2d.distance(centerPoint);
+                    chartEntity = element;
                   }
-                  updateChart();
                 }
               }
+            }
 
-              @Override
-              public void chartMouseMoved(ChartMouseEventFX event) {}
-            });
+            if (chartEntity instanceof XYItemEntity) {
+              XYItemEntity entity = (XYItemEntity) chartEntity;
+              int serindex = entity.getSeriesIndex();
+              int itemindex = entity.getItem();
+              double mobility = 0;
+              mobility = dataset.getYValue(serindex, itemindex);
+              for (int i = 0; i < scans.length; i++) {
+                if (scans[i].getMobility() == mobility) {
+                  selectedMobilityScan = scans[i];
+                  break;
+                }
+              }
+              updateChart();
+            }
+          }
 
+          @Override
+          public void chartMouseMoved(ChartMouseEventFX event) {}
+        });
   }
 
   void updateChart() {
