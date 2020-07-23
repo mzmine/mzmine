@@ -32,8 +32,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
@@ -130,8 +130,7 @@ public class ImsVisualizerTask extends AbstractTask {
           InitIntensityMobilityGui();
           InitRetentionTimeMobilityGui();
           // Group the intensity-mobility and mz-mobility plots and place on the bottom
-          groupMobility = new ChartGroup(false, true, false, true);
-          groupMobility.setShowCrosshair(true, true);
+          groupMobility = new ChartGroup(false, false, false, true);
 
           groupMobility.add((new ChartViewWrapper(intensityMobilityPlot)));
           groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
@@ -139,9 +138,7 @@ public class ImsVisualizerTask extends AbstractTask {
           InitRetentionTimeIntensityGui();
 
           // Group the rt-intensity-mobility and rt-mobility plots and place on the top
-          ChartGroup groupRetentionTime = new ChartGroup(true, false, true, false);
-          groupRetentionTime.setShowCrosshair(true, true);
-
+          ChartGroup groupRetentionTime = new ChartGroup(false, false, true, false);
           groupRetentionTime.add(new ChartViewWrapper(retentionTimeIntensityPlot));
           groupRetentionTime.add(new ChartViewWrapper(retentionTimeMobilityHeatMapPlot));
 
@@ -203,7 +200,7 @@ public class ImsVisualizerTask extends AbstractTask {
     stage = new Stage();
 
     try {
-      AnchorPane root = (AnchorPane) loader.load();
+      VBox root = (VBox) loader.load();
       scene = new Scene(root);
       stage.setScene(scene);
       logger.finest("Stage has been successfully loaded from the FXML loader.");

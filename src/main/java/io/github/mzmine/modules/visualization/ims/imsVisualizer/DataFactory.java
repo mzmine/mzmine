@@ -57,7 +57,6 @@ public class DataFactory {
   private Double selectedRetentionTime;
   private int scanSize;
 
-
   public DataFactory(ParameterSet parameters, double rt, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
         parameters
@@ -109,8 +108,7 @@ public class DataFactory {
     for (int i = 0; i < scanSize; i++) {
       if (i == 0) {
         rt_rtIntensity.add(scans[i].getRetentionTime());
-      }
-      else {
+      } else {
         if (scans[i].getRetentionTime() != scans[i - 1].getRetentionTime()) {
           rt_rtIntensity.add(scans[i].getRetentionTime());
         }
@@ -191,22 +189,16 @@ public class DataFactory {
     for (int i = 0; i < scanSize; i++) {
       if (scans[i].getRetentionTime() == selectedRetentionTime) {
 
-        if (!uniqueMobility.containsKey(scans[i].getMobility())) {
-          if (scanMobilityMap.containsKey(scans[i].getMobility())) {
-            intensityMobilityFields.add(
-                new IntensityMobilityFields(
-                    scans[i].getMobility(), scanMobilityMap.get(scans[i].getMobility())));
-            uniqueMobility.put(scans[i].getMobility(), 1);
-          }
-        }
-
+        double intensitySum = 0;
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
         for (int j = 0; j < dataPoint.length; j++) {
-
+          intensitySum += dataPoint[j].getIntensity();
           mzMobilityFields.add(
               new MzMobilityFields(
                   scans[i].getMobility(), dataPoint[j].getMZ(), dataPoint[j].getIntensity()));
         }
+        intensityMobilityFields.add(
+            new IntensityMobilityFields(scans[i].getMobility(), intensitySum));
       }
     }
 

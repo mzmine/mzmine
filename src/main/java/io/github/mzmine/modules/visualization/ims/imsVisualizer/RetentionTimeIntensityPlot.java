@@ -81,14 +81,6 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
     plot.setBackgroundPaint(Color.WHITE);
     plot.setRangeGridlinePaint(Color.WHITE);
     plot.setDomainGridlinePaint(Color.WHITE);
-    plot.setDomainCrosshairPaint(Color.GRAY);
-    plot.setRangeCrosshairPaint(Color.GRAY);
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
-    plot.setRangeCrosshairValue(2.0f);
-    plot.setDomainCrosshairValue(2.0f);
-    plot.setDomainCrosshairStroke(new BasicStroke(2.0f));
-    plot.setRangeCrosshairStroke(new BasicStroke(2.0f));
 
     plot.clearDomainMarkers();
     marker = new ValueMarker(selectedRetention);

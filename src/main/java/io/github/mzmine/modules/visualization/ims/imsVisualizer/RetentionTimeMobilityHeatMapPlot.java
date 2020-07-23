@@ -145,10 +145,10 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     legend.setStripOutlineVisible(false);
     legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     legend.setAxisOffset(5.0);
-    legend.setMargin(new RectangleInsets(5, 5, 5, 5));
+    legend.setMargin(new RectangleInsets(3, 3, 3, 3));
     legend.setFrame(new BlockBorder(Color.white));
-    legend.setPadding(new RectangleInsets(10, 10, 10, 10));
-    legend.setStripWidth(10);
+    legend.setPadding(new RectangleInsets(5, 5, 5, 5));
+    legend.setStripWidth(5);
     legend.setPosition(RectangleEdge.TOP);
     legend.getAxis().setLabelFont(legendFont);
     legend.getAxis().setTickLabelFont(legendFont);
@@ -161,15 +161,10 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
-    plot.setDomainCrosshairPaint(Color.GRAY);
-    plot.setRangeCrosshairPaint(Color.GRAY);
-    plot.setDomainCrosshairVisible(true);
-    plot.setRangeCrosshairVisible(true);
     chart.addSubtitle(legend);
   }
 
   public XYPlot getPlot() {
     return plot;
   }
-
 }
