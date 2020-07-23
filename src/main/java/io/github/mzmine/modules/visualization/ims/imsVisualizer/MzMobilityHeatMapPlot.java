@@ -195,7 +195,6 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     plot.setRangeGridlinePaint(Color.black);
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
-
     chart.addSubtitle(legend);
 
     // mouse listener.

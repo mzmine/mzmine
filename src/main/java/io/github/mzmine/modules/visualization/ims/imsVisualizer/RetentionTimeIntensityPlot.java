@@ -26,6 +26,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
@@ -83,6 +84,8 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
     plot.setBackgroundPaint(Color.WHITE);
     plot.setRangeGridlinePaint(Color.WHITE);
     plot.setDomainGridlinePaint(Color.WHITE);
+    plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
 
     plot.clearDomainMarkers();
     marker = new ValueMarker(selectedRetention);

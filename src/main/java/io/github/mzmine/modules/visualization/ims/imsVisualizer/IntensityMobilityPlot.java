@@ -34,6 +34,7 @@ import javafx.application.Platform;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
@@ -92,6 +93,8 @@ public class IntensityMobilityPlot extends EChartViewer {
     plot.getRangeAxis().setVisible(false);
     plot.getDomainAxis().setAutoRange(false);
     plot.getDomainAxis().setAutoRange(true);
+    plot.getDomainAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
     // mouse listener.
     addChartMouseListener(
         new ChartMouseListenerFX() {

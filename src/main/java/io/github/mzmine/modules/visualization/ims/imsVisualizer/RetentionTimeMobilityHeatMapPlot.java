@@ -162,6 +162,8 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
     chart.addSubtitle(legend);
+    plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
   }
 
   public XYPlot getPlot() {

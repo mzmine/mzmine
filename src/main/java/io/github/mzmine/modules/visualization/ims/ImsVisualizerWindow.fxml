@@ -24,7 +24,7 @@
         </Label>
         <HBox prefHeight="352.0" prefWidth="628.0">
             <children>
-                <BorderPane fx:id="bottomLeftPane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                <BorderPane maxWidth="500" fx:id="bottomLeftPane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
                 <BorderPane fx:id="bottomRightPane" prefHeight="344.0" prefWidth="433.0" HBox.hgrow="ALWAYS" />
             </children>
         </HBox>
