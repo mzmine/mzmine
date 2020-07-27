@@ -19,11 +19,13 @@
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combonested.NestedComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -32,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import io.github.mzmine.util.ExitCode;
 
 import java.text.NumberFormat;
+import java.util.TreeMap;
 
 public class MassCalibrationParameters extends SimpleParameterSet {
 
@@ -61,6 +64,38 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   " of the range, both are values of PPM errors of m/z ratio. See help for more details.",
           NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
+  public static final DoubleParameter lowerPercentile = new DoubleParameter("Lower percentile",
+          "Lower percentile used for error range extraction", NumberFormat.getNumberInstance(),
+          25.0, 0.0, 100.0);
+
+  public static final DoubleParameter upperPercentile = new DoubleParameter("Upper percentile",
+          "Upper percentile used for error range extraction", NumberFormat.getNumberInstance(),
+          75.0, 0.0, 100.0);
+
+  public static final DoubleParameter test = new DoubleParameter("Test",
+          "Upper percentile used for error range extraction", NumberFormat.getNumberInstance(),
+          29.0, 0.0, 100.0);
+
+    public static final DoubleParameter test2 = new DoubleParameter("Test2",
+          "Upper percentile used for error range extraction", NumberFormat.getNumberInstance(),
+          39.0, 0.0, 100.0);
+
+    public static final DoubleParameter test3 = new DoubleParameter("Test3",
+          "Upper percentile used for error range extraction", NumberFormat.getNumberInstance(),
+          59.0, 0.0, 100.0);
+
+  public static final TreeMap<String, ParameterSet> rangeExtractionChoices = new TreeMap<>() {{
+    put("range method", new SimpleParameterSet(new Parameter[]{tolerance, rangeSize}));
+    put("interpercentile range", new SimpleParameterSet(new Parameter[]{lowerPercentile, upperPercentile}));
+//    put("interpercentile range", new SimpleParameterSet(new Parameter[]{lowerPercentile, upperPercentile, rangeSize}));
+//    put("test value", new SimpleParameterSet(new Parameter[]{test, test2}));
+//    put("test value", new SimpleParameterSet(new Parameter[]{test, test2, test3}));
+  }};
+
+  public static final NestedComboParameter rangeExtractionMethod = new NestedComboParameter("Range extraction method",
+          "Method used to extract range of errors considered substantial to the bias estimation of" +
+                  " mass peaks m/z measurement", rangeExtractionChoices, "range method");
+
   public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
           "Max difference between actual mz peaks and standard calibrants to consider a match," +
                   " max of m/z and ppm is used", 0.001, 5, true);
@@ -76,8 +111,11 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
+    /*super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
+            filterDuplicates, rangeSize, tolerance, suffix, autoRemove});*/
     super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
-            filterDuplicates, rangeSize, tolerance, suffix, autoRemove});
+            filterDuplicates, rangeExtractionMethod, suffix, autoRemove});
+
   }
 
   @Override

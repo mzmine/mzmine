@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.Sta
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractorFactory;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combonested.NestedCombo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -136,14 +138,36 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
-    Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
-    Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();
+    /*Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
+    Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();*/
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
 
-    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
-            standardsList);
+//    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
+//            standardsList);
+
+//    MassCalibrator massCalibrator;
+    MassCalibrator massCalibrator = null;
+
+    ParameterSet parameterSet;
+    NestedCombo rangeExtractionMethod = parameters.getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
+
+    if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase("range method")) {
+      parameterSet = rangeExtractionMethod.getChoices().get("range method");
+      Double tolerance = parameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
+      Double rangeSize = parameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize, standardsList);
+    }
+    else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase("interpercentile range")) {
+      parameterSet = rangeExtractionMethod.getChoices().get("interpercentile range");
+      Double lowerPercentile = parameterSet.getParameter(MassCalibrationParameters.lowerPercentile).getValue();
+      Double upperPercentile = parameterSet.getParameter(MassCalibrationParameters.upperPercentile).getValue();
+      Range<Double> percentileRange = Range.closed(lowerPercentile, upperPercentile);
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList);
+    }
+
+
 
     scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;

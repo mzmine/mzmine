@@ -39,9 +39,15 @@ public class MassCalibrator {
 
   protected final RTTolerance retentionTimeTolerance;
   protected final MZTolerance mzRatioTolerance;
-  protected final double errorDistributionDistance;
-  protected final double errorMaxRangeLength;
+//  protected final double errorDistributionDistance;
+//  protected final double errorMaxRangeLength;
+  protected double errorDistributionDistance;
+  protected double errorMaxRangeLength;
   protected final StandardsList standardsList;
+
+//  protected final String rangeExtractionMethod = "range method";
+  protected String rangeExtractionMethod = "range method";
+  protected Range<Double> percentileRange;
 
   protected final Logger logger;
 
@@ -65,6 +71,26 @@ public class MassCalibrator {
     this.errorDistributionDistance = errorDistributionDistance;
     this.errorMaxRangeLength = errorMaxRangeLength;
     this.standardsList = standardsList;
+
+    this.logger = Logger.getLogger(this.getClass().getName());
+  }
+
+  /**
+   * Create new mass calibrator
+   *
+   * @param retentionTimeTolerance    max difference in RT between standard calibrants and actual mz peaks
+   * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and actual mz peaks
+   * @param percentileRange           percentile range used to extract errors from their distribution
+   * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
+   */
+  public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
+                        Range<Double> percentileRange, StandardsList standardsList) {
+    this.retentionTimeTolerance = retentionTimeTolerance;
+    this.mzRatioTolerance = mzRatioTolerance;
+    this.standardsList = standardsList;
+
+    this.percentileRange = percentileRange;
+    this.rangeExtractionMethod = "interpercentile range";
 
     this.logger = Logger.getLogger(this.getClass().getName());
   }
@@ -118,30 +144,42 @@ public class MassCalibrator {
       Set<Double> errorsSet = new HashSet<Double>(errors);
       errors = new ArrayList<Double>(errorsSet);
     }
-    List<Double> extracted;
-    if (errorMaxRangeLength != 0) {
-      DistributionRange range = DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
-      DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
-              errorDistributionDistance);
-      extracted = stretchedRange.getExtractedItems();
+//    List<Double> extracted;
+    List<Double> extracted = null;
 
-      errorRangeStore.put("Most populated range", range);
-      if (errorDistributionDistance != 0) {
-        errorRangeStore.put("Tolerance extended range", stretchedRange);
+    if (rangeExtractionMethod.equalsIgnoreCase("range method")) {
+      if (errorMaxRangeLength != 0) {
+        DistributionRange range = DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
+        DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+                errorDistributionDistance);
+        extracted = stretchedRange.getExtractedItems();
+
+        errorRangeStore.put("Most populated range", range);
+        if (errorDistributionDistance != 0) {
+          errorRangeStore.put("Tolerance extended range", stretchedRange);
+        }
+
+      } else if (errorDistributionDistance != 0) {
+        DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
+                errorDistributionDistance);
+        extracted = biggestCluster.getExtractedItems();
+
+        errorRangeStore.put("Biggest range by tolerance", biggestCluster);
+
+      } else {
+        DistributionRange wholeRange = DistributionExtractor.wholeRange(errors);
+        extracted = errors;
+
       }
-
-    } else if (errorDistributionDistance != 0) {
-      DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
-              errorDistributionDistance);
-      extracted = biggestCluster.getExtractedItems();
-
-      errorRangeStore.put("Biggest range by tolerance", biggestCluster);
-
-    } else {
-      DistributionRange wholeRange = DistributionExtractor.wholeRange(errors);
-      extracted = errors;
-
     }
+    else if (rangeExtractionMethod.equalsIgnoreCase("interpercentile range")) {
+      DistributionRange range = DistributionExtractor.interpercentileRange(errors,
+              percentileRange.lowerEndpoint(), percentileRange.upperEndpoint());
+      extracted = range.getExtractedItems();
+
+      errorRangeStore.put("Interpercentile range", range);
+    }
+
     double biasEstimate = BiasEstimator.arithmeticMean(extracted);
     logger.info(String.format("Errors %d, extracted %d, unique %s, bias estimate %f",
             errors.size(), extracted.size(), unique ? "true" : "false", biasEstimate));
