@@ -233,9 +233,10 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
               int itemindex = entity.getItem();
               double mobility = 0;
               mobility = dataset.getYValue(serindex, itemindex);
+              ArrayList<Scan>selectedScan = imsVisualizerTask.getScans();
               for (int i = 0; i < scans.length; i++) {
-                if (scans[i].getMobility() == mobility && selectedRetentionTime == scans[i].getRetentionTime()) {
-                  selectedMobilityScan = scans[i];
+                if (selectedScan.get(i).getMobility() == mobility && selectedRetentionTime == selectedScan.get(i).getRetentionTime()) {
+                  selectedMobilityScan = selectedScan.get(i);
                   break;
                 }
               }

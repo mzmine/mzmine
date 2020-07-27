@@ -40,6 +40,7 @@ import org.jfree.data.xy.XYZDataset;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
@@ -70,6 +71,7 @@ public class ImsVisualizerTask extends AbstractTask {
   private IntensityMobilityPlot intensityMobilityPlot;
   private RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot;
   private RetentionTimeIntensityPlot retentionTimeIntensityPlot;
+  private ArrayList<Scan> selectedScans;
 
   public ImsVisualizerTask(ParameterSet parameters) {
     dataFiles =
@@ -89,14 +91,6 @@ public class ImsVisualizerTask extends AbstractTask {
     paintScaleStyle = parameters.getParameter(ImsVisualizerParameters.paintScale).getValue();
 
     parameterSet = parameters;
-  }
-
-  public void setSelectedRetentionTime(double retentionTime) {
-    this.selectedRetentionTime = retentionTime;
-  }
-
-  public double getSelectedRetentionTime() {
-    return this.selectedRetentionTime;
   }
 
   @Override
@@ -243,4 +237,19 @@ public class ImsVisualizerTask extends AbstractTask {
     Label mobilityRTLabel = controller.getMobilityRTLabel();
     mobilityRTLabel.setText("m/z: " + mzRange.lowerEndpoint() + " - " + mzRange.upperEndpoint());
   }
+
+  public void setSelectedRetentionTime(double retentionTime) {
+    this.selectedRetentionTime = retentionTime;
+  }
+
+  public double getSelectedRetentionTime() {
+    return this.selectedRetentionTime;
+  }
+
+  public void setSelectedScans(ArrayList<Scan> arrayList){
+    selectedScans = arrayList;
+  }
+
+  public ArrayList<Scan> getScans(){ return selectedScans; }
+
 }

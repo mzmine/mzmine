@@ -46,6 +46,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class IntensityMobilityPlot extends EChartViewer {
@@ -106,9 +107,10 @@ public class IntensityMobilityPlot extends EChartViewer {
               int serindex = entity.getSeriesIndex();
               int itemindex = entity.getItem();
               double mobility = dataset.getYValue(serindex, itemindex);
-              for (int i = 0; i < scans.length; i++) {
-                if (scans[i].getMobility() == mobility && scans[i].getRetentionTime() == selectedRetentionTime) {
-                  selectedMobilityScan = scans[i];
+              ArrayList<Scan>selectedScan = imsVisualizerTask.getScans();
+              for (int i = 0; i < selectedScan.size(); i++) {
+                if (selectedScan.get(i).getMobility() == mobility && selectedScan.get(i).getRetentionTime() == selectedRetentionTime) {
+                  selectedMobilityScan = selectedScan.get(i);
                   break;
                 }
               }

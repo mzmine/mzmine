@@ -55,7 +55,10 @@ public class DataFactory {
   public HashMap<Double, Double> scanMobilityMap = new HashMap<>();
   public HashMap<Double, Double> scanRetentionTimeMap = new HashMap<>();
   private Double selectedRetentionTime;
+  private ArrayList<Scan> selectedScans;
   private int scanSize;
+  private ImsVisualizerTask imsVisualizerTask;
+
 
   public DataFactory(ParameterSet parameters, double rt, ImsVisualizerTask imsVisualizerTask) {
     dataFiles =
@@ -74,6 +77,7 @@ public class DataFactory {
 
     this.selectedRetentionTime = rt;
     scanSize = scans.length;
+    this.imsVisualizerTask = imsVisualizerTask;
 
     // if there is not selected any retention time.select the rt for max intensity.
     double maxIntensity = 0.0;
@@ -181,13 +185,13 @@ public class DataFactory {
       }
     }
 
-    ArrayList<Scan>selectedScan = new ArrayList<>();
+    selectedScans = new ArrayList<>();
     // ims frame.
     ArrayList<MzMobilityFields> mzMobilityFields = new ArrayList<>();
     ArrayList<IntensityMobilityFields> intensityMobilityFields = new ArrayList<>();
     for (int i = 0; i < scanSize; i++) {
       if (scans[i].getRetentionTime() == selectedRetentionTime) {
-          selectedScan.add(scans[i]);
+        selectedScans.add(scans[i]);
         double intensitySum = 0;
         DataPoint dataPoint[] = scans[i].getDataPointsByMass(mzRange);
         for (int j = 0; j < dataPoint.length; j++) {
@@ -217,6 +221,8 @@ public class DataFactory {
       intensity_IntensityMobility[i] = intensityMobilityFields.get(i)._intensity;
       mobility_IntensityMobility[i] = intensityMobilityFields.get(i)._mobility;
     }
+
+    imsVisualizerTask.setSelectedScans(selectedScans);
   }
   /*
   get all the unique mobilities in all scan
@@ -286,4 +292,5 @@ public class DataFactory {
   public Double[] getIntensity_IntensityMobility() {
     return intensity_IntensityMobility;
   }
+
 }
