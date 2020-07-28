@@ -23,11 +23,11 @@ import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
-import io.github.mzmine.modules.visualization.twod.PlotType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYZDataset;
@@ -87,10 +87,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file data file to plot.
-   * @param theScanNumbers scans to plot.
+   * @param file    data file to plot.
+   * @param scans   scans to plot.
    * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param window  visualizer window.
    */
   public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
       final TICVisualizerWindow window) {
@@ -103,7 +103,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * context.
    *
    * @param file data file to plot.
-   * @param theScanNumbers scans to plot.
+   * @param scans scans to plot.
    * @param rangeMZ range of m/z to plot.
    * @param window visualizer window.
    * @param plotType plot type.
@@ -435,5 +435,36 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   @Override
   public TaskPriority getTaskPriority() {
     return TaskPriority.NORMAL;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof TICDataSet)) {
+      return false;
+    }
+    TICDataSet that = (TICDataSet) o;
+    return totalScans == that.totalScans &&
+        Double.compare(that.intensityMin, intensityMin) == 0 &&
+        Double.compare(that.intensityMax, intensityMax) == 0 &&
+        Objects.equals(dataFile, that.dataFile) &&
+        Arrays.equals(scans, that.scans) &&
+        Arrays.equals(basePeakValues, that.basePeakValues) &&
+        Arrays.equals(intensityValues, that.intensityValues) &&
+        Arrays.equals(rtValues, that.rtValues) &&
+        Objects.equals(mzRange, that.mzRange) &&
+        plotType == that.plotType;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(dataFile, totalScans, mzRange, intensityMin, intensityMax, plotType);
+    result = 31 * result + Arrays.hashCode(scans);
+    result = 31 * result + Arrays.hashCode(basePeakValues);
+    result = 31 * result + Arrays.hashCode(intensityValues);
+    result = 31 * result + Arrays.hashCode(rtValues);
+    return result;
   }
 }

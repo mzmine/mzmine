@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Point;
@@ -36,6 +37,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
@@ -579,6 +581,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
             MirrorScanWindowFX mirrorScanWindowFX = new MirrorScanWindowFX();
             mirrorScanWindowFX.setScans(scan, mirror);
             mirrorScanWindowFX.show();
+          });
+
+          SwingUtilities.invokeLater(() -> {
+            MirrorScanWindow mirrorScanWindow = new MirrorScanWindow();
+            mirrorScanWindow.setScans(scan, mirror);
+            mirrorScanWindow.setVisible(true);
           });
         }
       }

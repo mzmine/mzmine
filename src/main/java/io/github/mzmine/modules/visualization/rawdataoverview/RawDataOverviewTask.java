@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -80,7 +81,8 @@ public class RawDataOverviewTask extends AbstractTask {
 
           // get controller
           RawDataOverviewWindowController controller = loader.getController();
-          controller.initialize(rawDataFile);
+          controller.initialize();
+          controller.setRawDataFiles(Arrays.asList(rawDataFile));
 
           // Use main CSS
           scene.getStylesheets()

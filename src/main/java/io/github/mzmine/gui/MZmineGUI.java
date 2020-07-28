@@ -19,6 +19,8 @@
 package io.github.mzmine.gui;
 
 
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.MainWindowController;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -41,7 +43,6 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
-import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -113,6 +114,8 @@ public class MZmineGUI extends Application implements Desktop {
     stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
+    stage.widthProperty().addListener(c -> logger.info(c.toString()));
+
 
     // Set application icon
     stage.getIcons().setAll(mzMineIcon);
@@ -388,6 +391,11 @@ public class MZmineGUI extends Application implements Desktop {
   public void openWebPage(URL url) {
     HostServices openWPService = getHostServices();
     openWPService.showDocument(String.valueOf(url));
+  }
+
+  @Override
+  public boolean addTab(MZmineTab tab) {
+    return mainWindowController.getMainTabPane().getTabs().add(tab);
   }
 
   @Override
