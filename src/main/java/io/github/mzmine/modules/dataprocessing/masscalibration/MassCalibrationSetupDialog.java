@@ -158,7 +158,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    MassCalibrationTask previewTask = new MassCalibrationTask(previewDataFile, parameterSet, false);
+    MassCalibrationTask previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
     previewTask.run();
 
     if (previewTask.getStatus() != TaskStatus.FINISHED) {

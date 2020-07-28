@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.RangeExtractionChoice;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
@@ -58,23 +59,21 @@ public class MassCalibrationTask extends AbstractTask {
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
   private StandardsListExtractor standardsListExtractor;
-
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
   protected ArrayList<Double> errors = new ArrayList<>();
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
-
-  protected boolean displayWarningMessages = true;
+  protected boolean previewRun = false;
 
   /**
    * @param dataFile
    * @param parameters
    */
-  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean displayWarningMessages) {
+  public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean previewRun) {
 
     this.dataFile = dataFile;
     this.parameters = parameters;
-    this.displayWarningMessages = displayWarningMessages;
+    this.previewRun = previewRun;
 
     this.massListName = parameters.getParameter(MassCalibrationParameters.massList).getValue();
 
@@ -84,7 +83,7 @@ public class MassCalibrationTask extends AbstractTask {
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
-    this(dataFile, parameters, true);
+    this(dataFile, parameters, false);
   }
 
   /**
@@ -138,35 +137,25 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
-    /*Double tolerance = parameters.getParameter(MassCalibrationParameters.tolerance).getValue();
-    Double rangeSize = parameters.getParameter(MassCalibrationParameters.rangeSize).getValue();*/
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
 
-//    MassCalibrator massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
-//            standardsList);
-
-//    MassCalibrator massCalibrator;
     MassCalibrator massCalibrator = null;
-
     ParameterSet parameterSet;
-    NestedCombo rangeExtractionMethod = parameters.getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
+    NestedCombo rangeExtractionMethod = parameters.
+            getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
 
-    if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase("range method")) {
-      parameterSet = rangeExtractionMethod.getChoices().get("range method");
+    if (rangeExtractionMethod.getCurrentChoice().equals(RangeExtractionChoice.RANGE_METHOD.toString())) {
+      parameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.RANGE_METHOD.toString());
       Double tolerance = parameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
       Double rangeSize = parameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize, standardsList);
-    }
-    else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase("interpercentile range")) {
-      parameterSet = rangeExtractionMethod.getChoices().get("interpercentile range");
-//      Double lowerPercentile = parameterSet.getParameter(MassCalibrationParameters.lowerPercentile).getValue();
-//      Double upperPercentile = parameterSet.getParameter(MassCalibrationParameters.upperPercentile).getValue();
+    } else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase(RangeExtractionChoice.PERCENTILE_RANGE.toString())) {
+      parameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.PERCENTILE_RANGE.toString());
       Range<Double> percentileRange = parameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList);
     }
-
 
 
     scanNumbers = dataFile.getScanNumbers();
@@ -215,10 +204,10 @@ public class MassCalibrationTask extends AbstractTask {
 
     if (errors.size() == 0) {
       String warningMessage = "No matches were made between the extracted standards list and the mass lists" +
-                      " in the selected raw datafile. The module will continue to calibrate mass lists using" +
-                      " no matches, the bias estimate is zero, so the mass peaks will be shifted by zero.";
+              " in the selected raw datafile. The module will continue to calibrate mass lists using" +
+              " no matches, the bias estimate is zero, so the mass peaks will be shifted by zero.";
       logger.warning("Mass calibration warning: " + warningMessage);
-      if (displayWarningMessages){
+      if (previewRun == false) {
         MZmineCore.getDesktop().displayMessage("Mass calibration warning", warningMessage);
       }
     }
@@ -252,7 +241,7 @@ public class MassCalibrationTask extends AbstractTask {
       scan.addMassList(newMassList);
 
       // Remove old mass list
-      if (autoRemove)
+      if (autoRemove && previewRun == false)
         scan.removeMassList(massList);
 
       processedScans++;

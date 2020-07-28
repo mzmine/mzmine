@@ -39,18 +39,14 @@ public class MassCalibrator {
 
   protected final RTTolerance retentionTimeTolerance;
   protected final MZTolerance mzRatioTolerance;
-//  protected final double errorDistributionDistance;
-//  protected final double errorMaxRangeLength;
-  protected double errorDistributionDistance;
-  protected double errorMaxRangeLength;
   protected final StandardsList standardsList;
 
-//  protected final String rangeExtractionMethod = "range method";
-  protected String rangeExtractionMethod = "range method";
+  protected MassCalibrationParameters.RangeExtractionChoice rangeExtractionMethod;
+  protected double errorDistributionDistance;
+  protected double errorMaxRangeLength;
   protected Range<Double> percentileRange;
-
+  
   protected final Logger logger;
-
   protected int all, zero, single, multiple = 0;
   protected int massListsCount = 0;
 
@@ -66,10 +62,12 @@ public class MassCalibrator {
    */
   public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
                         double errorDistributionDistance, double errorMaxRangeLength, StandardsList standardsList) {
-    this.retentionTimeTolerance = retentionTimeTolerance;
-    this.mzRatioTolerance = mzRatioTolerance;
+    this.rangeExtractionMethod = MassCalibrationParameters.RangeExtractionChoice.RANGE_METHOD;
     this.errorDistributionDistance = errorDistributionDistance;
     this.errorMaxRangeLength = errorMaxRangeLength;
+
+    this.retentionTimeTolerance = retentionTimeTolerance;
+    this.mzRatioTolerance = mzRatioTolerance;
     this.standardsList = standardsList;
 
     this.logger = Logger.getLogger(this.getClass().getName());
@@ -78,19 +76,20 @@ public class MassCalibrator {
   /**
    * Create new mass calibrator
    *
-   * @param retentionTimeTolerance    max difference in RT between standard calibrants and actual mz peaks
-   * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and actual mz peaks
-   * @param percentileRange           percentile range used to extract errors from their distribution
-   * @param standardsList             list of standard calibrants used for m/z peaks matching and bias estimation
+   * @param retentionTimeTolerance max difference in RT between standard calibrants and actual mz peaks
+   * @param mzRatioTolerance       max difference in mz ratio between standard calibrants and actual mz peaks
+   * @param percentileRange        percentile range used to extract errors from their distribution
+   * @param standardsList          list of standard calibrants used for m/z peaks matching and bias estimation
    */
   public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
                         Range<Double> percentileRange, StandardsList standardsList) {
+    this.rangeExtractionMethod = MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE;
+    this.percentileRange = percentileRange;
+
     this.retentionTimeTolerance = retentionTimeTolerance;
     this.mzRatioTolerance = mzRatioTolerance;
     this.standardsList = standardsList;
 
-    this.percentileRange = percentileRange;
-    this.rangeExtractionMethod = "interpercentile range";
 
     this.logger = Logger.getLogger(this.getClass().getName());
   }
@@ -103,7 +102,7 @@ public class MassCalibrator {
    *
    * @param massList
    * @param retentionTime
-   * @param matchesStore if not null, mass peak matches made in the process will be added to the list store
+   * @param matchesStore  if not null, mass peak matches made in the process will be added to the list store
    * @return
    */
   public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime,
@@ -116,15 +115,15 @@ public class MassCalibrator {
     return errors;
   }
 
-   public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
+  public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
     return findMassListErrors(massList, retentionTime, null);
   }
 
   /**
    * Estimate measurement bias from errors
    *
-   * @param errors list of errors
-   * @param unique filter out duplicates from the list of errors if unique is set to true
+   * @param errors          list of errors
+   * @param unique          filter out duplicates from the list of errors if unique is set to true
    * @param errorRangeStore if not null, error ranges extracted in the process will be added to the map store
    * @return measurement bias estimate
    */
@@ -144,10 +143,9 @@ public class MassCalibrator {
       Set<Double> errorsSet = new TreeSet<Double>(errors);
       errors = new ArrayList<Double>(errorsSet);
     }
-//    List<Double> extracted;
-    List<Double> extracted = null;
 
-    if (rangeExtractionMethod.equalsIgnoreCase("range method")) {
+    List<Double> extracted = null;
+    if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.RANGE_METHOD) {
       if (errorMaxRangeLength != 0) {
         DistributionRange range = DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
         DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
@@ -171,13 +169,12 @@ public class MassCalibrator {
         extracted = errors;
 
       }
-    }
-    else if (rangeExtractionMethod.equalsIgnoreCase("interpercentile range")) {
+    } else if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
       DistributionRange range = DistributionExtractor.interpercentileRange(errors,
               percentileRange.lowerEndpoint(), percentileRange.upperEndpoint());
       extracted = range.getExtractedItems();
 
-      errorRangeStore.put("Interpercentile range", range);
+      errorRangeStore.put("Percentile range", range);
     }
 
     double biasEstimate = BiasEstimator.arithmeticMean(extracted);

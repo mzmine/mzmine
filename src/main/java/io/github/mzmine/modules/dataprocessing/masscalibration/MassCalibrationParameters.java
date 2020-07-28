@@ -51,13 +51,19 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final BooleanParameter filterDuplicates = new BooleanParameter("Filter out duplicate errors",
           "If checked, the distribution of errors will be filtered to remove duplicates");
 
-  public static final DoubleParameter tolerance = new DoubleParameter("Error range tolerance",
-          "Error range tolerance is the max distance allowed between errors to be included in the same range." +
-                  " This is used when extending the most populated error range, if next closest error is within that" +
-                  " tolerance, the range is extended to contain it. The process is repeated until no new errors can be" +
-                  " included in that range. The tolerance is the absolute difference between PPM errors of m/z ratio." +
-                  " See help for more details.",
-          NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
+  public enum RangeExtractionChoice {
+    RANGE_METHOD("Most populated range plus stretch with tolerance"), PERCENTILE_RANGE("Percentile range");
+
+    private String name;
+
+    RangeExtractionChoice(String name) {
+      this.name = name;
+    }
+
+    public String toString() {
+      return name;
+    }
+  }
 
   public static final DoubleParameter rangeSize = new DoubleParameter("Most populated error range size",
           "The maximum length of the range that contains the most errors. The module searches for a range" +
@@ -66,18 +72,26 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   " of the range, both are values of PPM errors of m/z ratio. See help for more details.",
           NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
-  public static final DoubleRangeParameter percentileRange = new DoubleRangeParameter("Interpercentile range",
-          "The interpercentile range used for extraction of errors.", NumberFormat.getNumberInstance(), true,false,
+  public static final DoubleParameter tolerance = new DoubleParameter("Error range tolerance",
+          "Error range tolerance is the max distance allowed between errors to be included in the same range." +
+                  " This is used when extending the most populated error range, if next closest error is within that" +
+                  " tolerance, the range is extended to contain it. The process is repeated until no new errors can be" +
+                  " included in that range. The tolerance is the absolute difference between PPM errors of m/z ratio." +
+                  " See help for more details.",
+          NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
+
+  public static final DoubleRangeParameter percentileRange = new DoubleRangeParameter("Percentile range",
+          "The percentile range used for extraction of errors.", NumberFormat.getNumberInstance(), true,false,
           Range.closed(25.0, 75.0), Range.closed(0.0, 100.0));
 
   public static final TreeMap<String, ParameterSet> rangeExtractionChoices = new TreeMap<>() {{
-    put("range method", new SimpleParameterSet(new Parameter[]{tolerance, rangeSize}));
-    put("interpercentile range", new SimpleParameterSet(new Parameter[]{percentileRange}));
+    put(RangeExtractionChoice.RANGE_METHOD.toString(), new SimpleParameterSet(new Parameter[]{tolerance, rangeSize}));
+    put(RangeExtractionChoice.PERCENTILE_RANGE.toString(), new SimpleParameterSet(new Parameter[]{percentileRange}));
   }};
 
   public static final NestedComboParameter rangeExtractionMethod = new NestedComboParameter("Range extraction method",
           "Method used to extract range of errors considered substantial to the bias estimation of" +
-                  " mass peaks m/z measurement", rangeExtractionChoices, "range method", true, 250);
+                  " mass peaks m/z measurement", rangeExtractionChoices, RangeExtractionChoice.RANGE_METHOD.toString(), true, 250);
 
   public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
           "Max difference between actual mz peaks and standard calibrants to consider a match," +
