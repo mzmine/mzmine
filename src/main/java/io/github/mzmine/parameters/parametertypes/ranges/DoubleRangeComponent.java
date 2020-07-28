@@ -79,15 +79,12 @@ public class DoubleRangeComponent extends HBox {
   }
 
   public Range<Double> getValue() {
-    System.out.println("double range getvalue");
     String minString = minTxtField.getText();
     String maxString = maxTxtField.getText();
 
     try {
       Number minValue = format.parse(minString.trim());
       Number maxValue = format.parse(maxString.trim());
-
-      System.out.println("value: " + minValue + "-" + maxValue);
 
       if ((minValue == null) || (maxValue == null))
         return null;

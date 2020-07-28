@@ -66,24 +66,18 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   " of the range, both are values of PPM errors of m/z ratio. See help for more details.",
           NumberFormat.getNumberInstance(), 2.0, 0.0, Double.POSITIVE_INFINITY);
 
-  public static final DoubleParameter test = new DoubleParameter("test",
-          "desc",
-          NumberFormat.getNumberInstance(), 50.0, 0.0, Double.POSITIVE_INFINITY);
-
- public static final BooleanParameter test2 = new BooleanParameter("test2", "desc");
-
   public static final DoubleRangeParameter percentileRange = new DoubleRangeParameter("Interpercentile range",
           "The interpercentile range used for extraction of errors.", NumberFormat.getNumberInstance(), true,false,
           Range.closed(25.0, 75.0), Range.closed(0.0, 100.0));
 
   public static final TreeMap<String, ParameterSet> rangeExtractionChoices = new TreeMap<>() {{
     put("range method", new SimpleParameterSet(new Parameter[]{tolerance, rangeSize}));
-    put("interpercentile range", new SimpleParameterSet(new Parameter[]{percentileRange, test2}));
+    put("interpercentile range", new SimpleParameterSet(new Parameter[]{percentileRange}));
   }};
 
   public static final NestedComboParameter rangeExtractionMethod = new NestedComboParameter("Range extraction method",
           "Method used to extract range of errors considered substantial to the bias estimation of" +
-                  " mass peaks m/z measurement", rangeExtractionChoices, "range method");
+                  " mass peaks m/z measurement", rangeExtractionChoices, "range method", true, 250);
 
   public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
           "Max difference between actual mz peaks and standard calibrants to consider a match," +
@@ -101,7 +95,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public MassCalibrationParameters() {
     super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
-            filterDuplicates, rangeExtractionMethod, test, suffix, autoRemove});
+            filterDuplicates, rangeExtractionMethod, suffix, autoRemove});
   }
 
   @Override

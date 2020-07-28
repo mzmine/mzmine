@@ -21,10 +21,8 @@ package io.github.mzmine.parameters.parametertypes.combonested;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.Collection;
@@ -33,18 +31,28 @@ import java.util.TreeMap;
 
 public class NestedComboParameter implements UserParameter<NestedCombo, NestedComboboxComponent> {
 
-  private String name;
-  private String description;
-  private NestedCombo value;
+  private final String name;
+  private final String description;
   protected TreeMap<String, ParameterSet> choices;
   protected String defaultChoice;
+  protected boolean showNestedParamsOnStart;
+  protected Integer prefWidth;
+  private NestedCombo value;
 
   public NestedComboParameter(String name, String description,
-                              TreeMap<String, ParameterSet> choices, String defaultChoice) {
+                              TreeMap<String, ParameterSet> choices, String defaultChoice,
+                              boolean showNestedParamsOnStart, Integer prefWidth) {
     this.name = name;
     this.description = description;
     this.choices = choices;
     this.defaultChoice = defaultChoice;
+    this.showNestedParamsOnStart = showNestedParamsOnStart;
+    this.prefWidth = prefWidth;
+  }
+
+  public NestedComboParameter(String name, String description,
+                              TreeMap<String, ParameterSet> choices, String defaultChoice) {
+    this(name, description, choices, defaultChoice, true, null);
   }
 
   @Override
@@ -59,34 +67,33 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
 
   @Override
   public NestedComboboxComponent createEditingComponent() {
-    return new NestedComboboxComponent(choices, defaultChoice);
+    return new NestedComboboxComponent(choices, defaultChoice, showNestedParamsOnStart, prefWidth);
   }
 
   @Override
   public NestedComboParameter cloneParameter() {
     TreeMap<String, ParameterSet> clonedChoices = new TreeMap<>();
-    for (String choice: choices.keySet()) {
+    for (String choice : choices.keySet()) {
       clonedChoices.put(choice, choices.get(choice).cloneParameterSet());
     }
-    NestedComboParameter copy = new NestedComboParameter(name, description, clonedChoices, defaultChoice);
+    NestedComboParameter copy = new NestedComboParameter(name, description, clonedChoices, defaultChoice,
+            showNestedParamsOnStart, prefWidth);
     copy.setValue(this.getValue());
     return copy;
   }
 
   @Override
   public void setValueFromComponent(NestedComboboxComponent component) {
-//    value = component.getValue();
     component.updateParameterSetFromComponents();
     this.value = new NestedCombo(component.choices, component.getCurrentChoice());
   }
 
   @Override
   public void setValueToComponent(NestedComboboxComponent component, NestedCombo newValue) {
-//    component.setValue(newValue);
     component.setCurrentChoice(newValue.currentChoice);
-    for (String choice: component.choices.keySet()) {
-      for (Parameter p: choices.get(choice).getParameters())
-      component.choices.get(choice).getParameter(p).setValue(newValue.choices.get(choice).getParameter(p).getValue());
+    for (String choice : component.choices.keySet()) {
+      for (Parameter p : choices.get(choice).getParameters())
+        component.choices.get(choice).getParameter(p).setValue(newValue.choices.get(choice).getParameter(p).getValue());
     }
   }
 
@@ -113,7 +120,6 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
     for (int i = 0; i < choicesList.getLength(); i++) {
       Element choice = (Element) choicesList.item(i);
       String choiceName = choice.getAttribute("name");
-//      ParameterSet choiceParameterSet = new SimpleParameterSet();
       ParameterSet choiceParameterSet = choices.get(choiceName).cloneParameterSet();
       choiceParameterSet.loadValuesFromXML((Element) choice.getElementsByTagName("value").item(0));
       choices.put(choiceName, choiceParameterSet);

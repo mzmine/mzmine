@@ -141,7 +141,7 @@ public class MassCalibrator {
     }
 
     if (unique) {
-      Set<Double> errorsSet = new HashSet<Double>(errors);
+      Set<Double> errorsSet = new TreeSet<Double>(errors);
       errors = new ArrayList<Double>(errorsSet);
     }
 //    List<Double> extracted;
