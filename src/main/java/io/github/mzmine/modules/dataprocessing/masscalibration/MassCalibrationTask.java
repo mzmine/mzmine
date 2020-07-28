@@ -161,9 +161,9 @@ public class MassCalibrationTask extends AbstractTask {
     }
     else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase("interpercentile range")) {
       parameterSet = rangeExtractionMethod.getChoices().get("interpercentile range");
-      Double lowerPercentile = parameterSet.getParameter(MassCalibrationParameters.lowerPercentile).getValue();
-      Double upperPercentile = parameterSet.getParameter(MassCalibrationParameters.upperPercentile).getValue();
-      Range<Double> percentileRange = Range.closed(lowerPercentile, upperPercentile);
+//      Double lowerPercentile = parameterSet.getParameter(MassCalibrationParameters.lowerPercentile).getValue();
+//      Double upperPercentile = parameterSet.getParameter(MassCalibrationParameters.upperPercentile).getValue();
+      Range<Double> percentileRange = parameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList);
     }
 

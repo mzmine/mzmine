@@ -20,6 +20,8 @@ package io.github.mzmine.parameters.parametertypes.ranges;
 
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.logging.Logger;
+
 import com.google.common.collect.Range;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -29,6 +31,8 @@ import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
 
 public class DoubleRangeComponent extends HBox {
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final TextField minTxtField, maxTxtField;
   private final Label minusLabel;
@@ -75,6 +79,7 @@ public class DoubleRangeComponent extends HBox {
   }
 
   public Range<Double> getValue() {
+    System.out.println("double range getvalue");
     String minString = minTxtField.getText();
     String maxString = maxTxtField.getText();
 
@@ -82,12 +87,14 @@ public class DoubleRangeComponent extends HBox {
       Number minValue = format.parse(minString.trim());
       Number maxValue = format.parse(maxString.trim());
 
+      System.out.println("value: " + minValue + "-" + maxValue);
+
       if ((minValue == null) || (maxValue == null))
         return null;
       return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.info(e.toString());
       return null;
     }
   }

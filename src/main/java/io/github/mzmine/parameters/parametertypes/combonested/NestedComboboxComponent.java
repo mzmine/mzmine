@@ -186,6 +186,7 @@ public class NestedComboboxComponent extends BorderPane {
   }
 
    protected void addListenersToNode(Node node) {
+    if (true) return;
     if (node instanceof TextField) {
       TextField textField = (TextField) node;
       textField.textProperty().addListener(((observable, oldValue, newValue) -> {
@@ -200,7 +201,7 @@ public class NestedComboboxComponent extends BorderPane {
     if (node instanceof ChoiceBox) {
       ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
-          .addListener(((observable, oldValue, newValue) -> updateParameterSetFromComponents()));
+          .addListener(((observable, oldValue, newValue) -> updateParameterSetFromComponents())); 5
     }
     if (node instanceof CheckBox) {
       CheckBox checkBox = (CheckBox) node;

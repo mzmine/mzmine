@@ -87,11 +87,13 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
 
   @Override
   public void setValueFromComponent(final DoubleComponent component) {
+    System.out.println("getting value for double");
     try {
       value = format.parse(component.getText()).doubleValue();
     } catch (Exception e) {
       value = null;
     }
+    System.out.println("value: " + value);
   }
 
   @Override

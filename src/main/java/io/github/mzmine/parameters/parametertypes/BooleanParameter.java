@@ -86,6 +86,7 @@ public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
   @Override
   public void setValueFromComponent(CheckBox component) {
     value = component.isSelected();
+    System.out.println("setting value for boolean: " + value);
   }
 
   @Override

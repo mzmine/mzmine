@@ -47,7 +47,7 @@ public class ChartUtils {
   public static XYLineAndShapeRenderer createErrorsRenderer() {
     XYLineAndShapeRenderer errorsRenderer = new XYLineAndShapeRenderer(false, true);
     Shape circle = new Ellipse2D.Double(-2, -2, 4, 4);
-    Color paintColor = new Color(230, 160, 30);
+    Color paintColor = new Color(230, 160, 30, 100);
     errorsRenderer.setSeriesShape(0, circle);
     errorsRenderer.setSeriesPaint(0, paintColor);
     errorsRenderer.setSeriesFillPaint(0, paintColor);
@@ -58,13 +58,17 @@ public class ChartUtils {
   }
 
   public static XYLineAndShapeRenderer createTrendRenderer() {
+    System.out.println("Test");
     XYLineAndShapeRenderer trendRenderer = new XYLineAndShapeRenderer();
     Shape circle = new Ellipse2D.Double(-2, -2, 4, 4);
+    Color paintColor = new Color(0, 0, 0, 150);
     Stroke stroke = new BasicStroke(2);
     trendRenderer.setSeriesShape(0, circle);
+    trendRenderer.setSeriesPaint(0, paintColor);
     trendRenderer.setSeriesStroke(0, stroke);
     trendRenderer.setDefaultStroke(stroke);
     trendRenderer.setAutoPopulateSeriesStroke(false);
+    trendRenderer.setAutoPopulateSeriesPaint(false);
     return trendRenderer;
   }
 }
