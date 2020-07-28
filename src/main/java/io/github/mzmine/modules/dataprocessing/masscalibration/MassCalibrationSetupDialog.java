@@ -26,9 +26,11 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.charts.MeasuredVs
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 
@@ -41,7 +43,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   private final ErrorDistributionChart errorDistributionChart;
   private final ErrorVsMzChart errorVsMzChart;
   private final MeasuredVsMatchedMzChart measuredVsMatchedMzChart;
-
   // Dialog components
   private final BorderPane pnlPreviewFields;
   private final FlowPane pnlDataFile;
@@ -55,6 +56,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   private final CheckBox previewCheckBox;
   private final RawDataFile[] dataFiles;
   private final RawDataFile previewDataFile;
+
+  protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
@@ -87,7 +90,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
             MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
-      parametersChanged();
+      parametersChanged(false);
     });
 
     pnlDataFile.getChildren().add(comboDataFileName);
@@ -104,7 +107,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzButton.setToggleGroup(chartChoice);
     measuredVsMatchedMzButton = new RadioButton("Measured vs matched mz");
     measuredVsMatchedMzButton.setToggleGroup(chartChoice);
-    chartChoice.selectedToggleProperty().addListener(e -> parametersChanged());
+    chartChoice.selectedToggleProperty().addListener(e -> parametersChanged(false));
 
     FlowPane chartChoicePane = new FlowPane();
     chartChoicePane.getChildren().add(errorDistributionButton);
@@ -134,7 +137,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
-        parametersChanged();
+        parametersChanged(false);
       } else {
         mainPane.setLeft(null);
         mainPane.setCenter(mainScrollPane);
@@ -193,11 +196,20 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   @Override
   protected void parametersChanged() {
+    parametersChanged(true);
+  }
+
+  protected void parametersChanged(boolean debounce) {
     if (!previewCheckBox.isSelected()) {
       return;
     }
 
     updateParameterSetFromComponents();
-    loadPreview();
+    if (debounce) {
+      debounceTime.setOnFinished(event -> loadPreview());
+      debounceTime.playFromStart();
+    } else {
+      loadPreview();
+    }
   }
 }
