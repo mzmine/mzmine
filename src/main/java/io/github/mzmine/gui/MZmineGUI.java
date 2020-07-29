@@ -23,12 +23,18 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.stage.Window;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -86,8 +92,6 @@ public class MZmineGUI extends Application implements Desktop {
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
   private static MainWindowController mainWindowController;
-
-  private static final ObservableList<MZmineWindow> windows = FXCollections.observableArrayList();
 
   private static final int MAX_TABS = 7;
 
@@ -401,18 +405,20 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public boolean addTab(MZmineTab tab) {
+  public void addTab(MZmineTab tab) {
     if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS) {
-      return mainWindowController.getMainTabPane().getTabs().add(tab);
+      Platform.runLater(() -> mainWindowController.getMainTabPane().getTabs().add(tab));
+      return;
     } else if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS && !getWindows()
         .isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS) {
-          return window.addTab(tab);
+          Platform.runLater(() -> window.addTab(tab));
+          return;
         }
       }
     }
-    return openNewWindow().addTab(tab);
+    Platform.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
@@ -481,15 +487,14 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public MZmineWindow openNewWindow() {
-    MZmineWindow window = new MZmineWindow();
-    windows.add(window);
-    window.setOnCloseRequest(e -> windows.remove(window));
-    return window;
-  }
-
-  @Override
-  public ObservableList<MZmineWindow> getWindows() {
-    return FXCollections.unmodifiableObservableList(windows);
+  public List<MZmineWindow> getWindows() {
+    ObservableList<Window> windows = Stage.getWindows();
+    List<MZmineWindow> mzmineWindows = new ArrayList<>();
+    for (Window window : windows) {
+      if (window instanceof MZmineWindow) {
+        mzmineWindows.add((MZmineWindow) window);
+      }
+    }
+    return mzmineWindows;
   }
 }

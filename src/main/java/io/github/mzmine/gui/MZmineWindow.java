@@ -35,18 +35,55 @@ public class MZmineWindow extends Stage {
   protected final BorderPane mainPane;
   protected final TabPane tabPane;
 
-  MZmineWindow() {
+  /**
+   * If this flag is set to true, no tabs will be added to this window via {@link
+   * MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by directly calling the {@link
+   * MZmineWindow#addTab(MZmineTab)} method of this window.
+   */
+  private final boolean isExclusive;
+
+  /**
+   * Creates a new window.
+   */
+  public MZmineWindow() {
+    this(false);
+  }
+
+  /**
+   * @param isExclusive If this flag is set to true, no tabs will be added to this window via {@link
+   *                    MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by directly
+   *                    calling the {@link MZmineWindow#addTab(MZmineTab)} method of this window.
+   *                    The default value is false.
+   */
+  public MZmineWindow(boolean isExclusive) {
     super();
+
+    this.isExclusive = isExclusive;
 
     mainPane = new BorderPane();
     tabPane = new TabPane();
     Scene scene = new Scene(mainPane);
-    scene.getStylesheets().addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    scene.getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     mainPane.setCenter(tabPane);
-    tabPane.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> setTitle(newVal.getText()));
+    tabPane.getSelectionModel().selectedItemProperty()
+        .addListener((obs, old, newVal) -> setTitle(newVal.getText()));
+    this.setScene(scene);
   }
 
+  /**
+   * Adds a {@link MZmineTab} to this window. Also invokes {@link Stage#show()} so it can be invoked
+   * in the form of
+   * <p>
+   * {@code new MZmineWindow.addTab(tab);}
+   *
+   * @param tab The tab.
+   * @return {@link java.util.List#add(Object)}
+   */
   public boolean addTab(MZmineTab tab) {
+    if (!isShowing()) {
+      show();
+    }
     return tabPane.getTabs().add(tab);
   }
 

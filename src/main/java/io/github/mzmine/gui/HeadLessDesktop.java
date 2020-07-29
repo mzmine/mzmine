@@ -112,13 +112,8 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public boolean addTab(MZmineTab tab) {
-    return false;
-  }
-
-  @Override
-  public MZmineWindow openNewWindow() {
-    return null;
+  public void addTab(MZmineTab tab) {
+    return;
   }
 
   @Override
