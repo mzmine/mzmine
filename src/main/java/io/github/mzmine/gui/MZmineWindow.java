@@ -20,6 +20,7 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -69,6 +70,7 @@ public class MZmineWindow extends Stage {
     tabPane.getSelectionModel().selectedItemProperty()
         .addListener((obs, old, newVal) -> setTitle(newVal.getText()));
     this.setScene(scene);
+    WindowsMenu.addWindowsMenu(scene);
   }
 
   /**

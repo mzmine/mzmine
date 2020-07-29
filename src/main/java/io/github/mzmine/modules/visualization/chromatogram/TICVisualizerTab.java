@@ -18,12 +18,17 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -70,7 +75,7 @@ import javafx.stage.Stage;
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
-public class TICVisualizerWindow extends Stage {
+public class TICVisualizerTab extends MZmineTab {
 
   // Icons.
   private static final Image SHOW_SPECTRUM_ICON =
@@ -87,7 +92,7 @@ public class TICVisualizerWindow extends Stage {
   // CSV extension.
   private static final String CSV_EXTENSION = "*.csv";
 
-  private final Scene mainScene;
+  //  private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final TICPlot ticPlot;
@@ -108,13 +113,14 @@ public class TICVisualizerWindow extends Stage {
   /**
    * Constructor for total ion chromatogram visualizer
    */
-  public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
+  public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
       ScanSelection scanSelection, Range<Double> mzRange, List<Feature> peaks,
       Map<Feature, String> peakLabels) {
+    super("TIC Visualizer", true, false);
 
     assert mzRange != null;
 
-    setTitle("Chromatogram loading...");
+//    setTitle("Chromatogram loading...");
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
@@ -123,15 +129,16 @@ public class TICVisualizerWindow extends Stage {
     this.mzRange = mzRange;
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    setContent(mainPane);
+//    mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+//    mainScene.getStylesheets()
+//        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+//    setScene(mainScene);
 
-    setMinWidth(400.0);
-    setMinHeight(300.0);
+    mainPane.setMinWidth(400.0);
+    mainPane.setMinHeight(300.0);
 
     // sizeToScene();
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -171,7 +178,8 @@ public class TICVisualizerWindow extends Stage {
     Button axesBtn = new Button(null, new ImageView(AXES_ICON));
     axesBtn.setTooltip(new Tooltip("Setup ranges for axes"));
     axesBtn.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, ticPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(),
+          ticPlot.getXYPlot());
       dialog.show();
     });
 
@@ -213,18 +221,18 @@ public class TICVisualizerWindow extends Stage {
     }
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+//    WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
         MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
+//    WindowSettingsParameter settings =
+//        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
+//    settings.applySettingsToWindow(this);
 
     // Listen for clicks on legend items
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
@@ -275,8 +283,7 @@ public class TICVisualizerWindow extends Stage {
       }
     });
 
-
-    setOnHiding(e -> {
+    setOnClosed(e -> {
       for (Task task : ticDataSets.values()) {
         TaskStatus status = task.getStatus();
         if ((status == TaskStatus.WAITING) || (status == TaskStatus.PROCESSING)) {
@@ -348,7 +355,7 @@ public class TICVisualizerWindow extends Stage {
     RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
     Arrays.sort(files, new SimpleSorter());
     String dataFileNames = Joiner.on(",").join(files);
-    setTitle("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
+    setText("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
         + " - " + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
@@ -383,21 +390,59 @@ public class TICVisualizerWindow extends Stage {
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
   }
 
-  /**
-   * @see io.github.mzmine.modules.RawDataVisualizer#setIntensityRange(double, double)
-   */
   public void setIntensityRange(double intensityMin, double intensityMax) {
     ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
   }
 
-  /**
-   * @see io.github.mzmine.modules.RawDataVisualizer#getRawDataFiles()
-   */
-  public RawDataFile[] getRawDataFiles() {
-    return ticDataSets.keySet().toArray(new RawDataFile[0]);
+  @Override
+  public Collection<RawDataFile> getRawDataFiles() {
+    return ticDataSets.keySet();
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    // remove files first
+    getTICPlot().getChart().setNotify(false);
+    List<RawDataFile> filesToProcess = new ArrayList<>();
+    for (RawDataFile rawDataFile : ticDataSets.keySet()) {
+      if (!rawDataFiles.contains(rawDataFile)) {
+        filesToProcess.add(rawDataFile);
+      }
+    }
+    filesToProcess.forEach(r -> removeRawDataFile(r));
+
+    // presence of file is checked in the add method
+    rawDataFiles.forEach(r -> addRawDataFile(r));
+    getTICPlot().getChart().setNotify(true);
+    getTICPlot().getChart().fireChartChanged();
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 
   public void addRawDataFile(RawDataFile newFile) {
+
+    if (ticDataSets.keySet().contains(newFile)) {
+      return;
+    }
 
     final Scan scans[] = scanSelection.getMatchingScans(newFile);
     if (scans.length == 0) {
@@ -408,7 +453,6 @@ public class TICVisualizerWindow extends Stage {
     TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
     ticDataSets.put(newFile, ticDataset);
     ticPlot.addTICDataSet(ticDataset);
-
   }
 
   public void removeRawDataFile(RawDataFile file) {
@@ -439,7 +483,7 @@ public class TICVisualizerWindow extends Stage {
 
       exportChooser.setInitialFileName(file.getName());
       // Choose an export file.
-      final File exportFile = exportChooser.showSaveDialog(this);
+      final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
         MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));

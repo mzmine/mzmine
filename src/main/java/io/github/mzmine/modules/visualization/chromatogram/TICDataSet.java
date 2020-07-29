@@ -93,7 +93,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * @param window  visualizer window.
    */
   public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
-      final TICVisualizerWindow window) {
+      final TICVisualizerTab window) {
     this(file, scans, rangeMZ, window,
         ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
   }
@@ -109,7 +109,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * @param plotType plot type.
    */
   public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
-      final TICVisualizerWindow window, TICPlotType plotType) {
+      final TICVisualizerTab window, TICPlotType plotType) {
 
     mzRange = rangeMZ;
     dataFile = file;
