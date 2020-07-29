@@ -264,7 +264,7 @@ public class ComputeIsotopesModule {
 
 
   private List<IsoTable> computelistofIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
-    List<PeakData> pdList = anClique.getPeakList();
+    List<PeakData> pdList = anClique.getPeakDataList();
     HashMap<Integer,PeakData> pdHash = new HashMap<>();
     List<IsoTable> listofIsoTable =new ArrayList<>();
     for(PeakData pd : pdList){
@@ -337,9 +337,12 @@ public class ComputeIsotopesModule {
     }
     // give isotope labels
     Hashtable<Integer,Integer> nodeIDtoindexHash = new Hashtable<>();
-    for(int i = 0 ; i < this.anClique.getPeakList().size() ; i++){
-      PeakData pd = this.anClique.getPeakList().get(i);
+    List<Integer> charge = new ArrayList<>();
+
+    for(int i = 0 ; i < this.anClique.getPeakDataList().size() ; i++){
+      PeakData pd = this.anClique.getPeakDataList().get(i);
       isoLabel.add("M0"); // give MO label to every peak
+      charge.add(0); //give 0 charge to every peak (this charge is later used in adduct annotation)
       nodeIDtoindexHash.put(pd.getNodeID(),i);
     }
 
@@ -347,12 +350,14 @@ public class ComputeIsotopesModule {
       for(int i = 0 ; i < isoTable.feature.size() ; i++){
         String label = "M"+isoTable.grade.get(i)+"["+isoTable.cluster.get(i)+"]";
         isoLabel.set(nodeIDtoindexHash.get(isoTable.feature.get(i)), label);
+        charge.set(nodeIDtoindexHash.get(isoTable.feature.get(i)),isoTable.charge.get(i));
       }
     }
 
     for(int i = 0; i < isoLabel.size() ; i++){
-      PeakData pd = this.anClique.getPeakList().get(i);
+      PeakData pd = this.anClique.getPeakDataList().get(i);
       pd.setIsotopeAnnotation(isoLabel.get(i));
+      pd.setCharge(charge.get(i));
     }
     this.anClique.isoFound = true;
   }

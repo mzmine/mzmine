@@ -81,6 +81,41 @@ public enum IonizationType {
 
   NAME22("[M-H+2K]+","2K",76.91904,PolarityType.POSITIVE,-3.11496441346315,1,1),//
 
+  NAME23("[Cat+H2O]+","H2O",18.010011,PolarityType.POSITIVE,-3.21187442647121,1,1),//
+
+  NAME24("[M+H-OH]+","H",-15.99548193,PolarityType.POSITIVE,-3.21187442647121,1,1),//
+
+  NAME25("[Cat-H2O]+","",-18.0110879,PolarityType.POSITIVE,-3.51290442213519,1,1),//
+
+  NAME26("[Cat-H]+","",-1.0083404,PolarityType.POSITIVE,-3.51290442213519,1,1),//
+
+  NAME27("[M+Na-H2O]+","Na",4.978142219,PolarityType.POSITIVE,-3.51290442213519,1,1),//
+
+  NAME28("[M-2H+3K]+","3K",114.8748814,PolarityType.POSITIVE,-3.51290442213519,1,1),//
+
+  NAME29("[M+K-H2O]+","K",20.95204222,PolarityType.POSITIVE,-3.81393441779917,1,1),//
+
+  NAME30("[M-CO2H+H]+","H",-43.98986378,PolarityType.POSITIVE,-4.81393441779917,1,1),//
+
+  NAME31("[3M+H-H2O]+","H",-17.0032778,PolarityType.POSITIVE,-4.81393441779917,3,1),//
+
+  NAME32("[2M+H]+","H",1.007276,PolarityType.POSITIVE,-1.22398481647346,2,1),//
+
+  NAME33("[3M+H]+","H",1.007276,PolarityType.POSITIVE,-2.26986637344889,3,1),//
+
+  NAME34("[2M+Na-H2O]+","Na",4.978142219,PolarityType.POSITIVE,-3.81393441779917,2,1),//
+
+  NAME35("[2M+K-H2O]+","K",20.95204222,PolarityType.POSITIVE,-3.81393441779917,2,1),//
+
+  NAME36("[3M+K-H2O]+","K",20.95204222,PolarityType.POSITIVE,-4.81393441779917,3,1),//
+
+  NAME37("[2M+Na]+","Na",22.989218,PolarityType.POSITIVE,-2.96883637778491,2,1),//
+
+  NAME38("[2M+K]+","K",38.96314222,PolarityType.POSITIVE,-3.81393441779917,2,1),//
+
+  NAME39("[3M+K]+","K",38.96314222,PolarityType.POSITIVE,-3.81393441779917,3,1),//
+
+
   NAME_1("[M-2H]2-","2H-1",-2.014552,PolarityType.NEGATIVE,-1.4029242963981,1,-2),//
 
   NAME_2("[M+Na-3H]2-","Na",19.96739,PolarityType.NEGATIVE,-4.24802233641235,1,-2),//
@@ -104,7 +139,8 @@ public enum IonizationType {
   NAME_11("[3M-H]-","",-1.007276,PolarityType.NEGATIVE,-1.99274983130905,3,-1);
 
 
-
+  // log10freq records log base 10 observed frequency of adducts and fragments from available LC-MS1
+  // spectra for pure compounds available in the NIST database introduced in CliqueMS algorithm
 
   private final String name, adductFormula;
   private final PolarityType polarity;

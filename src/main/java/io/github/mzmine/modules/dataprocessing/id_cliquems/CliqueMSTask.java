@@ -136,7 +136,7 @@ public class CliqueMSTask extends AbstractTask {
   }
 
   private void addFeatureIdentity(AnClique anClique){
-    List<PeakData> pdList =  anClique.getPeakList();
+    List<PeakData> pdList =  anClique.getPeakDataList();
 
     for(PeakData pd : pdList){
       SimplePeakIdentity identity = new SimplePeakIdentity("Node #"+pd.getNodeID());

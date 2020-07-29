@@ -49,7 +49,7 @@ public class AnClique {
     this.dataFile = file;
   }
 
-  public List<PeakData> getPeakList(){
+  public List<PeakData> getPeakDataList(){
     return peakDataList;
   }
 

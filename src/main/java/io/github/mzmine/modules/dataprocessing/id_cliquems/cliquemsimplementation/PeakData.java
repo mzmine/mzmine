@@ -43,6 +43,7 @@ public class PeakData {
   // To get the peakListRow corresponding to this node.
   private final int peakListRowID;
 
+  private int charge;
   private int cliqueID;
   private String isotopeAnnotation;
   private String adductAnnotation;
@@ -81,6 +82,14 @@ public class PeakData {
 
   public int getPeakListRowID() {
     return peakListRowID;
+  }
+
+  public void setCharge(int charge){
+    this.charge = charge;
+  }
+
+  public int getCharge(){
+    return this.charge;
   }
 
 
