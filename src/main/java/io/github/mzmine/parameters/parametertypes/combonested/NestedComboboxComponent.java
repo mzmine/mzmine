@@ -133,6 +133,13 @@ public class NestedComboboxComponent extends BorderPane {
       rowCounter++;
     }
 
+    if (rowCounter == 0) {
+      Label label = new Label("No nested parameters");
+      label.minWidthProperty().bind(label.widthProperty());
+      label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
+      paramsPane.add(label, 0, rowCounter);
+    }
+
     return paramsPane;
   }
 
