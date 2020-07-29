@@ -58,7 +58,6 @@ public class ChartUtils {
   }
 
   public static XYLineAndShapeRenderer createTrendRenderer() {
-    System.out.println("Test");
     XYLineAndShapeRenderer trendRenderer = new XYLineAndShapeRenderer();
     Shape circle = new Ellipse2D.Double(-2, -2, 4, 4);
     Color paintColor = new Color(0, 0, 0, 150);

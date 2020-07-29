@@ -18,11 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.ErrorType;
+
 public class MassPeakMatch {
-  protected double measuredMzRatio;
-  protected double measuredRetentionTime;
-  protected double matchedMzRatio;
-  protected double matchedRetentionTime;
+  protected final double measuredMzRatio;
+  protected final double measuredRetentionTime;
+  protected final double matchedMzRatio;
+  protected final double matchedRetentionTime;
+
+  protected ErrorType mzErrorType;
+  protected double mzError;
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
                        double matchedMzRatio, double matchedRetentionTime) {
@@ -30,6 +35,20 @@ public class MassPeakMatch {
     this.measuredRetentionTime = measuredRetentionTime;
     this.matchedMzRatio = matchedMzRatio;
     this.matchedRetentionTime = matchedRetentionTime;
+  }
+
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime);
+    this.mzErrorType = mzErrorType;
+    this.mzError = mzErrorType.calculateError(measuredMzRatio, matchedMzRatio);
+  }
+
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType, double mzError) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime);
+    this.mzErrorType = mzErrorType;
+    this.mzError = mzError;
   }
 
   public double getMeasuredMzRatio() {
@@ -46,5 +65,13 @@ public class MassPeakMatch {
 
   public double getMatchedRetentionTime() {
     return matchedRetentionTime;
+  }
+
+  public ErrorType getMzErrorType() {
+    return mzErrorType;
+  }
+
+  public double getMzError() {
+    return mzError;
   }
 }

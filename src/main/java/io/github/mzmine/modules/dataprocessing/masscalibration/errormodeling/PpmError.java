@@ -32,4 +32,9 @@ public class PpmError implements ErrorType {
     double fractionalError = error / 1_000_000;
     return value / (1 + fractionalError);
   }
+
+  @Override
+  public String toString() {
+    return "PPM error";
+  }
 }

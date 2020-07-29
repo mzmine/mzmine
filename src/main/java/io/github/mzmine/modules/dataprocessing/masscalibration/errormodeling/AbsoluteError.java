@@ -26,4 +26,9 @@ public class AbsoluteError implements ErrorType {
   public double calibrateAgainstError(double value, double error) {
     return value - error;
   }
+
+  @Override
+  public String toString() {
+    return "Absolute error";
+  }
 }
