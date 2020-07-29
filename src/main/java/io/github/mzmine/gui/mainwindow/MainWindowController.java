@@ -19,8 +19,6 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.Ordering;
-import com.sun.javafx.UnmodifiableArrayList;
-import com.sun.javafx.collections.ImmutableObservableList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;

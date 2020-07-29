@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
+import javax.annotation.Nonnull;
 
 
 /**
@@ -62,24 +63,21 @@ public abstract class MZmineTab extends Tab {
     this(title, false, false);
   }
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends RawDataFile> getRawDataFiles();
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends ModularFeatureList> getFeatureLists();
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends ModularFeatureList> getAlignedFeatureLists();
 
-  @ForOverride
   public abstract void onRawDataFileSelectionChanged(
       Collection<? extends RawDataFile> rawDataFiles);
 
-  @ForOverride
   public abstract void onFeatureListSelectionChanged(
       Collection<? extends ModularFeatureList> featureLists);
 
-  @ForOverride
   public abstract void onAlignedFeatureListSelectionChanged(
       Collection<? extends ModularFeatureList> featurelists);
 

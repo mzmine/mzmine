@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -28,10 +26,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 /*
  * Raw data overview task class
