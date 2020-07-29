@@ -82,11 +82,12 @@ public class MZmineWindow extends Stage {
    * @param tab The tab.
    * @return {@link java.util.List#add(Object)}
    */
-  public boolean addTab(MZmineTab tab) {
+  public void addTab(MZmineTab tab) {
     if (!isShowing()) {
       show();
     }
-    return tabPane.getTabs().add(tab);
+    tabPane.getTabs().add(tab);
+    tabPane.getSelectionModel().select(tab);
   }
 
   public ObservableList<Tab> getTabs() {

@@ -19,6 +19,8 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.Ordering;
+import com.sun.javafx.UnmodifiableArrayList;
+import com.sun.javafx.collections.ImmutableObservableList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
@@ -51,6 +53,7 @@ import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -500,11 +503,18 @@ public class MainWindowController {
     }).start();
   }
 
-  public TabPane getMainTabPane() {
+  private TabPane getMainTabPane() {
     return mainTabPane;
   }
 
-  public boolean addTab(Tab tab) {
+  /**
+   * @return Current tabs wrapped in {@link FXCollections#unmodifiableObservableList}
+   */
+  public ObservableList<Tab> getTabs() {
+    return FXCollections.unmodifiableObservableList(getMainTabPane().getTabs());
+  }
+
+  public void addTab(Tab tab) {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
         if (val.booleanValue()) {
@@ -520,7 +530,8 @@ public class MainWindowController {
       // TODO: add same for feature lists
     }
 
-    return getMainTabPane().getTabs().add(tab);
+    getMainTabPane().getTabs().add(tab);
+    getMainTabPane().getSelectionModel().select(tab);
   }
 
   @FXML

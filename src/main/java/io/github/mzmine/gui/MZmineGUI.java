@@ -406,10 +406,10 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void addTab(MZmineTab tab) {
-    if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS) {
-      Platform.runLater(() -> mainWindowController.getMainTabPane().getTabs().add(tab));
+    if (mainWindowController.getTabs().size() < MAX_TABS) {
+      Platform.runLater(() -> mainWindowController.addTab(tab));
       return;
-    } else if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS && !getWindows()
+    } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows()
         .isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS) {
