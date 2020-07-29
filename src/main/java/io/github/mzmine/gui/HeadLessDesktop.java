@@ -22,6 +22,7 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -115,4 +116,13 @@ public class HeadLessDesktop implements Desktop {
     return false;
   }
 
+  @Override
+  public MZmineWindow openNewWindow() {
+    return null;
+  }
+
+  @Override
+  public ObservableList<MZmineWindow> getWindows() {
+    return null;
+  }
 }

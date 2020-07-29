@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -85,6 +87,10 @@ public class MZmineGUI extends Application implements Desktop {
 
   private static MainWindowController mainWindowController;
 
+  private static final ObservableList<MZmineWindow> windows = FXCollections.observableArrayList();
+
+  private static final int MAX_TABS = 7;
+
   private static Stage mainStage;
   private static Scene rootScene;
 
@@ -98,8 +104,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     try {
       // Load the main window
-        URL mainFXML = this.getClass().getResource(mzMineFXML);
-        FXMLLoader loader = new FXMLLoader(mainFXML);
+      URL mainFXML = this.getClass().getResource(mzMineFXML);
+      FXMLLoader loader = new FXMLLoader(mainFXML);
 
       rootScene = loader.load();
       mainWindowController = loader.getController();
@@ -115,7 +121,6 @@ public class MZmineGUI extends Application implements Desktop {
     stage.setMinWidth(600);
     stage.setMinHeight(400);
     stage.widthProperty().addListener(c -> logger.info(c.toString()));
-
 
     // Set application icon
     stage.getIcons().setAll(mzMineIcon);
@@ -161,7 +166,6 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineProjectImpl currentProject =
         (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
     MZmineGUI.activateProject(currentProject);
-
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
@@ -235,7 +239,6 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
 
-
   public static void addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
@@ -268,7 +271,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<RawDataFile> getSelectedRawDataFiles() {
+  public static @Nonnull
+  List<RawDataFile> getSelectedRawDataFiles() {
 
     final var rawDataListView = mainWindowController.getRawDataTree();
     final var selectedRawDataFiles =
@@ -277,7 +281,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<PeakList> getSelectedFeatureLists() {
+  public static @Nonnull
+  List<PeakList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =
@@ -311,9 +316,10 @@ public class MZmineGUI extends Application implements Desktop {
   /**
    * The method activateSetOnDragOver controlling what happens when something is dragged over.
    * Implemented activateSetOnDragOver to accept when files are dragged over it.
+   *
    * @param event - DragEvent
    */
-  public static void activateSetOnDragOver(DragEvent event){
+  public static void activateSetOnDragOver(DragEvent event) {
     Dragboard dragBoard = event.getDragboard();
     if (dragBoard.hasFiles()) {
       event.acceptTransferModes(TransferMode.COPY);
@@ -323,38 +329,39 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   /**
-   * The method activateSetOnDragDropped controlling what happens when something is dropped on window.
-   * Implemented activateSetOnDragDropped to select the module according to the dropped file type and open dropped file
+   * The method activateSetOnDragDropped controlling what happens when something is dropped on
+   * window. Implemented activateSetOnDragDropped to select the module according to the dropped file
+   * type and open dropped file
+   *
    * @param event - DragEvent
    */
 
-  public static void activateSetOnDragDropped(DragEvent event){
+  public static void activateSetOnDragDropped(DragEvent event) {
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
-      for (File selectedFile:dragboard.getFiles()) {
+      for (File selectedFile : dragboard.getFiles()) {
 
         final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
+        String[] rawDataFile = {"cdf", "nc", "mzData", "mzML", "mzXML", "raw"};
         final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
         final Boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
-        if(isMZmineProject)
-        {
+        if (isMZmineProject) {
           moduleJavaClass = ProjectLoadModule.class;
-        } else if(isRawDataFile){
+        } else if (isRawDataFile) {
           moduleJavaClass = RawDataImportModule.class;
         }
 
-        if(moduleJavaClass != null){
+        if (moduleJavaClass != null) {
           ParameterSet moduleParameters =
-                  MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-          if(isMZmineProject){
+              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          if (isMZmineProject) {
             moduleParameters.getParameter(projectFile).setValue(selectedFile);
-          } else if (isRawDataFile){
-            File fileArray[] = { selectedFile };
+          } else if (isRawDataFile) {
+            File fileArray[] = {selectedFile};
             moduleParameters.getParameter(fileNames).setValue(fileArray);
           }
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
@@ -395,7 +402,17 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public boolean addTab(MZmineTab tab) {
-    return mainWindowController.getMainTabPane().getTabs().add(tab);
+    if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS) {
+      return mainWindowController.getMainTabPane().getTabs().add(tab);
+    } else if (mainWindowController.getMainTabPane().getTabs().size() < MAX_TABS && !getWindows()
+        .isEmpty()) {
+      for (MZmineWindow window : getWindows()) {
+        if (window.getNumberOfTabs() < MAX_TABS) {
+          return window.addTab(tab);
+        }
+      }
+    }
+    return openNewWindow().addTab(tab);
   }
 
   @Override
@@ -406,11 +423,13 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void setStatusBarText(String message, Color textColor) {
     Platform.runLater(() -> {
-      if (mainWindowController == null)
+      if (mainWindowController == null) {
         return;
+      }
       final StatusBar statusBar = mainWindowController.getStatusBar();
-      if (statusBar == null)
+      if (statusBar == null) {
         return;
+      }
       statusBar.setText(message);
       statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
     });
@@ -461,5 +480,16 @@ public class MZmineGUI extends Application implements Desktop {
     return ExitCode.UNKNOWN;
   }
 
+  @Override
+  public MZmineWindow openNewWindow() {
+    MZmineWindow window = new MZmineWindow();
+    windows.add(window);
+    window.setOnCloseRequest(e -> windows.remove(window));
+    return window;
+  }
 
+  @Override
+  public ObservableList<MZmineWindow> getWindows() {
+    return FXCollections.unmodifiableObservableList(windows);
+  }
 }

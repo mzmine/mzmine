@@ -19,6 +19,8 @@
 package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import java.util.List;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -116,5 +118,9 @@ public interface Desktop extends MZmineModule {
    * @return {@link java.util.Collection#add(Object)}
    */
   public boolean addTab(MZmineTab tab);
+
+  public MZmineWindow openNewWindow();
+
+  public ObservableList<MZmineWindow> getWindows();
 
 }
