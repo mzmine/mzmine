@@ -195,12 +195,18 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime(),
+      /*List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime(),
               massPeakMatches);
-      errors.addAll(massListErrors);
+      errors.addAll(massListErrors);*/
+
+      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime());
 
       processedScans++;
     }
+
+    massPeakMatches = massCalibrator.getAllMassPeakMatches();
+    errors = massCalibrator.getAllMzErrors();
+    Collections.sort(errors);
 
     if (errors.size() == 0) {
       String warningMessage = "No matches were made between the extracted standards list and the mass lists" +
@@ -212,8 +218,10 @@ public class MassCalibrationTask extends AbstractTask {
       }
     }
 
-    Collections.sort(errors);
-    biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
+//    Collections.sort(errors);
+//    biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
+    biasEstimate = massCalibrator.estimateBias(filterDuplicates);
+    errorRanges = massCalibrator.getErrorRanges();
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {
@@ -233,7 +241,8 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
+//      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
+      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
       SimpleMassList newMassList =
               new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);

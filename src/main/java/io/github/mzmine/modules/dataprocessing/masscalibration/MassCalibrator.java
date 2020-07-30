@@ -50,6 +50,13 @@ public class MassCalibrator {
   protected int all, zero, single, multiple = 0;
   protected int massListsCount = 0;
 
+  protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
+//  protected ArrayList<Double> mzErrors = new ArrayList<>();
+  protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
+  protected double biasEstimate;
+  protected DistributionRange extractedRange;
+
+
   /**
    * Create new mass calibrator
    *
@@ -95,6 +102,19 @@ public class MassCalibrator {
   }
 
   /**
+   * Add mass list to this mass calibrator instance, it performs the mass peak matches and returns a list of them
+   *
+   * @param massList
+   * @param retentionTime
+   * @return
+   */
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime) {
+    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime);
+    massPeakMatches.addAll(matches);
+    return matches;
+  }
+
+  /**
    * Find a list of errors from a mass list at certain retention time
    * all the m/z peaks are matched against the list of standard calibrants used
    * and when a match is made, the error is calculated and added to the list
@@ -117,6 +137,77 @@ public class MassCalibrator {
 
   public ArrayList<Double> findMassListErrors(DataPoint[] massList, double retentionTime) {
     return findMassListErrors(massList, retentionTime, null);
+  }
+
+  /**
+   * Estimate mass measurement bias using instance mass peak matches
+   *
+   * @param unique filter out duplicates from the list of errors if unique is set to true
+   * @return
+   */
+  public double estimateBias(boolean unique) {
+    ArrayList<Double> errors = getAllMzErrors();
+
+    if (errors.size() == 0) {
+      biasEstimate = BiasEstimator.arithmeticMean(errors);
+      logger.info("Errors zero, bias estimate zero");
+      return biasEstimate;
+    }
+
+    if (unique) {
+      Set<Double> errorsSet = new TreeSet<Double>(errors);
+      errors = new ArrayList<Double>(errorsSet);
+    }
+
+    extractedRange = extractDistributionErrors(errors);
+
+    biasEstimate = BiasEstimator.arithmeticMean(extractedRange.getExtractedItems());
+    logger.info(String.format("Errors %d, extracted %d, unique %s, bias estimate %f",
+            errors.size(), extractedRange.getExtractedItems().size(), unique ? "true" : "false", biasEstimate));
+    return biasEstimate;
+
+  }
+
+  /**
+   * Extract error range considered substantial to the mass measurement bias estimation
+   *
+   * @return
+   */
+  protected DistributionRange extractDistributionErrors(ArrayList<Double> errors) {
+    DistributionRange extractedRange = null;
+
+    if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.RANGE_METHOD) {
+      if (errorMaxRangeLength != 0) {
+        DistributionRange range = DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
+        DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+                errorDistributionDistance);
+        extractedRange = stretchedRange;
+
+        errorRanges.put("Most populated range", range);
+        if (errorDistributionDistance != 0) {
+          errorRanges.put("Tolerance extended range", stretchedRange);
+        }
+
+      } else if (errorDistributionDistance != 0) {
+        DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
+                errorDistributionDistance);
+        extractedRange = biggestCluster;
+
+        errorRanges.put("Biggest range by tolerance", biggestCluster);
+
+      } else {
+        DistributionRange wholeRange = DistributionExtractor.wholeRange(errors);
+        extractedRange = wholeRange;
+      }
+    } else if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
+      DistributionRange range = DistributionExtractor.interpercentileRange(errors,
+              percentileRange.lowerEndpoint(), percentileRange.upperEndpoint());
+      extractedRange = range;
+
+      errorRanges.put("Percentile range", range);
+    }
+
+    return extractedRange;
   }
 
   /**
@@ -185,6 +276,28 @@ public class MassCalibrator {
 
   public double estimateBiasFromErrors(List<Double> errors, boolean unique) {
     return estimateBiasFromErrors(errors, unique, null);
+  }
+
+  /**
+   * Calibrates the mass list
+   * shifts all m/z peaks against a bias estimate
+   * bias estimate is taken from the instance (global bias estimate or modeled error vs mz trend)
+   *
+   * @param massList     the list of mz peaks to calibrate
+   * @return new mass calibrated list of mz peaks
+   */
+  public DataPoint[] calibrateMassList(DataPoint[] massList) {
+    massListsCount++;
+
+    DataPoint[] calibratedMassList = new DataPoint[massList.length];
+    for (int i = 0; i < massList.length; i++) {
+      DataPoint oldDataPoint = massList[i];
+      double oldMz = oldDataPoint.getMZ();
+      double calibratedMz = massError.calibrateAgainstError(oldMz, biasEstimate);
+      calibratedMassList[i] = new SimpleDataPoint(calibratedMz, oldDataPoint.getIntensity());
+    }
+
+    return calibratedMassList;
   }
 
   /**
@@ -269,5 +382,22 @@ public class MassCalibrator {
     }
 
     return matches;
+  }
+
+  public ArrayList<MassPeakMatch> getAllMassPeakMatches() {
+    return massPeakMatches;
+  }
+
+  public ArrayList<Double> getAllMzErrors() {
+    ArrayList<MassPeakMatch> matches = getAllMassPeakMatches();
+    ArrayList<Double> mzErrors = new ArrayList<>(matches.size());
+    for (int i = 0; i < matches.size(); i++) {
+      mzErrors.add(i, matches.get(i).getMzError());
+    }
+    return mzErrors;
+  }
+
+  public HashMap<String, DistributionRange> getErrorRanges() {
+    return errorRanges;
   }
 }

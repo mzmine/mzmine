@@ -20,7 +20,12 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.ErrorType;
 
+import java.util.Comparator;
+
 public class MassPeakMatch {
+  public static final Comparator<MassPeakMatch> mzErrorComparator =
+          Comparator.comparing(MassPeakMatch::getMzError);
+
   protected final double measuredMzRatio;
   protected final double measuredRetentionTime;
   protected final double matchedMzRatio;
