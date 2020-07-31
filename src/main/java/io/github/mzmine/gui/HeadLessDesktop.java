@@ -125,7 +125,14 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
+  @Nonnull
   public List<MZmineTab> getAllTabs() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public List<MZmineTab> getTabsInMainWindow() {
     return Collections.emptyList();
   }
 }

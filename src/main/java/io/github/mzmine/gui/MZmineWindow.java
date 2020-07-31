@@ -22,17 +22,26 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.Arrays;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
  * @author SteffenHeu https://github.com/SteffenHeu - steffen.heuckeroth@uni-muenster.de
  */
 public class MZmineWindow extends Stage {
+
+  public static final int DEFAULT_WIDTH = (int) (Screen.getPrimary().getBounds().getWidth() / 1.5);
+  public static final int DEFAULT_HEIGHT = (int) (Screen.getPrimary().getBounds().getHeight()
+      / 1.5);
 
   protected final BorderPane mainPane;
   protected final TabPane tabPane;
@@ -60,6 +69,9 @@ public class MZmineWindow extends Stage {
   public MZmineWindow(boolean isExclusive) {
     super();
 
+    setWidth(DEFAULT_WIDTH);
+    setHeight(DEFAULT_HEIGHT);
+
     this.isExclusive = isExclusive;
 
     mainPane = new BorderPane();
@@ -69,7 +81,11 @@ public class MZmineWindow extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     mainPane.setCenter(tabPane);
     tabPane.getSelectionModel().selectedItemProperty()
-        .addListener((obs, old, newVal) -> setTitle(newVal.getText()));
+        .addListener((obs, old, newVal) -> {
+          if (newVal != null) {
+            setTitle(newVal.getText());
+          }
+        });
     this.setScene(scene);
 
     // update if tab selection in main window changes
@@ -86,6 +102,14 @@ public class MZmineWindow extends Stage {
           }
         }
         // TODO: Add the same for feature lists
+      }
+    });
+
+    // close window if all tabs are removed
+    tabPane.getTabs().addListener((ListChangeListener) c -> {
+      c.next();
+      if (c.getList().isEmpty()) {
+        close();
       }
     });
 

@@ -88,7 +88,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   private static MainWindowController mainWindowController;
 
-  private static final int MAX_TABS = 7;
+  public static final int MAX_TABS = 7;
 
   private static Stage mainStage;
   private static Scene rootScene;
@@ -507,6 +507,20 @@ public class MZmineGUI extends Application implements Desktop {
         tabs.add((MZmineTab) t);
       }
     }));
+
+    return tabs;
+  }
+
+  @Nonnull
+  @Override
+  public List<MZmineTab> getTabsInMainWindow() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
 
     return tabs;
   }
