@@ -66,7 +66,7 @@ public class RawDataOverviewTask extends AbstractTask {
       return;
     }
 
-    RawDataOverviewPane rdop = new RawDataOverviewPane(false, false);
+    RawDataOverviewPane rdop = new RawDataOverviewPane(true, false);
     MZmineCore.getDesktop().addTab(rdop);
     Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(Arrays.asList(rawDataFiles)));
 

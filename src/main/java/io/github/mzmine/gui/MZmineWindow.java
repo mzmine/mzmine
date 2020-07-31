@@ -21,6 +21,7 @@ package io.github.mzmine.gui;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.util.Arrays;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -70,6 +71,24 @@ public class MZmineWindow extends Stage {
     tabPane.getSelectionModel().selectedItemProperty()
         .addListener((obs, old, newVal) -> setTitle(newVal.getText()));
     this.setScene(scene);
+
+    // update if tab selection in main window changes
+    tabPane.getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
+      if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
+        if (!((MZmineTab) val).getRawDataFiles()
+            .containsAll(Arrays.asList(MZmineCore.getDesktop().getSelectedDataFiles()))
+            || ((MZmineTab) val).getRawDataFiles().size() != MZmineCore.getDesktop()
+            .getSelectedDataFiles().length) {
+          if (((MZmineTab) val).isUpdateOnSelection()) {
+            ((MZmineTab) val)
+                .onRawDataFileSelectionChanged(
+                    Arrays.asList(MZmineCore.getDesktop().getSelectedDataFiles()));
+          }
+        }
+        // TODO: Add the same for feature lists
+      }
+    });
+
     WindowsMenu.addWindowsMenu(scene);
   }
 
@@ -96,5 +115,9 @@ public class MZmineWindow extends Stage {
 
   public int getNumberOfTabs() {
     return tabPane.getTabs().size();
+  }
+
+  public boolean isExclusive() {
+    return isExclusive;
   }
 }

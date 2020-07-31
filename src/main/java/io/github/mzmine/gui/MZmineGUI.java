@@ -404,10 +404,9 @@ public class MZmineGUI extends Application implements Desktop {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
       Platform.runLater(() -> mainWindowController.addTab(tab));
       return;
-    } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows()
-        .isEmpty()) {
+    } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
-        if (window.getNumberOfTabs() < MAX_TABS) {
+        if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
           Platform.runLater(() -> window.addTab(tab));
           return;
         }
@@ -491,5 +490,24 @@ public class MZmineGUI extends Application implements Desktop {
       }
     }
     return mzmineWindows;
+  }
+
+  @Override
+  public List<MZmineTab> getAllTabs() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
+
+    getWindows().forEach(w -> w.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    }));
+
+    return tabs;
   }
 }

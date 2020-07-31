@@ -20,8 +20,11 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
@@ -118,6 +121,11 @@ public class HeadLessDesktop implements Desktop {
 
   @Override
   public ObservableList<MZmineWindow> getWindows() {
-    return null;
+    return FXCollections.emptyObservableList();
+  }
+
+  @Override
+  public List<MZmineTab> getAllTabs() {
+    return Collections.emptyList();
   }
 }

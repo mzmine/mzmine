@@ -219,7 +219,7 @@ public class MainWindowController {
     rawDataTree.getSelectionModel().getSelectedItems().addListener(
         (ListChangeListener<RawDataFile>) c -> {
           c.next();
-          for (Tab tab : getMainTabPane().getTabs()) {
+          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
             if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
                 .isUpdateOnSelection()) {
               ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
@@ -227,7 +227,7 @@ public class MainWindowController {
           }
         });
 
-
+    // update if tab selection in main window changes
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
       if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
         if (!((MZmineTab) val).getRawDataFiles()

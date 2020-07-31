@@ -122,4 +122,8 @@ public interface Desktop extends MZmineModule {
    */
   public List<MZmineWindow> getWindows();
 
+  /**
+   * @return A list of all currently opened tabs in all windows.
+   */
+  public List<MZmineTab> getAllTabs();
 }
