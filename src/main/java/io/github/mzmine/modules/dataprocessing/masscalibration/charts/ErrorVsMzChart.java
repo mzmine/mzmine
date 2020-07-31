@@ -25,6 +25,7 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrator;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -128,6 +129,7 @@ public class ErrorVsMzChart extends EChartViewer {
               dataset.getDomainUpperBound(false), 1000, "trend series");
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
+      plot.addAnnotation(new XYTextAnnotation("Trend: " + trend.getName(), 500, 0));
     }
   }
 }

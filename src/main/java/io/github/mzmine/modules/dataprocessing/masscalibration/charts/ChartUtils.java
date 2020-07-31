@@ -32,6 +32,7 @@ public class ChartUtils {
       plot.setDataset(i, null);
     }
     plot.clearRangeMarkers();
+    plot.clearAnnotations();
   }
 
   public static ValueMarker createValueMarker(String label, double value) {

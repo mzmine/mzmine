@@ -56,16 +56,55 @@ public class OLSRegressionTrend implements Trend2D {
 
     ArrayList<String> trend = new ArrayList<>();
     String[] descriptions = featuresDescription();
-    for (int i = 0; i < descriptions.length; i++) {
+
+    for(int i = 0; i < descriptions.length; i++){
+      System.out.println(descriptions[i]);
+//      System.out.println(beta[i]);
+    }
+    for(int i = 0; i < beta.length; i++){
+      System.out.println(beta[i]);
+    }
+
+    /*int length = polynomialDegree + 1 + (exponentialFeature ? 1 : 0) + (logarithmicFeature ? 1 : 0);
+    double[] betaShifted = new double[length];
+    int i = 0;
+    for(i = 0; i < polynomialDegree + 1; i++){
+      betaShifted[i] = beta[i];
+    }
+    if (exponentialFeature) {
+      betaShifted[i] = beta[i];
+      i++;
+    }
+    else {
+      betaShifted[i] = 0;
+      i++;
+    }
+    if (logarithmicFeature) {
+      betaShifted[i] = beta[i - (exponentialFeature ? 0 : 1)];
+    }
+    else {
+      betaShifted[i] = 0;
+    }
+    i++;*/
+
+//    for (int i = 0; i < descriptions.length; i++) {
+    /*for (i = 0; i < descriptions.length; i++) {
       if (i == descriptions.length - 2 && exponentialFeature) {
-        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
       }
       else if(i == descriptions.length - 1 && logarithmicFeature) {
-        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
       }
       else if(i < descriptions.length - 2) {
-        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
+        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
       }
+    }*/
+
+    for(int i = 0; i < descriptions.length; i++) {
+      trend.add(String.format("%s*%s", beta[i], descriptions[i]));
     }
 
     String trendString = String.join(" + ", trend);
@@ -75,11 +114,15 @@ public class OLSRegressionTrend implements Trend2D {
 
   protected String[] featuresDescription() {
     ArrayList<String> desc = new ArrayList<>();
-    for (int i = 0; i < polynomialDegree; i++){
-      desc.add("x^" + String.valueOf(i));
+    for (int i = 0; i < polynomialDegree + 1; i++){
+      desc.add("x^" + i);
     }
-    desc.add("e^x");
-    desc.add("ln(x)");
+    if (exponentialFeature){
+      desc.add("e^x");
+    }
+    if (logarithmicFeature){
+      desc.add("ln(x)");
+    }
     return desc.toArray(new String[0]);
   }
 

@@ -25,6 +25,7 @@ import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Weighted knn trend,
@@ -117,5 +118,6 @@ public class WeightedKnnTrend implements Trend2D {
   public void setDataset(XYSeries dataset) {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
+    Arrays.sort(items);
   }
 }
