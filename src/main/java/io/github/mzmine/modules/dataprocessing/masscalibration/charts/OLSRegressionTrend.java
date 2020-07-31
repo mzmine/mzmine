@@ -118,7 +118,7 @@ public class OLSRegressionTrend implements Trend2D {
       desc.add("x^" + i);
     }
     if (exponentialFeature){
-      desc.add("e^x");
+      desc.add("e^(x/10)");
     }
     if (logarithmicFeature){
       desc.add("ln(x)");
@@ -156,11 +156,19 @@ public class OLSRegressionTrend implements Trend2D {
 
   protected double[] generateFeatures(double x) {
     double[] powers = polynomialFeatures(x, polynomialDegree);
-    double exponential = Math.exp(x);
+//    double exponential = Math.exp(x);
+    double exponential = Math.exp(x / 10);
     double logarithmic = x > 0 ? Math.log(x) : 0;
     /*return ArrayUtils.addAll(powers,
             exponentialFeature ? exponential : 0,
             logarithmicFeature ? logarithmic : 0);*/
+    if(Double.isInfinite(exponential)) {
+      exponential = Double.MAX_VALUE;
+    }
+    if(Double.isInfinite(logarithmic)) {
+      logarithmic = -Double.MAX_VALUE;
+    }
+
     int length = powers.length + (exponentialFeature ? 1 : 0) + (logarithmicFeature ? 1 : 0);
     double[] features = new double[length];
     int i = 0;
@@ -175,6 +183,7 @@ public class OLSRegressionTrend implements Trend2D {
       features[i] = logarithmic;
       i++;
     }
+//    System.out.println(Arrays.toString(features));
     return features;
   }
 
