@@ -187,7 +187,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     errorVsMzChart.cleanPlot();
     errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
-            previewTask.getBiasEstimate());
+            previewTask.getBiasEstimate(), previewTask.getErrorVsMzTrend());
 
     measuredVsMatchedMzChart.cleanPlot();
     measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());

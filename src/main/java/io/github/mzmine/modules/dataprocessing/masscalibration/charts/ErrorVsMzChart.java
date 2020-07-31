@@ -81,8 +81,8 @@ public class ErrorVsMzChart extends EChartViewer {
   }
 
   public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
-                         double biasEstimate) {
-    updateChartDataset(matches);
+                         double biasEstimate, Trend2D errorVsMzTrend) {
+    updateChartDataset(matches, errorVsMzTrend);
 
     for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);
@@ -111,5 +111,23 @@ public class ErrorVsMzChart extends EChartViewer {
             dataset.getDomainUpperBound(false), 1000, "trend series");
     XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
     plot.setDataset(1, trendDataset);
+  }
+
+  protected void updateChartDataset(List<MassPeakMatch> matches, Trend2D trend) {
+    XYSeries errorsXY = new XYSeries("PPM errors");
+    for (MassPeakMatch match : matches) {
+      double error = MassCalibrator.massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio());
+      errorsXY.add(match.getMeasuredMzRatio(), error);
+    }
+
+    XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
+    plot.setDataset(0, dataset);
+
+    if (trend != null) {
+      XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
+              dataset.getDomainUpperBound(false), 1000, "trend series");
+      XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
+      plot.setDataset(1, trendDataset);
+    }
   }
 }

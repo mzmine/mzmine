@@ -25,7 +25,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.BiasEstimationChoice;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.RangeExtractionChoice;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.OLSRegressionTrend;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.Trend2D;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.WeightedKnnTrend;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
@@ -36,11 +40,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -64,6 +68,8 @@ public class MassCalibrationTask extends AbstractTask {
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
   protected boolean previewRun = false;
+
+  protected MassCalibrator massCalibrator;
 
   /**
    * @param dataFile
@@ -141,20 +147,42 @@ public class MassCalibrationTask extends AbstractTask {
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
 
-    MassCalibrator massCalibrator = null;
-    ParameterSet parameterSet;
+    massCalibrator = null;
+    ParameterSet rangeParameterSet;
     NestedCombo rangeExtractionMethod = parameters.
             getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
 
+    ParameterSet trendParameterSet;
+    NestedCombo trendMethod = parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
+    Trend2D errorTrend = null;
+
+    if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.KNN_REGRESSION.toString())) {
+      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.KNN_REGRESSION.toString());
+      Double percentageNeighbors =
+              trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
+      errorTrend = new WeightedKnnTrend(percentageNeighbors / 100.0);
+    }
+    else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
+      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.OLS_REGRESSION.toString());
+      Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
+      Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
+              .getValue();
+      Boolean logarithmicFeature = trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature)
+              .getValue();
+      errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
+    }
+
+
+
     if (rangeExtractionMethod.getCurrentChoice().equals(RangeExtractionChoice.RANGE_METHOD.toString())) {
-      parameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.RANGE_METHOD.toString());
-      Double tolerance = parameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
-      Double rangeSize = parameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
-      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize, standardsList);
+      rangeParameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.RANGE_METHOD.toString());
+      Double tolerance = rangeParameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
+      Double rangeSize = rangeParameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize, standardsList, errorTrend);
     } else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase(RangeExtractionChoice.PERCENTILE_RANGE.toString())) {
-      parameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.PERCENTILE_RANGE.toString());
-      Range<Double> percentileRange = parameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
-      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList);
+      rangeParameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.PERCENTILE_RANGE.toString());
+      Range<Double> percentileRange = rangeParameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList, errorTrend);
     }
 
 
@@ -276,6 +304,14 @@ public class MassCalibrationTask extends AbstractTask {
 
   public double getBiasEstimate() {
     return biasEstimate;
+  }
+
+  public Trend2D getErrorVsMzTrend() {
+    return massCalibrator.errorVsMzTrend;
+  }
+
+  public XYSeries getErrorVsMzSeries() {
+    return massCalibrator.errorVsMzSeries;
   }
 
 }
