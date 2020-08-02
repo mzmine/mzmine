@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,17 +18,18 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -106,6 +107,7 @@ public class HeadLessDesktop implements Desktop {
     return null;
   }
 
+  @Override
   public void openWebPage(URL url) {
     throw new UnsupportedOperationException();
   }
@@ -113,6 +115,11 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public boolean addTab(MZmineTab tab) {
     return false;
+  }
+
+  @Override
+  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
+    throw new UnsupportedOperationException();
   }
 
 }
