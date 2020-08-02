@@ -29,17 +29,19 @@ import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementatio
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeAdduct;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.OutputAn;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.PeakData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 public class CliqueMSTask extends AbstractTask {
   // Logger.
-  private static final Logger logger = Logger.getLogger(CameraSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CliqueMSTask.class.getName());
 
   //progress constants
   //TODO change the constant values
@@ -115,7 +117,8 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled())
         return;
       ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, PolarityType.POSITIVE);
-      computeAdduct.getAnnotation();
+      Set<OutputAn> outputAnSet = computeAdduct.getAnnotation();
+
 
       addFeatureIdentity(anClique);
       // Check if not canceled

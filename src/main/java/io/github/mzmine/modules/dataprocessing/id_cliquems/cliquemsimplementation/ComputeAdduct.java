@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -122,7 +124,7 @@ public class ComputeAdduct {
     return returnAdinfo;
   }
 
-  public void getAnnotation( int topmasstotal, int topmassf, int sizeanG, double ppm, double filter,
+  public Set<OutputAn> getAnnotation( int topmasstotal, int topmassf, int sizeanG, double ppm, double filter,
       double emptyS , boolean normalizeScore ){
     if(anClique.anFound){
       logger.log(Level.WARNING,"Annotation has already been computed for this object.");
@@ -141,10 +143,10 @@ public class ComputeAdduct {
 
     HashMap<Integer,PeakData> nodeIDtoPeakMap = new HashMap<>();
 
+    Set<OutputAn> outAnSet = new HashSet<>();
     for(PeakData pd : this.anClique.getPeakDataList()){
       nodeIDtoPeakMap.put(pd.getNodeID(),pd);
     }
-
     for(Integer cliqueID : this.anClique.cliques.keySet()){
       List<PeakData> dfClique  = new ArrayList<>();
       for(Integer nodeID: this.anClique.cliques.get(cliqueID)){
@@ -153,29 +155,32 @@ public class ComputeAdduct {
       dfClique.removeIf(pd -> !pd.getIsotopeAnnotation().startsWith("M0"));
       Collections.sort(dfClique, Comparator.comparingDouble(PeakData::getMz));//sorting in order of mz values, in decreasing order
 //      for(PeakData pd : dfClique){
-//        System.out.println(pd.getMz()+" "+pd.getCharge()+" "+pd.getNodeID()+" "+pd.getCliqueID());
+//       logger.log(Level.WARNING,pd.getMz()+" "+pd.getCharge()+" "+pd.getNodeID()+" "+pd.getCliqueID());
 //      }
+
       AdductAnnotationCliqueMS ad = new AdductAnnotationCliqueMS();
       OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, ppm, filter, emptyS, normalizeScore);
-      for(Integer itv : outAn.features){
-        System.out.println(itv);
-        for(int x=0; x<5; x++){
-          System.out.print(outAn.masses.get(x).get(itv));
-          System.out.print(outAn.scores.get(x).get(itv));
-          System.out.print(outAn.ans.get(x).get(itv));
-        }
-        System.out.println();
-      }
+      outAnSet.add(outAn);
+      //      for(Integer itv : outAn.features){
+//        String s = "";
+//        for(int x=0; x<5; x++){
+//          s+=" "+x+" ";
+//          s+=outAn.masses.get(x).get(itv);
+//          s+=" ";
+//          s+=outAn.scores.get(x).get(itv);
+//          s+=" ";
+//          s+=outAn.ans.get(x).get(itv);
+//        }
+//      }
     }
-
-
+    return outAnSet;
 
   }
 
 
   //default values
-  public void getAnnotation(){
-    getAnnotation(10, 1, 20, 10, 1e-4,-6, true);
+  public Set<OutputAn> getAnnotation(){
+    return getAnnotation(10, 1, 20, 10, 1e-4,-6, true);
   }
 
 }

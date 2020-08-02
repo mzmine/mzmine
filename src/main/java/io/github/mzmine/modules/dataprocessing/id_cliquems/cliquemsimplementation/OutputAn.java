@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -8,9 +9,9 @@ public class OutputAn {
   private int NUM_ANNO = 5;
 
   List<Integer> features;
-  List<HashMap<Integer, String>> ans ;
-  List<HashMap<Integer, Double>> masses ;
-  List<HashMap<Integer, Double>> scores ;
+  List<HashMap<Integer, String>> ans = new ArrayList<>();
+  List<HashMap<Integer, Double>> masses  = new ArrayList<>();
+  List<HashMap<Integer, Double>> scores = new ArrayList<>();
 
   public OutputAn(List<Integer> features){
     this.features = features;

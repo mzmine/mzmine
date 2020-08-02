@@ -30,9 +30,13 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.util.Pair;
 
 public class AdductAnnotationCliqueMS {
+  // Logger.
+  private static final Logger logger = Logger.getLogger(AdductAnnotationCliqueMS.class.getName());
 
   private AnnotDF readDF(List<PeakData> dfClique){
     AnnotDF annotdf = new AnnotDF();
@@ -47,8 +51,8 @@ public class AdductAnnotationCliqueMS {
   private RawAdList readRawList(List<IonizationType> orderadInfo){
     RawAdList rawL = new RawAdList();
     for(IonizationType ion : orderadInfo){
-      rawL.rawList.put(ion.getAdduct(),ion);
-      rawL.addOrder.add(ion.getAdduct());
+      rawL.rawList.put(ion.getAdductName(),ion);
+      rawL.addOrder.add(ion.getAdductName());
     }
     return rawL;
   }
@@ -68,7 +72,7 @@ public class AdductAnnotationCliqueMS {
   }
 
   private HashMap<Integer,String> getAllAdducts(double mass, double tol, int idn, IonizationType currentAdd, AnnotDF mzdf, RawAdList rList){
-    Integer idnMass = idn; //index to start the search in the row of adducts
+    int idnMass = idn; //index to start the search in the row of adducts
     NavigableMap<Double,String> massMap = new TreeMap<>();
     HashMap<Integer,String> adduMap = new HashMap<>();
     for(String ita : rList.addOrder){
@@ -82,7 +86,7 @@ public class AdductAnnotationCliqueMS {
     double upperbound = upperboundp.getKey() + upperboundp.getKey()*0.10;
     // first see if there is any previous row prior to the one that we start the search
     while((mzdf.mz.get(idnMass) - mass) < lowerbound){
-      if(idnMass.equals(0))
+      if(idnMass == 0)
         break;
       idnMass-=1;
     }
@@ -153,6 +157,8 @@ public class AdductAnnotationCliqueMS {
     Set<Integer> newf = new HashSet<>();
     for(Integer itf : extraf){
       comp.feature.add(itf);  // insert this feature if it is not in the component
+      if(!annotD.feat2mass.containsKey(itf))
+        continue;
       for(Double itm : annotD.feat2mass.get(itf)){
         // if in this feature there is mass on the setm
         // include the mass in the component if it is not yet
@@ -267,15 +273,19 @@ public class AdductAnnotationCliqueMS {
     // first create anGroup2mass object
     for(Integer itc : anGcomp.keySet()){
       for(Double its : anGcomp.get(itc).mass){
-        HashMap <Double, List<Pair<Integer,String>>> tempHash = new HashMap();
-        tempHash.put(its,annotD.massList.get(its));
-        annotD.anGroup2mass.put(itc,tempHash);
+        if(!annotD.anGroup2mass.containsKey(itc)){
+          HashMap <Double, List<Pair<Integer,String>>> tempHash = new HashMap();
+          tempHash.put(its,annotD.massList.get(its));
+          annotD.anGroup2mass.put(itc,tempHash);
+        }
+        else{
+          annotD.anGroup2mass.get(itc).put(its,annotD.massList.get(its));
+        }
       }
     }
     // second filter masses with very similar mass and the same adducts, or less adducts in one case
     for(Integer itg : annotD.anGroup2mass.keySet()){
-      Set<Double> setm = new HashSet<>();
-      setm = getRepMasses(itg, annotD, filter);
+      Set<Double> setm = getRepMasses(itg, annotD, filter);
       // if there are repeated masses drop these masses
       if(setm.size() > 0){
         for(Double itms : setm){
@@ -295,8 +305,7 @@ public class AdductAnnotationCliqueMS {
     AnnotData annotD = new AnnotData();
     for(Integer f : mzdf.features)
       annotD.features.put(f,-1);
-
-    for(Integer idn = 0 ; idn < (mzdf.mz.size() -1) ; idn++){
+    for(int idn = 0 ; idn < (mzdf.mz.size() -1) ; idn++){
       double mz;
       Integer isoCharge;
       mz = mzdf.mz.get(idn); // assign m/z value for current idn position
@@ -315,7 +324,7 @@ public class AdductAnnotationCliqueMS {
           mass = (mz * Math.abs(currentAdd.getCharge()) - currentAdd.getAddedMass()) / currentAdd.getNumMol();
         }
         if(mass > 0){
-          mass = Math.round(mass*10000)/10000.0;
+          mass = Math.round(mass*1000)/1000.0;
           if(!annotD.massList.containsKey(mass)){
             // if this mass is not on the mass list, search for all the adducts of that mass
             HashMap<Integer,String> adduMap = getAllAdducts(mass, tol, idn, currentAdd, mzdf, rList);
@@ -363,8 +372,17 @@ public class AdductAnnotationCliqueMS {
         annotD.features.put(itf,itc);
       }
     }
+    for(Integer f: annotD.features.keySet()){
+      if(!annotD.feat2mass.containsKey(f)){
+        List<Double> tempMass = new ArrayList<>();
+        annotD.feat2mass.put(f,tempMass);
+      }
+    }
+
     // create and filter angroup2mass
     createanGroup2mass(annotD, anGcomp, filter);
+
+
     return annotD;
   }
 
@@ -372,8 +390,16 @@ public class AdductAnnotationCliqueMS {
     List<Pair<Double,Double>> topV = new ArrayList<>();
     List<Pair<Double,Double>> allM = new ArrayList<>();
 
-    for(Double itm : annotD.feat2mass.get(feature))
-      allM.add(mass2score.get(itm));
+    if(annotD.feat2mass.containsKey(feature)){
+      if(annotD.feat2mass.containsKey(feature)){
+      for(Double itm : annotD.feat2mass.get(feature)){
+        if(mass2score.get(itm) != null)
+          allM.add(mass2score.get(itm));
+        }
+      }
+    }
+
+
     // sort mass vector according to score
     allM.sort((o1,o2) -> Double.compare(o2.getKey(),o1.getKey()));
     // select the top "n" masses
@@ -393,16 +419,18 @@ public class AdductAnnotationCliqueMS {
     HashMap<Double,Pair<Double,Double>> mass2score = new HashMap<>();
 
     // First compute the score for all the masses in the anGroup
-    for(Double itm : annotD.anGroup2mass.get(anG).keySet()){
-      double score = 0;
-      for(Pair<Integer, String> ita  : annotD.anGroup2mass.get(anG).get(itm)){
-        IonizationType adI = rList.rawList.get(ita.getValue());
-        score += adI.getLog10freq();  // compute the score according to the log frequence of each adduct in the adduct list
+    if(annotD.anGroup2mass.containsKey(anG)){
+      for(Double itm : annotD.anGroup2mass.get(anG).keySet()){
+        double score = 0;
+        for(Pair<Integer, String> ita  : annotD.anGroup2mass.get(anG).get(itm)){
+          IonizationType adI = rList.rawList.get(ita.getValue());
+          score += adI.getLog10freq();  // compute the score according to the log frequence of each adduct in the adduct list
+        }
+        //add the compensation for empty annotations
+        score += emptyS * (annotD.anGroups.get(anG).size() - annotD.anGroup2mass.get(anG).get(itm).size());
+        Pair<Double,Double> mass2scoreEntry = new Pair(score,itm);
+        mass2score.put(itm,mass2scoreEntry);
       }
-      //add the compensation for empty annotations
-      score += emptyS * (annotD.anGroups.get(anG).size() - annotD.anGroup2mass.get(anG).get(itm).size());
-      Pair<Double,Double> mass2scoreEntry = new Pair(score,itm);
-      mass2score.put(itm,mass2scoreEntry);
     }
     // Second select the top masses independently of the feature for that group
     for(Double itm1 : mass2score.keySet())
@@ -420,8 +448,9 @@ public class AdductAnnotationCliqueMS {
     // Third, for each feature, select the "n" top scoring masses
     for(Integer itf : annotD.anGroups.get(anG)){
       List<Pair<Double,Double>> topF = sortMass(annotD, itf, mass2score, nfeature);
-      for(Pair<Double,Double> itv : topF)
+      for(Pair<Double,Double> itv : topF){
         setm.add(itv.getValue());
+      }
     }
     return setm;
   }
@@ -451,14 +480,14 @@ public class AdductAnnotationCliqueMS {
         mass2score.add(mass2scoreEntry);
       }
     }
-
     // if there is no annotation for the features, return an empty score
     if(mass2score.size()  < 1){
       an.score = emptyS * features.size();
       for(Integer itf : features){
-        Pair<Double, String> anEntry = new Pair(0,"");
+        Pair<Double, String> anEntry = new Pair(0.0,"");
         an.annotation.put(itf,anEntry);
       }
+      return an;
     }
     // 2 - sort annotation and select the adducts of that annotation
     mass2score.sort((o1,o2) -> Double.compare(o2.getKey(),o1.getKey()));
@@ -495,7 +524,7 @@ public class AdductAnnotationCliqueMS {
       if(freef.size() == 1){
         an.score += emptyS;
         List<Integer> temp = new ArrayList<>(freef);
-        Pair<Double, String> anEntry = new Pair(0,"");
+        Pair<Double, String> anEntry = new Pair(0.0,"");
         an.annotation.put(temp.get(0),anEntry);
       }
     }
@@ -591,7 +620,7 @@ public class AdductAnnotationCliqueMS {
         if( freef.size() == 1){
           an.score += emptyS;
           List<Integer> tempL = new ArrayList<>(freef);
-          Pair<Double, String> anEntry = new Pair(0,"");
+          Pair<Double, String> anEntry = new Pair(0.0,"");
           an.annotation.put(tempL.get(0), anEntry);
         }
       }
@@ -729,6 +758,7 @@ public class AdductAnnotationCliqueMS {
         for(Integer itgf : annotD.anGroups.get(itg))
           setf.add(itgf);
         HashMap<Integer, Annotation> annotations = annotateMassLoop(annotD, setf, rList, setm, emptyS);
+        for(Integer i : annotations.keySet())
         for(Integer itex1 : annotations.keySet()){
           for(Integer itex2 : annotations.get(itex1).annotation.keySet()){
             //TODO
@@ -742,10 +772,10 @@ public class AdductAnnotationCliqueMS {
                 normalizeAnnotation(annotations.get(itv), vScore, newMass, emptyS, defaultNewMassSize);
             }
             //annotation x
-            for(Integer ita1 : annotations.get(topAn.get(0)).annotation.keySet()){
-              outAn.scores.get(0).put(ita1, annotations.get(topAn.get(0)).score);
-              outAn.ans.get(0).put(ita1, annotations.get(topAn.get(0)).annotation.get(ita1).getValue());
-              outAn.masses.get(0).put(ita1, annotations.get(topAn.get(0)).annotation.get(ita1).getKey());
+            for(Integer ita1 : annotations.get(topAn.get(x)).annotation.keySet()){
+              outAn.scores.get(x).put(ita1, annotations.get(topAn.get(x)).score);
+              outAn.ans.get(x).put(ita1, annotations.get(topAn.get(x)).annotation.get(ita1).getValue());
+              outAn.masses.get(x).put(ita1, annotations.get(topAn.get(x)).annotation.get(ita1).getKey());
             }
           }
         }

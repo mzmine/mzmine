@@ -158,7 +158,11 @@ public enum IonizationType {
     this.charge = charge;
   }
 
-  public String getAdduct() {
+  public String getAdductName() {
+    return name;
+  }
+
+  public String getAdductFormula() {
     return adductFormula;
   }
 

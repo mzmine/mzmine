@@ -70,9 +70,17 @@ public class CliqueMSParameters extends SimpleParameterSet {
           "Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope");
 
   //Isotope mass difference
-  public static final DoubleParameter ISOTOPE_MASS_DIFF= new DoubleParameter("Isotope mass difference","The mass difference of the isotope",
+  public static final DoubleParameter ISOTOPE_MASS_DIFF = new DoubleParameter("Isotope mass difference","The mass difference of the isotope",
       LLformatter,1.003355);
 
+  public static final IntegerParameter ANNOTATE_TOP_MASS = new IntegerParameter("Annotation max annotations",
+      " All neutral masses in the group are ordered based on their adduct log-frequencies and their number of adducts. From that list, a number of these many masses are considered for the final annotation.",10,1,null);
+
+  public static final IntegerParameter ANNOTATE_TOP_MASS_FEATURE = new IntegerParameter("Annotation feature max annotation","In addition to 'topmasstotal', for each feature the list of ordered neutral masses is subsetted to the masses with an adduct in that particular feature. For each sublist, these number neutral masses are also selected for the final annotation.",1,0,null);
+
+  public static final IntegerParameter SIZE_ANG = new IntegerParameter("Annotation max features per clique","After neutral mass selection, if a clique group has a number of monoisotopic features bigger than this parameter,  the annotation group is divided into non-overlapping annotation groups. Each subdivision is annotated independently.",20, 1,null);
+
+  
   public CliqueMSParameters(){
     super(new Parameter[]{PEAK_LISTS,FILTER,MZ_DIFF,RT_DIFF,IN_DIFF,TOL,ISOTOPES_MAX_CHARGE,ISOTOPES_MAXIMUM_GRADE,ISOTOPES_MZ_TOLERANCE,ISOTOPE_MASS_DIFF});
     MZ_DIFF.setValue(new MZTolerance(0, 5));
