@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 
+import org.apache.commons.lang.ArrayUtils;
 import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
@@ -81,10 +82,9 @@ public class WeightedKnnTrend implements Trend2D {
     }
 
     int neighbors = this.neighbors != null ? this.neighbors : (int) Math.round(items.length * this.neighborsFractional);
-
     ArrayList<XYDataItem> closestNeighbors = new ArrayList<>();
-    int lower = position;
-    int upper = position + 1;
+    int lower = position - (position == items.length ? 1 : 0);
+    int upper = lower + 1;
 
     while (closestNeighbors.size() < neighbors) {
       Double lowerNeighbor = Double.NEGATIVE_INFINITY;

@@ -52,6 +52,8 @@ import java.util.logging.Logger;
  */
 public class MassCalibrationTask extends AbstractTask {
 
+  protected static boolean runCalibrationOnPreview = false;
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   // User parameters
@@ -250,6 +252,12 @@ public class MassCalibrationTask extends AbstractTask {
 //    biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
     biasEstimate = massCalibrator.estimateBias(filterDuplicates);
     errorRanges = massCalibrator.getErrorRanges();
+
+    if (runCalibrationOnPreview == false && previewRun) {
+      setStatus(TaskStatus.FINISHED);
+      logger.info("Finished mass calibration on " + dataFile);
+      return;
+    }
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {
