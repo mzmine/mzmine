@@ -23,6 +23,7 @@ import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.pr
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
