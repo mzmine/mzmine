@@ -132,17 +132,6 @@ public class ErrorVsMzChart extends EChartViewer {
               dataset.getDomainUpperBound(false), 1000, "trend series");
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
-//      plot.addAnnotation(new XYTextAnnotation("Trend: " + trend.getName(), 500, 0));
-//      plot.addAnnotation(new TextAnnotation("Trend: " + trend.getName()));
-//      plot.addAnnotation(new XYTextAnnotation("Trend: " + trend.getName(),
-//              trendSeries.getX(0).doubleValue(), trendSeries.getY(0).doubleValue()));
-//      XYDrawableAnnotation();
-//      XYTextAnnotation trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
-//              trendSeries.getX(0).doubleValue(), trendSeries.getY(0).doubleValue());
-//      XYTextAnnotation trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
-//              trendSeries.getX(999).doubleValue(), trendSeries.getY(999).doubleValue());
-//      trendNameAnnotation.setBackgroundPaint(new Color(0, 0, 255, 100));
-
       XYTextAnnotation trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
               plot.getDomainAxis().getRange().getCentralValue(), plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
       plot.addAnnotation(trendNameAnnotation);

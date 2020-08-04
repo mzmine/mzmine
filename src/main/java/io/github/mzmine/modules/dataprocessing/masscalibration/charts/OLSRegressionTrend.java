@@ -69,8 +69,7 @@ public class OLSRegressionTrend implements Trend2D {
     String trendString = String.join(" + ", featuresWithParameters);
     trendString = WordUtils.wrap(trendString, 100);
     trendString += "\nR^2 = " + rSquared;
-
-//    return "OLS regression " + trendString;
+    
     return "OLS regression\n" + trendString;
   }
 
