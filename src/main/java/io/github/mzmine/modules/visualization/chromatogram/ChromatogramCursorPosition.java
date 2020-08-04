@@ -20,9 +20,9 @@ package io.github.mzmine.modules.visualization.chromatogram;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * 
+ *
  */
-public class CursorPosition {
+public class ChromatogramCursorPosition {
 
   private double retentionTime, mzValue, intensityValue;
   private RawDataFile dataFile;
@@ -35,7 +35,7 @@ public class CursorPosition {
    * @param rawDataFile
    * @param scanNumber
    */
-  public CursorPosition(double retentionTime, double mzValue, double intensityValue,
+  public ChromatogramCursorPosition(double retentionTime, double mzValue, double intensityValue,
       RawDataFile dataFile, int scanNumber) {
     this.retentionTime = retentionTime;
     this.mzValue = mzValue;

@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
@@ -47,10 +48,13 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
  * which are then handled by a list of {@link ChartGestureHandler}s.
  * <p>
  * Add this adapter to a ChartPanel as a mouse and mousewheel listener.
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMouseAdapter {
+
+  public static final Logger logger = Logger.getLogger(ChartGestureMouseAdapter.class.getName());
+
   private int lastEntityX = -1, lastEntityY = -1;
   private ChartEntity lastEntity = null;
   private ChartGestureEvent lastDragEvent = null;
