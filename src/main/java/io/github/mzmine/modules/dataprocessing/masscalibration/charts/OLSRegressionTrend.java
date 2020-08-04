@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+import org.apache.commons.text.WordUtils;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 
@@ -35,16 +36,21 @@ public class OLSRegressionTrend implements Trend2D {
 
   protected XYSeries dataset;
   protected XYDataItem[] items;
+
   protected int polynomialDegree;
   protected boolean exponentialFeature;
   protected boolean logarithmicFeature;
+  protected String[] featuresDescriptions;
+
   protected OLSMultipleLinearRegression olsRegression;
   protected double[] beta;
+  protected double rSquared;
 
   public OLSRegressionTrend(int polynomialDegree, boolean exponentialFeature, boolean logarithmicFeature) {
     this.polynomialDegree = polynomialDegree;
     this.exponentialFeature = exponentialFeature;
     this.logarithmicFeature = logarithmicFeature;
+    this.featuresDescriptions = generateFeaturesDescriptions();
     setDataset(new XYSeries("empty"));
   }
 
@@ -54,65 +60,21 @@ public class OLSRegressionTrend implements Trend2D {
       return "OLS regression";
     }
 
-    ArrayList<String> trend = new ArrayList<>();
-    String[] descriptions = featuresDescription();
+    ArrayList<String> featuresWithParameters = new ArrayList<>();
 
-    for(int i = 0; i < descriptions.length; i++){
-      System.out.println(descriptions[i]);
-//      System.out.println(beta[i]);
-    }
-    for(int i = 0; i < beta.length; i++){
-      System.out.println(beta[i]);
+    for(int i = 0; i < featuresDescriptions.length; i++) {
+      featuresWithParameters.add(String.format("%s*%s", beta[i], featuresDescriptions[i]));
     }
 
-    /*int length = polynomialDegree + 1 + (exponentialFeature ? 1 : 0) + (logarithmicFeature ? 1 : 0);
-    double[] betaShifted = new double[length];
-    int i = 0;
-    for(i = 0; i < polynomialDegree + 1; i++){
-      betaShifted[i] = beta[i];
-    }
-    if (exponentialFeature) {
-      betaShifted[i] = beta[i];
-      i++;
-    }
-    else {
-      betaShifted[i] = 0;
-      i++;
-    }
-    if (logarithmicFeature) {
-      betaShifted[i] = beta[i - (exponentialFeature ? 0 : 1)];
-    }
-    else {
-      betaShifted[i] = 0;
-    }
-    i++;*/
+    String trendString = String.join(" + ", featuresWithParameters);
+    trendString = WordUtils.wrap(trendString, 100);
+    trendString += "\nR^2 = " + rSquared;
 
-//    for (int i = 0; i < descriptions.length; i++) {
-    /*for (i = 0; i < descriptions.length; i++) {
-      if (i == descriptions.length - 2 && exponentialFeature) {
-//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
-        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
-      }
-      else if(i == descriptions.length - 1 && logarithmicFeature) {
-//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
-        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
-      }
-      else if(i < descriptions.length - 2) {
-//        trend.add(String.format("%.4f*%s", beta[i], descriptions[i]));
-        trend.add(String.format("%s*%s", beta[i], descriptions[i]));
-      }
-    }*/
-
-    for(int i = 0; i < descriptions.length; i++) {
-      trend.add(String.format("%s*%s", beta[i], descriptions[i]));
-    }
-
-    String trendString = String.join(" + ", trend);
-
-    return "OLS regression " + trendString;
+//    return "OLS regression " + trendString;
+    return "OLS regression\n" + trendString;
   }
 
-  protected String[] featuresDescription() {
+  protected String[] generateFeaturesDescriptions() {
     ArrayList<String> desc = new ArrayList<>();
     for (int i = 0; i < polynomialDegree + 1; i++){
       desc.add("x^" + i);
@@ -146,22 +108,19 @@ public class OLSRegressionTrend implements Trend2D {
     double[] y = new double[items.length];
     double[][] x = new double[items.length][1];
     for (int i = 0; i < items.length; i++) {
-//      x[i][0] = items[i].getXValue();
       x[i] = generateFeatures(items[i].getXValue());
       y[i] = items[i].getYValue();
     }
     olsRegression.newSampleData(y, x);
     beta = olsRegression.estimateRegressionParameters();
+    rSquared = olsRegression.calculateRSquared();
   }
 
   protected double[] generateFeatures(double x) {
     double[] powers = polynomialFeatures(x, polynomialDegree);
-//    double exponential = Math.exp(x);
     double exponential = Math.exp(x / 10);
     double logarithmic = x > 0 ? Math.log(x) : 0;
-    /*return ArrayUtils.addAll(powers,
-            exponentialFeature ? exponential : 0,
-            logarithmicFeature ? logarithmic : 0);*/
+
     if(Double.isInfinite(exponential)) {
       exponential = Double.MAX_VALUE;
     }
@@ -169,22 +128,16 @@ public class OLSRegressionTrend implements Trend2D {
       logarithmic = -Double.MAX_VALUE;
     }
 
-    int length = powers.length + (exponentialFeature ? 1 : 0) + (logarithmicFeature ? 1 : 0);
-    double[] features = new double[length];
-    int i = 0;
-    for(i = 0; i < powers.length; i++){
-      features[i] = powers[i];
-    }
+    ArrayList<Double> features = new ArrayList<>();
+    features.addAll(Arrays.asList(ArrayUtils.toObject(powers)));
     if (exponentialFeature) {
-      features[i] = exponential;
-      i++;
+      features.add(exponential);
     }
     if (logarithmicFeature) {
-      features[i] = logarithmic;
-      i++;
+      features.add(logarithmic);
     }
-//    System.out.println(Arrays.toString(features));
-    return features;
+
+    return ArrayUtils.toPrimitive(features.toArray(new Double[0]));
   }
 
   protected double[] polynomialFeatures(double x, int polynomialDegree) {

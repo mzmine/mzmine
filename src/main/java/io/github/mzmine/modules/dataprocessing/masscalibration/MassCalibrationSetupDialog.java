@@ -128,6 +128,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane = new StackPane();
     chartsPane.setMinSize(400, 300);
+    chartsPane.setPrefSize(800, 600);
     chartsPane.getChildren().add(errorDistributionChart);
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
