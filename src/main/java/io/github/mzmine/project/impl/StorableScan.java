@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -20,13 +20,11 @@ package io.github.mzmine.project.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -34,7 +32,11 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+
 
 /**
  * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
@@ -60,7 +62,7 @@ public class StorableScan implements Scan {
   private Range<Double> scanMZRange;
 
   private int storageID;
-  private  double mobility;
+  private double mobility;
 
   /**
    * Constructor for creating a storable scan from a given scan
@@ -91,9 +93,9 @@ public class StorableScan implements Scan {
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, double retentionTime, double mobility, double precursorMZ, int precursorCharge,
-      int fragmentScans[], MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, Range<Double> scanMZRange) {
+      int scanNumber, int msLevel, double retentionTime, double mobility, double precursorMZ,
+      int precursorCharge, int fragmentScans[], MassSpectrumType spectrumType,
+      PolarityType polarity, String scanDefinition, Range<Double> scanMZRange) {
 
     this.rawDataFile = rawDataFile;
     this.numberOfDataPoints = numberOfDataPoints;
@@ -115,6 +117,7 @@ public class StorableScan implements Scan {
   /**
    * @return Scan's datapoints from temporary file.
    */
+  @Override
   public @Nonnull DataPoint[] getDataPoints() {
 
     try {
@@ -130,9 +133,13 @@ public class StorableScan implements Scan {
   /**
    * @return Returns scan datapoints within a given range
    */
+  @Override
   public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
 
     DataPoint dataPoints[] = getDataPoints();
+
+    // Important fix for https://github.com/mzmine/mzmine2/issues/844
+    Arrays.sort(dataPoints, new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     int startIndex, endIndex;
     for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -158,6 +165,7 @@ public class StorableScan implements Scan {
   /**
    * @return Returns scan datapoints over certain intensity
    */
+  @Override
   public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
     int index;
     Vector<DataPoint> points = new Vector<DataPoint>();
@@ -174,6 +182,7 @@ public class StorableScan implements Scan {
     return pointsOverIntensity;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return rawDataFile;
   }
@@ -185,6 +194,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getNumberOfDataPoints()
    */
+  @Override
   public int getNumberOfDataPoints() {
     return numberOfDataPoints;
   }
@@ -192,6 +202,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getScanNumber()
    */
+  @Override
   public int getScanNumber() {
     return scanNumber;
   }
@@ -199,6 +210,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getMSLevel()
    */
+  @Override
   public int getMSLevel() {
     return msLevel;
   }
@@ -206,6 +218,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
    */
+  @Override
   public double getPrecursorMZ() {
     return precursorMZ;
   }
@@ -213,6 +226,7 @@ public class StorableScan implements Scan {
   /**
    * @return Returns the precursorCharge.
    */
+  @Override
   public int getPrecursorCharge() {
     return precursorCharge;
   }
@@ -220,6 +234,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
    */
+  @Override
   public double getRetentionTime() {
     return retentionTime;
   }
@@ -256,6 +271,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getMZRangeMax()
    */
+  @Override
   public @Nonnull Range<Double> getDataPointMZRange() {
     if (mzRange == null)
       updateValues();
@@ -265,6 +281,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getBasePeakMZ()
    */
+  @Override
   public DataPoint getHighestDataPoint() {
     if ((basePeak == null) && (numberOfDataPoints > 0))
       updateValues();
@@ -274,6 +291,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getFragmentScanNumbers()
    */
+  @Override
   public int[] getFragmentScanNumbers() {
     return fragmentScans;
   }
@@ -288,6 +306,7 @@ public class StorableScan implements Scan {
   /**
    * @see io.github.mzmine.datamodel.Scan#getSpectrumType()
    */
+  @Override
   public MassSpectrumType getSpectrumType() {
     if (spectrumType == null) {
       spectrumType = ScanUtils.detectSpectrumType(getDataPoints());
@@ -295,6 +314,7 @@ public class StorableScan implements Scan {
     return spectrumType;
   }
 
+  @Override
   public double getTIC() {
     if (totalIonCurrent == null)
       updateValues();
@@ -385,8 +405,9 @@ public class StorableScan implements Scan {
       scanMZRange = getDataPointMZRange();
     return scanMZRange;
   }
+
   @Override
-  public double getMobility(){
+  public double getMobility() {
     return mobility;
   }
 

@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.types.RawFileType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +31,11 @@ import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.types.RawFileType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -87,10 +87,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file    data file to plot.
-   * @param scans   scans to plot.
+   * @param file data file to plot.
+   * @param scans scans to plot.
    * @param rangeMZ range of m/z to plot.
-   * @param window  visualizer window.
+   * @param window visualizer window.
    */
   public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
       final TICVisualizerTab window) {
@@ -373,6 +373,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       final DataPoint basePeak =
           mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
               : ScanUtils.findBasePeak(scan, mzRange);
+
       if (basePeak != null) {
 
         basePeakValues[index] = basePeak.getMZ();
@@ -446,16 +447,13 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       return false;
     }
     TICDataSet that = (TICDataSet) o;
-    return totalScans == that.totalScans &&
-        Double.compare(that.intensityMin, intensityMin) == 0 &&
-        Double.compare(that.intensityMax, intensityMax) == 0 &&
-        Objects.equals(dataFile, that.dataFile) &&
-        Arrays.equals(scans, that.scans) &&
-        Arrays.equals(basePeakValues, that.basePeakValues) &&
-        Arrays.equals(intensityValues, that.intensityValues) &&
-        Arrays.equals(rtValues, that.rtValues) &&
-        Objects.equals(mzRange, that.mzRange) &&
-        plotType == that.plotType;
+    return totalScans == that.totalScans && Double.compare(that.intensityMin, intensityMin) == 0
+        && Double.compare(that.intensityMax, intensityMax) == 0
+        && Objects.equals(dataFile, that.dataFile) && Arrays.equals(scans, that.scans)
+        && Arrays.equals(basePeakValues, that.basePeakValues)
+        && Arrays.equals(intensityValues, that.intensityValues)
+        && Arrays.equals(rtValues, that.rtValues) && Objects.equals(mzRange, that.mzRange)
+        && plotType == that.plotType;
   }
 
   @Override

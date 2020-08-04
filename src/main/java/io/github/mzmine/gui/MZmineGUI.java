@@ -19,25 +19,18 @@
 package io.github.mzmine.gui;
 
 
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.gui.mainwindow.MainWindowController;
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.stage.Window;
 import javax.annotation.Nonnull;
-
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
-import javafx.application.HostServices;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
@@ -46,9 +39,13 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -58,6 +55,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -69,12 +67,12 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 /**
  * MZmine JavaFX Application class
@@ -166,6 +164,7 @@ public class MZmineGUI extends Application implements Desktop {
         (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
     MZmineGUI.activateProject(currentProject);
 
+
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
     Thread nvcThread = new Thread(NVC);
@@ -237,7 +236,6 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-
   public static void addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
@@ -270,8 +268,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull
-  List<RawDataFile> getSelectedRawDataFiles() {
+  @Nonnull
+  public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final var rawDataListView = mainWindowController.getRawDataTree();
     final var selectedRawDataFiles =
@@ -280,8 +278,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull
-  List<PeakList> getSelectedFeatureLists() {
+  @Nonnull
+  public static List<PeakList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =
@@ -290,8 +288,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
-      @Nonnull Class<ModuleType> moduleClass) {
+  @Nonnull
+  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(Class<ModuleType> moduleClass) {
 
     final ParameterSet moduleParameters =
         MZmineCore.getConfiguration().getModuleParameters(moduleClass);
@@ -464,6 +462,28 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
+  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
+
+    FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
+      Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      alert.showAndWait();
+      return alert.getResult();
+    });
+
+    // Show the dialog
+    try {
+      if (Platform.isFxApplicationThread())
+        alertTask.run();
+      else
+        Platform.runLater(alertTask);
+      return alertTask.get();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
   public RawDataFile[] getSelectedDataFiles() {
     return getSelectedRawDataFiles().toArray(new RawDataFile[0]);
   }
@@ -524,4 +544,5 @@ public class MZmineGUI extends Application implements Desktop {
 
     return tabs;
   }
+
 }
