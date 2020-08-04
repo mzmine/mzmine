@@ -80,9 +80,17 @@ public class CliqueMSParameters extends SimpleParameterSet {
 
   public static final IntegerParameter SIZE_ANG = new IntegerParameter("Annotation max features per clique","After neutral mass selection, if a clique group has a number of monoisotopic features bigger than this parameter,  the annotation group is divided into non-overlapping annotation groups. Each subdivision is annotated independently.",20, 1,null);
 
+  public static final MZToleranceParameter ANNOTATE_TOL = new MZToleranceParameter("Annotation mass tolerance","Tolerance in mass according to which we consider two or more features compatible with a neutral mass and two or more adducts from Adduct List", 0, 10 );
+
+  public static final DoubleParameter ANNOTATE_FILTER = new DoubleParameter("Annotation duplicate filter","This parameter removes redundant annotations. If two neutral masses in the same annotation group have a relative mass difference smaller than this parameter and the same features and adducts, drop the neutral mass with less adducts",  LLformatter, 0.0001);
+
+  public static final DoubleParameter ANNOTATE_EMPTY_SCORE = new DoubleParameter("non-Annotation score","Score given to non annotated features. The value should not be larger than any adduct log frequency (6.0)", LLformatter, -6.0);
+
+  public static final BooleanParameter ANNOTATE_NORMALIZE = new BooleanParameter("Annotation Normalize score","If 'TRUE', the reported score is normalized and scaled. Normalized score goes from 0, when it means that the raw score is close to the minimum score (all features with empty annotations), up to 100, which is the score value of the theoretical maximum annotation (all the adducts of the list with the minimum number of neutral masses).",true);
+
   
   public CliqueMSParameters(){
-    super(new Parameter[]{PEAK_LISTS,FILTER,MZ_DIFF,RT_DIFF,IN_DIFF,TOL,ISOTOPES_MAX_CHARGE,ISOTOPES_MAXIMUM_GRADE,ISOTOPES_MZ_TOLERANCE,ISOTOPE_MASS_DIFF});
+    super(new Parameter[]{PEAK_LISTS, FILTER, MZ_DIFF, RT_DIFF, IN_DIFF, TOL, ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM_GRADE, ISOTOPES_MZ_TOLERANCE, ISOTOPE_MASS_DIFF, ANNOTATE_TOP_MASS, ANNOTATE_TOP_MASS_FEATURE, SIZE_ANG, ANNOTATE_TOL, ANNOTATE_FILTER, ANNOTATE_EMPTY_SCORE, ANNOTATE_NORMALIZE});
     MZ_DIFF.setValue(new MZTolerance(0, 5));
     RT_DIFF.setValue(new RTTolerance(false,0.0004));
     ISOTOPES_MZ_TOLERANCE.setValue(new MZTolerance(0,10));

@@ -117,7 +117,14 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled())
         return;
       ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, PolarityType.POSITIVE);
-      Set<OutputAn> outputAnSet = computeAdduct.getAnnotation();
+      Set<OutputAn> outputAnSet = computeAdduct.getAnnotation(
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS).getValue(),
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS_FEATURE).getValue(),
+          parameters.getParameter(CliqueMSParameters.SIZE_ANG).getValue(),
+           10,
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_FILTER).getValue(),
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_EMPTY_SCORE).getValue(),
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_NORMALIZE).getValue());
 
 
       addFeatureIdentity(anClique);

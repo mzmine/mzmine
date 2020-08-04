@@ -161,7 +161,7 @@ public class ComputeAdduct {
       AdductAnnotationCliqueMS ad = new AdductAnnotationCliqueMS();
       OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, ppm, filter, emptyS, normalizeScore);
       outAnSet.add(outAn);
-      //      for(Integer itv : outAn.features){
+//      for(Integer itv : outAn.features){
 //        String s = "";
 //        for(int x=0; x<5; x++){
 //          s+=" "+x+" ";
@@ -171,6 +171,7 @@ public class ComputeAdduct {
 //          s+=" ";
 //          s+=outAn.ans.get(x).get(itv);
 //        }
+//          System.out.println(s);
 //      }
     }
     return outAnSet;
