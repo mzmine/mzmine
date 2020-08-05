@@ -257,10 +257,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           return;
         }
 
-        Window myWindow = myScene.getWindow();
-        if (myWindow instanceof TICVisualizerWindow) {
-          ((TICVisualizerWindow) myWindow).updateTitle();
-        }
+//        Window myWindow = myScene.getWindow();
+//        if (myWindow instanceof TICVisualizerWindow) {
+//          ((TICVisualizerWindow) myWindow).updateTitle();
+//        }
 
         if (showSpectrumRequest) {
 
