@@ -35,6 +35,9 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
   private static final long serialVersionUID = 1L;
 
+  // For comparing small differences.
+  private static final double EPSILON = 0.0000001;
+
   private String label;
   private Scan scan;
   private Map<DataPoint, String> annotation;
@@ -132,6 +135,18 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   @Override
   public double getStartYValue(int series, int item) {
     return getYValue(series, item);
+  }
+
+  public int getIndex(final double mz, final double intensity) {
+    int index = -1;
+    for (int i = 0; index < 0 && i < dataPoints.length; i++) {
+      if (Math.abs(mz - dataPoints[i].getMZ()) < EPSILON
+          && Math.abs(intensity - dataPoints[i].getIntensity()) < EPSILON) {
+
+        index = i;
+      }
+    }
+    return index;
   }
 
   /**

@@ -147,7 +147,7 @@ public class TICVisualizerWindow extends Stage {
     Button showSpectrumBtn = new Button(null, new ImageView(SHOW_SPECTRUM_ICON));
     showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
     showSpectrumBtn.setOnAction(e -> {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
       }
@@ -198,11 +198,11 @@ public class TICVisualizerWindow extends Stage {
         if (peakLabels != null && peakLabels.containsKey(peak)) {
 
           final String label = peakLabels.get(peak);
-          ticPlot.addLabelledPeakDataset(new PeakDataSet(peak, label), label);
+          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(peak, label), label);
 
         } else {
 
-          ticPlot.addPeakDataset(new PeakDataSet(peak));
+          ticPlot.addFeatureDataSet(new FeatureDataSet(peak));
         }
       }
     }
@@ -329,7 +329,7 @@ public class TICVisualizerWindow extends Stage {
     mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
         + mzFormat.format(mzRange.upperEndpoint()));
 
-    CursorPosition pos = getCursorPosition();
+    ChromatogramCursorPosition pos = getCursorPosition();
 
     if (pos != null) {
       subTitle.append("Selected scan #");
@@ -407,7 +407,7 @@ public class TICVisualizerWindow extends Stage {
 
     TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
     ticDataSets.put(newFile, ticDataset);
-    ticPlot.addTICDataset(ticDataset);
+    ticPlot.addTICDataSet(ticDataset);
 
   }
 
@@ -450,7 +450,7 @@ public class TICVisualizerWindow extends Stage {
   /**
    * @return current cursor position
    */
-  public CursorPosition getCursorPosition() {
+  public ChromatogramCursorPosition getCursorPosition() {
     double selectedRT = ticPlot.getXYPlot().getDomainCrosshairValue();
     double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
     Enumeration<TICDataSet> e = ticDataSets.elements();
@@ -462,7 +462,8 @@ public class TICVisualizerWindow extends Stage {
         if (plotType == TICPlotType.BASEPEAK) {
           mz = dataSet.getZValue(0, index);
         }
-        CursorPosition pos = new CursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
+        ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
+            dataSet.getDataFile(),
             dataSet.getScanNumber(index));
         return pos;
       }
@@ -473,7 +474,7 @@ public class TICVisualizerWindow extends Stage {
   /**
    * @return current cursor position
    */
-  public void setCursorPosition(CursorPosition newPosition) {
+  public void setCursorPosition(ChromatogramCursorPosition newPosition) {
     ticPlot.getXYPlot().setDomainCrosshairValue(newPosition.getRetentionTime(), false);
     ticPlot.getXYPlot().setRangeCrosshairValue(newPosition.getIntensityValue());
   }
@@ -490,7 +491,7 @@ public class TICVisualizerWindow extends Stage {
     }
 
     if (command.equals("MOVE_CURSOR_LEFT")) {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());
@@ -505,7 +506,7 @@ public class TICVisualizerWindow extends Stage {
     }
 
     if (command.equals("MOVE_CURSOR_RIGHT")) {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());

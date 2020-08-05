@@ -56,8 +56,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.StreamCopy;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 
 public class ProjectOpeningTask extends AbstractTask {
@@ -128,12 +126,12 @@ public class ProjectOpeningTask extends AbstractTask {
       // Check if existing raw data files are present
       ProjectManager projectManager = MZmineCore.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-        Alert alert = new Alert(AlertType.CONFIRMATION,
+
+        ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
             "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
             ButtonType.YES, ButtonType.NO);
-        alert.showAndWait();
 
-        if (alert.getResult() != ButtonType.YES) {
+        if (confirm != ButtonType.YES) {
           cancel();
           return;
         }

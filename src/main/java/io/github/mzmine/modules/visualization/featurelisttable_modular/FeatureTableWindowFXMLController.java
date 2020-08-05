@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
 import io.github.mzmine.main.MZmineCore;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -51,7 +49,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTablePosition;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
@@ -210,7 +207,7 @@ public class FeatureTableWindowFXMLController {
     if (!miShowXIC.isSelected()) {
       return;
     }
-    xicPlot.removeAllTICDataSets();
+    xicPlot.removeAllDataSets();
     // TODO: for now we take the first raw data file, we should take the one from the
     //  selected column, though.
     Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().getValue().keySet();
@@ -218,7 +215,7 @@ public class FeatureTableWindowFXMLController {
     rawDataFileSet.forEach(r -> raws.add(r));
     ModularFeature feature = selectedRow.getFeatures().getValue().get(raws.get(0));
     TICDataSet dataSet = new TICDataSet(feature);
-    xicPlot.addTICDataset(dataSet);
+    xicPlot.addTICDataSet(dataSet);
   }
 
   /**

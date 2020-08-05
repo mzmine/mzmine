@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Import feature from csv format</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+  <h1>Import features from csv file format</h1>
+
+  <h2>Description</h2>
+
+  <p> This module imports features present in a specific format from a csv file. This kind of format
+    can be obtained by using xcms library in R to find peaks using Centwave algorithm on a mzXML
+    file. The R code returns a list of features with following columns which can be exported to a
+    csv file to be used as an import for this module. Column Numbering starts from 0, and 0th
+    column is ignored. </p>
+  <h4> <b>Column Name</b> - <i>Column No. </i></h4>
+  <ul>
+    <li><b>peak_mz</b> - <i>1</i>  - peak m/z value</li>
+    <li><b>mzMin</b> - <i>2</i> </li>
+    <li><b>mzMax</b> - <i>3</i> </li>
+    <li><b>peak_rt</b> - <i>4</i>  - peak retention time value</li>
+    <li><b>rtMin</b> - <i>5</i></li>
+    <li><b>rtMax</b> - <i>6</i></li>
+    <li><b>maxO</b> - <i>9</i>  - intensity value </li>
+  </ul>
+  <p>
+    To use this module, first input the rawdata file which was used to generate peakList from the R
+    code. Then select that raw file and use csv import to import the csv file exported from the R
+    code.
+  </p>
+  <p>
+    <h4>Example R code that generates the csv file</h4>
+  mzfile <- system.file("standards.mzXML")<br>
+  library(xcms)<br>
+  mzraw <- readMSData(files = mzfile, mode = "onDisk")<br>
+  cpw <- CentWaveParam(ppm = 15, peakwidth = c(5,20), snthresh = 10)<br>
+  mzData <- findChromPeaks(object = mzraw, param = cpw)<br>
+  peaklist <- as.data.frame(xcms::chromPeaks(mzData))<br>
+  write.csv(peaklist, "peakListFile.csv")<br>
+
+  </p>
+
+
+</body>
+</html>
