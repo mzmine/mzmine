@@ -56,10 +56,11 @@ public class PeakUtils {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
     buf.append(mzFormat.format(peak.getMZ()));
-    buf.append(" m/z @");
+    buf.append(" (");
     buf.append(timeFormat.format(peak.getRT()));
-    buf.append(" [" + peak.getDataFile().getName() + "]");
+    buf.append(" min) [" + peak.getDataFile().getName() + "]");
     return buf.toString();
   }
 

@@ -37,6 +37,11 @@ public class RTTolerance {
     this.unit = unit;
   }
 
+  // old constructor for compatibility with other mzmine branches and pull requests
+  public RTTolerance(final boolean isAbsolute, final double rtTolerance) {
+      this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
+  }
+
   public boolean isAbsolute() {
     return unit.isAbsolute();
 //    return unit == Unit.SECONDS || unit == Unit.MINUTES;

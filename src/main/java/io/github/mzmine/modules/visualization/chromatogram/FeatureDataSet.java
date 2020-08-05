@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.util.PeakUtils;
+import java.util.Arrays;
+import java.util.Objects;
 import org.jfree.data.xy.AbstractXYDataset;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -28,10 +31,10 @@ import io.github.mzmine.datamodel.RawDataFile;
  * Integrated peak area data set. Separate data set is created for every peak shown in this
  * visualizer window.
  */
-public class PeakDataSet extends AbstractXYDataset {
+public class FeatureDataSet extends AbstractXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final Feature peak;
@@ -47,7 +50,7 @@ public class PeakDataSet extends AbstractXYDataset {
    * @param p the peak.
    * @param id peak identity to use as a label.
    */
-  public PeakDataSet(final Feature p, final String id) {
+  public FeatureDataSet(final Feature p, final String id) {
 
     peak = p;
     name = id;
@@ -94,7 +97,7 @@ public class PeakDataSet extends AbstractXYDataset {
    *
    * @param p the peak.
    */
-  public PeakDataSet(final Feature p) {
+  public FeatureDataSet(final Feature p) {
     this(p, null);
   }
 
@@ -105,7 +108,7 @@ public class PeakDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(final int series) {
-    return peak.toString();
+    return PeakUtils.peakToString(peak);
   }
 
   @Override
@@ -137,5 +140,30 @@ public class PeakDataSet extends AbstractXYDataset {
 
   public boolean isPeak(final int item) {
     return item == peakItem;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof FeatureDataSet)) {
+      return false;
+    }
+    FeatureDataSet that = (FeatureDataSet) o;
+    return peakItem == that.peakItem &&
+        Objects.equals(peak, that.peak) &&
+        Arrays.equals(retentionTimes, that.retentionTimes) &&
+        Arrays.equals(intensities, that.intensities) &&
+        Arrays.equals(mzValues, that.mzValues) &&
+        Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(peak);
+    result = 31 * result + Arrays.hashCode(retentionTimes);
+    result = 31 * result + Arrays.hashCode(mzValues);
+    return result;
   }
 }
