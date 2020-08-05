@@ -27,9 +27,9 @@ import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.BiasEstimationChoice;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.RangeExtractionChoice;
+import io.github.mzmine.modules.dataprocessing.masscalibration.charts.ArithmeticMeanKnnTrend;
 import io.github.mzmine.modules.dataprocessing.masscalibration.charts.OLSRegressionTrend;
 import io.github.mzmine.modules.dataprocessing.masscalibration.charts.Trend2D;
-import io.github.mzmine.modules.dataprocessing.masscalibration.charts.WeightedKnnTrend;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
@@ -162,9 +162,8 @@ public class MassCalibrationTask extends AbstractTask {
       trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.KNN_REGRESSION.toString());
       Double percentageNeighbors =
               trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
-      errorTrend = new WeightedKnnTrend(percentageNeighbors / 100.0);
-    }
-    else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
+      errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
+    } else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
       trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.OLS_REGRESSION.toString());
       Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
       Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
@@ -173,7 +172,6 @@ public class MassCalibrationTask extends AbstractTask {
               .getValue();
       errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
     }
-
 
 
     if (rangeExtractionMethod.getCurrentChoice().equals(RangeExtractionChoice.RANGE_METHOD.toString())) {

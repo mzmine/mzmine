@@ -28,12 +28,12 @@ public interface Trend2D extends Function2D {
    *
    * @param dataset xy series dataset
    */
-  public void setDataset(XYSeries dataset);
+  void setDataset(XYSeries dataset);
 
   /**
    * Get name of the trend
-   * 
+   *
    * @return
    */
-  public String getName();
+  String getName();
 }

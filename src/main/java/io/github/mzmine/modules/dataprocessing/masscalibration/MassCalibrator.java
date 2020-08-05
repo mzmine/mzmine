@@ -27,7 +27,6 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.Sta
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYSeries;
 
 import java.util.*;
@@ -43,18 +42,17 @@ public class MassCalibrator {
   protected final RTTolerance retentionTimeTolerance;
   protected final MZTolerance mzRatioTolerance;
   protected final StandardsList standardsList;
-
   protected MassCalibrationParameters.RangeExtractionChoice rangeExtractionMethod;
   protected double errorDistributionDistance;
   protected double errorMaxRangeLength;
   protected Range<Double> percentileRange;
-  
+
   protected final Logger logger;
   protected int all, zero, single, multiple = 0;
   protected int massListsCount = 0;
 
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
-//  protected ArrayList<Double> mzErrors = new ArrayList<>();
+  //  protected ArrayList<Double> mzErrors = new ArrayList<>();
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
   protected DistributionRange extractedRange;
@@ -189,7 +187,7 @@ public class MassCalibrator {
   protected XYSeries buildErrorsVsMzDataset() {
     XYSeries errorsXY = new XYSeries("PPM errors");
     for (MassPeakMatch match : massPeakMatches) {
-      if (extractedRange.getValueRange().contains(match.getMzError())){
+      if (extractedRange.getValueRange().contains(match.getMzError())) {
         errorsXY.add(match.getMeasuredMzRatio(), match.getMzError());
       }
     }
@@ -311,7 +309,7 @@ public class MassCalibrator {
    * shifts all m/z peaks against a bias estimate
    * bias estimate is taken from the instance (global bias estimate or modeled error vs mz trend)
    *
-   * @param massList     the list of mz peaks to calibrate
+   * @param massList the list of mz peaks to calibrate
    * @return new mass calibrated list of mz peaks
    */
   public DataPoint[] calibrateMassList(DataPoint[] massList) {
@@ -324,8 +322,7 @@ public class MassCalibrator {
       double calibratedMz;
       if (errorVsMzTrend != null) {
         calibratedMz = massError.calibrateAgainstError(oldMz, errorVsMzTrend.getValue(oldMz));
-      }
-      else{
+      } else {
         calibratedMz = massError.calibrateAgainstError(oldMz, biasEstimate);
       }
       calibratedMassList[i] = new SimpleDataPoint(calibratedMz, oldDataPoint.getIntensity());

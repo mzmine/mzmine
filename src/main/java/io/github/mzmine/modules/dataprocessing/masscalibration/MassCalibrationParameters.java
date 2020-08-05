@@ -51,7 +51,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public enum RangeExtractionChoice {
     RANGE_METHOD("Most populated range plus stretch with tolerance"), PERCENTILE_RANGE("Percentile range");
 
-    private String name;
+    private final String name;
 
     RangeExtractionChoice(String name) {
       this.name = name;
@@ -78,7 +78,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
 
   public static final DoubleRangeParameter percentileRange = new DoubleRangeParameter("Percentile range",
-          "The percentile range used for extraction of errors.", NumberFormat.getNumberInstance(), true,false,
+          "The percentile range used for extraction of errors.", NumberFormat.getNumberInstance(), true, false,
           Range.closed(25.0, 75.0), Range.closed(0.0, 100.0));
 
   public static final TreeMap<String, ParameterSet> rangeExtractionChoices = new TreeMap<>() {{
@@ -94,7 +94,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     ARITHMETIC_MEAN("Arithmetic mean"),
     KNN_REGRESSION("KNN regression"), OLS_REGRESSION("OLS regression");
 
-    private String name;
+    private final String name;
 
     BiasEstimationChoice(String name) {
       this.name = name;

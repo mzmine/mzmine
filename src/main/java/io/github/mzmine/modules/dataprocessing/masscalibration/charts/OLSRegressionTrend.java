@@ -62,26 +62,26 @@ public class OLSRegressionTrend implements Trend2D {
 
     ArrayList<String> featuresWithParameters = new ArrayList<>();
 
-    for(int i = 0; i < featuresDescriptions.length; i++) {
+    for (int i = 0; i < featuresDescriptions.length; i++) {
       featuresWithParameters.add(String.format("%s*%s", beta[i], featuresDescriptions[i]));
     }
 
     String trendString = String.join(" + ", featuresWithParameters);
     trendString = WordUtils.wrap(trendString, 100);
     trendString += "\nR^2 = " + rSquared;
-    
+
     return "OLS regression\n" + trendString;
   }
 
   protected String[] generateFeaturesDescriptions() {
     ArrayList<String> desc = new ArrayList<>();
-    for (int i = 0; i < polynomialDegree + 1; i++){
+    for (int i = 0; i < polynomialDegree + 1; i++) {
       desc.add("x^" + i);
     }
-    if (exponentialFeature){
+    if (exponentialFeature) {
       desc.add("e^(x/10)");
     }
-    if (logarithmicFeature){
+    if (logarithmicFeature) {
       desc.add("ln(x)");
     }
     return desc.toArray(new String[0]);
@@ -120,10 +120,10 @@ public class OLSRegressionTrend implements Trend2D {
     double exponential = Math.exp(x / 10);
     double logarithmic = x > 0 ? Math.log(x) : 0;
 
-    if(Double.isInfinite(exponential)) {
+    if (Double.isInfinite(exponential)) {
       exponential = Double.MAX_VALUE;
     }
-    if(Double.isInfinite(logarithmic)) {
+    if (Double.isInfinite(logarithmic)) {
       logarithmic = -Double.MAX_VALUE;
     }
 
@@ -142,7 +142,7 @@ public class OLSRegressionTrend implements Trend2D {
   protected double[] polynomialFeatures(double x, int polynomialDegree) {
     double[] powers = new double[polynomialDegree + 1];
     double power = 1;
-    for(int i = 0; i < polynomialDegree + 1; i++){
+    for (int i = 0; i < polynomialDegree + 1; i++) {
       powers[i] = power;
       power *= x;
     }
@@ -157,7 +157,7 @@ public class OLSRegressionTrend implements Trend2D {
   public void setDataset(XYSeries dataset) {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
-    if (items.length > 0){
+    if (items.length > 0) {
       performOLSRegression();
     }
   }

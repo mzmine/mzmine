@@ -18,47 +18,48 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
-
-import org.apache.commons.lang.ArrayUtils;
-import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
- * Weighted knn trend,
- * for two dimensional dataset performs weighted knn regression
+ * Arithmetic mean knn trend,
+ * for two dimensional dataset performs knn regression by taking arithmetic mean of neighbors
+ * <p>
+ * it is possible to largely optimize this class by precomputing the predicted trend values
+ * since dataset is not changed often, but getValue() is used many times (for each mass peak for each scan
+ * when running mass calibration), precomputing the values and keeping track of all the points where
+ * the mean of k closest neighbors changes could give a sizeable boost
  */
-public class WeightedKnnTrend implements Trend2D {
+public class ArithmeticMeanKnnTrend implements Trend2D {
 
   protected XYSeries dataset;
   protected XYDataItem[] items;
   protected Integer neighbors;
   protected Double neighborsFractional;
 
-  public WeightedKnnTrend(XYSeries dataset, int neighbors) {
+  public ArithmeticMeanKnnTrend(XYSeries dataset, int neighbors) {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
     this.neighbors = Math.min(Math.max(neighbors, 1), items.length);
   }
 
-  public WeightedKnnTrend(XYSeries dataset, double neighbors) {
+  public ArithmeticMeanKnnTrend(XYSeries dataset, double neighbors) {
     this(dataset, (int) Math.round(dataset.getItemCount() * neighbors));
   }
 
-  public WeightedKnnTrend(XYSeries dataset) {
+  public ArithmeticMeanKnnTrend(XYSeries dataset) {
     this(dataset, 0.1);
   }
 
-  public WeightedKnnTrend(int neighbors) {
+  public ArithmeticMeanKnnTrend(int neighbors) {
     this.neighbors = neighbors;
     setDataset(new XYSeries("empty"));
   }
 
-  public WeightedKnnTrend(double neighborsFractional) {
+  public ArithmeticMeanKnnTrend(double neighborsFractional) {
     this.neighborsFractional = neighborsFractional;
     setDataset(new XYSeries("empty"));
   }

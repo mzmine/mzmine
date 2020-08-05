@@ -25,8 +25,6 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrator;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.TextAnnotation;
-import org.jfree.chart.annotations.XYDrawableAnnotation;
 import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -38,13 +36,13 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Chart for error size vs mz ratio plots (xy scatter plot of error values vs mz ratio)
  * with additional extraction ranges and bias estimates lines shown up
+ * plus estimated trend
  */
 public class ErrorVsMzChart extends EChartViewer {
 
@@ -110,7 +108,7 @@ public class ErrorVsMzChart extends EChartViewer {
     XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
     plot.setDataset(0, dataset);
 
-    Function2D trend = new WeightedKnnTrend(errorsXY);
+    Function2D trend = new ArithmeticMeanKnnTrend(errorsXY);
     XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
             dataset.getDomainUpperBound(false), 1000, "trend series");
     XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
