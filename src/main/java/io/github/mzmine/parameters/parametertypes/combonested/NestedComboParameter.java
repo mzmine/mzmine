@@ -29,6 +29,15 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Nested combo parameter
+ * presents a list of choices each with their own set of subparameters
+ * displayed with combobox and a list of subparameters below based on the combobox choice
+ * allows for a flat definition of all necessary module parameters in a single module parameters class
+ * but the nested structure is given only to the nested combo parameter with a map storing a separate
+ * parameters set for each of the combo choices
+ * for example usage see {@code MassCalibrationParameters} and io.github.mzmine.modules.dataprocessing.masscalibration
+ */
 public class NestedComboParameter implements UserParameter<NestedCombo, NestedComboboxComponent> {
 
   private final String name;
@@ -67,7 +76,8 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
 
   @Override
   public NestedComboboxComponent createEditingComponent() {
-    return new NestedComboboxComponent(choices, defaultChoice, showNestedParamsOnStart, prefWidth);
+    return new NestedComboboxComponent(choices, value != null ? value.getCurrentChoice() : defaultChoice,
+            showNestedParamsOnStart, prefWidth);
   }
 
   @Override
@@ -115,7 +125,7 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
     }
     String currentChoice = currentChoiceList.item(currentChoiceList.getLength() - 1).getTextContent();
 
-    TreeMap<String, ParameterSet> choices = new TreeMap<>();
+//    TreeMap<String, ParameterSet> choices = new TreeMap<>();
     NodeList choicesList = xmlElement.getElementsByTagName("choice");
     for (int i = 0; i < choicesList.getLength(); i++) {
       Element choice = (Element) choicesList.item(i);
