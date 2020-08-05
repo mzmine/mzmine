@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.masscalibration.charts.Trend2D;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.*;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes.ErrorType;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes.PpmError;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;

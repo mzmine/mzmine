@@ -98,28 +98,10 @@ public class ErrorVsMzChart extends EChartViewer {
     plot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
   }
 
-  protected void updateChartDataset(List<MassPeakMatch> matches) {
-    XYSeries errorsXY = new XYSeries("PPM errors");
-    for (MassPeakMatch match : matches) {
-      double error = MassCalibrator.massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio());
-      errorsXY.add(match.getMeasuredMzRatio(), error);
-    }
-
-    XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
-    plot.setDataset(0, dataset);
-
-    Function2D trend = new ArithmeticMeanKnnTrend(errorsXY);
-    XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
-            dataset.getDomainUpperBound(false), 1000, "trend series");
-    XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
-    plot.setDataset(1, trendDataset);
-  }
-
   protected void updateChartDataset(List<MassPeakMatch> matches, Trend2D trend) {
     XYSeries errorsXY = new XYSeries("PPM errors");
     for (MassPeakMatch match : matches) {
-      double error = MassCalibrator.massError.calculateError(match.getMeasuredMzRatio(), match.getMatchedMzRatio());
-      errorsXY.add(match.getMeasuredMzRatio(), error);
+      errorsXY.add(match.getMeasuredMzRatio(), match.getMzError());
     }
 
     XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
@@ -131,7 +113,8 @@ public class ErrorVsMzChart extends EChartViewer {
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
       XYTextAnnotation trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
-              plot.getDomainAxis().getRange().getCentralValue(), plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
+              plot.getDomainAxis().getRange().getCentralValue(),
+              plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
       plot.addAnnotation(trendNameAnnotation);
     }
   }

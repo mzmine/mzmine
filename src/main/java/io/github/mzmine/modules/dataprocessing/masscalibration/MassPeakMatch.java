@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
-import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.ErrorType;
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes.ErrorType;
 
 import java.util.Comparator;
 

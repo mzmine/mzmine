@@ -35,7 +35,6 @@ import java.util.List;
 
 /**
  * Chart for measured mz vs matched mz plots (xy scatter plot of measured mz vs matched mz)
- * with additional extraction ranges and bias estimates lines shown up
  */
 public class MeasuredVsMatchedMzChart extends EChartViewer {
 

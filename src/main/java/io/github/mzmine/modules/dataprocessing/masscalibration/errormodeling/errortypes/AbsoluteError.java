@@ -16,25 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes;
 
-/**
- * Ppm error type,
- * parts per million is just fractional multiplied by 10^6
- */
-public class PpmError implements ErrorType {
+public class AbsoluteError implements ErrorType {
   public double calculateError(double measured, double actual) {
-    double fractionalError = (measured - actual) / actual;
-    return fractionalError * 1_000_000;
+    return measured - actual;
   }
 
   public double calibrateAgainstError(double value, double error) {
-    double fractionalError = error / 1_000_000;
-    return value / (1 + fractionalError);
+    return value - error;
   }
 
   @Override
   public String toString() {
-    return "PPM error";
+    return "Absolute error";
   }
 }

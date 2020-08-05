@@ -16,19 +16,30 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling;
+package io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes;
 
-public class AbsoluteError implements ErrorType {
-  public double calculateError(double measured, double actual) {
-    return measured - actual;
-  }
+public interface ErrorType {
+  /**
+   * Calculate error given measured and actual values
+   *
+   * @param measured
+   * @param actual
+   * @return
+   */
+  double calculateError(double measured, double actual);
 
-  public double calibrateAgainstError(double value, double error) {
-    return value - error;
-  }
-
-  @Override
-  public String toString() {
-    return "Absolute error";
-  }
+  /**
+   * Calibrate a value against an error
+   * given measured and its error towards actual should return back actual value
+   * ie, the methods should be related as:
+   * <p>
+   * error = calculateError(measured, actual)
+   * calibrated = calibrateAgainstError(measured, error)
+   * calibrated == actual
+   *
+   * @param value
+   * @param error
+   * @return
+   */
+  double calibrateAgainstError(double value, double error);
 }
