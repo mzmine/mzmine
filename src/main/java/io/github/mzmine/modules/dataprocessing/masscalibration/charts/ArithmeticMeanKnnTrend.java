@@ -66,7 +66,7 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
 
   @Override
   public String getName() {
-    return "KNN regression";
+    return "KNN regression\nR^2 = " + ChartUtils.calculateRSquared(items, this);
   }
 
   @Override

@@ -22,11 +22,23 @@ import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.function.Function2D;
+import org.jfree.data.xy.XYDataItem;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.util.Arrays;
 
 public class ChartUtils {
+  public static double calculateRSquared(XYDataItem[] items, Function2D trend) {
+    double yMean = Arrays.stream(items).mapToDouble(item -> item.getYValue()).average().orElse(0);
+    double ssTot = Arrays.stream(items).mapToDouble(item -> Math.pow(item.getYValue() - yMean, 2)).sum();
+    double ssRes = Arrays.stream(items).
+            mapToDouble(item -> Math.pow(item.getYValue() - trend.getValue(item.getXValue()), 2)).sum();
+    double rSquared = 1 - ssRes / ssTot;
+    return rSquared;
+  }
+
   public static void cleanPlot(XYPlot plot) {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       plot.setDataset(i, null);
