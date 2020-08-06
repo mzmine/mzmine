@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,7 +125,7 @@ public class ComputeAdduct {
     return returnAdinfo;
   }
 
-  public Set<OutputAn> getAnnotation( int topmasstotal, int topmassf, int sizeanG, double ppm, double filter,
+  public Set<OutputAn> getAnnotation( int topmasstotal, int topmassf, int sizeanG, MZTolerance tol, double filter,
       double emptyS , boolean normalizeScore ){
     if(anClique.anFound){
       logger.log(Level.WARNING,"Annotation has already been computed for this object.");
@@ -137,7 +138,6 @@ public class ComputeAdduct {
     }
     logger.log(Level.FINEST,"Computing annotation.");
 
-    ppm = ppm * 0.000001;
 
     List<IonizationType> orderadinfo = checkadinfo("positive");
 
@@ -154,25 +154,26 @@ public class ComputeAdduct {
       }
       dfClique.removeIf(pd -> !pd.getIsotopeAnnotation().startsWith("M0"));
       Collections.sort(dfClique, Comparator.comparingDouble(PeakData::getMz));//sorting in order of mz values, in decreasing order
-//      for(PeakData pd : dfClique){
-//       logger.log(Level.WARNING,pd.getMz()+" "+pd.getCharge()+" "+pd.getNodeID()+" "+pd.getCliqueID());
-//      }
+      for(PeakData pd : dfClique){
+       logger.log(Level.WARNING,pd.getMz()+" "+pd.getCharge()+" "+pd.getNodeID()+" "+pd.getCliqueID());
+      }
 
       AdductAnnotationCliqueMS ad = new AdductAnnotationCliqueMS();
-      OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, ppm, filter, emptyS, normalizeScore);
+      OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, tol, filter, emptyS, normalizeScore);
       outAnSet.add(outAn);
-//      for(Integer itv : outAn.features){
-//        String s = "";
-//        for(int x=0; x<5; x++){
-//          s+=" "+x+" ";
-//          s+=outAn.masses.get(x).get(itv);
-//          s+=" ";
-//          s+=outAn.scores.get(x).get(itv);
-//          s+=" ";
-//          s+=outAn.ans.get(x).get(itv);
-//        }
+      for(Integer itv : outAn.features){
+        String s = "";
+        for(int x=0; x<5; x++){
+          s+=" "+x+" ";
+          s+=outAn.masses.get(x).get(itv);
+          s+=" ";
+          s+=outAn.scores.get(x).get(itv);
+          s+=" ";
+          s+=outAn.ans.get(x).get(itv);
+        }
+        logger.log(Level.WARNING,s);
 //          System.out.println(s);
-//      }
+      }
     }
     return outAnSet;
 
@@ -181,7 +182,7 @@ public class ComputeAdduct {
 
   //default values
   public Set<OutputAn> getAnnotation(){
-    return getAnnotation(10, 1, 20, 10, 1e-4,-6, true);
+    return getAnnotation(10, 1, 20, new MZTolerance(0.0,10.0), 1e-4,-6, true);
   }
 
 }

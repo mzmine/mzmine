@@ -121,7 +121,7 @@ public class CliqueMSTask extends AbstractTask {
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS_FEATURE).getValue(),
           parameters.getParameter(CliqueMSParameters.SIZE_ANG).getValue(),
-           10,
+          parameters.getParameter(CliqueMSParameters.ANNOTATE_TOL).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_FILTER).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_EMPTY_SCORE).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_NORMALIZE).getValue());

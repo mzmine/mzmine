@@ -19,7 +19,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public class AdductAnnotationCliqueMS {
     return vScore;
   }
 
-  private HashMap<Integer,String> getAllAdducts(double mass, double tol, int idn, IonizationType currentAdd, AnnotDF mzdf, RawAdList rList){
+  private HashMap<Integer,String> getAllAdducts(double mass, MZTolerance tol, int idn, IonizationType currentAdd, AnnotDF mzdf, RawAdList rList){
     int idnMass = idn; //index to start the search in the row of adducts
     NavigableMap<Double,String> massMap = new TreeMap<>();
     HashMap<Integer,String> adduMap = new HashMap<>();
@@ -93,6 +95,7 @@ public class AdductAnnotationCliqueMS {
     // search for all adducts of the mass in the df
     for(int idnloop = idnMass ; idnloop < mzdf.mz.size() ; idnloop ++){
       Double mzDiff = mzdf.mz.get(idnloop) - mass;
+      Double mzVal = mzdf.mz.get(idnloop);
       int isoCharge = mzdf.charge.get(idnloop);
       // if massdifference is bigger than the largest mass difference in the adduct list
       // it is not possible to find more adducts
@@ -105,17 +108,37 @@ public class AdductAnnotationCliqueMS {
           if(isoCharge == Math.abs(adITest.getCharge())){
             // if testing add charge is equal to feature charge
             error = Math.abs(mzDiff - itm)/mass;
+            // if the error is smaller than the tolerance, accept that adduct
+//            if(error < tol*Math.sqrt(2.0))
+//              adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
+            MZTolerance modTolerance = new MZTolerance(Math.sqrt(2.0)*tol.getMzTolerance(),Math.sqrt(2.0)*tol.getPpmTolerance());
+            Range<Double> tolRange = modTolerance.getToleranceRange(mass);
+            if(tolRange.contains(mzVal-itm)){
+              // if the error is smaller than the tolerance, accept that adduct
+              adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
+            }
           } else{
-            // if not, this annotation is not possible
-            error = 10*tol*Math.sqrt(2.0);
+//            // if not, this annotation is not possible
+//            error = 10*tol*Math.sqrt(2.0);
+//            // if the error is smaller than the tolerance, accept that adduct
+//            if(error < tol*Math.sqrt(2.0))
+//              adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
           }
         } else{
+//          // if there is no charge set, proceed as normal
+//          error = Math.abs(mzDiff - itm) / mass;
+//          // if the error is smaller than the tolerance, accept that adduct
+//          if(error < tol*Math.sqrt(2.0))
+//            adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
+
           // if there is no charge set, proceed as normal
-          error = Math.abs(mzDiff - itm) / mass;
+          MZTolerance modTolerance = new MZTolerance(Math.sqrt(2.0)*tol.getMzTolerance(),Math.sqrt(2.0)*tol.getPpmTolerance());
+          Range<Double> tolRange = modTolerance.getToleranceRange(mass);
+          if(tolRange.contains(mzVal-itm)){
+            // if the error is smaller than the tolerance, accept that adduct
+            adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
+          }
         }
-        // if the error is smaller than the tolerance, accept that adduct
-        if(error < tol*Math.sqrt(2.0))
-          adduMap.put(mzdf.features.get(idnloop),massMap.get(itm));
       }
       // move lowerbound if the mass difference is larger than the lowerbound
       if(mzDiff > lowerboundp.getKey())
@@ -301,7 +324,7 @@ public class AdductAnnotationCliqueMS {
   }
 
 
-  private AnnotData getAnnotData(RawAdList rList, AnnotDF mzdf, double tol, double filter){
+  private AnnotData getAnnotData(RawAdList rList, AnnotDF mzdf, MZTolerance tol, double filter){
     AnnotData annotD = new AnnotData();
     for(Integer f : mzdf.features)
       annotD.features.put(f,-1);
@@ -712,7 +735,7 @@ public class AdductAnnotationCliqueMS {
 
 
 
-  public OutputAn returnAdductAnnotation(List<PeakData> dfClique,List<IonizationType>  mzdf, int topmassf, int topmasstotal, int sizeanG, double tol, double filter, double emptyS, boolean normalizeScore){
+  public OutputAn returnAdductAnnotation(List<PeakData> dfClique,List<IonizationType>  mzdf, int topmassf, int topmasstotal, int sizeanG, MZTolerance tol, double filter, double emptyS, boolean normalizeScore){
     double newMass = -10.0;
     int defaultNewMassSize = 8;
     // 1 - read ordered data frame of features and masses from PeakData
