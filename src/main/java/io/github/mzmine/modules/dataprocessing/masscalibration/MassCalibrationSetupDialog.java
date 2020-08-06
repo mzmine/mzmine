@@ -66,15 +66,17 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
     if (dataFiles.length == 0) {
-      throw new RuntimeException("No datafiles");
+//      throw new RuntimeException("No datafiles");
     }
 
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 
     if (selectedFiles.length > 0) {
       previewDataFile = selectedFiles[0];
-    } else {
+    } else if (dataFiles.length > 0) {
       previewDataFile = dataFiles[0];
+    } else {
+      previewDataFile = null;
     }
 
     previewCheckBox = new CheckBox("Show preview");
@@ -88,10 +90,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     comboDataFileName = new ComboBox<RawDataFile>(
             MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       parametersChanged(false);
     });
+    comboDataFileName.getSelectionModel().select(previewDataFile);
 
     pnlDataFile.getChildren().add(comboDataFileName);
 
@@ -167,7 +169,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
-        MZmineCore.getDesktop().displayMessage("Mass calibration error message: " + previewTask.getErrorMessage());
+        MZmineCore.getDesktop().displayMessage("Mass calibration error message", previewTask.getErrorMessage());
       }
       return;
     }

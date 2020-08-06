@@ -38,10 +38,16 @@ public class StandardsListExtractorFactory {
    * caches the created extractors by their filename
    *
    * @param filename standards list filename
+   * @param useCache when true, the created extractor cache by filename is used
    * @return cached and instantiated extractor object
    * @throws IOException thrown by concrete extractor while opening the file
+   * @throws IllegalArgumentException thrown when file with unsupported extension is given
    */
-  public static StandardsListExtractor createFromFilename(String filename) throws IOException {
+  public static StandardsListExtractor createFromFilename(String filename, boolean useCache) throws IOException {
+
+    if (useCache == false) {
+      return createExtractor(filename);
+    }
 
     StandardsListExtractor cachedExtractor = cache.get(filename);
     if (cachedExtractor != null) {
@@ -53,17 +59,7 @@ public class StandardsListExtractorFactory {
         return cache.get(filename);
       }
 
-      String extension = Files.getFileExtension(filename);
-      StandardsListExtractor extractor;
-
-      if (extension.equals("xls") || extension.equals("xlsx")) {
-        extractor = new StandardsListSpreadsheetExtractor(filename);
-      } else if (extension.equals("csv")) {
-        extractor = new StandardsListCsvExtractor(filename);
-      } else {
-        throw new IllegalArgumentException("Unsupported extension " + extension +
-                " in spreadsheet file " + filename);
-      }
+      StandardsListExtractor extractor = createExtractor(filename);
 
       // use synchronization to extract the standards list
       // extractor caches the list, so subsequent method calls should just read from cached list data
@@ -72,5 +68,21 @@ public class StandardsListExtractorFactory {
       return extractor;
     }
 
+  }
+
+  protected static StandardsListExtractor createExtractor(String filename) throws IOException {
+    String extension = Files.getFileExtension(filename);
+    StandardsListExtractor extractor;
+
+    if (extension.equals("xls") || extension.equals("xlsx")) {
+      extractor = new StandardsListSpreadsheetExtractor(filename);
+    } else if (extension.equals("csv")) {
+      extractor = new StandardsListCsvExtractor(filename);
+    } else {
+      throw new IllegalArgumentException("Unsupported extension " + extension +
+              " in spreadsheet file " + filename);
+    }
+
+    return extractor;
   }
 }

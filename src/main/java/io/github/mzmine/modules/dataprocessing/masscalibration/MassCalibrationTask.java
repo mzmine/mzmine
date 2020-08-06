@@ -129,7 +129,7 @@ public class MassCalibrationTask extends AbstractTask {
     try {
       standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
               .getAbsolutePath();
-      standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename);
+      standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       standardsList = standardsListExtractor.extractStandardsList();
 
       if (standardsList.getStandardMolecules().size() == 0) {
