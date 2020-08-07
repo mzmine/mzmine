@@ -63,7 +63,6 @@ public class ErrorDistributionChart extends EChartViewer {
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
 
-
     return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
   }
 

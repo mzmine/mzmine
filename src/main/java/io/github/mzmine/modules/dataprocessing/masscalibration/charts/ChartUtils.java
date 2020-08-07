@@ -18,12 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYDataset;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -62,6 +64,17 @@ public class ChartUtils {
     return valueMarker;
   }
 
+  public static XYToolTipGenerator createTooltipGenerator() {
+    return new XYToolTipGenerator() {
+      @Override
+      public String generateToolTip(XYDataset dataset, int series, int item) {
+        double yValue = dataset.getYValue(series, item);
+        double xValue = dataset.getXValue(series, item);
+        return String.format("x: %s, y: %s", xValue, yValue);
+      }
+    };
+  }
+
   public static XYLineAndShapeRenderer createErrorsRenderer() {
     XYLineAndShapeRenderer errorsRenderer = new XYLineAndShapeRenderer(false, true);
     Shape circle = new Ellipse2D.Double(-2, -2, 4, 4);
@@ -72,6 +85,9 @@ public class ChartUtils {
     errorsRenderer.setSeriesOutlinePaint(0, paintColor);
     errorsRenderer.setUseFillPaint(true);
     errorsRenderer.setUseOutlinePaint(true);
+
+    errorsRenderer.setDefaultToolTipGenerator(createTooltipGenerator());
+
     return errorsRenderer;
   }
 
