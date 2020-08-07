@@ -47,6 +47,11 @@ public class ChartUtils {
     plot.clearAnnotations();
   }
 
+  public static void cleanPlotLabels(XYPlot plot) {
+    plot.clearRangeMarkers();
+    plot.clearAnnotations();
+  }
+
   public static ValueMarker createValueMarker(String label, double value) {
     ValueMarker valueMarker = new ValueMarker(value);
     valueMarker.setLabel(String.format("%s: %.4f", label, value));

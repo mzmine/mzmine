@@ -82,6 +82,10 @@ public class ErrorVsMzChart extends EChartViewer {
     ChartUtils.cleanPlot(plot);
   }
 
+  public void cleanPlotLabels() {
+    ChartUtils.cleanPlotLabels(plot);
+  }
+
   public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
                          double biasEstimate, Trend2D errorVsMzTrend) {
     updateChartDataset(matches, errorVsMzTrend);

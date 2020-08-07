@@ -31,6 +31,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
+import org.apache.commons.text.WordUtils;
 
 import java.util.ArrayList;
 
@@ -47,6 +48,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   private final BorderPane pnlPreviewFields;
   private final FlowPane pnlDataFile;
   private final Pane chartsPane;
+  private final CheckBox labelsCheckbox;
   private final VBox pnlControls;
   private final ToggleGroup chartChoice;
   private final RadioButton errorDistributionButton;
@@ -117,6 +119,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     chartChoicePane.getChildren().add(measuredVsMatchedMzButton);
     chartChoicePane.setHgap(5);
 
+    labelsCheckbox = new CheckBox("Labels preview");
+    labelsCheckbox.setTooltip(new Tooltip(WordUtils.wrap("When selected, labels such as extraction range" +
+            " and bias estimation value markers plus additional trend extraction details are displayed on the charts." +
+            " Deselecting can come in handy when the charts get cluttered with overlapping labels.", 90)));
+    labelsCheckbox.setSelected(true);
+    labelsCheckbox.setOnAction(event -> loadPreview());
+
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
     BorderPane.setAlignment(pnlControls, Pos.CENTER);
@@ -124,6 +133,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     // Put all together
     pnlControls.getChildren().add(pnlDataFile);
     pnlControls.getChildren().add(chartChoicePane);
+    pnlControls.getChildren().add(labelsCheckbox);
     pnlPreviewFields = new BorderPane();
     pnlPreviewFields.setCenter(pnlControls);
     pnlPreviewFields.visibleProperty().bind(previewCheckBox.selectedProperty());
@@ -194,6 +204,11 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     measuredVsMatchedMzChart.cleanPlot();
     measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
+
+    if (labelsCheckbox.isSelected() == false) {
+      errorDistributionChart.cleanPlotLabels();
+      errorVsMzChart.cleanPlotLabels();
+    }
 
   }
 

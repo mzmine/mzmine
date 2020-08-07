@@ -72,6 +72,10 @@ public class ErrorDistributionChart extends EChartViewer {
     ChartUtils.cleanPlot(distributionPlot);
   }
 
+  public void cleanPlotLabels() {
+    ChartUtils.cleanPlotLabels(distributionChart.getXYPlot());
+  }
+
   public void updateDistributionPlot(List<Double> errors, Map<String, DistributionRange> errorRanges,
                                      double biasEstimate) {
     XYPlot distributionPlot = distributionChart.getXYPlot();
