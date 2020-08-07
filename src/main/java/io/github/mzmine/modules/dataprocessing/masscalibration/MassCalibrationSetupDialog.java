@@ -59,6 +59,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   private final RawDataFile[] dataFiles;
   private final RawDataFile previewDataFile;
 
+  protected MassCalibrationTask previewTask;
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
@@ -111,7 +112,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzButton.setToggleGroup(chartChoice);
     measuredVsMatchedMzButton = new RadioButton("Measured vs matched mz");
     measuredVsMatchedMzButton.setToggleGroup(chartChoice);
-    chartChoice.selectedToggleProperty().addListener(e -> parametersChanged(false));
+    chartChoice.selectedToggleProperty().addListener(e -> loadPreview(false));
 
     FlowPane chartChoicePane = new FlowPane();
     chartChoicePane.getChildren().add(errorDistributionButton);
@@ -124,7 +125,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
             " and bias estimation value markers plus additional trend extraction details are displayed on the charts." +
             " Deselecting can come in handy when the charts get cluttered with overlapping labels.", 90)));
     labelsCheckbox.setSelected(true);
-    labelsCheckbox.setOnAction(event -> loadPreview());
+    labelsCheckbox.setOnAction(event -> loadPreview(false));
 
     pnlControls = new VBox();
     pnlControls.setSpacing(5);
@@ -162,7 +163,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
   }
 
-  protected void loadPreview() {
+  protected void loadPreview(boolean rerun) {
     ArrayList<String> errors = new ArrayList<String>();
     boolean paramsOK = parameterSet.checkParameterValues(errors);
     if (!paramsOK) {
@@ -174,8 +175,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    MassCalibrationTask previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
-    previewTask.run();
+    if (rerun || previewTask == null) {
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
+      previewTask.run();
+    }
 
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
@@ -224,10 +227,10 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     updateParameterSetFromComponents();
     if (debounce) {
-      debounceTime.setOnFinished(event -> loadPreview());
+      debounceTime.setOnFinished(event -> loadPreview(true));
       debounceTime.playFromStart();
     } else {
-      loadPreview();
+      loadPreview(true);
     }
   }
 }
