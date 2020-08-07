@@ -111,15 +111,20 @@ public class MassCalibrator {
     this.logger = Logger.getLogger(this.getClass().getName());
   }
 
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime) {
+    return addMassList(massList, retentionTime, 0.0);
+  }
+
   /**
    * Add mass list to this mass calibrator instance, it performs the mass peak matches and returns a list of them
    *
    * @param massList
    * @param retentionTime
+   * @param intensityThreshold
    * @return
    */
-  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime) {
-    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime);
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime, double intensityThreshold) {
+    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime, intensityThreshold);
     massPeakMatches.addAll(matches);
     return matches;
   }
@@ -371,22 +376,33 @@ public class MassCalibrator {
     return errors;
   }
 
+  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime) {
+    return matchPeaksWithCalibrants(massList, retentionTime, 0.0);
+  }
+
   /**
    * Match mz peaks with standard calibrants using provided tolerance values
    * when more than single calibrant is within the tolerance no match is made
    * as the peak might correspond to different ions, giving different mz error in later calibration stages
+   * for matching purposes consider only mz peaks with intensity equal or above the threshold
    *
    * @param massList
    * @param retentionTime
+   * @param intensityThreshold
    * @return list of mass peak matches
    */
-  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime) {
+  protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime,
+                                                              double intensityThreshold) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
     Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
     StandardsList retentionTimeFiltered = standardsList.getInRanges(null, rtRange);
 
     for (DataPoint dataPoint : massList) {
+      if (dataPoint.getIntensity() < intensityThreshold) {
+        continue;
+      }
+
       double mz = dataPoint.getMZ();
       Range<Double> mzRange = mzRatioTolerance.getToleranceRange(mz);
 

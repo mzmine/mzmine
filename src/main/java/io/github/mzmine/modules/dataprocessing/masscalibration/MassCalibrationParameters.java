@@ -45,6 +45,11 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           "File with a list of standard calibrants (ionic formula and retention time)" +
                   " expected to appear in the dataset", FileSelectionType.OPEN);
 
+  public static final DoubleParameter intensityThreshold = new DoubleParameter("Intensity threshold",
+          "Intensity threshold of mz data peaks to use for matching. This parameter is used to facilitate" +
+                  " noise filtering. Only mass peaks with intensity equal or above the threshold will be used for" +
+                  " matching, use 0 to allow all.", NumberFormat.getNumberInstance(), 0.0, 0.0, Double.POSITIVE_INFINITY);
+
   public static final BooleanParameter filterDuplicates = new BooleanParameter("Filter out duplicate errors",
           "If checked, the distribution of errors will be filtered to remove duplicates");
 
@@ -155,7 +160,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public MassCalibrationParameters() {
     super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
-            filterDuplicates, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
+            intensityThreshold, filterDuplicates, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
   }
 
   @Override

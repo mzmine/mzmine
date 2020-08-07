@@ -145,6 +145,7 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
+    Double intensityThreshold = parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
     RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
@@ -227,7 +228,7 @@ public class MassCalibrationTask extends AbstractTask {
               massPeakMatches);
       errors.addAll(massListErrors);*/
 
-      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime());
+      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), intensityThreshold);
 
       processedScans++;
     }
