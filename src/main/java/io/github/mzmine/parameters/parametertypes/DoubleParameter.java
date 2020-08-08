@@ -79,7 +79,7 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   @Override
   public DoubleComponent createEditingComponent() {
 
-    DoubleComponent doubleComponent = new DoubleComponent(WIDTH, minimum, maximum, format);
+    DoubleComponent doubleComponent = new DoubleComponent(WIDTH, minimum, maximum, format, value);
     // doubleComponent.setBorder(BorderFactory.createCompoundBorder(doubleComponent.getBorder(),
     // BorderFactory.createEmptyBorder(0, 3, 0, 0)));
     return doubleComponent;
@@ -118,10 +118,10 @@ public class DoubleParameter implements UserParameter<Double, DoubleComponent> {
   public void loadValueFromXML(final Element xmlElement) {
 
     final String numString = xmlElement.getTextContent();
-    if (numString.length() > 0) {
+      if (numString.length() > 0) {
 
-      value = Double.parseDouble(numString);
-    }
+        value = Double.parseDouble(numString);
+      }
   }
 
   @Override

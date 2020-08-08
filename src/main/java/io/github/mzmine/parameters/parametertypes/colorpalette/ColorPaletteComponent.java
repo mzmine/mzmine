@@ -53,9 +53,7 @@ public class ColorPaletteComponent extends GridPane {
 
     box = new ComboBox<>();
     box.setMinWidth(200);
-    box.setCellFactory(p -> {
-      return new ColorPaletteCell(17);
-    });
+    box.setCellFactory(p -> new ColorPaletteCell(17));
     box.setButtonCell(new ColorPaletteCell(15));
     box.setMinHeight(37);
     box.setMaxHeight(37);

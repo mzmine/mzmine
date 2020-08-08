@@ -38,6 +38,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 
@@ -57,7 +58,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
-      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+          BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
   // not final because we want themes without offsets for the export.
   private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
@@ -74,8 +75,12 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected boolean isAntiAliased = true;
   // orientation : 0 - 2 (90 CW)
 
-  protected boolean isShowTitle = false;
-  protected boolean subtitleVisible = false;
+  protected boolean showTitle = false;
+  protected boolean showLegend = true;
+  protected boolean showSubtitle = true;
+  protected boolean changeTitle = false;
+  protected String title = "";
+
 
   protected Paint axisLinePaint = Color.black;
   // protected THEME themeID;
@@ -116,9 +121,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void setAll(boolean antiAlias, boolean showTitle, boolean noBG, Color cBG, Color cPlotBG,
-      boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
-      Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
-      Color cTitle) {
+                     boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
+                     Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
+                     Color cTitle) {
     this.setAntiAliased(antiAlias);
     this.setShowTitle(showTitle);
     this.setNoBackground(noBG);
@@ -154,8 +159,6 @@ public class EStandardChartTheme extends StandardChartTheme {
     applyToCrosshair(chart);
     applyToAxes(chart);
 
-    // applyToTitles(chart);
-
     // apply bg
     chart.setBackgroundPaint(this.getChartBackgroundPaint());
     chart.getPlot().setBackgroundPaint(this.getPlotBackgroundPaint());
@@ -164,6 +167,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     chart.setAntiAlias(isAntiAliased());
     p.setBackgroundAlpha(isNoBackground() ? 0 : 1);
 
+    applyToTitles(chart);
     applyToLegend(chart);
 
   }
@@ -251,22 +255,35 @@ public class EStandardChartTheme extends StandardChartTheme {
     fixLegend(chart);
   }
 
-//  public void applyToTitles(@Nonnull JFreeChart chart){
-//    chart.getSubtitles().forEach(s -> {
-//      if(s instanceof TextTitle && s != chart.getTitle()){
+  public void applyToTitles(@Nonnull JFreeChart chart) {
+    TextTitle title = chart.getTitle();
+    if(title != null) {
+      title.setVisible(isShowTitle());
+      if (isChangeTitle()) {
+        title.setText(getTitle());
+      }
+    }
+
+    chart.getSubtitles().forEach(s -> {
+      if (s != chart.getTitle() && s instanceof TextTitle) {
+        TextTitle textTitle = (TextTitle)s;
 //        ((TextTitle) s).setFont(getRegularFont());
 //        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
-//        ((TextTitle) s).setVisible(isShowTitle());
-////        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
-////        subtitle color is set by the chart theme parameters
-//
+        textTitle.setVisible(isShowSubtitles());
+//        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+//        subtitle color is set by the chart theme parameters
+
 //        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
 //          ((PaintScaleLegend) s)
 //              .setBackgroundPaint(this.getChartBackgroundPaint());
 //        }
-//      }
-//    });
-//  }
+      }
+      if (s instanceof LegendTitle) {
+        LegendTitle legendTitle = (LegendTitle) s;
+        legendTitle.setVisible(isShowLegend());
+      }
+    });
+  }
 
   public boolean isNoBackground() {
     return ((Color) this.getPlotBackgroundPaint()).getAlpha() == 0;
@@ -277,9 +294,9 @@ public class EStandardChartTheme extends StandardChartTheme {
     Color cchart = ((Color) this.getChartBackgroundPaint());
     this.setPlotBackgroundPaint(new Color(c.getRed(), c.getGreen(), c.getBlue(), state ? 0 : 255));
     this.setChartBackgroundPaint(
-        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
     this.setLegendBackgroundPaint(
-        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
   }
 
 
@@ -302,11 +319,11 @@ public class EStandardChartTheme extends StandardChartTheme {
     LegendTitle newLegend;
 
     if (plot instanceof CombinedDomainXYPlot
-        && (
-        oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
-            ||
-            oldLegend.getSources()[0].getLegendItems().getItemCount()
-                == MirrorChartFactory.tags.length * 2)) {
+            && (
+            oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
+                    ||
+                    oldLegend.getSources()[0].getLegendItems().getItemCount()
+                            == MirrorChartFactory.tags.length * 2)) {
 
       newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
     } else {
@@ -321,12 +338,28 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   // GETTERS AND SETTERS
+  public boolean isShowLegend() {
+    return showLegend;
+  }
+
+  public void setShowLegend(boolean showLegend) {
+    this.showLegend = showLegend;
+  }
+
+  public boolean isShowSubtitle() {
+    return showSubtitle;
+  }
+
+  public void setShowSubtitle(boolean showSubtitle) {
+    this.showSubtitle = showSubtitle;
+  }
+
   public Paint getAxisLinePaint() {
     return axisLinePaint;
   }
 
   public boolean isShowTitle() {
-    return isShowTitle;
+    return showTitle;
   }
 
   public boolean isAntiAliased() {
@@ -338,20 +371,12 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void setShowTitle(boolean showTitle) {
-    isShowTitle = showTitle;
+    this.showTitle = showTitle;
   }
 
   public void setAxisLinePaint(Paint axisLinePaint) {
     this.axisLinePaint = axisLinePaint;
   }
-
-  // public THEME getID() {
-  // return themeID;
-  // }
-  //
-  // public void setID(THEME themeID) {
-  // this.themeID = themeID;
-  // }
 
   public void setShowXGrid(boolean showXGrid) {
     this.showXGrid = showXGrid;
@@ -402,11 +427,11 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void getShowSubtitles(boolean subtitleVisible) {
-    this.subtitleVisible = subtitleVisible;
+    this.showSubtitle = subtitleVisible;
   }
 
   public boolean isShowSubtitles() {
-    return subtitleVisible;
+    return showSubtitle;
   }
 
   public boolean isUseXLabel() {
@@ -477,6 +502,22 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setMirrorPlotAxisOffset(RectangleInsets mirrorPlotAxisOffset) {
     MIRROR_PLOT_AXIS_OFFSET = mirrorPlotAxisOffset;
+  }
+
+  public boolean isChangeTitle() {
+    return changeTitle;
+  }
+
+  public void setChangeTitle(boolean changeTitle) {
+    this.changeTitle = changeTitle;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
   }
 
 }

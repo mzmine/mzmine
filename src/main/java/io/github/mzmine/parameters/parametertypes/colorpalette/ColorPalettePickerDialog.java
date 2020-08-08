@@ -190,8 +190,8 @@ public class ColorPalettePickerDialog extends Stage {
 
     // size is computed when shown, so show here and set minimum size to the computed one
     show();
-    this.setMinHeight(getHeight());
-    this.setMinWidth(getWidth());
+    this.setMinHeight(getHeight() + 20);
+    this.setMinWidth(getWidth() + 20);
   }
 
   private void btnAddColorAction() {
