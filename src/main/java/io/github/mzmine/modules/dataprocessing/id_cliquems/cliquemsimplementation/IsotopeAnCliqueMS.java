@@ -43,6 +43,14 @@ public class IsotopeAnCliqueMS {
     this.isoData = isoData;
   }
 
+  /**
+   * Function to determine whether two masses are isotope or not
+   * @param mz1 first mass
+   * @param mz2 second mass
+   * @param reference The reference mass difference between two features to be considered isotopes
+   * @param isoMZTolerance mass tolerance for considering isotopes
+   * @return
+   */
   private boolean errorRange( Double mz1, Double mz2, Double reference, MZTolerance isoMZTolerance ){
     boolean result = false;
     MZTolerance mzTolerance_mod = new MZTolerance(isoMZTolerance.getMzTolerance()*Math.sqrt(2.0),
@@ -53,6 +61,16 @@ public class IsotopeAnCliqueMS {
     return result;
   }
 
+  /**
+   * Function to determine whether two masses are isotope or not, if yes assign the parent and
+   * child mass
+   * @param mz1 first mass
+   * @param mz2 second mass
+   * @param maxCharge maximum charge to be anntotated to a isotope
+   * @param isoMZTolerance  mass tolerance for considering isotopes
+   * @param isom The reference mass difference between two features to be considered isotopes
+   * @return
+   */
   private IsoTest isIsotope(Double mz1, Double mz2, Integer maxCharge, MZTolerance isoMZTolerance, Double isom){
 
     IsoTest finalIso = new IsoTest();
@@ -78,7 +96,13 @@ public class IsotopeAnCliqueMS {
   }
 
 
-
+  /**
+   * Function to calculate parent feature (pfeature), isotope corresponding to the parent(ifeature),
+   * charge and grade corresponding to the features
+   * @param maxCharge maximum charge to be annotated to each feature
+   * @param isoMZTolerance mass tolerance for considering isotopes
+   * @param isom The reference mass difference between two features to be considered isotopes
+   */
   public void getIsotopes(Integer maxCharge, MZTolerance isoMZTolerance, Double  isom ){
 
 
@@ -117,7 +141,9 @@ public class IsotopeAnCliqueMS {
     return icharge;
   }
 
-
+  /**
+   * Temp class to hold isotope data
+   */
   private class IsoTest{
     boolean isIso = false;
     Integer pCharge;

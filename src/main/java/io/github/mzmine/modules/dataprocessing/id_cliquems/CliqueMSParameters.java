@@ -39,7 +39,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final MZToleranceParameter MZ_DIFF = new MZToleranceParameter("MZ tolerance",
-      "If two features' relative difference of m/z values is less than MZ tolerance, they are candidate for similar features. So, if MZ tolerance is set a (relative) value of 'x' ppm (or absolute value of 'y'), then a feature with mz value of 'm' will have all peaks with the mz in the closed range [m - m*x/10e6 , m + m*x/10e6] (or [m - y, m + y] , whichever range is larger) similar to it (if rt and intensity tolerance values are passed too).");
+      "If two features' relative difference of m/z values is less than MZ tolerance, they are candidate for similar features. So, if MZ tolerance is set a (relative) value of 'x' ppm (or absolute value of 'y'), then a feature with mz value of 'm' will have all peaks with the mz in the closed range [m - m*x/10e6 , m + m*x/10e6] (or [m - y, m + y] , whichever range is larger) similar to it (if rt and intensity tolerance values are passed too).",0, 5);
 
 
   private  static final NumberFormat LLformatter = new DecimalFormat("#0.000000");
@@ -55,24 +55,24 @@ public class CliqueMSParameters extends SimpleParameterSet {
       LLformatter,0.000001);
 
   public static final BooleanParameter FILTER = new BooleanParameter("Filter similar features",
-      "Two features are similar if their relative change in m/z, rt and intensity are less than the respective tolerances.",true);
+      "Marks all except one of the similar features. Two features are similar if their relative change in m/z, rt and intensity are less than the respective tolerances.",true);
 
   // Max charge.
   public static final IntegerParameter ISOTOPES_MAX_CHARGE =
       new IntegerParameter("Isotopes max. charge",
-          "The maximum charge considered when identifying isotopes", 3, 1, null);
+          "The maximum charge considered when two features are tested to see they are isotope or not. No isotope will be annotated with a charge greater than this.", 3, 1, null);
 
   // Max isotopes.
   public static final IntegerParameter ISOTOPES_MAXIMUM_GRADE = new IntegerParameter(
-      "Isotopes max. per cluster", "The maximum number of isotopes per cluster", 2, 0, null);
+      "Isotopes max. per cluster", "The maximum number of isotopes per cluster. Cluster will be resized if size found greater than this.", 2, 0, null);
 
   // Isotope m/z tolerance
   public static final MZToleranceParameter ISOTOPES_MZ_TOLERANCE =
       new MZToleranceParameter("Isotopes mass tolerance",
-          "Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope");
+          "Mass tolerance used when identifying isotopes, Two features are considered isotopes if the difference of their absolute mass difference from the reference mass deference is within this tolerance limit",0,10);
 
   //Isotope mass difference
-  public static final DoubleParameter ISOTOPE_MASS_DIFF = new DoubleParameter("Isotope mass difference","The mass difference of the isotope",
+  public static final DoubleParameter ISOTOPE_MASS_DIFF = new DoubleParameter("Isotope reference mass difference","The reference mass difference between two features to be considered isotopes",
       LLformatter,1.003355);
 
   public static final IntegerParameter ANNOTATE_TOP_MASS = new IntegerParameter("Annotation max annotations",
@@ -96,9 +96,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
   
   public CliqueMSParameters(){
     super(new Parameter[]{PEAK_LISTS, FILTER, MZ_DIFF, RT_DIFF, IN_DIFF, TOL, ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM_GRADE, ISOTOPES_MZ_TOLERANCE, ISOTOPE_MASS_DIFF, ANNOTATE_TOP_MASS, ANNOTATE_TOP_MASS_FEATURE, POLARITY, SIZE_ANG, ANNOTATE_TOL, ANNOTATE_FILTER, ANNOTATE_EMPTY_SCORE, ANNOTATE_NORMALIZE});
-    MZ_DIFF.setValue(new MZTolerance(0, 5));
     RT_DIFF.setValue(new RTTolerance(false,0.0004));
-    ISOTOPES_MZ_TOLERANCE.setValue(new MZTolerance(0,10));
   }
 
 }

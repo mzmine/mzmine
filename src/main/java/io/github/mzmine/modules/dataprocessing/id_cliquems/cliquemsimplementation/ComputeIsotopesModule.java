@@ -53,11 +53,16 @@ public class ComputeIsotopesModule {
     this.progress = progress;
   }
 
-
-
+  /**
+   * Find features where inLinks have multiple outlinks or vice versa (Smaller weights are removed).
+   * This code corresponds to the filterInlinks or filterOutLinks function in the R code
+   *
+   * @param feature List of features
+   * @param weights cosine correlation weight
+   * @return List</Integer> List of feature ID for features that are to be filtered
+   */
   private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights){
     // Drop one parental mass when one isotope has two parental masses candidates
-    // This code corresponds to the filterInlinks or filterOutLinks function in the R code
     HashMap <Integer,Integer> IFeatureHash = new HashMap<>();
     List<Integer> duplicateIFindex = new ArrayList<>();//this contains indices to be deleted from all features
     for(int i = 0 ; i<feature.size() ; i++){
@@ -80,14 +85,16 @@ public class ComputeIsotopesModule {
   }
 
   /**
-   * Function to filter isotopes feature vectors, and create network of isotope TODO check this
+   * Function to filter isotopes feature vectors, and create network of isotope (inLink and outLink
+   * ,i.e., vertices of an unweighted, directed graph are calculated)
    *
-   * @param pFeature
-   * @param iFeature
-   * @param pCharge
-   * @param icharge
+   *
+   * @param pFeature List of parental mass feature ID
+   * @param iFeature List of isotope corresponding to each parental mass in pFeature
+   * @param pCharge List of charge of parental mass
+   * @param iCharge List of charge for isotope corresponding to the parental mass
    */
-  private void filterIso(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> icharge){
+  private void filterIso(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge){
     //Find node corresponding pFeature and iFeature from network
     NetworkCliqueMS network = this.anClique.getNetwork();
     List<Double> weights = new ArrayList<>();
@@ -112,7 +119,7 @@ public class ComputeIsotopesModule {
       pFeature.remove((int)index);
       iFeature.remove((int)index);
       pCharge.remove((int)index);
-      icharge.remove((int)index);
+      iCharge.remove((int)index);
       weights.remove((int)index);
     }
 
@@ -122,7 +129,7 @@ public class ComputeIsotopesModule {
       for(int j=0; j<iFeature.size() ; j++){
         if(pFeature.get(i).equals(iFeature.get(j))){
           //If same node in iFeature and pFeature, they must have same charge
-          if(pCharge.get(i).equals(icharge.get(j))){
+          if(pCharge.get(i).equals(iCharge.get(j))){
             deletepos.add(i);
             deletepos.add(j);
           }
@@ -136,10 +143,11 @@ public class ComputeIsotopesModule {
    * Function to grade and isotope, starting from 0 to the parental isotope, 1 the first isotope and
    * further.
    * The algorithm was implemented in R through igraph, this is the equivalent algorithm. The igraph
-   * was directed, unweighted and iLinks and outLinks correspond to that graph network.
+   * was directed, unweighted and iLinks and outLinks correspond to the vertices in that graph network.
    * @param inLinks inLink to the graph
    * @param outLinks outLinks to the graph
-   * @return int[][] nx2 dimension matrix, 1st dimension carries nodeID and 2nd carries grade of the node
+   * @return int[][] nx2 dimension matrix, n = #inLinks + #outLinks,  1st dimension carries nodeID
+   * and 2nd carries grade of the node
    */
   private int[][] isoGrade(List<Integer> inLinks, List<Integer> outLinks){
     int [][]gradeData = new int[2*inLinks.size()][2]; // 1st dimension carries node ID, 2nd carries grade
@@ -168,11 +176,14 @@ public class ComputeIsotopesModule {
 
   /**
    * function to set the node attributes for each isotope: grade, charge, and community (or cluster)
-   * @param pFeature
-   * @param iFeature
-   * @param pCharge
-   * @param iCharge
-   * @param maxGrade
+   * for a given clique (the lists in the arguments contains information from a single clique)
+   *
+   * @param pFeature List of parental mass feature ID
+   * @param iFeature List of isotope corresponding to each parental mass in pFeature
+   * @param pCharge List of charge of parental mass
+   * @param iCharge List of charge for isotope corresponding to the parental mass
+   * @param maxGrade Maximum possible grade to be assigned to each isotope
+   * @return isotable consolidated data for every isotope for the clique
    */
   private IsoTable isonetAttributes(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge, int maxGrade){
     // First assign grade (for info look isoGrade function)
@@ -262,7 +273,15 @@ public class ComputeIsotopesModule {
     return isoTable;
   }
 
-
+  /**
+   * Function to compute list of isotable (containing consolidated data for isotopes) for each
+   * clique
+   * @param maxCharge The maximum charge considered when two features are tested to see they are isotope or not
+   * @param maxGrade The maximum number of isotopes per cluster
+   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope
+   * @param isom The mass difference of the isotope
+   * @return isoTableList
+   */
   private List<IsoTable> computelistofIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
     List<PeakData> pdList = anClique.getPeakDataList();
     HashMap<Integer,PeakData> pdHash = new HashMap<>();
@@ -306,11 +325,13 @@ public class ComputeIsotopesModule {
   }
 
   /**
+   * Function to add isotope annotation for each feature. Updates IsoInfo in AnClique object
+   * (see IsoInfo class)
    *
-   * @param maxCharge
-   * @param maxGrade
-   * @param isoMZTolerance
-   * @param isom
+   * @param maxCharge The maximum charge considered when two features are tested to see they are isotope or not
+   * @param maxGrade The maximum number of isotopes per cluster
+   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope
+   * @param isom The mass difference of the isotope
    */
   public void getIsotopes(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
     if(!anClique.cliquesFound){
@@ -379,6 +400,11 @@ public class ComputeIsotopesModule {
 
 }
 
+
+/**
+ * Class containing combined data for isotope in same clique. Dimension of every list in the class
+ * is same, and corresponds to the feature no.,mcharge, grade and cluster of isotopes in a clique.
+ */
 class IsoTable{
   List<Integer> feature;
   List<Integer> charge;
