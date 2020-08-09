@@ -359,6 +359,17 @@ public class ComputeIsotopesModule {
       pd.setIsotopeAnnotation(isoLabel.get(i));
       pd.setCharge(charge.get(i));
     }
+
+
+    //setting Isotope info for AnClique object
+    List<IsotopeInfo> isoInfos = new ArrayList<>();
+    for(IsoTable isoT : isoTableList){
+      for(int i=0 ; i<isoT.feature.size() ; i++){
+        IsotopeInfo iInfo = new IsotopeInfo(isoT.feature.get(i), isoT.charge.get(i), isoT.grade.get(i), isoT.cluster.get(i));
+        isoInfos.add(iInfo);
+      }
+    }
+    this.anClique.setIsoInfos(isoInfos);
     this.anClique.isoFound = true;
   }
   public void getIsotopes(){
@@ -366,10 +377,11 @@ public class ComputeIsotopesModule {
   }
 
 
-  class IsoTable{
-    List<Integer> feature;
-    List<Integer> charge;
-    List<Integer> grade;
-    List<Integer> cluster;
-  }
+}
+
+class IsoTable{
+  List<Integer> feature;
+  List<Integer> charge;
+  List<Integer> grade;
+  List<Integer> cluster;
 }

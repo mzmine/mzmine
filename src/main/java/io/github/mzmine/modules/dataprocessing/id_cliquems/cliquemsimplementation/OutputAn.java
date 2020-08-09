@@ -8,10 +8,10 @@ public class OutputAn {
 
   private int NUM_ANNO = 5;
 
-  List<Integer> features;
-  List<HashMap<Integer, String>> ans = new ArrayList<>();
-  List<HashMap<Integer, Double>> masses  = new ArrayList<>();
-  List<HashMap<Integer, Double>> scores = new ArrayList<>();
+  public List<Integer> features;
+  public List<HashMap<Integer, String>> ans = new ArrayList<>();
+  public List<HashMap<Integer, Double>> masses  = new ArrayList<>();
+  public List<HashMap<Integer, Double>> scores = new ArrayList<>();
 
   public OutputAn(List<Integer> features){
     this.features = features;

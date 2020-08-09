@@ -41,6 +41,9 @@ public class AnClique {
   boolean cliquesFound = false;
   boolean isoFound = false;
   boolean anFound = false;
+  private List<IsotopeInfo> isoInfos;
+  private List<AdductInfo> adInfos;
+
   // key - clique ID, value - List of nodes which are part of the clique.
   public HashMap<Integer,List<Integer>> cliques = new HashMap<>();
 
@@ -63,6 +66,23 @@ public class AnClique {
 
   public NetworkCliqueMS getNetwork(){
     return network;
+  }
+
+  public void setIsoInfos(List<IsotopeInfo> isoInfos) {
+    this.isoInfos = isoInfos;
+  }
+
+  public List<IsotopeInfo> getIsoInfos() {
+    return isoInfos;
+  }
+
+  public List<AdductInfo> getAdInfos() {
+    return adInfos;
+  }
+
+  public void setAdInfos(
+      List<AdductInfo> adInfos) {
+    this.adInfos = adInfos;
   }
 
   public void computeCliqueFromResult(){
@@ -88,6 +108,4 @@ public class AnClique {
       nodeToPeak.get(p.getKey()).setCliqueID(p.getValue());
     }
   }
-
-
 }

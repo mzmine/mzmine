@@ -22,20 +22,18 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchTask;
+import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeAdduct;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeCliqueModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeIsotopesModule;
-import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.OutputAn;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.PeakData;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
@@ -45,10 +43,11 @@ public class CliqueMSTask extends AbstractTask {
 
   //progress constants
   //TODO change the constant values
-  public final double EIC_PROGRESS = 0.4 ; // EIC calculation takes about 10% time
-  public final double MATRIX_PROGRESS = 0.3 ; // Cosine matrix calculation takes about 60% time
+  public final double EIC_PROGRESS = 0.5 ; // EIC calculation takes about 50% time
+  public final double MATRIX_PROGRESS = 0.3 ; // Cosine matrix calculation takes about 30% time
   public final double NET_PROGRESS = 0.1 ; // Network calculations takes 10% time
-  public final double ISO_PROGRESS = 0.1 ; // Isotope calculation takes 10% time
+  public final double ISO_PROGRESS = 0.01 ; // Isotope calculation takes 1% time
+  public final double ANNOTATE_PROGRESS = 0.09; // Adduct annotation takes 9% time
 
 
 
@@ -116,22 +115,22 @@ public class CliqueMSTask extends AbstractTask {
       // Check if not canceled
       if (isCanceled())
         return;
-      ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, PolarityType.POSITIVE);
-      Set<OutputAn> outputAnSet = computeAdduct.getAnnotation(
+      ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, this.progress);
+      List<AdductInfo> addInfos = computeAdduct.getAnnotation(
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS_FEATURE).getValue(),
           parameters.getParameter(CliqueMSParameters.SIZE_ANG).getValue(),
+          (String) parameters.getParameter(CliqueMSParameters.POLARITY).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOL).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_FILTER).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_EMPTY_SCORE).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_NORMALIZE).getValue());
 
-
-      addFeatureIdentity(anClique);
       // Check if not canceled
       if (isCanceled())
         return;
 
+      addFeatureIdentity(anClique,addInfos);
 
       // Finished.
       this.progress.setValue(1.0);
@@ -145,7 +144,7 @@ public class CliqueMSTask extends AbstractTask {
     }
   }
 
-  private void addFeatureIdentity(AnClique anClique){
+  private void addFeatureIdentity(AnClique anClique, List<AdductInfo> addInfos){
     List<PeakData> pdList =  anClique.getPeakDataList();
 
     for(PeakData pd : pdList){
@@ -155,6 +154,18 @@ public class CliqueMSTask extends AbstractTask {
       identity.setPropertyValue("Isotope",pd.getIsotopeAnnotation());
       this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
     }
-
+    HashMap<Integer,PeakData> pdHash = new HashMap<>();
+    for(PeakData pd : pdList)
+      pdHash.put(pd.getNodeID(),pd);
+    for(AdductInfo adInfo : addInfos){
+      PeakData pd = pdHash.get(adInfo.feature);
+      for(int i=0 ; i<5 ; i++){
+        SimplePeakIdentity adductAnnotation  = new SimplePeakIdentity("Annotation "+(i+1));
+        adductAnnotation.setPropertyValue("Mass",String.valueOf(adInfo.masses.get(i)));
+        adductAnnotation.setPropertyValue("Score",String.valueOf(adInfo.scores.get(i)));
+        adductAnnotation.setPropertyValue("Annotation",adInfo.annotations.get(i));
+        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation,true);
+      }
+    }
   }
 }

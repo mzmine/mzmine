@@ -22,6 +22,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -31,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javafx.collections.FXCollections;
 
 public class CliqueMSParameters extends SimpleParameterSet {
 
@@ -80,6 +82,9 @@ public class CliqueMSParameters extends SimpleParameterSet {
 
   public static final IntegerParameter SIZE_ANG = new IntegerParameter("Annotation max features per clique","After neutral mass selection, if a clique group has a number of monoisotopic features bigger than this parameter,  the annotation group is divided into non-overlapping annotation groups. Each subdivision is annotated independently.",20, 1,null);
 
+  public static final ComboParameter POLARITY = new ComboParameter("Adduct polarity","Adduct polarity",
+      FXCollections.observableArrayList("positive","negative"),"positive");
+
   public static final MZToleranceParameter ANNOTATE_TOL = new MZToleranceParameter("Annotation mass tolerance","Tolerance in mass according to which we consider two or more features compatible with a neutral mass and two or more adducts from Adduct List", 0, 10 );
 
   public static final DoubleParameter ANNOTATE_FILTER = new DoubleParameter("Annotation duplicate filter","This parameter removes redundant annotations. If two neutral masses in the same annotation group have a relative mass difference smaller than this parameter and the same features and adducts, drop the neutral mass with less adducts",  LLformatter, 0.0001);
@@ -90,7 +95,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
 
   
   public CliqueMSParameters(){
-    super(new Parameter[]{PEAK_LISTS, FILTER, MZ_DIFF, RT_DIFF, IN_DIFF, TOL, ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM_GRADE, ISOTOPES_MZ_TOLERANCE, ISOTOPE_MASS_DIFF, ANNOTATE_TOP_MASS, ANNOTATE_TOP_MASS_FEATURE, SIZE_ANG, ANNOTATE_TOL, ANNOTATE_FILTER, ANNOTATE_EMPTY_SCORE, ANNOTATE_NORMALIZE});
+    super(new Parameter[]{PEAK_LISTS, FILTER, MZ_DIFF, RT_DIFF, IN_DIFF, TOL, ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM_GRADE, ISOTOPES_MZ_TOLERANCE, ISOTOPE_MASS_DIFF, ANNOTATE_TOP_MASS, ANNOTATE_TOP_MASS_FEATURE, POLARITY, SIZE_ANG, ANNOTATE_TOL, ANNOTATE_FILTER, ANNOTATE_EMPTY_SCORE, ANNOTATE_NORMALIZE});
     MZ_DIFF.setValue(new MZTolerance(0, 5));
     RT_DIFF.setValue(new RTTolerance(false,0.0004));
     ISOTOPES_MZ_TOLERANCE.setValue(new MZTolerance(0,10));

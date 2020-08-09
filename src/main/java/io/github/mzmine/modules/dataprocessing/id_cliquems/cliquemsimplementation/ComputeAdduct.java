@@ -23,28 +23,28 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.mutable.MutableDouble;
 
 public class ComputeAdduct {
 
   private final AnClique anClique;
-  private final PolarityType polarityType;
   private final CliqueMSTask driverTask;
   private final Logger logger = Logger.getLogger(getClass().getName());
+  private final MutableDouble progress;
 
-  public ComputeAdduct(AnClique anClique, CliqueMSTask driverTask, PolarityType polarityType){
+  public ComputeAdduct(AnClique anClique, CliqueMSTask driverTask, MutableDouble progress){
     this.anClique = anClique;
-    this.polarityType = polarityType;
     this.driverTask = driverTask;
+    this.progress = progress;
   }
 
   private List<IonizationType> checkadinfo(String polarity){
@@ -85,7 +85,7 @@ public class ComputeAdduct {
       returnAdinfo.addAll(chargead);
       returnAdinfo.addAll(normalad);
       returnAdinfo.addAll(nummolad);
-    } else{
+    } else if(polarity.equals("negative")){
       // Separate them in adducts with charge < -1,
       // adducts with nmol >1 && charge == -1
       // and adducts with charge and nmol = 1
@@ -122,11 +122,15 @@ public class ComputeAdduct {
       returnAdinfo.addAll(normalad);
       returnAdinfo.addAll(nummolad);
     }
+    else{
+      driverTask.setErrorMessage("Polarity must be \"positive\" or \"negative\" only.");
+      driverTask.setStatus(TaskStatus.ERROR);
+    }
     return returnAdinfo;
   }
 
-  public Set<OutputAn> getAnnotation( int topmasstotal, int topmassf, int sizeanG, MZTolerance tol, double filter,
-      double emptyS , boolean normalizeScore ){
+  public List<AdductInfo> getAnnotation( int topmasstotal, int topmassf, int sizeanG, String polarity, MZTolerance tol, double filter,
+      double emptyS , boolean normalizeScore ) {
     if(anClique.anFound){
       logger.log(Level.WARNING,"Annotation has already been computed for this object.");
     }
@@ -138,51 +142,96 @@ public class ComputeAdduct {
     }
     logger.log(Level.FINEST,"Computing annotation.");
 
+    List<AdductInfo> addInfos = new ArrayList<>();
+    List<IonizationType> orderadinfo = checkadinfo(polarity);
 
-    List<IonizationType> orderadinfo = checkadinfo("positive");
+    if(driverTask.isCanceled())
+      return addInfos;
 
     HashMap<Integer,PeakData> nodeIDtoPeakMap = new HashMap<>();
 
-    Set<OutputAn> outAnSet = new HashSet<>();
     for(PeakData pd : this.anClique.getPeakDataList()){
       nodeIDtoPeakMap.put(pd.getNodeID(),pd);
     }
+    int done=0;
     for(Integer cliqueID : this.anClique.cliques.keySet()){
+      //progress update
+      this.progress.setValue(driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS +
+          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS + (driverTask.ANNOTATE_PROGRESS * ((double)(done++))/(this.anClique.cliques.keySet().size())));
+      //check if task cancelled
+      if(driverTask.isCanceled())
+        return addInfos;
       List<PeakData> dfClique  = new ArrayList<>();
       for(Integer nodeID: this.anClique.cliques.get(cliqueID)){
         dfClique.add(nodeIDtoPeakMap.get(nodeID));
       }
       dfClique.removeIf(pd -> !pd.getIsotopeAnnotation().startsWith("M0"));
       Collections.sort(dfClique, Comparator.comparingDouble(PeakData::getMz));//sorting in order of mz values, in decreasing order
-      for(PeakData pd : dfClique){
-       logger.log(Level.WARNING,pd.getMz()+" "+pd.getCharge()+" "+pd.getNodeID()+" "+pd.getCliqueID());
-      }
 
       AdductAnnotationCliqueMS ad = new AdductAnnotationCliqueMS();
-      OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, tol, filter, emptyS, normalizeScore);
-      outAnSet.add(outAn);
+      OutputAn outAn = ad.returnAdductAnnotation(anClique, dfClique, orderadinfo, topmassf, topmasstotal, sizeanG, tol, filter, emptyS, normalizeScore);
+
       for(Integer itv : outAn.features){
-        String s = "";
+        List<String> annotations = new ArrayList<>();
+        List<Double> masses  = new ArrayList<>();
+        List<Double> scores = new ArrayList<>();
         for(int x=0; x<5; x++){
-          s+=" "+x+" ";
-          s+=outAn.masses.get(x).get(itv);
-          s+=" ";
-          s+=outAn.scores.get(x).get(itv);
-          s+=" ";
-          s+=outAn.ans.get(x).get(itv);
+          annotations.add(outAn.ans.get(x).get(itv));
+          masses.add(outAn.masses.get(x).get(itv));
+          scores.add(outAn.scores.get(x).get(itv));
         }
-        logger.log(Level.WARNING,s);
-//          System.out.println(s);
+        AdductInfo adInfo = new AdductInfo(itv,annotations,masses,scores);
+        addInfos.add(adInfo);
+      }
+
+    }
+
+    // Isotopes of grade > 0 are excluded from annotation This function adds the annotation, in case
+    // it exists, to all isotopes of grade > 0 as they should have the same annotation than its
+    // isotope of grade 0
+    List<IsotopeInfo> isoInfos = this.anClique.getIsoInfos();
+    List<Integer> isoFeatures = new ArrayList<>();
+    for(IsotopeInfo isoInfo : isoInfos){
+      if(isoInfo.grade.equals(0)){
+        isoFeatures.add(isoInfo.feature);
       }
     }
-    return outAnSet;
+    for(Integer feature : isoFeatures){
+      Integer cluster = null;
+      for(IsotopeInfo isoInfo : isoInfos){
+        if(isoInfo.feature.equals(feature))
+          cluster = isoInfo.cluster;
+      }
+      List<Integer> extraf = new ArrayList<>();
+      for(IsotopeInfo isoInfo : isoInfos){
+        if(isoInfo.cluster.equals(cluster))
+          extraf.add(isoInfo.feature);
+      }
+      AdductInfo mainAdInfo = null;
+      for(AdductInfo adInfo : addInfos){
+        if(adInfo.feature.equals(feature))
+          mainAdInfo = adInfo;
+      }
 
+      for(Integer f : extraf){
+        // if same feature with grade 0, no need to convert it
+        if(f.equals(feature))
+          continue;
+        List<String> annotations = new ArrayList<>(mainAdInfo.annotations);
+        List<Double> masses  = new ArrayList<>(mainAdInfo.masses);
+        List<Double> scores = new ArrayList<>(mainAdInfo.scores);
+        addInfos.add(new AdductInfo(f,annotations,masses,scores));
+      }
+    }
+    //add data to adinfo class.
+    this.anClique.setAdInfos(addInfos);
+    return addInfos;
   }
 
 
   //default values
-  public Set<OutputAn> getAnnotation(){
-    return getAnnotation(10, 1, 20, new MZTolerance(0.0,10.0), 1e-4,-6, true);
+  public List<AdductInfo> getAnnotation(){
+    return getAnnotation(10, 1, 20, "positive", new MZTolerance(0.0,10.0), 1e-4,-6, true);
   }
 
 }
