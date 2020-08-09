@@ -55,7 +55,7 @@ public class CliqueMSModule implements MZmineProcessingModule {
           .getMatchingPeakLists();
 
       for (PeakList peakList : peakLists) {
-        Task newTask = new CliqueMSTask(project, parameters, peakList);
+        Task newTask = new CliqueMSTask(parameters, peakList);
         tasks.add(newTask);
       }
 

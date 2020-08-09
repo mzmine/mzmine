@@ -59,11 +59,9 @@ public enum IonizationType {
 
   NAME11("[M+3Na]3+","3Na",68.967654,PolarityType.POSITIVE,-3.51290442213519,1,3),//
 
-  //NAME12("[M+H]+","",1.007276,PolarityType.POSITIVE,-0.268998651917666,1,1),//
 
   NAME13("[M+H-H2O]+","H",-17.0032778,PolarityType.POSITIVE,-0.747608492437131,1,1),//
 
-//  NAME14("[M+Na]+","",22.989218,PolarityType.POSITIVE,-0.963288182616102,1,1),//
 
   NAME15("[M+H-NH3]+","H",-16.01927432,PolarityType.POSITIVE,-1.58862513607331,1,1),//
 
@@ -74,10 +72,6 @@ public enum IonizationType {
   NAME18("[M-2H+3Na]+","3Na",66.9530814,PolarityType.POSITIVE,-1.91084443080722,1,1),//
 
   NAME19("[M+H+H2O]+","H,H2O",19.01786821,PolarityType.POSITIVE,-2.3225727239649,1,1),//
-
-//  NAME20("[M+K]+","",38.963158,PolarityType.POSITIVE,-2.41599440912713,1,1),//
-
-//  NAME21("[M+NH4]+","",18.033823,PolarityType.POSITIVE,-2.49171512306525,1,1),//
 
   NAME22("[M-H+2K]+","2K",76.91904,PolarityType.POSITIVE,-3.11496441346315,1,1),//
 
@@ -115,12 +109,9 @@ public enum IonizationType {
 
   NAME39("[3M+K]+","K",38.96314222,PolarityType.POSITIVE,-3.81393441779917,3,1),//
 
-
   NAME_1("[M-2H]2-","2H-1",-2.014552,PolarityType.NEGATIVE,-1.4029242963981,1,-2),//
 
   NAME_2("[M+Na-3H]2-","Na",19.96739,PolarityType.NEGATIVE,-4.24802233641235,1,-2),//
-
-  //NAME_3("[M-H]-","",-1.007276,PolarityType.NEGATIVE,-0.172110574929576,1,-1),//
 
   NAME_4("[M-H-H2O]-","",-19.01839,PolarityType.NEGATIVE,-0.819887542383565,1,-1),//
 
@@ -140,7 +131,8 @@ public enum IonizationType {
 
 
   // log10freq records log base 10 observed frequency of adducts and fragments from available LC-MS1
-  // spectra for pure compounds available in the NIST database introduced in CliqueMS algorithm
+  // spectra for pure compounds available in the NIST database introduced in CliqueMS algorithm. The
+  // compounds whose frequency is not yet observed is given a minimum log frequency value of -6.0 .
 
   private final String name, adductFormula;
   private final PolarityType polarity;

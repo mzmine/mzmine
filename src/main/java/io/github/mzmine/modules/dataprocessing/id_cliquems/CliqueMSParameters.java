@@ -26,7 +26,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -69,7 +68,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
   // Isotope m/z tolerance
   public static final MZToleranceParameter ISOTOPES_MZ_TOLERANCE =
       new MZToleranceParameter("Isotopes mass tolerance",
-          "Mass tolerance used when identifying isotopes, Two features are considered isotopes if the difference of their absolute mass difference from the reference mass deference is within this tolerance limit",0,10);
+          "Mass tolerance used when identifying isotopes, Two features are considered isotopes if the difference of their absolute mass difference from the reference mass difference is within this tolerance limit",0,10);
 
   //Isotope mass difference
   public static final DoubleParameter ISOTOPE_MASS_DIFF = new DoubleParameter("Isotope reference mass difference","The reference mass difference between two features to be considered isotopes",
@@ -89,7 +88,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
 
   public static final DoubleParameter ANNOTATE_FILTER = new DoubleParameter("Annotation duplicate filter","This parameter removes redundant annotations. If two neutral masses in the same annotation group have a relative mass difference smaller than this parameter and the same features and adducts, drop the neutral mass with less adducts",  LLformatter, 0.0001);
 
-  public static final DoubleParameter ANNOTATE_EMPTY_SCORE = new DoubleParameter("non-Annotation score","Score given to non annotated features. The value should not be larger than any adduct log frequency (6.0)", LLformatter, -6.0);
+  public static final DoubleParameter ANNOTATE_EMPTY_SCORE = new DoubleParameter("non-Annotation score","Score given to non annotated features. The value should not be larger than any adduct log frequency (therefore given default value of -6.0, see log10freq of IonizationType)", LLformatter, -6.0);
 
   public static final BooleanParameter ANNOTATE_NORMALIZE = new BooleanParameter("Annotation Normalize score","If 'TRUE', the reported score is normalized and scaled. Normalized score goes from 0, when it means that the raw score is close to the minimum score (all features with empty annotations), up to 100, which is the score value of the theoretical maximum annotation (all the adducts of the list with the minimum number of neutral masses).",true);
 

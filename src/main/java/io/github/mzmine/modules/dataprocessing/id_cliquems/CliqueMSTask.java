@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
@@ -42,7 +43,6 @@ public class CliqueMSTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(CliqueMSTask.class.getName());
 
   //progress constants
-  //TODO change the constant values
   public final double EIC_PROGRESS = 0.5 ; // EIC calculation takes about 50% time
   public final double MATRIX_PROGRESS = 0.3 ; // Cosine matrix calculation takes about 30% time
   public final double NET_PROGRESS = 0.1 ; // Network calculations takes 10% time
@@ -58,15 +58,12 @@ public class CliqueMSTask extends AbstractTask {
   // Task progress
   private final MutableDouble progress = new MutableDouble(0.0);
 
-  // Project
-  private final MZmineProject project;
 
   // Parameters.
   private final ParameterSet parameters;
 
-  public CliqueMSTask(final MZmineProject project, final ParameterSet parameters,
+  public CliqueMSTask(final ParameterSet parameters,
       final PeakList list){
-    this.project = project;
     this.parameters = parameters;
     peakList = list;
   }
@@ -134,6 +131,7 @@ public class CliqueMSTask extends AbstractTask {
 
       // Finished.
       this.progress.setValue(1.0);
+      logger.log(Level.FINEST,"Clique formation, isotope annotation and adduct annotation done for features");
       setStatus(TaskStatus.FINISHED);
     }
     catch(Exception e){

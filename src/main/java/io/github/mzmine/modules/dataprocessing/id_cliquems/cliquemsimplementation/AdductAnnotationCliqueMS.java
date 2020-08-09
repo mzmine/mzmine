@@ -34,6 +34,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import javafx.util.Pair;
 
+/**
+ * Class to compute adduct annotation
+ *
+ * See https://github.com/osenan/cliqueMS/blob/master/src/annotationCliqueMSR.h for Rcpp code
+ * corresponding to this class
+ */
 public class AdductAnnotationCliqueMS {
 
   private AnnotDF readDF(List<PeakData> dfClique){
@@ -55,12 +61,8 @@ public class AdductAnnotationCliqueMS {
     return rawL;
   }
 
-  /**
-   * function to sort the list of adducts by score
-   * @param rList
-   * @return
-   */
   private List<Double> getScoreAddList (RawAdList rList){
+//    function to sort the list of adducts by score
     List<Double> vScore = new ArrayList<>();
     for(String adKey : rList.rawList.keySet()){
       vScore.add(rList.rawList.get(adKey).getLog10freq());

@@ -34,6 +34,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
+/**
+ * Class to compute top 5 possible adducts from the ionization list
+ *
+ * See https://github.com/osenan/cliqueMS/blob/master/R/findAnnotation.R for Rcpp code
+ * corresponding to this class
+ */
 public class ComputeAdduct {
 
   private final AnClique anClique;
@@ -47,6 +53,12 @@ public class ComputeAdduct {
     this.progress = progress;
   }
 
+
+  /**
+   * function to compute ions of polarity type 'polarity'
+   * @param polarity  polarity positive or negative
+   * @return returns IonizationType of polarity type 'polarity'
+   */
   private List<IonizationType> checkadinfo(String polarity){
 
     List<IonizationType> returnAdinfo = new ArrayList<>();
@@ -129,6 +141,19 @@ public class ComputeAdduct {
     return returnAdinfo;
   }
 
+
+  /**
+   * Return adduct annotation information (annotation, mass, score) for all features
+   * @param topmasstotal  All neutral masses in the group are ordered based on their adduct log-frequencies and their number of adducts. From that list, a number of these many masses are considered for the final annotation.
+   * @param topmassf In addition to 'topmasstotal', for each feature the list of ordered neutral masses is subsetted to the masses with an adduct in that particular feature. For each sublist, these number neutral masses are also selected for the final annotation.
+   * @param sizeanG After neutral mass selection, if a clique group has a number of monoisotopic features bigger than this parameter,  the annotation group is divided into non-overlapping annotation groups. Each subdivision is annotated independently.
+   * @param polarity Adduct polarity
+   * @param tol Tolerance in mass according to which we consider two or more features compatible with a neutral mass and two or more adducts from Adduct List
+   * @param filter This parameter removes redundant annotations. If two neutral masses in the same annotation group have a relative mass difference smaller than this parameter and the same features and adducts, drop the neutral mass with less adducts
+   * @param emptyS Score given to non annotated features. The value should not be larger than any adduct log frequency (therefore given default value of -6.0)
+   * @param normalizeScore If 'TRUE', the reported score is normalized and scaled. Normalized score goes from 0, when it means that the raw score is close to the minimum score (all features with empty annotations), up to 100, which is the score value of the theoretical maximum annotation (all the adducts of the list with the minimum number of neutral masses)
+   * @return
+   */
   public List<AdductInfo> getAnnotation( int topmasstotal, int topmassf, int sizeanG, String polarity, MZTolerance tol, double filter,
       double emptyS , boolean normalizeScore ) {
     if(anClique.anFound){

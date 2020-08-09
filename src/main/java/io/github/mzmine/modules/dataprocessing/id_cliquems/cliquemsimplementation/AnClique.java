@@ -33,7 +33,6 @@ import javafx.util.Pair;
  */
 public class AnClique {
 
-  //TODO is RawDatafile required later in annotation?
 
   private List<PeakData> peakDataList;
   private RawDataFile dataFile;
