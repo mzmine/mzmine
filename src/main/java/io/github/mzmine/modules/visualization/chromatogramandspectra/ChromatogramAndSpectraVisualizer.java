@@ -50,9 +50,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
@@ -169,10 +171,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     spectrumPlot = new SpectraPlot();
     BorderPane pnWrapSpectrum = new BorderPane();
     BorderPane pnWrapChrom = new BorderPane();
-    StackPane pnChromStack = new StackPane();
-    pnChromStack.setAlignment(Pos.TOP_RIGHT);
+    pnWrapChrom.setCenter(chromPlot);
+    pnWrapChrom.setBottom(pnChromControls);
+
+    pnWrapSpectrum.setCenter(spectrumPlot);
+    pnWrapSpectrum.setBottom(pnSpectrumControls);
+    getItems().addAll(pnWrapChrom, pnWrapSpectrum);
+
     Button btnChromSetup = new Button("...");
-    pnChromStack.getChildren().addAll(chromPlot, btnChromSetup);
     btnChromSetup.setOnAction(e -> {
       if (parameterSet == null) {
         parameterSet = MZmineCore.getConfiguration()
@@ -194,12 +200,18 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         }
       }
     });
-    pnWrapChrom.setCenter(pnChromStack);
-    pnWrapChrom.setBottom(pnChromControls);
 
-    pnWrapSpectrum.setCenter(spectrumPlot);
-    pnWrapSpectrum.setBottom(pnSpectrumControls);
-    getItems().addAll(pnWrapChrom, pnWrapSpectrum);
+    StackPane pnChromStack = new StackPane();
+    pnChromStack.setAlignment(Pos.TOP_RIGHT);
+
+    // titles
+    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
+    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
+    pnChromHeader.setPadding(new Insets(5));
+    pnSpectrumHeader.setPadding(new Insets(5));
+    pnChromStack.getChildren().addAll(pnChromHeader, btnChromSetup);
+    pnWrapChrom.setTop(pnChromStack);
+    pnWrapSpectrum.setTop(pnSpectrumHeader);
 
     chromPlot.setLabelColorMatch(true);
     spectrumPlot.setLabelColorMatch(true);
@@ -250,10 +262,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         logger.finest("Loading previous scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() - 1);
         requestFocus();
+        e.consume();
       } else if (e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
         logger.finest("Loading next scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() + 1);
         requestFocus();
+        e.consume();
       }
     });
   }
