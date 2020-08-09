@@ -326,8 +326,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     final Scan[] scans = getScanSelection().getMatchingScans(rawDataFile);
     if (scans.length == 0) {
-      MZmineCore.getDesktop().displayErrorMessage("No scans found.");
-      chromPlot.removeAllDataSets();
+      logger.warning(
+          "No matching scans found in file \"" + rawDataFile.getName() + "\" for scan selection.");
       return;
     }
 
