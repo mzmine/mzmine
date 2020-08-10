@@ -234,6 +234,7 @@ public class MassCalibrationTask extends AbstractTask {
     }
 
     massPeakMatches = massCalibrator.getAllMassPeakMatches();
+    Collections.sort(massPeakMatches, MassPeakMatch.measuredMzComparator);
     errors = massCalibrator.getAllMzErrors();
     Collections.sort(errors);
 

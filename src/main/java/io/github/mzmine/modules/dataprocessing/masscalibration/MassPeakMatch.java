@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes.ErrorType;
 
 import java.util.Comparator;
@@ -26,6 +27,9 @@ public class MassPeakMatch {
   public static final Comparator<MassPeakMatch> mzErrorComparator =
           Comparator.comparing(MassPeakMatch::getMzError);
 
+  public static final Comparator<MassPeakMatch> measuredMzComparator =
+          Comparator.comparing(MassPeakMatch::getMeasuredMzRatio);
+
   protected final double measuredMzRatio;
   protected final double measuredRetentionTime;
   protected final double matchedMzRatio;
@@ -33,6 +37,8 @@ public class MassPeakMatch {
 
   protected ErrorType mzErrorType;
   protected double mzError;
+
+  protected DataPoint measuredDataPoint;
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
                        double matchedMzRatio, double matchedRetentionTime) {
@@ -47,6 +53,13 @@ public class MassPeakMatch {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime);
     this.mzErrorType = mzErrorType;
     this.mzError = mzErrorType.calculateError(measuredMzRatio, matchedMzRatio);
+  }
+
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
+                       DataPoint measuredDataPoint) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType);
+    this.measuredDataPoint = measuredDataPoint;
   }
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
@@ -78,5 +91,9 @@ public class MassPeakMatch {
 
   public double getMzError() {
     return mzError;
+  }
+
+  public DataPoint getMeasuredDataPoint() {
+    return measuredDataPoint;
   }
 }

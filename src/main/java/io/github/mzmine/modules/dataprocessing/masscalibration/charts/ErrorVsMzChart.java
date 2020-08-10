@@ -28,14 +28,18 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.function.Function2D;
 import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +50,31 @@ import java.util.Map;
  */
 public class ErrorVsMzChart extends EChartViewer {
 
+  class ErrorVsMzTooltipGenerator implements XYToolTipGenerator {
+    @Override
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+      MassPeakMatch match = matches.get(item);
+      double yValue = dataset.getYValue(series, item);
+      double xValue = dataset.getXValue(series, item);
+      return String.format("Measured-matched m/z: %s-%s\nMeasured-matched RT: %s-%s\nMass error: %s %s" +
+                      "\nMass peak intensity: %s",
+              match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
+              match.getMeasuredRetentionTime(), match.getMatchedRetentionTime(),
+              match.getMzError(), match.getMzErrorType(),
+              match.getMeasuredDataPoint().getIntensity());
+    }
+  }
+
   private final JFreeChart chart;
   private final XYPlot plot;
+
+  protected List<MassPeakMatch> matches;
 
   protected ErrorVsMzChart(JFreeChart chart) {
     super(chart);
     this.chart = chart;
     this.plot = chart.getXYPlot();
+    plot.getRenderer(0).setDefaultToolTipGenerator(new ErrorVsMzTooltipGenerator());
   }
 
   public ErrorVsMzChart(String title) {
@@ -88,7 +110,11 @@ public class ErrorVsMzChart extends EChartViewer {
 
   public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
                          double biasEstimate, Trend2D errorVsMzTrend) {
-    updateChartDataset(matches, errorVsMzTrend);
+//    this.matches = matches;
+//    updateChartDataset(matches, errorVsMzTrend);
+    this.matches = new ArrayList<>(matches);
+    Collections.sort(this.matches, MassPeakMatch.measuredMzComparator);
+    updateChartDataset(this.matches, errorVsMzTrend);
 
     for (String label : errorRanges.keySet()) {
       DistributionRange errorRange = errorRanges.get(label);

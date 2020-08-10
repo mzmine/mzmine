@@ -427,7 +427,8 @@ public class MassCalibrator {
       double matchedMz = matchedItem.getMzRatio();
       double matchedRetentionTime = matchedItem.getRetentionTime();
 
-      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError));
+//      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError));
+      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError, dataPoint));
     }
 
     return matches;

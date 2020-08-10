@@ -198,8 +198,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     }
 
     errorDistributionChart.cleanDistributionPlot();
-    errorDistributionChart.updateDistributionPlot(previewTask.getErrors(), previewTask.getErrorRanges(),
-            previewTask.getBiasEstimate());
+    errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(), previewTask.getErrors(),
+            previewTask.getErrorRanges(), previewTask.getBiasEstimate());
 
     errorVsMzChart.cleanPlot();
     errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),

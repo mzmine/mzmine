@@ -21,16 +21,21 @@ package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
+import org.checkerframework.checker.units.qual.Mass;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -40,11 +45,33 @@ import java.util.Map;
  */
 public class ErrorDistributionChart extends EChartViewer {
 
+  class ErrorDistributionTooltipGenerator implements XYToolTipGenerator {
+      @Override
+      public String generateToolTip(XYDataset dataset, int series, int item) {
+        /*double yValue = dataset.getYValue(series, item);
+        double xValue = dataset.getXValue(series, item);
+        return String.format("x: %s, y: %s", xValue, yValue);*/
+
+        MassPeakMatch match = matches.get(item);
+        double yValue = dataset.getYValue(series, item);
+        double xValue = dataset.getXValue(series, item);
+        return String.format("Measured-matched m/z: %s-%s\nMeasured-matched RT: %s-%s\nMass error: %s %s" +
+                        "\nMass peak intensity: %s",
+                match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
+                match.getMeasuredRetentionTime(), match.getMatchedRetentionTime(),
+                match.getMzError(), match.getMzErrorType(),
+                match.getMeasuredDataPoint().getIntensity());
+      }
+    };
+
   private final JFreeChart distributionChart;
+
+  protected List<MassPeakMatch> matches;
 
   protected ErrorDistributionChart(JFreeChart chart) {
     super(chart);
     distributionChart = chart;
+    distributionChart.getXYPlot().getRenderer(0).setDefaultToolTipGenerator(new ErrorDistributionTooltipGenerator());
   }
 
   public ErrorDistributionChart(String title) {
@@ -75,9 +102,12 @@ public class ErrorDistributionChart extends EChartViewer {
     ChartUtils.cleanPlotLabels(distributionChart.getXYPlot());
   }
 
-  public void updateDistributionPlot(List<Double> errors, Map<String, DistributionRange> errorRanges,
-                                     double biasEstimate) {
+  public void updateDistributionPlot(List<MassPeakMatch> matches, List<Double> errors,
+                                     Map<String, DistributionRange> errorRanges, double biasEstimate) {
     XYPlot distributionPlot = distributionChart.getXYPlot();
+
+    this.matches = new ArrayList<>(matches);
+    Collections.sort(this.matches, MassPeakMatch.mzErrorComparator);
 
     XYDataset dataset = createDistributionDataset(errors);
     distributionPlot.setDataset(dataset);
