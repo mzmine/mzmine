@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -55,6 +57,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
@@ -63,6 +66,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.checkerframework.checker.units.qual.Mass;
 import org.jfree.chart.plot.ValueMarker;
 
 /**
@@ -179,6 +183,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     pnWrapSpectrum.setBottom(pnSpectrumControls);
     getItems().addAll(pnWrapChrom, pnWrapSpectrum);
 
+    // chrom plot top bar
     Button btnChromSetup = new Button("...");
     btnChromSetup.setOnAction(e -> {
       if (parameterSet == null) {
@@ -207,18 +212,24 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         }
       }
     });
-
+    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
     StackPane pnChromStack = new StackPane();
     pnChromStack.setAlignment(Pos.TOP_RIGHT);
-
-    // titles
-    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
-    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
-    pnChromHeader.setPadding(new Insets(5));
-    pnSpectrumHeader.setPadding(new Insets(5));
+    pnChromStack.setPadding(new Insets(5));
     pnChromStack.getChildren().addAll(pnChromHeader, btnChromSetup);
     pnWrapChrom.setTop(pnChromStack);
-    pnWrapSpectrum.setTop(pnSpectrumHeader);
+
+    // spectrum plot top bar
+    ChoiceBox<MassSpectrumType> cbSpectrumType = new ChoiceBox<>(
+        FXCollections.observableArrayList(MassSpectrumType.CENTROIDED, MassSpectrumType.PROFILE));
+    cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
+    StackPane pnSpectrumStack = new StackPane();
+    pnSpectrumStack.setAlignment(Pos.TOP_RIGHT);
+    pnSpectrumStack.setPadding(new Insets(5));
+    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
+    pnSpectrumHeader.setPadding(new Insets(5));
+    pnSpectrumStack.getChildren().addAll(pnSpectrumHeader, cbSpectrumType);
+    pnWrapSpectrum.setTop(pnSpectrumStack);
 
     chromPlot.setLabelColorMatch(true);
     spectrumPlot.setLabelColorMatch(true);
