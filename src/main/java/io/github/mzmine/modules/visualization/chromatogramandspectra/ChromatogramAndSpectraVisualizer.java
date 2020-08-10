@@ -31,6 +31,7 @@ import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWin
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.twod.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -98,7 +99,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final ObjectProperty<ScanSelection> scanSelection;
   /**
    * Type of chromatogram to be displayed. This is bound bidirectional to the {@link
-   * TICPlot#plotTypeProperty()} and the {@link ChromatogramPlotControlPane#cbPlotType#plotTypeProperty()}
+   * TICPlot#plotTypeProperty()} and gets updated if {@link ChromatogramAndSpectraVisualizerParameters#plotType}
+   * changes.
    */
   protected final ObjectProperty<TICPlotType> plotType;
 
@@ -123,8 +125,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   /**
    * Tolerance for the generation of the TICDataset. If set to null, the whole m/z range is
-   * displayed. To display extracted ion chromatograms set the plotType to {@link TICPlotType#TIC}
-   * and select a m/z range.
+   * displayed.
    */
   protected final ObjectProperty<Range<Double>> mzRange;
 
@@ -198,6 +199,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         if (tol != null) {
           chromMzTolerance.set(tol);
         }
+        TICPlotType pt = parameterSet
+            .getParameter(ChromatogramAndSpectraVisualizerParameters.plotType)
+            .getValue();
+        if (pt != null) {
+          plotType.set(pt);
+        }
       }
     });
 
@@ -218,7 +225,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     // property bindings
     plotType.bindBidirectional(chromPlot.plotTypeProperty());
-    plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
     chromPosition.bindBidirectional(chromPlot.cursorPositionProperty());
     spectrumPosition.bindBidirectional(spectrumPlot.cursorPositionProperty());
     mzRangeProperty().addListener((obs, old, val) -> pnChromControls.setMzRange(val));
@@ -485,7 +491,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   // ----- Plot updaters -----
 
   /**
-   * Calculates {@link FeatureDataSet}s for the given m/z range.
+   * Calculates {@link FeatureDataSet}s for the given m/z range. Called when {@link
+   * ChromatogramAndSpectraVisualizer#chromPosition} or {@link ChromatogramAndSpectraVisualizer#spectrumPosition}
+   * changes.
    *
    * @param mz
    */
@@ -494,6 +502,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
+
+    // put the current range into the mz range component. This is the reason it does not have a listener that automatically updates the tic plot
+    pnChromControls.setMzRange(bpcChromToleranceRange);
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
       logger
