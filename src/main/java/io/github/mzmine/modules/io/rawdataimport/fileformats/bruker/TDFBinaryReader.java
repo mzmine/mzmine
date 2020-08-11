@@ -103,7 +103,7 @@ public class TDFBinaryReader {
 //		}
 
     long handle = TDFLibrary.INSTANCE
-        .tims_open("/home/aiden/Downloads/tdf-sdk/example_data/200ngHeLaPASEF_2min_compressed.d",
+        .tims_open("/home/knakul853/Desktop/gsocData/200ngHeLaPASEF_2min_compressed.d",
             0);
     System.out.printf("Open tims_bin, handle: %d", handle).println();
 
