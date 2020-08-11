@@ -19,11 +19,17 @@
 package io.github.mzmine.modules.io.rawdataimport.fileformats;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -36,7 +42,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.util.logging.Level;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -89,6 +94,7 @@ public class MzMLReadTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
@@ -96,22 +102,24 @@ public class MzMLReadTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started parsing file " + file);
 
-    MzMLUnmarshaller unmarshaller = new MzMLUnmarshaller(file);
-
-    totalScans = unmarshaller.getObjectCountForXpath("/run/spectrumList/spectrum");
-
-    fillScanIdTable(
-            unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
-            totalScans);
-
-    MzMLObjectIterator<Spectrum> spectrumIterator =
-            unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
     try {
+
+      MzMLUnmarshaller unmarshaller = new MzMLUnmarshaller(file);
+
+      totalScans = unmarshaller.getObjectCountForXpath("/run/spectrumList/spectrum");
+
+      fillScanIdTable(
+          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
+          totalScans);
+
+      MzMLObjectIterator<Spectrum> spectrumIterator =
+          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
 
       while (spectrumIterator.hasNext()) {
 
@@ -145,9 +153,9 @@ public class MzMLReadTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(dataPoints);
 
-        SimpleScan scan = new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility,  precursorMz,
-                 precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition,
-                null);
+        SimpleScan scan =
+            new SimpleScan(null, scanNumber, msLevel, retentionTime, mobility, precursorMz,
+                precursorCharge, null, dataPoints, spectrumType, polarity, scanDefinition, null);
 
         for (SimpleScan s : parentStack) {
           if (s.getScanNumber() == parentScan) {
@@ -297,7 +305,7 @@ public class MzMLReadTask extends AbstractTask {
           // is used in mzML 1.1.0 :-/
           double retentionTime;
           if ((unitAccession == null) || (unitAccession.equals("MS:1000038"))
-                  || unitAccession.equals("UO:0000031")) {
+              || unitAccession.equals("UO:0000031")) {
             retentionTime = Double.parseDouble(value);
           } else {
             retentionTime = Double.parseDouble(value) / 60d;
@@ -495,6 +503,7 @@ public class MzMLReadTask extends AbstractTask {
     return spectrum.getId();
   }
 
+  @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }

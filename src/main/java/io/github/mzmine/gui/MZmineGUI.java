@@ -23,11 +23,14 @@ import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.pr
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
+import javafx.stage.Window;
 import javax.annotation.Nonnull;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
@@ -84,6 +87,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   private static MainWindowController mainWindowController;
 
+  public static final int MAX_TABS = 7;
+
   private static Stage mainStage;
   private static Scene rootScene;
 
@@ -114,7 +119,6 @@ public class MZmineGUI extends Application implements Desktop {
     stage.setMinWidth(600);
     stage.setMinHeight(400);
     stage.widthProperty().addListener(c -> logger.info(c.toString()));
-
 
     // Set application icon
     stage.getIcons().setAll(mzMineIcon);
@@ -233,8 +237,6 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-
-
   public static void addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
@@ -267,7 +269,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<RawDataFile> getSelectedRawDataFiles() {
+  @Nonnull
+  public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final var rawDataListView = mainWindowController.getRawDataTree();
     final var selectedRawDataFiles =
@@ -276,7 +279,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<PeakList> getSelectedFeatureLists() {
+  @Nonnull
+  public static List<PeakList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =
@@ -285,8 +289,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
-      @Nonnull Class<ModuleType> moduleClass) {
+  @Nonnull
+  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(Class<ModuleType> moduleClass) {
 
     final ParameterSet moduleParameters =
         MZmineCore.getConfiguration().getModuleParameters(moduleClass);
@@ -395,8 +399,19 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public boolean addTab(MZmineTab tab) {
-    return mainWindowController.getMainTabPane().getTabs().add(tab);
+  public void addTab(MZmineTab tab) {
+    if (mainWindowController.getTabs().size() < MAX_TABS) {
+      Platform.runLater(() -> mainWindowController.addTab(tab));
+      return;
+    } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
+      for (MZmineWindow window : getWindows()) {
+        if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
+          Platform.runLater(() -> window.addTab(tab));
+          return;
+        }
+      }
+    }
+    Platform.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
@@ -407,11 +422,13 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void setStatusBarText(String message, Color textColor) {
     Platform.runLater(() -> {
-      if (mainWindowController == null)
+      if (mainWindowController == null) {
         return;
+      }
       final StatusBar statusBar = mainWindowController.getStatusBar();
-      if (statusBar == null)
+      if (statusBar == null) {
         return;
+      }
       statusBar.setText(message);
       statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
     });
@@ -484,6 +501,49 @@ public class MZmineGUI extends Application implements Desktop {
     return ExitCode.UNKNOWN;
   }
 
+  @Override
+  public List<MZmineWindow> getWindows() {
+    ObservableList<Window> windows = Stage.getWindows();
+    List<MZmineWindow> mzmineWindows = new ArrayList<>();
+    for (Window window : windows) {
+      if (window instanceof MZmineWindow) {
+        mzmineWindows.add((MZmineWindow) window);
+      }
+    }
+    return mzmineWindows;
+  }
 
+  @Override
+  public List<MZmineTab> getAllTabs() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
+
+    getWindows().forEach(w -> w.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    }));
+
+    return tabs;
+  }
+
+  @Nonnull
+  @Override
+  public List<MZmineTab> getTabsInMainWindow() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
+
+    return tabs;
+  }
 
 }
