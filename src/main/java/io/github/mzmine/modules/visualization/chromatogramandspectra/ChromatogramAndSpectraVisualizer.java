@@ -32,6 +32,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumCursorPosition;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.modules.visualization.twod.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -76,7 +77,7 @@ import org.jfree.chart.plot.ValueMarker;
  * selection changes, the plots will change accordingly. A click in the chromatogram will update the
  * spectra, whereas a click in a spectrum will show the xic of the selected m/z.
  *
- * @author SteffenHeu steffen.heuckeroth@uni-muenster.de
+ * @author SteffenHeu https://github.com/SteffenHeu / steffen.heuckeroth@uni-muenster.de
  */
 public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
@@ -220,8 +221,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     pnWrapChrom.setTop(pnChromStack);
 
     // spectrum plot top bar
-    ChoiceBox<MassSpectrumType> cbSpectrumType = new ChoiceBox<>(
-        FXCollections.observableArrayList(MassSpectrumType.CENTROIDED, MassSpectrumType.PROFILE));
+    ChoiceBox<SpectrumPlotType> cbSpectrumType = new ChoiceBox<>(
+        FXCollections.observableArrayList(SpectrumPlotType.values()));
     cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
     StackPane pnSpectrumStack = new StackPane();
     pnSpectrumStack.setAlignment(Pos.TOP_RIGHT);

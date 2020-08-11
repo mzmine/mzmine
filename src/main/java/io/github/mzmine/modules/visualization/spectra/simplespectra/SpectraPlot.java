@@ -39,7 +39,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -67,7 +66,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private XYPlot plot;
 
   // initially, plotMode is set to null, until we load first scan
-  private final ObjectProperty<MassSpectrumType> plotMode;
+  private final ObjectProperty<SpectrumPlotType> plotMode;
 
   // peak labels color
   private static final Color labelsColor = Color.darkGray;
@@ -118,7 +117,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         false // generate URLs?
     ));
 
-    plotMode = new SimpleObjectProperty<>(null);
+    plotMode = new SimpleObjectProperty<>(SpectrumPlotType.AUTO);
     addPlotModeListener();
 
     // setBackground(Color.white);
@@ -241,19 +240,20 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    *
    * } }
    */
+
   /**
    * This will set either centroid or continuous renderer to the first data set, assuming that
    * dataset with index 0 contains the raw data.
    */
-  public void setPlotMode(MassSpectrumType plotMode) {
+  public void setPlotMode(SpectrumPlotType plotMode) {
     this.plotMode.setValue(plotMode);
   }
 
-  public MassSpectrumType getPlotMode() {
+  public SpectrumPlotType getPlotMode() {
     return plotMode.getValue();
   }
 
-  public ObjectProperty<MassSpectrumType> plotModeProperty() {
+  public ObjectProperty<SpectrumPlotType> plotModeProperty() {
     return plotMode;
   }
 
@@ -270,8 +270,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         XYItemRenderer oldRenderer = plot.getRendererForDataset(dataset);
         Paint clr = oldRenderer.getDefaultPaint();
 
+        // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
+        SpectrumPlotType typeForDataSet =
+            (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType
+                .fromScan(((ScanDataSet) dataset).getScan()) : getPlotMode();
+
         XYItemRenderer newRenderer;
-        if (getPlotMode() == MassSpectrumType.CENTROIDED) {
+        if (typeForDataSet == SpectrumPlotType.CENTROID) {
           newRenderer = new PeakRenderer((Color) clr, false);
         } else {
           newRenderer = new ContinuousRenderer((Color) clr, false);
@@ -369,42 +374,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
-
-    XYItemRenderer newRenderer;
-
-    if (dataSet instanceof ScanDataSet) {
-      ScanDataSet scanDataSet = (ScanDataSet) dataSet;
-      Scan scan = scanDataSet.getScan();
-
-      if (getPlotMode() == null) {
-        setPlotMode(scan.getSpectrumType());
-      }
-
-      if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-        newRenderer = new PeakRenderer(color, transparency);
-      } else {
-        newRenderer = new ContinuousRenderer(color, transparency);
-        ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
-      }
-
-      // Add label generator for the dataset
-      SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
-      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      if (matchLabelColors.get()) {
-        newRenderer.setDefaultItemLabelPaint(color);
-      }
-    } else {
-      newRenderer = new PeakRenderer(color, transparency);
-    }
-
-    plot.setDataset(numOfDataSets, dataSet);
-    plot.setRenderer(numOfDataSets, newRenderer);
-    numOfDataSets++;
-
-    if (dataSet instanceof ScanDataSet) {
-      checkAndRunController();
-    }
+    SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
+    addDataSet(dataSet, color, transparency, labelGenerator);
   }
 
   // add Dataset with label generator
@@ -418,11 +389,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       ScanDataSet scanDataSet = (ScanDataSet) dataSet;
       Scan scan = scanDataSet.getScan();
 
-      if (getPlotMode() == null) {
-        setPlotMode(scan.getSpectrumType());
-      }
+      // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
+      SpectrumPlotType typeForDataSet =
+          (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType.fromScan(scan)
+              : getPlotMode();
 
-      if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
+      if (typeForDataSet == SpectrumPlotType.CENTROID) {
         newRenderer = new PeakRenderer(color, transparency);
       } else {
         newRenderer = new ContinuousRenderer(color, transparency);
@@ -454,6 +426,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       checkAndRunController();
     }
   }
+
   public synchronized void removePeakListDataSets() {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);

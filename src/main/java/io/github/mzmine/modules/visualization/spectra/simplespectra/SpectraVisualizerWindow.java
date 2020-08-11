@@ -164,12 +164,12 @@ public class SpectraVisualizerWindow extends Stage {
     dataPointsButton.setOnAction(e -> spectrumPlot.switchDataPointsVisible());
 
     centroidContinuousButton.setOnAction(e -> {
-      if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
-        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
+      if (spectrumPlot.getPlotMode() == SpectrumPlotType.CENTROID) {
+        spectrumPlot.setPlotMode(SpectrumPlotType.PROFILE);
         centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
         dataPointsButton.setDisable(false);
       } else {
-        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+        spectrumPlot.setPlotMode(SpectrumPlotType.CENTROID);
         centroidContinuousButton.setGraphic(new ImageView(continuousIcon));
         dataPointsButton.setDisable(true);
       }
@@ -296,12 +296,12 @@ public class SpectraVisualizerWindow extends Stage {
 
     // If the plot mode has not been set yet, set it accordingly
     if (spectrumPlot.getPlotMode() == null) {
-      spectrumPlot.setPlotMode(currentScan.getSpectrumType());
+      spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(currentScan));
       if (currentScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
-        spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+        spectrumPlot.setPlotMode(SpectrumPlotType.CENTROID);
         centroidContinuousButton.setGraphic(new ImageView(continuousIcon));
       } else {
-        spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
+        spectrumPlot.setPlotMode(SpectrumPlotType.PROFILE);
         centroidContinuousButton.setGraphic(new ImageView(centroidIcon));
       }
     }
