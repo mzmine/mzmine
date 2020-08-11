@@ -136,17 +136,15 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public synchronized Color getNextColor() {
     logger.info("called");
     if (this.isEmpty()) {
-      logger.fine("Color palette empty");
+      logger.fine("Color palette empty, returning default color.");
       return defclr;
     }
 
     if (next >= this.size()) {
-      logger.fine("next >= this.size");
       next = 0;
     }
 
     Color clr = get(next);
-    logger.fine("Returning color " + next + "/" + this.size() + " " + clr.toString());
     next++;
 
     return clr;
