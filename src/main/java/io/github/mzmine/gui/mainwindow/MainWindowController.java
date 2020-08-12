@@ -317,7 +317,7 @@ public class MainWindowController {
      */
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    rop.setClosable(false); // as the default tab, this should not be removed
+//    rop.setClosable(false); // as the default tab, this should not be removed
     rop.setWindowChangeAllowed(false);
     addTab(rop);
 

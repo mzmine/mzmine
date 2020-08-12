@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -30,7 +32,9 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumCursorPosition;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.twod.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -50,9 +54,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
@@ -60,6 +67,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.checkerframework.checker.units.qual.Mass;
 import org.jfree.chart.plot.ValueMarker;
 
 /**
@@ -69,7 +77,7 @@ import org.jfree.chart.plot.ValueMarker;
  * selection changes, the plots will change accordingly. A click in the chromatogram will update the
  * spectra, whereas a click in a spectrum will show the xic of the selected m/z.
  *
- * @author SteffenHeu steffen.heuckeroth@uni-muenster.de
+ * @author SteffenHeu https://github.com/SteffenHeu / steffen.heuckeroth@uni-muenster.de
  */
 public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
@@ -96,7 +104,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final ObjectProperty<ScanSelection> scanSelection;
   /**
    * Type of chromatogram to be displayed. This is bound bidirectional to the {@link
-   * TICPlot#plotTypeProperty()} and the {@link ChromatogramPlotControlPane#cbPlotType#plotTypeProperty()}
+   * TICPlot#plotTypeProperty()} and gets updated if {@link ChromatogramAndSpectraVisualizerParameters#plotType}
+   * changes.
    */
   protected final ObjectProperty<TICPlotType> plotType;
 
@@ -121,8 +130,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   /**
    * Tolerance for the generation of the TICDataset. If set to null, the whole m/z range is
-   * displayed. To display extracted ion chromatograms set the plotType to {@link TICPlotType#TIC}
-   * and select a m/z range.
+   * displayed.
    */
   protected final ObjectProperty<Range<Double>> mzRange;
 
@@ -169,10 +177,15 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     spectrumPlot = new SpectraPlot();
     BorderPane pnWrapSpectrum = new BorderPane();
     BorderPane pnWrapChrom = new BorderPane();
-    StackPane pnChromStack = new StackPane();
-    pnChromStack.setAlignment(Pos.TOP_RIGHT);
+    pnWrapChrom.setCenter(chromPlot);
+    pnWrapChrom.setBottom(pnChromControls);
+
+    pnWrapSpectrum.setCenter(spectrumPlot);
+    pnWrapSpectrum.setBottom(pnSpectrumControls);
+    getItems().addAll(pnWrapChrom, pnWrapSpectrum);
+
+    // chrom plot top bar
     Button btnChromSetup = new Button("...");
-    pnChromStack.getChildren().addAll(chromPlot, btnChromSetup);
     btnChromSetup.setOnAction(e -> {
       if (parameterSet == null) {
         parameterSet = MZmineCore.getConfiguration()
@@ -192,21 +205,38 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         if (tol != null) {
           chromMzTolerance.set(tol);
         }
+        TICPlotType pt = parameterSet
+            .getParameter(ChromatogramAndSpectraVisualizerParameters.plotType)
+            .getValue();
+        if (pt != null) {
+          plotType.set(pt);
+        }
       }
     });
-    pnWrapChrom.setCenter(pnChromStack);
-    pnWrapChrom.setBottom(pnChromControls);
+    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
+    StackPane pnChromStack = new StackPane();
+    pnChromStack.setAlignment(Pos.TOP_RIGHT);
+    pnChromStack.setPadding(new Insets(5));
+    pnChromStack.getChildren().addAll(pnChromHeader, btnChromSetup);
+    pnWrapChrom.setTop(pnChromStack);
 
-    pnWrapSpectrum.setCenter(spectrumPlot);
-    pnWrapSpectrum.setBottom(pnSpectrumControls);
-    getItems().addAll(pnWrapChrom, pnWrapSpectrum);
+    // spectrum plot top bar
+    ChoiceBox<SpectrumPlotType> cbSpectrumType = new ChoiceBox<>(
+        FXCollections.observableArrayList(SpectrumPlotType.values()));
+    cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
+    StackPane pnSpectrumStack = new StackPane();
+    pnSpectrumStack.setAlignment(Pos.TOP_RIGHT);
+    pnSpectrumStack.setPadding(new Insets(5));
+    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
+    pnSpectrumHeader.setPadding(new Insets(5));
+    pnSpectrumStack.getChildren().addAll(pnSpectrumHeader, cbSpectrumType);
+    pnWrapSpectrum.setTop(pnSpectrumStack);
 
     chromPlot.setLabelColorMatch(true);
     spectrumPlot.setLabelColorMatch(true);
 
     // property bindings
     plotType.bindBidirectional(chromPlot.plotTypeProperty());
-    plotType.bindBidirectional(pnChromControls.getCbPlotType().valueProperty());
     chromPosition.bindBidirectional(chromPlot.cursorPositionProperty());
     spectrumPosition.bindBidirectional(spectrumPlot.cursorPositionProperty());
     mzRangeProperty().addListener((obs, old, val) -> pnChromControls.setMzRange(val));
@@ -250,10 +280,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         logger.finest("Loading previous scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() - 1);
         requestFocus();
+        e.consume();
       } else if (e.getCode() == KeyCode.RIGHT && e.isControlDown() && getChromPosition() != null) {
         logger.finest("Loading next scan");
         setFocusedScan(getChromPosition().getDataFile(), getChromPosition().getScanNumber() + 1);
         requestFocus();
+        e.consume();
       }
     });
   }
@@ -312,8 +344,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     final Scan[] scans = getScanSelection().getMatchingScans(rawDataFile);
     if (scans.length == 0) {
-      MZmineCore.getDesktop().displayErrorMessage("No scans found.");
-      chromPlot.removeAllDataSets();
+      logger.warning(
+          "No matching scans found in file \"" + rawDataFile.getName() + "\" for scan selection.");
       return;
     }
 
@@ -471,7 +503,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   // ----- Plot updaters -----
 
   /**
-   * Calculates {@link FeatureDataSet}s for the given m/z range.
+   * Calculates {@link FeatureDataSet}s for the given m/z range. Called when {@link
+   * ChromatogramAndSpectraVisualizer#chromPosition} or {@link ChromatogramAndSpectraVisualizer#spectrumPosition}
+   * changes.
    *
    * @param mz
    */
@@ -480,6 +514,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
+
+    // put the current range into the mz range component. This is the reason it does not have a listener that automatically updates the tic plot
+    pnChromControls.setMzRange(bpcChromToleranceRange);
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
       logger

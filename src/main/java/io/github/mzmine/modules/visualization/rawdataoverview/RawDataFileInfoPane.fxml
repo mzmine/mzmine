@@ -79,15 +79,17 @@
         <TableColumn fx:id="scanColumn" editable="false" prefWidth="75.0" text="Scan #"/>
         <TableColumn fx:id="rtColumn" editable="false" prefWidth="75.0" text="Retention time"/>
         <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="75.0" text="Base peak"/>
-        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="75.0" text="Base peak intenstity"/>
-        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="60.0" text="MS Level"/>
-        <TableColumn fx:id="precursorMzColumn" prefWidth="75.0" text="Precursor m/z"/>
-        <TableColumn fx:id="mzRangeColumn" prefWidth="75.0" text="m/z Range"/>
-        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="65.0" text="Scan Type"/>
+        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="75.0"
+          text="Base peak intenstity"/>
+        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="60.0" text="MS level"/>
+        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="75.0"
+          text="Precursor m/z"/>
+        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="75.0" text="m/z range"/>
+        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="65.0" text="Scan type"/>
         <TableColumn fx:id="polarityColumn" editable="false" prefWidth="60.0" text="Polarity"/>
         <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="65.0"
-          text="Scan definition"/>
-        <TableColumn fx:id="mobilityColumn" prefWidth="60.0" text="Mobility"/>
+          text="Scan definition" editable="false"/>
+        <TableColumn fx:id="mobilityColumn" editable="false" prefWidth="60.0" text="Mobility"/>
       </columns>
     </TableView>
   </center>
