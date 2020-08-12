@@ -1,177 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import org.controlsfx.control.* ?>
-<?import org.controlsfx.glyphfont.Glyph ?>
-<?import javafx.scene.Scene ?>
-<?import javafx.scene.control.* ?>
-<?import javafx.scene.layout.* ?>
-<?import javafx.scene.image.* ?>
-<?import javafx.scene.control.cell.* ?>
-<?import java.net.URL?>
-<?import javafx.scene.text.Text ?>
+<?import java.net.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.StatusBar?>
 
-<Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/8"
-	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
-	<stylesheets>
-		<URL value="@MZmine.css" />
-	</stylesheets>
-	<BorderPane fx:id="mainWindowPane" minWidth="400"
-		minHeight="400" prefWidth="1000" prefHeight="700">
-		<top>
-			<fx:include source="MainMenu.fxml" />
-		</top>
-		<center>
-			<SplitPane dividerPositions="0.8" minHeight="100"
-				orientation="VERTICAL">
-				<items>
-					<SplitPane dividerPositions="0.5" minHeight="100"
-						orientation="HORIZONTAL">
-						<items>
-							<BorderPane>
-								<top>
-									<Label text="Raw data files">
-										<graphic>
-											<ImageView>
-												<image>
-													<Image url="icons/xicicon.png" />
-												</image>
-											</ImageView>
-										</graphic>
-									</Label>
-								</top>
-								<center>
-									<ListView fx:id="rawDataTree" prefHeight="120"
-										editable="true">
-										<contextMenu>
-											<ContextMenu>
-												<items>
-													<MenuItem text="Show chromatogram"
-														onAction="#handleShowChromatogram" />
-													<MenuItem text="Show mass spectrum"
-														onAction="#handleShowMsSpectrum" />
-													<MenuItem text="Show 2D plot"
-														onAction="#handleShow2DPlot" />
-													<MenuItem text="Show 3D plot"
-														onAction="#handleShow3DPlot" />
-													<MenuItem text="Show MS/MS plot"
-														onAction="#handleShowMsMsPlot" />
+<Scene fx:id="mainScene" xmlns="http://javafx.com/javafx/10.0.2-internal"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
+  <stylesheets>
+    <URL value="@MZmine.css"/>
+  </stylesheets>
+  <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
+    prefWidth="1300" prefHeight="800" xmlns="http://javafx.com/javafx/14.0.1"
+    xmlns:fx="http://javafx.com/fxml/1">
+    <top>
+      <fx:include source="MainMenu.fxml"/>
+    </top>
+    <center>
+      <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
+        <items>
+          <SplitPane orientation="VERTICAL" SplitPane.resizableWithParent="false">
+            <items>
+              <!--              Left side-->
+              <TabPane tabClosingPolicy="UNAVAILABLE">
+                <tabs>
+                  <Tab closable="false" text="Raw files">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
+                        <children>
+                          <ListView fx:id="rawDataTree" editable="true"
+                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                  <MenuItem onAction="#handleShowChromatogram"
+                                    text="Show chromatogram"/>
+                                  <MenuItem onAction="#handleShowMsSpectrum"
+                                    text="Show mass spectrum"/>
+                                  <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
+                                  <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
+                                  <MenuItem onAction="#handleShowMsMsPlot" text="Show MS/MS plot"/>
 
-													<SeparatorMenuItem />
-													<MenuItem text="Sort alphabetically"
-														onAction="#handleSort" />
-													<MenuItem text="Remove file extension"
-														onAction="#handleRemoveFileExtension" />
+                                  <SeparatorMenuItem/>
+                                  <MenuItem onAction="#handleSort" text="Sort alphabetically"/>
+                                  <MenuItem onAction="#handleRemoveFileExtension"
+                                    text="Remove file extension"/>
 
-													<SeparatorMenuItem />
-													<MenuItem text="Export file"
-														onAction="#handleExportFile" />
-													<MenuItem text="Rename file"
-														onAction="#handleRenameFile" />
-													<MenuItem text="Remove file"
-														onAction="#handleRemoveRawData" />
-												</items>
-											</ContextMenu>
-										</contextMenu>
-									</ListView>
-								</center>
-							</BorderPane>
-							<BorderPane>
-								<top>
-									<Label text="Feature lists">
-										<graphic>
-											<ImageView>
-												<image>
-													<Image url="icons/peaklistsicon.png" />
-												</image>
-											</ImageView>
-										</graphic>
-									</Label>
-								</top>
-								<center>
-									<ListView fx:id="featureTree" prefHeight="120"
-										editable="true">
-										<contextMenu>
-											<ContextMenu>
-												<items>
-													<MenuItem text="Open feature list"
-														onAction="#handleOpenFeatureList" />
-													<MenuItem text="Show feature list summary"
-														onAction="#handleShowFeatureListSummary" />
-													<MenuItem text="Show scatter plot"
-														onAction="#handleShowScatterPlot" />
+                                  <SeparatorMenuItem/>
+                                  <MenuItem onAction="#handleExportFile" text="Export file"/>
+                                  <MenuItem onAction="#handleRenameFile" text="Rename file"/>
+                                  <MenuItem onAction="#handleRemoveRawData" text="Remove file"/>
 
-													<SeparatorMenuItem />
-													<MenuItem text="Sort alphabetically"
-														onAction="#handleSort" />
-													<MenuItem text="Rename feature list"
-														onAction="#handleRenameFeatureList" />
-													<MenuItem text="Remove feature list"
-														onAction="#handleRemoveFeatureList" />
-												</items>
-											</ContextMenu>
-										</contextMenu>
-									</ListView>
-								</center>
-							</BorderPane>
-						</items>
-					</SplitPane>
-					<TableView fx:id="tasksView" minHeight="100">
-						<columnResizePolicy>
-							<TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-						</columnResizePolicy>
-						<placeholder>
-							<Label text="No running tasks" />
-						</placeholder>
-						<columns>
-							<TableColumn fx:id="taskNameColumn" minWidth="300"
-								text="Task" reorderable="false" sortable="false" />
-							<TableColumn fx:id="taskPriorityColumn"
-								minWidth="100" maxWidth="100" text="Priority"
-								reorderable="false" sortable="false" />
-							<TableColumn fx:id="taskStatusColumn" minWidth="100"
-								maxWidth="100" text="Status" reorderable="false"
-								sortable="false" />
-							<TableColumn fx:id="taskProgressColumn"
-								minWidth="100" maxWidth="400" text="\% done" reorderable="false"
-								sortable="false" />
-						</columns>
-						<contextMenu>
-							<ContextMenu>
-								<items>
-									<Menu text="Set priority">
-										<MenuItem text="High"
-											onAction="#handleSetHighPriority" />
-										<MenuItem text="Normal"
-											onAction="#handleSetNormalPriority" />
-									</Menu>
-									<MenuItem text="Cancel task"
-										onAction="#handleCancelTask" />
-									<MenuItem text="Cancel all tasks"
-										onAction="#handleCancelAllTasks" />
-								</items>
-							</ContextMenu>
-						</contextMenu>
-					</TableView>
-				</items>
-			</SplitPane>
-		</center>
-		<bottom>
-			<StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
-				<rightItems>
-					<StackPane scaleShape="true">
-						<ProgressBar fx:id="memoryBar" opacity="0.3"
-							prefWidth="150" minWidth="150" />
-						<Label fx:id="memoryBarLabel"
-							onMouseClicked="#handleMemoryBarClick" prefWidth="150"
-							minWidth="150" alignment="CENTER">
-							<tooltip>
-								<Tooltip text="Free/total Java heap size" />
-							</tooltip>
-						</Label>
-					</StackPane>
-				</rightItems>
-			</StatusBar>
-		</bottom>
-	</BorderPane>
+                                  <SeparatorMenuItem/>
+                                  <MenuItem onAction="#handleSetRawDataFileColor" text="Set color"/>
+
+                                </items>
+                              </ContextMenu>
+                            </contextMenu>
+                          </ListView>
+                        </children>
+                      </AnchorPane>
+                    </content>
+                  </Tab>
+                  <Tab closable="false" text="Feature lists">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
+                        <children>
+                          <ListView fx:id="featureTree" editable="true"
+                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                  <MenuItem text="Open feature list"
+                                    onAction="#handleOpenFeatureList"/>
+                                  <MenuItem text="Show feature list summary"
+                                    onAction="#handleShowFeatureListSummary"/>
+                                  <MenuItem text="Show scatter plot"
+                                    onAction="#handleShowScatterPlot"/>
+
+                                  <SeparatorMenuItem/>
+                                  <MenuItem text="Sort alphabetically"
+                                    onAction="#handleSort"/>
+                                  <MenuItem text="Rename feature list"
+                                    onAction="#handleRenameFeatureList"/>
+                                  <MenuItem text="Remove feature list"
+                                    onAction="#handleRemoveFeatureList"/>
+                                </items>
+                              </ContextMenu>
+                            </contextMenu>
+                          </ListView>
+                        </children>
+                      </AnchorPane>
+                    </content>
+                  </Tab>
+                  <Tab fx:id="tvAligned" closable="false" text="Aligned feature lists">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0"
+                        prefWidth="200.0">
+                        <children>
+                          <TreeView fx:id="tvAlignedFeatureLists" layoutX="63.0" layoutY="58.0"
+                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                        </children>
+                      </AnchorPane>
+                    </content>
+                  </Tab>
+                </tabs>
+              </TabPane>
+            </items>
+          </SplitPane>
+
+          <!--          Right side, main panel -->
+          <TabPane fx:id="mainTabPane"
+            tabClosingPolicy="ALL_TABS">
+          </TabPane>
+        </items>
+      </SplitPane>
+    </center>
+    <bottom>
+      <VBox>
+        <TableView fx:id="tasksView" minHeight="100" prefHeight="100.0">
+          <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+          </columnResizePolicy>
+          <placeholder>
+            <Label text="No running tasks"/>
+          </placeholder>
+          <columns>
+            <TableColumn fx:id="taskNameColumn" minWidth="300" reorderable="false" sortable="false"
+              text="Task"/>
+            <TableColumn fx:id="taskPriorityColumn" maxWidth="100" minWidth="100"
+              reorderable="false"
+              sortable="false" text="Priority"/>
+            <TableColumn fx:id="taskStatusColumn" maxWidth="100" minWidth="100" reorderable="false"
+              sortable="false" text="Status"/>
+            <TableColumn fx:id="taskProgressColumn" maxWidth="400" minWidth="100"
+              reorderable="false"
+              sortable="false" text="\% done"/>
+          </columns>
+          <contextMenu>
+            <ContextMenu>
+              <items>
+                <Menu text="Set priority">
+                  <MenuItem onAction="#handleSetHighPriority" text="High"/>
+                  <MenuItem onAction="#handleSetNormalPriority" text="Normal"/>
+                </Menu>
+                <MenuItem onAction="#handleCancelTask" text="Cancel task"/>
+                <MenuItem onAction="#handleCancelAllTasks" text="Cancel all tasks"/>
+              </items>
+            </ContextMenu>
+          </contextMenu>
+        </TableView>
+        <StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
+          <rightItems>
+            <StackPane scaleShape="true">
+              <ProgressBar fx:id="memoryBar" opacity="0.3"
+                prefWidth="150" minWidth="150"/>
+              <Label fx:id="memoryBarLabel"
+                onMouseClicked="#handleMemoryBarClick" prefWidth="150"
+                minWidth="150" alignment="CENTER">
+                <tooltip>
+                  <Tooltip text="Free/total Java heap size"/>
+                </tooltip>
+              </Label>
+            </StackPane>
+          </rightItems>
+        </StatusBar>
+      </VBox>
+    </bottom>
+  </BorderPane>
 </Scene>

@@ -19,20 +19,19 @@
 package io.github.mzmine.gui;
 
 
+import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
+import javafx.stage.Window;
 import javax.annotation.Nonnull;
-
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
-import javafx.application.HostServices;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.ImmutableList;
@@ -41,10 +40,13 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -54,6 +56,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -65,12 +68,12 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
-import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
 /**
  * MZmine JavaFX Application class
@@ -83,6 +86,8 @@ public class MZmineGUI extends Application implements Desktop {
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
 
   private static MainWindowController mainWindowController;
+
+  public static final int MAX_TABS = 7;
 
   private static Stage mainStage;
   private static Scene rootScene;
@@ -97,8 +102,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     try {
       // Load the main window
-        URL mainFXML = this.getClass().getResource(mzMineFXML);
-        FXMLLoader loader = new FXMLLoader(mainFXML);
+      URL mainFXML = this.getClass().getResource(mzMineFXML);
+      FXMLLoader loader = new FXMLLoader(mainFXML);
 
       rootScene = loader.load();
       mainWindowController = loader.getController();
@@ -231,8 +236,6 @@ public class MZmineGUI extends Application implements Desktop {
     });
   }
 
-
-
   public static void addWindow(Node node, String title) {
 
     BorderPane parent = new BorderPane();
@@ -265,7 +268,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<RawDataFile> getSelectedRawDataFiles() {
+  @Nonnull
+  public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final var rawDataListView = mainWindowController.getRawDataTree();
     final var selectedRawDataFiles =
@@ -274,7 +278,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static @Nonnull List<PeakList> getSelectedFeatureLists() {
+  @Nonnull
+  public static List<PeakList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =
@@ -283,8 +288,8 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
-      @Nonnull Class<ModuleType> moduleClass) {
+  @Nonnull
+  public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(Class<ModuleType> moduleClass) {
 
     final ParameterSet moduleParameters =
         MZmineCore.getConfiguration().getModuleParameters(moduleClass);
@@ -308,9 +313,10 @@ public class MZmineGUI extends Application implements Desktop {
   /**
    * The method activateSetOnDragOver controlling what happens when something is dragged over.
    * Implemented activateSetOnDragOver to accept when files are dragged over it.
+   *
    * @param event - DragEvent
    */
-  public static void activateSetOnDragOver(DragEvent event){
+  public static void activateSetOnDragOver(DragEvent event) {
     Dragboard dragBoard = event.getDragboard();
     if (dragBoard.hasFiles()) {
       event.acceptTransferModes(TransferMode.COPY);
@@ -320,38 +326,39 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   /**
-   * The method activateSetOnDragDropped controlling what happens when something is dropped on window.
-   * Implemented activateSetOnDragDropped to select the module according to the dropped file type and open dropped file
+   * The method activateSetOnDragDropped controlling what happens when something is dropped on
+   * window. Implemented activateSetOnDragDropped to select the module according to the dropped file
+   * type and open dropped file
+   *
    * @param event - DragEvent
    */
 
-  public static void activateSetOnDragDropped(DragEvent event){
+  public static void activateSetOnDragDropped(DragEvent event) {
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
-      for (File selectedFile:dragboard.getFiles()) {
+      for (File selectedFile : dragboard.getFiles()) {
 
         final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile = {"cdf","nc","mzData","mzML","mzXML","raw"};
+        String[] rawDataFile = {"cdf", "nc", "mzData", "mzML", "mzXML", "raw"};
         final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
         final Boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
-        if(isMZmineProject)
-        {
+        if (isMZmineProject) {
           moduleJavaClass = ProjectLoadModule.class;
-        } else if(isRawDataFile){
+        } else if (isRawDataFile) {
           moduleJavaClass = RawDataImportModule.class;
         }
 
-        if(moduleJavaClass != null){
+        if (moduleJavaClass != null) {
           ParameterSet moduleParameters =
-                  MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-          if(isMZmineProject){
+              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          if (isMZmineProject) {
             moduleParameters.getParameter(projectFile).setValue(selectedFile);
-          } else if (isRawDataFile){
-            File fileArray[] = { selectedFile };
+          } else if (isRawDataFile) {
+            File fileArray[] = {selectedFile};
             moduleParameters.getParameter(fileNames).setValue(fileArray);
           }
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
@@ -391,6 +398,22 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
+  public void addTab(MZmineTab tab) {
+    if (mainWindowController.getTabs().size() < MAX_TABS) {
+      Platform.runLater(() -> mainWindowController.addTab(tab));
+      return;
+    } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
+      for (MZmineWindow window : getWindows()) {
+        if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
+          Platform.runLater(() -> window.addTab(tab));
+          return;
+        }
+      }
+    }
+    Platform.runLater(() -> new MZmineWindow().addTab(tab));
+  }
+
+  @Override
   public void setStatusBarText(String message) {
     setStatusBarText(message, Color.BLACK);
   }
@@ -398,11 +421,13 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void setStatusBarText(String message, Color textColor) {
     Platform.runLater(() -> {
-      if (mainWindowController == null)
+      if (mainWindowController == null) {
         return;
+      }
       final StatusBar statusBar = mainWindowController.getStatusBar();
-      if (statusBar == null)
+      if (statusBar == null) {
         return;
+      }
       statusBar.setText(message);
       statusBar.setStyle("-fx-text-fill: " + FxColorUtil.colorToHex(textColor));
     });
@@ -437,6 +462,28 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
+  public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
+
+    FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
+      Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      alert.showAndWait();
+      return alert.getResult();
+    });
+
+    // Show the dialog
+    try {
+      if (Platform.isFxApplicationThread())
+        alertTask.run();
+      else
+        Platform.runLater(alertTask);
+      return alertTask.get();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
   public RawDataFile[] getSelectedDataFiles() {
     return getSelectedRawDataFiles().toArray(new RawDataFile[0]);
   }
@@ -453,5 +500,49 @@ public class MZmineGUI extends Application implements Desktop {
     return ExitCode.UNKNOWN;
   }
 
+  @Override
+  public List<MZmineWindow> getWindows() {
+    ObservableList<Window> windows = Stage.getWindows();
+    List<MZmineWindow> mzmineWindows = new ArrayList<>();
+    for (Window window : windows) {
+      if (window instanceof MZmineWindow) {
+        mzmineWindows.add((MZmineWindow) window);
+      }
+    }
+    return mzmineWindows;
+  }
+
+  @Override
+  public List<MZmineTab> getAllTabs() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
+
+    getWindows().forEach(w -> w.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    }));
+
+    return tabs;
+  }
+
+  @Nonnull
+  @Override
+  public List<MZmineTab> getTabsInMainWindow() {
+    List<MZmineTab> tabs = new ArrayList<>();
+
+    mainWindowController.getTabs().forEach(t -> {
+      if (t instanceof MZmineTab) {
+        tabs.add((MZmineTab) t);
+      }
+    });
+
+    return tabs;
+  }
 
 }

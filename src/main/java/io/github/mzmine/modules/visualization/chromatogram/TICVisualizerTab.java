@@ -18,12 +18,17 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -47,16 +52,13 @@ import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -65,12 +67,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
 
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
-public class TICVisualizerWindow extends Stage {
+public class TICVisualizerTab extends MZmineTab {
 
   // Icons.
   private static final Image SHOW_SPECTRUM_ICON =
@@ -87,7 +88,7 @@ public class TICVisualizerWindow extends Stage {
   // CSV extension.
   private static final String CSV_EXTENSION = "*.csv";
 
-  private final Scene mainScene;
+  //  private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final TICPlot ticPlot;
@@ -108,13 +109,14 @@ public class TICVisualizerWindow extends Stage {
   /**
    * Constructor for total ion chromatogram visualizer
    */
-  public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
+  public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
       ScanSelection scanSelection, Range<Double> mzRange, List<Feature> peaks,
       Map<Feature, String> peakLabels) {
+    super("TIC Visualizer", true, false);
 
     assert mzRange != null;
 
-    setTitle("Chromatogram loading...");
+//    setTitle("Chromatogram loading...");
 
     this.desktop = MZmineCore.getDesktop();
     this.plotType = plotType;
@@ -123,15 +125,16 @@ public class TICVisualizerWindow extends Stage {
     this.mzRange = mzRange;
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    setContent(mainPane);
+//    mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+//    mainScene.getStylesheets()
+//        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+//    setScene(mainScene);
 
-    setMinWidth(400.0);
-    setMinHeight(300.0);
+    mainPane.setMinWidth(400.0);
+    mainPane.setMinHeight(300.0);
 
     // sizeToScene();
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -147,7 +150,7 @@ public class TICVisualizerWindow extends Stage {
     Button showSpectrumBtn = new Button(null, new ImageView(SHOW_SPECTRUM_ICON));
     showSpectrumBtn.setTooltip(new Tooltip("Show spectrum of selected scan"));
     showSpectrumBtn.setOnAction(e -> {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
       }
@@ -171,7 +174,8 @@ public class TICVisualizerWindow extends Stage {
     Button axesBtn = new Button(null, new ImageView(AXES_ICON));
     axesBtn.setTooltip(new Tooltip("Setup ranges for axes"));
     axesBtn.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, ticPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(),
+          ticPlot.getXYPlot());
       dialog.show();
     });
 
@@ -198,11 +202,11 @@ public class TICVisualizerWindow extends Stage {
         if (peakLabels != null && peakLabels.containsKey(peak)) {
 
           final String label = peakLabels.get(peak);
-          ticPlot.addLabelledPeakDataset(new PeakDataSet(peak, label), label);
+          ticPlot.addLabelledPeakDataSet(new FeatureDataSet(peak, label), label);
 
         } else {
 
-          ticPlot.addPeakDataset(new PeakDataSet(peak));
+          ticPlot.addFeatureDataSet(new FeatureDataSet(peak));
         }
       }
     }
@@ -213,18 +217,18 @@ public class TICVisualizerWindow extends Stage {
     }
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+//    WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
     // get the window settings parameter
     ParameterSet paramSet =
         MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
+//    WindowSettingsParameter settings =
+//        paramSet.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
+//    settings.applySettingsToWindow(this);
 
     // Listen for clicks on legend items
     ticPlot.addChartMouseListener(new ChartMouseListenerFX() {
@@ -275,8 +279,7 @@ public class TICVisualizerWindow extends Stage {
       }
     });
 
-
-    setOnHiding(e -> {
+    setOnClosed(e -> {
       for (Task task : ticDataSets.values()) {
         TaskStatus status = task.getStatus();
         if ((status == TaskStatus.WAITING) || (status == TaskStatus.PROCESSING)) {
@@ -329,7 +332,7 @@ public class TICVisualizerWindow extends Stage {
     mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
         + mzFormat.format(mzRange.upperEndpoint()));
 
-    CursorPosition pos = getCursorPosition();
+    ChromatogramCursorPosition pos = getCursorPosition();
 
     if (pos != null) {
       subTitle.append("Selected scan #");
@@ -348,7 +351,7 @@ public class TICVisualizerWindow extends Stage {
     RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
     Arrays.sort(files, new SimpleSorter());
     String dataFileNames = Joiner.on(",").join(files);
-    setTitle("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
+    setText("Chromatogram: [" + dataFileNames + "; " + mzFormat.format(mzRange.lowerEndpoint())
         + " - " + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
     // update plot title
@@ -383,21 +386,59 @@ public class TICVisualizerWindow extends Stage {
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
   }
 
-  /**
-   * @see io.github.mzmine.modules.RawDataVisualizer#setIntensityRange(double, double)
-   */
   public void setIntensityRange(double intensityMin, double intensityMax) {
     ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
   }
 
-  /**
-   * @see io.github.mzmine.modules.RawDataVisualizer#getRawDataFiles()
-   */
-  public RawDataFile[] getRawDataFiles() {
-    return ticDataSets.keySet().toArray(new RawDataFile[0]);
+  @Override
+  public Collection<RawDataFile> getRawDataFiles() {
+    return ticDataSets.keySet();
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    // remove files first
+    getTICPlot().getChart().setNotify(false);
+    List<RawDataFile> filesToProcess = new ArrayList<>();
+    for (RawDataFile rawDataFile : ticDataSets.keySet()) {
+      if (!rawDataFiles.contains(rawDataFile)) {
+        filesToProcess.add(rawDataFile);
+      }
+    }
+    filesToProcess.forEach(r -> removeRawDataFile(r));
+
+    // presence of file is checked in the add method
+    rawDataFiles.forEach(r -> addRawDataFile(r));
+    getTICPlot().getChart().setNotify(true);
+    getTICPlot().getChart().fireChartChanged();
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 
   public void addRawDataFile(RawDataFile newFile) {
+
+    if (ticDataSets.keySet().contains(newFile)) {
+      return;
+    }
 
     final Scan scans[] = scanSelection.getMatchingScans(newFile);
     if (scans.length == 0) {
@@ -407,8 +448,7 @@ public class TICVisualizerWindow extends Stage {
 
     TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
     ticDataSets.put(newFile, ticDataset);
-    ticPlot.addTICDataset(ticDataset);
-
+    ticPlot.addTICDataSet(ticDataset);
   }
 
   public void removeRawDataFile(RawDataFile file) {
@@ -439,7 +479,7 @@ public class TICVisualizerWindow extends Stage {
 
       exportChooser.setInitialFileName(file.getName());
       // Choose an export file.
-      final File exportFile = exportChooser.showSaveDialog(this);
+      final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
         MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));
@@ -450,7 +490,7 @@ public class TICVisualizerWindow extends Stage {
   /**
    * @return current cursor position
    */
-  public CursorPosition getCursorPosition() {
+  public ChromatogramCursorPosition getCursorPosition() {
     double selectedRT = ticPlot.getXYPlot().getDomainCrosshairValue();
     double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
     Enumeration<TICDataSet> e = ticDataSets.elements();
@@ -462,7 +502,8 @@ public class TICVisualizerWindow extends Stage {
         if (plotType == TICPlotType.BASEPEAK) {
           mz = dataSet.getZValue(0, index);
         }
-        CursorPosition pos = new CursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
+        ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,
+            dataSet.getDataFile(),
             dataSet.getScanNumber(index));
         return pos;
       }
@@ -473,7 +514,7 @@ public class TICVisualizerWindow extends Stage {
   /**
    * @return current cursor position
    */
-  public void setCursorPosition(CursorPosition newPosition) {
+  public void setCursorPosition(ChromatogramCursorPosition newPosition) {
     ticPlot.getXYPlot().setDomainCrosshairValue(newPosition.getRetentionTime(), false);
     ticPlot.getXYPlot().setRangeCrosshairValue(newPosition.getIntensityValue());
   }
@@ -490,7 +531,7 @@ public class TICVisualizerWindow extends Stage {
     }
 
     if (command.equals("MOVE_CURSOR_LEFT")) {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());
@@ -505,7 +546,7 @@ public class TICVisualizerWindow extends Stage {
     }
 
     if (command.equals("MOVE_CURSOR_RIGHT")) {
-      CursorPosition pos = getCursorPosition();
+      ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
         TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());

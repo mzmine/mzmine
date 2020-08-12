@@ -61,11 +61,18 @@
   -fx-wrap-text: true;
 }
 
-
 .region{
   -fx-background-color: white;
 }
 
+.region-match-chart-bg {
+  -fx-background-color: white;
+}
+
+.list-view {
+    -fx-selection-bar: #dddddd;
+    -fx-selection-bar-non-focused: #aaaaaa;
+}
 
 .number-column {
   -fx-alignment: CENTER-RIGHT;

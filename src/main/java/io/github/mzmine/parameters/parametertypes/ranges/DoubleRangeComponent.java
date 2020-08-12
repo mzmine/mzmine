@@ -87,7 +87,7 @@ public class DoubleRangeComponent extends HBox {
       return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
     } catch (Exception e) {
-      e.printStackTrace();
+//      e.printStackTrace();
       return null;
     }
   }

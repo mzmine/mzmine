@@ -23,12 +23,11 @@ import java.awt.Font;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.PeakDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -247,8 +246,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
         logger.finest("Loading new preview peak " + previewRow);
 
-        ticPlot.removeAllTICDataSets();
-        ticPlot.addTICDataset(new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
+        ticPlot.removeAllDataSets();
+        ticPlot.addDataSet(new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
 
         // Auto-range to axes.
         ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -310,8 +309,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         final int peakCount = Math.min(MAX_PEAKS, resolvedPeaks.length);
         for (int i = 0; i < peakCount; i++) {
 
-          final XYDataset peakDataSet = new PeakDataSet(resolvedPeaks[i]);
-          ticPlot.addPeakDataset(peakDataSet);
+          final FeatureDataSet featureDataSet = new FeatureDataSet(resolvedPeaks[i]);
+          ticPlot.addFeatureDataSet(featureDataSet);
         }
 
         // Check peak count.

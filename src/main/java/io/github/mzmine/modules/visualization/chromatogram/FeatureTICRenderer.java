@@ -31,13 +31,13 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
-public class PeakTICPlotRenderer extends XYAreaRenderer {
+public class FeatureTICRenderer extends XYAreaRenderer {
 
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
-  private static final float OPACITY = 0.6f;
+  private static final float OPACITY = 0.45f;
 
   private static Composite makeComposite(final float alpha) {
 

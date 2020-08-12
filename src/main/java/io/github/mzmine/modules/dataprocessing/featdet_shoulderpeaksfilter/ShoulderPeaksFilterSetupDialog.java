@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +68,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
     spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor, false);
 
     // If the scan is centroided, switch to centroid mode
-    spectrumPlot.setPlotMode(previewScan.getSpectrumType());
+    spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     // If the parameters are not complete, exit
     ArrayList<String> errors = new ArrayList<String>();
