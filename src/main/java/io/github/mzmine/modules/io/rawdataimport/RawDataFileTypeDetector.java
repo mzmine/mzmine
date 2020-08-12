@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -54,14 +54,14 @@ public class RawDataFileTypeDetector {
 
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
-      new char[] {0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
+          new char[] {0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
 
   private static final String GZIP_HEADER = String.valueOf(new char[] {0x1f, 0x8b});
 
   private static final String ZIP_HEADER = String.valueOf(new char[] {'P', 'K', 0x03, 0x04});
 
   /**
-   * 
+   *
    * @return Detected file type or null if the file is not of any supported type
    */
   public static RawDataFileType detectDataFileType(File fileName) {
@@ -87,7 +87,7 @@ public class RawDataFileTypeDetector {
 
       if (fileName.getName().toLowerCase().endsWith(".csv")) {
         if (fileHeader.contains(":") && fileHeader.contains("\\")
-            && !fileHeader.contains("file name")) {
+                && !fileHeader.contains("file name")) {
           logger.fine("ICP raw file detected");
           return RawDataFileType.ICPMSMS_CSV;
         }
