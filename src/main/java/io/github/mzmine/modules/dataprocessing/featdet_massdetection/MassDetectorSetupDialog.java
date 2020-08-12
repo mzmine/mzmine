@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import java.util.ArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -62,7 +63,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
     // Set plot mode only if it hasn't been set before
     // if the scan is centroided, switch to centroid mode
-    spectrumPlot.setPlotMode(previewScan.getSpectrumType());
+    spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerWindow.scanColor, false);

@@ -247,6 +247,10 @@ public class RawDataFileInfoPaneController {
       for (int i = 1; i < numberOfScans + 1; i++) {
         Scan scan = rawDataFile.getScan(i);
 
+        if (scan == null) {
+          continue;
+        }
+
         // check for precursor
         String precursor = "";
         if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
