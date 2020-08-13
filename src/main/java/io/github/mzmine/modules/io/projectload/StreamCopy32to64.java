@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -59,17 +57,15 @@ public class StreamCopy32to64 extends StreamCopy {
 
       // Convert the float buffer to the double buffer
       floatByteBuffer.flip();
-      FloatBuffer fb = floatByteBuffer.asFloatBuffer();
-      DoubleBuffer db = doubleByteBuffer.asDoubleBuffer();
 
-      while (fb.hasRemaining()) {
-        float f = fb.get();
+      while (floatByteBuffer.hasRemaining()) {
+        float f = floatByteBuffer.getFloat();
         double d = f;
-        db.put(d);
+        doubleByteBuffer.putDouble(d);
       }
 
       // Write the output buffer
-      db.flip();
+      doubleByteBuffer.flip();
       out.write(doubleByteBuffer);
 
       // Clear both buffers
