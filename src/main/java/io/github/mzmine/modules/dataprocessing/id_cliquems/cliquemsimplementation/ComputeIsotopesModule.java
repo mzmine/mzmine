@@ -64,24 +64,24 @@ public class ComputeIsotopesModule {
   private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights){
     // Drop one parental mass when one isotope has two parental masses candidates
     HashMap <Integer,Integer> IFeatureHash = new HashMap<>();
-    List<Integer> duplicateIFindex = new ArrayList<>();//this contains indices to be deleted from all features
+    List<Integer> duplicateIfIndex = new ArrayList<>();//this contains indices to be deleted from all features
     for(int i = 0 ; i<feature.size() ; i++){
       if(IFeatureHash.containsKey(feature.get(i))){
         Integer duplicateFeature = feature.get(i);
-        //The indices of the one with smaller weight is added to duplicateIFindex to be deleted
+        //The indices of the one with smaller weight is added to duplicateIfIndex to be deleted
         if(weights.get(IFeatureHash.get(duplicateFeature)) < weights.get(i)){
-          duplicateIFindex.add( IFeatureHash.get(duplicateFeature));
+          duplicateIfIndex.add( IFeatureHash.get(duplicateFeature));
           IFeatureHash.put(duplicateFeature,i);  // drop the parental feature with less weight
         }
         else{
-          duplicateIFindex.add(i);  // drop the parental feature with less weight
+          duplicateIfIndex.add(i);  // drop the parental feature with less weight
         }
       }
       else{
         IFeatureHash.put(feature.get(i),i);
       }
     }
-    return duplicateIFindex;
+    return duplicateIfIndex;
   }
 
   /**
@@ -110,12 +110,12 @@ public class ComputeIsotopesModule {
     }
 
     // First filter isotopes pointing to two different parents
-    List<Integer> deletepos = findBadFeatures(iFeature, weights);
+    List<Integer> deletePos = findBadFeatures(iFeature, weights);
     // Second filter parents pointed by two different isotopes
-    deletepos.addAll(findBadFeatures(pFeature,weights));
-    Collections.sort(deletepos, Collections.reverseOrder());
+    deletePos.addAll(findBadFeatures(pFeature,weights));
+    Collections.sort(deletePos, Collections.reverseOrder());
     //removing the indices
-    for(Integer index : deletepos){
+    for(Integer index : deletePos){
       pFeature.remove((int)index);
       iFeature.remove((int)index);
       pCharge.remove((int)index);
@@ -124,14 +124,14 @@ public class ComputeIsotopesModule {
     }
 
     // Third filter inconsistency in charge
-    deletepos.clear();
+    deletePos.clear();
     for(int i=0; i<pFeature.size() ; i++){
       for(int j=0; j<iFeature.size() ; j++){
         if(pFeature.get(i).equals(iFeature.get(j))){
           //If same node in iFeature and pFeature, they must have same charge
           if(pCharge.get(i).equals(iCharge.get(j))){
-            deletepos.add(i);
-            deletepos.add(j);
+            deletePos.add(i);
+            deletePos.add(j);
           }
           break;
         }
@@ -185,7 +185,7 @@ public class ComputeIsotopesModule {
    * @param maxGrade Maximum possible grade to be assigned to each isotope
    * @return isotable consolidated data for every isotope for the clique
    */
-  private IsoTable isonetAttributes(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge, int maxGrade){
+  private IsoTable isoNetAttributes(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge, int maxGrade){
     // First assign grade (for info look isoGrade function)
     int [][] grade = isoGrade(iFeature,pFeature);
 
@@ -282,10 +282,10 @@ public class ComputeIsotopesModule {
    * @param isom The mass difference of the isotope
    * @return isoTableList
    */
-  private List<IsoTable> computelistofIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
+  private List<IsoTable> computeListIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
     List<PeakData> pdList = anClique.getPeakDataList();
     HashMap<Integer,PeakData> pdHash = new HashMap<>();
-    List<IsoTable> listofIsoTable =new ArrayList<>();
+    List<IsoTable> listIsoTable =new ArrayList<>();
     for(PeakData pd : pdList){
       pdHash.put(pd.getNodeID(),pd);
     }
@@ -296,7 +296,7 @@ public class ComputeIsotopesModule {
           driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS *((double) done /(double) this.anClique.cliques.size()));
 
       if(driverTask.isCanceled()){
-        return listofIsoTable;
+        return listIsoTable;
       }
       List<Pair<Double, Pair<Double,Integer>>> inData = new ArrayList<>(); // contains following data -> intensity, mz value, nodeID
       for(Integer cliquenodeID : this.anClique.cliques.get(cliqueID)){
@@ -315,13 +315,13 @@ public class ComputeIsotopesModule {
         // filter the isotope list by charge and other inconsistencies
         filterIso(an.getPfeature(),an.getIfeature(),an.getPcharge(),an.getIcharge());
         if(an.getPfeature().size() > 0){
-          iTable = isonetAttributes(an.getPfeature(),an.getIfeature(),an.getPcharge(),an.getIcharge(),maxGrade);
+          iTable = isoNetAttributes(an.getPfeature(),an.getIfeature(),an.getPcharge(),an.getIcharge(),maxGrade);
         }
       }
       if(iTable != null)
-        listofIsoTable.add(iTable);
+        listIsoTable.add(iTable);
     }
-    return listofIsoTable;
+    return listIsoTable;
   }
 
   /**
@@ -343,7 +343,7 @@ public class ComputeIsotopesModule {
     }
 
     logger.log(Level.INFO,"Computing Isotopes");
-    List<IsoTable> isoTableList = computelistofIsoTable(maxCharge, maxGrade, isoMZTolerance, isom);
+    List<IsoTable> isoTableList = computeListIsoTable(maxCharge, maxGrade, isoMZTolerance, isom);
     if(driverTask.isCanceled()){
       return;
     }
@@ -393,10 +393,6 @@ public class ComputeIsotopesModule {
     this.anClique.setIsoInfos(isoInfos);
     this.anClique.isoFound = true;
   }
-  public void getIsotopes(){
-    getIsotopes(3,2,new MZTolerance(0,10),1.003355);
-  }
-
 
 }
 

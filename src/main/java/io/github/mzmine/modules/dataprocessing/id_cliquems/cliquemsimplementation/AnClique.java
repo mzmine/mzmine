@@ -85,7 +85,7 @@ public class AnClique {
   }
 
   public void computeCliqueFromResult(){
-    List<Pair<Integer,Integer>> nodeCliqueList = this.network.getResultNode_clique();
+    List<Pair<Integer,Integer>> nodeCliqueList = this.network.getResultNodeClique();
 
     //firstly, generate hash from nodeID to peakData
     HashMap<Integer, PeakData> nodeToPeak = new HashMap<>();

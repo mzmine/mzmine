@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
@@ -97,9 +97,9 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled())
         return;
       AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
-          parameters.getParameter(CliqueMSParameters.MZ_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.RT_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.IN_DIFF).getValue(),
+          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.MZ_DIFF).getValue(),
+          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.RT_DIFF).getValue(),
+          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.IN_DIFF).getValue(),
           parameters.getParameter(CliqueMSParameters.TOL).getValue());
       // Check if not canceled
       if (isCanceled())
@@ -113,11 +113,14 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled())
         return;
       ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, this.progress);
+
+      PolarityType polarity = (parameters.getParameter(CliqueMSParameters.POLARITY).getValue().equals("positive"))?PolarityType.POSITIVE : PolarityType.NEGATIVE;
+
       List<AdductInfo> addInfos = computeAdduct.getAnnotation(
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS_FEATURE).getValue(),
           parameters.getParameter(CliqueMSParameters.SIZE_ANG).getValue(),
-          (String) parameters.getParameter(CliqueMSParameters.POLARITY).getValue(),
+          polarity,
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOL).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_FILTER).getValue(),
           parameters.getParameter(CliqueMSParameters.ANNOTATE_EMPTY_SCORE).getValue(),
@@ -136,8 +139,7 @@ public class CliqueMSTask extends AbstractTask {
     }
     catch(Exception e){
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n" +
-          e.getMessage());
+      setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n");
       e.printStackTrace();
     }
   }
@@ -157,7 +159,7 @@ public class CliqueMSTask extends AbstractTask {
       pdHash.put(pd.getNodeID(),pd);
     for(AdductInfo adInfo : addInfos){
       PeakData pd = pdHash.get(adInfo.feature);
-      for(int i=0 ; i<5 ; i++){
+      for(int i=0 ; i<ComputeAdduct.numofAnnotation ; i++){
         SimplePeakIdentity adductAnnotation  = new SimplePeakIdentity("Annotation "+(i+1));
         adductAnnotation.setPropertyValue("Mass",String.valueOf(adInfo.masses.get(i)));
         adductAnnotation.setPropertyValue("Score",String.valueOf(adInfo.scores.get(i)));

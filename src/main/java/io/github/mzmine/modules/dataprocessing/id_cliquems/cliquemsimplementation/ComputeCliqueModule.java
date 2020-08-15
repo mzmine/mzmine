@@ -64,7 +64,7 @@ public class ComputeCliqueModule {
     this.peakList =peakList;
     this.progress = progress;
     drivertask = task;
-    peakDataList = getPeakDatafromPeaks(peakList,rdf);
+    peakDataList = getPeakDataFromPeaks(peakList,rdf);
     anClique = new AnClique(peakDataList,rdf);
   }
 
@@ -74,7 +74,7 @@ public class ComputeCliqueModule {
    * @param dataFile raw Data File
    * @return PeakData contains sufficient data for cliqueMS algorithm
    */
-  private List<PeakData> getPeakDatafromPeaks(PeakList peakList, RawDataFile dataFile){
+  private List<PeakData> getPeakDataFromPeaks(PeakList peakList, RawDataFile dataFile){
     List<PeakData> peakDataList = new ArrayList<>();
     for(int i=0;i<peakList.getRows().size() ; i++){
       PeakListRow peak = peakList.getRows().get(i);
@@ -140,10 +140,10 @@ public class ComputeCliqueModule {
       for(int j = posrtmin ; j<posrtmax ; j+=1){
         List<Double> intensities = new ArrayList<>();
         for(DataPoint dp : dataPoints.get(j)){
-          Double mzmin = pd.getMzmin();
-          Double mzmax = pd.getMzmax();
-          Double dpmz =  dp.getMZ();
-          if(dpmz<=mzmax && dpmz>=mzmin){
+          Double mzMin = pd.getMzmin();
+          Double mzMax = pd.getMzmax();
+          Double dp_mz =  dp.getMZ();
+          if(dp_mz<=mzMax && dp_mz>=mzMin){
             intensities.add(dp.getIntensity());
           }
         }
@@ -354,7 +354,7 @@ public class ComputeCliqueModule {
    * did not appear in the edgelists
    */
    private void updateCliques(){
-    List<Pair<Integer,Integer>> nodeCliqueList = this.anClique.getNetwork().getResultNode_clique();
+    List<Pair<Integer,Integer>> nodeCliqueList = this.anClique.getNetwork().getResultNodeClique();
     List<PeakData> ungroupedFeatures = new ArrayList<>();
     Integer maxClique = 0;
     for(Pair nodeClique: nodeCliqueList){
@@ -420,14 +420,5 @@ public class ComputeCliqueModule {
     this.anClique.cliquesFound = true;
     this.anClique.computeCliqueFromResult();
     return this.anClique;
-  }
-
-  /**
-   * return cliques using default parameter values taken from the R code
-   *
-   * @return AnClique object
-   */
-  public AnClique getClique() {
-    return getClique(true, new MZTolerance(0,5),new RTTolerance(false,0.0001), 0.0001, .000001);
   }
 }

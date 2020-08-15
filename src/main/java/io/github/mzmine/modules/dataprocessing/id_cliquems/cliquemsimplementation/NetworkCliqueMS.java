@@ -59,7 +59,7 @@ public class NetworkCliqueMS {
   private CliqueMSTask driverTask;
 
   //Result of Kernighan and aggregate algorithm
-  private final List<Pair<Integer,Integer>> resultNode_clique = new ArrayList<>();
+  private final List<Pair<Integer,Integer>> resultNodeClique = new ArrayList<>();
 
   public HashMap<Pair<Integer,Integer>, Double> getEdges(){
     return edges;
@@ -152,18 +152,18 @@ public class NetworkCliqueMS {
     createCliques();
     createEdgeCliques();
     for(Pair<Integer,Integer> edge : this.edges.keySet()){
-      Double weight, logPower, minuslogPower;
+      Double weight, logPower, minusLogPower;
       weight = this.edges.get(edge);
       logPower = Math.log10(Math.pow(weight,exp));
-      minuslogPower = Math.log10(1.0 - Math.pow(weight,exp));
+      minusLogPower = Math.log10(1.0 - Math.pow(weight,exp));
       logEdges.put(edge,logPower);
-      minusLogEdges.put(edge,minuslogPower);
+      minusLogEdges.put(edge,minusLogPower);
     }
 
   }
 
   // Function to calculate log likelihood of the whole network
-  private Double logltotal(){
+  private Double loglTotal(){
     Double inside = 0.0, outside = 0.0 , logl = 0.0;
     for(Pair<Integer,Integer> edge : edges.keySet()){
       if(this.edgeClique.get(edge)){
@@ -186,8 +186,8 @@ public class NetworkCliqueMS {
   }
 
   // Function to compute the change of likelihood if we add node2 to clique of node1
-  private Nodelogl calcNodelogl(Integer node1, Integer node2){
-    Nodelogl nResult = new Nodelogl();
+  private NodeLogL calcNodelogl(Integer node1, Integer node2){
+    NodeLogL nResult = new NodeLogL();
     Double logl = -1.0, logl_change = 0.0, logl_before = 0.0;
     Boolean complete = true;
     Double newlinks_change = 0.0, nolinks_change = 0.0, newlinks_before = 0.0, nolinks_before = 0.0;
@@ -237,17 +237,17 @@ public class NetworkCliqueMS {
       logl_before = newlinks_before + nolinks_before;
       logl = logl_change - logl_before;
     }
-    nResult.logl = logl;
-    nResult.newnode = node1; // initialize results values in case there is a break
-    nResult.newedges = newEdges;
-    nResult.oldedges = oldEdges;
+    nResult.logL = logl;
+    nResult.newNode = node1; // initialize results values in case there is a break
+    nResult.newEdges = newEdges;
+    nResult.oldEdges = oldEdges;
     return nResult;
   }
 
   // function to move the current node to another clique
-  Double reassignNode(Integer node, Double logl){
-    Nodelogl maxChange = new Nodelogl();
-    maxChange.logl = 0.0;
+  Double reassignNode(Integer node, Double logL){
+    NodeLogL maxChange = new NodeLogL();
+    maxChange.logL = 0.0;
     if(this.neighbours.get(node).size() > 0){ // reassign this node if it has neighbors
       Integer ownClique = this.nodes.get(node);
       Set<Integer> diffCliques = new HashSet<>();
@@ -259,29 +259,29 @@ public class NetworkCliqueMS {
       if(diffCliques.size() > 0){
         for(Integer n: diffCliques){
           Integer node2 = this.cliques.get(n).get(0); // first node in the clique candidate
-          Nodelogl nodeChange = calcNodelogl(node2 , node); // logl change if we move node to clique of node2
-          if(nodeChange.logl > maxChange.logl){ // we search for the max change in logl bigger than 0
+          NodeLogL nodeChange = calcNodelogl(node2 , node); // logL change if we move node to clique of node2
+          if(nodeChange.logL > maxChange.logL){ // we search for the max change in logL bigger than 0
             maxChange = nodeChange;
           }
         }
       }
-      if(maxChange.logl > 0){ // if there is a positive change in logl by moving a node, now execute this change
-        for(Pair<Integer, Integer> edge : maxChange.newedges)
+      if(maxChange.logL > 0){ // if there is a positive change in logL by moving a node, now execute this change
+        for(Pair<Integer, Integer> edge : maxChange.newEdges)
           this.edgeClique.put(edge,true); // change makes new edges are inside cliques
-        for(Pair<Integer, Integer> edge : maxChange.oldedges)
+        for(Pair<Integer, Integer> edge : maxChange.oldEdges)
           this.edgeClique.put(edge,false); // change puts edges outside cliques
-        Integer newClique = this.nodes.get(maxChange.newnode);
+        Integer newClique = this.nodes.get(maxChange.newNode);
         this.nodes.put(node, newClique); // now the clique of node is the clique of node2
         this.cliques.get(ownClique).remove((Integer) node); // remove the node from clique nodes of old clique
         this.cliques.get(newClique).add(node); // add node to the list of nodes of the new clique
       }
     }
-    Double newlogl = logl + maxChange.logl;
-    return newlogl;
+    Double newLogL = logL + maxChange.logL;
+    return newLogL;
   }
 
-  private Nodelogl calcCliquelogl(Integer clique1 ,Integer clique2){
-    Nodelogl cResult = new Nodelogl();
+  private NodeLogL calcCliquelogl(Integer clique1 ,Integer clique2){
+    NodeLogL cResult = new NodeLogL();
     Double logl = -1.0, logl_change = 0.0, logl_before = 0.0;
     Boolean complete = true;
     List<Pair<Integer,Integer>> newEdges = new ArrayList<>();
@@ -308,9 +308,9 @@ public class NetworkCliqueMS {
     }
     if(complete)
       logl = logl_change - logl_before;
-    cResult.newnode = clique1; // initialize results values in case there is a break
-    cResult.logl = logl;
-    cResult.newedges = newEdges;
+    cResult.newNode = clique1; // initialize results values in case there is a break
+    cResult.logL = logl;
+    cResult.newEdges = newEdges;
     return cResult;
   }
 
@@ -339,8 +339,8 @@ public class NetworkCliqueMS {
   }
 
 
-  Double reassignClique(Integer clique, Double logl){
-    Double loglchange = 0.0; // the change in logl if we accept joining clique to another clique
+  Double reassignClique(Integer clique, Double logL){
+    Double loglChange = 0.0; // the change in logL if we accept joining clique to another clique
     Integer node = this.cliques.get(clique).get(0);
     Set<Integer> diffCliques = new HashSet<>();
     for(Integer v : this.neighbours.get(node)){
@@ -358,10 +358,10 @@ public class NetworkCliqueMS {
           maxMean = meanCandidate;
         }
       }
-      Nodelogl loglCandidate = calcCliquelogl(clique,maxClique);
-      if(loglCandidate.logl > 0){
-        loglchange = loglCandidate.logl;
-        for(Pair<Integer,Integer> edge : loglCandidate.newedges)
+      NodeLogL loglCandidate = calcCliquelogl(clique,maxClique);
+      if(loglCandidate.logL > 0){
+        loglChange = loglCandidate.logL;
+        for(Pair<Integer,Integer> edge : loglCandidate.newEdges)
           this.edgeClique.put(edge, true);// change makes new edges be inside cliques
         for(Integer c : this.cliques.get(clique)){
           this.nodes.put(c,maxClique); // change clique value of old clique nodes to the new
@@ -370,14 +370,14 @@ public class NetworkCliqueMS {
         this.cliques.remove(clique); // delete old clique because it is empty
       }
     }
-    Double loglReturn = logl + loglchange;
+    Double loglReturn = logL + loglChange;
     return loglReturn;
   }
 
   //csample_integer function of R  code makes same effect as Collections.shuffle when size and x.size() are same and replace is set false
 
-  List<Double> itReassign(Double tol, Double logl){
-    Double currentlogl = logl;
+  List<Double> itReassign(Double tol, Double logL){
+    Double currentlogl = logL;
     List<Double> loglResult = new ArrayList<>();
     loglResult.add(currentlogl);
     List<Integer> allnodes = new ArrayList<>(this.nodes.keySet());
@@ -395,7 +395,7 @@ public class NetworkCliqueMS {
       Collections.shuffle(randallnodes);
       for(Integer v : randallnodes){
         currentlogl = reassignNode(v,currentlogl); // move nodes to different cliques
-        loglResult.add(currentlogl); // store results of change in logl
+        loglResult.add(currentlogl); // store results of change in logL
       }
       diff = 1 - Math.abs(currentlogl/lastlogl); // difference in log likelihood after one complete round of node reassignments
       rcount++;
@@ -405,9 +405,9 @@ public class NetworkCliqueMS {
   }
 
   List<Double> aggregateAndKernighan (Double tol, Integer step, Boolean silent ){
-    Double currentlogl = logltotal();
+    Double currentLogL = loglTotal();
     List<Double> loglResult = new ArrayList<>();
-    loglResult.add(currentlogl);
+    loglResult.add(currentLogL);
     // round 1
     List<Integer> randallNodes;
     // insert allnodes values in list of nodes
@@ -422,14 +422,14 @@ public class NetworkCliqueMS {
       Integer nodev = randallNodes.get(randpos);
       Integer cliquec = this.nodes.get(nodev); // clique that will be joined to another clique
       if (scount == step){
-        currentlogl = reassignNode(nodev, currentlogl);
-        loglResult.add(currentlogl);
+        currentLogL = reassignNode(nodev, currentLogL);
+        loglResult.add(currentLogL);
         scount = 1;
         tcount++;
       }
       else{
-        currentlogl = reassignClique(cliquec,currentlogl);
-        loglResult.add(currentlogl);
+        currentLogL = reassignClique(cliquec,currentLogL);
+        loglResult.add(currentLogL);
         scount++;
         tcount++;
       }
@@ -439,10 +439,10 @@ public class NetworkCliqueMS {
           driverTask.NET_PROGRESS * ((double) (randpos+1) / (double) randallNodes.size()));
     }
     Double firstlogl = loglResult.get(0);
-    Double diff = 1.0 - Math.abs(currentlogl/firstlogl); // difference in log likelihood after one complete round of node reassignments
+    Double diff = 1.0 - Math.abs(currentLogL/firstlogl); // difference in log likelihood after one complete round of node reassignments
       // rest of rounds
     if(!silent){
-      logger.log(Level.FINEST,"After " + tcount + " rounds logl is " + currentlogl);
+      logger.log(Level.FINEST,"After " + tcount + " rounds logl is " + currentLogL);
       logger.log(Level.FINEST,"Still computing cliques");
     }
     while( diff > tol ){
@@ -453,31 +453,31 @@ public class NetworkCliqueMS {
         Integer nodevw = randallNodes.get(randposw);
         Integer cliquecw = this.nodes.get(nodevw); // clique that will be joined to another clique
         if(scount == step){
-          currentlogl = reassignNode(nodevw , currentlogl);
-          loglResult.add(currentlogl);
+          currentLogL = reassignNode(nodevw , currentLogL);
+          loglResult.add(currentLogL);
           scount = 1;
           tcount ++;
         }
         else{ // join this clique if it has not been joined in this round
           if(!cliquesRound.contains(cliquecw)){
             cliquesRound.add(cliquecw);
-            currentlogl = reassignClique(cliquecw , currentlogl);
-            loglResult.add(currentlogl);
+            currentLogL = reassignClique(cliquecw , currentLogL);
+            loglResult.add(currentLogL);
             scount++;
             tcount++;
           }
         }
       }
       cliquesRound.clear(); // remove all cliques from the set for the next while round
-      diff = 1.0 - Math.abs(currentlogl/lastlogl);
+      diff = 1.0 - Math.abs(currentLogL/lastlogl);
       if(!silent){
-        logger.log(Level.FINEST,"After "+tcount+" rounds logl is "+currentlogl );
+        logger.log(Level.FINEST,"After "+tcount+" rounds logl is "+currentLogL );
         logger.log(Level.FINEST, "Still computing cliques");
       }
     }
     logger.log(Level.FINEST,"Aggregate cliques done, with "+tcount+" rounds.");
     // Kernighan-Lin after aggregation of cliques
-    List<Double> loglLast = itReassign(tol,currentlogl);
+    List<Double> loglLast = itReassign(tol,currentLogL);
     loglResult.addAll(loglLast);
     return loglResult;
   }
@@ -487,15 +487,15 @@ public class NetworkCliqueMS {
       this.progress = progress;
       this.driverTask = task;
       createNetwork(adjacencyMatrix, nodeIDList);
-      Double logl = logltotal();
+      Double logl = loglTotal();
       logger.log(Level.FINEST,"Beginning value of logl is "+logl);
       int step = 10;
       List<Double> loglList = aggregateAndKernighan(tolerance, step, silent);
       for(Integer v: this.nodes.keySet()){
         Pair<Integer,Integer> p = new Pair<>(v,this.nodes.get(v));
-        resultNode_clique.add(p);
+        resultNodeClique.add(p);
       }
-      Double loglfinal = logltotal();
+      Double loglfinal = loglTotal();
       logger.log(Level.FINEST,"Finishing value of logl is "+ loglfinal);
 
     }
@@ -504,16 +504,16 @@ public class NetworkCliqueMS {
     }
   }
 
-  public List<Pair<Integer, Integer>> getResultNode_clique() {
-    return resultNode_clique;
+  public List<Pair<Integer, Integer>> getResultNodeClique() {
+    return resultNodeClique;
   }
 }
 
 // Nodelogl class to return an object with the change in logl, the new edges inside clique and the
 // oldedges than will become outside edges
-class Nodelogl {
-  Double logl;
-  Integer newnode;
-  List<Pair<Integer,Integer>> newedges;
-  List<Pair<Integer,Integer>> oldedges;
+class NodeLogL {
+  Double logL;
+  Integer newNode;
+  List<Pair<Integer,Integer>> newEdges;
+  List<Pair<Integer,Integer>> oldEdges;
 };

@@ -12,7 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * write to the Free Software Foundation, Inc., 551 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 
@@ -42,19 +42,19 @@ import javafx.util.Pair;
  */
 public class AdductAnnotationCliqueMS {
 
-  private AnnotDF readDF(List<PeakData> dfClique){
-    AnnotDF annotdf = new AnnotDF();
+  private AnnotDataFrame readDataFrame(List<PeakData> dfClique){
+    AnnotDataFrame annotDataFrame = new AnnotDataFrame();
     for(PeakData pd : dfClique){
-      annotdf.mz.add(pd.getMz());
-      annotdf.features.add(pd.getNodeID());
-      annotdf.charge.add(pd.getCharge());
+      annotDataFrame.mz.add(pd.getMz());
+      annotDataFrame.features.add(pd.getNodeID());
+      annotDataFrame.charge.add(pd.getCharge());
     }
-    return  annotdf;
+    return annotDataFrame;
   }
 
-  private RawAdList readRawList(List<IonizationType> orderadInfo){
+  private RawAdList readRawList(List<IonizationType> orderAdInfo){
     RawAdList rawL = new RawAdList();
-    for(IonizationType ion : orderadInfo){
+    for(IonizationType ion : orderAdInfo){
       rawL.rawList.put(ion.getAdductName(),ion);
       rawL.addOrder.add(ion.getAdductName());
     }
@@ -71,7 +71,7 @@ public class AdductAnnotationCliqueMS {
     return vScore;
   }
 
-  private HashMap<Integer,String> getAllAdducts(double mass, MZTolerance tol, int idn, IonizationType currentAdd, AnnotDF mzdf, RawAdList rList){
+  private HashMap<Integer,String> getAllAdducts(double mass, MZTolerance tol, int idn, AnnotDataFrame mzdf, RawAdList rList){
     int idnMass = idn; //index to start the search in the row of adducts
     NavigableMap<Double,String> massMap = new TreeMap<>();
     HashMap<Integer,String> adduMap = new HashMap<>();
@@ -80,10 +80,12 @@ public class AdductAnnotationCliqueMS {
       double mapmassDiff = -mass + (mass*adI.getNumMol() + adI.getAddedMass())/Math.abs(adI.getCharge());
       massMap.put(mapmassDiff,ita);
     }
-    Map.Entry<Double,String> lowerboundp = massMap.firstEntry();
-    double lowerbound = lowerboundp.getKey() - lowerboundp.getKey()*0.10;
-    Map.Entry<Double,String> upperboundp = massMap.lastEntry();
-    double upperbound = upperboundp.getKey() + upperboundp.getKey()*0.10;
+    //lowerbound decreased by 10% to increase the range of mass for finding potential new ion
+    Map.Entry<Double,String> lowerBoundP = massMap.firstEntry();
+    double lowerbound = lowerBoundP.getKey() - lowerBoundP.getKey()*0.10;
+    //upperBound increased by 10% to increase the range of mass for finding potential new ion
+    Map.Entry<Double,String> upperBoundP = massMap.lastEntry();
+    double upperBound = upperBoundP.getKey() + upperBoundP.getKey()*0.10;
     // first see if there is any previous row prior to the one that we start the search
     while((mzdf.mz.get(idnMass) - mass) < lowerbound){
       if(idnMass == 0)
@@ -97,9 +99,8 @@ public class AdductAnnotationCliqueMS {
       int isoCharge = mzdf.charge.get(idnloop);
       // if massdifference is bigger than the largest mass difference in the adduct list
       // it is not possible to find more adducts
-      NavigableMap<Double,String> subMap = massMap.tailMap(lowerboundp.getKey(),true);
+      NavigableMap<Double,String> subMap = massMap.tailMap(lowerBoundP.getKey(),true);
       for(Double itm : subMap.keySet()){
-        double error;
         if(isoCharge != 0){
           String addTest = massMap.get(itm);
           IonizationType adITest = rList.rawList.get(addTest);
@@ -124,19 +125,19 @@ public class AdductAnnotationCliqueMS {
         }
       }
       // move lowerbound if the mass difference is larger than the lowerbound
-      if(mzDiff > lowerboundp.getKey())
-        lowerboundp = massMap.higherEntry(lowerboundp.getKey());
-      if(mzDiff > upperbound)
+      if(mzDiff > lowerBoundP.getKey())
+        lowerBoundP = massMap.higherEntry(lowerBoundP.getKey());
+      if(mzDiff > upperBound)
         break;
-      if(lowerboundp == null)
+      if(lowerBoundP == null)
         break;
     }
     return adduMap;
   }
 
-  private void getComponent(Set<Double> setm, Set<Integer> extraf, AnnotData annotD, Component comp){
+  private void getComponent(Set<Double> setm, Set<Integer> extraF, AnnotData annotD, Component comp){
     Set<Integer> newf = new HashSet<>();
-    for(Integer itf:extraf){
+    for(Integer itf:extraF){
       comp.feature.add(itf); // insert this feature if it is not in the component;
       for(Double itm : annotD.feat2mass.get(itf)){
         // if in this feature there is mass on the setm
@@ -156,7 +157,7 @@ public class AdductAnnotationCliqueMS {
     }
     // if there are no new features to check end
     if(newf.size() > 0)
-      getComponent(setm,newf, annotD, comp);
+      getComponent(setm, newf, annotD, comp);
   }
 
   private void getComponentanG ( Set<Integer> extraf, AnnotData annotD, Component comp ){
@@ -241,7 +242,7 @@ public class AdductAnnotationCliqueMS {
         }
       }
     }
-    Set<Double> badmasses = new HashSet<>();
+    Set<Double> badMasses = new HashSet<>();
     // now filter the masses that are similar
     for(Pair<Double,Double> itmp : badmPair){
       int size1,size2;
@@ -254,7 +255,7 @@ public class AdductAnnotationCliqueMS {
         // if masses are equal, we eventually drop m1
         comp = compareMasses(annotD,m1,m2,anGroup);
         if(comp){
-          badmasses.add(m1);
+          badMasses.add(m1);
         }
       }
       else{
@@ -262,17 +263,17 @@ public class AdductAnnotationCliqueMS {
           // size1 is bigger, drop m2 if conditions met
           comp = compareMasses(annotD, m2, m1, anGroup);
           if(comp)
-            badmasses.add(m2);
+            badMasses.add(m2);
         }
         else{
           //size 2 is bigger, drop m1 if conditions met
           comp = compareMasses(annotD,m1,m2,anGroup);
           if(comp)
-            badmasses.add(m1);
+            badMasses.add(m1);
         }
       }
     }
-    return badmasses;
+    return badMasses;
   }
 
   private void createanGroup2mass(AnnotData annotD, HashMap<Integer, Component> anGcomp, double filter){
@@ -307,15 +308,15 @@ public class AdductAnnotationCliqueMS {
   }
 
 
-  private AnnotData getAnnotData(RawAdList rList, AnnotDF mzdf, MZTolerance tol, double filter){
+  private AnnotData getAnnotData(RawAdList rList, AnnotDataFrame mzDF, MZTolerance tol, double filter){
     AnnotData annotD = new AnnotData();
-    for(Integer f : mzdf.features)
+    for(Integer f : mzDF.features)
       annotD.features.put(f,-1);
-    for(int idn = 0 ; idn < (mzdf.mz.size() -1) ; idn++){
+    for(int idn = 0 ; idn < (mzDF.mz.size() -1) ; idn++){
       double mz;
       Integer isoCharge;
-      mz = mzdf.mz.get(idn); // assign m/z value for current idn position
-      isoCharge = mzdf.charge.get(idn); // assign charge value, only available for isotopic features
+      mz = mzDF.mz.get(idn); // assign m/z value for current idn position
+      isoCharge = mzDF.charge.get(idn); // assign charge value, only available for isotopic features
       for(String ita : rList.addOrder){
         double mass;
         IonizationType currentAdd = rList.rawList.get(ita);
@@ -333,7 +334,7 @@ public class AdductAnnotationCliqueMS {
           mass = Math.round(mass*1000)/1000.0;
           if(!annotD.massList.containsKey(mass)){
             // if this mass is not on the mass list, search for all the adducts of that mass
-            HashMap<Integer,String> adduMap = getAllAdducts(mass, tol, idn, currentAdd, mzdf, rList);
+            HashMap<Integer,String> adduMap = getAllAdducts(mass, tol, idn, mzDF, rList);
             // if there is more than one adduct:
             if(adduMap.size() > 1){
               for(Integer itu : adduMap.keySet()){
@@ -417,12 +418,12 @@ public class AdductAnnotationCliqueMS {
     return topV;
   }
 
-  private HashSet<Double> getTopScoringMasses(AnnotData annotD, int anG, RawAdList rList,int nfeature, int ntotal, double emptyS){
+  private HashSet<Double> getTopScoringMasses(AnnotData annotD, int anG, RawAdList rList,int nFeature, int nTotal, double emptyS){
     // we want to get the "n" top scoring masses for each feature of the annotationGroup
     HashSet<Double> setm = new HashSet<>();
     List<Pair<Double,Double>> allM = new ArrayList<>();
     List<Pair<Double,Double>> topT = new ArrayList<>();
-    HashMap<Double,Pair<Double,Double>> mass2score = new HashMap<>();
+    HashMap<Double,Pair<Double,Double>> massToScore = new HashMap<>();
 
     // First compute the score for all the masses in the anGroup
     if(annotD.anGroup2mass.containsKey(anG)){
@@ -434,16 +435,16 @@ public class AdductAnnotationCliqueMS {
         }
         //add the compensation for empty annotations
         score += emptyS * (annotD.anGroups.get(anG).size() - annotD.anGroup2mass.get(anG).get(itm).size());
-        Pair<Double,Double> mass2scoreEntry = new Pair(score,itm);
-        mass2score.put(itm,mass2scoreEntry);
+        Pair<Double,Double> massToScoreEntry = new Pair(score,itm);
+        massToScore.put(itm,massToScoreEntry);
       }
     }
     // Second select the top masses independently of the feature for that group
-    for(Double itm1 : mass2score.keySet())
-      allM.add(mass2score.get(itm1));
+    for(Double itm1 : massToScore.keySet())
+      allM.add(massToScore.get(itm1));
     allM.sort((o1,o2) -> Double.compare(o2.getKey(),o1.getKey()));  // sort this masses in descending order
 
-    for(int id = 0 ; id < ntotal ; id++){
+    for(int id = 0 ; id < nTotal ; id++){
       if(id < allM.size()) // not add more masses in case that there are less than "n" top masses
         topT.add(allM.get(id));
     }
@@ -453,7 +454,7 @@ public class AdductAnnotationCliqueMS {
 
     // Third, for each feature, select the "n" top scoring masses
     for(Integer itf : annotD.anGroups.get(anG)){
-      List<Pair<Double,Double>> topF = sortMass(annotD, itf, mass2score, nfeature);
+      List<Pair<Double,Double>> topF = sortMass(annotD, itf, massToScore, nFeature);
       for(Pair<Double,Double> itv : topF){
         setm.add(itv.getValue());
       }
@@ -461,13 +462,13 @@ public class AdductAnnotationCliqueMS {
     return setm;
   }
 
-  private Annotation annotateMass(AnnotData annotD, HashSet<Integer> features, RawAdList rList, HashSet<Double> setm, double emptyS){
+  private Annotation annotateMass(AnnotData annotD, HashSet<Integer> features, RawAdList rList, HashSet<Double> setM, double emptyS){
     Annotation an = new Annotation();
     an.score = 0.0;
     List<Pair<Double,Double>> mass2score = new ArrayList<>(); // first is the score, second is the mass
     HashSet<Integer> freef = new HashSet<>();
-    // 1 - for each mass in setm compute the score for the features if that features are more than in two positions
-    for(Double itm : setm){
+    // 1 - for each mass in setM compute the score for the features if that features are more than in two positions
+    for(Double itm : setM){
       double score = 0.0;
       int count = 0;
       for(Integer itf : features){
@@ -497,16 +498,16 @@ public class AdductAnnotationCliqueMS {
     }
     // 2 - sort annotation and select the adducts of that annotation
     mass2score.sort((o1,o2) -> Double.compare(o2.getKey(),o1.getKey()));
-    double topmass = mass2score.get(0).getValue();
+    double topMass = mass2score.get(0).getValue();
     an.score = mass2score.get(0).getKey();
     an.score -= 10.0; // add the log compensation of -10 for each new mass
 
     // search again for adduct in that feature and include in annotation
     for(Integer itf : features){
-      for(Pair<Integer,String> itp : annotD.massList.get(topmass)){
+      for(Pair<Integer,String> itp : annotD.massList.get(topMass)){
         // if this mass contains the feature itf, include it in the annotation
         if(itp.getKey().equals(itf)){
-          Pair<Double, String> anEntry = new Pair(topmass,itp.getValue());
+          Pair<Double, String> anEntry = new Pair(topMass,itp.getValue());
           an.annotation.put(itf,anEntry); // mass and adduct
         }
       }
@@ -518,8 +519,8 @@ public class AdductAnnotationCliqueMS {
       }
     }
     if(freef.size() > 1){
-      setm.remove(topmass);
-      Annotation anfree = annotateMass(annotD, freef, rList, setm, emptyS);
+      setM.remove(topMass);
+      Annotation anfree = annotateMass(annotD, freef, rList, setM, emptyS);
       for(Integer itan : anfree.annotation.keySet()){
         // add the additional score and annotation after the recursive call
         an.annotation.put(itan,anfree.annotation.get(itan));
@@ -530,7 +531,7 @@ public class AdductAnnotationCliqueMS {
       if(freef.size() == 1){
         an.score += emptyS;
         List<Integer> temp = new ArrayList<>(freef);
-        Pair<Double, String> anEntry = new Pair(0.0,"");
+        Pair<Double, String> anEntry = new Pair(0.0,"NA");
         an.annotation.put(temp.get(0),anEntry);
       }
     }
@@ -593,7 +594,7 @@ public class AdductAnnotationCliqueMS {
     int id = 0;
     // 1 - For each mass get the annotations that coincide with features
     for(Double itm : setm){
-      HashSet<Integer> freef = new HashSet<>();
+      HashSet<Integer> freeF = new HashSet<>();
       HashSet<Double> setm2 = new HashSet<>(setm);
       Annotation an = new Annotation();
       an.score = 0.0;
@@ -608,24 +609,24 @@ public class AdductAnnotationCliqueMS {
           }
         }
       }
-      // 2 - Put the features out of the annotation of this mass *itm in the freef
+      // 2 - Put the features out of the annotation of this mass *itm in the freeF
       for(Integer itf : features){
         if(!an.annotation.containsKey(itf))
-          freef.add(itf);
+          freeF.add(itf);
       }
 
-      // 3 - Execute AnnotateMass with the freef features
-      if(freef.size() > 1){
+      // 3 - Execute AnnotateMass with the freeF features
+      if(freeF.size() > 1){
         setm2.remove(itm);
-        Annotation anfree = annotateMass(annotD, freef, rList, setm2, emptyS);
+        Annotation anfree = annotateMass(annotD, freeF, rList, setm2, emptyS);
         for(Integer itan : anfree.annotation.keySet()){
           an.annotation.put(itan,anfree.annotation.get(itan));
         }
         an.score += anfree.score;
       } else {
-        if( freef.size() == 1){
+        if( freeF.size() == 1){
           an.score += emptyS;
-          List<Integer> tempL = new ArrayList<>(freef);
+          List<Integer> tempL = new ArrayList<>(freeF);
           Pair<Double, String> anEntry = new Pair(0.0,"NA");
           an.annotation.put(tempL.get(0), anEntry);
         }
@@ -655,39 +656,39 @@ public class AdductAnnotationCliqueMS {
     return topAn;
   }
 
-  private Double computeMaxScore(List<Double> vScore, int annotsize, double newmass) {
+  private Double computeMaxScore(List<Double> vScore, int annotSize, double newMass) {
     double score = 0;
-    double completeroundscore=0.0,remainderroundscore = 0.0;
-    int completeround = annotsize / vScore.size();
-    int remainderround = annotsize % vScore.size();
+    double completeRoundScore=0.0,remainderRoundScore = 0.0;
+    int completeRound = annotSize / vScore.size();
+    int remainderRound = annotSize % vScore.size();
     // compute score by number of complete rounds
     for(Double ritv : vScore)
-      completeroundscore += ritv;
+      completeRoundScore += ritv;
 
     int ritv = vScore.size()-1;
-    for(int i = 0 ; i < remainderround ; i++){
-      remainderroundscore += vScore.get(ritv);
+    for(int i = 0 ; i < remainderRound ; i++){
+      remainderRoundScore += vScore.get(ritv);
       ritv--;
     }
     //the final score is the number of loops with the total list, plus the number of extramasses, and the remainder adduct not complete
-    score = (completeround * completeroundscore) + remainderroundscore + (completeround * newmass);
+    score = (completeRound * completeRoundScore) + remainderRoundScore + (completeRound * newMass);
     return score;
   }
 
-  private void normalizeAnnotation(Annotation an, List<Double> vScore, double newmass, double emptyS, int newmassSize ){
+  private void normalizeAnnotation(Annotation an, List<Double> vScore, double newMass, double emptyS, int newMassSize ){
     double maxscore=0.0, minscore=0.0, oldscore=0.0, newscore = 0.0;
     oldscore = an.score;
-    maxscore = computeMaxScore(vScore, an.annotation.size(), newmass);
+    maxscore = computeMaxScore(vScore, an.annotation.size(), newMass);
     // computation of min score is as if all the annotation is empty score
     // plus a compensation of a new mass each 8 features
-    minscore = an.annotation.size()*emptyS + newmass*((double)an.annotation.size()/newmassSize);
+    minscore = an.annotation.size()*emptyS + newMass*((double)an.annotation.size()/newMassSize);
     newscore = 100*(oldscore - minscore)/(maxscore - minscore); // taken from the linear interpolation formula
     if(newscore < 0) // there are cases where new score is below 0, in those cases the normalized score should be scaled to zero
       newscore = 0;
     an.score = Math.round(10000*(newscore))/10000.0;
   }
 
-  private HashMap<Integer, Component> getSeparateComp(HashSet<Double> setm, AnnotData annotD, int anG){
+  private HashMap<Integer, Component> getSeparateComp(HashSet<Double> setM, AnnotData annotD, int anG){
     HashMap<Integer, Component> mapC = new HashMap<>();
     int id = 0;
     HashSet<Integer> setf = new HashSet<>();
@@ -704,7 +705,7 @@ public class AdductAnnotationCliqueMS {
         break; // get an element of the set
       }
       extraf.add(it);
-      getComponent(setm, extraf, annotD, comp);
+      getComponent(setM, extraf, annotD, comp);
       // drop features if comp created
       if(comp.feature.size() > 0){
         for(Integer itf : comp.feature)
@@ -718,13 +719,13 @@ public class AdductAnnotationCliqueMS {
 
 
 
-  public OutputAn returnAdductAnnotation(AnClique anClique, List<PeakData> dfClique,List<IonizationType>  mzdf, int topmassf, int topmasstotal, int sizeanG, MZTolerance tol, double filter, double emptyS, boolean normalizeScore){
+  public OutputAn returnAdductAnnotation( List<PeakData> dfClique,List<IonizationType>  mzDF, int topMassF, int topMassTotal, int sizeAnG, MZTolerance tol, double filter, double emptyS, boolean normalizeScore){
     double newMass = -10.0;
     int defaultNewMassSize = 8;
     // 1 - read ordered data frame of features and masses from PeakData
-    AnnotDF annotdf = readDF(dfClique);
+    AnnotDataFrame annotdf = readDataFrame(dfClique);
     // 2 - read data frame with adduct list and adduct information from orderadinfo
-    RawAdList rList = readRawList(mzdf);
+    RawAdList rList = readRawList(mzDF);
     List<Double> vScore = getScoreAddList(rList);
     // 3 - obtain all adducts and mass candidates
     AnnotData annotD = getAnnotData(rList, annotdf, tol, filter);
@@ -732,17 +733,17 @@ public class AdductAnnotationCliqueMS {
     OutputAn outAn = new OutputAn(annotdf.features);
     // 5 - find annotation for all annotation groups in this clique
     for(Integer itg : annotD.anGroups.keySet()){
-      HashSet<Double> setm = getTopScoringMasses(annotD, itg, rList, topmassf, topmasstotal, emptyS);
-      if(annotD.anGroups.get(itg).size() > sizeanG){
+      HashSet<Double> setm = getTopScoringMasses(annotD, itg, rList, topMassF, topMassTotal, emptyS);
+      if(annotD.anGroups.get(itg).size() > sizeAnG){
         // in case that there are a lot of features in this annotation group, separate components
         HashMap<Integer, Component> components = getSeparateComp(setm, annotD, itg);
         // get all annotations
         for(Integer itc : components.keySet()){
           HashMap<Integer,Annotation> annotations = annotateMassLoop(annotD, components.get(itc).feature, rList, components.get(itc).mass, emptyS);
           // get the id of the top five annotations
-          List<Integer> topAn = sortAnnotation(annotations, 5);
+          List<Integer> topAn = sortAnnotation(annotations, ComputeAdduct.numofAnnotation);
           // 6 - Now put this annotations in the output object
-          for(int x = 0 ; x<5 ; x++){
+          for(int x = 0 ; x<ComputeAdduct.numofAnnotation ; x++){
             if(topAn.size() > x){
               // normalize the scores
               if(normalizeScore && x==0){
@@ -764,14 +765,8 @@ public class AdductAnnotationCliqueMS {
         for(Integer itgf : annotD.anGroups.get(itg))
           setf.add(itgf);
         HashMap<Integer, Annotation> annotations = annotateMassLoop(annotD, setf, rList, setm, emptyS);
-        for(Integer i : annotations.keySet())
-        for(Integer itex1 : annotations.keySet()){
-          for(Integer itex2 : annotations.get(itex1).annotation.keySet()){
-            //TODO
-          }
-        }
-        List<Integer> topAn = sortAnnotation(annotations, 5);
-        for(int x=0; x<5; x++){
+        List<Integer> topAn = sortAnnotation(annotations, ComputeAdduct.numofAnnotation);
+        for(int x=0; x<ComputeAdduct.numofAnnotation; x++){
           if(topAn.size() > x){
             if(normalizeScore && x==0){
               for(Integer itv : topAn)
@@ -793,18 +788,27 @@ public class AdductAnnotationCliqueMS {
 
 }
 
-class AnnotDF {
+/**
+ * holds data of features that is required to annotate, list of values for all features in a clique
+ */
+class AnnotDataFrame {
   List<Double> mz = new ArrayList<>();
   List<Integer> features = new ArrayList<>();
   List<Integer> charge = new ArrayList<>();
 }
 
-
+/**
+ * Holds list of all possible adducts taken from IonizationType enum
+ */
 class RawAdList {
   HashMap<String,IonizationType> rawList = new HashMap<>();
   List<String> addOrder = new ArrayList<>();
 }
 
+/**
+ * Holds data of features in a cliques, further groups features in each clique as AnGroup and holds
+ * mass candidates for features in each anGroup.
+ */
 class AnnotData{
   HashMap<Integer,Integer> features = new HashMap<>();
   HashMap<Double,List<Pair<Integer,String>>> massList = new HashMap<>();
@@ -813,11 +817,19 @@ class AnnotData{
   HashMap<Integer,HashMap<Double,List<Pair<Integer,String>>>> anGroup2mass = new HashMap<>();
 }
 
+/**
+ * class to group mass and feature together, in case that there are a lot of features in an
+ * annotation group, separated into components
+ */
 class Component {
   Set<Double> mass = new HashSet<>();
   Set<Integer> feature = new HashSet<>();
 }
 
+/**
+ * holds single annotation data for one feature
+ * annotation contains map for a possible of annotations to a pair of mass and formula of possible adducts
+ */
 class Annotation {
   Double score = 0.0;
   HashMap<Integer,Pair<Double,String>> annotation = new HashMap<>();
