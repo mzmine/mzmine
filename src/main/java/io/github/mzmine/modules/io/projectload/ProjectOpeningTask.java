@@ -37,11 +37,6 @@ import com.google.common.io.CountingInputStream;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.version_2_0.PeakListOpenHandler_2_0;
-import io.github.mzmine.modules.io.projectload.version_2_0.RawDataFileOpenHandler_2_0;
-import io.github.mzmine.modules.io.projectload.version_2_3.PeakListOpenHandler_2_3;
-import io.github.mzmine.modules.io.projectload.version_2_3.RawDataFileOpenHandler_2_3;
-import io.github.mzmine.modules.io.projectload.version_2_3.UserParameterOpenHandler_2_3;
 import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
@@ -316,24 +311,9 @@ public class ProjectOpeningTask extends AbstractTask {
     int projectMinorVersion = Integer.valueOf(m.group(2));
 
     // Check if project was saved with an old version
-    if (projectMajorVersion == 1) {
+    if ((projectMajorVersion == 1) || ((projectMajorVersion == 2) && (projectMinorVersion <= 4))) {
       throw new IOException("This project was saved with an old version (MZmine "
           + projectVersionString + ") and it cannot be opened in MZmine " + mzmineVersionString);
-    }
-
-    // Check if the project version is 2.0 to 2.2
-    if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
-      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
-      peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
-      return;
-    }
-
-    // Check if the project version is 2.3 to 2.4
-    if ((projectMajorVersion == 2) && (projectMinorVersion <= 4)) {
-      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
-      peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
-      userParameterOpenHandler = new UserParameterOpenHandler_2_3(newProject, dataFilesIDMap);
-      return;
     }
 
     // Check if project was saved with a newer version
@@ -347,7 +327,7 @@ public class ProjectOpeningTask extends AbstractTask {
       }
     }
 
-    // Default opening handler for MZmine.5 and higher
+    // Default opening handler for MZmine 2.5 and higher
     rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
     peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
     userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject, dataFilesIDMap);
@@ -404,9 +384,11 @@ public class ProjectOpeningTask extends AbstractTask {
     currentLoadedObjectName = fileName + " scan data";
 
     final File tempFile = RawDataFileImpl.createNewDataPointsFile();
+    logger.info("Saving scans data of #" + fileID + " to " + tempFile);
+
     final FileOutputStream os = new FileOutputStream(tempFile);
 
-    copyMachine = new StreamCopy();
+    copyMachine = new StreamCopy32to64();
     copyMachine.copy(is, os);
     os.close();
 

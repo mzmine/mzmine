@@ -428,6 +428,7 @@ public class ComputeCliqueModule {
    * @return AnClique object
    */
   public AnClique getClique() {
-    return getClique(true, new MZTolerance(0,5),new RTTolerance(false,0.0001), 0.0001, .000001);
+    return getClique(true, new MZTolerance(0,5),
+            new RTTolerance(0.01, RTTolerance.Unit.PERCENT), 0.0001, .000001);
   }
 }

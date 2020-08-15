@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.modules.io.projectload;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,28 +25,18 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import io.github.mzmine.util.StreamCopy;
 
-public class StreamCopy {
-
-  protected long copiedLength, totalLength;
-  protected boolean canceled = false, finished = false;
+public class StreamCopy32to64 extends StreamCopy {
 
   /**
-   * Copy the data from inputStream to outputStream using nio channels
+   * Copy the data from inputStream to outputStream while converting float values to doubles. Used
+   * to open old MZmine projects that saved the data points using floats.
    *
    * @param input InputStream
    * @param output OutputStream
    */
-  public void copy(InputStream input, OutputStream output) throws IOException {
-    this.copy(input, output, 0);
-  }
-
-  /**
-   * Copy the data from inputStream to outputStream using nio channels
-   *
-   * @param input InputStream
-   * @param output OutputStream
-   */
+  @Override
   public void copy(InputStream input, OutputStream output, long totalLength) throws IOException {
 
     this.totalLength = totalLength;
@@ -54,51 +44,40 @@ public class StreamCopy {
     ReadableByteChannel in = Channels.newChannel(input);
     WritableByteChannel out = Channels.newChannel(output);
 
-    // Allocate 1MB buffer
-    ByteBuffer bbuffer = ByteBuffer.allocate(1 << 20);
+    // Allocate buffers
+    ByteBuffer floatByteBuffer = ByteBuffer.allocate(Float.BYTES * 2000000);
+    ByteBuffer doubleByteBuffer = ByteBuffer.allocate(Double.BYTES * 2000000);
 
     int len = 0;
 
-    while ((len = in.read(bbuffer)) != -1) {
+    while ((len = in.read(floatByteBuffer)) != -1) {
 
       if (canceled)
         return;
 
-      bbuffer.flip();
-      out.write(bbuffer);
-      bbuffer.clear();
+      // Convert the float buffer to the double buffer
+      floatByteBuffer.flip();
+
+      while (floatByteBuffer.hasRemaining()) {
+        float f = floatByteBuffer.getFloat();
+        double d = f;
+        doubleByteBuffer.putDouble(d);
+      }
+
+      // Write the output buffer
+      doubleByteBuffer.flip();
+      out.write(doubleByteBuffer);
+
+      // Clear both buffers
+      floatByteBuffer.clear();
+      doubleByteBuffer.clear();
+
       copiedLength += len;
     }
 
     finished = true;
 
+
   }
 
-  /**
-   *
-   * @return the progress of the "copy()" function copying the data from one stream to another
-   */
-  public double getProgress() {
-    if (finished)
-      return 1.0;
-    if (totalLength == 0)
-      return 0;
-    if (copiedLength >= totalLength)
-      return 1.0;
-    return copiedLength / totalLength;
-  }
-
-  /**
-   * Cancel the copying
-   */
-  public void cancel() {
-    canceled = true;
-  }
-
-  /**
-   * Checks if copying is finished
-   */
-  public boolean finished() {
-    return finished;
-  }
 }

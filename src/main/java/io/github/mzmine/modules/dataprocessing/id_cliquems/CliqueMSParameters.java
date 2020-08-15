@@ -57,7 +57,7 @@ public class CliqueMSParameters extends SimpleParameterSet {
   public CliqueMSParameters(){
     super(new Parameter[]{PEAK_LISTS,FILTER,MZ_DIFF,RT_DIFF,IN_DIFF,TOL});
     MZ_DIFF.setValue(new MZTolerance(0, 5));
-    RT_DIFF.setValue(new RTTolerance(false,0.0004));
+    RT_DIFF.setValue(new RTTolerance(0.04, RTTolerance.Unit.PERCENT));
   }
 
 }
