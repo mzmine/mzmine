@@ -20,29 +20,27 @@
   <li><b>PeakList</b> - Feature List on which cliqueMS algorithm is to be performed.</li>
   <li><b>Filter</b> - Filter out similar features if they pass all MZ, RT and intensity tolerances.
     Two features are considered similar if their relative change in m/z, rt and intensity are less
-    than the respective tolerances.
+    than the respective tolerances. If filter is set, following options are given -
   </li>
-  <li><b>MZ tolerance</b> - If Filter option is set, this value determines the similarity of two
-    features, if their relative difference of m/z values is less than this, they are considered
-    similar.
-  </li>
-  <li><b>RT tolerance</b> - If Filter option is set, this value determines the similarity of two
-    features, if their relative difference of retention times values is less than this, they are
-    considered similar.
-  </li>
-  <li><b>Intensity tolerance</b> - If Filter option is set, this value determines the similarity of
-    two
-    features, if their relative difference of intensity is less than this, they are considered
-    similar.
-  </li>
+  <ul>
+    <li><b>MZ tolerance</b> - If Filter option is set, this value determines the similarity of two
+      features, if their relative difference of m/z values is less than this, they are considered
+      similar.
+    </li>
+    <li><b>RT tolerance</b> - If Filter option is set, this value determines the similarity of two
+      features, if their relative difference of retention times values is less than this, they are
+      considered similar.
+    </li>
+    <li><b>Intensity tolerance</b> - If Filter option is set, this value determines the similarity of
+      two
+      features, if their relative difference of intensity is less than this, they are considered
+      similar.
+    </li>
+  </ul>
   <li><b>Log - likelihood tolerance</b> - The Log likelihood function is maximised for clique
     formation.
     The iterations are stopped when the relative change in current log likelihood with respect to
     the initial log likelihood is less than the log-likelihood tolerance value.
-  </li>
-  <li><b>Filter similar features </b> - Marks all except one of the similar features. Two features
-    are similar if their relative change in m/z, rt and intensity are less than the respective
-    tolerances.
   </li>
   <li><b>Isotopes max. charge</b> - The maximum charge considered when two features are tested to
     see they are isotope or not. No isotope will be annotated with a charge greater than this.
