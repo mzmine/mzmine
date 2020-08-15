@@ -30,47 +30,50 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 public class CliqueMSModule implements MZmineProcessingModule {
+
   // Name and description.
-    public static final String MODULE_NAME = "CliqueMS annotation";
-    private static final String MODULE_DESCRIPTION =
-        "This method groups features and annotates the groups/cliques using CliqueMS algorithm.";
+  public static final String MODULE_NAME = "CliqueMS annotation";
+  private static final String MODULE_DESCRIPTION =
+      "This method groups features and annotates the groups/cliques using CliqueMS algorithm.";
 
-    @Override
-    public @Nonnull
-    String getName() {
-      return MODULE_NAME;
+  @Override
+  public @Nonnull
+  String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull
+  String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    PeakList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
+        .getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+      Task newTask = new CliqueMSTask(parameters, peakList);
+      tasks.add(newTask);
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-      return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-        @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull
+  MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.IDENTIFICATION;
+  }
 
-      PeakList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
-          .getMatchingPeakLists();
-
-      for (PeakList peakList : peakLists) {
-        Task newTask = new CliqueMSTask(parameters, peakList);
-        tasks.add(newTask);
-      }
-
-      return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull
-    MZmineModuleCategory getModuleCategory() {
-      return MZmineModuleCategory.IDENTIFICATION;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-      return CliqueMSParameters.class;
-    }
+  @Override
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
+    return CliqueMSParameters.class;
+  }
 
 }

@@ -21,20 +21,21 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 import javax.annotation.concurrent.Immutable;
 
 /**
- * This class contains information related to isotope, namely feature ID, charge, grade value
- * and cluster ID among the clique
+ * This class contains information related to isotope, namely feature ID, charge, grade value and
+ * cluster ID among the clique
  */
 @Immutable
 public class IsotopeInfo {
-    public Integer feature;
-    public Integer charge;
-    public Integer grade;
-    public Integer cluster;
 
-    public IsotopeInfo(Integer feature, Integer charge, Integer grade, Integer cluster){
-      this.feature = feature;
-      this.cluster = cluster;
-      this.grade = grade;
-      this.charge = charge;
-    }
+  public Integer feature;
+  public Integer charge;
+  public Integer grade;
+  public Integer cluster;
+
+  public IsotopeInfo(Integer feature, Integer charge, Integer grade, Integer cluster) {
+    this.feature = feature;
+    this.cluster = cluster;
+    this.grade = grade;
+    this.charge = charge;
+  }
 }

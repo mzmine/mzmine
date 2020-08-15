@@ -35,7 +35,7 @@ import org.apache.commons.lang3.mutable.MutableDouble;
 /**
  * Main class for computing isotopes provided anClique object whose cliques have been already
  * computed, if not the algorithm considers each node as 1 clique and compute isotopes.
- *
+ * <p>
  * See https://github.com/osenan/cliqueMS/blob/master/R/findIsotopes.R for R code corresponding to
  * this class
  */
@@ -47,7 +47,7 @@ public class ComputeIsotopesModule {
   private final AnClique anClique;
   private MutableDouble progress;
 
-  public ComputeIsotopesModule(AnClique anClique, CliqueMSTask task, MutableDouble progress){
+  public ComputeIsotopesModule(AnClique anClique, CliqueMSTask task, MutableDouble progress) {
     this.anClique = anClique;
     this.driverTask = task;
     this.progress = progress;
@@ -59,26 +59,24 @@ public class ComputeIsotopesModule {
    *
    * @param feature List of features
    * @param weights cosine correlation weight
-   * @return List</Integer> List of feature ID for features that are to be filtered
+   * @return List</ Integer> List of feature ID for features that are to be filtered
    */
-  private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights){
+  private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights) {
     // Drop one parental mass when one isotope has two parental masses candidates
-    HashMap <Integer,Integer> IFeatureHash = new HashMap<>();
+    HashMap<Integer, Integer> IFeatureHash = new HashMap<>();
     List<Integer> duplicateIfIndex = new ArrayList<>();//this contains indices to be deleted from all features
-    for(int i = 0 ; i<feature.size() ; i++){
-      if(IFeatureHash.containsKey(feature.get(i))){
+    for (int i = 0; i < feature.size(); i++) {
+      if (IFeatureHash.containsKey(feature.get(i))) {
         Integer duplicateFeature = feature.get(i);
         //The indices of the one with smaller weight is added to duplicateIfIndex to be deleted
-        if(weights.get(IFeatureHash.get(duplicateFeature)) < weights.get(i)){
-          duplicateIfIndex.add( IFeatureHash.get(duplicateFeature));
-          IFeatureHash.put(duplicateFeature,i);  // drop the parental feature with less weight
-        }
-        else{
+        if (weights.get(IFeatureHash.get(duplicateFeature)) < weights.get(i)) {
+          duplicateIfIndex.add(IFeatureHash.get(duplicateFeature));
+          IFeatureHash.put(duplicateFeature, i);  // drop the parental feature with less weight
+        } else {
           duplicateIfIndex.add(i);  // drop the parental feature with less weight
         }
-      }
-      else{
-        IFeatureHash.put(feature.get(i),i);
+      } else {
+        IFeatureHash.put(feature.get(i), i);
       }
     }
     return duplicateIfIndex;
@@ -88,48 +86,48 @@ public class ComputeIsotopesModule {
    * Function to filter isotopes feature vectors, and create network of isotope (inLink and outLink
    * ,i.e., vertices of an unweighted, directed graph are calculated)
    *
-   *
    * @param pFeature List of parental mass feature ID
    * @param iFeature List of isotope corresponding to each parental mass in pFeature
-   * @param pCharge List of charge of parental mass
-   * @param iCharge List of charge for isotope corresponding to the parental mass
+   * @param pCharge  List of charge of parental mass
+   * @param iCharge  List of charge for isotope corresponding to the parental mass
    */
-  private void filterIso(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge){
+  private void filterIso(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge,
+      List<Integer> iCharge) {
     //Find node corresponding pFeature and iFeature from network
     NetworkCliqueMS network = this.anClique.getNetwork();
     List<Double> weights = new ArrayList<>();
-    for(int i = 0 ; i< pFeature.size() ; i++){
+    for (int i = 0; i < pFeature.size(); i++) {
       Integer first = pFeature.get(i), second = iFeature.get(i);
       //if first>=second, revert as edge list in network only contains only edges with nodes such that first < second
-      if(first >= second){
+      if (first >= second) {
         Integer temp = first;
         first = second;
         second = temp;
       }
-      weights.add(network.getEdges().get(new Pair(first,second)));
+      weights.add(network.getEdges().get(new Pair(first, second)));
     }
 
     // First filter isotopes pointing to two different parents
     List<Integer> deletePos = findBadFeatures(iFeature, weights);
     // Second filter parents pointed by two different isotopes
-    deletePos.addAll(findBadFeatures(pFeature,weights));
+    deletePos.addAll(findBadFeatures(pFeature, weights));
     Collections.sort(deletePos, Collections.reverseOrder());
     //removing the indices
-    for(Integer index : deletePos){
-      pFeature.remove((int)index);
-      iFeature.remove((int)index);
-      pCharge.remove((int)index);
-      iCharge.remove((int)index);
-      weights.remove((int)index);
+    for (Integer index : deletePos) {
+      pFeature.remove((int) index);
+      iFeature.remove((int) index);
+      pCharge.remove((int) index);
+      iCharge.remove((int) index);
+      weights.remove((int) index);
     }
 
     // Third filter inconsistency in charge
     deletePos.clear();
-    for(int i=0; i<pFeature.size() ; i++){
-      for(int j=0; j<iFeature.size() ; j++){
-        if(pFeature.get(i).equals(iFeature.get(j))){
+    for (int i = 0; i < pFeature.size(); i++) {
+      for (int j = 0; j < iFeature.size(); j++) {
+        if (pFeature.get(i).equals(iFeature.get(j))) {
           //If same node in iFeature and pFeature, they must have same charge
-          if(pCharge.get(i).equals(iCharge.get(j))){
+          if (pCharge.get(i).equals(iCharge.get(j))) {
             deletePos.add(i);
             deletePos.add(j);
           }
@@ -141,25 +139,27 @@ public class ComputeIsotopesModule {
 
   /**
    * Function to grade and isotope, starting from 0 to the parental isotope, 1 the first isotope and
-   * further.
-   * The algorithm was implemented in R through igraph, this is the equivalent algorithm. The igraph
-   * was directed, unweighted and iLinks and outLinks correspond to the vertices in that graph network.
-   * @param inLinks inLink to the graph
+   * further. The algorithm was implemented in R through igraph, this is the equivalent algorithm.
+   * The igraph was directed, unweighted and iLinks and outLinks correspond to the vertices in that
+   * graph network.
+   *
+   * @param inLinks  inLink to the graph
    * @param outLinks outLinks to the graph
    * @return int[][] nx2 dimension matrix, n = #inLinks + #outLinks,  1st dimension carries nodeID
    * and 2nd carries grade of the node
    */
-  private int[][] isoGrade(List<Integer> inLinks, List<Integer> outLinks){
-    int [][]gradeData = new int[2*inLinks.size()][2]; // 1st dimension carries node ID, 2nd carries grade
+  private int[][] isoGrade(List<Integer> inLinks, List<Integer> outLinks) {
+    int[][] gradeData = new int[2 * inLinks
+        .size()][2]; // 1st dimension carries node ID, 2nd carries grade
     int pos = 0;
-    for(int i=0;i<inLinks.size();i++){
+    for (int i = 0; i < inLinks.size(); i++) {
       gradeData[pos++][0] = inLinks.get(i);
       gradeData[pos++][0] = outLinks.get(i);
     }
 
-    for(int i=0;i<gradeData.length ; i++){
+    for (int i = 0; i < gradeData.length; i++) {
       int res = 0;
-      if(inLinks.contains(gradeData[i][0])) {
+      if (inLinks.contains(gradeData[i][0])) {
         int nei = outLinks.get(inLinks.indexOf(gradeData[i][0]));
         while (true) {
           res++;
@@ -180,37 +180,36 @@ public class ComputeIsotopesModule {
    *
    * @param pFeature List of parental mass feature ID
    * @param iFeature List of isotope corresponding to each parental mass in pFeature
-   * @param pCharge List of charge of parental mass
-   * @param iCharge List of charge for isotope corresponding to the parental mass
+   * @param pCharge  List of charge of parental mass
+   * @param iCharge  List of charge for isotope corresponding to the parental mass
    * @param maxGrade Maximum possible grade to be assigned to each isotope
    * @return isotable consolidated data for every isotope for the clique
    */
-  private IsoTable isoNetAttributes(List<Integer> pFeature, List<Integer> iFeature, List<Integer> pCharge, List<Integer> iCharge, int maxGrade){
+  private IsoTable isoNetAttributes(List<Integer> pFeature, List<Integer> iFeature,
+      List<Integer> pCharge, List<Integer> iCharge, int maxGrade) {
     // First assign grade (for info look isoGrade function)
-    int [][] grade = isoGrade(iFeature,pFeature);
+    int[][] grade = isoGrade(iFeature, pFeature);
 
     List<Integer> nodes = new ArrayList<>(); //get all nodes IDs from the grade matrix
     HashSet<Integer> nodesSet = new HashSet<>();
-    Hashtable<Integer,Integer> gradeHash = new Hashtable<>();
-    for(int i=0;i<grade.length;i++){
+    Hashtable<Integer, Integer> gradeHash = new Hashtable<>();
+    for (int i = 0; i < grade.length; i++) {
       nodesSet.add(grade[i][0]);
-      gradeHash.put(grade[i][0],grade[i][1]);
+      gradeHash.put(grade[i][0], grade[i][1]);
     }
     nodes.addAll(nodesSet);
 
     List<Integer> grades = new ArrayList<>(); // get all grades corresponding to the nodeID
-    for(int i = 0;i < nodes.size() ; i++){
+    for (int i = 0; i < nodes.size(); i++) {
       grades.add(gradeHash.get(nodes.get(i)));
     }
 
-
     List<Integer> charge = new ArrayList<>();
-    for(int i=0;i<nodes.size() ; i++){
+    for (int i = 0; i < nodes.size(); i++) {
       int res;
-      if(pFeature.contains(nodes.get(i))){
+      if (pFeature.contains(nodes.get(i))) {
         res = pCharge.get(pFeature.indexOf(nodes.get(i)));
-      }
-      else{
+      } else {
         res = iCharge.get(iFeature.indexOf(nodes.get(i)));
       }
       charge.add(res);
@@ -218,37 +217,39 @@ public class ComputeIsotopesModule {
 
     // label features that belong to the same isotope cluster
     List<Integer> cluster = new ArrayList<>();
-    for (int i=0; i < nodes.size(); i++) {
+    for (int i = 0; i < nodes.size(); i++) {
       cluster.add(0);
     }
     int clusterID = 1;
     HashSet<Integer> clusteredNodes = new HashSet<>();
-    for(Integer x : iFeature){
-      if(clusteredNodes.contains(x))
+    for (Integer x : iFeature) {
+      if (clusteredNodes.contains(x)) {
         continue;
-      cluster.set(nodes.indexOf(x),clusterID);
+      }
+      cluster.set(nodes.indexOf(x), clusterID);
       clusteredNodes.add(x);
       Integer nei = pFeature.get(iFeature.indexOf(x));
-      cluster.set(nodes.indexOf(nei),clusterID);
+      cluster.set(nodes.indexOf(nei), clusterID);
       clusteredNodes.add(nei);
-      while(iFeature.contains(nei)){
+      while (iFeature.contains(nei)) {
         nei = pFeature.get(iFeature.indexOf(nei));
-        cluster.set(nodes.indexOf(nei),clusterID);
+        cluster.set(nodes.indexOf(nei), clusterID);
         clusteredNodes.add(nei);
       }
       clusterID++;
     }
 
     //correct the grade if grade is greater than maxGrade
-    while(Collections.max(grades) > maxGrade) {
+    while (Collections.max(grades) > maxGrade) {
       // The following code corresponds to correctGrade in R code
       int maxCluster = Collections.max(cluster);
       HashSet<Integer> uniqueCluster = new HashSet<>(cluster); // unique cluster
       for (Integer clus : uniqueCluster) {
         List<Integer> clusterIndices = new ArrayList<>();
-        for(int i = 0; i < cluster.size() ; i++) {
-          if(clus.equals(cluster.get(i)))
+        for (int i = 0; i < cluster.size(); i++) {
+          if (clus.equals(cluster.get(i))) {
             clusterIndices.add(i);
+          }
         }
         List<Integer> badGradeIndex = new ArrayList<>();
         for (int i : clusterIndices) {
@@ -276,117 +277,126 @@ public class ComputeIsotopesModule {
   /**
    * Function to compute list of isotable (containing consolidated data for isotopes) for each
    * clique
-   * @param maxCharge The maximum charge considered when two features are tested to see they are isotope or not
-   * @param maxGrade The maximum number of isotopes per cluster
-   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope
-   * @param isom The mass difference of the isotope
+   *
+   * @param maxCharge      The maximum charge considered when two features are tested to see they
+   *                       are isotope or not
+   * @param maxGrade       The maximum number of isotopes per cluster
+   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to
+   *                       consider that two features have the mass difference of an isotope
+   * @param isom           The mass difference of the isotope
    * @return isoTableList
    */
-  private List<IsoTable> computeListIsoTable(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
+  private List<IsoTable> computeListIsoTable(int maxCharge, int maxGrade,
+      MZTolerance isoMZTolerance, double isom) {
     List<PeakData> pdList = anClique.getPeakDataList();
-    HashMap<Integer,PeakData> pdHash = new HashMap<>();
-    List<IsoTable> listIsoTable =new ArrayList<>();
-    for(PeakData pd : pdList){
-      pdHash.put(pd.getNodeID(),pd);
+    HashMap<Integer, PeakData> pdHash = new HashMap<>();
+    List<IsoTable> listIsoTable = new ArrayList<>();
+    for (PeakData pd : pdList) {
+      pdHash.put(pd.getNodeID(), pd);
     }
-    int done = 0 ;
-    for(Integer cliqueID : this.anClique.cliques.keySet()){
-      done++ ;
+    int done = 0;
+    for (Integer cliqueID : this.anClique.cliques.keySet()) {
+      done++;
       this.progress.setValue(driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS +
-          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS *((double) done /(double) this.anClique.cliques.size()));
+          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS * ((double) done
+          / (double) this.anClique.cliques.size()));
 
-      if(driverTask.isCanceled()){
+      if (driverTask.isCanceled()) {
         return listIsoTable;
       }
-      List<Pair<Double, Pair<Double,Integer>>> inData = new ArrayList<>(); // contains following data -> intensity, mz value, nodeID
-      for(Integer cliquenodeID : this.anClique.cliques.get(cliqueID)){
+      List<Pair<Double, Pair<Double, Integer>>> inData = new ArrayList<>(); // contains following data -> intensity, mz value, nodeID
+      for (Integer cliquenodeID : this.anClique.cliques.get(cliqueID)) {
         PeakData pd = pdHash.get(cliquenodeID);
-        Pair<Double,Integer> p = new Pair(pd.getMz(),pd.getNodeID());
-        Pair<Double,Pair<Double,Integer>> isoInput = new Pair(pd.getIntensity(),p);
+        Pair<Double, Integer> p = new Pair(pd.getMz(), pd.getNodeID());
+        Pair<Double, Pair<Double, Integer>> isoInput = new Pair(pd.getIntensity(), p);
         inData.add(isoInput);
       }
 
       inData.sort((o1, o2) -> Double.compare(o2.getKey(), o1.getKey()));
 
       IsotopeAnCliqueMS an = new IsotopeAnCliqueMS(inData);
-      an.getIsotopes(maxCharge,isoMZTolerance,isom);
+      an.getIsotopes(maxCharge, isoMZTolerance, isom);
       IsoTable iTable = null;
-      if(an.getPfeature().size() > 0){
+      if (an.getPfeature().size() > 0) {
         // filter the isotope list by charge and other inconsistencies
-        filterIso(an.getPfeature(),an.getIfeature(),an.getPcharge(),an.getIcharge());
-        if(an.getPfeature().size() > 0){
-          iTable = isoNetAttributes(an.getPfeature(),an.getIfeature(),an.getPcharge(),an.getIcharge(),maxGrade);
+        filterIso(an.getPfeature(), an.getIfeature(), an.getPcharge(), an.getIcharge());
+        if (an.getPfeature().size() > 0) {
+          iTable = isoNetAttributes(an.getPfeature(), an.getIfeature(), an.getPcharge(),
+              an.getIcharge(), maxGrade);
         }
       }
-      if(iTable != null)
+      if (iTable != null) {
         listIsoTable.add(iTable);
+      }
     }
     return listIsoTable;
   }
 
   /**
-   * Function to add isotope annotation for each feature. Updates IsoInfo in AnClique object
-   * (see IsoInfo class)
+   * Function to add isotope annotation for each feature. Updates IsoInfo in AnClique object (see
+   * IsoInfo class)
    *
-   * @param maxCharge The maximum charge considered when two features are tested to see they are isotope or not
-   * @param maxGrade The maximum number of isotopes per cluster
-   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to consider that two features have the mass difference of an isotope
-   * @param isom The mass difference of the isotope
+   * @param maxCharge      The maximum charge considered when two features are tested to see they
+   *                       are isotope or not
+   * @param maxGrade       The maximum number of isotopes per cluster
+   * @param isoMZTolerance Mass tolerance used when identifying isotopes, relative error in ppm to
+   *                       consider that two features have the mass difference of an isotope
+   * @param isom           The mass difference of the isotope
    */
-  public void getIsotopes(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom){
-    if(!anClique.cliquesFound){
-      logger.log(Level.WARNING,"Cliques have not been computed for this object. This could lead"
+  public void getIsotopes(int maxCharge, int maxGrade, MZTolerance isoMZTolerance, double isom) {
+    if (!anClique.cliquesFound) {
+      logger.log(Level.WARNING, "Cliques have not been computed for this object. This could lead"
           + " to long computing times for isotope annotation.");
     }
-    if(anClique.isoFound){
-      logger.log(Level.WARNING,"Isotopes have been already computed for this object");
+    if (anClique.isoFound) {
+      logger.log(Level.WARNING, "Isotopes have been already computed for this object");
     }
 
-    logger.log(Level.INFO,"Computing Isotopes");
+    logger.log(Level.INFO, "Computing Isotopes");
     List<IsoTable> isoTableList = computeListIsoTable(maxCharge, maxGrade, isoMZTolerance, isom);
-    if(driverTask.isCanceled()){
+    if (driverTask.isCanceled()) {
       return;
     }
     List<String> isoLabel = new ArrayList<>();
     //The cluster label is inconsistent between all isotopes found let's correct for avoiding confusions
     int maxC = Collections.max(isoTableList.get(0).cluster);
-    for(int i = 1;i<isoTableList.size() ; i++){
-      for(int j = 0; j < isoTableList.get(i).cluster.size() ; j++ ){
-        isoTableList.get(i).cluster.set(j,isoTableList.get(i).cluster.get(j)+maxC + 1);
+    for (int i = 1; i < isoTableList.size(); i++) {
+      for (int j = 0; j < isoTableList.get(i).cluster.size(); j++) {
+        isoTableList.get(i).cluster.set(j, isoTableList.get(i).cluster.get(j) + maxC + 1);
       }
       maxC = Collections.max(isoTableList.get(i).cluster);
     }
     // give isotope labels
-    Hashtable<Integer,Integer> nodeIDtoindexHash = new Hashtable<>();
+    Hashtable<Integer, Integer> nodeIDtoindexHash = new Hashtable<>();
     List<Integer> charge = new ArrayList<>();
 
-    for(int i = 0 ; i < this.anClique.getPeakDataList().size() ; i++){
+    for (int i = 0; i < this.anClique.getPeakDataList().size(); i++) {
       PeakData pd = this.anClique.getPeakDataList().get(i);
       isoLabel.add("M0"); // give MO label to every peak
       charge.add(0); //give 0 charge to every peak (this charge is later used in adduct annotation)
-      nodeIDtoindexHash.put(pd.getNodeID(),i);
+      nodeIDtoindexHash.put(pd.getNodeID(), i);
     }
 
-    for(IsoTable isoTable : isoTableList){
-      for(int i = 0 ; i < isoTable.feature.size() ; i++){
-        String label = "M"+isoTable.grade.get(i)+"["+isoTable.cluster.get(i)+"]";
+    for (IsoTable isoTable : isoTableList) {
+      for (int i = 0; i < isoTable.feature.size(); i++) {
+        String label = "M" + isoTable.grade.get(i) + "[" + isoTable.cluster.get(i) + "]";
         isoLabel.set(nodeIDtoindexHash.get(isoTable.feature.get(i)), label);
-        charge.set(nodeIDtoindexHash.get(isoTable.feature.get(i)),isoTable.charge.get(i));
+        charge.set(nodeIDtoindexHash.get(isoTable.feature.get(i)), isoTable.charge.get(i));
       }
     }
 
-    for(int i = 0; i < isoLabel.size() ; i++){
+    for (int i = 0; i < isoLabel.size(); i++) {
       PeakData pd = this.anClique.getPeakDataList().get(i);
       pd.setIsotopeAnnotation(isoLabel.get(i));
       pd.setCharge(charge.get(i));
     }
 
-
     //setting Isotope info for AnClique object
     List<IsotopeInfo> isoInfos = new ArrayList<>();
-    for(IsoTable isoT : isoTableList){
-      for(int i=0 ; i<isoT.feature.size() ; i++){
-        IsotopeInfo iInfo = new IsotopeInfo(isoT.feature.get(i), isoT.charge.get(i), isoT.grade.get(i), isoT.cluster.get(i));
+    for (IsoTable isoT : isoTableList) {
+      for (int i = 0; i < isoT.feature.size(); i++) {
+        IsotopeInfo iInfo = new IsotopeInfo(isoT.feature.get(i), isoT.charge.get(i),
+            isoT.grade.get(i), isoT.cluster.get(i));
         isoInfos.add(iInfo);
       }
     }
@@ -401,7 +411,8 @@ public class ComputeIsotopesModule {
  * Class containing combined data for isotope in same clique. Dimension of every list in the class
  * is same, and corresponds to the feature no.,mcharge, grade and cluster of isotopes in a clique.
  */
-class IsoTable{
+class IsoTable {
+
   List<Integer> feature;
   List<Integer> charge;
   List<Integer> grade;

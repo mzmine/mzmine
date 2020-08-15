@@ -27,9 +27,9 @@ import javafx.util.Pair;
 
 /**
  * AnClique Class keeps all data structures related to grouping, annotating isotopes and adducts
- *
- * See the AnClique class https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R for the
- * R class corresponding to this class
+ * <p>
+ * See the AnClique class https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R for the R
+ * class corresponding to this class
  */
 public class AnClique {
 
@@ -44,26 +44,26 @@ public class AnClique {
   private List<AdductInfo> adInfos;
 
   // key - clique ID, value - List of nodes which are part of the clique.
-  public HashMap<Integer,List<Integer>> cliques = new HashMap<>();
+  public HashMap<Integer, List<Integer>> cliques = new HashMap<>();
 
-  AnClique(List<PeakData> peakDataList, RawDataFile file){
+  AnClique(List<PeakData> peakDataList, RawDataFile file) {
     this.peakDataList = peakDataList;
     this.dataFile = file;
   }
 
-  public List<PeakData> getPeakDataList(){
+  public List<PeakData> getPeakDataList() {
     return peakDataList;
   }
 
-  public void changePeakDataList(List<PeakData> pd){
+  public void changePeakDataList(List<PeakData> pd) {
     this.peakDataList = pd;
   }
 
-  public RawDataFile getRawDataFile(){
-    return  dataFile;
+  public RawDataFile getRawDataFile() {
+    return dataFile;
   }
 
-  public NetworkCliqueMS getNetwork(){
+  public NetworkCliqueMS getNetwork() {
     return network;
   }
 
@@ -84,20 +84,19 @@ public class AnClique {
     this.adInfos = adInfos;
   }
 
-  public void computeCliqueFromResult(){
-    List<Pair<Integer,Integer>> nodeCliqueList = this.network.getResultNodeClique();
+  public void computeCliqueFromResult() {
+    List<Pair<Integer, Integer>> nodeCliqueList = this.network.getResultNodeClique();
 
     //firstly, generate hash from nodeID to peakData
     HashMap<Integer, PeakData> nodeToPeak = new HashMap<>();
-    for(PeakData pd : this.peakDataList){
-      nodeToPeak.put(pd.getNodeID(),pd);
+    for (PeakData pd : this.peakDataList) {
+      nodeToPeak.put(pd.getNodeID(), pd);
     }
 
-    for(Pair<Integer,Integer> p : nodeCliqueList){
-      if(this.cliques.containsKey(p.getValue())){
+    for (Pair<Integer, Integer> p : nodeCliqueList) {
+      if (this.cliques.containsKey(p.getValue())) {
         this.cliques.get(p.getValue()).add(p.getKey());
-      }
-      else{
+      } else {
         List<Integer> l = new ArrayList<>();
         l.add(p.getKey());
         this.cliques.put(p.getValue(), l);

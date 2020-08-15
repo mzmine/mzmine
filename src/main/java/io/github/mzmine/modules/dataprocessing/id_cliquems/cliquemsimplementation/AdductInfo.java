@@ -22,7 +22,8 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * This class contains information related to isotope, namely adduct annotations, mass value and scores
+ * This class contains information related to isotope, namely adduct annotations, mass value and
+ * scores
  */
 @Immutable
 public class AdductInfo {
@@ -32,7 +33,8 @@ public class AdductInfo {
   public List<Double> masses;
   public List<Double> scores;
 
-  public AdductInfo(Integer feature, List<String> annotations, List<Double> masses, List<Double> scores){
+  public AdductInfo(Integer feature, List<String> annotations, List<Double> masses,
+      List<Double> scores) {
     this.feature = feature;
     this.annotations = annotations;
     this.masses = masses;

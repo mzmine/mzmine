@@ -32,10 +32,10 @@ public class OutputAn {
 
   public List<Integer> features;
   public List<HashMap<Integer, String>> ans = new ArrayList<>();
-  public List<HashMap<Integer, Double>> masses  = new ArrayList<>();
+  public List<HashMap<Integer, Double>> masses = new ArrayList<>();
   public List<HashMap<Integer, Double>> scores = new ArrayList<>();
 
-  public OutputAn(List<Integer> features){
+  public OutputAn(List<Integer> features) {
     this.features = features;
 
     for (int i = 0; i < NUM_ANNO; i++) {
@@ -47,11 +47,11 @@ public class OutputAn {
       scores.add(tempScore);
     }
 
-    for(Integer itv : features) {
+    for (Integer itv : features) {
       for (int i = 0; i < NUM_ANNO; i++) {
-        this.ans.get(i).put(itv,"NA");
-        this.masses.get(i).put(itv,0.0);
-        this.scores.get(i).put(itv,0.0);
+        this.ans.get(i).put(itv, "NA");
+        this.masses.get(i).put(itv, 0.0);
+        this.scores.get(i).put(itv, 0.0);
       }
     }
   }

@@ -39,17 +39,16 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 public class CliqueMSTask extends AbstractTask {
+
   // Logger.
   private static final Logger logger = Logger.getLogger(CliqueMSTask.class.getName());
 
   //progress constants
-  public final double EIC_PROGRESS = 0.5 ; // EIC calculation takes about 50% time
-  public final double MATRIX_PROGRESS = 0.3 ; // Cosine matrix calculation takes about 30% time
-  public final double NET_PROGRESS = 0.1 ; // Network calculations takes 10% time
-  public final double ISO_PROGRESS = 0.01 ; // Isotope calculation takes 1% time
+  public final double EIC_PROGRESS = 0.5; // EIC calculation takes about 50% time
+  public final double MATRIX_PROGRESS = 0.3; // Cosine matrix calculation takes about 30% time
+  public final double NET_PROGRESS = 0.1; // Network calculations takes 10% time
+  public final double ISO_PROGRESS = 0.01; // Isotope calculation takes 1% time
   public final double ANNOTATE_PROGRESS = 0.09; // Adduct annotation takes 9% time
-
-
 
 
   // Feature list to process.
@@ -63,7 +62,7 @@ public class CliqueMSTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public CliqueMSTask(final ParameterSet parameters,
-      final PeakList list){
+      final PeakList list) {
     this.parameters = parameters;
     peakList = list;
   }
@@ -80,7 +79,7 @@ public class CliqueMSTask extends AbstractTask {
   }
 
   @Override
-  public void cancel(){
+  public void cancel() {
     super.cancel();
   }
 
@@ -92,34 +91,45 @@ public class CliqueMSTask extends AbstractTask {
 
     try {
       //TODO multiple rawDataFile support
-      if(peakList.getRawDataFiles().size() == 0){
+      if (peakList.getRawDataFiles().size() == 0) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" No raw datafile found for the feature");
+        setErrorMessage("Could not calculate cliques for features " + peakList.getName()
+            + " No raw datafile found for the feature");
         return;
       }
-      ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0),progress, this);
+      ComputeCliqueModule cm = new ComputeCliqueModule(peakList, peakList.getRawDataFile(0),
+          progress, this);
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
-      AnClique anClique =  cm.getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
-          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.MZ_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.RT_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters().getParameter(SimilarFeatureParameters.IN_DIFF).getValue(),
-          parameters.getParameter(CliqueMSParameters.TOL).getValue());
+      }
+      AnClique anClique = cm
+          .getClique(parameters.getParameter(CliqueMSParameters.FILTER).getValue(),
+              parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters()
+                  .getParameter(SimilarFeatureParameters.MZ_DIFF).getValue(),
+              parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters()
+                  .getParameter(SimilarFeatureParameters.RT_DIFF).getValue(),
+              parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters()
+                  .getParameter(SimilarFeatureParameters.IN_DIFF).getValue(),
+              parameters.getParameter(CliqueMSParameters.TOL).getValue());
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
-      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique,this,progress);
+      }
+      ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique, this, progress);
       cim.getIsotopes(parameters.getParameter(CliqueMSParameters.ISOTOPES_MAX_CHARGE).getValue(),
           parameters.getParameter(CliqueMSParameters.ISOTOPES_MAXIMUM_GRADE).getValue(),
           parameters.getParameter(CliqueMSParameters.ISOTOPES_MZ_TOLERANCE).getValue(),
           parameters.getParameter(CliqueMSParameters.ISOTOPE_MASS_DIFF).getValue());
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
-      ComputeAdduct computeAdduct = new ComputeAdduct(anClique,this, this.progress);
+      }
+      ComputeAdduct computeAdduct = new ComputeAdduct(anClique, this, this.progress);
 
-      PolarityType polarity = (parameters.getParameter(CliqueMSParameters.POLARITY).getValue().equals("positive"))?PolarityType.POSITIVE : PolarityType.NEGATIVE;
+      PolarityType polarity =
+          (parameters.getParameter(CliqueMSParameters.POLARITY).getValue().equals("positive"))
+              ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
 
       List<AdductInfo> addInfos = computeAdduct.getAnnotation(
           parameters.getParameter(CliqueMSParameters.ANNOTATE_TOP_MASS).getValue(),
@@ -132,46 +142,50 @@ public class CliqueMSTask extends AbstractTask {
           parameters.getParameter(CliqueMSParameters.ANNOTATE_NORMALIZE).getValue());
 
       // Check if not canceled
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
-      addFeatureIdentity(anClique,addInfos);
+      addFeatureIdentity(anClique, addInfos);
 
       // Finished.
       this.progress.setValue(1.0);
-      logger.log(Level.FINEST,"Clique formation, isotope annotation and adduct annotation done for features");
+      logger.log(Level.FINEST,
+          "Clique formation, isotope annotation and adduct annotation done for features");
       setStatus(TaskStatus.FINISHED);
-    }
-    catch(Exception e){
+    } catch (Exception e) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n");
+      setErrorMessage("Could not calculate cliques for features " + peakList.getName() + " \n");
       e.printStackTrace();
     }
   }
 
-  private void addFeatureIdentity(AnClique anClique, List<AdductInfo> addInfos){
-    List<PeakData> pdList =  anClique.getPeakDataList();
+  private void addFeatureIdentity(AnClique anClique, List<AdductInfo> addInfos) {
+    List<PeakData> pdList = anClique.getPeakDataList();
 
-    for(PeakData pd : pdList){
-      SimplePeakIdentity identity = new SimplePeakIdentity("Node #"+pd.getNodeID());
-      identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD,"CliqueMS algorithm");
-      identity.setPropertyValue("Clique-ID",String.valueOf(pd.getCliqueID()));
-      identity.setPropertyValue("Isotope",pd.getIsotopeAnnotation());
-      if(this.peakList.findRowByID(pd.getPeakListRowID()) != null)
-        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
+    for (PeakData pd : pdList) {
+      SimplePeakIdentity identity = new SimplePeakIdentity("Node #" + pd.getNodeID());
+      identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD, "CliqueMS algorithm");
+      identity.setPropertyValue("Clique-ID", String.valueOf(pd.getCliqueID()));
+      identity.setPropertyValue("Isotope", pd.getIsotopeAnnotation());
+      if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
+        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity, true);
+      }
     }
-    HashMap<Integer,PeakData> pdHash = new HashMap<>();
-    for(PeakData pd : pdList)
-      pdHash.put(pd.getNodeID(),pd);
-    for(AdductInfo adInfo : addInfos){
+    HashMap<Integer, PeakData> pdHash = new HashMap<>();
+    for (PeakData pd : pdList) {
+      pdHash.put(pd.getNodeID(), pd);
+    }
+    for (AdductInfo adInfo : addInfos) {
       PeakData pd = pdHash.get(adInfo.feature);
-      for(int i=0 ; i<ComputeAdduct.numofAnnotation ; i++){
-        SimplePeakIdentity adductAnnotation  = new SimplePeakIdentity("Annotation "+(i+1));
-        adductAnnotation.setPropertyValue("Mass",String.valueOf(adInfo.masses.get(i)));
-        adductAnnotation.setPropertyValue("Score",String.valueOf(adInfo.scores.get(i)));
-        adductAnnotation.setPropertyValue("Annotation",adInfo.annotations.get(i));
-        if(this.peakList.findRowByID(pd.getPeakListRowID()) != null)
-          this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation,true);
+      for (int i = 0; i < ComputeAdduct.numofAnnotation; i++) {
+        SimplePeakIdentity adductAnnotation = new SimplePeakIdentity("Annotation " + (i + 1));
+        adductAnnotation.setPropertyValue("Mass", String.valueOf(adInfo.masses.get(i)));
+        adductAnnotation.setPropertyValue("Score", String.valueOf(adInfo.scores.get(i)));
+        adductAnnotation.setPropertyValue("Annotation", adInfo.annotations.get(i));
+        if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
+          this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation, true);
+        }
       }
     }
   }
