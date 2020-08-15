@@ -48,7 +48,7 @@ public class ComputeCliqueModule {
 
   private final AnClique anClique;
   private final PeakList peakList;
-  private final List<PeakData> peakDataList;
+  private List<PeakData> peakDataList;
   private final RawDataFile rawDataFile;
 
   private final CliqueMSTask drivertask;
@@ -86,16 +86,18 @@ public class ComputeCliqueModule {
       double rtmax ;
       double intensity;
       int peakListRowID;
-      mz = peak.getPeak(dataFile).getMZ();
-      mzmin  = peak.getPeak(dataFile).getRawDataPointsMZRange().lowerEndpoint();
-      mzmax = peak.getPeak(dataFile).getRawDataPointsMZRange().upperEndpoint();
-      rt = peak.getPeak(dataFile).getRT();
-      rtmin = peak.getPeak(dataFile).getRawDataPointsRTRange().lowerEndpoint();
-      rtmax = peak.getPeak(dataFile).getRawDataPointsRTRange().upperEndpoint();
-      intensity = peak.getPeak(dataFile).getHeight();
-      peakListRowID = peak.getID();
-      PeakData peakData = new PeakData(mz,mzmin,mzmax,rt,rtmin,rtmax,intensity,i+1,peakListRowID);
-      peakDataList.add(peakData);
+      if(peak.hasPeak(dataFile)){
+        mz = peak.getPeak(dataFile).getMZ();
+        mzmin  = peak.getPeak(dataFile).getRawDataPointsMZRange().lowerEndpoint();
+        mzmax = peak.getPeak(dataFile).getRawDataPointsMZRange().upperEndpoint();
+        rt = peak.getPeak(dataFile).getRT();
+        rtmin = peak.getPeak(dataFile).getRawDataPointsRTRange().lowerEndpoint();
+        rtmax = peak.getPeak(dataFile).getRawDataPointsRTRange().upperEndpoint();
+        intensity = peak.getPeak(dataFile).getHeight();
+        peakListRowID = peak.getID();
+        PeakData peakData = new PeakData(mz,mzmin,mzmax,rt,rtmin,rtmax,intensity,i+1,peakListRowID);
+        peakDataList.add(peakData);
+      }
     }
     return peakDataList;
   }
@@ -265,22 +267,8 @@ public class ComputeCliqueModule {
     for(int i=0;i<nodesToDelete.size() ; i++){
       Integer nodeToDeleted = nodesToDelete.get(i);
       Integer nodeToReplace = identicalNodes.get(i);
-      PeakData pdNodeToDelete = null;
-      PeakData pdNodeToReplace = null;
-      for(PeakData pd : peakDataList){
-        if(nodeToDeleted.equals(pd.getNodeID())){
-          pdNodeToDelete = pd;
-          break;
-        }
-      }
-
-      for(PeakData pd : peakDataList){
-        if(nodeToReplace.equals(pd.getNodeID())){
-          pdNodeToReplace = pd;
-          break;
-        }
-      }
-
+      PeakData pdNodeToDelete = peakDataList.get(nodeToDeleted);
+      PeakData pdNodeToReplace = peakDataList.get(nodeToReplace);
       PeakListRow row = peakMap.get(pdNodeToDelete);
       row.setComment("Similar to peak: "+pdNodeToReplace.getPeakListRowID());
 
@@ -309,8 +297,9 @@ public class ComputeCliqueModule {
     }
 
     //remove the peakdata containing
-    for(PeakData pd : peakDataList){
-      if(deleteIndices.contains(pd.getNodeID())){
+    for(int i=0 ; i< peakDataList.size() ; i++){
+      PeakData pd = peakDataList.get(i);
+      if(deleteIndices.contains(i)){
         continue;
       }
       PeakData pdmod = new PeakData(pd);
@@ -344,6 +333,7 @@ public class ComputeCliqueModule {
 
     this.cosineCorrelation = modifiedCosineCorr;
     anClique.changePeakDataList(modifiedPeakDataList);
+    this.peakDataList = modifiedPeakDataList;
     logger.log(Level.FINEST,deleteIndices.size()+" features deleted.");
 
 

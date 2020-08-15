@@ -92,6 +92,11 @@ public class CliqueMSTask extends AbstractTask {
 
     try {
       //TODO multiple rawDataFile support
+      if(peakList.getRawDataFiles().size() == 0){
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" No raw datafile found for the feature");
+        return;
+      }
       ComputeCliqueModule cm = new ComputeCliqueModule(peakList,peakList.getRawDataFile(0),progress, this);
       // Check if not canceled
       if (isCanceled())
@@ -152,7 +157,8 @@ public class CliqueMSTask extends AbstractTask {
       identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD,"CliqueMS algorithm");
       identity.setPropertyValue("Clique-ID",String.valueOf(pd.getCliqueID()));
       identity.setPropertyValue("Isotope",pd.getIsotopeAnnotation());
-      this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
+      if(this.peakList.findRowByID(pd.getPeakListRowID()) != null)
+        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(identity,true);
     }
     HashMap<Integer,PeakData> pdHash = new HashMap<>();
     for(PeakData pd : pdList)
@@ -164,7 +170,8 @@ public class CliqueMSTask extends AbstractTask {
         adductAnnotation.setPropertyValue("Mass",String.valueOf(adInfo.masses.get(i)));
         adductAnnotation.setPropertyValue("Score",String.valueOf(adInfo.scores.get(i)));
         adductAnnotation.setPropertyValue("Annotation",adInfo.annotations.get(i));
-        this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation,true);
+        if(this.peakList.findRowByID(pd.getPeakListRowID()) != null)
+          this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation,true);
       }
     }
   }

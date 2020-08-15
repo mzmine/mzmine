@@ -43,7 +43,6 @@ public class CliqueMSParameters extends SimpleParameterSet {
   public static final DoubleParameter TOL = new DoubleParameter("Log-likelihood tolerance",
       "Log likelihood function is maximised for clique formation. The iterations are stopped when the relative absolute change in current log likelihood with respect to the initial log likelihood is less than the log-likelihood tolerance value.",
       LLformatter,0.000001);
-
   // Max charge.
   public static final IntegerParameter ISOTOPES_MAX_CHARGE =
       new IntegerParameter("Isotopes max. charge",
