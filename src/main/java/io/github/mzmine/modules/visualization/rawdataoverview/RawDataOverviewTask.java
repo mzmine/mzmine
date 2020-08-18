@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
+
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -34,42 +35,47 @@ import javafx.application.Platform;
  */
 public class RawDataOverviewTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private RawDataFile rawDataFiles[];
 
-  private RawDataFile rawDataFiles[];
+    private int totalSteps = 0;
+    private int appliedSteps = 0;
+    private boolean isIonMobility = false;
+    private ParameterSet parameterSet;
 
-  private int totalSteps = 0;
-  private int appliedSteps = 0;
+    public RawDataOverviewTask(ParameterSet parameters) {
 
-  public RawDataOverviewTask(ParameterSet parameters) {
+        this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-    this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    this.totalSteps = rawDataFiles.length;
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return "Create raw data overview for " + rawDataFiles.length + " raw data files";
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    return totalSteps == 0 ? 0 : (double) appliedSteps / totalSteps;
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    if (isCanceled()) {
-      return;
+        this.totalSteps = rawDataFiles.length;
+        this.parameterSet = parameters;
     }
 
-    RawDataOverviewPane rdop = new RawDataOverviewPane(true, false);
-    MZmineCore.getDesktop().addTab(rdop);
-    Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(Arrays.asList(rawDataFiles)));
+    @Override
+    public String getTaskDescription() {
+        return "Create raw data overview for " + rawDataFiles.length + " raw data files";
+    }
 
-    setStatus(TaskStatus.FINISHED);
-  }
+    @Override
+    public double getFinishedPercentage() {
+        return totalSteps == 0 ? 0 : (double) appliedSteps / totalSteps;
+    }
+
+    @Override
+    public void run() {
+        setStatus(TaskStatus.PROCESSING);
+        if (isCanceled()) {
+            return;
+        }
+         //if(rawDataFiles[0].getScan(0).getMobility() >=0){
+             isIonMobility = true;
+       //  }
+        RawDataOverviewPane rdop = new RawDataOverviewPane(true, false, isIonMobility, parameterSet );
+        MZmineCore.getDesktop().addTab(rdop);
+        Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(Arrays.asList(rawDataFiles)));
+
+        setStatus(TaskStatus.FINISHED);
+    }
+
 }
