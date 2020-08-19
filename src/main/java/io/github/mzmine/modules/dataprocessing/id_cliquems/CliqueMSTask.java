@@ -44,8 +44,8 @@ public class CliqueMSTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(CliqueMSTask.class.getName());
 
   //progress constants
-  public final double EIC_PROGRESS = 0.5; // EIC calculation takes about 50% time
-  public final double MATRIX_PROGRESS = 0.3; // Cosine matrix calculation takes about 30% time
+  public final double EIC_PROGRESS = 0.3; // EIC calculation takes about 50% time
+  public final double MATRIX_PROGRESS = 0.5; // Cosine matrix calculation takes about 30% time
   public final double NET_PROGRESS = 0.1; // Network calculations takes 10% time
   public final double ISO_PROGRESS = 0.01; // Isotope calculation takes 1% time
   public final double ANNOTATE_PROGRESS = 0.09; // Adduct annotation takes 9% time
@@ -178,14 +178,18 @@ public class CliqueMSTask extends AbstractTask {
     }
     for (AdductInfo adInfo : addInfos) {
       PeakData pd = pdHash.get(adInfo.feature);
+      SimplePeakIdentity adductAnnotation = new SimplePeakIdentity("Annotations");
+      int counter = 1;
       for (int i = 0; i < ComputeAdduct.numofAnnotation; i++) {
-        SimplePeakIdentity adductAnnotation = new SimplePeakIdentity("Annotation " + (i + 1));
-        adductAnnotation.setPropertyValue("Mass", String.valueOf(adInfo.masses.get(i)));
-        adductAnnotation.setPropertyValue("Score", String.valueOf(adInfo.scores.get(i)));
-        adductAnnotation.setPropertyValue("Annotation", adInfo.annotations.get(i));
+        if(adInfo.annotations.get(i).equals("NA"))
+          continue;
+        adductAnnotation.setPropertyValue("Mass:"+counter, String.valueOf(adInfo.masses.get(i)));
+        adductAnnotation.setPropertyValue("Score:"+counter, String.valueOf(adInfo.scores.get(i)));
+        adductAnnotation.setPropertyValue("Annotation:"+counter, adInfo.annotations.get(i));
         if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
           this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation, true);
         }
+        counter++;
       }
     }
   }
