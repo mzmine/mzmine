@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,20 +25,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import io.github.mzmine.datamodel.RawDataFile;
-import javafx.collections.FXCollections;
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.control.skin.TableViewSkin;
-import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
 
 /*
  * Raw data overview window controller class
@@ -49,15 +46,15 @@ import javax.annotation.Nonnull;
  */
 public class RawDataOverviewWindowController {
 
-  public static final Logger logger = Logger
-      .getLogger(RawDataOverviewWindowController.class.getName());
+  public static final Logger logger =
+      Logger.getLogger(RawDataOverviewWindowController.class.getName());
 
   private boolean initialized = false;
 
-  private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
-      .observableMap(new HashMap<>());
-  private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
-      .observableMap(new HashMap<>());
+  private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers =
+      FXCollections.observableMap(new HashMap<>());
+  private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs =
+      FXCollections.observableMap(new HashMap<>());
 
   private boolean scroll;
 
@@ -78,7 +75,7 @@ public class RawDataOverviewWindowController {
 
   public void initialize() {
 
-//    this.rawDataFile = rawDataFile;
+    // this.rawDataFile = rawDataFile;
     // add meta data
     rawDataLabel.setText("Overview of raw data file(s): ");
 
@@ -90,8 +87,8 @@ public class RawDataOverviewWindowController {
 
   /**
    * Sets the raw data files to be displayed. Already present files are not removed to optimise
-   * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFileTab}
-   * if possible.
+   * performance. This should be called over
+   * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
    *
    * @param rawDataFiles
    */
@@ -130,7 +127,8 @@ public class RawDataOverviewWindowController {
       rawDataFilesAndControllers.put(raw, loader.getController());
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(raw);
       con.getRawDataTableView().getSelectionModel().selectedItemProperty()
-          // TODO: this clears the spectrum plot, somehow bind to mouse input, currenty it is just slower than the thread
+          // TODO: this clears the spectrum plot, somehow bind to mouse input, currenty it is just
+          // slower than the thread
           .addListener(((obs, old, newValue) -> {
             if (newValue == null) {
               // this is the case it the table was not populated before.
