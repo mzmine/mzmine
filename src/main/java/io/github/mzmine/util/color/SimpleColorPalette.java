@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javax.annotation.Nonnull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
@@ -134,7 +132,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
    * @return The next color in the color palette.
    */
   public synchronized Color getNextColor() {
-    logger.info("called");
+
     if (this.isEmpty()) {
       logger.fine("Color palette empty, returning default color.");
       return defclr;
