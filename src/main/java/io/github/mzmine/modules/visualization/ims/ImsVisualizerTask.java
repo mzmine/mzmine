@@ -187,9 +187,29 @@ public class ImsVisualizerTask extends AbstractTask {
         intensityMobilityPlot = new IntensityMobilityPlot(dataset_IntensityMobility, parameterSet, this);
         bottomLeftPane.setCenter(intensityMobilityPlot);
     }
-     public void setControllerIMS(RawDataOverviewIMSController con){
+     public void InitDataOverview(RawDataOverviewIMSController con){
         controllerIMS = con;
+
+        // create the plot
+        setTopRightPane(con.getTopRightPane());
+        setTopLeftPane(con.getTopLeftPane());
+        setBottomLeftPane(con.getBottomLeftPane());
+        setBottomRightpane(con.getBottomRightPane());
+        setRtLabel(con.getRtLabel());
+        setMzRangeLevel(con.getMobilityRTLabel());
+
+        //prepare data
+         InitDataFactories();
+         // Initialize the gui
+         InitmzMobilityGui();
+         InitIntensityMobilityGui();
+         InitRetentionTimeMobilityGui();
+         InitRetentionTimeIntensityGui();
+         setGroupMobility();
+         setGroupRetentionTime();
+
      }
+
     public void setContainers() {
         bottomLeftPane = controller.getBottomLeftPane();
         bottomRightpane = controller.getBottomRightPane();

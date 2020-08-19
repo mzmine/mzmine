@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -68,12 +71,17 @@ public class RawDataOverviewTask extends AbstractTask {
         if (isCanceled()) {
             return;
         }
-         //if(rawDataFiles[0].getScan(0).getMobility() >=0){
-             isIonMobility = true;
-       //  }
+       Collection<? extends RawDataFile>rawDataFile = Arrays.asList(rawDataFiles);
+
+        //todo: figure out to check mobility.
+//         if(rawDataFile.size()>=1){
+//             isIonMobility = true;
+//         }
+
+        isIonMobility = true;
         RawDataOverviewPane rdop = new RawDataOverviewPane(true, false, isIonMobility, parameterSet );
         MZmineCore.getDesktop().addTab(rdop);
-        Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(Arrays.asList(rawDataFiles)));
+        Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(rawDataFile));
 
         setStatus(TaskStatus.FINISHED);
     }

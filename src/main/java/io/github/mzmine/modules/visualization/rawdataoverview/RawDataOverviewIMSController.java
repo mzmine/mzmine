@@ -33,10 +33,9 @@ public class RawDataOverviewIMSController {
             .observableMap(new HashMap<>());
     private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
             .observableMap(new HashMap<>());
+    private ParameterSet parameters;
 
     private boolean scroll;
-    public ParameterSet parameters;
-
     @FXML
     private Label rawDataLabel;
 
@@ -71,40 +70,19 @@ public class RawDataOverviewIMSController {
 //    this.rawDataFile = rawDataFile;
         // add meta data
         rawDataLabel.setText("Overview of raw data file(s): ");
-        InitGui(parameterSet);
-        if(parameterSet != null){
-            System.out.println("Yaha bhi null hai....");
-        }
-        parameters = parameterSet;
-
+        InitGui();
         scroll = true;
         initialized = true;
     }
 
-    void InitGui(ParameterSet parameterSet){
-        if(parameterSet == null){
-            System.out.println("Lollllll");
-            return;
-        }
+    void InitGui(){
         ImsVisualizerModule module = new ImsVisualizerModule();
         Class<? extends MZmineRunnableModule> moduleJavaClass = module.getClass();
-        ParameterSet moduleParameters =
+        parameters =
                 MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-        ImsVisualizerTask imsVisualizerTask = new ImsVisualizerTask(moduleParameters);
-        imsVisualizerTask.setControllerIMS(this);
-        imsVisualizerTask.setTopRightPane(topRightPane);
-        imsVisualizerTask.setTopLeftPane(topLeftPane);
-        imsVisualizerTask.setBottomRightpane(bottomRightPane);
-        imsVisualizerTask.setBottomLeftPane(bottomLeftPane);
-        imsVisualizerTask.InitDataFactories();
-        imsVisualizerTask.InitmzMobilityGui();
-        imsVisualizerTask.InitIntensityMobilityGui();
-        imsVisualizerTask.InitRetentionTimeMobilityGui();
-        imsVisualizerTask.InitRetentionTimeIntensityGui();
-        imsVisualizerTask.setGroupMobility();
-        imsVisualizerTask.setGroupRetentionTime();
-        imsVisualizerTask.setRtLabel(rtLabel);
-        imsVisualizerTask.setMzRangeLevel(mobilityRTLabel);
+        ImsVisualizerTask imsVisualizerTask = new ImsVisualizerTask(parameters);
+
+        imsVisualizerTask.InitDataOverview(this);
 
     }
 
@@ -182,4 +160,13 @@ public class RawDataOverviewIMSController {
         Tab tab = rawDataFilesAndTabs.remove(raw);
         tpRawDataInfoIMS.getTabs().remove(tab);
     }
+    public BorderPane getTopLeftPane() { return topLeftPane;}
+
+    public BorderPane getTopRightPane(){ return topRightPane;}
+
+    public BorderPane getBottomLeftPane(){ return bottomLeftPane;}
+
+    public BorderPane getBottomRightPane(){ return bottomRightPane;}
+    public Label getRtLabel(){return  rtLabel; }
+    public Label getMobilityRTLabel(){ return mobilityRTLabel; }
 }
