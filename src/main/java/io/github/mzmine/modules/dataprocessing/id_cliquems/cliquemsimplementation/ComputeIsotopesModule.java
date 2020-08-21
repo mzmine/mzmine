@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
@@ -61,10 +62,10 @@ public class ComputeIsotopesModule {
    * @param weights cosine correlation weight
    * @return List</ Integer> List of feature ID for features that are to be filtered
    */
-  private List<Integer> findBadFeatures(List<Integer> feature, List<Double> weights) {
+  private Set<Integer> findBadFeatures(List<Integer> feature, List<Double> weights) {
     // Drop one parental mass when one isotope has two parental masses candidates
     HashMap<Integer, Integer> IFeatureHash = new HashMap<>();
-    List<Integer> duplicateIfIndex = new ArrayList<>();//this contains indices to be deleted from all features
+    Set<Integer> duplicateIfIndex = new HashSet<>();//this contains indices to be deleted from all features
     for (int i = 0; i < feature.size(); i++) {
       if (IFeatureHash.containsKey(feature.get(i))) {
         Integer duplicateFeature = feature.get(i);
@@ -108,9 +109,11 @@ public class ComputeIsotopesModule {
     }
 
     // First filter isotopes pointing to two different parents
-    List<Integer> deletePos = findBadFeatures(iFeature, weights);
+    List<Integer> deletePos = new ArrayList<>();
+    Set<Integer> deleteSet = findBadFeatures(iFeature, weights);
+    deleteSet.addAll(findBadFeatures(pFeature, weights));
     // Second filter parents pointed by two different isotopes
-    deletePos.addAll(findBadFeatures(pFeature, weights));
+    deletePos.addAll(deleteSet);
     Collections.sort(deletePos, Collections.reverseOrder());
     //removing the indices
     for (Integer index : deletePos) {
