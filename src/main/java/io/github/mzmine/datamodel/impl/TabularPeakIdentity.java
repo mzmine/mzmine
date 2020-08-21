@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.PeakIdentity;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,19 @@ public class TabularPeakIdentity implements PeakIdentity {
     properties = new Hashtable<>();
   }
 
+  public boolean addProperty(String property, String value){
+    if(properties.containsKey(property)){
+      properties.get(property).add(value);
+      return false;
+    }
+    else{
+      List l = new ArrayList();
+      l.add(value);
+      properties.put(property,l);
+      return true;
+    }
+  }
+
   @Nonnull
   @Override
   public String getName() {
@@ -51,24 +66,68 @@ public class TabularPeakIdentity implements PeakIdentity {
   @Nonnull
   @Override
   public String getDescription() {
-    return null;
+    if(properties.size() == 0)
+      return "";
+    final StringBuilder description = new StringBuilder();
+    description.append("<table><tr>");
+    Integer size = null;
+    for(String property : properties.keySet()){
+      description.append("<th>");
+      description.append(property);
+      description.append("</th>");
+      size = properties.get(property).size();
+    }
+
+    description.append("</tr>");
+    for(int i=0 ; i<size ; i++){
+      description.append("<tr>");
+      for(String property : properties.keySet()){
+        description.append("<td>");
+        description.append(properties.get(property).get(i));
+        description.append("</td>");
+      }
+      description.append("</tr>");
+    }
+    description.append("</tr>");
+    return description.toString();
   }
 
+  /**
+   * As multiple values are possible, this method gives all values, seperated by space
+   * @param property
+   * @return String containing all the values seperated by space
+   */
   @Nonnull
   @Override
   public String getPropertyValue(String property) {
-    return null;
+
+    final StringBuilder condensedPropertyValues = new StringBuilder();
+    for(String value : properties.get(property))
+      condensedPropertyValues.append(value+" ");
+    return condensedPropertyValues.toString();
   }
 
   @Nonnull
   @Override
   public Map<String, String> getAllProperties() {
-    return null;
+    Map<String,String> allProperty = new HashMap<>();
+    for(String property : properties.keySet()){
+      String condensedProperty = this.getPropertyValue(property);
+      allProperty.put(property,condensedProperty);
+    }
+    return allProperty;
   }
 
-  @Nonnull
+  /**
+   * Copy the identity.
+   *
+   * @return the new copy.
+   */
+
   @Override
-  public Object clone() {
-    return null;
+  public synchronized   @Nonnull Object clone() {
+    TabularPeakIdentity temp = new TabularPeakIdentity(this.name);
+    temp.properties = (Hashtable<String, List<String>>) this.properties.clone();
+    return temp;
   }
 }

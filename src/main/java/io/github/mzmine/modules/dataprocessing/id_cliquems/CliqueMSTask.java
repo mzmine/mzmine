@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.TabularPeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeAdduct;
@@ -178,18 +179,16 @@ public class CliqueMSTask extends AbstractTask {
     }
     for (AdductInfo adInfo : addInfos) {
       PeakData pd = pdHash.get(adInfo.feature);
-      SimplePeakIdentity adductAnnotation = new SimplePeakIdentity("Annotations");
-      int counter = 1;
+      TabularPeakIdentity adductAnnotation = new TabularPeakIdentity("Annotations");
       for (int i = 0; i < ComputeAdduct.numofAnnotation; i++) {
         if(adInfo.annotations.get(i).equals("NA"))
           continue;
-        adductAnnotation.setPropertyValue("Mass:"+counter, String.valueOf(adInfo.masses.get(i)));
-        adductAnnotation.setPropertyValue("Score:"+counter, String.valueOf(adInfo.scores.get(i)));
-        adductAnnotation.setPropertyValue("Annotation:"+counter, adInfo.annotations.get(i));
+        adductAnnotation.addProperty("Mass", String.valueOf(adInfo.masses.get(i)));
+        adductAnnotation.addProperty("Score", String.valueOf(adInfo.scores.get(i)));
+        adductAnnotation.addProperty("Annotation", adInfo.annotations.get(i));
         if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
           this.peakList.findRowByID(pd.getPeakListRowID()).addPeakIdentity(adductAnnotation, true);
         }
-        counter++;
       }
     }
   }
