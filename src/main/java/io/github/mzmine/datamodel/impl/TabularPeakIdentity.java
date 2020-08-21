@@ -71,6 +71,7 @@ public class TabularPeakIdentity implements PeakIdentity {
     final StringBuilder description = new StringBuilder();
     description.append("<table><tr>");
     Integer size = null;
+    description.append("<th>S. No.</th>");
     for(String property : properties.keySet()){
       description.append("<th>");
       description.append(property);
@@ -81,6 +82,9 @@ public class TabularPeakIdentity implements PeakIdentity {
     description.append("</tr>");
     for(int i=0 ; i<size ; i++){
       description.append("<tr>");
+      description.append("<td>");
+      description.append(i+1);
+      description.append("</td>");
       for(String property : properties.keySet()){
         description.append("<td>");
         description.append(properties.get(property).get(i));
