@@ -428,14 +428,16 @@ public class MainWindowController {
   }
 
   public void handleRenameFile(Event event) {
-    if (rawDataTree.getSelectionModel() == null)
+    if (rawDataTree.getSelectionModel() == null) {
       return;
+    }
 
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Only one file must be selected
-    if (rows == null || rows.size() != 1)
+    if (rows == null || rows.size() != 1) {
       return;
+    }
 
     // Creating new popup window
     Stage popup = new Stage();
@@ -520,8 +522,9 @@ public class MainWindowController {
   }
 
   public void handleRemoveRawData(Event event) {
-    if (rawDataTree.getSelectionModel() == null)
+    if (rawDataTree.getSelectionModel() == null) {
       return;
+    }
 
     // Get selected tree items
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
@@ -535,8 +538,9 @@ public class MainWindowController {
     alert.setHeaderText("Remove file");
     alert.showAndWait();
 
-    if (alert.getResult() != ButtonType.YES)
+    if (alert.getResult() != ButtonType.YES) {
       return;
+    }
 
     // Loop through all selected tree items
     if (rows != null) {
@@ -647,20 +651,21 @@ public class MainWindowController {
 
   @FXML
   public void handleSetRawDataFileColor(Event event) {
-    if (rawDataTree.getSelectionModel() == null)
+    if (rawDataTree.getSelectionModel() == null) {
       return;
+    }
 
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Only one file must be selected
-    if (rows == null || rows.size() != 1)
+    if (rows == null || rows.size() != 1) {
       return;
-    System.out.println("1   " + rawDataTree.getSelectionModel().getSelectedItem().getColor());
+    }
     // Creating new popup window
     Stage popup = new Stage();
     VBox box = new VBox(5);
     Label label =
-        new Label("Please choose the color for the \""
+        new Label("Please choose a color for \""
             + getRawDataTree().getSelectionModel().getSelectedItem().getName() + "\":");
     ColorPicker picker =
         new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
@@ -698,11 +703,7 @@ public class MainWindowController {
 
     popup.setOnHiding(e -> {
       if (picker.getValue() != null && apply.get()) {
-        //rawDataTree.getSelectionModel().getSelectedItem().setColor(picker.getValue());
-        //rawDataTree.getItems().get(1).setColor(picker.getValue());
         rows.get(0).setColor(picker.getValue());
-        rawDataTree.refresh();
-        System.out.println("2   " + rawDataTree.getSelectionModel().getSelectedItem().getColor());
       }
     });
   }
