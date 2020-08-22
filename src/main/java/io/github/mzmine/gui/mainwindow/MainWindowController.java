@@ -330,7 +330,7 @@ public class MainWindowController {
      */
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    rop.setClosable(false); // as the default tab, this should not be removed
+    // rop.setClosable(false); // as the default tab, this should not be removed
     rop.setWindowChangeAllowed(false);
     addTab(rop);
 
@@ -435,7 +435,7 @@ public class MainWindowController {
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Only one file must be selected
-    if (rows == null || rows.size() != 1) {
+    if (rows == null || rows.size() != 1 || rows.get(0) == null) {
       return;
     }
 
@@ -658,7 +658,7 @@ public class MainWindowController {
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Only one file must be selected
-    if (rows == null || rows.size() != 1) {
+    if (rows == null || rows.size() != 1 || rows.get(0) == null) {
       return;
     }
     // Creating new popup window
