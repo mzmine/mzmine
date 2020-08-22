@@ -247,6 +247,8 @@ public class ComputeIsotopesModule {
       // The following code corresponds to correctGrade in R code
       int maxCluster = Collections.max(cluster);
       HashSet<Integer> uniqueCluster = new HashSet<>(cluster); // unique cluster
+      List<Integer> clusterCopy = new ArrayList<>(cluster);
+      List<Integer> gradeCopy = new ArrayList<>(grades);
       for (Integer clus : uniqueCluster) {
         List<Integer> clusterIndices = new ArrayList<>();
         for (int i = 0; i < cluster.size(); i++) {
@@ -267,6 +269,28 @@ public class ComputeIsotopesModule {
             grades.set(index, gradeVal++);
           }
         }
+      }
+      //if no change in cluster and grade, then infinite loop will occur
+      boolean changed = false;
+      for(int i=0 ; i<cluster.size() ; i++){
+        if(!cluster.get(i).equals(clusterCopy.get(i))){
+          changed = true;
+          break;
+        }
+      }
+      for(int i=0 ; i<grades.size() ; i++){
+        if(!grades.get(i).equals(gradeCopy.get(i))){
+          changed = true;
+          break;
+        }
+      }
+      if(!changed) {
+        for(int i=0; i<grades.size(); i++){
+          if(grades.get(i)>maxGrade){
+            grades.set(i,maxGrade);
+          }
+        }
+        break;
       }
     }
     IsoTable isoTable = new IsoTable();
