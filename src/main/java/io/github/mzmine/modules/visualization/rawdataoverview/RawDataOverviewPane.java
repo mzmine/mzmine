@@ -54,7 +54,6 @@ public class RawDataOverviewPane extends MZmineTab {
                 BorderPane root = loaderIMS.load();
                 controllerIMS = loaderIMS.getController();
                 if(controllerIMS == null){
-                    System.out.println("Paisa barbad ....");
                     return;
                 }
                 if(isIonMobility) {

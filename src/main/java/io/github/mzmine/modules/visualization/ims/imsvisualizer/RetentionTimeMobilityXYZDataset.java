@@ -16,28 +16,28 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims.imsVisualizer;
+package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class MzMobilityXYZDataset extends AbstractXYZDataset {
+public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
 
-  private Scan scans[];
+  private Scan[] scans;
+  private double[] xValues;
+  private double[] yValues;
+  private double[] zValues;
+  private int scanSize;
 
-  private Double[] xValues;
-  private Double[] yValues;
-  private Double[] zValues;
-  private int itemSize;
+  public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
 
-  public MzMobilityXYZDataset(DataFactory dataFactory) {
-
-    scans = dataFactory.getScans();
-
-    xValues = dataFactory.getMz_MzMobility();
-    yValues = dataFactory.getMobility_MzMobility();
-    zValues = dataFactory.getIntensity_MzMobility();
-    itemSize = xValues.length;
+       scans = dataFactory.getScans();
+       xValues = dataFactory.getRetentionTime_retentionTimeMobility();
+       yValues = dataFactory.getMobility_retentionTimeMobility();
+       zValues = dataFactory.getIntensity_retentionTimeMobility();
+       scanSize = scans.length;
   }
 
   @Override
@@ -45,18 +45,23 @@ public class MzMobilityXYZDataset extends AbstractXYZDataset {
     return 1;
   }
 
-  @Override
-  public Comparable getSeriesKey(int series) {
-    return getRowKey(series);
-  }
-
   public Comparable<?> getRowKey(int item) {
     return scans[item].toString();
   }
 
   @Override
+  public Comparable getSeriesKey(int series) {
+    return getRowKey(series);
+  }
+
+  @Override
+  public Number getZ(int series, int item) {
+    return zValues[item];
+  }
+
+  @Override
   public int getItemCount(int series) {
-    return itemSize;
+    return scanSize;
   }
 
   @Override
@@ -67,10 +72,5 @@ public class MzMobilityXYZDataset extends AbstractXYZDataset {
   @Override
   public Number getY(int series, int item) {
     return yValues[item];
-  }
-
-  @Override
-  public Number getZ(int series, int item) {
-    return zValues[item];
   }
 }

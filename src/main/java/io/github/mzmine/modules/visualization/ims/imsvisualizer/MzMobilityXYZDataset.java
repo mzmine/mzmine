@@ -16,30 +16,28 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims.imsVisualizer;
+package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
+public class MzMobilityXYZDataset extends AbstractXYZDataset {
 
-  private RawDataFile dataFiles[];
   private Scan scans[];
-  private Range<Double> mzRange;
-  private double[] xValues;
-  private double[] yValues;
-  private double[] zValues;
-  private int scanSize;
 
-  public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
+  private Double[] xValues;
+  private Double[] yValues;
+  private Double[] zValues;
+  private int itemSize;
 
-       scans = dataFactory.getScans();
-       xValues = dataFactory.getRetentionTime_retentionTimeMobility();
-       yValues = dataFactory.getMobility_retentionTimeMobility();
-       zValues = dataFactory.getIntensity_retentionTimeMobility();
-       scanSize = scans.length;
+  public MzMobilityXYZDataset(DataFactory dataFactory) {
+
+    scans = dataFactory.getScans();
+
+    xValues = dataFactory.getMzMzMobility();
+    yValues = dataFactory.getMobility_MzMobility();
+    zValues = dataFactory.getIntensityMzMobility();
+    itemSize = xValues.length;
   }
 
   @Override
@@ -47,23 +45,18 @@ public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
     return 1;
   }
 
-  public Comparable<?> getRowKey(int item) {
-    return scans[item].toString();
-  }
-
   @Override
   public Comparable getSeriesKey(int series) {
     return getRowKey(series);
   }
 
-  @Override
-  public Number getZ(int series, int item) {
-    return zValues[item];
+  public Comparable<?> getRowKey(int item) {
+    return scans[item].toString();
   }
 
   @Override
   public int getItemCount(int series) {
-    return scanSize;
+    return itemSize;
   }
 
   @Override
@@ -74,5 +67,10 @@ public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
   @Override
   public Number getY(int series, int item) {
     return yValues[item];
+  }
+
+  @Override
+  public Number getZ(int series, int item) {
+    return zValues[item];
   }
 }

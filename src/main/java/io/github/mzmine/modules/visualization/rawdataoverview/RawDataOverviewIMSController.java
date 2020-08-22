@@ -10,11 +10,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +83,7 @@ public class RawDataOverviewIMSController {
                 MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
         ImsVisualizerTask imsVisualizerTask = new ImsVisualizerTask(parameters);
 
-        imsVisualizerTask.InitDataOverview(this);
+        imsVisualizerTask.initDataOverview(this);
 
     }
 

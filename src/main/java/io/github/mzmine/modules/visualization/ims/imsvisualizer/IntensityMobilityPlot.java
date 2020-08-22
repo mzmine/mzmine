@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims.imsVisualizer;
+package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -24,11 +24,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.ims.ImsVisualizerParameters;
 import io.github.mzmine.modules.visualization.ims.ImsVisualizerTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.application.Platform;
 import org.jfree.chart.ChartFactory;
@@ -45,21 +43,18 @@ import org.jfree.data.xy.XYDataset;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 public class IntensityMobilityPlot extends EChartViewer {
 
   private XYPlot plot;
   private JFreeChart chart;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+  private final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
   private Scan selectedMobilityScan;
   private double selectedRetentionTime;
-  private Scan scans[];
   private RawDataFile dataFiles[];
 
-  public IntensityMobilityPlot(XYDataset dataset, ParameterSet parameters, ImsVisualizerTask imsVisualizerTask) {
+  public IntensityMobilityPlot(XYDataset dataset, ImsVisualizerTask imsTask) {
     super(
         ChartFactory.createXYLineChart(
             "", "intensity", "", dataset, PlotOrientation.VERTICAL, false, true, false));
@@ -67,20 +62,10 @@ public class IntensityMobilityPlot extends EChartViewer {
     plot = chart.getXYPlot();
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(chart);
-    this.selectedRetentionTime = imsVisualizerTask.getSelectedRetentionTime();
-    dataFiles =
-        parameters
-            .getParameter(ImsVisualizerParameters.dataFiles)
-            .getValue()
-            .getMatchingRawDataFiles();
-    scans =
-        parameters
-            .getParameter(ImsVisualizerParameters.scanSelection)
-            .getValue()
-            .getMatchingScans(dataFiles[0]);
-
+    this.selectedRetentionTime = imsTask.getSelectedRetentionTime();
+    dataFiles = imsTask.getDataFiles();
     var renderer = new XYLineAndShapeRenderer(true, true);
-    renderer.setSeriesPaint(0, Color.GREEN);
+    renderer.setSeriesPaint(0, Color.BLACK);
     renderer.setSeriesStroke(0, new BasicStroke(1.0f));
     renderer.setSeriesShapesVisible(0, false);
 
@@ -105,14 +90,14 @@ public class IntensityMobilityPlot extends EChartViewer {
               int serindex = entity.getSeriesIndex();
               int itemindex = entity.getItem();
               double mobility = dataset.getYValue(serindex, itemindex);
-              ArrayList<Scan>selectedScan = imsVisualizerTask.getScans();
+              ArrayList<Scan>selectedScan = imsTask.getSelectedScans();
               for (int i = 0; i < selectedScan.size(); i++) {
                 if (selectedScan.get(i).getMobility() == mobility && selectedScan.get(i).getRetentionTime() == selectedRetentionTime) {
                   selectedMobilityScan = selectedScan.get(i);
                   break;
                 }
               }
-              updateChart();
+              showSelectedScan();
             }
           }
 
@@ -121,7 +106,7 @@ public class IntensityMobilityPlot extends EChartViewer {
         });
   }
 
-  void updateChart() {
+  public void showSelectedScan() {
     SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(dataFiles[0]);
     spectraWindow.loadRawData(selectedMobilityScan);
 

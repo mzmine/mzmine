@@ -16,21 +16,21 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims.imsVisualizer;
+package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class IntensityMobilityXYDataset extends AbstractXYDataset {
-  private Scan scans[];
-  private Double[] xValues;
-  private Double[] yValues;
+public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
 
-  public IntensityMobilityXYDataset(DataFactory dataFactory) {
+  private Scan[] scans;
+  private double[] xValues;
+  private double[] yValues;
 
+  public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
+    xValues = dataFactory.getRetentionTime_retentionTimeIntensity();
+    yValues = dataFactory.getIntensity_retentionTimeIntensity();
     scans = dataFactory.getScans();
-    xValues = dataFactory.getIntensity_IntensityMobility();
-    yValues = dataFactory.getMobility_IntensityMobility();
   }
 
   @Override

@@ -326,7 +326,7 @@
 	<Menu text="Visualization">
 		<MenuItem text="MS spectrum" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule" />
-		<MenuItem text="IMS Heatmap" onAction="#runModule"
+		<MenuItem text="IMS data viewer" onAction="#runModule"
 				  userData="io.github.mzmine.modules.visualization.ims.ImsVisualizerModule" />
 		<MenuItem text="Chromatogram plot" onAction="#runModule"
 			userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule" />

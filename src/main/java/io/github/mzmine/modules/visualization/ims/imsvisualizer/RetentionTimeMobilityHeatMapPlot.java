@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.ims.imsVisualizer;
+package io.github.mzmine.modules.visualization.ims.imsvisualizer;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -45,10 +45,8 @@ import java.util.logging.Logger;
 public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
   private XYPlot plot;
-  private String paintScaleStyle;
   private JFreeChart chart;
   private XYZDataset dataset3d;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
   private EStandardChartTheme theme;
   PaintScaleLegend legend;
@@ -61,8 +59,6 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
     chart = getChart();
     this.dataset3d = dataset;
-    this.paintScaleStyle = paintScaleStyle;
-
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3d.getItemCount(0)];
     for (int i = 0; i < dataset3d.getItemCount(0); i++) {
@@ -91,7 +87,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     double max = copyZValues[maxIndexScale];
     Paint[] contourColors =
         XYBlockPixelSizePaintScales.getPaintColors(
-            "percentile", Range.closed(min, max), paintScaleStyle);
+            "", Range.closed(min, max), paintScaleStyle);
     LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
 
     double[] scaleValues = new double[contourColors.length];
