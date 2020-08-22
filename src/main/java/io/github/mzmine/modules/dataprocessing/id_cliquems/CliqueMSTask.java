@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.CliqueMSTabularPeakIdentity;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.ComputeAdduct;
@@ -189,7 +190,7 @@ public class CliqueMSTask extends AbstractTask {
         if(adInfo.annotations.get(i).equals("NA") || adducts.contains(adInfo.annotations.get(i)))
           continue;
         adducts.add(adInfo.annotations.get(i));
-        annotation.addMultiTypeProperty("Mass", String.valueOf(adInfo.masses.get(i)));
+        annotation.addMultiTypeProperty("Mass",MZmineCore.getConfiguration().getMZFormat().format(adInfo.masses.get(i)));
         annotation.addMultiTypeProperty("Score", String.valueOf(adInfo.scores.get(i)));
         annotation.addMultiTypeProperty("Adduct Annotation", adInfo.annotations.get(i));
       }
