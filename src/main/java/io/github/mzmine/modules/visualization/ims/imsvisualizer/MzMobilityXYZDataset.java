@@ -35,7 +35,7 @@ public class MzMobilityXYZDataset extends AbstractXYZDataset {
         scans = dataFactory.getScans();
 
         xValues = dataFactory.getMzMzMobility();
-        yValues = dataFactory.getMobility_MzMobility();
+        yValues = dataFactory.getMobilityMzMobility();
         zValues = dataFactory.getIntensityMzMobility();
         itemSize = xValues.length;
     }

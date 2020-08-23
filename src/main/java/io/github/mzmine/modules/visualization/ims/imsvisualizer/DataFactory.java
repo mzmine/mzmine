@@ -235,43 +235,43 @@ public class DataFactory {
     /*
     get all the unique mobilities in all scan
     */
-    public double[] getMobility_retentionTimeMobility() {
+    public double[] getMobilityretentionTimeMobility() {
         return mobilityretentionTimeMobility;
     }
 
     /*
      Return mobilities for retentionTime-mobility heat map.
     */
-    public double[] getRetentionTime_retentionTimeIntensity() {
+    public double[] getRetentionTimeretentionTimeIntensity() {
         return retentionTimeretentionTimeIntensity;
     }
 
-    public Double[] getMobility_MzMobility() {
+    public Double[] getMobilityMzMobility() {
         return mobilityMzMobility;
     }
 
-    public Double[] getMobility_IntensityMobility() {
+    public Double[] getMobilityIntensityMobility() {
         return mobilityIntensityMobility;
     }
 
     /*
      get the all unique retention times in all   scan
     */
-    public double[] getIntensity_retentionTimeMobility() {
+    public double[] getIntensityretentionTimeMobility() {
         return intensityretentionTimeMobility;
     }
 
     /*
      get all the intensities value at unique mobilities.
     */
-    public double[] getIntensity_retentionTimeIntensity() {
+    public double[] getIntensityretentionTimeIntensity() {
         return intensityretentionTimeIntensity;
     }
 
     /*
      get the all the intensities values at unique retention time
     */
-    public double[] getRetentionTime_retentionTimeMobility() {
+    public double[] getRetentionTimeretentionTimeMobility() {
         return retentionTimeretentionTimeMobility;
     }
 

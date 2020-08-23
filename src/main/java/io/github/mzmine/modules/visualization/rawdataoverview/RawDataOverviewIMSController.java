@@ -73,12 +73,12 @@ public class RawDataOverviewIMSController {
 //    this.rawDataFile = rawDataFile;
         // add meta data
         rawDataLabel.setText("Overview of raw data file(s): ");
-        InitGui();
+        initGui();
         scroll = true;
         initialized = true;
     }
 
-    void InitGui() {
+    void initGui() {
         ImsVisualizerModule module = new ImsVisualizerModule();
         Class<? extends MZmineRunnableModule> moduleJavaClass = module.getClass();
         parameters =
