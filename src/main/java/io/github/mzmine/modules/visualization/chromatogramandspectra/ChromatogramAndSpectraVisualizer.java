@@ -19,8 +19,6 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -29,12 +27,10 @@ import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.modules.visualization.twod.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -67,7 +63,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.checkerframework.checker.units.qual.Mass;
+
 import org.jfree.chart.plot.ValueMarker;
 
 /**

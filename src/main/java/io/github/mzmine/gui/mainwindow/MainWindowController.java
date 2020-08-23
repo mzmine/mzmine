@@ -316,7 +316,7 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
-    RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
+    RawDataOverviewPane rop = new RawDataOverviewPane(true, true, false, null);
 //    rop.setClosable(false); // as the default tab, this should not be removed
     rop.setWindowChangeAllowed(false);
     addTab(rop);
