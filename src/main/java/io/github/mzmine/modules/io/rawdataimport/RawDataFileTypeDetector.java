@@ -21,6 +21,7 @@ package io.github.mzmine.modules.io.rawdataimport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -53,7 +54,7 @@ public class RawDataFileTypeDetector {
 
   // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
   private static final String THERMO_HEADER = String.valueOf(
-      new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
+          new char[]{0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0, 'n', 0});
 
   private static final String GZIP_HEADER = String.valueOf(new char[]{0x1f, 0x8b});
 
@@ -67,13 +68,10 @@ public class RawDataFileTypeDetector {
     if (fileName.isDirectory()) {
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().contains("analysis.tdf")) {
-          return RawDataFileType.BRUKER_TIMS_TOF;
-        }
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
           return RawDataFileType.WATERS_RAW;
-        }
       }
+      // We don't recognize any other directory type than Waters
       return null;
     }
 
@@ -88,7 +86,7 @@ public class RawDataFileTypeDetector {
 
       if (fileName.getName().toLowerCase().endsWith(".csv")) {
         if (fileHeader.contains(":") && fileHeader.contains("\\")
-            && !fileHeader.contains("file name")) {
+                && !fileHeader.contains("file name")) {
           logger.fine("ICP raw file detected");
           return RawDataFileType.ICPMSMS_CSV;
         }
@@ -112,17 +110,14 @@ public class RawDataFileTypeDetector {
         return RawDataFileType.NETCDF;
       }
 
-      if (fileHeader.contains(MZML_HEADER)) {
+      if (fileHeader.contains(MZML_HEADER))
         return RawDataFileType.MZML;
-      }
 
-      if (fileHeader.contains(MZDATA_HEADER)) {
+      if (fileHeader.contains(MZDATA_HEADER))
         return RawDataFileType.MZDATA;
-      }
 
-      if (fileHeader.contains(MZXML_HEADER)) {
+      if (fileHeader.contains(MZXML_HEADER))
         return RawDataFileType.MZXML;
-      }
 
     } catch (Exception e) {
       e.printStackTrace();
