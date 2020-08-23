@@ -167,11 +167,16 @@ public class CliqueMSTask extends AbstractTask {
     List<PeakData> pdList = anClique.getPeakDataList();
 
     HashMap<PeakData, CliqueMSTabularPeakIdentity> pdIdentityHash = new HashMap<>();
+    //Map for cliqueID to peakRowListID
+    HashMap<Integer,Integer> nodeToPeakID = new HashMap<>();
+    for(PeakData pd : pdList){
+      nodeToPeakID.put(pd.getNodeID(),pd.getPeakListRowID());
+    }
     for (PeakData pd : pdList) {
       CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueMS Annotations");
       annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
-      annotation.addSingularProperty("Node ID", String.valueOf(pd.getNodeID()));
-      annotation.addSingularProperty("Clique ID (Group ID)", String.valueOf(pd.getCliqueID()));
+//      annotation.addSingularProperty("Node ID", String.valueOf(pd.getNodeID()));
+      annotation.addSingularProperty("Clique ID (Group ID)", String.valueOf(nodeToPeakID.get(pd.getCliqueID())));
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
       pdIdentityHash.put(pd,annotation);
       if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
