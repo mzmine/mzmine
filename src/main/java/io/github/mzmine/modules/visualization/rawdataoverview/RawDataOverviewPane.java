@@ -39,46 +39,48 @@ public class RawDataOverviewPane extends MZmineTab {
     private RawDataOverviewIMSController controllerIMS;
     public Boolean isIonMobility;
     private ParameterSet parameterSet;
+
     public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState, boolean isIonMobility, ParameterSet parameterSet) {
         super("Raw data overview", showBinding, defaultBindingState);
 
         controller = null;
-        controllerIMS=null;
+        controllerIMS = null;
         this.parameterSet = parameterSet;
         this.isIonMobility = isIonMobility;
         FXMLLoader loaderIMS = new FXMLLoader((getClass().getResource("RawDataOverviewIMS.fxml")));
         FXMLLoader loader = new FXMLLoader((getClass().getResource("RawDataOverviewWindow.fxml")));
 
 
-            try {
-                BorderPane root = loaderIMS.load();
-                controllerIMS = loaderIMS.getController();
-                if(controllerIMS == null){
-                    return;
-                }
-                if(isIonMobility) {
-                    controllerIMS.initialize(parameterSet);
-                    setContent(root);
-                }
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Could not load RawDataOverviewIMS.fxml", e);
+        try {
+            BorderPane root = loaderIMS.load();
+            controllerIMS = loaderIMS.getController();
+            if (controllerIMS == null) {
                 return;
             }
-            try {
-                BorderPane root = loader.load();
-                controller = loader.getController();
-                controller.initialize();
-                if( !isIonMobility)
-                      setContent(root);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
-                return;
+            if (isIonMobility) {
+                controllerIMS.initialize(parameterSet);
+                setContent(root);
             }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not load RawDataOverviewIMS.fxml", e);
+            return;
+        }
+        try {
+            BorderPane root = loader.load();
+            controller = loader.getController();
+            controller.initialize();
+            if (!isIonMobility)
+                setContent(root);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
+            return;
+        }
     }
 
     public RawDataOverviewPane() {
         this(false, false, false, null);
     }
+
     @Override
     public Collection<? extends RawDataFile> getRawDataFiles() {
         return controller.getRawDataFiles();
@@ -93,6 +95,7 @@ public class RawDataOverviewPane extends MZmineTab {
     public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
         return null;
     }
+
     @Override
     public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
         controller.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);

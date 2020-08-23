@@ -22,43 +22,43 @@ import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class IntensityMobilityXYDataset extends AbstractXYDataset {
-  private Scan scans[];
-  private Double[] xValues;
-  private Double[] yValues;
+    private Scan scans[];
+    private Double[] xValues;
+    private Double[] yValues;
 
-  public IntensityMobilityXYDataset(DataFactory dataFactory) {
+    public IntensityMobilityXYDataset(DataFactory dataFactory) {
 
-    scans = dataFactory.getScans();
-    xValues = dataFactory.getIntensityIntensityMobility();
-    yValues = dataFactory.getMobility_IntensityMobility();
-  }
+        scans = dataFactory.getScans();
+        xValues = dataFactory.getIntensityIntensityMobility();
+        yValues = dataFactory.getMobility_IntensityMobility();
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    @Override
+    public int getSeriesCount() {
+        return 1;
+    }
 
-  @Override
-  public Comparable getSeriesKey(int series) {
-    return getRowKey(series);
-  }
+    @Override
+    public Comparable getSeriesKey(int series) {
+        return getRowKey(series);
+    }
 
-  public Comparable<?> getRowKey(int item) {
-    return scans[item].toString();
-  }
+    public Comparable<?> getRowKey(int item) {
+        return scans[item].toString();
+    }
 
-  @Override
-  public int getItemCount(int series) {
-    return xValues.length;
-  }
+    @Override
+    public int getItemCount(int series) {
+        return xValues.length;
+    }
 
-  @Override
-  public Number getX(int series, int item) {
-    return xValues[item];
-  }
+    @Override
+    public Number getX(int series, int item) {
+        return xValues[item];
+    }
 
-  @Override
-  public Number getY(int series, int item) {
-    return yValues[item];
-  }
+    @Override
+    public Number getY(int series, int item) {
+        return yValues[item];
+    }
 }

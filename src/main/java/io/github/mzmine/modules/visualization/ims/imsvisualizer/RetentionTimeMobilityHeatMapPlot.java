@@ -44,125 +44,125 @@ import java.util.logging.Logger;
 
 public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
-  private XYPlot plot;
-  private JFreeChart chart;
-  private XYZDataset dataset3d;
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
-  private EStandardChartTheme theme;
-  PaintScaleLegend legend;
+    private XYPlot plot;
+    private JFreeChart chart;
+    private XYZDataset dataset3d;
+    static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+    private EStandardChartTheme theme;
+    PaintScaleLegend legend;
 
-  public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
+    public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
-    super(
-        ChartFactory.createScatterPlot(
-            "", "retention time", "mobility", dataset, PlotOrientation.VERTICAL, true, true, true));
+        super(
+                ChartFactory.createScatterPlot(
+                        "", "retention time", "mobility", dataset, PlotOrientation.VERTICAL, true, true, true));
 
-    chart = getChart();
-    this.dataset3d = dataset;
-    // copy and sort z-Values for min and max of the paint scale
-    double[] copyZValues = new double[dataset3d.getItemCount(0)];
-    for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-      copyZValues[i] = dataset3d.getZValue(0, i);
+        chart = getChart();
+        this.dataset3d = dataset;
+        // copy and sort z-Values for min and max of the paint scale
+        double[] copyZValues = new double[dataset3d.getItemCount(0)];
+        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
+            copyZValues[i] = dataset3d.getZValue(0, i);
+        }
+        Arrays.sort(copyZValues);
+
+        // copy and sort x-values.
+        double[] copyXValues = new double[dataset3d.getItemCount(0)];
+        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
+            copyXValues[i] = dataset3d.getXValue(0, i);
+        }
+        Arrays.sort(copyXValues);
+
+        // copy and sort y-values.
+        double[] copyYValues = new double[dataset3d.getItemCount(0)];
+        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
+            copyYValues[i] = dataset3d.getYValue(0, i);
+        }
+        Arrays.sort(copyYValues);
+
+        // get index in accordance to percentile windows
+        int minIndexScale = 0;
+        int maxIndexScale = copyZValues.length - 1;
+        double min = copyZValues[minIndexScale];
+        double max = copyZValues[maxIndexScale];
+        Paint[] contourColors =
+                XYBlockPixelSizePaintScales.getPaintColors(
+                        "", Range.closed(min, max), paintScaleStyle);
+        LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
+
+        double[] scaleValues = new double[contourColors.length];
+        double delta = (max - min) / (contourColors.length - 1);
+        double value = min;
+        for (int i = 0; i < contourColors.length; i++) {
+            scaleValues[i] = value;
+            scale.add(value, contourColors[i]);
+            value = value + delta;
+        }
+
+        plot = chart.getXYPlot();
+        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+        theme.apply(chart);
+
+        // set the pixel renderer
+        XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
+        pixelRenderer.setPaintScale(scale);
+        // set the block renderer
+        XYBlockRenderer blockRenderer = new XYBlockRenderer();
+        double retentionWidth = 0.0;
+        double mobilityWidth = 0.0;
+
+        for (int i = 0; i + 1 < copyXValues.length; i++) {
+            if (copyXValues[i] != copyXValues[i + 1]) {
+                retentionWidth = copyXValues[i + 1] - copyXValues[i];
+                break;
+            }
+        }
+        for (int i = 0; i + 1 < copyYValues.length; i++) {
+            if (copyYValues[i] != copyYValues[i + 1]) {
+                mobilityWidth = copyYValues[i + 1] - copyYValues[i];
+                break;
+            }
+        }
+
+        if (mobilityWidth <= 0.0 || retentionWidth <= 0.0) {
+            throw new IllegalArgumentException(
+                    "there must be atleast two unique value of retentio time and mobility");
+        }
+        blockRenderer.setBlockHeight(mobilityWidth);
+        blockRenderer.setBlockWidth(retentionWidth);
+
+        // Legend
+        NumberAxis scaleAxis = new NumberAxis("Intensity");
+        scaleAxis.setRange(min, max);
+        scaleAxis.setAxisLinePaint(Color.white);
+        scaleAxis.setTickMarkPaint(Color.white);
+        legend = new PaintScaleLegend(scale, scaleAxis);
+
+        legend.setStripOutlineVisible(false);
+        legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+        legend.setAxisOffset(5.0);
+        legend.setMargin(new RectangleInsets(3, 3, 3, 3));
+        legend.setFrame(new BlockBorder(Color.white));
+        legend.setPadding(new RectangleInsets(5, 5, 5, 5));
+        legend.setStripWidth(5);
+        legend.setPosition(RectangleEdge.TOP);
+        legend.getAxis().setLabelFont(legendFont);
+        legend.getAxis().setTickLabelFont(legendFont);
+
+        // Set paint scale
+        blockRenderer.setPaintScale(scale);
+
+        plot.setRenderer(blockRenderer);
+        plot.setBackgroundPaint(Color.black);
+        plot.setRangeGridlinePaint(Color.black);
+        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+        plot.setOutlinePaint(Color.black);
+        chart.addSubtitle(legend);
+        plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
     }
-    Arrays.sort(copyZValues);
 
-    // copy and sort x-values.
-    double[] copyXValues = new double[dataset3d.getItemCount(0)];
-    for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-      copyXValues[i] = dataset3d.getXValue(0, i);
+    public XYPlot getPlot() {
+        return plot;
     }
-    Arrays.sort(copyXValues);
-
-    // copy and sort y-values.
-    double[] copyYValues = new double[dataset3d.getItemCount(0)];
-    for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-      copyYValues[i] = dataset3d.getYValue(0, i);
-    }
-    Arrays.sort(copyYValues);
-
-    // get index in accordance to percentile windows
-    int minIndexScale = 0;
-    int maxIndexScale = copyZValues.length - 1;
-    double min = copyZValues[minIndexScale];
-    double max = copyZValues[maxIndexScale];
-    Paint[] contourColors =
-        XYBlockPixelSizePaintScales.getPaintColors(
-            "", Range.closed(min, max), paintScaleStyle);
-    LookupPaintScale scale = new LookupPaintScale(min, max, Color.BLACK);
-
-    double[] scaleValues = new double[contourColors.length];
-    double delta = (max - min) / (contourColors.length - 1);
-    double value = min;
-    for (int i = 0; i < contourColors.length; i++) {
-      scaleValues[i] = value;
-      scale.add(value, contourColors[i]);
-      value = value + delta;
-    }
-
-    plot = chart.getXYPlot();
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
-
-    // set the pixel renderer
-    XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
-    pixelRenderer.setPaintScale(scale);
-    // set the block renderer
-    XYBlockRenderer blockRenderer = new XYBlockRenderer();
-    double retentionWidth = 0.0;
-    double mobilityWidth = 0.0;
-
-    for (int i = 0; i + 1 < copyXValues.length; i++) {
-      if (copyXValues[i] != copyXValues[i + 1]) {
-        retentionWidth = copyXValues[i + 1] - copyXValues[i];
-        break;
-      }
-    }
-    for (int i = 0; i + 1 < copyYValues.length; i++) {
-      if (copyYValues[i] != copyYValues[i + 1]) {
-        mobilityWidth = copyYValues[i + 1] - copyYValues[i];
-        break;
-      }
-    }
-
-    if (mobilityWidth <= 0.0 || retentionWidth <= 0.0) {
-      throw new IllegalArgumentException(
-          "there must be atleast two unique value of retentio time and mobility");
-    }
-    blockRenderer.setBlockHeight(mobilityWidth);
-    blockRenderer.setBlockWidth(retentionWidth);
-
-    // Legend
-    NumberAxis scaleAxis = new NumberAxis("Intensity");
-    scaleAxis.setRange(min, max);
-    scaleAxis.setAxisLinePaint(Color.white);
-    scaleAxis.setTickMarkPaint(Color.white);
-    legend = new PaintScaleLegend(scale, scaleAxis);
-
-    legend.setStripOutlineVisible(false);
-    legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-    legend.setAxisOffset(5.0);
-    legend.setMargin(new RectangleInsets(3, 3, 3, 3));
-    legend.setFrame(new BlockBorder(Color.white));
-    legend.setPadding(new RectangleInsets(5, 5, 5, 5));
-    legend.setStripWidth(5);
-    legend.setPosition(RectangleEdge.TOP);
-    legend.getAxis().setLabelFont(legendFont);
-    legend.getAxis().setTickLabelFont(legendFont);
-
-    // Set paint scale
-    blockRenderer.setPaintScale(scale);
-
-    plot.setRenderer(blockRenderer);
-    plot.setBackgroundPaint(Color.black);
-    plot.setRangeGridlinePaint(Color.black);
-    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-    plot.setOutlinePaint(Color.black);
-    chart.addSubtitle(legend);
-    plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-
-  }
-
-  public XYPlot getPlot() {
-    return plot;
-  }
 }

@@ -10,54 +10,67 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewIMSController">
+<BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0"
+            xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewIMSController">
     <top>
         <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
             <children>
-                <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0" style="-fx-font-weight: bold;" text="Overview of raw data file: " AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0"
+                       style="-fx-font-weight: bold;" text="Overview of raw data file: " AnchorPane.bottomAnchor="0.0"
+                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <padding>
-                        <Insets left="5.0" />
+                        <Insets left="5.0"/>
                     </padding>
                 </Label>
             </children>
         </AnchorPane>
     </top>
     <center>
-        <SplitPane fx:id="pnMainSplit" dividerPositions="0.698943661971831" orientation="VERTICAL" BorderPane.alignment="CENTER">
+        <SplitPane fx:id="pnMainSplit" dividerPositions="0.698943661971831" orientation="VERTICAL"
+                   BorderPane.alignment="CENTER">
             <items>
-            <HBox prefHeight="100.0" prefWidth="200.0">
-               <children>
-                  <VBox prefHeight="393.0" prefWidth="411.0" HBox.hgrow="ALWAYS">
-                     <children>
-                         <Label fx:id="mobilityRTLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="23.0" prefWidth="411.0" text="" textAlignment="CENTER" VBox.vgrow="ALWAYS">
-                             <font>
-                                 <Font name="System Bold" size="14.0" />
-                             </font>
-                         </Label>
-                        <BorderPane fx:id="topLeftPane" prefHeight="90.0" prefWidth="411.0" VBox.vgrow="ALWAYS" />
-                        <BorderPane fx:id="topRightPane" prefHeight="228.0" prefWidth="411.0" VBox.vgrow="ALWAYS" />
-                     </children>
-                  </VBox>
-                  <VBox prefHeight="393.0" prefWidth="387.0" HBox.hgrow="ALWAYS">
-                     <children>
-                         <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="387.0" text="" textAlignment="CENTER" VBox.vgrow="ALWAYS">
-                             <font>
-                                 <Font name="System Bold" size="14.0" />
-                             </font>
-                         </Label>
-                        <HBox prefHeight="377.0" prefWidth="387.0" VBox.vgrow="ALWAYS">
-                           <children>
-                              <BorderPane fx:id="bottomLeftPane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
-                              <BorderPane fx:id="bottomRightPane" prefHeight="374.0" prefWidth="382.0" HBox.hgrow="ALWAYS" />
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
-               </children>
-            </HBox>
-                
+                <HBox prefHeight="100.0" prefWidth="200.0">
+                    <children>
+                        <VBox prefHeight="393.0" prefWidth="411.0" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label fx:id="mobilityRTLabel" alignment="CENTER" contentDisplay="CENTER"
+                                       prefHeight="23.0" prefWidth="411.0" text="" textAlignment="CENTER"
+                                       VBox.vgrow="ALWAYS">
+                                    <font>
+                                        <Font name="System Bold" size="14.0"/>
+                                    </font>
+                                </Label>
+                                <BorderPane fx:id="topLeftPane" prefHeight="90.0" prefWidth="411.0"
+                                            VBox.vgrow="ALWAYS"/>
+                                <BorderPane fx:id="topRightPane" prefHeight="228.0" prefWidth="411.0"
+                                            VBox.vgrow="ALWAYS"/>
+                            </children>
+                        </VBox>
+                        <VBox prefHeight="393.0" prefWidth="387.0" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label fx:id="rtLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0"
+                                       prefWidth="387.0" text="" textAlignment="CENTER" VBox.vgrow="ALWAYS">
+                                    <font>
+                                        <Font name="System Bold" size="14.0"/>
+                                    </font>
+                                </Label>
+                                <HBox prefHeight="377.0" prefWidth="387.0" VBox.vgrow="ALWAYS">
+                                    <children>
+                                        <BorderPane fx:id="bottomLeftPane" prefHeight="200.0" prefWidth="200.0"
+                                                    HBox.hgrow="ALWAYS"/>
+                                        <BorderPane fx:id="bottomRightPane" prefHeight="374.0" prefWidth="382.0"
+                                                    HBox.hgrow="ALWAYS"/>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
 
-                <TabPane fx:id="tpRawDataInfoIMS" prefHeight="247.0" prefWidth="798.0" tabClosingPolicy="ALL_TABS" SplitPane.resizableWithParent="false" />
+
+                <TabPane fx:id="tpRawDataInfoIMS" prefHeight="247.0" prefWidth="798.0" tabClosingPolicy="ALL_TABS"
+                         SplitPane.resizableWithParent="false"/>
 
             </items>
         </SplitPane>

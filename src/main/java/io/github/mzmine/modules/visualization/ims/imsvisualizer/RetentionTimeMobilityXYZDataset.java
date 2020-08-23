@@ -25,52 +25,52 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
 
-  private Scan[] scans;
-  private double[] xValues;
-  private double[] yValues;
-  private double[] zValues;
-  private int scanSize;
+    private Scan[] scans;
+    private double[] xValues;
+    private double[] yValues;
+    private double[] zValues;
+    private int scanSize;
 
-  public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
+    public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
 
-       scans = dataFactory.getScans();
-       xValues = dataFactory.getRetentionTime_retentionTimeMobility();
-       yValues = dataFactory.getMobility_retentionTimeMobility();
-       zValues = dataFactory.getIntensity_retentionTimeMobility();
-       scanSize = scans.length;
-  }
+        scans = dataFactory.getScans();
+        xValues = dataFactory.getRetentionTime_retentionTimeMobility();
+        yValues = dataFactory.getMobility_retentionTimeMobility();
+        zValues = dataFactory.getIntensity_retentionTimeMobility();
+        scanSize = scans.length;
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    @Override
+    public int getSeriesCount() {
+        return 1;
+    }
 
-  public Comparable<?> getRowKey(int item) {
-    return scans[item].toString();
-  }
+    public Comparable<?> getRowKey(int item) {
+        return scans[item].toString();
+    }
 
-  @Override
-  public Comparable getSeriesKey(int series) {
-    return getRowKey(series);
-  }
+    @Override
+    public Comparable getSeriesKey(int series) {
+        return getRowKey(series);
+    }
 
-  @Override
-  public Number getZ(int series, int item) {
-    return zValues[item];
-  }
+    @Override
+    public Number getZ(int series, int item) {
+        return zValues[item];
+    }
 
-  @Override
-  public int getItemCount(int series) {
-    return scanSize;
-  }
+    @Override
+    public int getItemCount(int series) {
+        return scanSize;
+    }
 
-  @Override
-  public Number getX(int series, int item) {
-    return xValues[item];
-  }
+    @Override
+    public Number getX(int series, int item) {
+        return xValues[item];
+    }
 
-  @Override
-  public Number getY(int series, int item) {
-    return yValues[item];
-  }
+    @Override
+    public Number getY(int series, int item) {
+        return yValues[item];
+    }
 }

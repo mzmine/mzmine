@@ -23,42 +23,42 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
 
-  private Scan[] scans;
-  private double[] xValues;
-  private double[] yValues;
+    private Scan[] scans;
+    private double[] xValues;
+    private double[] yValues;
 
-  public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
-    xValues = dataFactory.getRetentionTime_retentionTimeIntensity();
-    yValues = dataFactory.getIntensity_retentionTimeIntensity();
-    scans = dataFactory.getScans();
-  }
+    public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
+        xValues = dataFactory.getRetentionTime_retentionTimeIntensity();
+        yValues = dataFactory.getIntensity_retentionTimeIntensity();
+        scans = dataFactory.getScans();
+    }
 
-  @Override
-  public int getSeriesCount() {
-    return 1;
-  }
+    @Override
+    public int getSeriesCount() {
+        return 1;
+    }
 
-  @Override
-  public Comparable getSeriesKey(int series) {
-    return getRowKey(series);
-  }
+    @Override
+    public Comparable getSeriesKey(int series) {
+        return getRowKey(series);
+    }
 
-  public Comparable<?> getRowKey(int item) {
-    return scans[item].toString();
-  }
+    public Comparable<?> getRowKey(int item) {
+        return scans[item].toString();
+    }
 
-  @Override
-  public int getItemCount(int series) {
-    return xValues.length;
-  }
+    @Override
+    public int getItemCount(int series) {
+        return xValues.length;
+    }
 
-  @Override
-  public Number getX(int series, int item) {
-    return xValues[item];
-  }
+    @Override
+    public Number getX(int series, int item) {
+        return xValues[item];
+    }
 
-  @Override
-  public Number getY(int series, int item) {
-    return yValues[item];
-  }
+    @Override
+    public Number getY(int series, int item) {
+        return yValues[item];
+    }
 }

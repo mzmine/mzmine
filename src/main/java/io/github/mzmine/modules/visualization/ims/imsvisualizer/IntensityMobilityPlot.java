@@ -46,87 +46,88 @@ import java.util.ArrayList;
 
 public class IntensityMobilityPlot extends EChartViewer {
 
-  private XYPlot plot;
-  private JFreeChart chart;
-  private final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
-  private EStandardChartTheme theme;
-  private Scan selectedMobilityScan;
-  private double selectedRetentionTime;
-  private RawDataFile dataFiles[];
+    private XYPlot plot;
+    private JFreeChart chart;
+    private final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+    private EStandardChartTheme theme;
+    private Scan selectedMobilityScan;
+    private double selectedRetentionTime;
+    private RawDataFile dataFiles[];
 
-  public IntensityMobilityPlot(XYDataset dataset, ImsVisualizerTask imsTask) {
-    super(
-        ChartFactory.createXYLineChart(
-            "", "intensity", "", dataset, PlotOrientation.VERTICAL, false, true, false));
-    chart = getChart();
-    plot = chart.getXYPlot();
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
-    this.selectedRetentionTime = imsTask.getSelectedRetentionTime();
-    dataFiles = imsTask.getDataFiles();
-    var renderer = new XYLineAndShapeRenderer(true, true);
-    renderer.setSeriesPaint(0, Color.BLACK);
-    renderer.setSeriesStroke(0, new BasicStroke(1.0f));
-    renderer.setSeriesShapesVisible(0, false);
+    public IntensityMobilityPlot(XYDataset dataset, ImsVisualizerTask imsTask) {
+        super(
+                ChartFactory.createXYLineChart(
+                        "", "intensity", "", dataset, PlotOrientation.VERTICAL, false, true, false));
+        chart = getChart();
+        plot = chart.getXYPlot();
+        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+        theme.apply(chart);
+        this.selectedRetentionTime = imsTask.getSelectedRetentionTime();
+        dataFiles = imsTask.getDataFiles();
+        var renderer = new XYLineAndShapeRenderer(true, true);
+        renderer.setSeriesPaint(0, Color.BLACK);
+        renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+        renderer.setSeriesShapesVisible(0, false);
 
-    plot.setRenderer(renderer);
-    plot.setBackgroundPaint(Color.WHITE);
-    plot.setRangeGridlinePaint(Color.WHITE);
-    plot.setDomainGridlinePaint(Color.WHITE);
-    plot.getDomainAxis().setInverted(true);
-    plot.getRangeAxis().setVisible(false);
-    plot.getDomainAxis().setAutoRange(false);
-    plot.getDomainAxis().setAutoRange(true);
-    plot.getDomainAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setRangeGridlinePaint(Color.WHITE);
+        plot.setDomainGridlinePaint(Color.WHITE);
+        plot.getDomainAxis().setInverted(true);
+        plot.getRangeAxis().setVisible(false);
+        plot.getDomainAxis().setAutoRange(false);
+        plot.getDomainAxis().setAutoRange(true);
+        plot.getDomainAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
-    // mouse listener.
-    addChartMouseListener(
-        new ChartMouseListenerFX() {
-          @Override
-          public void chartMouseClicked(ChartMouseEventFX event) {
-            ChartEntity chartEntity = event.getEntity();
-            if (chartEntity instanceof XYItemEntity) {
-              XYItemEntity entity = (XYItemEntity) chartEntity;
-              int serindex = entity.getSeriesIndex();
-              int itemindex = entity.getItem();
-              double mobility = dataset.getYValue(serindex, itemindex);
-              ArrayList<Scan>selectedScan = imsTask.getSelectedScans();
-              for (int i = 0; i < selectedScan.size(); i++) {
-                if (selectedScan.get(i).getMobility() == mobility && selectedScan.get(i).getRetentionTime() == selectedRetentionTime) {
-                  selectedMobilityScan = selectedScan.get(i);
-                  break;
-                }
-              }
-              showSelectedScan();
-            }
-          }
+        // mouse listener.
+        addChartMouseListener(
+                new ChartMouseListenerFX() {
+                    @Override
+                    public void chartMouseClicked(ChartMouseEventFX event) {
+                        ChartEntity chartEntity = event.getEntity();
+                        if (chartEntity instanceof XYItemEntity) {
+                            XYItemEntity entity = (XYItemEntity) chartEntity;
+                            int serindex = entity.getSeriesIndex();
+                            int itemindex = entity.getItem();
+                            double mobility = dataset.getYValue(serindex, itemindex);
+                            ArrayList<Scan> selectedScan = imsTask.getSelectedScans();
+                            for (int i = 0; i < selectedScan.size(); i++) {
+                                if (selectedScan.get(i).getMobility() == mobility && selectedScan.get(i).getRetentionTime() == selectedRetentionTime) {
+                                    selectedMobilityScan = selectedScan.get(i);
+                                    break;
+                                }
+                            }
+                            showSelectedScan();
+                        }
+                    }
 
-          @Override
-          public void chartMouseMoved(ChartMouseEventFX event) {}
-        });
-  }
-
-  public void showSelectedScan() {
-    SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(dataFiles[0]);
-    spectraWindow.loadRawData(selectedMobilityScan);
-
-    // set colors depending on vision
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    Color posColor = palette.getPositiveColorAWT();
-    Color negColor = palette.getNegativeColorAWT();
-
-    // set color
-    XYPlot plotSpectra = (XYPlot) spectraWindow.getSpectrumPlot().getChart().getPlot();
-
-    // set color
-    plotSpectra.getRenderer().setSeriesPaint(0, posColor);
-
-    // add mass list
-    MassList[] massLists = selectedMobilityScan.getMassLists();
-    for (MassList massList : massLists) {
-      MassListDataSet dataset = new MassListDataSet(massList);
-      spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
+                    @Override
+                    public void chartMouseMoved(ChartMouseEventFX event) {
+                    }
+                });
     }
-    Platform.runLater(() -> spectraWindow.show());
-  }
+
+    public void showSelectedScan() {
+        SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(dataFiles[0]);
+        spectraWindow.loadRawData(selectedMobilityScan);
+
+        // set colors depending on vision
+        SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+        Color posColor = palette.getPositiveColorAWT();
+        Color negColor = palette.getNegativeColorAWT();
+
+        // set color
+        XYPlot plotSpectra = (XYPlot) spectraWindow.getSpectrumPlot().getChart().getPlot();
+
+        // set color
+        plotSpectra.getRenderer().setSeriesPaint(0, posColor);
+
+        // add mass list
+        MassList[] massLists = selectedMobilityScan.getMassLists();
+        for (MassList massList : massLists) {
+            MassListDataSet dataset = new MassListDataSet(massList);
+            spectraWindow.getSpectrumPlot().addDataSet(dataset, negColor, true);
+        }
+        Platform.runLater(() -> spectraWindow.show());
+    }
 }

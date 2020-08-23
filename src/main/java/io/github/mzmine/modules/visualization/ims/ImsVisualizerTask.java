@@ -75,7 +75,6 @@ public class ImsVisualizerTask extends AbstractTask {
     private Scan scans[];
 
 
-
     public ImsVisualizerTask(ParameterSet parameters) {
         dataFiles =
                 parameters
@@ -326,10 +325,12 @@ public class ImsVisualizerTask extends AbstractTask {
     public ArrayList<Scan> getSelectedScans() {
         return selectedScans;
     }
-    public Scan[] getScans(){
+
+    public Scan[] getScans() {
         return scans;
     }
-   public RawDataFile[] getDataFiles(){
+
+    public RawDataFile[] getDataFiles() {
         return dataFiles;
-   }
+    }
 }

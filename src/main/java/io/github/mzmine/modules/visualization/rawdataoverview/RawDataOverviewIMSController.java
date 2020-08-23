@@ -52,9 +52,11 @@ public class RawDataOverviewIMSController {
     @FXML
     private BorderPane bottomRightPane;
 
-    @FXML public Label rtLabel;
+    @FXML
+    public Label rtLabel;
 
-    @FXML public Label mobilityRTLabel;
+    @FXML
+    public Label mobilityRTLabel;
 
 
     @FXML
@@ -76,7 +78,7 @@ public class RawDataOverviewIMSController {
         initialized = true;
     }
 
-    void InitGui(){
+    void InitGui() {
         ImsVisualizerModule module = new ImsVisualizerModule();
         Class<? extends MZmineRunnableModule> moduleJavaClass = module.getClass();
         parameters =
@@ -161,13 +163,28 @@ public class RawDataOverviewIMSController {
         Tab tab = rawDataFilesAndTabs.remove(raw);
         tpRawDataInfoIMS.getTabs().remove(tab);
     }
-    public BorderPane getTopLeftPane() { return topLeftPane;}
 
-    public BorderPane getTopRightPane(){ return topRightPane;}
+    public BorderPane getTopLeftPane() {
+        return topLeftPane;
+    }
 
-    public BorderPane getBottomLeftPane(){ return bottomLeftPane;}
+    public BorderPane getTopRightPane() {
+        return topRightPane;
+    }
 
-    public BorderPane getBottomRightPane(){ return bottomRightPane;}
-    public Label getRtLabel(){return  rtLabel; }
-    public Label getMobilityRTLabel(){ return mobilityRTLabel; }
+    public BorderPane getBottomLeftPane() {
+        return bottomLeftPane;
+    }
+
+    public BorderPane getBottomRightPane() {
+        return bottomRightPane;
+    }
+
+    public Label getRtLabel() {
+        return rtLabel;
+    }
+
+    public Label getMobilityRTLabel() {
+        return mobilityRTLabel;
+    }
 }

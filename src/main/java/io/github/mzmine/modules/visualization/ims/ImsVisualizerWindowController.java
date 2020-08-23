@@ -24,34 +24,40 @@ import javafx.scene.layout.BorderPane;
 
 public class ImsVisualizerWindowController {
 
-  @FXML public BorderPane topLeftPane;
-  @FXML public BorderPane topRightPane;
-  @FXML public BorderPane bottomLeftPane;
-  @FXML public BorderPane bottomRightPane;
-  @FXML public Label rtLabel;
-  @FXML public Label mobilityRTLabel;
+    @FXML
+    public BorderPane topLeftPane;
+    @FXML
+    public BorderPane topRightPane;
+    @FXML
+    public BorderPane bottomLeftPane;
+    @FXML
+    public BorderPane bottomRightPane;
+    @FXML
+    public Label rtLabel;
+    @FXML
+    public Label mobilityRTLabel;
 
-  public BorderPane getTopLeftPane() {
-    return topLeftPane;
-  }
+    public BorderPane getTopLeftPane() {
+        return topLeftPane;
+    }
 
-  public BorderPane getTopRightPane() {
-    return topRightPane;
-  }
+    public BorderPane getTopRightPane() {
+        return topRightPane;
+    }
 
-  public BorderPane getBottomLeftPane() {
-    return bottomLeftPane;
-  }
+    public BorderPane getBottomLeftPane() {
+        return bottomLeftPane;
+    }
 
-  public BorderPane getBottomRightPane() {
-    return bottomRightPane;
-  }
+    public BorderPane getBottomRightPane() {
+        return bottomRightPane;
+    }
 
-  public Label getRtLabel() {
-    return rtLabel;
-  }
+    public Label getRtLabel() {
+        return rtLabel;
+    }
 
-  public Label getMobilityRTLabel() {
-    return mobilityRTLabel;
-  }
+    public Label getMobilityRTLabel() {
+        return mobilityRTLabel;
+    }
 }
