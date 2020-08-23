@@ -175,7 +175,6 @@ public class CliqueMSTask extends AbstractTask {
     for (PeakData pd : pdList) {
       CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueMS Annotations");
       annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
-//      annotation.addSingularProperty("Node ID", String.valueOf(pd.getNodeID()));
       annotation.addSingularProperty("Clique ID (Group ID)", String.valueOf(nodeToPeakID.get(pd.getCliqueID())));
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
       pdIdentityHash.put(pd,annotation);
