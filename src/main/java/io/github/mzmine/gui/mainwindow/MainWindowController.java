@@ -19,7 +19,6 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.Ordering;
-import com.sun.glass.ui.Application;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
@@ -45,7 +44,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.io.File;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -86,8 +84,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -176,8 +177,18 @@ public class MainWindowController {
 
     rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // rawDataTree.setShowRoot(true);
+    rawDataTree.setEditable(false);
 
     rawDataTree.setCellFactory(rawDataListView -> new DraggableListCellWithDraggableFiles<>() {
+      private final TextField textField = new TextField();
+      {
+        textField.setOnAction(event -> commitEdit(getItem()));
+        textField.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+          if (event.getCode() == KeyCode.ESCAPE) {
+            cancelEdit();
+          }
+        });
+      }
       @Override
       protected void updateItem(RawDataFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -190,6 +201,51 @@ public class MainWindowController {
 //        setTextFill(item.getColor());
         textFillProperty().bind(item.colorProperty());
         setGraphic(new ImageView(rawDataFileIcon));
+      }
+
+      @Override
+      public void startEdit() {
+        if (!isEditable() || !getListView().isEditable() || getItem() == null) {
+          return;
+        }
+
+        super.startEdit();
+
+        textField.setText(getItem().getName());
+        setText(null);
+        HBox hbox = (new HBox(new ImageView(rawDataFileIcon), textField));
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        setGraphic(hbox);
+        textField.selectAll();
+        textField.requestFocus();
+      }
+
+      @Override
+      public void cancelEdit() {
+        if(getItem() == null) {
+          return;
+        }
+
+        super.cancelEdit();
+
+        setText(getItem().getName());
+        setGraphic(new ImageView(rawDataFileIcon));
+        rawDataTree.setEditable(false);
+      }
+
+      @Override
+      public void commitEdit(RawDataFile item) {
+        if(item == null) {
+          return;
+        }
+
+        super.commitEdit(item);
+
+        item.setName(textField.getText());
+
+        setText(item.getName());
+        setGraphic(new ImageView(rawDataFileIcon));
+        rawDataTree.setEditable(false);
       }
     });
 
@@ -433,54 +489,13 @@ public class MainWindowController {
     }
 
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
-
     // Only one file must be selected
-    if (rows == null || rows.size() != 1 || rows.get(0) == null) {
+    if (rows == null || rows.size() != 1) {
       return;
     }
 
-    // Creating new popup window
-    Stage popup = new Stage();
-    VBox box = new VBox(5);
-    Label label = new Label("Please insert the name of the file:");
-    TextField nameInput =
-        new TextField(getRawDataTree().getSelectionModel().getSelectedItem().getName());
-
-    BooleanProperty apply = new SimpleBooleanProperty(false);
-
-    box.setAlignment(Pos.CENTER);
-    box.setPadding(new Insets(10, 10, 10, 10));
-
-    label.setMinWidth(Control.USE_PREF_SIZE);
-
-    Button btnApply = new Button("Apply");
-    Button btnCancel = new Button("Cancel");
-    btnApply.setOnAction(e -> {
-      apply.set(true);
-      popup.hide();
-    });
-    btnCancel.setOnAction(e -> popup.hide());
-
-    ButtonBar.setButtonData(btnApply, ButtonData.APPLY);
-    ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
-    ButtonBar btnBar = new ButtonBar();
-    btnBar.getButtons().addAll(btnApply, btnCancel);
-
-    box.getChildren().addAll(label, nameInput, btnBar);
-
-    popup.setScene(new Scene(box));
-    popup.getIcons().add(new Image("MZmineIcon.png"));
-    popup.setTitle("Rename file");
-    popup.setResizable(false);
-    popup.initModality(Modality.APPLICATION_MODAL);
-    popup.show();
-
-    popup.setOnHiding(e -> {
-      if ((nameInput.getText() != null && !nameInput.getText().isEmpty()) && apply.get()) {
-        rows.get(0).setName(nameInput.getText());
-        rawDataTree.refresh();
-      }
-    });
+    rawDataTree.setEditable(true);
+    rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
   }
 
   @SuppressWarnings("unchecked")
