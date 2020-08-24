@@ -116,6 +116,7 @@ public class CliqueMSTask extends AbstractTask {
               parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters()
                   .getParameter(SimilarFeatureParameters.IN_DIFF).getValue(),
               parameters.getParameter(CliqueMSParameters.TOL).getValue());
+      System.out.println("Size of peakData List 1"+anClique.getPeakDataList().size());
       // Check if not canceled
       if (isCanceled()) {
         return;
@@ -146,6 +147,7 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
+
       ComputeAdduct computeAdduct = new ComputeAdduct(anClique, this, this.progress);
 
       PolarityType polarity =
@@ -198,13 +200,17 @@ public class CliqueMSTask extends AbstractTask {
       numberOfDigitsInMaxPeakID++;
       maxID/=10;
     }
-
+    numberOfDigitsInMaxPeakID++;
     for (PeakData pd : pdList) {
-      String cqID = null;
-      if(pd.getCliqueID() != null)
+      String cqID;
+      if(nodeToPeakID.get(pd.getCliqueID()) != null)
         cqID = String.format("%0"+numberOfDigitsInMaxPeakID+"d",nodeToPeakID.get(pd.getCliqueID()));
-      if(cqID.equals("null"))
-        cqID = "NA";
+      else if(pd.getCliqueID() != null){
+        cqID = String.format("%0"+numberOfDigitsInMaxPeakID+"d",pd.getCliqueID());
+      }
+      else{
+        cqID= "NA";
+      }
       CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueID "+cqID);
       annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
