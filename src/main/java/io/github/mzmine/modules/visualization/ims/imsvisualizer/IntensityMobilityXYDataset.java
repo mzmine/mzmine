@@ -22,9 +22,9 @@ import io.github.mzmine.datamodel.Scan;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class IntensityMobilityXYDataset extends AbstractXYDataset {
-    private Scan scans[];
-    private Double[] xValues;
-    private Double[] yValues;
+    private final Scan[] scans;
+    private final Double[] xValues;
+    private final Double[] yValues;
 
     public IntensityMobilityXYDataset(DataFactory dataFactory) {
 

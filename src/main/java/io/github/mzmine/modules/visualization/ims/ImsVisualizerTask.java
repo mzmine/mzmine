@@ -41,6 +41,7 @@ import org.jfree.data.xy.XYZDataset;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
@@ -63,7 +64,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private IntensityMobilityPlot intensityMobilityPlot;
     private RetentionTimeMobilityHeatMapPlot retentionTimeMobilityHeatMapPlot;
     private RetentionTimeIntensityPlot retentionTimeIntensityPlot;
-    private ArrayList<Scan> selectedScans;
+    private List<Scan> selectedScans;
     private BorderPane bottomRightpane;
     private BorderPane bottomLeftPane;
     private BorderPane topLeftPane;
@@ -318,11 +319,11 @@ public class ImsVisualizerTask extends AbstractTask {
         return this.selectedRetentionTime;
     }
 
-    public void setSelectedScans(ArrayList<Scan> arrayList) {
-        selectedScans = arrayList;
+    public void setSelectedScans(List<Scan> selectedScans) {
+        this.selectedScans = selectedScans;
     }
 
-    public ArrayList<Scan> getSelectedScans() {
+    public List<Scan> getSelectedScans() {
         return selectedScans;
     }
 

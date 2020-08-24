@@ -43,6 +43,7 @@ import org.jfree.data.xy.XYDataset;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class IntensityMobilityPlot extends EChartViewer {
 
@@ -90,7 +91,7 @@ public class IntensityMobilityPlot extends EChartViewer {
                             int serindex = entity.getSeriesIndex();
                             int itemindex = entity.getItem();
                             double mobility = dataset.getYValue(serindex, itemindex);
-                            ArrayList<Scan> selectedScan = imsTask.getSelectedScans();
+                            List<Scan> selectedScan = imsTask.getSelectedScans();
                             for (int i = 0; i < selectedScan.size(); i++) {
                                 if (selectedScan.get(i).getMobility() == mobility && selectedScan.get(i).getRetentionTime() == selectedRetentionTime) {
                                     selectedMobilityScan = selectedScan.get(i);

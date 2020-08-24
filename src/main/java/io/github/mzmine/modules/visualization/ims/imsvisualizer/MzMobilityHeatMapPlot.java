@@ -48,6 +48,7 @@ import org.jfree.data.xy.XYZDataset;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.List;
 
 public class MzMobilityHeatMapPlot extends EChartViewer {
 
@@ -212,7 +213,7 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
                                 int itemindex = entity.getItem();
                                 double mobility = 0;
                                 mobility = dataset.getYValue(serindex, itemindex);
-                                ArrayList<Scan> selectedScan = imsTask.getSelectedScans();
+                                List<Scan> selectedScan = imsTask.getSelectedScans();
                                 for (int i = 0; i < imsTask.getScans().length; i++) {
                                     if (selectedScan.get(i).getMobility() == mobility && selectedRetentionTime == selectedScan.get(i).getRetentionTime()) {
                                         break;

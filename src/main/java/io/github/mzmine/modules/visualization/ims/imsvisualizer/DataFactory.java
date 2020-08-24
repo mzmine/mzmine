@@ -32,12 +32,15 @@ import io.github.mzmine.parameters.ParameterSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DataFactory {
 
+    //Name format : dataFieldPlotName
     private RawDataFile dataFiles[];
-    private Scan scans[];
-    private Range<Double> mzRange;
+    private final Scan[] scans;
+    private final Range<Double> mzRange;
     private double[] mobilityretentionTimeMobility;
     private double[] intensityretentionTimeMobility;
     private double[] retentionTimeretentionTimeMobility;
@@ -52,13 +55,13 @@ public class DataFactory {
     private Double[] intensityIntensityMobility;
     private Double[] mobilityIntensityMobility;
 
-    public HashMap<Double, Double> scanMobilityMap = new HashMap<>();
-    public HashMap<Double, Double> scanRetentionTimeMap = new HashMap<>();
+    public Map<Double, Double> scanMobilityMap = new HashMap<>();
+    public Map<Double, Double> scanRetentionTimeMap = new HashMap<>();
     private Double selectedRetentionTime;
-    private ArrayList<Scan> selectedScans;
-    private int scanSize;
-    private ImsVisualizerTask imsTask;
-    ArrayList<Double> rtIntensity = new ArrayList<>();
+    private List<Scan> selectedScans;
+    private final int scanSize;
+    private final ImsVisualizerTask imsTask;
+    List<Double> rtIntensity = new ArrayList<>();
 
 
     public DataFactory(ParameterSet param, double rt, ImsVisualizerTask imsTask) {
@@ -88,13 +91,12 @@ public class DataFactory {
         // prepare data's for the ims frame.( mz-mobility heatmap and intensity mobility)
         updateFrameData(selectedRetentionTime);
 
-        // data for the retention time - heatMap plot.
-        retentionTimeretentionTimeMobility = new double[scanSize];
-        mobilityretentionTimeMobility = new double[scanSize];
-        intensityretentionTimeMobility = new double[scanSize];
-
         preparertMobility();
 
+        prepareIntensityRetentionTime();
+    }
+
+    void prepareIntensityRetentionTime(){
         intensityretentionTimeIntensity = new double[rtIntensity.size()];
         retentionTimeretentionTimeIntensity = new double[rtIntensity.size()];
 
@@ -134,6 +136,12 @@ public class DataFactory {
     }
 
     public void preparertMobility() {
+
+        // data for the retention time - heatMap plot.
+        retentionTimeretentionTimeMobility = new double[scanSize];
+        mobilityretentionTimeMobility = new double[scanSize];
+        intensityretentionTimeMobility = new double[scanSize];
+
         for (int i = 0; i < scanSize; i++) {
             if (i == 0) {
                 rtIntensity.add(scans[i].getRetentionTime());
