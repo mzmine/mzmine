@@ -74,7 +74,7 @@ public class RawDataOverviewTask extends AbstractTask {
         Collection<? extends RawDataFile> rawDataFile = Arrays.asList(rawDataFiles);
 
         //todo: figure out to check mobility.
-        if (rawDataFiles[0].getScan(1).getMobility() >= 0.0) {
+        if (rawDataFiles[0].getScan(1).getMobility() > 0) {
             isIonMobility = true;
         }
         RawDataOverviewPane rdop = new RawDataOverviewPane(true, false, isIonMobility, parameterSet);

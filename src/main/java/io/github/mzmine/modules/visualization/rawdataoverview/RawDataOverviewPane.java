@@ -99,7 +99,9 @@ public class RawDataOverviewPane extends MZmineTab {
     @Override
     public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
         controller.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
-        controllerIMS.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
+        if(isIonMobility) {
+            controllerIMS.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
+        }
     }
 
     @Override
