@@ -41,9 +41,8 @@ public class PeakData {
   private final int peakListRowID;
 
   private int charge;
-  private int cliqueID;
+  private Integer cliqueID = null;
   private String isotopeAnnotation;
-  private String adductAnnotation;
 
   public double getMz() {
     return mz;
@@ -90,7 +89,7 @@ public class PeakData {
   }
 
 
-  public int getCliqueID() {
+  public Integer getCliqueID() {
     return cliqueID;
   }
 
@@ -104,14 +103,6 @@ public class PeakData {
 
   public void setIsotopeAnnotation(String isotopeAnnotation) {
     this.isotopeAnnotation = isotopeAnnotation;
-  }
-
-  public String getAdductAnnotation() {
-    return adductAnnotation;
-  }
-
-  public void setAdductAnnotation(String adductAnnotation) {
-    this.adductAnnotation = adductAnnotation;
   }
 
   PeakData(double mz, double mzmin, double mzmax, double rt, double rtmin, double rtmax,
@@ -139,7 +130,6 @@ public class PeakData {
     this.peakListRowID = p.peakListRowID;
     this.cliqueID = p.cliqueID;
     this.isotopeAnnotation = p.isotopeAnnotation;
-    this.adductAnnotation = p.adductAnnotation;
   }
 
 }

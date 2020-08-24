@@ -120,6 +120,23 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
+      HashMap<Integer, List<Integer>> cliques = anClique.cliques;
+//      System.out.println("total no. of cliques "+cliques.size());
+//      int averageCliqueSize = 0;
+//      int minCliqueSize = 100000000;
+//      int maxCliqueSize = 0;
+//      for(int i : cliques.keySet()){
+//        averageCliqueSize+=cliques.get(i).size();
+//        if(maxCliqueSize<cliques.get(i).size())
+//          maxCliqueSize = cliques.get(i).size();
+//        if(minCliqueSize>cliques.get(i).size())
+//          minCliqueSize = cliques.get(i).size();
+//      }
+//      averageCliqueSize/=cliques.size();
+//      System.out.println("minimum no. of features in a cliques "+minCliqueSize);
+//      System.out.println("maximum no. of features in a cliques "+maxCliqueSize);
+//      System.out.println("average no. of features in a cliques "+averageCliqueSize);
+
       ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique, this, progress);
       cim.getIsotopes(parameters.getParameter(CliqueMSParameters.ISOTOPES_MAX_CHARGE).getValue(),
           parameters.getParameter(CliqueMSParameters.ISOTOPES_MAXIMUM_GRADE).getValue(),
@@ -183,7 +200,12 @@ public class CliqueMSTask extends AbstractTask {
     }
 
     for (PeakData pd : pdList) {
-      CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueID "+String.format("%0"+numberOfDigitsInMaxPeakID+"d",nodeToPeakID.get(pd.getCliqueID())));
+      String cqID = null;
+      if(pd.getCliqueID() != null)
+        cqID = String.format("%0"+numberOfDigitsInMaxPeakID+"d",nodeToPeakID.get(pd.getCliqueID()));
+      if(cqID.equals("null"))
+        cqID = "NA";
+      CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueID "+cqID);
       annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
       pdIdentityHash.put(pd,annotation);
@@ -197,16 +219,19 @@ public class CliqueMSTask extends AbstractTask {
     }
     for (AdductInfo adInfo : addInfos) {
       PeakData pd = pdHash.get(adInfo.feature);
+//      System.out.print(pd.getPeakListRowID()+","+nodeToPeakID.get(pd.getCliqueID())+","+pd.getMz()+","+pd.getRt()+","+pd.getIntensity()+","+pd.getIsotopeAnnotation());
       CliqueMSTabularPeakIdentity annotation = pdIdentityHash.get(pd);
       HashSet<String> adducts = new HashSet<>();
       for (int i = 0; i < ComputeAdduct.numofAnnotation; i++) {
         if(adInfo.annotations.get(i).equals("NA") || adducts.contains(adInfo.annotations.get(i)))
           continue;
+//        System.out.print(","+adInfo.masses.get(i)+","+adInfo.scores.get(i)+","+adInfo.annotations.get(i));
         adducts.add(adInfo.annotations.get(i));
         annotation.addMultiTypeProperty("Mass",MZmineCore.getConfiguration().getMZFormat().format(adInfo.masses.get(i)));
         annotation.addMultiTypeProperty("Score", String.valueOf(adInfo.scores.get(i)));
         annotation.addMultiTypeProperty("Adduct Annotation", adInfo.annotations.get(i));
       }
+//      System.out.println();
     }
   }
 }
