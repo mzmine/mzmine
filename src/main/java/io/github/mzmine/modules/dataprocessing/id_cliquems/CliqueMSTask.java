@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 
+import com.sun.xml.bind.v2.runtime.output.SAXOutput;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PolarityType;
@@ -169,13 +170,21 @@ public class CliqueMSTask extends AbstractTask {
     HashMap<PeakData, CliqueMSTabularPeakIdentity> pdIdentityHash = new HashMap<>();
     //Map for cliqueID to peakRowListID
     HashMap<Integer,Integer> nodeToPeakID = new HashMap<>();
+    int maxID = 0;
     for(PeakData pd : pdList){
       nodeToPeakID.put(pd.getNodeID(),pd.getPeakListRowID());
+      if(maxID<pd.getPeakListRowID())
+        maxID = pd.getPeakListRowID();
     }
+    int numberOfDigitsInMaxPeakID = 0;
+    while(maxID>0){
+      numberOfDigitsInMaxPeakID++;
+      maxID/=10;
+    }
+
     for (PeakData pd : pdList) {
-      CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueMS Annotations");
+      CliqueMSTabularPeakIdentity annotation = new CliqueMSTabularPeakIdentity("CliqueID "+String.format("%0"+numberOfDigitsInMaxPeakID+"d",nodeToPeakID.get(pd.getCliqueID())));
       annotation.addSingularProperty(PeakIdentity.PROPERTY_METHOD,"CliqueMS Algorithm");
-      annotation.addSingularProperty("Clique ID (Group ID)", String.valueOf(nodeToPeakID.get(pd.getCliqueID())));
       annotation.addSingularProperty("Isotope Annotation",pd.getIsotopeAnnotation());
       pdIdentityHash.put(pd,annotation);
       if (this.peakList.findRowByID(pd.getPeakListRowID()) != null) {
