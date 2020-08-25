@@ -71,7 +71,7 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
         plot = chart.getXYPlot();
         this.selectedRetention = imsVisualizerTask.getSelectedRetentionTime();
         var renderer = new XYLineAndShapeRenderer(true, true);
-        renderer.setSeriesPaint(0, Color.GREEN);
+        renderer.setSeriesPaint(0, Color.BLACK);
         renderer.setSeriesShapesVisible(0, false);
         renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 
