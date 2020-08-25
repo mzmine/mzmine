@@ -41,9 +41,44 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final MassListParameter massList = new MassListParameter();
 
+  public enum MassPeakMatchingChoice {
+    STANDARDS_LIST("Standards list"), UNIVERSAL_CALIBRANTS("Universal calibrants");
+
+    private final String name;
+
+    MassPeakMatchingChoice(String name) {
+      this.name = name;
+    }
+
+    public String toString() {
+      return name;
+    }
+  }
+
   public static final FileNameParameter standardsList = new FileNameParameter("Standards list",
           "File with a list of standard calibrants (ionic formula and retention time)" +
                   " expected to appear in the dataset", FileSelectionType.OPEN);
+
+  public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
+          "Max difference between actual mz peaks and standard calibrants to consider a match," +
+                  " max of m/z and ppm is used", 0.001, 5, true);
+
+  public static final RTToleranceParameter retentionTimeTolerance = new RTToleranceParameter("Retention time tolerance",
+          "Max retention time difference between mass peaks and standard calibrants to consider a match.");
+
+  public static final MZToleranceParameter mzRatioToleranceUniversalCalibrants =
+          new MZToleranceParameter("mz ratio tolerance ",
+          "Max difference between actual mz peaks and universal calibrants to consider a match," +
+                  " max of m/z and ppm is used", 0.001, 5, true);
+
+  public static final TreeMap<String, ParameterSet> massPeakMatchingChoices = new TreeMap<>() {{
+    put(MassPeakMatchingChoice.STANDARDS_LIST.toString(), new SimpleParameterSet(new Parameter[]{standardsList, mzRatioTolerance, retentionTimeTolerance}));
+    put(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString(), new SimpleParameterSet(new Parameter[]{mzRatioToleranceUniversalCalibrants}));
+  }};
+
+  public static final NestedComboParameter massPeakMatchingMethod = new NestedComboParameter("Mass peak matching method",
+          "Method used to match mass peaks from the dataset with reference values",
+          massPeakMatchingChoices, MassPeakMatchingChoice.STANDARDS_LIST.toString(), true, 250);
 
   public static final DoubleParameter intensityThreshold = new DoubleParameter("Intensity threshold",
           "Intensity threshold of mz data peaks to use for matching. This parameter is used to facilitate" +
@@ -144,13 +179,6 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   " for error size vs m/z value. Please see the help file for more details.",
           biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
-  public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
-          "Max difference between actual mz peaks and standard calibrants to consider a match," +
-                  " max of m/z and ppm is used", 0.001, 5, true);
-
-  public static final RTToleranceParameter retentionTimeTolerance = new RTToleranceParameter("Retention time tolerance",
-          "Max retention time difference between mass peaks and standard calibrants to consider a match.");
-
   public static final StringParameter suffix = new StringParameter("Suffix",
           "This string is added to mass list name as a suffix", "calibrated");
 
@@ -159,7 +187,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[]{dataFiles, massList, standardsList, mzRatioTolerance, retentionTimeTolerance,
+    super(new Parameter[]{dataFiles, massList, massPeakMatchingMethod,
             intensityThreshold, filterDuplicates, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
   }
 

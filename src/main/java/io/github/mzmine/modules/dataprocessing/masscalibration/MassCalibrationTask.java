@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleMassList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.BiasEstimationChoice;
+import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.MassPeakMatchingChoice;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationParameters.RangeExtractionChoice;
 import io.github.mzmine.modules.dataprocessing.masscalibration.charts.ArithmeticMeanKnnTrend;
 import io.github.mzmine.modules.dataprocessing.masscalibration.charts.OLSRegressionTrend;
@@ -34,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.Dis
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsList;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractor;
 import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListExtractorFactory;
+import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.UniversalCalibrantsListCsvExtractor;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combonested.NestedCombo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -42,6 +44,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import org.jfree.data.xy.XYSeries;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -126,10 +129,22 @@ public class MassCalibrationTask extends AbstractTask {
 
     String standardsListFilename = null;
     StandardsList standardsList;
+    NestedCombo massPeakMatchingMethod = parameters.
+            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
     try {
-      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
-              .getAbsolutePath();
-      standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+//      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
+//              .getAbsolutePath();
+      standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
+              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
+
+      if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
+        URL universalCalibrantsPath = getClass().getClassLoader().getResource("universal_calibrants_list.csv");
+        standardsListFilename = universalCalibrantsPath.getPath();
+        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
+        standardsListExtractor = extractor;
+      } else {
+        standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+      }
       standardsList = standardsListExtractor.extractStandardsList();
 
       if (standardsList.getStandardMolecules().size() == 0) {
@@ -138,6 +153,7 @@ public class MassCalibrationTask extends AbstractTask {
       }
 
     } catch (Exception e) {
+      e.printStackTrace();
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
       setStatus(TaskStatus.ERROR);
@@ -147,8 +163,23 @@ public class MassCalibrationTask extends AbstractTask {
 
     Double intensityThreshold = parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
-    MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
-    RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
+
+    /*MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+    RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();*/
+    MZTolerance mzRatioTolerance = null;
+    RTTolerance rtTolerance = null;
+
+    ParameterSet massPeakMatchingParameterSet;
+    if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.STANDARDS_LIST.toString())) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString());
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+      rtTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
+    } else if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString());
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
+      rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
+    }
+
 
     massCalibrator = null;
     ParameterSet rangeParameterSet;
