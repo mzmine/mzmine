@@ -44,11 +44,8 @@ import java.util.logging.Logger;
 
 public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
 
-    private XYPlot plot;
-    private JFreeChart chart;
-    private XYZDataset dataset3d;
+    private final XYPlot plot;
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
-    private EStandardChartTheme theme;
     private PaintScaleLegend legend;
     public XYBlockPixelSizeRenderer pixelRenderer;
     public XYBlockRenderer blockRenderer;
@@ -59,26 +56,25 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
                 ChartFactory.createScatterPlot(
                         "", "retention time", "mobility", dataset, PlotOrientation.VERTICAL, true, true, true));
 
-        chart = getChart();
-        this.dataset3d = dataset;
+        JFreeChart chart = getChart();
         // copy and sort z-Values for min and max of the paint scale
-        double[] copyZValues = new double[dataset3d.getItemCount(0)];
-        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-            copyZValues[i] = dataset3d.getZValue(0, i);
+        double[] copyZValues = new double[dataset.getItemCount(0)];
+        for (int i = 0; i < dataset.getItemCount(0); i++) {
+            copyZValues[i] = dataset.getZValue(0, i);
         }
         Arrays.sort(copyZValues);
 
         // copy and sort x-values.
-        double[] copyXValues = new double[dataset3d.getItemCount(0)];
-        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-            copyXValues[i] = dataset3d.getXValue(0, i);
+        double[] copyXValues = new double[dataset.getItemCount(0)];
+        for (int i = 0; i < dataset.getItemCount(0); i++) {
+            copyXValues[i] = dataset.getXValue(0, i);
         }
         Arrays.sort(copyXValues);
 
         // copy and sort y-values.
-        double[] copyYValues = new double[dataset3d.getItemCount(0)];
-        for (int i = 0; i < dataset3d.getItemCount(0); i++) {
-            copyYValues[i] = dataset3d.getYValue(0, i);
+        double[] copyYValues = new double[dataset.getItemCount(0)];
+        for (int i = 0; i < dataset.getItemCount(0); i++) {
+            copyYValues[i] = dataset.getYValue(0, i);
         }
         Arrays.sort(copyYValues);
 
@@ -102,7 +98,7 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         }
 
         plot = chart.getXYPlot();
-        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+        EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
         theme.apply(chart);
 
         // set the pixel renderer
@@ -120,7 +116,8 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
     }
-    void setPixelRenderer(double[] copyXValues, double[]copyYValues, LookupPaintScale scale){
+
+    void setPixelRenderer(double[] copyXValues, double[] copyYValues, LookupPaintScale scale) {
         pixelRenderer = new XYBlockPixelSizeRenderer();
         pixelRenderer.setPaintScale(scale);
         // set the block renderer
@@ -148,7 +145,8 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         blockRenderer.setBlockHeight(mobilityWidth);
         blockRenderer.setBlockWidth(retentionWidth);
     }
-    void prepareLegend(double min, double max, LookupPaintScale scale ){
+
+    void prepareLegend(double min, double max, LookupPaintScale scale) {
         // Legend
         NumberAxis scaleAxis = new NumberAxis("Intensity");
         scaleAxis.setRange(min, max);

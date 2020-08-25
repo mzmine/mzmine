@@ -23,9 +23,9 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class RetentionTimeIntensityXYDataset extends AbstractXYDataset {
 
-    private Scan[] scans;
-    private double[] xValues;
-    private double[] yValues;
+    private final Scan[] scans;
+    private final double[] xValues;
+    private final double[] yValues;
 
     public RetentionTimeIntensityXYDataset(DataFactory dataFactory) {
         xValues = dataFactory.getRetentionTimeretentionTimeIntensity();

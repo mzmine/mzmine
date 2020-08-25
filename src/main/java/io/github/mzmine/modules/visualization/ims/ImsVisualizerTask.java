@@ -46,17 +46,15 @@ import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private XYDataset datasetIntensityMobility;
-    private XYDataset datasetRetentionTimeIntensity;
-    private XYZDataset dataset3d;
     private XYZDataset datasetMzMobility;
-    private RawDataFile dataFiles[];
-    private Range<Double> mzRange;
-    private ParameterSet parameterSet;
-    private int totalSteps = 3, appliedSteps = 0;
-    private String paintScaleStyle;
+    private final RawDataFile[] dataFiles;
+    private final Range<Double> mzRange;
+    private final ParameterSet parameterSet;
+    private int appliedSteps = 0;
+    private final String paintScaleStyle;
     private double selectedRetentionTime = 0.0;
     private ImsVisualizerWindowController controller;
     private DataFactory dataFactory;
@@ -73,7 +71,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private static Label mzRangeLevel;
     private boolean isIonMobility = true;
     private static RawDataOverviewIMSController controllerIMS;
-    private Scan scans[];
+    private final Scan[] scans;
 
 
     public ImsVisualizerTask(ParameterSet parameters) {
@@ -107,6 +105,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
     @Override
     public double getFinishedPercentage() {
+        int totalSteps = 3;
         return totalSteps == 0 ? 0 : (double) appliedSteps / totalSteps;
     }
 
@@ -227,7 +226,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
     public void initRetentionTimeMobilityGui() {
 
-        dataset3d = new RetentionTimeMobilityXYZDataset(dataFactory);
+        XYZDataset dataset3d = new RetentionTimeMobilityXYZDataset(dataFactory);
         retentionTimeMobilityHeatMapPlot =
                 new RetentionTimeMobilityHeatMapPlot(dataset3d, paintScaleStyle);
         topRightPane.setCenter(retentionTimeMobilityHeatMapPlot);
@@ -235,7 +234,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
     public void initRetentionTimeIntensityGui() {
         appliedSteps++;
-        datasetRetentionTimeIntensity = new RetentionTimeIntensityXYDataset(dataFactory);
+        XYDataset datasetRetentionTimeIntensity = new RetentionTimeIntensityXYDataset(dataFactory);
         retentionTimeIntensityPlot =
                 new RetentionTimeIntensityPlot(
                         datasetRetentionTimeIntensity, this, retentionTimeMobilityHeatMapPlot);

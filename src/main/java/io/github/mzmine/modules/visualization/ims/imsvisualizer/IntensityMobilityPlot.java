@@ -47,21 +47,17 @@ import java.util.List;
 
 public class IntensityMobilityPlot extends EChartViewer {
 
-    private XYPlot plot;
-    private JFreeChart chart;
-    private final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
-    private EStandardChartTheme theme;
     private Scan selectedMobilityScan;
-    private double selectedRetentionTime;
-    private RawDataFile dataFiles[];
+    private final double selectedRetentionTime;
+    private final RawDataFile[] dataFiles;
 
     public IntensityMobilityPlot(XYDataset dataset, ImsVisualizerTask imsTask) {
         super(
                 ChartFactory.createXYLineChart(
                         "", "intensity", "", dataset, PlotOrientation.VERTICAL, false, true, false));
-        chart = getChart();
-        plot = chart.getXYPlot();
-        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+        JFreeChart chart = getChart();
+        XYPlot plot = chart.getXYPlot();
+        EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
         theme.apply(chart);
         this.selectedRetentionTime = imsTask.getSelectedRetentionTime();
         dataFiles = imsTask.getDataFiles();

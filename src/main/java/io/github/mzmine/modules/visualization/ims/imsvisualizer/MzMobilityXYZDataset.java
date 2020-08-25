@@ -23,12 +23,12 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class MzMobilityXYZDataset extends AbstractXYZDataset {
 
-    private Scan scans[];
+    private final Scan[] scans;
 
-    private Double[] xValues;
-    private Double[] yValues;
-    private Double[] zValues;
-    private int itemSize;
+    private final Double[] xValues;
+    private final Double[] yValues;
+    private final Double[] zValues;
+    private final int itemSize;
 
     public MzMobilityXYZDataset(DataFactory dataFactory) {
 

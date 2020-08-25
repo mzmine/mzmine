@@ -58,6 +58,9 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
     private EStandardChartTheme theme;
     private final double selectedRetentionTime;
+    private PaintScaleLegend legend;
+    private XYBlockPixelSizeRenderer pixelRenderer;
+    private XYBlockRenderer blockRenderer;
 
     public MzMobilityHeatMapPlot(
             XYZDataset dataset,
@@ -117,55 +120,9 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
         theme.apply(chart);
 
         // set the pixel renderer
-        XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
-        pixelRenderer.setPaintScale(scale);
-
-        // set the block renderer renderer
-        XYBlockRenderer blockRenderer = new XYBlockRenderer();
-        double mzWidth = 0.0;
-        double mobilityWidth = 0.0;
-
-        for (int i = 0; i + 1 < copyYValues.length; i++) {
-            if (copyYValues[i] != copyYValues[i + 1]) {
-                mobilityWidth = copyYValues[i + 1] - copyYValues[i];
-                break;
-            }
-        }
-        ArrayList<Double> deltas = new ArrayList<>();
-        for (int i = 0; i + 1 < copyXValues.length; i++) {
-            if (copyXValues[i] != copyXValues[i + 1]) {
-                deltas.add(copyXValues[i + 1] - copyXValues[i]);
-            }
-        }
-
-        Collections.sort(deltas);
-        mzWidth = deltas.get(deltas.size() / 2);
-
-        if (mobilityWidth <= 0.0 || mzWidth <= 0.0) {
-            throw new IllegalArgumentException(
-                    "there must be atleast two unique value of retentio time and mobility");
-        }
-
-        blockRenderer.setBlockHeight(mobilityWidth);
-        blockRenderer.setBlockWidth(mzWidth);
-
+        setPixelRenderer(copyXValues, copyYValues, scale);
         // Legend
-        NumberAxis scaleAxis = new NumberAxis("Intensity");
-        scaleAxis.setRange(min, max);
-        scaleAxis.setAxisLinePaint(Color.white);
-        scaleAxis.setTickMarkPaint(Color.white);
-        PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
-
-        legend.setStripOutlineVisible(false);
-        legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-        legend.setAxisOffset(5.0);
-        legend.setMargin(new RectangleInsets(5, 5, 5, 5));
-        legend.setFrame(new BlockBorder(Color.white));
-        legend.setPadding(new RectangleInsets(10, 10, 10, 10));
-        legend.setStripWidth(10);
-        legend.setPosition(RectangleEdge.RIGHT);
-        legend.getAxis().setLabelFont(legendFont);
-        legend.getAxis().setTickLabelFont(legendFont);
+        prepareLegend(min, max, scale);
 
         // Set paint scale
         blockRenderer.setPaintScale(scale);
@@ -228,6 +185,60 @@ public class MzMobilityHeatMapPlot extends EChartViewer {
                     public void chartMouseMoved(ChartMouseEventFX event) {
                     }
                 });
+
+    }
+
+    void setPixelRenderer(double[] copyXValues, double[] copyYValues, LookupPaintScale scale) {
+        pixelRenderer = new XYBlockPixelSizeRenderer();
+        pixelRenderer.setPaintScale(scale);
+
+        // set the block renderer renderer
+        blockRenderer = new XYBlockRenderer();
+        double mzWidth = 0.0;
+        double mobilityWidth = 0.0;
+
+        for (int i = 0; i + 1 < copyYValues.length; i++) {
+            if (copyYValues[i] != copyYValues[i + 1]) {
+                mobilityWidth = copyYValues[i + 1] - copyYValues[i];
+                break;
+            }
+        }
+        ArrayList<Double> deltas = new ArrayList<>();
+        for (int i = 0; i + 1 < copyXValues.length; i++) {
+            if (copyXValues[i] != copyXValues[i + 1]) {
+                deltas.add(copyXValues[i + 1] - copyXValues[i]);
+            }
+        }
+
+        Collections.sort(deltas);
+        mzWidth = deltas.get(deltas.size() / 2);
+
+        if (mobilityWidth <= 0.0 || mzWidth <= 0.0) {
+            throw new IllegalArgumentException(
+                    "there must be atleast two unique value of retentio time and mobility");
+        }
+
+        blockRenderer.setBlockHeight(mobilityWidth);
+        blockRenderer.setBlockWidth(mzWidth);
+    }
+
+    public void prepareLegend(double min, double max, LookupPaintScale scale) {
+        NumberAxis scaleAxis = new NumberAxis("Intensity");
+        scaleAxis.setRange(min, max);
+        scaleAxis.setAxisLinePaint(Color.white);
+        scaleAxis.setTickMarkPaint(Color.white);
+        legend = new PaintScaleLegend(scale, scaleAxis);
+
+        legend.setStripOutlineVisible(false);
+        legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+        legend.setAxisOffset(5.0);
+        legend.setMargin(new RectangleInsets(5, 5, 5, 5));
+        legend.setFrame(new BlockBorder(Color.white));
+        legend.setPadding(new RectangleInsets(10, 10, 10, 10));
+        legend.setStripWidth(10);
+        legend.setPosition(RectangleEdge.RIGHT);
+        legend.getAxis().setLabelFont(legendFont);
+        legend.getAxis().setTickLabelFont(legendFont);
     }
 
 }

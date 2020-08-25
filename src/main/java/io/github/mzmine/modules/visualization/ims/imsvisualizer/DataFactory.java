@@ -37,8 +37,6 @@ import java.util.Map;
 
 public class DataFactory {
 
-    //Name format : dataFieldPlotName
-    private RawDataFile dataFiles[];
     private final Scan[] scans;
     private final Range<Double> mzRange;
     private double[] mobilityretentionTimeMobility;
@@ -58,18 +56,16 @@ public class DataFactory {
     public Map<Double, Double> scanMobilityMap = new HashMap<>();
     public Map<Double, Double> scanRetentionTimeMap = new HashMap<>();
     private Double selectedRetentionTime;
-    private List<Scan> selectedScans;
     private final int scanSize;
     private final ImsVisualizerTask imsTask;
     List<Double> rtIntensity = new ArrayList<>();
 
 
     public DataFactory(ParameterSet param, double rt, ImsVisualizerTask imsTask) {
-        dataFiles =
-                param
-                        .getParameter(ImsVisualizerParameters.dataFiles)
-                        .getValue()
-                        .getMatchingRawDataFiles();
+        RawDataFile[] dataFiles = param
+                .getParameter(ImsVisualizerParameters.dataFiles)
+                .getValue()
+                .getMatchingRawDataFiles();
 
         scans =
                 param
@@ -96,7 +92,7 @@ public class DataFactory {
         prepareIntensityRetentionTime();
     }
 
-    void prepareIntensityRetentionTime(){
+    void prepareIntensityRetentionTime() {
         intensityretentionTimeIntensity = new double[rtIntensity.size()];
         retentionTimeretentionTimeIntensity = new double[rtIntensity.size()];
 
@@ -200,7 +196,7 @@ public class DataFactory {
             }
         }
 
-        selectedScans = new ArrayList<>();
+        List<Scan> selectedScans = new ArrayList<>();
         // ims frame.
         ArrayList<MzMobilityFields> mzMobilityFields = new ArrayList<>();
         ArrayList<IntensityMobilityFields> intensityMobilityFields = new ArrayList<>();

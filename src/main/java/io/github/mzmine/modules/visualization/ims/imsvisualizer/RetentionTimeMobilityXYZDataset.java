@@ -25,11 +25,11 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RetentionTimeMobilityXYZDataset extends AbstractXYZDataset {
 
-    private Scan[] scans;
-    private double[] xValues;
-    private double[] yValues;
-    private double[] zValues;
-    private int scanSize;
+    private final Scan[] scans;
+    private final double[] xValues;
+    private final double[] yValues;
+    private final double[] zValues;
+    private final int scanSize;
 
     public RetentionTimeMobilityXYZDataset(DataFactory dataFactory) {
 

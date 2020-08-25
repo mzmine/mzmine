@@ -45,13 +45,10 @@ import java.util.logging.Logger;
 
 public class RetentionTimeIntensityPlot extends EChartViewer {
 
-    private XYPlot plot;
-    private JFreeChart chart;
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private final XYPlot plot;
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
     private double selectedRetention;
     private ValueMarker marker;
-    private EStandardChartTheme theme;
 
     public RetentionTimeIntensityPlot(
             XYDataset dataset,
@@ -68,8 +65,8 @@ public class RetentionTimeIntensityPlot extends EChartViewer {
                         false,
                         true,
                         false));
-        chart = getChart();
-        theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+        JFreeChart chart = getChart();
+        EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
         theme.apply(chart);
         plot = chart.getXYPlot();
         this.selectedRetention = imsVisualizerTask.getSelectedRetentionTime();
