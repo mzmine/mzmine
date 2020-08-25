@@ -49,7 +49,9 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
     private XYZDataset dataset3d;
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
     private EStandardChartTheme theme;
-    PaintScaleLegend legend;
+    private PaintScaleLegend legend;
+    public XYBlockPixelSizeRenderer pixelRenderer;
+    public XYBlockRenderer blockRenderer;
 
     public RetentionTimeMobilityHeatMapPlot(XYZDataset dataset, String paintScaleStyle) {
 
@@ -104,10 +106,25 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         theme.apply(chart);
 
         // set the pixel renderer
-        XYBlockPixelSizeRenderer pixelRenderer = new XYBlockPixelSizeRenderer();
+        setPixelRenderer(copyXValues, copyYValues, scale);
+        //set the legend
+        prepareLegend(min, max, scale);
+
+        blockRenderer.setPaintScale(scale);
+        plot.setRenderer(blockRenderer);
+        plot.setBackgroundPaint(Color.black);
+        plot.setRangeGridlinePaint(Color.black);
+        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+        plot.setOutlinePaint(Color.black);
+        chart.addSubtitle(legend);
+        plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
+    }
+    void setPixelRenderer(double[] copyXValues, double[]copyYValues, LookupPaintScale scale){
+        pixelRenderer = new XYBlockPixelSizeRenderer();
         pixelRenderer.setPaintScale(scale);
         // set the block renderer
-        XYBlockRenderer blockRenderer = new XYBlockRenderer();
+        blockRenderer = new XYBlockRenderer();
         double retentionWidth = 0.0;
         double mobilityWidth = 0.0;
 
@@ -130,7 +147,8 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         }
         blockRenderer.setBlockHeight(mobilityWidth);
         blockRenderer.setBlockWidth(retentionWidth);
-
+    }
+    void prepareLegend(double min, double max, LookupPaintScale scale ){
         // Legend
         NumberAxis scaleAxis = new NumberAxis("Intensity");
         scaleAxis.setRange(min, max);
@@ -148,18 +166,6 @@ public class RetentionTimeMobilityHeatMapPlot extends EChartViewer {
         legend.setPosition(RectangleEdge.TOP);
         legend.getAxis().setLabelFont(legendFont);
         legend.getAxis().setTickLabelFont(legendFont);
-
-        // Set paint scale
-        blockRenderer.setPaintScale(scale);
-
-        plot.setRenderer(blockRenderer);
-        plot.setBackgroundPaint(Color.black);
-        plot.setRangeGridlinePaint(Color.black);
-        plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-        plot.setOutlinePaint(Color.black);
-        chart.addSubtitle(legend);
-        plot.getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-
     }
 
     public XYPlot getPlot() {
