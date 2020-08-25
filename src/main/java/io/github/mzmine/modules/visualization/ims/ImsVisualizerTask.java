@@ -25,6 +25,7 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.*;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewIMSController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -70,6 +71,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private static Label mzRangeLevel;
     private boolean isIonMobility = true;
     private final Scan[] scans;
+    private RawDataOverviewIMSController controllerIMS;
 
 
     public ImsVisualizerTask(ParameterSet parameters) {
@@ -174,6 +176,29 @@ public class ImsVisualizerTask extends AbstractTask {
         bottomLeftPane.setCenter(intensityMobilityPlot);
     }
 
+    public void initDataOverview(RawDataOverviewIMSController con) {
+        controllerIMS = con;
+        appliedSteps++;
+
+        // create the plot
+        setTopRightPane(con.getTopRightPane());
+        setTopLeftPane(con.getTopLeftPane());
+        setBottomLeftPane(con.getBottomLeftPane());
+        setBottomRightpane(con.getBottomRightPane());
+        setRtLabel(con.getRtLabel());
+        setMzRangeLevel(con.getMobilityRTLabel());
+
+        //prepare data
+        initDataFactories();
+        // Initialize the gui
+        initIntensityMobilityGui();
+        initmzMobilityGui();
+        initRetentionTimeMobilityGui();
+        initRetentionTimeIntensityGui();
+        setGroupMobility();
+        setGroupRetentionTime();
+
+    }
 
     public void setContainers() {
         appliedSteps++;
@@ -255,7 +280,12 @@ public class ImsVisualizerTask extends AbstractTask {
 
         groupMobility.add(new ChartViewWrapper(intensityMobilityPlot));
         groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
-        initLabel();
+        if (!isIonMobility)
+            initLabel();
+        else {
+            rtLabel = controllerIMS.rtLabel;
+            mzRangeLevel = controllerIMS.mobilityRTLabel;
+        }
         updateRTlabel();
     }
 
