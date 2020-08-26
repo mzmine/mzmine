@@ -24,10 +24,21 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.*;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.DataFactory;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityPlot;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityXYDataset;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.MzMobilityHeatMapPlot;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.MzMobilityXYZDataset;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeIntensityPlot;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeIntensityXYDataset;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityHeatMapPlot;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityXYZDataset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -37,11 +48,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
 
@@ -68,7 +74,6 @@ public class ImsVisualizerTask extends AbstractTask {
     private BorderPane topRightPane;
     private static Label rtLabel;
     private static Label mzRangeLevel;
-    private boolean isIonMobility = true;
     private final Scan[] scans;
 
 
@@ -131,7 +136,6 @@ public class ImsVisualizerTask extends AbstractTask {
                     initRetentionTimeMobilityGui();
 
                     initRetentionTimeIntensityGui();
-                    isIonMobility = false;
                     initLabel();
 
                     updateRTlabel();
@@ -218,7 +222,6 @@ public class ImsVisualizerTask extends AbstractTask {
 
 
     public void initGui() {
-        isIonMobility = false;
         appliedSteps++;
         FXMLLoader loader = new FXMLLoader((getClass().getResource("ImsVisualizerWindow.fxml")));
         Stage stage = new Stage();
