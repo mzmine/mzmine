@@ -1,108 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
-   <top>
-      <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0" style="-fx-font-weight: bold;" text="Overview of raw data file: " AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-               <padding>
-                  <Insets left="5.0" />
-               </padding>
-            </Label>
-         </children>
-      </AnchorPane>
+<?import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer?>
+<BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
+  prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
+  <top>
+    <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+      <children>
+        <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0"
+          style="-fx-font-weight: bold;" text="Overview of raw data file: "
+          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.topAnchor="0.0">
+          <padding>
+            <Insets left="5.0"/>
+          </padding>
+        </Label>
+      </children>
+    </AnchorPane>
    </top>
    <center>
-      <SplitPane dividerPositions="0.5" BorderPane.alignment="CENTER">
-        <items>
-            <BorderPane>
-               <center>
-                  <TableView fx:id="rawDataTableView" prefHeight="615.0" prefWidth="490.0" BorderPane.alignment="CENTER">
-                    <columns>
-                      <TableColumn fx:id="scanColumn" editable="false" prefWidth="75.0" text="Scan #" />
-                      <TableColumn fx:id="rtColumn" editable="false" prefWidth="75.0" text="Retention time" />
-                        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="75.0" text="MS Level" />
-                        <TableColumn fx:id="precursorMzColumn" prefWidth="75.0" text="Precursor m/z" />
-                        <TableColumn fx:id="mzRangeColumn" prefWidth="75.0" text="m/z Range" />
-                        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="75.0" text="Scan Type" />
-                        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="75.0" text="Polarity" />
-                        <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="0.0" text="Scan definition" />
-                        <TableColumn fx:id="mobilityColumn" prefWidth="101.0" text="Mobility" />
-                    </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                  </TableView>
-               </center>
-               <bottom>
-                  <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                     <children>
-                        <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <content>
-                              <GridPane fx:id="metaDataGridPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="ALWAYS" maxWidth="180.0" minWidth="180.0" prefWidth="180.0">
-                              </ColumnConstraints>
-                                  <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="-Infinity" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                    <Label style="-fx-font-weight: bold;" text="Total number of scans:">
-                                       <GridPane.margin>
-                                          <Insets left="5.0" />
-                                       </GridPane.margin>
-                                    </Label>
-                                    <Label style="-fx-font-weight: bold;" text="Retention time range:" GridPane.rowIndex="1">
-                                       <GridPane.margin>
-                                          <Insets left="5.0" />
-                                       </GridPane.margin>
-                                    </Label>
-                                    <Label style="-fx-font-weight: bold;" text="m/z range:" GridPane.rowIndex="2">
-                                       <GridPane.margin>
-                                          <Insets left="5.0" />
-                                       </GridPane.margin>
-                                    </Label>
-                                    <Label style="-fx-font-weight: bold;" text="Maximum TIC:" GridPane.rowIndex="3">
-                                       <GridPane.margin>
-                                          <Insets left="5.0" />
-                                       </GridPane.margin>
-                                    </Label>
-                                 </children>
-                              </GridPane>
-                           </content>
-                        </ScrollPane>
-                     </children>
-                  </AnchorPane>
-               </bottom>
-            </BorderPane>
-          <AnchorPane minHeight="400.0" minWidth="500.0" prefHeight="400.0" prefWidth="500.0">
-               <children>
-                  <SplitPane dividerPositions="0.5" layoutX="87.0" layoutY="130.0" orientation="VERTICAL" prefHeight="568.0" prefWidth="384.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                     <items>
-                        <BorderPane fx:id="chromatogramPane" prefHeight="200.0" prefWidth="200.0" />
-                        <BorderPane fx:id="spectraPane" minWidth="200.0" />
-                     </items>
-                  </SplitPane>
-               </children>
-            </AnchorPane>
-        </items>
-      </SplitPane>
+     <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
+       BorderPane.alignment="CENTER">
+       <items>
+         <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
+           prefWidth="800" prefHeight="400"/>
+         <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
+           SplitPane.resizableWithParent="false"/>
+       </items>
+     </SplitPane>
    </center>
 </BorderPane>

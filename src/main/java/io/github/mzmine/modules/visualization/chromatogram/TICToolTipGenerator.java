@@ -54,18 +54,19 @@ public class TICToolTipGenerator implements XYToolTipGenerator {
           + mzFormat.format(ticDataSet.getZValue(series, item)) + "\nIntensity: "
           + intensityFormat.format(intValue);
 
-    } else if (dataSet instanceof PeakDataSet) {
+    } else if (dataSet instanceof FeatureDataSet) {
 
-      final PeakDataSet peakDataSet = (PeakDataSet) dataSet;
-      final Feature feature = peakDataSet.getFeature();
+      final FeatureDataSet featureDataSet = (FeatureDataSet) dataSet;
+      final Feature feature = featureDataSet.getFeature();
       PeakInformation peakInfo = null;
-      if (feature != null)
+      if (feature != null) {
         peakInfo = feature.getPeakInformation();
+      }
 
-      final String label = peakDataSet.getName();
+      final String label = featureDataSet.getName();
       String text = label == null || label.length() == 0 ? "" : label + '\n';
       text += "Retention time: " + rtFormat.format(rtValue) + "\nm/z: "
-          + mzFormat.format(peakDataSet.getMZ(item)) + "\nIntensity: "
+          + mzFormat.format(featureDataSet.getMZ(item)) + "\nIntensity: "
           + intensityFormat.format(intValue);
 
       NumberFormat numberFormat = NumberFormat.getInstance();

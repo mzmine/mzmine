@@ -21,7 +21,7 @@ package io.github.mzmine.modules.visualization.msms;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.CursorPosition;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -213,7 +213,7 @@ public class MsMsVisualizerWindow extends Stage {
   /**
    * @return current cursor position
    */
-  public CursorPosition getCursorPosition() {
+  public ChromatogramCursorPosition getCursorPosition() {
     double selectedRT = IDAPlot.getXYPlot().getDomainCrosshairValue();
     double selectedMZ = IDAPlot.getXYPlot().getRangeCrosshairValue();
 
@@ -221,7 +221,8 @@ public class MsMsVisualizerWindow extends Stage {
 
     if (index >= 0) {
       double intensity = (double) dataset.getZ(0, index);
-      CursorPosition pos = new CursorPosition(selectedRT, selectedMZ, intensity,
+      ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, selectedMZ,
+          intensity,
           dataset.getDataFile(), dataset.getScanNumber(index));
       return pos;
     }

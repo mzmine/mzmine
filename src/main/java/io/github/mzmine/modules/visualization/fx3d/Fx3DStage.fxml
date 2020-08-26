@@ -37,6 +37,9 @@
 				                      <AnchorPane minHeight="0.0" minWidth="0.0">
 				                           <children>
 				                              <TableView fx:id="tableView" prefHeight="600" editable="true" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+				                                <columnResizePolicy>
+                                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+	                                            </columnResizePolicy>
 										     	<contextMenu>
 											      <ContextMenu>
 														<items>
@@ -69,7 +72,7 @@
 										             			<PropertyValueFactory property="fileName" />
 										             		</cellValueFactory>
 										             </TableColumn>
-										             <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" style="-fx-alignment: CENTER" >
+										             <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="150" minWidth="150" maxWidth="150" style="-fx-alignment: CENTER" >
 										             		<cellValueFactory>
 										             			<PropertyValueFactory property="color" />
 										             		</cellValueFactory>

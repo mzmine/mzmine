@@ -44,7 +44,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
@@ -224,7 +224,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     labelsMap.put(peak, peak.toString());
 
     // get EIC window
-    TICVisualizerWindow window = new TICVisualizerWindow(new RawDataFile[] {activeRaw}, // raw
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{activeRaw}, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range

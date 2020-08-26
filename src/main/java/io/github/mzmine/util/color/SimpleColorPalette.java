@@ -85,11 +85,6 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   protected Color neutralColor;
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = 1L;
-
   public SimpleColorPalette() {
     super();
     delegate = new ArrayList<>();
@@ -136,20 +131,24 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   /**
    * @return The next color in the color palette.
    */
-  public Color getNextColor() {
+  public synchronized Color getNextColor() {
+
     if (this.isEmpty()) {
+      logger.fine("Color palette empty, returning default color.");
       return defclr;
     }
 
-    if (next >= this.size() - 1) {
+    if (next >= this.size()) {
       next = 0;
     }
+
+    Color clr = get(next);
     next++;
 
-    return get(next - 1);
+    return clr;
   }
 
-  public java.awt.Color getNextColorAWT(int index) {
+  public java.awt.Color getNextColorAWT() {
     return FxColorUtil.fxColorToAWT(getNextColor());
   }
 
@@ -407,7 +406,6 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   // --- super type
   @Override
   public Color get(int index) {
-    next = index + 1;
     return delegate.get(index);
   }
 
