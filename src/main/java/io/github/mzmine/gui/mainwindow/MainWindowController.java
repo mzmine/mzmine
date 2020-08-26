@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -57,6 +58,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -86,6 +88,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -253,6 +256,26 @@ public class MainWindowController {
     rawDataTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleShowChromatogram(event);
+      }
+    });
+
+    // Add long mouse pressed event handler
+    rawDataTree.addEventHandler(MouseEvent.ANY, new EventHandler<MouseEvent>() {
+      final PauseTransition timer = new PauseTransition(Duration.millis(400));
+
+      @Override
+      public void handle(MouseEvent event) {
+        timer.setOnFinished(e -> {
+          rawDataTree.setEditable(true);
+          rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
+        });
+
+        if(event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
+          timer.playFromStart();
+        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED) ||
+            event.getEventType().equals(MouseEvent.MOUSE_DRAGGED)) {
+          timer.stop();
+        }
       }
     });
 
