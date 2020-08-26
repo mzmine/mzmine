@@ -19,12 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 
-import com.sun.xml.bind.v2.runtime.output.SAXOutput;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.CliqueMSTabularPeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
@@ -48,8 +46,8 @@ public class CliqueMSTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(CliqueMSTask.class.getName());
 
   //progress constants
-  public final double EIC_PROGRESS = 0.3; // EIC calculation takes about 50% time
-  public final double MATRIX_PROGRESS = 0.5; // Cosine matrix calculation takes about 30% time
+  public final double EIC_PROGRESS = 0.3; // EIC calculation takes about 30% time
+  public final double MATRIX_PROGRESS = 0.5; // Cosine matrix calculation takes about 50% time
   public final double NET_PROGRESS = 0.1; // Network calculations takes 10% time
   public final double ISO_PROGRESS = 0.01; // Isotope calculation takes 1% time
   public final double ANNOTATE_PROGRESS = 0.09; // Adduct annotation takes 9% time
@@ -116,12 +114,12 @@ public class CliqueMSTask extends AbstractTask {
               parameters.getParameter(CliqueMSParameters.FILTER).getEmbeddedParameters()
                   .getParameter(SimilarFeatureParameters.IN_DIFF).getValue(),
               parameters.getParameter(CliqueMSParameters.TOL).getValue());
-      System.out.println("Size of peakData List 1"+anClique.getPeakDataList().size());
+//      System.out.println("Size of peakData List 1"+anClique.getPeakDataList().size());
       // Check if not canceled
       if (isCanceled()) {
         return;
       }
-      HashMap<Integer, List<Integer>> cliques = anClique.cliques;
+//      HashMap<Integer, List<Integer>> cliques = anClique.cliques;
 //      System.out.println("total no. of cliques "+cliques.size());
 //      int averageCliqueSize = 0;
 //      int minCliqueSize = 100000000;
@@ -200,7 +198,6 @@ public class CliqueMSTask extends AbstractTask {
       numberOfDigitsInMaxPeakID++;
       maxID/=10;
     }
-    numberOfDigitsInMaxPeakID++;
     for (PeakData pd : pdList) {
       String cqID;
       if(nodeToPeakID.get(pd.getCliqueID()) != null)
