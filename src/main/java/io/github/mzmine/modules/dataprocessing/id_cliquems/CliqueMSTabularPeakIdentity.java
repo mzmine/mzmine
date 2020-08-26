@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.impl;
+package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
 import io.github.mzmine.datamodel.PeakIdentity;
 import java.util.ArrayList;

@@ -22,7 +22,6 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.CliqueMSTabularPeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AdductInfo;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation.AnClique;
@@ -119,22 +118,6 @@ public class CliqueMSTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-//      HashMap<Integer, List<Integer>> cliques = anClique.cliques;
-//      System.out.println("total no. of cliques "+cliques.size());
-//      int averageCliqueSize = 0;
-//      int minCliqueSize = 100000000;
-//      int maxCliqueSize = 0;
-//      for(int i : cliques.keySet()){
-//        averageCliqueSize+=cliques.get(i).size();
-//        if(maxCliqueSize<cliques.get(i).size())
-//          maxCliqueSize = cliques.get(i).size();
-//        if(minCliqueSize>cliques.get(i).size())
-//          minCliqueSize = cliques.get(i).size();
-//      }
-//      averageCliqueSize/=cliques.size();
-//      System.out.println("minimum no. of features in a cliques "+minCliqueSize);
-//      System.out.println("maximum no. of features in a cliques "+maxCliqueSize);
-//      System.out.println("average no. of features in a cliques "+averageCliqueSize);
 
       ComputeIsotopesModule cim = new ComputeIsotopesModule(anClique, this, progress);
       cim.getIsotopes(parameters.getParameter(CliqueMSParameters.ISOTOPES_MAX_CHARGE).getValue(),
@@ -176,7 +159,8 @@ public class CliqueMSTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
     } catch (Exception e) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not calculate cliques for features " + peakList.getName() + " \n");
+      setErrorMessage("Could not calculate cliques for features "+ peakList.getName()+" \n" +
+          e.getMessage());
       e.printStackTrace();
     }
   }
@@ -222,19 +206,16 @@ public class CliqueMSTask extends AbstractTask {
     }
     for (AdductInfo adInfo : addInfos) {
       PeakData pd = pdHash.get(adInfo.feature);
-//      System.out.print(pd.getPeakListRowID()+","+nodeToPeakID.get(pd.getCliqueID())+","+pd.getMz()+","+pd.getRt()+","+pd.getIntensity()+","+pd.getIsotopeAnnotation());
       CliqueMSTabularPeakIdentity annotation = pdIdentityHash.get(pd);
       HashSet<String> adducts = new HashSet<>();
       for (int i = 0; i < ComputeAdduct.numofAnnotation; i++) {
         if(adInfo.annotations.get(i).equals("NA") || adducts.contains(adInfo.annotations.get(i)))
           continue;
-//        System.out.print(","+adInfo.masses.get(i)+","+adInfo.scores.get(i)+","+adInfo.annotations.get(i));
         adducts.add(adInfo.annotations.get(i));
         annotation.addMultiTypeProperty("Mass",MZmineCore.getConfiguration().getMZFormat().format(adInfo.masses.get(i)));
         annotation.addMultiTypeProperty("Score", String.valueOf(adInfo.scores.get(i)));
         annotation.addMultiTypeProperty("Adduct Annotation", adInfo.annotations.get(i));
       }
-//      System.out.println();
     }
   }
 }

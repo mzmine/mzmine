@@ -33,10 +33,10 @@ public class SimilarFeatureParameters extends SimpleParameterSet {
       0, 5);
 
   public static final RTToleranceParameter RT_DIFF = new RTToleranceParameter("RT tolerance",
-      "If two features' relative difference of rt values is less than RT tolerance, they are candidate for similar features. So, if RT tolerance is set a (relative) value of 'x', then a feature with rt value of 't' will have all peaks with rt in the closed range [t - t*x, t + t*x ] similar to it (if m/z and intensity tolerance values are passed too).");
+      "If RT tolerance is set a relative value of 'x' (or absolute value 'y'), then a feature with rt value of 't' will have all peaks with rt in the closed range [t - t*x, t + t*x ]  ( or [t-y, t+y]) similar to it (if m/z and intensity tolerance values are passed too).");
 
-  public static final DoubleParameter IN_DIFF = new DoubleParameter("Intensity tolerance",
-      "If two features' relative difference of intensity values is less than Intensity tolerance, they are candidate for similar features.So, if Intensity tolerance is set a (relative) value of x, then a feature with intensity (absolute or relative) value 'i' will have all peaks with the intensity range [ i - i*x , i + i*x] similar to it (if m/z and rt tolerance values are passed too).",
+  public static final DoubleParameter IN_DIFF = new DoubleParameter("Intensity tolerance (relative)",
+      "If Intensity tolerance is set a value of x, then a feature with intensity value 'i' will have all peaks with the intensity range [ i - i*x , i + i*x] similar to it (Note - Tolerance is unitless)(if m/z and rt tolerance values are passed too).",
       MZmineCore.getConfiguration().getIntensityFormat(), 0.0004);
 
   public SimilarFeatureParameters() {
