@@ -208,7 +208,7 @@ public class LipidSearchTask extends AbstractTask {
         double relMassDev =
             ((lipidIonMass - rows[rowIndex].getAverageMZ()) / lipidIonMass) * 1000000;
         rows[rowIndex].addPeakIdentity(lipid, false);
-        rows[rowIndex].setComment("Ionization: " + ionizationType.getAdduct() + ", Δ "
+        rows[rowIndex].setComment("Ionization: " + ionizationType.getAdductName() + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm"); // Format relativ mass
                                                                        // deviation
         // If search for MSMS fragments is selected search for fragments
@@ -372,7 +372,7 @@ public class LipidSearchTask extends AbstractTask {
             / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
         // Add row identity
         rows.addPeakIdentity(new SimplePeakIdentity(lipid + " " + lipidModification[j]), false);
-        rows.setComment("Ionization: " + ionizationType.getAdduct() + " " + lipidModification[j]
+        rows.setComment("Ionization: " + ionizationType.getAdductName() + " " + lipidModification[j]
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
