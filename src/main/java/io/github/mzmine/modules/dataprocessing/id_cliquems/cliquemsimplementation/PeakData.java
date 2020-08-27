@@ -22,30 +22,27 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 
 /**
  * Data taken from PeakListRow necessary for CliqueMS grouping and annotation
- *
- * Corresponding to the peakList class used in the R code
- * https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R
- *
+ * <p>
+ * Corresponding to the peakList class used in the R code https://github.com/osenan/cliqueMS/blob/master/R/allClasses.R
  */
 
 public class PeakData {
 
 
-
-  private final double mz ;
-  private final double mzmin ;
-  private final double mzmax ;
+  private final double mz;
+  private final double mzmin;
+  private final double mzmax;
   private final double rt;
-  private final double rtmin ;
-  private final double rtmax ;
+  private final double rtmin;
+  private final double rtmax;
   private final double intensity;
   private final int nodeID;
   // To get the peakListRow corresponding to this node.
   private final int peakListRowID;
 
-  private int cliqueID;
+  private int charge;
+  private Integer cliqueID = null;
   private String isotopeAnnotation;
-  private String adductAnnotation;
 
   public double getMz() {
     return mz;
@@ -75,7 +72,7 @@ public class PeakData {
     return intensity;
   }
 
-  public int getNodeID(){
+  public int getNodeID() {
     return nodeID;
   }
 
@@ -83,8 +80,16 @@ public class PeakData {
     return peakListRowID;
   }
 
+  public void setCharge(int charge) {
+    this.charge = charge;
+  }
 
-  public int getCliqueID() {
+  public int getCharge() {
+    return this.charge;
+  }
+
+
+  public Integer getCliqueID() {
     return cliqueID;
   }
 
@@ -100,39 +105,31 @@ public class PeakData {
     this.isotopeAnnotation = isotopeAnnotation;
   }
 
-  public String getAdductAnnotation() {
-    return adductAnnotation;
-  }
-
-  public void setAdductAnnotation(String adductAnnotation) {
-    this.adductAnnotation = adductAnnotation;
-  }
-
-  PeakData(double mz, double mzmin, double mzmax, double rt, double rtmin, double rtmax, double intensity, int nodeID, int peakListRowID){
-    this.mz = mz ;
-    this.mzmin =  mzmin ;
-    this.mzmax = mzmax ;
-    this.rt = rt ;
-    this.rtmin = rtmin ;
-    this.rtmax = rtmax ;
+  PeakData(double mz, double mzmin, double mzmax, double rt, double rtmin, double rtmax,
+      double intensity, int nodeID, int peakListRowID) {
+    this.mz = mz;
+    this.mzmin = mzmin;
+    this.mzmax = mzmax;
+    this.rt = rt;
+    this.rtmin = rtmin;
+    this.rtmax = rtmax;
     this.intensity = intensity;
     this.nodeID = nodeID;
     this.peakListRowID = peakListRowID;
   }
 
-  PeakData(PeakData p){
-    this.mz = p.mz ;
-    this.mzmin =  p.mzmin ;
-    this.mzmax = p.mzmax ;
-    this.rt = p.rt ;
-    this.rtmin = p.rtmin ;
-    this.rtmax = p.rtmax ;
+  PeakData(PeakData p) {
+    this.mz = p.mz;
+    this.mzmin = p.mzmin;
+    this.mzmax = p.mzmax;
+    this.rt = p.rt;
+    this.rtmin = p.rtmin;
+    this.rtmax = p.rtmax;
     this.intensity = p.intensity;
     this.nodeID = p.nodeID;
     this.peakListRowID = p.peakListRowID;
     this.cliqueID = p.cliqueID;
     this.isotopeAnnotation = p.isotopeAnnotation;
-    this.adductAnnotation = p.adductAnnotation;
   }
 
 }
