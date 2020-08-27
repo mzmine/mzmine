@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.DataFactory;
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityPlot;
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityXYDataset;
@@ -75,7 +76,7 @@ public class ImsVisualizerTask extends AbstractTask {
     private static Label rtLabel;
     private static Label mzRangeLevel;
     private final Scan[] scans;
-    private boolean isIonMobility = true;
+    private boolean containsMobility = true;
 
 
     public ImsVisualizerTask(ParameterSet parameters) {
@@ -91,7 +92,8 @@ public class ImsVisualizerTask extends AbstractTask {
             .getMatchingScans(dataFiles[0]);
         for (int i = 0; i < scans.length; i++) {
             if (scans[i].getMobility() < 0) {
-                isIonMobility = false;
+                containsMobility = false;
+                break;
             }
         }
     }
@@ -119,8 +121,9 @@ public class ImsVisualizerTask extends AbstractTask {
             return;
         }
         Platform.runLater(() -> {
-            if (!isIonMobility) {
-                logger.info("data does not contains ion mobility field");
+            if (!containsMobility) {
+                MZmineCore.getDesktop().displayErrorMessage(
+                    "The selected raw data does not have a mobility dimension.");
                 return;
             }
             // Initialize dataFactories.
