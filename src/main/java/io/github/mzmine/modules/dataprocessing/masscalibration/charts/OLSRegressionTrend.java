@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 
+import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.BiasEstimator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.commons.text.WordUtils;
@@ -27,6 +28,7 @@ import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * OLS regression trend,
@@ -46,6 +48,9 @@ public class OLSRegressionTrend implements Trend2D {
   protected double[] beta;
   protected double rSquared;
 
+  protected double arithmeticMean;
+  protected boolean estimated = true;
+
   public OLSRegressionTrend(int polynomialDegree, boolean exponentialFeature, boolean logarithmicFeature) {
     this.polynomialDegree = polynomialDegree;
     this.exponentialFeature = exponentialFeature;
@@ -56,7 +61,7 @@ public class OLSRegressionTrend implements Trend2D {
 
   @Override
   public String getName() {
-    if (beta.length == 0) {
+    if (beta == null || beta.length == 0 || estimated == false) {
       return "OLS regression";
     }
 
@@ -94,6 +99,10 @@ public class OLSRegressionTrend implements Trend2D {
       return 0;
     }
 
+    if (estimated == false) {
+      return arithmeticMean;
+    }
+
     double[] features = generateFeatures(x);
     double y = 0;
     for (int i = 0; i < features.length; i++) {
@@ -111,9 +120,17 @@ public class OLSRegressionTrend implements Trend2D {
       x[i] = generateFeatures(items[i].getXValue());
       y[i] = items[i].getYValue();
     }
-    olsRegression.newSampleData(y, x);
-    beta = olsRegression.estimateRegressionParameters();
-    rSquared = olsRegression.calculateRSquared();
+    arithmeticMean = BiasEstimator.arithmeticMean(Arrays.asList(ArrayUtils.toObject(y)));
+    try {
+      olsRegression.newSampleData(y, x);
+      beta = olsRegression.estimateRegressionParameters();
+      rSquared = olsRegression.calculateRSquared();
+      estimated = true;
+    }
+    catch (IllegalArgumentException ex) {
+      estimated = false;
+      Logger.getLogger(this.getClass().getName()).info("OLS regression exception " + ex);
+    }
   }
 
   protected double[] generateFeatures(double x) {

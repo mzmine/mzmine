@@ -59,7 +59,7 @@ public class ErrorVsMzChart extends EChartViewer {
       return String.format("Measured-matched m/z: %s-%s\nMeasured-matched RT: %s-%s\nMass error: %s %s" +
                       "\nMass peak intensity: %s",
               match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
-              match.getMeasuredRetentionTime(), match.getMatchedRetentionTime(),
+              match.getMeasuredRetentionTime(), match.getMatchedRetentionTime() == -1 ? "none" : match.getMatchedRetentionTime(),
               match.getMzError(), match.getMzErrorType(),
               match.getMeasuredDataPoint().getIntensity());
     }
