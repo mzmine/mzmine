@@ -45,15 +45,7 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Button fx:id="blockSizeButton" mnemonicParsing="false" onAction="#toggleBolckSize" GridPane.halignment="CENTER">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/blocksizeicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic></Button>
-                              <Button fx:id="backgroundButton" mnemonicParsing="false" onAction="#toggleBackColor" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                              <Button fx:id="backgroundButton" mnemonicParsing="false" onAction="#toggleBackColor" GridPane.halignment="CENTER">
                                  <graphic>
                                     <ImageView pickOnBounds="true">
                                        <image>
@@ -61,7 +53,7 @@
                                        </image>
                                     </ImageView>
                                  </graphic></Button>
-                              <Button fx:id="gridButton" mnemonicParsing="false" onAction="#toggleGrid" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                              <Button fx:id="gridButton" mnemonicParsing="false" onAction="#toggleGrid" GridPane.columnIndex="1" GridPane.halignment="CENTER">
                                  <graphic>
                                     <ImageView pickOnBounds="true">
                                        <image>
@@ -69,7 +61,7 @@
                                        </image>
                                     </ImageView>
                                  </graphic></Button>
-                              <Button fx:id="annotationButton" mnemonicParsing="false" onAction="#toggleAnnotation" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                              <Button fx:id="annotationButton" mnemonicParsing="false" onAction="#toggleAnnotation" GridPane.columnIndex="2" GridPane.halignment="CENTER">
                                  <graphic>
                                     <ImageView pickOnBounds="true">
                                        <image>

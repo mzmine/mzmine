@@ -27,6 +27,7 @@ import org.jfree.chart.title.PaintScaleLegend;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
@@ -268,7 +269,7 @@ public class KendrickMassPlotWindowController {
   void toggleAnnotation(ActionEvent event) {
     logger.finest("Toggle annotations");
     XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
+    XYCirclePixelSizeRenderer renderer = (XYCirclePixelSizeRenderer) plot.getRenderer();
     Boolean itemNameVisible = renderer.getDefaultItemLabelsVisible();
     if (itemNameVisible == false) {
       renderer.setDefaultItemLabelsVisible(true);

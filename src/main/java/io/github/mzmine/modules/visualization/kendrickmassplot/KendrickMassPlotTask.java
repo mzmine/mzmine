@@ -50,7 +50,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
@@ -88,6 +88,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   private String yAxisLabel;
   private String zAxisLabel;
   private String zAxisScaleType;
+  private String bubbleSizeLabel;
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
   private PeakListRow rows[];
@@ -126,6 +127,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.zScaleType).getValue();
 
     zScaleRange = parameters.getParameter(KendrickMassPlotParameters.zScaleRange).getValue();
+
+    bubbleSizeLabel = parameters.getParameter(KendrickMassPlotParameters.bubbleSize).getValue();
 
     paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
 
@@ -283,7 +286,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       }
 
       // set renderer
-      XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+      XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
 
       // set tooltip generator
       ScatterPlotToolTipGenerator tooltipGenerator =
@@ -369,7 +372,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       domain.setRange(0, 1);
     }
     // set renderer
-    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
     appliedSteps++;
 
     // Set paint scale
