@@ -21,12 +21,21 @@ package io.github.mzmine.gui.mainwindow;
 import com.google.errorprone.annotations.ForOverride;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.MZmineWindow;
+import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
+import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
+import javax.annotation.Nonnull;
 
 
 /**
@@ -39,9 +48,20 @@ import javafx.scene.control.Tooltip;
  */
 public abstract class MZmineTab extends Tab {
 
+  public static final Logger logger = Logger.getLogger(MZmineTab.class.getName());
+
+  /**
+   * If checked/unchecked the tab is/is not updated according to the selection of files/lists in the
+   * main window.
+   */
   private final CheckBox cbUpdateOnSelection;
 
-  private final BooleanProperty updateOnSelection;
+  /**
+   * If true this tab cannot be moved between windows. Default value is true.
+   */
+  private final BooleanProperty windowChangeAllowed;
+
+  private final ContextMenu contextMenu;
 
   public MZmineTab(String title, boolean showBinding, boolean defaultBindingState) {
     super(title);
@@ -50,49 +70,141 @@ public abstract class MZmineTab extends Tab {
     cbUpdateOnSelection.setTooltip(new Tooltip(
         "If selected this tab is updated according to the current selection of raw files or feature lists."));
     cbUpdateOnSelection.setSelected(defaultBindingState);
+
+    windowChangeAllowed = new SimpleBooleanProperty(true);
+
     if (showBinding) {
       setGraphic(cbUpdateOnSelection);
     }
 
-    updateOnSelection = new SimpleBooleanProperty();
-    updateOnSelection.bindBidirectional(cbUpdateOnSelection.selectedProperty());
+    contextMenu = new ContextMenu();
+    contextMenu.setOnShowing(e -> updateContextMenu());
+    updateContextMenu();
+    setContextMenu(contextMenu);
+
   }
 
   public MZmineTab(String title) {
     this(title, false, false);
   }
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends RawDataFile> getRawDataFiles();
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends ModularFeatureList> getFeatureLists();
 
-  @ForOverride
+  @Nonnull
   public abstract Collection<? extends ModularFeatureList> getAlignedFeatureLists();
 
-  @ForOverride
   public abstract void onRawDataFileSelectionChanged(
       Collection<? extends RawDataFile> rawDataFiles);
 
-  @ForOverride
   public abstract void onFeatureListSelectionChanged(
       Collection<? extends ModularFeatureList> featureLists);
 
-  @ForOverride
   public abstract void onAlignedFeatureListSelectionChanged(
       Collection<? extends ModularFeatureList> featurelists);
 
   public boolean isUpdateOnSelection() {
-    return updateOnSelection.get();
+    return cbUpdateOnSelection.isSelected();
   }
 
   public BooleanProperty updateOnSelectionProperty() {
-    return updateOnSelection;
+    return cbUpdateOnSelection.selectedProperty();
   }
 
   public void setUpdateOnSelection(boolean updateOnSelection) {
-    this.updateOnSelection.set(updateOnSelection);
+    this.cbUpdateOnSelection.setSelected(updateOnSelection);
   }
 
+  /**
+   * @return true or false. If true this tab can be moved between windows.
+   * @see MZmineTab#windowChangeAllowed
+   */
+  public boolean isWindowChangeAllowed() {
+    return windowChangeAllowed.get();
+  }
+
+  public BooleanProperty windowChangeAllowedProperty() {
+    return windowChangeAllowed;
+  }
+
+  /**
+   * @param windowChangeAllowed true or false. If true this tab can be moved between windows.
+   * @see MZmineTab#windowChangeAllowed
+   */
+  public void setWindowChangeAllowed(boolean windowChangeAllowed) {
+    this.windowChangeAllowed.set(windowChangeAllowed);
+  }
+
+  private void updateContextMenu() {
+    MenuItem bind = new MenuItem("(Un)bind to selection");
+    MenuItem openInNewWindow = new MenuItem("Open in new window");
+    Menu moveToWindow = new Menu("Move to window...");
+    MenuItem closeTab = new MenuItem("Close");
+
+    bind.setOnAction(e -> {
+      cbUpdateOnSelection.setSelected(!cbUpdateOnSelection.isSelected());
+      e.consume();
+    });
+
+    closeTab.setOnAction(e -> {
+      if (this.isClosable()) {
+        getTabPane().getTabs().remove(this);
+      }
+      e.consume();
+    });
+
+    openInNewWindow.setOnAction(e -> {
+      if (!isWindowChangeAllowed()) {
+        logger.info("Window change not allowed for tab " + this.getText());
+        e.consume();
+        return;
+      }
+      getTabPane().getTabs().remove(this);
+      new MZmineWindow().addTab(this);
+      e.consume();
+    });
+
+    MenuItem moveToMainWindow = new MenuItem("Main window");
+    moveToMainWindow.setOnAction(e -> {
+      if (MZmineCore.getDesktop().getTabsInMainWindow().size() < MZmineGUI.MAX_TABS
+          && isWindowChangeAllowed()) {
+        getTabPane().getTabs().remove(this);
+        MZmineCore.getDesktop().addTab(this);
+        e.consume();
+        return;
+      }
+      logger.info(
+          "Maximum number of tabs in main window reached or tab cannot be moved. Cannot move tab to main window.");
+      e.consume();
+    });
+
+    moveToWindow.getItems().add(moveToMainWindow);
+
+    for (MZmineWindow window : MZmineCore.getDesktop().getWindows()) {
+      MenuItem wi = new MenuItem(window.getTitle());
+
+      if (window.isExclusive()) {
+        wi.setDisable(true);
+      }
+
+      wi.setOnAction(e -> {
+        if (window.getNumberOfTabs() >= MZmineGUI.MAX_TABS || !isWindowChangeAllowed()) {
+          logger.info("Maximum number of tabs in " + window.getTitle()
+              + " window reached or tab cannot be moved. Cannot move tab to main window.");
+          e.consume();
+          return;
+        }
+        getTabPane().getTabs().remove(this);
+        window.addTab(this);
+        e.consume();
+      });
+      moveToWindow.getItems().add(wi);
+    }
+    contextMenu.getItems().clear();
+    contextMenu.getItems().addAll(bind, new SeparatorMenuItem(), openInNewWindow, moveToWindow,
+        new SeparatorMenuItem(), closeTab);
+  }
 }

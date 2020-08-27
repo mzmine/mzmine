@@ -24,6 +24,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
@@ -47,22 +49,32 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
@@ -70,14 +82,20 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.StatusBar;
@@ -162,8 +180,18 @@ public class MainWindowController {
 
     rawDataTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     // rawDataTree.setShowRoot(true);
+    rawDataTree.setEditable(false);
 
     rawDataTree.setCellFactory(rawDataListView -> new DraggableListCellWithDraggableFiles<>() {
+      private final TextField textField = new TextField();
+      {
+        textField.setOnAction(event -> commitEdit(getItem()));
+        textField.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+          if (event.getCode() == KeyCode.ESCAPE) {
+            cancelEdit();
+          }
+        });
+      }
       @Override
       protected void updateItem(RawDataFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -177,12 +205,77 @@ public class MainWindowController {
         textFillProperty().bind(item.colorProperty());
         setGraphic(new ImageView(rawDataFileIcon));
       }
+
+      @Override
+      public void startEdit() {
+        if (!isEditable() || !getListView().isEditable() || getItem() == null) {
+          return;
+        }
+
+        super.startEdit();
+
+        textField.setText(getItem().getName());
+        setText(null);
+        HBox hbox = (new HBox(new ImageView(rawDataFileIcon), textField));
+        hbox.setAlignment(Pos.CENTER_LEFT);
+        setGraphic(hbox);
+        textField.selectAll();
+        textField.requestFocus();
+      }
+
+      @Override
+      public void cancelEdit() {
+        if(getItem() == null) {
+          return;
+        }
+
+        super.cancelEdit();
+
+        setText(getItem().getName());
+        setGraphic(new ImageView(rawDataFileIcon));
+        rawDataTree.setEditable(false);
+      }
+
+      @Override
+      public void commitEdit(RawDataFile item) {
+        if(item == null) {
+          return;
+        }
+
+        super.commitEdit(item);
+
+        item.setName(textField.getText());
+
+        setText(item.getName());
+        setGraphic(new ImageView(rawDataFileIcon));
+        rawDataTree.setEditable(false);
+      }
     });
 
     // Add mouse clicked event handler
     rawDataTree.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         handleShowChromatogram(event);
+      }
+    });
+
+    // Add long mouse pressed event handler
+    rawDataTree.addEventHandler(MouseEvent.ANY, new EventHandler<MouseEvent>() {
+      final PauseTransition timer = new PauseTransition(Duration.millis(400));
+
+      @Override
+      public void handle(MouseEvent event) {
+        timer.setOnFinished(e -> {
+          rawDataTree.setEditable(true);
+          rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
+        });
+
+        if(event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
+          timer.playFromStart();
+        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED) ||
+            event.getEventType().equals(MouseEvent.MOUSE_DRAGGED)) {
+          timer.stop();
+        }
       }
     });
 
@@ -218,7 +311,7 @@ public class MainWindowController {
     rawDataTree.getSelectionModel().getSelectedItems().addListener(
         (ListChangeListener<RawDataFile>) c -> {
           c.next();
-          for (Tab tab : getMainTabPane().getTabs()) {
+          for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
             if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
                 .isUpdateOnSelection()) {
               ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
@@ -226,7 +319,7 @@ public class MainWindowController {
           }
         });
 
-
+    // update if tab selection in main window changes
     getMainTabPane().getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
       if (val instanceof MZmineTab && ((MZmineTab) val).getRawDataFiles() != null) {
         if (!((MZmineTab) val).getRawDataFiles()
@@ -316,7 +409,8 @@ public class MainWindowController {
      */
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    rop.setClosable(false);
+    // rop.setClosable(false); // as the default tab, this should not be removed
+    rop.setWindowChangeAllowed(false);
     addTab(rop);
 
   }
@@ -413,16 +507,78 @@ public class MainWindowController {
   }
 
   public void handleRenameFile(Event event) {
+    if (rawDataTree.getSelectionModel() == null) {
+      return;
+    }
+
+    ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
+    // Only one file must be selected
+    if (rows == null || rows.size() != 1) {
+      return;
+    }
+
+    rawDataTree.setEditable(true);
+    rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
+  }
+
+  @SuppressWarnings("unchecked")
+  public void runModule(Event event) {
+    assert event.getSource() instanceof MenuItem;
+    final MenuItem menuItem = (MenuItem) event.getSource();
+    assert menuItem.getUserData() instanceof String;
+    final String moduleClass = (String) menuItem.getUserData();
+    assert moduleClass != null;
+
+    logger.info("Menu item activated for module " + moduleClass);
+    Class<? extends MZmineRunnableModule> moduleJavaClass;
+    try {
+      moduleJavaClass = (Class<? extends MZmineRunnableModule>) Class.forName(moduleClass);
+    } catch (Throwable e) {
+      MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
+      return;
+    }
+
+    MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
+
+    if (module == null) {
+      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
+      return;
+    }
+
+    ParameterSet moduleParameters =
+        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+
+    logger.info("Setting parameters for module " + module.getName());
+
+    ExitCode exitCode = moduleParameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK)
+      return;
+
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
   }
 
   public void handleRemoveRawData(Event event) {
-
     if (rawDataTree.getSelectionModel() == null) {
       return;
     }
 
     // Get selected tree items
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
+
+    // Show alert window
+    Alert alert = new Alert(AlertType.CONFIRMATION,
+        "Are you sure you want to remove selected files?",
+        ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+    Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+    stage.getIcons().add(new Image("MZmineIcon.png"));
+    alert.setHeaderText("Remove file");
+    alert.showAndWait();
+
+    if (alert.getResult() != ButtonType.YES) {
+      return;
+    }
 
     // Loop through all selected tree items
     if (rows != null) {
@@ -500,11 +656,18 @@ public class MainWindowController {
     }).start();
   }
 
-  public TabPane getMainTabPane() {
+  private TabPane getMainTabPane() {
     return mainTabPane;
   }
 
-  public boolean addTab(Tab tab) {
+  /**
+   * @return Current tabs wrapped in {@link FXCollections#unmodifiableObservableList}
+   */
+  public ObservableList<Tab> getTabs() {
+    return FXCollections.unmodifiableObservableList(getMainTabPane().getTabs());
+  }
+
+  public void addTab(Tab tab) {
     if (tab instanceof MZmineTab) {
       ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
         if (val.booleanValue()) {
@@ -520,23 +683,40 @@ public class MainWindowController {
       // TODO: add same for feature lists
     }
 
-    return getMainTabPane().getTabs().add(tab);
+    getMainTabPane().getTabs().add(tab);
+    getMainTabPane().getSelectionModel().select(tab);
   }
 
   @FXML
   public void handleSetRawDataFileColor(Event event) {
-    BooleanProperty apply = new SimpleBooleanProperty(false);
-
-    if(getRawDataTree().getSelectionModel().getSelectedItem() == null) {
+    if (rawDataTree.getSelectionModel() == null) {
       return;
     }
 
+    ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
+
+    // Only one file must be selected
+    if (rows == null || rows.size() != 1 || rows.get(0) == null) {
+      return;
+    }
+    // Creating new popup window
     Stage popup = new Stage();
-
-    ColorPicker picker = new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
-    picker.getCustomColors().addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
-
     VBox box = new VBox(5);
+    Label label =
+        new Label("Please choose a color for \""
+            + getRawDataTree().getSelectionModel().getSelectedItem().getName() + "\":");
+    ColorPicker picker =
+        new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
+
+    BooleanProperty apply = new SimpleBooleanProperty(false);
+
+    box.setAlignment(Pos.CENTER);
+    box.setPadding(new Insets(10, 10, 10, 10));
+
+    label.setMinWidth(Control.USE_PREF_SIZE);
+
+    picker.getCustomColors().addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
+    picker.setMinWidth(label.getText().length() * 6);
 
     Button btnApply = new Button("Apply");
     Button btnCancel = new Button("Cancel");
@@ -547,18 +727,22 @@ public class MainWindowController {
     btnCancel.setOnAction(e -> popup.hide());
     ButtonBar.setButtonData(btnApply, ButtonData.APPLY);
     ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
-
     ButtonBar btnBar = new ButtonBar();
     btnBar.getButtons().addAll(btnApply, btnCancel);
-    box.getChildren().addAll(picker, btnBar);
+
+    box.getChildren().addAll(label, picker, btnBar);
 
     popup.setScene(new Scene(box));
-    popup.setTitle("Please choose a color for " + getRawDataTree().getSelectionModel().getSelectedItem().getName());
+    popup.setTitle("Set color");
+    popup.setResizable(false);
+    popup.initModality(Modality.APPLICATION_MODAL);
+    popup.getIcons().add(new Image("MZmineIcon.png"));
     popup.show();
 
     popup.setOnHiding(e -> {
-      if(picker.getValue() != null && apply.get())
-        getRawDataTree().getSelectionModel().getSelectedItem().setColor(picker.getValue());
+      if (picker.getValue() != null && apply.get()) {
+        rows.get(0).setColor(picker.getValue());
+      }
     });
   }
 }

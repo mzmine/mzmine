@@ -80,9 +80,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     }
 
     if (weHaveData) {
-      TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
+      TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
           mzRange, selectionPeaks, ((TICVisualizerParameters) parameters).getPeakLabelMap());
-      window.show();
+      MZmineCore.getDesktop().addTab(window);
 
     } else {
 
@@ -142,18 +142,18 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final Feature[] selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
-    TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
+    TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
         mzRange, Arrays.asList(selectionPeaks), peakLabels);
-    window.show();
+    MZmineCore.getDesktop().addTab(window);
   }
 
   public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
       final List<Feature> selectionPeaks, final Map<Feature, String> peakLabels,
       final ScanSelection scanSelection, final TICPlotType plotType, final Range<Double> mzRange) {
 
-    TICVisualizerWindow window = new TICVisualizerWindow(dataFiles, plotType, scanSelection,
+    TICVisualizerTab window = new TICVisualizerTab(dataFiles, plotType, scanSelection,
         mzRange, selectionPeaks, peakLabels);
-    window.show();
+    MZmineCore.getDesktop().addTab(window);
   }
 
   @Override

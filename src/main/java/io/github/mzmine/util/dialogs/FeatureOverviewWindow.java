@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerWindow;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.javafx.WindowsMenu;
@@ -133,14 +133,14 @@ public class FeatureOverviewWindow extends Stage {
 
     List<Feature> featureSelection = Arrays.asList(row.getPeaks());
 
-    TICVisualizerWindow window = new TICVisualizerWindow(rawFiles, // raw
+    TICVisualizerTab window = new TICVisualizerTab(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
         featureSelection, // selected features
         labelsMap); // labels
 
-    pane.getItems().add(window.getScene().getRoot());
+    pane.getItems().add(window.getContent());
     return pane;
   }
 

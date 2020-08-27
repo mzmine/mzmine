@@ -112,7 +112,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
-    logger.info(dataFileName + " clr: " + color);
   }
 
   @Override
