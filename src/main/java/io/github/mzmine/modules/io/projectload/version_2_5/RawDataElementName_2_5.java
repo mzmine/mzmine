@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.projectload.version_2_5;
 
 enum RawDataElementName_2_5 {
-
+  
   RAWDATA("rawdata"), //
   NAME("name"), //
   QUANTITY_SCAN("num_scans"), //

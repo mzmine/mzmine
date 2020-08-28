@@ -247,6 +247,12 @@ class RawDataFileSaveHandler {
     hd.characters(String.valueOf(rt).toCharArray(), 0, String.valueOf(rt).length());
     hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
 
+    // <MOBILITY>
+    hd.startElement("","",RawDataElementName.MOBILITY.getElementName(), atts);
+    double mobility = scan.getMobility();
+    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+
     // <CENTROIDED>
     hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(), atts);
     hd.characters(String.valueOf(scan.getSpectrumType()).toCharArray(), 0,
