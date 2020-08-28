@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 public class MassCalibrationTask extends AbstractTask {
 
   protected static boolean runCalibrationOnPreview = false;
+  protected static String universalCalibrantsFile = "universal_calibrants_list.csv";
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
@@ -67,7 +68,12 @@ public class MassCalibrationTask extends AbstractTask {
   // scan counter
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
-  private StandardsListExtractor standardsListExtractor;
+  protected String standardsListFilename = null;
+  protected StandardsListExtractor standardsListExtractor;
+  protected StandardsList standardsList;
+  protected MZTolerance mzRatioTolerance = null;
+  protected RTTolerance rtTolerance = null;
+  protected Trend2D errorTrend = null;
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
   protected ArrayList<Double> errors = new ArrayList<>();
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
@@ -127,86 +133,21 @@ public class MassCalibrationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started mass calibration on " + dataFile);
 
-    String standardsListFilename = null;
-    StandardsList standardsList;
-    NestedCombo massPeakMatchingMethod = parameters.
-            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
-    try {
-//      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
-//              .getAbsolutePath();
-//      standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
-//              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
-
-      if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
-        URL universalCalibrantsPath = getClass().getClassLoader().getResource("universal_calibrants_list.csv");
-        standardsListFilename = universalCalibrantsPath.getPath();
-        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
-        standardsListExtractor = extractor;
-      } else {
-        standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
-              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
-        standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
-      }
-      standardsList = standardsListExtractor.extractStandardsList();
-
-      if (standardsList.getStandardMolecules().size() == 0) {
-        throw new RuntimeException("Empty standards list extracted, make sure the file adheres to the expected" +
-                " format, first column is retention time given in minutes, second column is ion formula string.");
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      logger.warning("Exception when extracting standards list from " + standardsListFilename);
-      logger.warning(e.toString());
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Exception when extracting standards list from " + standardsListFilename + "\n" + e.toString());
+    boolean extractionOk = extractStandardsList();
+    if (extractionOk == false) {
       return;
     }
 
     Double intensityThreshold = parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
     Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
+    extractToleranceParameters();
 
-    /*MZTolerance mzRatioTolerance = parameters.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
-    RTTolerance rtTolerance = parameters.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();*/
-    MZTolerance mzRatioTolerance = null;
-    RTTolerance rtTolerance = null;
-
-    ParameterSet massPeakMatchingParameterSet;
-    if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.STANDARDS_LIST.toString())) {
-      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString());
-      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
-      rtTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
-    } else if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
-      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString());
-      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
-      rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
-    }
-
+    extractErrorTrend();
 
     massCalibrator = null;
     ParameterSet rangeParameterSet;
     NestedCombo rangeExtractionMethod = parameters.
             getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
-
-    ParameterSet trendParameterSet;
-    NestedCombo trendMethod = parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
-    Trend2D errorTrend = null;
-
-    if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.KNN_REGRESSION.toString())) {
-      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.KNN_REGRESSION.toString());
-      Double percentageNeighbors =
-              trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
-      errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
-    } else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
-      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.OLS_REGRESSION.toString());
-      Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
-      Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
-              .getValue();
-      Boolean logarithmicFeature = trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature)
-              .getValue();
-      errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
-    }
-
 
     if (rangeExtractionMethod.getCurrentChoice().equals(RangeExtractionChoice.RANGE_METHOD.toString())) {
       rangeParameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.RANGE_METHOD.toString());
@@ -329,6 +270,73 @@ public class MassCalibrationTask extends AbstractTask {
 
     logger.info("Finished mass calibration on " + dataFile);
 
+  }
+
+  protected boolean extractStandardsList() {
+    NestedCombo massPeakMatchingMethod = parameters.
+            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+    try {
+      if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
+        URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFile);
+        standardsListFilename = universalCalibrantsPath.getPath();
+        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
+        standardsListExtractor = extractor;
+      } else {
+        standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
+              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
+        standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+      }
+      standardsList = standardsListExtractor.extractStandardsList();
+
+      if (standardsList.getStandardMolecules().size() == 0) {
+        throw new RuntimeException("Empty standards list extracted, make sure the file adheres to the expected" +
+                " format, first column is retention time given in minutes, second column is ion formula string.");
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.warning("Exception when extracting standards list from " + standardsListFilename);
+      logger.warning(e.toString());
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Exception when extracting standards list from " + standardsListFilename + "\n" + e.toString());
+      return false;
+    }
+    return true;
+  }
+
+  protected void extractToleranceParameters() {
+    NestedCombo massPeakMatchingMethod = parameters.
+            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+    ParameterSet massPeakMatchingParameterSet;
+    if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.STANDARDS_LIST.toString())) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString());
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+      rtTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
+    } else if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString());
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
+      rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
+    }
+  }
+
+  protected void extractErrorTrend() {
+    ParameterSet trendParameterSet;
+    NestedCombo trendMethod = parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
+
+    if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.KNN_REGRESSION.toString())) {
+      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.KNN_REGRESSION.toString());
+      Double percentageNeighbors =
+              trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
+      errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
+    } else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
+      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.OLS_REGRESSION.toString());
+      Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
+      Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
+              .getValue();
+      Boolean logarithmicFeature = trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature)
+              .getValue();
+      errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
+    }
   }
 
   public ArrayList<MassPeakMatch> getMassPeakMatches() {
