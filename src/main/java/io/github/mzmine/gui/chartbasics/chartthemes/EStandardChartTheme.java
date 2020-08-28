@@ -58,7 +58,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
-      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+          BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
   // not final because we want themes without offsets for the export.
   private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
@@ -121,9 +121,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void setAll(boolean antiAlias, boolean showTitle, boolean noBG, Color cBG, Color cPlotBG,
-      boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
-      Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
-      Color cTitle) {
+                     boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
+                     Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
+                     Color cTitle) {
     this.setAntiAliased(antiAlias);
     this.setShowTitle(showTitle);
     this.setNoBackground(noBG);
@@ -294,9 +294,9 @@ public class EStandardChartTheme extends StandardChartTheme {
     Color cchart = ((Color) this.getChartBackgroundPaint());
     this.setPlotBackgroundPaint(new Color(c.getRed(), c.getGreen(), c.getBlue(), state ? 0 : 255));
     this.setChartBackgroundPaint(
-        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
     this.setLegendBackgroundPaint(
-        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
   }
 
 
@@ -319,11 +319,11 @@ public class EStandardChartTheme extends StandardChartTheme {
     LegendTitle newLegend;
 
     if (plot instanceof CombinedDomainXYPlot
-        && (
-        oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
-            ||
-            oldLegend.getSources()[0].getLegendItems().getItemCount()
-                == MirrorChartFactory.tags.length * 2)) {
+            && (
+            oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
+                    ||
+                    oldLegend.getSources()[0].getLegendItems().getItemCount()
+                            == MirrorChartFactory.tags.length * 2)) {
 
       newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
     } else {
