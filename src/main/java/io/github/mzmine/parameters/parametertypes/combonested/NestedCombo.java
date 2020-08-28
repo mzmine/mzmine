@@ -36,6 +36,10 @@ public class NestedCombo {
     return choices.get(currentChoice);
   }
 
+  public boolean isCurrentChoice(Object choice) {
+    return getCurrentChoice().equals(choice.toString());
+  }
+
   public TreeMap<String, ParameterSet> getChoices() {
     return choices;
   }

@@ -156,13 +156,13 @@ public class MassCalibrationTask extends AbstractTask {
     NestedCombo rangeExtractionMethod = parameters.
             getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
 
-    if (rangeExtractionMethod.getCurrentChoice().equals(RangeExtractionChoice.RANGE_METHOD.toString())) {
-      rangeParameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.RANGE_METHOD.toString());
+    if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.RANGE_METHOD)) {
+      rangeParameterSet = rangeExtractionMethod.getCurrentChoiceParameterSet();
       Double tolerance = rangeParameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
       Double rangeSize = rangeParameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize, standardsList, errorTrend);
-    } else if (rangeExtractionMethod.getCurrentChoice().equalsIgnoreCase(RangeExtractionChoice.PERCENTILE_RANGE.toString())) {
-      rangeParameterSet = rangeExtractionMethod.getChoices().get(RangeExtractionChoice.PERCENTILE_RANGE.toString());
+    } else if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.PERCENTILE_RANGE)) {
+      rangeParameterSet = rangeExtractionMethod.getCurrentChoiceParameterSet();
       Range<Double> percentileRange = rangeParameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList, errorTrend);
     }
@@ -282,7 +282,7 @@ public class MassCalibrationTask extends AbstractTask {
     NestedCombo massPeakMatchingMethod = parameters.
             getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
     try {
-      if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
+      if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
         URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFile);
         standardsListFilename = universalCalibrantsPath.getPath();
         UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
@@ -314,12 +314,12 @@ public class MassCalibrationTask extends AbstractTask {
     NestedCombo massPeakMatchingMethod = parameters.
             getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
     ParameterSet massPeakMatchingParameterSet;
-    if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.STANDARDS_LIST.toString())) {
-      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString());
+    if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.STANDARDS_LIST)) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getCurrentChoiceParameterSet();
       mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
       rtTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
-    } else if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
-      massPeakMatchingParameterSet = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString());
+    } else if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
+      massPeakMatchingParameterSet = massPeakMatchingMethod.getCurrentChoiceParameterSet();
       mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
       rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
     }
@@ -329,13 +329,13 @@ public class MassCalibrationTask extends AbstractTask {
     ParameterSet trendParameterSet;
     NestedCombo trendMethod = parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
 
-    if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.KNN_REGRESSION.toString())) {
-      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.KNN_REGRESSION.toString());
+    if (trendMethod.isCurrentChoice(BiasEstimationChoice.KNN_REGRESSION)) {
+      trendParameterSet = trendMethod.getCurrentChoiceParameterSet();
       Double percentageNeighbors =
               trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
       errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
-    } else if (trendMethod.getCurrentChoice().equals(BiasEstimationChoice.OLS_REGRESSION.toString())) {
-      trendParameterSet = trendMethod.getChoices().get(BiasEstimationChoice.OLS_REGRESSION.toString());
+    } else if (trendMethod.isCurrentChoice(BiasEstimationChoice.OLS_REGRESSION)) {
+      trendParameterSet = trendMethod.getCurrentChoiceParameterSet();
       Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
       Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
               .getValue();
