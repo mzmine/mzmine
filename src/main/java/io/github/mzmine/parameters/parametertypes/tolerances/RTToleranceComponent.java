@@ -46,6 +46,7 @@ public class RTToleranceComponent extends BorderPane {
     toleranceField.setPrefColumnCount(6);
 
     toleranceType = new ComboBox<String>(toleranceTypes);
+    toleranceType.getSelectionModel().select(1);
 
     setCenter(toleranceField);
     setRight(toleranceType);

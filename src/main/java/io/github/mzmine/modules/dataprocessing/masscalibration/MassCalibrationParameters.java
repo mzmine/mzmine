@@ -57,7 +57,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final FileNameParameter standardsList = new FileNameParameter("Standards list",
           "File with a list of standard calibrants (ionic formula and retention time)" +
-                  " expected to appear in the dataset", FileSelectionType.OPEN);
+                  " expected to appear in the dataset", FileSelectionType.OPEN, false);
 
   public static final MZToleranceParameter mzRatioTolerance = new MZToleranceParameter("mz ratio tolerance",
           "Max difference between actual mz peaks and standard calibrants to consider a match," +
