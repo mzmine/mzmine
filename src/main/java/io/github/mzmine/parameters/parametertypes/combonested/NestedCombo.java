@@ -43,6 +43,4 @@ public class NestedCombo {
   public String getCurrentChoice() {
     return currentChoice;
   }
-
-
 }

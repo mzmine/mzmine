@@ -51,7 +51,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 /**
- *
+ * Mass calibration task with preview run flag
  */
 public class MassCalibrationTask extends AbstractTask {
 
@@ -59,44 +59,51 @@ public class MassCalibrationTask extends AbstractTask {
   protected static String universalCalibrantsFile = "universal_calibrants_list.csv";
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final ParameterSet parameters;
   private final RawDataFile dataFile;
+
   // User parameters
   private final String massListName;
   private final String suffix;
   private final boolean autoRemove;
-  private final ParameterSet parameters;
+
   // scan counter
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
+
+  // method parameters
+  // standards list
   protected String standardsListFilename = null;
   protected StandardsListExtractor standardsListExtractor;
   protected StandardsList standardsList;
+  // tolerances
   protected MZTolerance mzRatioTolerance = null;
   protected RTTolerance rtTolerance = null;
+  // error trend
   protected Trend2D errorTrend = null;
+
+  // mass calibrator and data passed between it
+  protected MassCalibrator massCalibrator;
   protected ArrayList<MassPeakMatch> massPeakMatches = new ArrayList<>();
   protected ArrayList<Double> errors = new ArrayList<>();
   protected HashMap<String, DistributionRange> errorRanges = new HashMap<>();
   protected double biasEstimate;
-  protected boolean previewRun = false;
 
-  protected MassCalibrator massCalibrator;
+  protected boolean previewRun = false;
 
   /**
    * @param dataFile
    * @param parameters
+   * @param previewRun
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters, boolean previewRun) {
-
     this.dataFile = dataFile;
     this.parameters = parameters;
     this.previewRun = previewRun;
 
     this.massListName = parameters.getParameter(MassCalibrationParameters.massList).getValue();
-
     this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
     this.autoRemove = parameters.getParameter(MassCalibrationParameters.autoRemove).getValue();
-
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters) {
@@ -267,7 +274,6 @@ public class MassCalibrationTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-
     logger.info("Finished mass calibration on " + dataFile);
 
   }
@@ -283,7 +289,7 @@ public class MassCalibrationTask extends AbstractTask {
         standardsListExtractor = extractor;
       } else {
         standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
-              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
+                getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
         standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       }
       standardsList = standardsListExtractor.extractStandardsList();
