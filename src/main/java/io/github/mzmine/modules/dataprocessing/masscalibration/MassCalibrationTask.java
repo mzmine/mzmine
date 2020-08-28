@@ -134,8 +134,8 @@ public class MassCalibrationTask extends AbstractTask {
     try {
 //      standardsListFilename = parameters.getParameter(MassCalibrationParameters.standardsList).getValue()
 //              .getAbsolutePath();
-      standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
-              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
+//      standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
+//              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
 
       if (massPeakMatchingMethod.getCurrentChoice().equals(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString())) {
         URL universalCalibrantsPath = getClass().getClassLoader().getResource("universal_calibrants_list.csv");
@@ -143,6 +143,8 @@ public class MassCalibrationTask extends AbstractTask {
         UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
         standardsListExtractor = extractor;
       } else {
+        standardsListFilename = massPeakMatchingMethod.getChoices().get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
+              getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
         standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       }
       standardsList = standardsListExtractor.extractStandardsList();
