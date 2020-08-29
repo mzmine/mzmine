@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
 import java.net.URL;
@@ -70,6 +71,10 @@ public class MassCalibrationTask extends AbstractTask {
   // scan counter
   protected int processedScans = 0, totalScans;
   protected int[] scanNumbers;
+
+  // task timer
+  protected Long startMillis;
+  protected Long endMillis;
 
   // method parameters
   // standards list
@@ -139,9 +144,11 @@ public class MassCalibrationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started mass calibration on " + dataFile);
+    startMillis = System.currentTimeMillis();
 
     boolean extractionOk = extractStandardsList();
     if (extractionOk == false) {
+      endMillis = System.currentTimeMillis();
       return;
     }
 
@@ -184,14 +191,17 @@ public class MassCalibrationTask extends AbstractTask {
     if (!haveMassList) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(dataFile.getName() + " has no mass list called '" + massListName + "'");
+      endMillis = System.currentTimeMillis();
       return;
     }
 
     // obtain errors from all scans
     for (int i = 0; i < totalScans; i++) {
 
-      if (isCanceled())
+      if (isCanceled()) {
+        endMillis = System.currentTimeMillis();
         return;
+      }
 
       Scan scan = dataFile.getScan(scanNumbers[i]);
 
@@ -235,16 +245,19 @@ public class MassCalibrationTask extends AbstractTask {
     errorRanges = massCalibrator.getErrorRanges();
 
     if (runCalibrationOnPreview == false && previewRun) {
+      endMillis = System.currentTimeMillis();
       setStatus(TaskStatus.FINISHED);
-      logger.info("Finished mass calibration on " + dataFile);
+      logger.info("Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
       return;
     }
 
     // mass calibrate all mass lists
     for (int i = 0; i < totalScans; i++) {
 
-      if (isCanceled())
+      if (isCanceled()) {
+        endMillis = System.currentTimeMillis();
         return;
+      }
 
       Scan scan = dataFile.getScan(scanNumbers[i]);
 
@@ -273,8 +286,9 @@ public class MassCalibrationTask extends AbstractTask {
       processedScans++;
     }
 
+    endMillis = System.currentTimeMillis();
     setStatus(TaskStatus.FINISHED);
-    logger.info("Finished mass calibration on " + dataFile);
+    logger.info("Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
 
   }
 
@@ -343,6 +357,34 @@ public class MassCalibrationTask extends AbstractTask {
               .getValue();
       errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
     }
+  }
+
+  /**
+   * Get running time of this task in milliseconds
+   * if it was not started and then finished, then returns null
+   *
+   * @return
+   */
+  public Long getRunningTimeMillis() {
+    if (startMillis != null && endMillis != null) {
+      return endMillis - startMillis;
+    }
+    return null;
+  }
+
+
+  /**
+   * Get running time of this task formatted as a string
+   * if it was not started and then finished, then returns null
+   *
+   * @return
+   */
+  public String getRunningTimeString() {
+    Long runningTimeMillis = getRunningTimeMillis();
+    if (runningTimeMillis == null) {
+      return null;
+    }
+    return DurationFormatUtils.formatDuration(runningTimeMillis, "ss.S's'");
   }
 
   public ArrayList<MassPeakMatch> getMassPeakMatches() {
