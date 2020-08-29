@@ -209,7 +209,7 @@ public class MassCalibrationTask extends AbstractTask {
               massPeakMatches);
       errors.addAll(massListErrors);*/
 
-      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), intensityThreshold);
+      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), scanNumbers[i], intensityThreshold);
 
       processedScans++;
     }

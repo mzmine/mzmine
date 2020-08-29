@@ -56,11 +56,11 @@ public class ErrorDistributionChart extends EChartViewer {
         double yValue = dataset.getYValue(series, item);
         double xValue = dataset.getXValue(series, item);
         return String.format("Measured-matched m/z: %s-%s\nMeasured-matched RT: %s-%s\nMass error: %s %s" +
-                        "\nMass peak intensity: %s",
+                        "\nMass peak intensity: %s\nScan number: %s",
                 match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
                 match.getMeasuredRetentionTime(), match.getMatchedRetentionTime() == -1 ? "none" : match.getMatchedRetentionTime(),
                 match.getMzError(), match.getMzErrorType(),
-                match.getMeasuredDataPoint().getIntensity());
+                match.getMeasuredDataPoint().getIntensity(), match.getScanNumber());
       }
     };
 
@@ -90,7 +90,10 @@ public class ErrorDistributionChart extends EChartViewer {
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
 
-    return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+//    JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+    JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+    chart.setTitle((String) null);
+    return chart;
   }
 
   public void cleanDistributionPlot() {

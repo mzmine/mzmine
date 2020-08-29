@@ -39,6 +39,7 @@ public class MassPeakMatch {
   protected double mzError;
 
   protected DataPoint measuredDataPoint;
+  protected int scanNumber;
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
                        double matchedMzRatio, double matchedRetentionTime) {
@@ -60,6 +61,13 @@ public class MassPeakMatch {
                        DataPoint measuredDataPoint) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType);
     this.measuredDataPoint = measuredDataPoint;
+  }
+
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
+                       DataPoint measuredDataPoint, int scanNumber) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType, measuredDataPoint);
+    this.scanNumber = scanNumber;
   }
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
@@ -95,5 +103,9 @@ public class MassPeakMatch {
 
   public DataPoint getMeasuredDataPoint() {
     return measuredDataPoint;
+  }
+
+  public int getScanNumber() {
+    return scanNumber;
   }
 }

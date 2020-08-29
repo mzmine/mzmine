@@ -112,7 +112,7 @@ public class MassCalibrator {
   }
 
   public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime) {
-    return addMassList(massList, retentionTime, 0.0);
+    return addMassList(massList, retentionTime, -1, 0.0);
   }
 
   /**
@@ -123,8 +123,9 @@ public class MassCalibrator {
    * @param intensityThreshold
    * @return
    */
-  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime, double intensityThreshold) {
-    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime, intensityThreshold);
+  public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, double retentionTime,
+                                              int scanNumber, double intensityThreshold) {
+    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime, scanNumber, intensityThreshold);
     massPeakMatches.addAll(matches);
     return matches;
   }
@@ -377,7 +378,7 @@ public class MassCalibrator {
   }
 
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime) {
-    return matchPeaksWithCalibrants(massList, retentionTime, 0.0);
+    return matchPeaksWithCalibrants(massList, retentionTime, -1, 0.0);
   }
 
   /**
@@ -392,7 +393,7 @@ public class MassCalibrator {
    * @return list of mass peak matches
    */
   protected ArrayList<MassPeakMatch> matchPeaksWithCalibrants(DataPoint[] massList, double retentionTime,
-                                                              double intensityThreshold) {
+                                                              int scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
     Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
@@ -428,7 +429,8 @@ public class MassCalibrator {
       double matchedRetentionTime = matchedItem.getRetentionTime();
 
 //      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError));
-      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError, dataPoint));
+      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError,
+              dataPoint, scanNumber));
     }
 
     return matches;
