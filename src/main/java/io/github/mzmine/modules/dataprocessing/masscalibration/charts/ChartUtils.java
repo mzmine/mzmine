@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
+import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
@@ -27,9 +28,14 @@ import org.jfree.data.function.Function2D;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
+import java.util.List;
 
 public class ChartUtils {
   public static double calculateRSquared(XYDataItem[] items, Function2D trend) {
@@ -62,6 +68,19 @@ public class ChartUtils {
     valueMarker.setLabelPaint(Color.blue);
     valueMarker.setLabelFont(new Font(null, 0, 11));
     return valueMarker;
+  }
+
+  public static String generateTooltipText(List<MassPeakMatch> matches, int item) {
+    MassPeakMatch match = matches.get(item);
+    return String.format("Measured-matched m/z: %s-%s" +
+                    "\nMeasured-matched RT: %s-%s" +
+                    "\nMass error: %s %s" +
+                    "\nMass peak intensity: %s" +
+                    "\nScan number: %s",
+            match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
+            match.getMeasuredRetentionTime(), match.getMatchedRetentionTime() == -1 ? "none" : match.getMatchedRetentionTime(),
+            match.getMzError(), match.getMzErrorType(),
+            match.getMeasuredDataPoint().getIntensity(), match.getScanNumber());
   }
 
   public static XYToolTipGenerator createTooltipGenerator() {

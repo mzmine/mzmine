@@ -48,19 +48,7 @@ public class ErrorDistributionChart extends EChartViewer {
   class ErrorDistributionTooltipGenerator implements XYToolTipGenerator {
       @Override
       public String generateToolTip(XYDataset dataset, int series, int item) {
-        /*double yValue = dataset.getYValue(series, item);
-        double xValue = dataset.getXValue(series, item);
-        return String.format("x: %s, y: %s", xValue, yValue);*/
-
-        MassPeakMatch match = matches.get(item);
-        double yValue = dataset.getYValue(series, item);
-        double xValue = dataset.getXValue(series, item);
-        return String.format("Measured-matched m/z: %s-%s\nMeasured-matched RT: %s-%s\nMass error: %s %s" +
-                        "\nMass peak intensity: %s\nScan number: %s",
-                match.getMeasuredMzRatio(), match.getMatchedMzRatio(),
-                match.getMeasuredRetentionTime(), match.getMatchedRetentionTime() == -1 ? "none" : match.getMatchedRetentionTime(),
-                match.getMzError(), match.getMzErrorType(),
-                match.getMeasuredDataPoint().getIntensity(), match.getScanNumber());
+        return ChartUtils.generateTooltipText(matches, item);
       }
     };
 
