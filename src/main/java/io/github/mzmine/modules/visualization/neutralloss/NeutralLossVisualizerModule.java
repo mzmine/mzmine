@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.neutralloss;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,12 +55,14 @@ public class NeutralLossVisualizerModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
+    assert MZmineCore.getDesktop() != null;
+
     RawDataFile dataFiles[] = parameters.getParameter(NeutralLossParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
-    NeutralLossVisualizerWindow newWindow =
-        new NeutralLossVisualizerWindow(dataFiles[0], parameters);
-    newWindow.show();
+    NeutralLossVisualizerTab newTab =
+        new NeutralLossVisualizerTab(dataFiles[0], parameters);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }
