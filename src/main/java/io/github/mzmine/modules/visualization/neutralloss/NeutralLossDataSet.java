@@ -52,14 +52,14 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
   private HashMap<Integer, Vector<NeutralLossDataPoint>> dataSeries;
 
-  private NeutralLossVisualizerWindow visualizer;
+  private NeutralLossVisualizerTab visualizer;
 
   private static int RAW_LEVEL = 0;
   private static int PRECURSOR_LEVEL = 1;
   private static int NEUTRALLOSS_LEVEL = 2;
 
   NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Double> rtRange,
-      Range<Double> mzRange, int numOfFragments, NeutralLossVisualizerWindow visualizer) {
+      Range<Double> mzRange, int numOfFragments, NeutralLossVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
 
