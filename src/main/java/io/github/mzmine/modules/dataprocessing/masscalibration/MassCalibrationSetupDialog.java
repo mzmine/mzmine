@@ -64,11 +64,11 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
   protected static final String universalCalibrantsMessage = "<html>Universal calibrants list disclaimer:"
-        + "<br> If you use the universal calibrants matching mode, please cite the "
-        + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article (source of universal calibrants list used):"
-        + "<br> Keller, B.O.; Sui, J.; Young, A.B.; Whittal, R.M. Interferences and contaminants encountered in modern mass spectrometry.  "
-        + "<br> Analytica Chimica Acta (Review/tutorial, Special Issue on Mass Spectrometry), 2008."
-        + "</html>";
+          + "<br> If you use the universal calibrants matching mode, please cite the "
+          + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article (source of universal calibrants list used):"
+          + "<br> Keller, B.O.; Sui, J.; Young, A.B.; Whittal, R.M. Interferences and contaminants encountered in modern mass spectrometry.  "
+          + "<br> Analytica Chimica Acta (Review/tutorial, Special Issue on Mass Spectrometry), 2008."
+          + "</html>";
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
@@ -193,24 +193,15 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
 //      previewTask.run();
 
-//      previewTask.setAfterHook(() -> updatePreviewAfterTaskRun());
-//      previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun()));
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
-
-      previewTask.addTaskStatusListener(new MassCalibrationPreviewTaskStatusListener());
-
       MZmineCore.getTaskController().addTask(previewTask);
-    }
-    else {
+    } else {
       updatePreviewAfterTaskRun(rerun);
     }
 
-//    updatePreviewAfterTaskRun();
   }
 
-//  synchronized protected void updatePreviewAfterTaskRun() {
-//  protected void updatePreviewAfterTaskRun(boolean rerun) {
-  synchronized protected void updatePreviewAfterTaskRun(boolean rerun) {
+  protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
         MZmineCore.getDesktop().displayMessage("Mass calibration error message", previewTask.getErrorMessage());

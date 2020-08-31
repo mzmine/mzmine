@@ -40,7 +40,7 @@ public class StandardsListExtractorFactory {
    * @param filename standards list filename
    * @param useCache when true, the created extractor cache by filename is used
    * @return cached and instantiated extractor object
-   * @throws IOException thrown by concrete extractor while opening the file
+   * @throws IOException              thrown by concrete extractor while opening the file
    * @throws IllegalArgumentException thrown when file with unsupported extension is given
    */
   public static StandardsListExtractor createFromFilename(String filename, boolean useCache) throws IOException {

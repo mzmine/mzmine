@@ -23,7 +23,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
-import org.checkerframework.checker.units.qual.Mass;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -46,11 +45,11 @@ import java.util.Map;
 public class ErrorDistributionChart extends EChartViewer {
 
   class ErrorDistributionTooltipGenerator implements XYToolTipGenerator {
-      @Override
-      public String generateToolTip(XYDataset dataset, int series, int item) {
-        return ChartUtils.generateTooltipText(matches, item);
-      }
-    };
+    @Override
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+      return ChartUtils.generateTooltipText(matches, item);
+    }
+  }
 
   private final JFreeChart distributionChart;
 

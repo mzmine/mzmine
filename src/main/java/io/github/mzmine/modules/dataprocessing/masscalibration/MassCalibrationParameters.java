@@ -68,8 +68,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzRatioToleranceUniversalCalibrants =
           new MZToleranceParameter("mz ratio tolerance ",
-          "Max difference between actual mz peaks and universal calibrants to consider a match," +
-                  " max of m/z and ppm is used", 0.001, 5, true);
+                  "Max difference between actual mz peaks and universal calibrants to consider a match," +
+                          " max of m/z and ppm is used", 0.001, 5, true);
 
   public static final TreeMap<String, ParameterSet> massPeakMatchingChoices = new TreeMap<>() {{
     put(MassPeakMatchingChoice.STANDARDS_LIST.toString(), new SimpleParameterSet(new Parameter[]{standardsList, mzRatioTolerance, retentionTimeTolerance}));

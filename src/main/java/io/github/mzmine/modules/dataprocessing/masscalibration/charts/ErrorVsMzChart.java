@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.masscalibration.charts;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrator;
 import io.github.mzmine.modules.dataprocessing.masscalibration.MassPeakMatch;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.DistributionRange;
 import org.jfree.chart.JFreeChart;
@@ -32,7 +31,6 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.function.Function2D;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;

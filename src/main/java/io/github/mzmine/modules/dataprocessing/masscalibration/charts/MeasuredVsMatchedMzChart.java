@@ -62,7 +62,10 @@ public class MeasuredVsMatchedMzChart extends EChartViewer {
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
 
-    return new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+//    JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+    JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+    chart.setTitle((String) null);
+    return chart;
   }
 
   public void cleanPlot() {

@@ -126,8 +126,7 @@ public class OLSRegressionTrend implements Trend2D {
       beta = olsRegression.estimateRegressionParameters();
       rSquared = olsRegression.calculateRSquared();
       estimated = true;
-    }
-    catch (IllegalArgumentException ex) {
+    } catch (IllegalArgumentException ex) {
       estimated = false;
       Logger.getLogger(this.getClass().getName()).info("OLS regression exception " + ex);
     }
