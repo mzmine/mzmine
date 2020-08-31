@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.combonested.NestedCombo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
@@ -95,6 +96,7 @@ public class MassCalibrationTask extends AbstractTask {
   protected double biasEstimate;
 
   protected boolean previewRun = false;
+  protected Runnable afterHook = null;
 
   /**
    * @param dataFile
@@ -138,10 +140,36 @@ public class MassCalibrationTask extends AbstractTask {
     return dataFile;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    if (previewRun) {
+      return TaskPriority.HIGH;
+    }
+    return TaskPriority.NORMAL;
+  }
+
+  public Runnable getAfterHook() {
+    return afterHook;
+  }
+
+  public void setAfterHook(Runnable afterHook) {
+    this.afterHook = afterHook;
+  }
+
   /**
    * @see Runnable#run()
    */
   public void run() {
+    runTask();
+    if (afterHook != null && isCanceled() == false) {
+      afterHook.run();
+    }
+  }
+
+  /**
+   * @see Runnable#run()
+   */
+  public void runTask() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started mass calibration on " + dataFile);
     startMillis = System.currentTimeMillis();

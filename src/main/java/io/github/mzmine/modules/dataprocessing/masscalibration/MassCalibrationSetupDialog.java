@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -185,10 +186,31 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     }
 
     if (rerun || previewTask == null) {
+      if (previewTask != null) {
+        previewTask.cancel();
+      }
+
       previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
-      previewTask.run();
+//      previewTask.run();
+
+//      previewTask.setAfterHook(() -> updatePreviewAfterTaskRun());
+//      previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun()));
+      previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
+
+      previewTask.addTaskStatusListener(new MassCalibrationPreviewTaskStatusListener());
+
+      MZmineCore.getTaskController().addTask(previewTask);
+    }
+    else {
+      updatePreviewAfterTaskRun(rerun);
     }
 
+//    updatePreviewAfterTaskRun();
+  }
+
+//  synchronized protected void updatePreviewAfterTaskRun() {
+//  protected void updatePreviewAfterTaskRun(boolean rerun) {
+  synchronized protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
         MZmineCore.getDesktop().displayMessage("Mass calibration error message", previewTask.getErrorMessage());
@@ -206,22 +228,23 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       chartsPane.getChildren().add(errorDistributionChart);
     }
 
-    errorDistributionChart.cleanDistributionPlot();
-    errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(), previewTask.getErrors(),
-            previewTask.getErrorRanges(), previewTask.getBiasEstimate());
+    if (rerun) {
+      errorDistributionChart.cleanDistributionPlot();
+      errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(), previewTask.getErrors(),
+              previewTask.getErrorRanges(), previewTask.getBiasEstimate());
 
-    errorVsMzChart.cleanPlot();
-    errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
-            previewTask.getBiasEstimate(), previewTask.getErrorVsMzTrend());
+      errorVsMzChart.cleanPlot();
+      errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
+              previewTask.getBiasEstimate(), previewTask.getErrorVsMzTrend());
 
-    measuredVsMatchedMzChart.cleanPlot();
-    measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
+      measuredVsMatchedMzChart.cleanPlot();
+      measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
+    }
 
     if (labelsCheckbox.isSelected() == false) {
       errorDistributionChart.cleanPlotLabels();
       errorVsMzChart.cleanPlotLabels();
     }
-
   }
 
   @Override
