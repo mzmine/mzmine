@@ -29,7 +29,7 @@
     </AnchorPane>
   </top>
   <center>
-    <SplitPane fx:id="pnMainSplit" dividerPositions="0.698943661971831" orientation="VERTICAL"
+    <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
       BorderPane.alignment="CENTER">
       <items>
         <HBox prefHeight="100.0" prefWidth="200.0">

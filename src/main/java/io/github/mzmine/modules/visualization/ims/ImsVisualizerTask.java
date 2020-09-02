@@ -24,22 +24,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.DataFactory;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityPlot;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.IntensityMobilityXYDataset;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.MzMobilityHeatMapPlot;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.MzMobilityXYZDataset;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeIntensityPlot;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeIntensityXYDataset;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityHeatMapPlot;
-import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityXYZDataset;
+import io.github.mzmine.modules.visualization.ims.imsvisualizer.*;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewIMSController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -49,6 +38,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class ImsVisualizerTask extends AbstractTask {
 
@@ -75,27 +69,28 @@ public class ImsVisualizerTask extends AbstractTask {
     private BorderPane topRightPane;
     private static Label rtLabel;
     private static Label mzRangeLevel;
+    private boolean isIonMobility = true;
     private final Scan[] scans;
-    private boolean containsMobility = true;
+    private RawDataOverviewIMSController controllerIMS;
 
 
     public ImsVisualizerTask(ParameterSet parameters) {
-        dataFiles = parameters.getParameter(ImsVisualizerParameters.dataFiles).getValue()
-            .getMatchingRawDataFiles();
+        dataFiles =
+            parameters
+                .getParameter(ImsVisualizerParameters.dataFiles)
+                .getValue()
+                .getMatchingRawDataFiles();
 
         mzRange = parameters.getParameter(ImsVisualizerParameters.mzRange).getValue();
 
         paintScaleStyle = parameters.getParameter(ImsVisualizerParameters.paintScale).getValue();
 
         parameterSet = parameters;
-        scans = parameters.getParameter(ImsVisualizerParameters.scanSelection).getValue()
-            .getMatchingScans(dataFiles[0]);
-        for (int i = 0; i < scans.length; i++) {
-            if (scans[i].getMobility() < 0) {
-                containsMobility = false;
-                break;
-            }
-        }
+        scans =
+            parameters
+                .getParameter(ImsVisualizerParameters.scanSelection)
+                .getValue()
+                .getMatchingScans(dataFiles[0]);
     }
 
     // Group the intensity-mobility and mz-mobility plots and place on the bottom
@@ -103,49 +98,47 @@ public class ImsVisualizerTask extends AbstractTask {
 
     ChartGroup groupRetentionTime = new ChartGroup(false, false, true, false);
 
-    @Override public String getTaskDescription() {
+    @Override
+    public String getTaskDescription() {
         return "Create IMS visualization of " + dataFiles[0];
     }
 
-    @Override public double getFinishedPercentage() {
+    @Override
+    public double getFinishedPercentage() {
         int totalSteps = 3;
         return totalSteps == 0 ? 0 : (double) appliedSteps / totalSteps;
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
 
         setStatus(TaskStatus.PROCESSING);
         logger.info("IMS visualization of " + dataFiles[0]);
         // Task canceled?
-        if (isCanceled()) {
-            return;
-        }
-        Platform.runLater(() -> {
-            if (!containsMobility) {
-                MZmineCore.getDesktop().displayErrorMessage(
-                    "The selected raw data does not have a mobility dimension.");
-                return;
-            }
-            // Initialize dataFactories.
-            initDataFactories();
+        if (isCanceled()) return;
+        Platform.runLater(
+            () -> {
+                // Initialize dataFactories.
+                initDataFactories();
 
-            // Initialize Scene.
-            initGui();
+                // Initialize Scene.
+                initGui();
 
-            setContainers();
+                setContainers();
 
 
-            // Init all four plots
-            initIntensityMobilityGui();
-            initmzMobilityGui();
-            initRetentionTimeMobilityGui();
+                // Init all four plots
+                initIntensityMobilityGui();
+                initmzMobilityGui();
+                initRetentionTimeMobilityGui();
 
-            initRetentionTimeIntensityGui();
-            initLabel();
+                initRetentionTimeIntensityGui();
+                isIonMobility = false;
+                initLabel();
 
-            updateRTlabel();
+                updateRTlabel();
 
-        });
+            });
 
         setStatus(TaskStatus.FINISHED);
         logger.info("Finished IMS visualization of" + dataFiles[0]);
@@ -171,8 +164,8 @@ public class ImsVisualizerTask extends AbstractTask {
     public void initmzMobilityGui() {
         appliedSteps++;
         datasetMzMobility = new MzMobilityXYZDataset(dataFactory);
-        mzMobilityHeatMapPlot = new MzMobilityHeatMapPlot(datasetMzMobility, paintScaleStyle, this,
-            intensityMobilityPlot);
+        mzMobilityHeatMapPlot =
+            new MzMobilityHeatMapPlot(datasetMzMobility, paintScaleStyle, this, intensityMobilityPlot);
         bottomRightpane.setCenter(mzMobilityHeatMapPlot);
     }
 
@@ -183,6 +176,29 @@ public class ImsVisualizerTask extends AbstractTask {
         bottomLeftPane.setCenter(intensityMobilityPlot);
     }
 
+    public void initDataOverview(RawDataOverviewIMSController con) {
+        controllerIMS = con;
+        appliedSteps++;
+
+        // create the plot
+        setTopRightPane(con.getTopRightPane());
+        setTopLeftPane(con.getTopLeftPane());
+        setBottomLeftPane(con.getBottomLeftPane());
+        setBottomRightpane(con.getBottomRightPane());
+        setRtLabel(con.getRtLabel());
+        setMzRangeLevel(con.getMobilityRTLabel());
+
+        //prepare data
+        initDataFactories();
+        // Initialize the gui
+        initIntensityMobilityGui();
+        initmzMobilityGui();
+        initRetentionTimeMobilityGui();
+        initRetentionTimeIntensityGui();
+        setGroupMobility();
+        setGroupRetentionTime();
+
+    }
 
     public void setContainers() {
         appliedSteps++;
@@ -220,13 +236,14 @@ public class ImsVisualizerTask extends AbstractTask {
         appliedSteps++;
         XYDataset datasetRetentionTimeIntensity = new RetentionTimeIntensityXYDataset(dataFactory);
         retentionTimeIntensityPlot =
-            new RetentionTimeIntensityPlot(datasetRetentionTimeIntensity, this,
-                retentionTimeMobilityHeatMapPlot);
+            new RetentionTimeIntensityPlot(
+                datasetRetentionTimeIntensity, this, retentionTimeMobilityHeatMapPlot);
         topLeftPane.setCenter(retentionTimeIntensityPlot);
     }
 
 
     public void initGui() {
+        isIonMobility = false;
         appliedSteps++;
         FXMLLoader loader = new FXMLLoader((getClass().getResource("ImsVisualizerWindow.fxml")));
         Stage stage = new Stage();
@@ -253,8 +270,8 @@ public class ImsVisualizerTask extends AbstractTask {
         dataFactory.updateFrameData(selectedRetentionTime);
         datasetMzMobility = new MzMobilityXYZDataset(dataFactory);
 
-        mzMobilityHeatMapPlot = new MzMobilityHeatMapPlot(datasetMzMobility, paintScaleStyle, this,
-            intensityMobilityPlot);
+        mzMobilityHeatMapPlot =
+            new MzMobilityHeatMapPlot(datasetMzMobility, paintScaleStyle, this, intensityMobilityPlot);
         bottomRightpane.setCenter(mzMobilityHeatMapPlot);
 
         datasetIntensityMobility = new IntensityMobilityXYDataset(dataFactory);
@@ -263,7 +280,12 @@ public class ImsVisualizerTask extends AbstractTask {
 
         groupMobility.add(new ChartViewWrapper(intensityMobilityPlot));
         groupMobility.add(new ChartViewWrapper(mzMobilityHeatMapPlot));
-        initLabel();
+        if (!isIonMobility)
+            initLabel();
+//        else {
+//            rtLabel = controllerIMS.rtLabel;
+//            mzRangeLevel = controllerIMS.mobilityRTLabel;
+//        }
         updateRTlabel();
     }
 

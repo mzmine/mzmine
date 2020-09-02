@@ -51,7 +51,7 @@ public class RawDataOverviewPane extends MZmineTab {
 
         try {
             if (isIonMobility) {
-                BorderPane root = loaderIMS.load();
+                BorderPane root = (BorderPane)loaderIMS.load();
                 controllerIMS = loaderIMS.getController();
                 if (controllerIMS == null) {
                     return;

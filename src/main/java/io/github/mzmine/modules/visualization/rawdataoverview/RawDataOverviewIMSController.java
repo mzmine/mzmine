@@ -28,13 +28,13 @@ public class RawDataOverviewIMSController {
 
     public static final Logger logger = Logger
             .getLogger(RawDataOverviewWindowController.class.getName());
+    public SplitPane pnMainSplit;
 
     private boolean initialized = false;
-    private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
+    private final ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
             .observableMap(new HashMap<>());
-    private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
+    private final ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
             .observableMap(new HashMap<>());
-    private ParameterSet parameters;
 
     private boolean scroll;
     @FXML
@@ -65,8 +65,6 @@ public class RawDataOverviewIMSController {
     @FXML
     private BorderPane pnMaster;
 
-    @FXML
-    private SplitPane pnMain;
 
     public void initialize() {
 
@@ -81,10 +79,9 @@ public class RawDataOverviewIMSController {
     void initGui() {
         ImsVisualizerModule module = new ImsVisualizerModule();
         Class<? extends MZmineRunnableModule> moduleJavaClass = module.getClass();
-        parameters =
-                MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+        ParameterSet parameters =
+            MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
         ImsVisualizerTask imsVisualizerTask = new ImsVisualizerTask(parameters);
-
         imsVisualizerTask.initDataOverview(this);
 
     }
@@ -104,10 +101,10 @@ public class RawDataOverviewIMSController {
                 filesToProcess.add(rawDataFile);
             }
         }
-        filesToProcess.forEach(r -> removeRawDataFile(r));
+        filesToProcess.forEach(this::removeRawDataFile);
 
         // presence of file is checked in the add method
-        rawDataFiles.forEach(r -> addRawDataFileTab(r));
+        rawDataFiles.forEach(this::addRawDataFileTab);
     }
 
     /**
