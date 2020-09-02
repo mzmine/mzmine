@@ -91,6 +91,12 @@ public class ImsVisualizerTask extends AbstractTask {
                         .getParameter(ImsVisualizerParameters.scanSelection)
                         .getValue()
                         .getMatchingScans(dataFiles[0]);
+        for(int i=0;i<scans.length;i++){
+            if(scans[i].getMobility()<0){
+                isIonMobility = false;
+                break;
+            }
+        }
     }
 
     // Group the intensity-mobility and mz-mobility plots and place on the bottom
@@ -119,6 +125,10 @@ public class ImsVisualizerTask extends AbstractTask {
         Platform.runLater(
                 () -> {
                     // Initialize dataFactories.
+                    if (!isIonMobility) {
+                        logger.info("data does not contains ion mobility field");
+                        return;
+                    }
                     initDataFactories();
 
                     // Initialize Scene.

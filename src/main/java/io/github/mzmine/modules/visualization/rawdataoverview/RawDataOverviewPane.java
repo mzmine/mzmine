@@ -38,27 +38,25 @@ public class RawDataOverviewPane extends MZmineTab {
     private RawDataOverviewWindowController controller;
     private RawDataOverviewIMSController controllerIMS;
     public Boolean isIonMobility;
-    private ParameterSet parameterSet;
 
-    public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState, boolean isIonMobility, ParameterSet parameterSet) {
+    public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState, boolean isIonMobility) {
         super("Raw data overview", showBinding, defaultBindingState);
 
         controller = null;
         controllerIMS = null;
-        this.parameterSet = parameterSet;
         this.isIonMobility = isIonMobility;
         FXMLLoader loaderIMS = new FXMLLoader((getClass().getResource("RawDataOverviewIMS.fxml")));
         FXMLLoader loader = new FXMLLoader((getClass().getResource("RawDataOverviewWindow.fxml")));
 
 
         try {
-            BorderPane root = loaderIMS.load();
-            controllerIMS = loaderIMS.getController();
-            if (controllerIMS == null) {
-                return;
-            }
             if (isIonMobility) {
-                controllerIMS.initialize(parameterSet);
+                BorderPane root = loaderIMS.load();
+                controllerIMS = loaderIMS.getController();
+                if (controllerIMS == null) {
+                    return;
+                }
+                controllerIMS.initialize();
                 setContent(root);
             }
         } catch (IOException e) {
@@ -78,7 +76,7 @@ public class RawDataOverviewPane extends MZmineTab {
     }
 
     public RawDataOverviewPane() {
-        this(false, false, false, null);
+        this(false, false, false);
     }
 
     @Override

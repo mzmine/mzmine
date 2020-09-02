@@ -77,7 +77,7 @@ public class RawDataOverviewTask extends AbstractTask {
         if (rawDataFiles[0].getScan(1).getMobility() > 0) {
             isIonMobility = true;
         }
-        RawDataOverviewPane rdop = new RawDataOverviewPane(true, false, isIonMobility, parameterSet);
+        RawDataOverviewPane rdop = new RawDataOverviewPane(true, false, isIonMobility);
         MZmineCore.getDesktop().addTab(rdop);
         Platform.runLater(() -> rdop.onRawDataFileSelectionChanged(rawDataFile));
 

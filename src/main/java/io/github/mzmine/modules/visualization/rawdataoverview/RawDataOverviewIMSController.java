@@ -68,7 +68,7 @@ public class RawDataOverviewIMSController {
     @FXML
     private SplitPane pnMain;
 
-    public void initialize(ParameterSet parameterSet) {
+    public void initialize() {
 
 //    this.rawDataFile = rawDataFile;
         // add meta data
@@ -118,7 +118,7 @@ public class RawDataOverviewIMSController {
     public void addRawDataFileTab(RawDataFile raw) {
 
         if (!initialized) {
-            initialize(parameters);
+            initialize();
         }
         if (rawDataFilesAndControllers.containsKey(raw)) {
             return;
