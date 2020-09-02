@@ -53,6 +53,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
       "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
 
+  public static final NumberFormatParameter ppmFormat = new NumberFormatParameter(
+      "PPM format", "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
+
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
@@ -83,7 +86,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode", "Enables dark mode throughout MZmine.", false);
   
   public MZminePreferences() {
-    super(new Parameter[]{mzFormat, rtFormat, intensityFormat, numOfThreads,
+    super(new Parameter[]{mzFormat, rtFormat, intensityFormat, ppmFormat, numOfThreads,
         proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
         stdColorPalette, chartParam});
   }

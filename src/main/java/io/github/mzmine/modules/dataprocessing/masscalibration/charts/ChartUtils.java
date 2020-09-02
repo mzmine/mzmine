@@ -59,8 +59,9 @@ public class ChartUtils {
   }
 
   public static ValueMarker createValueMarker(String label, double value) {
+    NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
     ValueMarker valueMarker = new ValueMarker(value);
-    valueMarker.setLabel(String.format("%s: %.4f", label, value));
+    valueMarker.setLabel(String.format("%s: %s", label, ppmFormat.format(value)));
     valueMarker.setPaint(Color.blue);
     valueMarker.setLabelTextAnchor(TextAnchor.BASELINE_LEFT);
     valueMarker.setLabelPaint(Color.blue);
@@ -73,6 +74,7 @@ public class ChartUtils {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
     return String.format("Measured-matched m/z: %s-%s" +
                     "\nMeasured-matched RT: %s-%s" +
                     "\nMass error: %s %s" +
@@ -81,7 +83,7 @@ public class ChartUtils {
             mzFormat.format(match.getMeasuredMzRatio()), mzFormat.format(match.getMatchedMzRatio()),
             rtFormat.format(match.getMeasuredRetentionTime()),
             match.getMatchedRetentionTime() == -1 ? "none" : rtFormat.format(match.getMatchedRetentionTime()),
-            match.getMzError(), match.getMzErrorType(),
+            ppmFormat.format(match.getMzError()), match.getMzErrorType(),
             intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScanNumber());
   }
 
