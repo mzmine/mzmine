@@ -56,7 +56,7 @@ class NeutralLossPlot extends EChartViewer {
 
   private boolean showSpectrumRequest;
 
-  private NeutralLossVisualizerWindow visualizer;
+  private NeutralLossVisualizerTab visualizer;
 
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
@@ -213,17 +213,18 @@ class NeutralLossPlot extends EChartViewer {
     plot.setRenderer(defaultRenderer);
   }
 
-  public void setVisualizer(NeutralLossVisualizerWindow visualizer) {
+  public void setVisualizer(NeutralLossVisualizerTab visualizer) {
     this.visualizer = visualizer;
   }
 
   public void setMenuItems() {
     final ContextMenu popupMenu = getContextMenu();
+    assert MZmineCore.getDesktop() != null;
 
     MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
     highlightPrecursorMenuItem.setOnAction(event -> {
       NeutralLossSetHighlightDialog dialog =
-          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
+          new NeutralLossSetHighlightDialog(MZmineCore.getDesktop().getMainWindow(), this, "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
     popupMenu.getItems().add(highlightPrecursorMenuItem);
@@ -231,7 +232,7 @@ class NeutralLossPlot extends EChartViewer {
     MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
     highlightNLMenuItem.setOnAction(event -> {
       NeutralLossSetHighlightDialog dialog =
-          new NeutralLossSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
+          new NeutralLossSetHighlightDialog(MZmineCore.getDesktop().getMainWindow(), this, "HIGHLIGHT_NEUTRALLOSS");
       dialog.show();
     });
     popupMenu.getItems().add(highlightNLMenuItem);

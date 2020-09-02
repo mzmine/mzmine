@@ -256,7 +256,7 @@ public class FormulaUtils {
     StringBuilder combinedFormula = new StringBuilder();
     combinedFormula.append(formula);
     for (int i = 0; i < charge; i++) {
-      combinedFormula.append(ionType.getAdduct());
+      combinedFormula.append(ionType.getAdductName());
     }
 
     Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());

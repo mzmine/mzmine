@@ -244,7 +244,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
     if (mzTolRange12C.contains(lipidIonMass)) {
       // Calc rel mass deviation;
       double relMassDev = ((lipidIonMass - searchedMass) / lipidIonMass) * 1000000;
-      lipidAnnoation = lipid.getName() + ionizationType.getAdduct() + ", Δ "
+      lipidAnnoation = lipid.getName() + ionizationType.getAdductName() + ", Δ "
           + NumberFormat.getInstance().format(relMassDev) + " ppm"; // Format relativ mass
     }
     return lipidAnnoation;
@@ -275,7 +275,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
         double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - searchedMass)
             / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
         // Add row identity
-        lipidAnnoation = lipid + " " + ionizationType.getAdduct() + " " + lipidModification[j]
+        lipidAnnoation = lipid + " " + ionizationType.getAdductName() + " " + lipidModification[j]
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm";
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
