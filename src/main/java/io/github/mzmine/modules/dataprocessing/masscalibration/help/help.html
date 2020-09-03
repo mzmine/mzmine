@@ -40,9 +40,11 @@
     to the experiment from which the samples come and thus provides additional flexibility.
     <br/>
     Universal calibrants are a collection of ions that are typically found in mass spectrometry experiments. The module
-    currently uses <a href="https://github.com/lukasz-fiszer/mzmine3/blob/shift-testing-merge/src/main/resources/LCMS_Contamination_List_HI_RES_AnalChimActa.xls">this
-    list</a> (reference in the file) as a source of m/z signals typically found in positive (+ve) and negative (-ve)
-    ionization modes.
+    currently uses <a href="https://github.com/lukasz-fiszer/mzmine3/blob/shift-testing-merge/src/main/resources/">the
+    lists available at this link</a> as a source of m/z signals typically found in positive (+ve) and negative (-ve)
+    ionization modes. The lists used come from the publications
+    <a href="https://pubmed.ncbi.nlm.nih.gov/18790129/">[1]</a>
+    <a href="https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lom3.10364">[2]</a>.
     <br/>
     To match the mass peaks present in the raw samples a certain tolerance for m/z ratio and retention
     time is used and if a single candidate calibrant is found within the tolerance ranges for a given mass peak, a match
@@ -164,8 +166,9 @@ Notes:
             <dd>File with a list of standard calibrants - ion formulas together with retention times. This is the list
                 that the mass peaks are matched against, the list should contain ions that are expected to appear in
                 the dataset. Currently spreadsheet (xls and xlsx) and csv files are supported. The first column is the
-                retention time given in minutes, second column is the ion formula string. First row (column headers)
-                is ignored. Sample standards list file: <img src="standards-list-sample.png"/>
+                retention time given in minutes, second column is the ion formula string. Third column is an optional
+                calibrant name. First row (column headers) is ignored. Sample standards list file:
+                <img src="standards-list-sample.png"/>
             </dd>
             <dt>m/z ratio tolerance</dt>
             <dd>The max difference in m/z ratio between an actual measured mass peak and a calibrant to consider a
@@ -181,6 +184,10 @@ Notes:
         <dt>Universal calibrants</dt>
         <dd>
         <dl>
+            <dt>Ionization mode</dt>
+            <dd>The ionization mode for which an appropriate universal calibrants list is used.
+            </dd>
+
             <dt>m/z ratio tolerance</dt>
             <dd>The max difference in m/z ratio between an actual measured mass peak and a calibrant to consider a
                 match

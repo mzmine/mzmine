@@ -325,7 +325,10 @@ public class MassCalibrationTask extends AbstractTask {
             getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
     try {
       if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
-        URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFile);
+        String universalCalibrantsIonizationMode = massPeakMatchingMethod.getCurrentChoiceParameterSet().
+                getParameter(MassCalibrationParameters.ionizationMode).getValue();
+        String universalCalibrantsFilename = MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
+        URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFilename);
         standardsListFilename = universalCalibrantsPath.getPath();
         UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
         standardsListExtractor = extractor;

@@ -71,9 +71,25 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                   "Max difference between actual mz peaks and universal calibrants to consider a match," +
                           " max of m/z and ppm is used", 0.001, 5, true);
 
+  public static final TreeMap<String, String> ionizationModeChoices = new TreeMap<>() {{
+    put("Positive mode 1", "universal_calibrants_1_positive_mode.csv");
+    put("Negative mode 1", "universal_calibrants_1_negative_mode.csv");
+    put("Positive mode 2", "universal_calibrants_2_positive_mode.csv");
+    put("Negative mode 2", "universal_calibrants_2_negative_mode.csv");
+    put("Positive mode merged", "universal_calibrants_merged_positive_mode.csv");
+    put("Negative mode merged", "universal_calibrants_merged_negative_mode.csv");
+  }};
+
+  public static final ComboParameter<String> ionizationMode =
+          new ComboParameter<String>("Ionization mode",
+                  "Ionization mode for which to use an appropriate universal calibrants list",
+                  ionizationModeChoices.keySet().toArray(new String[0]));
+
   public static final TreeMap<String, ParameterSet> massPeakMatchingChoices = new TreeMap<>() {{
-    put(MassPeakMatchingChoice.STANDARDS_LIST.toString(), new SimpleParameterSet(new Parameter[]{standardsList, mzRatioTolerance, retentionTimeTolerance}));
-    put(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString(), new SimpleParameterSet(new Parameter[]{mzRatioToleranceUniversalCalibrants}));
+    put(MassPeakMatchingChoice.STANDARDS_LIST.toString(), new SimpleParameterSet(new Parameter[]{
+            standardsList, mzRatioTolerance, retentionTimeTolerance}));
+    put(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString(), new SimpleParameterSet(
+            new Parameter[]{ionizationMode, mzRatioToleranceUniversalCalibrants}));
   }};
 
   public static final NestedComboParameter massPeakMatchingMethod = new NestedComboParameter("Mass peak matching method",
