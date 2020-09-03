@@ -38,8 +38,9 @@ public class ScanDescription {
     private String basePeakIntensity;
 
 
-    public ScanDescription(String scanNumber, String retentionTime, String msLevel, String precursorMz,
-                           String mzRange, String scanType, String polarity, String definition, String mobility, String basePeak, String basePeakIntensity) {
+    public ScanDescription(String scanNumber, String retentionTime, String msLevel,
+        String precursorMz, String mzRange, String scanType, String polarity, String definition,
+        String mobility, String basePeak, String basePeakIntensity) {
         this.scanNumber = scanNumber;
         this.retentionTime = retentionTime;
         this.msLevel = msLevel;

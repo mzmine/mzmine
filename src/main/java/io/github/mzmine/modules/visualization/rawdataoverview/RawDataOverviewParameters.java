@@ -33,11 +33,10 @@ public class RawDataOverviewParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
     public RawDataOverviewParameters() {
-        super(new Parameter[]{rawDataFiles});
+        super(new Parameter[] {rawDataFiles});
     }
 
-    @Override
-    public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    @Override public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
         return super.showSetupDialog(valueCheckRequired);
     }

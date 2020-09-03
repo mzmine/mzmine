@@ -38,26 +38,20 @@ public class RawDataOverviewModule implements MZmineRunnableModule {
     private static final String MODULE_NAME = "Raw data overview";
     private static final String MODULE_DESCRIPTION = "Raw data overview";
 
-    @Override
-    public @Nonnull
-    String getName() {
+    @Override public @Nonnull String getName() {
         return MODULE_NAME;
     }
 
-    @Override
-    public @Nonnull
-    String getDescription() {
+    @Override public @Nonnull String getDescription() {
         return MODULE_DESCRIPTION;
     }
 
-    @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    @Override public Class<? extends ParameterSet> getParameterSetClass() {
         return RawDataOverviewParameters.class;
     }
 
-    @Override
-    public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-                              Collection<Task> tasks) {
+    @Override public ExitCode runModule(MZmineProject project, ParameterSet parameters,
+        Collection<Task> tasks) {
 
         Task newTask = new RawDataOverviewTask(parameters);
         tasks.add(newTask);
@@ -65,8 +59,7 @@ public class RawDataOverviewModule implements MZmineRunnableModule {
         return ExitCode.OK;
     }
 
-    @Override
-    public MZmineModuleCategory getModuleCategory() {
+    @Override public MZmineModuleCategory getModuleCategory() {
         return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 

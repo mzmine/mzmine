@@ -26,49 +26,40 @@ import java.util.logging.Logger;
 
 public class RawDataOverviewIMSController {
 
-    public static final Logger logger = Logger
-            .getLogger(RawDataOverviewWindowController.class.getName());
+    public static final Logger logger =
+        Logger.getLogger(RawDataOverviewWindowController.class.getName());
     public SplitPane pnMainSplit;
 
     private boolean initialized = false;
-    private final ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers = FXCollections
-            .observableMap(new HashMap<>());
-    private final ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs = FXCollections
-            .observableMap(new HashMap<>());
+    private final ObservableMap<RawDataFile, RawDataFileInfoPaneController>
+        rawDataFilesAndControllers = FXCollections.observableMap(new HashMap<>());
+    private final ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs =
+        FXCollections.observableMap(new HashMap<>());
 
     private boolean scroll;
-    @FXML
-    private Label rawDataLabel;
+    @FXML private Label rawDataLabel;
 
-    @FXML
-    private BorderPane topLeftPane;
+    @FXML private BorderPane topLeftPane;
 
-    @FXML
-    private BorderPane topRightPane;
+    @FXML private BorderPane topRightPane;
 
-    @FXML
-    private BorderPane bottomLeftPane;
+    @FXML private BorderPane bottomLeftPane;
 
-    @FXML
-    private BorderPane bottomRightPane;
+    @FXML private BorderPane bottomRightPane;
 
-    @FXML
-    public Label rtLabel;
+    @FXML public Label rtLabel;
 
-    @FXML
-    public Label mobilityRTLabel;
+    @FXML public Label mobilityRTLabel;
 
 
-    @FXML
-    private TabPane tpRawDataInfoIMS;
+    @FXML private TabPane tpRawDataInfoIMS;
 
-    @FXML
-    private BorderPane pnMaster;
+    @FXML private BorderPane pnMaster;
 
 
     public void initialize() {
 
-//    this.rawDataFile = rawDataFile;
+        //    this.rawDataFile = rawDataFile;
         // add meta data
         rawDataLabel.setText("Overview of raw data file(s): ");
         initGui();

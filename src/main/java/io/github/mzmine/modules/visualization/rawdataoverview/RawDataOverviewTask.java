@@ -48,25 +48,23 @@ public class RawDataOverviewTask extends AbstractTask {
 
     public RawDataOverviewTask(ParameterSet parameters) {
 
-        this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
+        this.rawDataFiles =
+            parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()
                 .getMatchingRawDataFiles();
 
         this.totalSteps = rawDataFiles.length;
         this.parameterSet = parameters;
     }
 
-    @Override
-    public String getTaskDescription() {
+    @Override public String getTaskDescription() {
         return "Create raw data overview for " + rawDataFiles.length + " raw data files";
     }
 
-    @Override
-    public double getFinishedPercentage() {
+    @Override public double getFinishedPercentage() {
         return totalSteps == 0 ? 0 : (double) appliedSteps / totalSteps;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         setStatus(TaskStatus.PROCESSING);
         if (isCanceled()) {
             return;

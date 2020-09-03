@@ -48,31 +48,26 @@ import javafx.scene.layout.BorderPane;
 public class RawDataOverviewWindowController {
 
     public static final Logger logger =
-            Logger.getLogger(RawDataOverviewWindowController.class.getName());
+        Logger.getLogger(RawDataOverviewWindowController.class.getName());
 
     private boolean initialized = false;
 
     private ObservableMap<RawDataFile, RawDataFileInfoPaneController> rawDataFilesAndControllers =
-            FXCollections.observableMap(new HashMap<>());
+        FXCollections.observableMap(new HashMap<>());
     private ObservableMap<RawDataFile, Tab> rawDataFilesAndTabs =
-            FXCollections.observableMap(new HashMap<>());
+        FXCollections.observableMap(new HashMap<>());
 
     private boolean scroll;
 
-    @FXML
-    private Label rawDataLabel;
+    @FXML private Label rawDataLabel;
 
-    @FXML
-    private ChromatogramAndSpectraVisualizer visualizer;
+    @FXML private ChromatogramAndSpectraVisualizer visualizer;
 
-    @FXML
-    private TabPane tpRawDataInfo;
+    @FXML private TabPane tpRawDataInfo;
 
-    @FXML
-    private BorderPane pnMaster;
+    @FXML private BorderPane pnMaster;
 
-    @FXML
-    private SplitPane pnMain;
+    @FXML private SplitPane pnMain;
 
     public void initialize() {
 
@@ -88,8 +83,8 @@ public class RawDataOverviewWindowController {
 
     /**
      * Sets the raw data files to be displayed. Already present files are not removed to optimise
-     * performance. This should be called over
-     * {@link RawDataOverviewWindowController#addRawDataFileTab} if possible.
+     * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFileTab}
+     * if possible.
      *
      * @param rawDataFiles
      */
@@ -128,17 +123,17 @@ public class RawDataOverviewWindowController {
             rawDataFilesAndControllers.put(raw, loader.getController());
             RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(raw);
             con.getRawDataTableView().getSelectionModel().selectedItemProperty()
-                    // TODO: this clears the spectrum plot, somehow bind to mouse input, currenty it is just
-                    // slower than the thread
-                    .addListener(((obs, old, newValue) -> {
-                        if (newValue == null) {
-                            // this is the case it the table was not populated before.
-                            // in that case we just select the table.
-                            return;
-                        }
-                        Integer scanNum = Integer.valueOf(newValue.getScanNumber());
-                        visualizer.setFocusedScan(raw, scanNum);
-                    }));
+                // TODO: this clears the spectrum plot, somehow bind to mouse input, currenty it is just
+                // slower than the thread
+                .addListener(((obs, old, newValue) -> {
+                    if (newValue == null) {
+                        // this is the case it the table was not populated before.
+                        // in that case we just select the table.
+                        return;
+                    }
+                    Integer scanNum = Integer.valueOf(newValue.getScanNumber());
+                    visualizer.setFocusedScan(raw, scanNum);
+                }));
 
             Tab rawDataFileTab = new Tab(raw.getName());
             rawDataFileTab.setContent(pane);
@@ -187,7 +182,8 @@ public class RawDataOverviewWindowController {
 
             RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
             if (con == null || selectedRawDataFile == null) {
-                logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
+                logger.info(
+                    "Cannot find controller for raw data file " + selectedRawDataFile.getName());
                 return;
             }
 
@@ -198,14 +194,15 @@ public class RawDataOverviewWindowController {
                 try {
                     String scanNumberString = String.valueOf(pos.getScanNumber());
                     rawDataTableView.getItems().stream()
-                            .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
-                            .ifPresent(item -> {
-                                rawDataTableView.getSelectionModel().select(item);
-                                if (!con.getVisibleRange().contains(rawDataTableView.getItems().indexOf(item))) {
-                                    rawDataTableView.scrollTo(item);
-                                }
+                        .filter(item -> item.getScanNumber().equals(scanNumberString)).findFirst()
+                        .ifPresent(item -> {
+                            rawDataTableView.getSelectionModel().select(item);
+                            if (!con.getVisibleRange()
+                                .contains(rawDataTableView.getItems().indexOf(item))) {
+                                rawDataTableView.scrollTo(item);
+                            }
 
-                            });
+                        });
                 } catch (Exception e) {
                     e.getStackTrace();
                 }
@@ -218,8 +215,7 @@ public class RawDataOverviewWindowController {
         return visualizer.getSelectedRawDataFile();
     }
 
-    @Nonnull
-    public Collection<RawDataFile> getRawDataFiles() {
+    @Nonnull public Collection<RawDataFile> getRawDataFiles() {
         return visualizer.getRawDataFiles();
     }
 

@@ -39,7 +39,8 @@ public class RawDataOverviewPane extends MZmineTab {
     private RawDataOverviewIMSController controllerIMS;
     public Boolean isIonMobility;
 
-    public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState, boolean isIonMobility) {
+    public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState,
+        boolean isIonMobility) {
         super("Raw data overview", showBinding, defaultBindingState);
 
         controller = null;
@@ -51,7 +52,7 @@ public class RawDataOverviewPane extends MZmineTab {
 
         try {
             if (isIonMobility) {
-                BorderPane root = (BorderPane)loaderIMS.load();
+                BorderPane root = (BorderPane) loaderIMS.load();
                 controllerIMS = loaderIMS.getController();
                 if (controllerIMS == null) {
                     return;
@@ -67,8 +68,9 @@ public class RawDataOverviewPane extends MZmineTab {
             BorderPane root = loader.load();
             controller = loader.getController();
             controller.initialize();
-            if (!isIonMobility)
+            if (!isIonMobility) {
                 setContent(root);
+            }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Could not load RawDataOverview.fxml", e);
             return;
@@ -79,37 +81,33 @@ public class RawDataOverviewPane extends MZmineTab {
         this(false, false, false);
     }
 
-    @Override
-    public Collection<? extends RawDataFile> getRawDataFiles() {
+    @Override public Collection<? extends RawDataFile> getRawDataFiles() {
         return controller.getRawDataFiles();
     }
 
-    @Override
-    public Collection<? extends ModularFeatureList> getFeatureLists() {
+    @Override public Collection<? extends ModularFeatureList> getFeatureLists() {
         return null;
     }
 
-    @Override
-    public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    @Override public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
         return null;
     }
 
     @Override
     public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
         controller.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
-        if(isIonMobility) {
+        if (isIonMobility) {
             controllerIMS.setRawDataFiles((Collection<RawDataFile>) rawDataFiles);
         }
     }
 
-    @Override
-    public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+    @Override public void onFeatureListSelectionChanged(
+        Collection<? extends ModularFeatureList> featureLists) {
         return;
     }
 
-    @Override
-    public void onAlignedFeatureListSelectionChanged(
-            Collection<? extends ModularFeatureList> featurelists) {
+    @Override public void onAlignedFeatureListSelectionChanged(
+        Collection<? extends ModularFeatureList> featurelists) {
         return;
     }
 }

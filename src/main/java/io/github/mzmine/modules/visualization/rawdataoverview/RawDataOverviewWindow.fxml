@@ -6,32 +6,32 @@
 
 <?import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer?>
 <BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-            prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
-    <top>
-        <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
-            <children>
-                <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0"
-                       style="-fx-font-weight: bold;" text="Overview of raw data file: "
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                       AnchorPane.topAnchor="0.0">
-                    <padding>
-                        <Insets left="5.0"/>
-                    </padding>
-                </Label>
-            </children>
-        </AnchorPane>
-    </top>
-    <center>
-        <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
-                   BorderPane.alignment="CENTER">
-            <items>
-                <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
-                                                  prefWidth="800" prefHeight="400"/>
-                <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
-                         SplitPane.resizableWithParent="false"/>
-            </items>
-        </SplitPane>
-    </center>
+  prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
+  <top>
+    <AnchorPane maxHeight="30.0" prefHeight="30.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+      <children>
+        <Label fx:id="rawDataLabel" layoutX="-4.0" layoutY="6.0" prefHeight="30.0" prefWidth="800.0"
+          style="-fx-font-weight: bold;" text="Overview of raw data file: "
+          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.topAnchor="0.0">
+          <padding>
+            <Insets left="5.0"/>
+          </padding>
+        </Label>
+      </children>
+    </AnchorPane>
+  </top>
+  <center>
+    <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
+      BorderPane.alignment="CENTER">
+      <items>
+        <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"
+          prefWidth="800" prefHeight="400"/>
+        <TabPane fx:id="tpRawDataInfo" tabClosingPolicy="ALL_TABS"
+          SplitPane.resizableWithParent="false"/>
+      </items>
+    </SplitPane>
+  </center>
 </BorderPane>
