@@ -432,7 +432,7 @@ public class MassCalibrator {
 
 //      matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError));
       matches.add(new MassPeakMatch(mz, retentionTime, matchedMz, matchedRetentionTime, massError,
-              dataPoint, scanNumber));
+              dataPoint, scanNumber, matchedItem));
     }
 
     return matches;

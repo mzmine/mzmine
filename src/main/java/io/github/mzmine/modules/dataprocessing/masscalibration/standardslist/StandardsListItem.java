@@ -29,6 +29,7 @@ public class StandardsListItem {
           Comparator.comparing(StandardsListItem::getRetentionTime);
 
   protected String molecularFormula;
+  protected String name;
   protected double retentionTime;
   protected double mzRatio;
 
@@ -46,11 +47,20 @@ public class StandardsListItem {
 
   @Override
   public String toString() {
-    return "StandardsListItem: " + molecularFormula + " " + retentionTime + "rt " + mzRatio + "mz";
+    return "StandardsListItem: " + molecularFormula + " " + name + " " + retentionTime + "rt " + mzRatio + "mz";
   }
+
 
   public String getMolecularFormula() {
     return molecularFormula;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
   }
 
   public double getRetentionTime() {

@@ -75,7 +75,7 @@ public class ChartUtils {
     NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
-    return String.format("Measured-matched m/z: %s-%s" +
+    String tooltipText = String.format("Measured-matched m/z: %s-%s" +
                     "\nMeasured-matched RT: %s-%s" +
                     "\nMass error: %s %s" +
                     "\nMass peak intensity: %s" +
@@ -85,6 +85,14 @@ public class ChartUtils {
             match.getMatchedRetentionTime() == -1 ? "none" : rtFormat.format(match.getMatchedRetentionTime()),
             ppmFormat.format(match.getMzError()), match.getMzErrorType(),
             intensityFormat.format(match.getMeasuredDataPoint().getIntensity()), match.getScanNumber());
+    StringBuilder tooltipTextBuilder = new StringBuilder(tooltipText);
+    if (match.getMatchedCalibrant().getMolecularFormula() != null) {
+      tooltipTextBuilder.append("\nIon formula: " + match.getMatchedCalibrant().getMolecularFormula());
+    }
+    if (match.getMatchedCalibrant().getName() != null) {
+      tooltipTextBuilder.append("\nMatched calibrant name: " + match.getMatchedCalibrant().getName());
+    }
+    return tooltipTextBuilder.toString();
   }
 
   public static XYToolTipGenerator createTooltipGenerator() {

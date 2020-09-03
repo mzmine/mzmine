@@ -31,12 +31,14 @@ import java.util.logging.Logger;
  * uses sheet at specified index, first sheet available by default
  * expects columns at fixed positions for storing needed data
  * first column is retention time (min) and second column is ion formula
+ * third column is optional name
  * first row (column headers) is skipped
  */
 public class StandardsListSpreadsheetExtractor implements StandardsListExtractor {
 
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
+  protected static final int nameColumn = 2;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -92,9 +94,18 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
         try {
           Cell retentionCell = row.getCell(retentionTimeColumn);
           Cell ionCell = row.getCell(ionFormulaColumn);
+          Cell nameCell = row.getCell(nameColumn);
           double retentionTime = retentionCell.getNumericCellValue();
           String molecularFormula = ionCell.getStringCellValue();
-          extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
+          StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
+          try {
+            if (nameCell != null && nameCell.getStringCellValue().trim().isEmpty() == false) {
+              calibrant.setName(nameCell.getStringCellValue());
+            }
+          } catch (Exception ex) {
+
+          }
+          extractedData.add(calibrant);
         } catch (Exception e) {
           logger.fine("Exception occurred when reading row index " + rowIndex);
           logger.fine(e.toString());

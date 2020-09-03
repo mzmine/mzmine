@@ -31,11 +31,13 @@ import java.util.logging.Logger;
  * UniversalCalibrantsListExtractor for csv files
  * expects columns at fixed positions for storing needed data
  * first column is mz
+ * second column is optional name
  * first row (column headers) is skipped
  */
 public class UniversalCalibrantsListCsvExtractor implements StandardsListExtractor {
 
   protected static final int mzRatioColumn = 0;
+  protected static final int nameColumn = 1;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -75,8 +77,13 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     while ((lineValues = csvReader.getLine()) != null) {
       try {
         String mzRatioString = lineValues[mzRatioColumn];
+        String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
         double mzRatio = Double.valueOf(mzRatioString);
-        extractedData.add(new StandardsListItem(mzRatio));
+        StandardsListItem calibrant = new StandardsListItem(mzRatio);
+        if (name != null && name.trim().isEmpty() == false) {
+          calibrant.setName(name);
+        }
+        extractedData.add(calibrant);
       } catch (Exception e) {
         logger.fine("Exception occurred when reading row index " + csvReader.getLastLineNumber());
         logger.fine(e.toString());

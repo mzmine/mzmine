@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.masscalibration;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.errortypes.ErrorType;
+import io.github.mzmine.modules.dataprocessing.masscalibration.standardslist.StandardsListItem;
 
 import java.util.Comparator;
 
@@ -39,6 +40,7 @@ public class MassPeakMatch {
   protected double mzError;
 
   protected DataPoint measuredDataPoint;
+  protected StandardsListItem matchedCalibrant;
   protected int scanNumber;
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
@@ -68,6 +70,14 @@ public class MassPeakMatch {
                        DataPoint measuredDataPoint, int scanNumber) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType, measuredDataPoint);
     this.scanNumber = scanNumber;
+  }
+
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
+                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
+                       DataPoint measuredDataPoint, int scanNumber, StandardsListItem matchedCalibrant) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType,
+            measuredDataPoint, scanNumber);
+    this.matchedCalibrant = matchedCalibrant;
   }
 
   public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
@@ -103,6 +113,10 @@ public class MassPeakMatch {
 
   public DataPoint getMeasuredDataPoint() {
     return measuredDataPoint;
+  }
+
+  public StandardsListItem getMatchedCalibrant() {
+    return matchedCalibrant;
   }
 
   public int getScanNumber() {

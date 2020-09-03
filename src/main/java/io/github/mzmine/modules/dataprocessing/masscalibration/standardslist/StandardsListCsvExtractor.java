@@ -31,12 +31,14 @@ import java.util.logging.Logger;
  * StandardsListExtractor for csv files
  * expects columns at fixed positions for storing needed data
  * first column is retention time (min) and second column is ion formula
+ * third column is optional name
  * first row (column headers) is skipped
  */
 public class StandardsListCsvExtractor implements StandardsListExtractor {
 
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
+  protected static final int nameColumn = 2;
 
   protected Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -77,8 +79,13 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
       try {
         String retentionTimeString = lineValues[retentionTimeColumn];
         String molecularFormula = lineValues[ionFormulaColumn];
+        String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
         double retentionTime = Double.valueOf(retentionTimeString);
-        extractedData.add(new StandardsListItem(molecularFormula, retentionTime));
+        StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
+        if (name != null && name.trim().isEmpty() == false) {
+          calibrant.setName(name);
+        }
+        extractedData.add(calibrant);
       } catch (Exception e) {
         logger.fine("Exception occurred when reading row index " + csvReader.getLastLineNumber());
         logger.fine(e.toString());
