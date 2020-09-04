@@ -84,8 +84,6 @@ public class Fx3DTabController extends MZmineTab {
   //@FXML
   //private Scene scene;
   @FXML
-  private MZmineTab tab;
-  @FXML
   private HBox hBox;
   @FXML
   Region leftRegion;

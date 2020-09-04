@@ -94,13 +94,13 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     newTabController.setScanSelection(scanSel);
     newTabController.setRtAndMzResolutions(rtRes, mzRes);
     newTabController.setRtAndMzValues(rtRange, mzRange);
+    newTabController.addFeatureSelections(featureSelList);
     for (int i = 0; i < currentDataFiles.length; i++) {
       MZmineCore.getTaskController().addTask(
           new Fx3DSamplingTask(currentDataFiles[i], scanSel, mzRange, rtRes, mzRes, newTabController),
           TaskPriority.HIGH);
 
     }
-    newTabController.addFeatureSelections(featureSelList);
 
     MZmineCore.getDesktop().addTab(newTabController);
 
