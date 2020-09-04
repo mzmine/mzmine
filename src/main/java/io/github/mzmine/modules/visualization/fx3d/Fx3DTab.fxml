@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.stage.Stage?>
 <?import javafx.scene.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.* ?>
@@ -12,11 +11,10 @@
 <?import javafx.scene.text.Text?>
 <?import io.github.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
+<?import io.github.mzmine.gui.mainwindow.MZmineTab?>
 
-<Stage fx:id="stage" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.fx3d.Fx3DStageController">
-   <scene>
-       <Scene fx:id="scene">
-           <root>
+<fx:root type="MZmineTab" xmlns:fx="http://javafx.com/fxml">
+			<content>
 				<BorderPane fx:id="root"  minWidth="800" minHeight="600">
 				   <center>
 				   <SplitPane dividerPositions="0.8058" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
@@ -59,7 +57,7 @@
 																</graphic>
 															</Menu>
 														</items>
-													</ContextMenu>     
+													</ContextMenu>
 												</contextMenu>
 										        <columns>
 										          <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" style="-fx-alignment: CENTER" >
@@ -128,7 +126,6 @@
 				                   <Tooltip text="Lights ON/OFF" />
 				               </tooltip>
 				            </ToggleButton>
-				            
 				          </items>
 				      </ToolBar>
 				   </right>
@@ -142,7 +139,5 @@
 					</HBox>
 				   </top>
 				</BorderPane>
-            </root>
-       </Scene>
-   </scene>
-</Stage>
+			</content>
+</fx:root>
