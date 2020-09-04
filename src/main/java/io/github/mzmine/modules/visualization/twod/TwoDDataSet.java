@@ -57,7 +57,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
   @SuppressWarnings("unchecked")
   TwoDDataSet(RawDataFile rawDataFile, Scan scans[], Range<Double> rtRange, Range<Double> mzRange,
-      TwoDVisualizerWindow visualizer) {
+      TwoDVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
 

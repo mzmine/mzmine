@@ -50,10 +50,10 @@ class TwoDBottomPanel extends HBox {
   private final Button loadButton;
   private PeakThresholdParameter thresholdSettings;
 
-  private TwoDVisualizerWindow masterFrame;
+  private TwoDVisualizerTab masterFrame;
   private RawDataFile dataFile;
 
-  TwoDBottomPanel(TwoDVisualizerWindow masterFrame, RawDataFile dataFile, ParameterSet parameters) {
+  TwoDBottomPanel(TwoDVisualizerTab masterFrame, RawDataFile dataFile, ParameterSet parameters) {
 
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;
