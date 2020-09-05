@@ -63,12 +63,9 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected MassCalibrationTask previewTask;
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
-  protected static final String universalCalibrantsMessage = "<html>Universal calibrants list disclaimer:"
-          + "<br> If you use the universal calibrants matching mode, please cite the "
-          + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article (source of universal calibrants list used):"
-          + "<br> Keller, B.O.; Sui, J.; Young, A.B.; Whittal, R.M. Interferences and contaminants encountered in modern mass spectrometry.  "
-          + "<br> Analytica Chimica Acta (Review/tutorial, Special Issue on Mass Spectrometry), 2008."
-          + "</html>";
+  protected static final String universalCalibrantsMessage = "Universal calibrants list disclaimer: " +
+          "If you use universal calibrants matching mode, please cite suitable publication (source of universal " +
+          "calibrants list) depending on which list you used. References are available in the help file.";
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
