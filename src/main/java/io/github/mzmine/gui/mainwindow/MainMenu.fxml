@@ -196,6 +196,8 @@
 		<Menu text="Isotopes">
 			<MenuItem text="Isotope grouper" onAction="#runModule"
 				userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule" />
+			<MenuItem text="Deisotoper" onAction="#runModule"
+				userData="io.github.mzmine.modules.dataprocessing.filter_deisotoper.DeisotoperModule" />
 			<MenuItem text="Isotope peak scanner" onAction="#runModule"
 				userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule" />
 		</Menu>
