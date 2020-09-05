@@ -46,6 +46,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -330,7 +331,9 @@ public class MassCalibrationTask extends AbstractTask {
         String universalCalibrantsFilename = MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
         URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFilename);
         standardsListFilename = universalCalibrantsPath.getPath();
-        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(universalCalibrantsFilename);
+        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename,
+                inputStream);
         standardsListExtractor = extractor;
       } else {
         standardsListFilename = massPeakMatchingMethod.getChoices().

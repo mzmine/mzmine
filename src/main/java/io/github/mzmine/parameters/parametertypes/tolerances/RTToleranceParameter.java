@@ -90,6 +90,9 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String unitAttr = xmlElement.getAttribute("unit");
+    if (unitAttr == null || unitAttr.isEmpty()) {
+      return;
+    }
     RTTolerance.Unit toleranceUnit = RTTolerance.Unit.valueOf(unitAttr);
     String toleranceNum = xmlElement.getTextContent();
     if (toleranceNum.length() == 0)
