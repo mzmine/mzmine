@@ -35,7 +35,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.ConditionalFeature;
@@ -89,20 +88,10 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
 
-    Fx3DTabController newTabController = new Fx3DTabController();
-    newTabController.loadController();
-    newTabController.setScanSelection(scanSel);
-    newTabController.setRtAndMzResolutions(rtRes, mzRes);
-    newTabController.setRtAndMzValues(rtRange, mzRange);
-    newTabController.addFeatureSelections(featureSelList);
-    for (int i = 0; i < currentDataFiles.length; i++) {
-      MZmineCore.getTaskController().addTask(
-          new Fx3DSamplingTask(currentDataFiles[i], scanSel, mzRange, rtRes, mzRes, newTabController),
-          TaskPriority.HIGH);
+    Fx3DVisualizerTab newTab = new Fx3DVisualizerTab(currentDataFiles, scanSel, rtRange, mzRange,
+        rtRes, mzRes, featureSelList);
 
-    }
-
-    MZmineCore.getDesktop().addTab(newTabController);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
 

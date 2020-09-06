@@ -11,11 +11,9 @@
 <?import javafx.scene.text.Text?>
 <?import io.github.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
-<?import io.github.mzmine.gui.mainwindow.MZmineTab?>
 
-<fx:root type="MZmineTab" xmlns:fx="http://javafx.com/fxml">
-			<content>
-				<BorderPane fx:id="root"  minWidth="800" minHeight="600">
+
+<BorderPane fx:id="root"  minWidth="800" minHeight="600" xmlns:fx="http://javafx.com/fxml" fx:controller="io.github.mzmine.modules.visualization.fx3d.Fx3DBorderPaneController">
 				   <center>
 				   <SplitPane dividerPositions="0.8058" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
 				        <items>
@@ -139,5 +137,3 @@
 					</HBox>
 				   </top>
 				</BorderPane>
-			</content>
-</fx:root>

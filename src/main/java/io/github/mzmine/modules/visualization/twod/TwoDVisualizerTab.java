@@ -127,7 +127,7 @@ public class TwoDVisualizerTab extends MZmineTab {
     Button axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), twoDPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(), twoDPlot.getXYPlot());
       dialog.showAndWait();
     });
 
