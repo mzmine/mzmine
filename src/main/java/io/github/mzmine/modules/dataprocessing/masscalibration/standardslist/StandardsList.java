@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.masscalibration.standardslist;
 import com.google.common.collect.Range;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -52,12 +53,36 @@ public class StandardsList {
    * @return
    */
   public StandardsList getInRanges(Range<Double> mzRange, Range<Double> rtRange) {
+    if (mzRange != null && rtRange == null) {
+      return getInMzRange(mzRange);
+    }
     ArrayList<StandardsListItem> withinRange = new ArrayList<>();
     for (StandardsListItem molecule : standardMolecules) {
       if ((mzRange == null || mzRange.contains(molecule.getMzRatio()))
               && (rtRange == null || rtRange.contains(molecule.getRetentionTime()))) {
         withinRange.add(molecule);
       }
+    }
+    return new StandardsList(withinRange, true);
+  }
+
+  public StandardsList getInMzRange(Range<Double> mzRange) {
+    double lower = mzRange.lowerEndpoint();
+    double upper = mzRange.upperEndpoint();
+    int lowerPosition =
+            Collections.binarySearch(standardMolecules, new StandardsListItem(lower), StandardsListItem.mzComparator);
+    int upperPosition =
+            Collections.binarySearch(standardMolecules, new StandardsListItem(upper), StandardsListItem.mzComparator);
+    if (lowerPosition < 0) {
+      lowerPosition = -1 * (lowerPosition + 1);
+    }
+    if (upperPosition < 0) {
+      upperPosition = -1 * (upperPosition + 1);
+    }
+
+    ArrayList<StandardsListItem> withinRange = new ArrayList<>();
+    for (int i = lowerPosition; i < upperPosition; i++) {
+      withinRange.add(standardMolecules.get(i));
     }
     return new StandardsList(withinRange, true);
   }

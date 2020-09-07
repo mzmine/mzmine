@@ -72,10 +72,14 @@ public class MassCalibrationParameters extends SimpleParameterSet {
                           " max of m/z and ppm is used", 0.001, 5, true);
 
   public static final TreeMap<String, String> ionizationModeChoices = new TreeMap<>() {{
-    put("Positive mode 1", "universal_calibrants_1_positive_mode.csv");
-    put("Negative mode 1", "universal_calibrants_1_negative_mode.csv");
-    put("Positive mode 2", "universal_calibrants_2_positive_mode.csv");
-    put("Negative mode 2", "universal_calibrants_2_negative_mode.csv");
+    put("Universal calibrants from Keller et al., Anal Chim Acta 2008, positive mode",
+            "universal_calibrants_1_positive_mode.csv");
+    put("Universal calibrants from Keller et al., Anal Chim Acta 2008, negative mode",
+            "universal_calibrants_1_negative_mode.csv");
+    put("Universal calibrants from Hawkes et al., Limnol Oceanogr Methods 2020, positive mode",
+            "universal_calibrants_2_positive_mode.csv");
+    put("Universal calibrants from Hawkes et al., Limnol Oceanogr Methods 2020, negative mode",
+            "universal_calibrants_2_negative_mode.csv");
     put("Positive mode merged", "universal_calibrants_merged_positive_mode.csv");
     put("Negative mode merged", "universal_calibrants_merged_negative_mode.csv");
   }};

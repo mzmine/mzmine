@@ -46,6 +46,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,8 +59,7 @@ import java.util.logging.Logger;
 public class MassCalibrationTask extends AbstractTask {
 
   protected static boolean runCalibrationOnPreview = false;
-  protected static String universalCalibrantsFile = "universal_calibrants_list.csv";
-
+  
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
@@ -330,7 +330,9 @@ public class MassCalibrationTask extends AbstractTask {
         String universalCalibrantsFilename = MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
         URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFilename);
         standardsListFilename = universalCalibrantsPath.getPath();
-        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename);
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(universalCalibrantsFilename);
+        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename,
+                inputStream);
         standardsListExtractor = extractor;
       } else {
         standardsListFilename = massPeakMatchingMethod.getChoices().
@@ -368,7 +370,7 @@ public class MassCalibrationTask extends AbstractTask {
     } else if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
       mzRatioTolerance = massPeakMatchingParameterSet.
               getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
-      rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
+      rtTolerance = null;
     }
   }
 

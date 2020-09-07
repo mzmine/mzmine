@@ -23,6 +23,7 @@ import com.Ostermiller.util.LabeledCSVParser;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -56,6 +57,18 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   public UniversalCalibrantsListCsvExtractor(String filename) throws IOException {
     this.filename = filename;
     this.csvReader = new LabeledCSVParser(new CSVParser(new FileInputStream(filename)));
+  }
+
+  /**
+   * Creates the extractor
+   *
+   * @param filename csv filename
+   * @param inputStream input stream to use
+   * @throws IOException exception thrown when issues opening given file occur
+   */
+  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream) throws IOException {
+    this.filename = filename;
+    this.csvReader = new LabeledCSVParser(new CSVParser(inputStream));
   }
 
   /**

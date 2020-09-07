@@ -20,12 +20,15 @@ package io.github.mzmine.modules.visualization.neutralloss;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -34,12 +37,12 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
 /**
  * Neutral loss visualizer using JFreeChart library.
  */
-public class NeutralLossVisualizerWindow extends Stage {
+public class NeutralLossVisualizerTab extends MZmineTab {
 
   private static final Image PRECURSOR_MASS_ICON =
       FxIconUtil.loadImageFromResources("icons/datapointsicon.png");
@@ -50,37 +53,45 @@ public class NeutralLossVisualizerWindow extends Stage {
   private NeutralLossDataSet dataset;
   private RawDataFile dataFile;
 
+  // Parameters
+  private Range<Double> rtRange;
+  private Range<Double> mzRange;
+  private int numOfFragments;
+  private Object xAxisType;
+
   /**
    * Constructor.
    *
    * @param dataFile   file containing the data of one sample
    * @param parameters plot parameters set by the user
    */
-  public NeutralLossVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
+  public NeutralLossVisualizerTab(RawDataFile dataFile, ParameterSet parameters) {
+
+    super("NeutralLoss Visualizer", true, false);
 
     this.dataFile = dataFile;
 
     // Retrieve parameter's values
-    Range<Double> rtRange =
-        parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue();
-    Range<Double> mzRange = parameters.getParameter(NeutralLossParameters.mzRange).getValue();
-    int numOfFragments = parameters.getParameter(NeutralLossParameters.numOfFragments).getValue();
-
-    Object xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
+    rtRange = parameters.getParameter(NeutralLossParameters.retentionTimeRange).getValue();
+    mzRange = parameters.getParameter(NeutralLossParameters.mzRange).getValue();
+    numOfFragments = parameters.getParameter(NeutralLossParameters.numOfFragments).getValue();
+    xAxisType = parameters.getParameter(NeutralLossParameters.xAxisType).getValue();
 
     // Set window components
     dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange, numOfFragments, this);
 
     borderPane = new BorderPane();
-    scene = new Scene(borderPane);
+    setContent(borderPane);
+    //scene = new Scene(borderPane);
 
-    // Use main CSS
-    scene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(scene);
 
-    setMinWidth(400.0);
-    setMinHeight(300.0);
+    //Use main CSS
+    //scene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(scene);
+
+    //setMinWidth(400.0);
+    //setMinHeight(300.0);
 
     neutralLossPlot = new NeutralLossPlot();
     neutralLossPlot.setAxisTypes(xAxisType);
@@ -95,15 +106,18 @@ public class NeutralLossVisualizerWindow extends Stage {
     Button highlightPrecursorBtn = new Button(null, new ImageView(PRECURSOR_MASS_ICON));
     highlightPrecursorBtn.setTooltip(new Tooltip("Highlight precursor m/z range..."));
     highlightPrecursorBtn.setOnAction(e -> {
+      assert MZmineCore.getDesktop() != null;
+
       NeutralLossSetHighlightDialog dialog =
-          new NeutralLossSetHighlightDialog(this, neutralLossPlot, "HIGHLIGHT_PRECURSOR");
+          new NeutralLossSetHighlightDialog(MZmineCore.getDesktop().getMainWindow(),
+              neutralLossPlot, "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
 
     toolBar.getItems().add(highlightPrecursorBtn);
     borderPane.setRight(toolBar);
 
-    WindowsMenu.addWindowsMenu(scene);
+    //WindowsMenu.addWindowsMenu(scene);
 
     MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
@@ -112,10 +126,10 @@ public class NeutralLossVisualizerWindow extends Stage {
     // get the window settings parameter
     ParameterSet paramSet =
         MZmineCore.getConfiguration().getModuleParameters(NeutralLossVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(NeutralLossParameters.windowSettings);
+    //WindowSettingsParameter settings = paramSet.getParameter(NeutralLossParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
+    //settings.applySettingsToWindow(this);
 
   }
 
@@ -126,7 +140,8 @@ public class NeutralLossVisualizerWindow extends Stage {
     title.append(dataFile.getName());
     title.append("]: neutral loss");
 
-    setTitle(title.toString());
+    //setTitle(title.toString());
+    neutralLossPlot.setTitle(title.toString());
 
     NeutralLossDataPoint pos = getCursorPosition();
 
@@ -153,5 +168,62 @@ public class NeutralLossVisualizerWindow extends Stage {
 
   public RawDataFile getDataFile() {
     return this.dataFile;
+  }
+
+  @Nonnull
+  @Override
+  public Collection<RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Collections.singletonList(dataFile));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    // remove old dataset
+    neutralLossPlot.getXYPlot().setDataset(
+        neutralLossPlot.getXYPlot().indexOf(dataset),null);
+
+    // add new dataset
+    NeutralLossDataSet newDataset = new NeutralLossDataSet(
+        newFile, xAxisType, rtRange, mzRange, numOfFragments, this);
+    neutralLossPlot.addNeutralLossDataSet(newDataset);
+
+    dataFile = newFile;
+    dataset = newDataset;
+
+    newDataset.run();
+    updateTitle();
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 }
