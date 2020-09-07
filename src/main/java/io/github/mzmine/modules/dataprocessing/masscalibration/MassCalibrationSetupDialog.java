@@ -26,6 +26,7 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.charts.MeasuredVs
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExitCode;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -168,6 +169,20 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     });
 
     paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    this.setOnCloseRequest(event -> cancelRunningPreviewTask());
+  }
+
+  @Override
+  public void closeDialog(ExitCode exitCode) {
+    super.closeDialog(exitCode);
+    cancelRunningPreviewTask();
+  }
+
+  protected void cancelRunningPreviewTask() {
+    if (previewTask != null &&
+            (previewTask.getStatus() == TaskStatus.PROCESSING || previewTask.getStatus() == TaskStatus.WAITING)) {
+      previewTask.cancel();
+    }
   }
 
   protected void loadPreview(boolean rerun) {

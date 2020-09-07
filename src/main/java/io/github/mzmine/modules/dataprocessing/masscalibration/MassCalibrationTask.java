@@ -59,8 +59,7 @@ import java.util.logging.Logger;
 public class MassCalibrationTask extends AbstractTask {
 
   protected static boolean runCalibrationOnPreview = false;
-  protected static String universalCalibrantsFile = "universal_calibrants_list.csv";
-
+  
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ParameterSet parameters;
   private final RawDataFile dataFile;

@@ -32,6 +32,15 @@ import java.util.Arrays;
  * since dataset is not changed often, but getValue() is used many times (for each mass peak for each scan
  * when running mass calibration), precomputing the values and keeping track of all the points where
  * the mean of k closest neighbors changes could give a sizeable boost
+ * <p>
+ * it currently precomputes the values evenly distributed with fixed resolution across the range of x values
+ * it then uses linear interpolation between two closest precomputed points to approximate the knn trend value for
+ * required argument value
+ * the approximation can be off considerably at few points as it will often decrease local variance
+ * (for instance the nearly vertical strands of points coming from similar m/z values at close RT matched with the
+ * same calibrant)
+ * and make the approximate trend version continuous with the interpolation between the points
+ * with sufficient resolution the approximation can get as close as needed to the actual trend
  */
 public class ArithmeticMeanKnnTrend implements Trend2D {
 
@@ -40,7 +49,10 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
   protected Integer neighbors;
   protected Double neighborsFractional;
 
+  protected Double rSquared;
+
   protected int resolution = 100_001;
+  protected boolean usePrecomputedApproximation = true;
   protected Double[] precomputedPoints;
   double smallestX;
   double largestX;
@@ -73,7 +85,7 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
 
   @Override
   public String getName() {
-    return "KNN regression\nR^2 = " + ChartUtils.calculateRSquared(items, this);
+    return "KNN regression\nR^2 = " + rSquared;
   }
 
   @Override
@@ -81,20 +93,20 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
     if (items.length == 0) {
       return 0;
     }
-    return getValuePrecomputed(x);
+    return usePrecomputedApproximation ? getValuePrecomputed(x) : getValueDirect(x);
   }
 
   public double getValuePrecomputed(double x) {
-    if (x <= items[0].getXValue()) {
+    if (x <= smallestX) {
       return precomputedPoints[0];
     }
-    if (x >= items[items.length - 1].getXValue()) {
+    if (x >= largestX) {
       return precomputedPoints[precomputedPoints.length - 1];
     }
 
-    double offsetX = x - items[0].getXValue();
+    double offsetX = x - smallestX;
     int pointOffset = (int) Math.floor(offsetX / deltaX);
-    if (pointOffset == items.length - 1) {
+    if (pointOffset == precomputedPoints.length - 1) {
       return precomputedPoints[pointOffset];
     }
     int pointOffsetNext = pointOffset + 1;
@@ -153,11 +165,6 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
   }
 
   protected void precomputeValues() {
-    int itemsCount = items.length;
-    /*double smallestX = items[0].getXValue();
-    double largestX = items[items.length - 1].getXValue();
-    double rangeX = largestX - smallestX;
-    double deltaX = rangeX / (resolution - 1);*/
     smallestX = items[0].getXValue();
     largestX = items[items.length - 1].getXValue();
     rangeX = largestX - smallestX;
@@ -180,6 +187,9 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
     Arrays.sort(items);
     if (items.length > 0) {
       precomputeValues();
+      rSquared = ChartUtils.calculateRSquared(items, this);
+    } else {
+      rSquared = null;
     }
   }
 }
