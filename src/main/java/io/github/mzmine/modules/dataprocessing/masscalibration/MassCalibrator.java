@@ -398,8 +398,13 @@ public class MassCalibrator {
                                                               int scanNumber, double intensityThreshold) {
     ArrayList<MassPeakMatch> matches = new ArrayList<>();
 
-    Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
-    StandardsList retentionTimeFiltered = standardsList.getInRanges(null, rtRange);
+    StandardsList retentionTimeFiltered;
+    if (retentionTimeTolerance != null) {
+      Range<Double> rtRange = retentionTimeTolerance.getToleranceRange(retentionTime);
+      retentionTimeFiltered = standardsList.getInRanges(null, rtRange);
+    } else {
+      retentionTimeFiltered = standardsList;
+    }
 
     for (DataPoint dataPoint : massList) {
       if (dataPoint.getIntensity() < intensityThreshold) {

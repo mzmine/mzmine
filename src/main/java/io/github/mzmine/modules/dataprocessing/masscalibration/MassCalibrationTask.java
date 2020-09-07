@@ -370,7 +370,7 @@ public class MassCalibrationTask extends AbstractTask {
     } else if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
       mzRatioTolerance = massPeakMatchingParameterSet.
               getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
-      rtTolerance = new RTTolerance(1000000, RTTolerance.Unit.MINUTES);
+      rtTolerance = null;
     }
   }
 
