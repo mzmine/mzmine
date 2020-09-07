@@ -54,6 +54,7 @@ public class ErrorDistributionChart extends EChartViewer {
   private final JFreeChart distributionChart;
 
   protected List<MassPeakMatch> matches;
+  protected ArrayList<ValueMarker> rangeMarkers = new ArrayList<>();
 
   protected ErrorDistributionChart(JFreeChart chart) {
     super(chart);
@@ -98,6 +99,7 @@ public class ErrorDistributionChart extends EChartViewer {
 
     this.matches = new ArrayList<>(matches);
     Collections.sort(this.matches, MassPeakMatch.mzErrorComparator);
+    rangeMarkers.clear();
 
     XYDataset dataset = createDistributionDataset(errors);
     distributionPlot.setDataset(dataset);
@@ -108,10 +110,22 @@ public class ErrorDistributionChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-      distributionPlot.addRangeMarker(valueMarkerLower);
-      distributionPlot.addRangeMarker(valueMarkerUpper);
+//      distributionPlot.addRangeMarker(valueMarkerLower);
+//      distributionPlot.addRangeMarker(valueMarkerUpper);
+      rangeMarkers.add(valueMarkerLower);
+      rangeMarkers.add(valueMarkerUpper);
     }
-    distributionPlot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+//    distributionPlot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+    rangeMarkers.add(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+  }
+
+  public void displayPlotLabels(boolean display) {
+    cleanPlotLabels();
+    if (display) {
+      for (ValueMarker valueMarker : rangeMarkers) {
+        distributionChart.getXYPlot().addRangeMarker(valueMarker);
+      }
+    }
   }
 
   protected XYDataset createDistributionDataset(List<Double> errors) {

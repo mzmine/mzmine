@@ -244,10 +244,13 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
     }
 
-    if (labelsCheckbox.isSelected() == false) {
+    /*if (labelsCheckbox.isSelected() == false) {
       errorDistributionChart.cleanPlotLabels();
       errorVsMzChart.cleanPlotLabels();
-    }
+    }*/
+    errorDistributionChart.displayPlotLabels(labelsCheckbox.isSelected());
+    errorVsMzChart.displayPlotLabels(labelsCheckbox.isSelected());
+
   }
 
   @Override
