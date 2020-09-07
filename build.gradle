@@ -81,7 +81,7 @@ dependencies {
     implementation "org.jfree:jfreechart:1.5.0"
     implementation "org.jfree:jfreechart-fx:1.0.1"
     implementation "org.jfree:fxgraphics2d:1.8"
-    implementation "org.jfree:jfreesvg:4.1"
+    implementation "org.jfree:jfreesvg:3.4"
     implementation "com.orsonpdf:orsonpdf:1.9"
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.commons:commons-math:2.2"
