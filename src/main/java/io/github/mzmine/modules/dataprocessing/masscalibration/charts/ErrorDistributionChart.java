@@ -110,12 +110,9 @@ public class ErrorDistributionChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-//      distributionPlot.addRangeMarker(valueMarkerLower);
-//      distributionPlot.addRangeMarker(valueMarkerUpper);
       rangeMarkers.add(valueMarkerLower);
       rangeMarkers.add(valueMarkerUpper);
     }
-//    distributionPlot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
     rangeMarkers.add(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
   }
 

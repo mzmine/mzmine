@@ -119,12 +119,9 @@ public class ErrorVsMzChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-//      plot.addRangeMarker(valueMarkerLower);
-//      plot.addRangeMarker(valueMarkerUpper);
       rangeMarkers.add(valueMarkerLower);
       rangeMarkers.add(valueMarkerUpper);
     }
-//    plot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
     rangeMarkers.add(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
   }
 
@@ -157,7 +154,6 @@ public class ErrorVsMzChart extends EChartViewer {
       trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
               plot.getDomainAxis().getRange().getCentralValue(),
               plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
-//      plot.addAnnotation(trendNameAnnotation);
     }
   }
 }
