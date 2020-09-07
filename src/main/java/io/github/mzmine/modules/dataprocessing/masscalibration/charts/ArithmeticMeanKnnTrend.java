@@ -40,6 +40,13 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
   protected Integer neighbors;
   protected Double neighborsFractional;
 
+  protected int resolution = 100_001;
+  protected Double[] precomputedPoints;
+  double smallestX;
+  double largestX;
+  double rangeX;
+  double deltaX;
+
   public ArithmeticMeanKnnTrend(XYSeries dataset, int neighbors) {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
@@ -71,6 +78,34 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
 
   @Override
   public double getValue(double x) {
+    if (items.length == 0) {
+      return 0;
+    }
+    return getValuePrecomputed(x);
+  }
+
+  public double getValuePrecomputed(double x) {
+    if (x <= items[0].getXValue()) {
+      return precomputedPoints[0];
+    }
+    if (x >= items[items.length - 1].getXValue()) {
+      return precomputedPoints[precomputedPoints.length - 1];
+    }
+
+    double offsetX = x - items[0].getXValue();
+    int pointOffset = (int) Math.floor(offsetX / deltaX);
+    if (pointOffset == items.length - 1) {
+      return precomputedPoints[pointOffset];
+    }
+    int pointOffsetNext = pointOffset + 1;
+    double x1 = smallestX + pointOffset * deltaX;
+    double y1 = precomputedPoints[pointOffset];
+    double x2 = smallestX + pointOffsetNext * deltaX;
+    double y2 = precomputedPoints[pointOffsetNext];
+    return interpolateLinearly(x1, y1, x2, y2, x);
+  }
+
+  public double getValueDirect(double x) {
     ArrayList<XYDataItem> neighbors = findNeighbors(x);
     double arithmeticMean = neighbors.stream().mapToDouble(item -> item.getYValue()).average().orElse(0);
     return arithmeticMean;
@@ -111,6 +146,29 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
     return closestNeighbors;
   }
 
+  protected double interpolateLinearly(double x1, double y1, double x2, double y2, double x) {
+    double fractionalX = (x - x1) / (x2 - x1);
+    double y = fractionalX * (y2 - y1) + y1;
+    return y;
+  }
+
+  protected void precomputeValues() {
+    int itemsCount = items.length;
+    /*double smallestX = items[0].getXValue();
+    double largestX = items[items.length - 1].getXValue();
+    double rangeX = largestX - smallestX;
+    double deltaX = rangeX / (resolution - 1);*/
+    smallestX = items[0].getXValue();
+    largestX = items[items.length - 1].getXValue();
+    rangeX = largestX - smallestX;
+    deltaX = rangeX / (resolution - 1);
+    precomputedPoints = new Double[resolution];
+    for (int i = 0; i < precomputedPoints.length; i++) {
+      double x = smallestX + deltaX * i;
+      precomputedPoints[i] = getValueDirect(x);
+    }
+  }
+
   public XYSeries getDataset() {
     return dataset;
   }
@@ -120,5 +178,8 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
     this.dataset = dataset;
     this.items = (XYDataItem[]) dataset.getItems().toArray(new XYDataItem[0]);
     Arrays.sort(items);
+    if (items.length > 0) {
+      precomputeValues();
+    }
   }
 }
