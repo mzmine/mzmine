@@ -31,8 +31,6 @@ import java.util.List;
  */
 public class StandardsList {
   protected ArrayList<StandardsListItem> standardMolecules;
-  protected Range<Double> minMaxRetentionTime;
-  protected Range<Double> minMaxMzRatio;
 
   public StandardsList(List<StandardsListItem> standardMolecules) {
     this.standardMolecules = new ArrayList<StandardsListItem>(standardMolecules);

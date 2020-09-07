@@ -51,7 +51,7 @@ public class ArithmeticMeanKnnTrend implements Trend2D {
 
   protected Double rSquared;
 
-  protected int resolution = 100_001;
+  protected int resolution = 10_001;
   protected boolean usePrecomputedApproximation = true;
   protected Double[] precomputedPoints;
   double smallestX;
