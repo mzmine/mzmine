@@ -120,7 +120,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzButton.setToggleGroup(chartChoice);
     measuredVsMatchedMzButton = new RadioButton("Measured vs matched mz");
     measuredVsMatchedMzButton.setToggleGroup(chartChoice);
-    chartChoice.selectedToggleProperty().addListener(e -> loadPreview(false));
+//    chartChoice.selectedToggleProperty().addListener(e -> loadPreview(false));
+    chartChoice.selectedToggleProperty().addListener(e -> chartChoiceChange());
 
     FlowPane chartChoicePane = new FlowPane();
     chartChoicePane.getChildren().add(errorDistributionButton);
@@ -221,16 +222,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       return;
     }
 
-    Toggle choice = chartChoice.getSelectedToggle();
-    chartsPane.getChildren().clear();
-    if (choice == errorVsMzButton) {
-      chartsPane.getChildren().add(errorVsMzChart);
-    } else if (choice == measuredVsMatchedMzButton) {
-      chartsPane.getChildren().add(measuredVsMatchedMzChart);
-    } else {
-      chartsPane.getChildren().add(errorDistributionChart);
-    }
-
     if (rerun) {
       errorDistributionChart.cleanDistributionPlot();
       errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(), previewTask.getErrors(),
@@ -251,6 +242,18 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorDistributionChart.displayPlotLabels(labelsCheckbox.isSelected());
     errorVsMzChart.displayPlotLabels(labelsCheckbox.isSelected());
 
+  }
+
+  protected void chartChoiceChange() {
+    Toggle choice = chartChoice.getSelectedToggle();
+    chartsPane.getChildren().clear();
+    if (choice == errorVsMzButton) {
+      chartsPane.getChildren().add(errorVsMzChart);
+    } else if (choice == measuredVsMatchedMzButton) {
+      chartsPane.getChildren().add(measuredVsMatchedMzChart);
+    } else {
+      chartsPane.getChildren().add(errorDistributionChart);
+    }
   }
 
   @Override

@@ -31,6 +31,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -129,10 +130,12 @@ public class ErrorVsMzChart extends EChartViewer {
     cleanPlotLabels();
     if (display) {
       for (ValueMarker valueMarker : rangeMarkers) {
-        plot.addRangeMarker(valueMarker);
+//        plot.addRangeMarker(valueMarker);
+        plot.addRangeMarker(0, valueMarker, Layer.FOREGROUND, false);
       }
       if (trendNameAnnotation != null) {
-        plot.addAnnotation(trendNameAnnotation);
+//        plot.addAnnotation(trendNameAnnotation);
+        plot.addAnnotation(trendNameAnnotation, true);
       }
     }
   }

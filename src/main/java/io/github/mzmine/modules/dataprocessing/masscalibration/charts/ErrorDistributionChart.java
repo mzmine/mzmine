@@ -26,9 +26,11 @@ import io.github.mzmine.modules.dataprocessing.masscalibration.errormodeling.Dis
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -120,8 +122,10 @@ public class ErrorDistributionChart extends EChartViewer {
     cleanPlotLabels();
     if (display) {
       for (ValueMarker valueMarker : rangeMarkers) {
-        distributionChart.getXYPlot().addRangeMarker(valueMarker);
+//        distributionChart.getXYPlot().addRangeMarker(valueMarker);
+        distributionChart.getXYPlot().addRangeMarker(0, valueMarker, Layer.FOREGROUND, false);
       }
+      distributionChart.getXYPlot().notifyListeners(new PlotChangeEvent(distributionChart.getXYPlot()));
     }
   }
 
