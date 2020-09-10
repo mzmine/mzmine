@@ -31,6 +31,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -59,6 +60,8 @@ public class ErrorVsMzChart extends EChartViewer {
   private final XYPlot plot;
 
   protected List<MassPeakMatch> matches;
+  protected ArrayList<ValueMarker> rangeMarkers = new ArrayList<>();
+  protected XYTextAnnotation trendNameAnnotation;
 
   protected ErrorVsMzChart(JFreeChart chart) {
     super(chart);
@@ -107,6 +110,8 @@ public class ErrorVsMzChart extends EChartViewer {
 //    updateChartDataset(matches, errorVsMzTrend);
     this.matches = new ArrayList<>(matches);
     Collections.sort(this.matches, MassPeakMatch.measuredMzComparator);
+    rangeMarkers.clear();
+    trendNameAnnotation = null;
     updateChartDataset(this.matches, errorVsMzTrend);
 
     for (String label : errorRanges.keySet()) {
@@ -115,10 +120,24 @@ public class ErrorVsMzChart extends EChartViewer {
 
       ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
       ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
-      plot.addRangeMarker(valueMarkerLower);
-      plot.addRangeMarker(valueMarkerUpper);
+      rangeMarkers.add(valueMarkerLower);
+      rangeMarkers.add(valueMarkerUpper);
     }
-    plot.addRangeMarker(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+    rangeMarkers.add(ChartUtils.createValueMarker("Bias estimate", biasEstimate));
+  }
+
+  public void displayPlotLabels(boolean display) {
+    cleanPlotLabels();
+    if (display) {
+      for (ValueMarker valueMarker : rangeMarkers) {
+//        plot.addRangeMarker(valueMarker);
+        plot.addRangeMarker(0, valueMarker, Layer.FOREGROUND, false);
+      }
+      if (trendNameAnnotation != null) {
+//        plot.addAnnotation(trendNameAnnotation);
+        plot.addAnnotation(trendNameAnnotation, true);
+      }
+    }
   }
 
   protected void updateChartDataset(List<MassPeakMatch> matches, Trend2D trend) {
@@ -135,10 +154,9 @@ public class ErrorVsMzChart extends EChartViewer {
               dataset.getDomainUpperBound(false), 1000, "trend series");
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
-      XYTextAnnotation trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
+      trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
               plot.getDomainAxis().getRange().getCentralValue(),
               plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
-      plot.addAnnotation(trendNameAnnotation);
     }
   }
 }
