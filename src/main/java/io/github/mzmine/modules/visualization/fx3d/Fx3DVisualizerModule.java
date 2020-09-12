@@ -35,13 +35,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.stage.Stage;
 
 /**
  * @author akshaj This class represents the module class of the Fx3DVisualizer.
@@ -90,33 +87,11 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
       MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
     }
-    FXMLLoader loader = new FXMLLoader((getClass().getResource("Fx3DStage.fxml")));
-    Stage stage = null;
-    try {
-      stage = loader.load();
-      logger.finest("Stage has been successfully loaded from the FXML loader.");
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ExitCode.ERROR;
-    }
-    String title = "";
-    Fx3DStageController controller = loader.getController();
-    controller.setScanSelection(scanSel);
-    controller.setRtAndMzResolutions(rtRes, mzRes);
-    controller.setRtAndMzValues(rtRange, mzRange);
-    for (int i = 0; i < currentDataFiles.length; i++) {
-      MZmineCore.getTaskController().addTask(
-          new Fx3DSamplingTask(currentDataFiles[i], scanSel, mzRange, rtRes, mzRes, controller),
-          TaskPriority.HIGH);
 
-    }
-    controller.addFeatureSelections(featureSelList);
-    for (int i = 0; i < currentDataFiles.length; i++) {
-      title = title + currentDataFiles[i].toString() + " ";
-    }
-    stage.show();
-    stage.setMinWidth(400.0);
-    stage.setMinHeight(400.0);
+    Fx3DVisualizerTab newTab = new Fx3DVisualizerTab(currentDataFiles, scanSel, rtRange, mzRange,
+        rtRes, mzRes, featureSelList);
+
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
 

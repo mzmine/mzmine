@@ -64,10 +64,11 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
     Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
     Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
-    TwoDVisualizerWindow newWindow =
-        new TwoDVisualizerWindow(dataFiles[0], scans, rtRange, mzRange, parameters);
+    TwoDVisualizerTab newTab =
+        new TwoDVisualizerTab(dataFiles[0], scans, rtRange, mzRange, parameters);
 
-    newWindow.show();
+    //newWindow.show();
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }
@@ -103,11 +104,11 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
 
     mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
 
-    TwoDVisualizerWindow newWindow =
-        new TwoDVisualizerWindow(dataFile, scans, rtRange, mzRange, parameters);
+    TwoDVisualizerTab newWindow =
+        new TwoDVisualizerTab(dataFile, scans, rtRange, mzRange, parameters);
 
-    newWindow.show();
-
+    //newWindow.show();
+    MZmineCore.getDesktop().addTab(newWindow);
   }
 
   @Override

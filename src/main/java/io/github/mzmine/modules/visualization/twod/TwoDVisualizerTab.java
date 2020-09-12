@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,11 +46,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizerWindow extends Stage {
+public class TwoDVisualizerTab extends MZmineTab {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -61,7 +70,7 @@ public class TwoDVisualizerWindow extends Stage {
       FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
   private static final Image logScaleIcon = FxIconUtil.loadImageFromResources("icons/logicon.png");
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final TwoDPlot twoDPlot;
@@ -69,10 +78,12 @@ public class TwoDVisualizerWindow extends Stage {
   private final TwoDDataSet dataset;
   private final RawDataFile dataFile;
 
-  public TwoDVisualizerWindow(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
+  public TwoDVisualizerTab(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
       Range<Double> mzRange, ParameterSet parameters) {
 
-    setTitle("2D view: [" + dataFile.getName() + "]");
+    super("2D Visualizer", true, false);
+
+    //setTitle("2D view: [" + dataFile.getName() + "]");
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
@@ -80,12 +91,13 @@ public class TwoDVisualizerWindow extends Stage {
     this.dataFile = dataFile;
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(mainScene);
+    setContent(mainPane);
 
     dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
     if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue() == PlotType.FAST2D) {
@@ -115,7 +127,7 @@ public class TwoDVisualizerWindow extends Stage {
     Button axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, twoDPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(getTabPane().getScene().getWindow(), twoDPlot.getXYPlot());
       dialog.showAndWait();
     });
 
@@ -171,15 +183,15 @@ public class TwoDVisualizerWindow extends Stage {
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(TwoDVisualizerParameters.windowSettings);
+    //ParameterSet paramSet =
+    //    MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
+    //WindowSettingsParameter settings =
+    //    paramSet.getParameter(TwoDVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
     // settings.applySettingsToWindow(this);
@@ -197,5 +209,39 @@ public class TwoDVisualizerWindow extends Stage {
 
   TwoDPlot getPlot() {
     return twoDPlot;
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Collections.singletonList(dataFile));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    // TODO
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 }
