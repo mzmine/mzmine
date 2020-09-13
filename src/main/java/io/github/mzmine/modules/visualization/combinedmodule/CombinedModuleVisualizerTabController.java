@@ -20,14 +20,21 @@ package io.github.mzmine.modules.visualization.combinedmodule;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.Collection;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
-public class CombinedModuleVisualizerWindowController {
+public class CombinedModuleVisualizerTabController {
 
   @FXML
   private ToolBar toolbar;
@@ -52,9 +59,9 @@ public class CombinedModuleVisualizerWindowController {
   private CombinedModuleDataset dataset;
 
 
-  public void setParameters(CombinedModuleVisualizerWindow stage, ParameterSet parameters) {
+  public void setParameters(Window window, ParameterSet parameters) {
     highlightPrecursorBtn.setOnAction(event -> {
-      CombinedModuleSetHighlightDialog dialog = new CombinedModuleSetHighlightDialog(stage, plot,
+      CombinedModuleSetHighlightDialog dialog = new CombinedModuleSetHighlightDialog(window, plot,
           "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
@@ -79,5 +86,35 @@ public class CombinedModuleVisualizerWindowController {
 
   public CombinedModulePlot getPlot() {
     return plot;
+  }
+
+  public RawDataFile getDataFile() {
+    return dataFile;
+  }
+
+  public void updateVisualizedFiles(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    // remove old dataset
+    plot.getXYPlot().setDataset(
+        plot.getXYPlot().indexOf(dataset),null);
+
+    // add new dataset
+    CombinedModuleDataset newDataset = new CombinedModuleDataset(dataFile, rtRange, mzRange,
+        this, xAxisType, yAxisType, noiseLevel, colorScale, massList);
+    plot.addDataset(newDataset);
+
+    dataFile = newFile;
+    dataset = newDataset;
+
+    newDataset.run();
   }
 }
