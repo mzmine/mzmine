@@ -62,14 +62,14 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
   private HashMap<Integer, Vector<ProductIonFilterDataPoint>> dataSeries;
 
-  private ProductIonFilterVisualizerWindow visualizer;
+  private ProductIonFilterVisualizerTab visualizer;
 
   private static int RAW_LEVEL = 0;
   private static int PRECURSOR_LEVEL = 1;
   private static int NEUTRALLOSS_LEVEL = 2;
 
   ProductIonFilterDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Double> rtRange,
-      Range<Double> mzRange, ProductIonFilterVisualizerWindow visualizer, MZTolerance mzDifference,
+      Range<Double> mzRange, ProductIonFilterVisualizerTab visualizer, MZTolerance mzDifference,
       List<Double> targetedMZ_List, List<Double> targetedNF_List, Double basePeakPercent,
       File fileName) {
 
