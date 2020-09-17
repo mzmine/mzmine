@@ -21,41 +21,53 @@ package io.github.mzmine.modules.visualization.histogram;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
-public class HistogramWindow extends Stage {
+public class HistogramTab extends MZmineTab {
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
 
   private HistogramChart histogram;
 
-  public HistogramWindow(ParameterSet parameters) {
+  private RawDataFile rawDataFiles[];
+  private PeakList peakList;
 
-    PeakList peakList =
-        parameters.getParameter(HistogramParameters.peakList).getValue().getMatchingPeakLists()[0];
+  private HistogramDataType dataType;
+  private int numOfBins;
+  private Range<Double> range;
 
-    this.setTitle("Histogram of " + peakList.getName());
+  public HistogramTab(ParameterSet parameters) {
+    super("Histogram Visualizer", true, false);
+
+    peakList = parameters.getParameter(HistogramParameters.peakList).getValue().getMatchingPeakLists()[0];
+
+    //this.setTitle("Histogram of " + peakList.getName());
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(mainScene);
 
-    RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();
+    rawDataFiles = parameters.getParameter(HistogramParameters.dataFiles).getValue();
 
-    HistogramDataType dataType = parameters.getParameter(HistogramParameters.dataRange).getType();
-    int numOfBins = parameters.getParameter(HistogramParameters.numOfBins).getValue();
-    Range<Double> range = parameters.getParameter(HistogramParameters.dataRange).getValue();
+    dataType = parameters.getParameter(HistogramParameters.dataRange).getType();
+    numOfBins = parameters.getParameter(HistogramParameters.numOfBins).getValue();
+    range = parameters.getParameter(HistogramParameters.dataRange).getValue();
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
@@ -73,23 +85,24 @@ public class HistogramWindow extends Stage {
     // pnlPlot.add(histogram, BorderLayout.CENTER);
 
     mainPane.setCenter(histogram);
+    setContent(mainPane);
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(HistogramVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(HistogramParameters.windowSettings);
+    //ParameterSet paramSet =
+    //    MZmineCore.getConfiguration().getModuleParameters(HistogramVisualizerModule.class);
+    //WindowSettingsParameter settings = paramSet.getParameter(HistogramParameters.windowSettings);
 
     // update the window and listen for changes
     // settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
 
-    setMinWidth(600.0);
-    setMinHeight(400.0);
+    //setMinWidth(600.0);
+    //setMinHeight(400.0);
 
     if (peakList != null) {
       HistogramPlotDataset dataSet =
@@ -103,4 +116,37 @@ public class HistogramWindow extends Stage {
     return histogram;
   }
 
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Arrays.asList(rawDataFiles));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return (Collection<? extends ModularFeatureList>)peakList;
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return null;
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
+  }
 }
