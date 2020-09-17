@@ -19,6 +19,9 @@
 package io.github.mzmine.modules.visualization.scatterplot;
 
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.parameters.ParameterSet;
@@ -26,6 +29,9 @@ import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -35,34 +41,38 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 
 /**
  * Main window of the scatter plot visualizer.
  *
  */
-public class ScatterPlotWindow extends Stage {
+public class ScatterPlotTab extends MZmineTab {
 
   static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolbar;
   private final Button axesButton;
   private final ScatterPlotChart chart;
   private final ScatterPlotTopPanel topPanel;
   private final ScatterPlotBottomPanel bottomPanel;
+  private PeakList peakList;
 
-  public ScatterPlotWindow(PeakList peakList) {
+  public ScatterPlotTab(PeakList peakList) {
+    super("Scatter plot Visualizer", true, false);
 
-    setTitle("Scatter plot of " + peakList);
+    //setTitle("Scatter plot of " + peakList);
+    this.peakList = peakList;
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(mainScene);
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -81,7 +91,7 @@ public class ScatterPlotWindow extends Stage {
     axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, chart.getPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), chart.getPlot());
       dialog.show();
     });
     toolbar.getItems().add(axesButton);
@@ -96,21 +106,55 @@ public class ScatterPlotWindow extends Stage {
     mainPane.setBottom(bottomPanel);
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
 
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(ScatterPlotVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(ScatterPlotParameters.windowSettings);
+    //ParameterSet paramSet =
+    //    MZmineCore.getConfiguration().getModuleParameters(ScatterPlotVisualizerModule.class);
+    //WindowSettingsParameter settings = paramSet.getParameter(ScatterPlotParameters.windowSettings);
 
     // update the window and listen for changes
     // settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
 
-    setMinWidth(500.0);
-    setMinHeight(400.0);
+    //setMinWidth(500.0);
+    //setMinHeight(400.0);
+    setContent(mainPane);
 
   }
 
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return peakList.getRawDataFiles();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
+  }
 }

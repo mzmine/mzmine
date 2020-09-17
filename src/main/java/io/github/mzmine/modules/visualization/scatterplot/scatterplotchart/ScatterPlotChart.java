@@ -46,7 +46,7 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
-import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SearchDefinition;
@@ -79,17 +79,17 @@ public class ScatterPlotChart extends EChartViewer {
   private ScatterPlotTopPanel topPanel;
   private ComponentToolTipManager ttm;
 
-  private ScatterPlotWindow window;
+  private ScatterPlotTab tab;
   private PeakList peakList;
   private ScatterPlotAxisSelection axisX, axisY;
   private int fold;
 
-  public ScatterPlotChart(ScatterPlotWindow window, ScatterPlotTopPanel topPanel,
+  public ScatterPlotChart(ScatterPlotTab tab, ScatterPlotTopPanel topPanel,
       PeakList peakList) {
 
     super(null);
 
-    this.window = window;
+    this.tab = tab;
     this.peakList = peakList;
     this.topPanel = topPanel;
 
