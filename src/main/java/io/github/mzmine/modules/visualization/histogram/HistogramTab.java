@@ -29,6 +29,7 @@ import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -125,7 +126,7 @@ public class HistogramTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends ModularFeatureList> getFeatureLists() {
-    return (Collection<? extends ModularFeatureList>)peakList;
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
   }
 
   @Nonnull
