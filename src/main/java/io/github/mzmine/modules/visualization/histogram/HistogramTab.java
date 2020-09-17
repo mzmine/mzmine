@@ -132,7 +132,7 @@ public class HistogramTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
