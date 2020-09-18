@@ -253,11 +253,11 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
     // get MS/MS spectra window
-    SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(activeRaw);
-    spectraWindow.loadRawData(activeRaw.getScan(scan));
+    SpectraVisualizerTab spectraTab = new SpectraVisualizerTab(activeRaw);
+    spectraTab.loadRawData(activeRaw.getScan(scan));
 
     // get MS/MS spectra plot
-    SpectraPlot spectrumPlot = spectraWindow.getSpectrumPlot();
+    SpectraPlot spectrumPlot = spectraTab.getSpectrumPlot();
     spectrumPlot.getChart().getLegend().setVisible(false);
     // spectrumPlot.setPreferredSize(new Dimension(600, 400));
     // spectrumPane.add(spectrumPlot);

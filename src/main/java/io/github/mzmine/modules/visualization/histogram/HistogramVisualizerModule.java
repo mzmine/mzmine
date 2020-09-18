@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -46,8 +47,9 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    HistogramWindow newWindow = new HistogramWindow(parameters);
-    newWindow.show();
+    HistogramTab newTab = new HistogramTab(parameters);
+    //newTab.show();
+    MZmineCore.getDesktop().addTab(newTab);
     return ExitCode.OK;
   }
 

@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import java.awt.Color;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
@@ -68,7 +68,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
     spectrumPlot.removeAllDataSets();
 
-    spectrumPlot.addDataSet(spectraOriginalDataSet, SpectraVisualizerWindow.scanColor, true);
+    spectrumPlot.addDataSet(spectraOriginalDataSet, SpectraVisualizerTab.scanColor, true);
     spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
 
     // if the scan is centroided, switch to centroid mode

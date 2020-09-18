@@ -63,8 +63,8 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
 
-    ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
-    newWindow.show();
+    ScatterPlotTab newTab = new ScatterPlotTab(peakList);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }
@@ -87,8 +87,8 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
       return;
     }
 
-    ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
-    newWindow.show();
+    ScatterPlotTab newTab = new ScatterPlotTab(peakList);
+    MZmineCore.getDesktop().addTab(newTab);
 
   }
 
