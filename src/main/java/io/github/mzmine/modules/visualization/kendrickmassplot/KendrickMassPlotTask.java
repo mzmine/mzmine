@@ -216,34 +216,10 @@ public class KendrickMassPlotTask extends AbstractTask {
     LegendTitle legend = chart.getLegend();
     legend.setVisible(false);
 
-    // Create Kendrick mass plot Window
+    // Create Kendrick mass plot Tab
     Platform.runLater(() -> {
-      FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotWindow.fxml")));
-      Stage stage = new Stage();
-      try {
-        AnchorPane root = (AnchorPane) loader.load();
-        Scene scene = new Scene(root, 1080, 600);
-
-        // Use main CSS
-        scene.getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-        stage.setScene(scene);
-        logger.finest("Stage has been successfully loaded from the FXML loader.");
-      } catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-
-      // Get controller
-      KendrickMassPlotWindowController controller = loader.getController();
-      controller.initialize(parameters);
-      BorderPane plotPane = controller.getPlotPane();
-      plotPane.setCenter(chartViewer);
-
-      stage.setTitle("Kendrick Mass Plot");
-      stage.show();
-      stage.setMinWidth(stage.getWidth());
-      stage.setMinHeight(stage.getHeight());
+      KendrickMassPlotTab newTab = new KendrickMassPlotTab(parameters, chartViewer);
+      MZmineCore.getDesktop().addTab(newTab);
     });
 
     setStatus(TaskStatus.FINISHED);
