@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -19,25 +19,23 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
+import org.xml.sax.InputSource;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -54,6 +52,7 @@ public class HMDBGateway implements DBGateway {
       "http://www.hmdb.ca/structures/search/metabolites/mass?search_type=monoisotopic&";
   private static final String hmdbStructureAddress = "http://www.hmdb.ca/structures/metabolites/";
 
+  @Override
   public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
       ParameterSet parameters) throws IOException {
 
@@ -93,8 +92,9 @@ public class HMDBGateway implements DBGateway {
 
   /**
    * This method retrieves the details about HMDB compound
-   * 
+   *
    */
+  @Override
   public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
 
     logger.finest("Obtaining information about HMDB compound id " + ID);
@@ -107,7 +107,9 @@ public class HMDBGateway implements DBGateway {
       logger.finest("Loading URL " + url);
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder builder = dbf.newDocumentBuilder();
-      Document parsedResult = builder.parse(url);
+      String compoundXML = InetUtils.retrieveData(new URL(url));
+      InputSource is = new InputSource(new StringReader(compoundXML));
+      Document parsedResult = builder.parse(is);
 
       XPathFactory factory = XPathFactory.newInstance();
       XPath xpath = factory.newXPath();
