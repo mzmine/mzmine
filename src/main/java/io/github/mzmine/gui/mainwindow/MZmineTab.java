@@ -18,16 +18,15 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import com.google.errorprone.annotations.ForOverride;
+import java.util.Collection;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.main.MZmineCore;
-import java.util.Collection;
-import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
@@ -35,7 +34,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
-import javax.annotation.Nonnull;
 
 
 /**
@@ -56,11 +54,6 @@ public abstract class MZmineTab extends Tab {
    */
   private final CheckBox cbUpdateOnSelection;
 
-  /**
-   * If true this tab cannot be moved between windows. Default value is true.
-   */
-  private final BooleanProperty windowChangeAllowed;
-
   private final ContextMenu contextMenu;
 
   public MZmineTab(String title, boolean showBinding, boolean defaultBindingState) {
@@ -70,8 +63,6 @@ public abstract class MZmineTab extends Tab {
     cbUpdateOnSelection.setTooltip(new Tooltip(
         "If selected this tab is updated according to the current selection of raw files or feature lists."));
     cbUpdateOnSelection.setSelected(defaultBindingState);
-
-    windowChangeAllowed = new SimpleBooleanProperty(true);
 
     if (showBinding) {
       setGraphic(cbUpdateOnSelection);
@@ -118,26 +109,6 @@ public abstract class MZmineTab extends Tab {
     this.cbUpdateOnSelection.setSelected(updateOnSelection);
   }
 
-  /**
-   * @return true or false. If true this tab can be moved between windows.
-   * @see MZmineTab#windowChangeAllowed
-   */
-  public boolean isWindowChangeAllowed() {
-    return windowChangeAllowed.get();
-  }
-
-  public BooleanProperty windowChangeAllowedProperty() {
-    return windowChangeAllowed;
-  }
-
-  /**
-   * @param windowChangeAllowed true or false. If true this tab can be moved between windows.
-   * @see MZmineTab#windowChangeAllowed
-   */
-  public void setWindowChangeAllowed(boolean windowChangeAllowed) {
-    this.windowChangeAllowed.set(windowChangeAllowed);
-  }
-
   private void updateContextMenu() {
     MenuItem bind = new MenuItem("(Un)bind to selection");
     MenuItem openInNewWindow = new MenuItem("Open in new window");
@@ -157,11 +128,6 @@ public abstract class MZmineTab extends Tab {
     });
 
     openInNewWindow.setOnAction(e -> {
-      if (!isWindowChangeAllowed()) {
-        logger.info("Window change not allowed for tab " + this.getText());
-        e.consume();
-        return;
-      }
       getTabPane().getTabs().remove(this);
       new MZmineWindow().addTab(this);
       e.consume();
@@ -169,8 +135,7 @@ public abstract class MZmineTab extends Tab {
 
     MenuItem moveToMainWindow = new MenuItem("Main window");
     moveToMainWindow.setOnAction(e -> {
-      if (MZmineCore.getDesktop().getTabsInMainWindow().size() < MZmineGUI.MAX_TABS
-          && isWindowChangeAllowed()) {
+      if (MZmineCore.getDesktop().getTabsInMainWindow().size() < MZmineGUI.MAX_TABS) {
         getTabPane().getTabs().remove(this);
         MZmineCore.getDesktop().addTab(this);
         e.consume();
@@ -191,7 +156,7 @@ public abstract class MZmineTab extends Tab {
       }
 
       wi.setOnAction(e -> {
-        if (window.getNumberOfTabs() >= MZmineGUI.MAX_TABS || !isWindowChangeAllowed()) {
+        if (window.getNumberOfTabs() >= MZmineGUI.MAX_TABS) {
           logger.info("Maximum number of tabs in " + window.getTitle()
               + " window reached or tab cannot be moved. Cannot move tab to main window.");
           e.consume();
