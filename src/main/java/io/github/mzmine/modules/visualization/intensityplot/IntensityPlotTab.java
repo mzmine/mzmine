@@ -18,11 +18,18 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -62,13 +69,13 @@ import javafx.stage.Stage;
 /**
  *
  */
-public class IntensityPlotWindow extends Stage {
+public class IntensityPlotTab extends MZmineTab {
 
   private static final Image pointsIcon = FxIconUtil.loadImageFromResources("icons/pointsicon.png");
   private static final Image linesIcon = FxIconUtil.loadImageFromResources("icons/linesicon.png");
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
 
   static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -79,17 +86,20 @@ public class IntensityPlotWindow extends Stage {
   private IntensityPlotDataset dataset;
   private JFreeChart chart;
 
-  public IntensityPlotWindow(ParameterSet parameters) {
+  private PeakList peakList;
+
+  public IntensityPlotTab(ParameterSet parameters) {
+    super("Intensity plot", true, false);
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(mainScene);
 
-    PeakList peakList = parameters.getParameter(IntensityPlotParameters.peakList).getValue()
+    peakList = parameters.getParameter(IntensityPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
 
     String title = "Intensity plot [" + peakList + "]";
@@ -199,7 +209,8 @@ public class IntensityPlotWindow extends Stage {
       Button setupAxesButton = new Button(null, new ImageView(axesIcon));
       setupAxesButton.setTooltip(new Tooltip("Setup ranges for axes"));
       setupAxesButton.setOnAction(e -> {
-        AxesSetupDialog dialog = new AxesSetupDialog(this, chart.getXYPlot());
+        AxesSetupDialog dialog =
+            new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), chart.getXYPlot());
         dialog.show();
       });
       toolBar.getItems().add(setupAxesButton);
@@ -236,20 +247,21 @@ public class IntensityPlotWindow extends Stage {
       yAxisFormat = MZmineCore.getConfiguration().getRTFormat();
     yAxis.setNumberFormatOverride(yAxisFormat);
 
-    setTitle(title);
+    setContent(mainPane);
+    //setTitle(title);
     // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
 
 
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
 
     // pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(IntensityPlotModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(IntensityPlotParameters.windowSettings);
+    //ParameterSet paramSet =
+    //    MZmineCore.getConfiguration().getModuleParameters(IntensityPlotModule.class);
+    //WindowSettingsParameter settings =
+    //    paramSet.getParameter(IntensityPlotParameters.windowSettings);
 
     // update the window and listen for changes
     // settings.applySettingsToWindow(this);
@@ -261,4 +273,37 @@ public class IntensityPlotWindow extends Stage {
     return chart;
   }
 
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return peakList.getRawDataFiles();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
+  }
 }

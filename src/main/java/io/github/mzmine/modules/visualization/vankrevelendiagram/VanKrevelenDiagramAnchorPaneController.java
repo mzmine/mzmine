@@ -11,7 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 
-public class VanKrevelenDiagramWindowController {
+public class VanKrevelenDiagramAnchorPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
