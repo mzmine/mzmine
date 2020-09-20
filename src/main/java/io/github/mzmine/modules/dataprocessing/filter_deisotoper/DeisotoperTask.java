@@ -18,23 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_deisotoper;
 
-import java.util.Arrays;
-import java.util.Vector;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
+import io.github.mzmine.datamodel.impl.*;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -44,7 +31,14 @@ import io.github.mzmine.util.PeakSorter;
 import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IIsotope;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  *
@@ -128,7 +122,6 @@ class DeisotoperTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running isotopic peak grouper on " + peakList);
 
-    /*
     // We assume source peakList contains one datafile
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
@@ -250,7 +243,6 @@ class DeisotoperTask extends AbstractTask {
     // Remove the original peakList if requested
     if (removeOriginal)
       project.removePeakList(peakList);
-     */
 
     logger.info("Finished isotopic peak grouper on " + peakList);
     setStatus(TaskStatus.FINISHED);
@@ -324,13 +316,20 @@ class DeisotoperTask extends AbstractTask {
         // - within tolerances from the expected location (M/Z and RT)
         // - not already a fitted peak (only necessary to avoid
         // conflicts when parameters are set too wide)
-        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
+        /*double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
 
         if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
             && rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
             && (!fittedPeaks.contains(candidatePeak))) {
           goodCandidates.add(candidatePeak);
 
+        }*/
+
+//        double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
+        if (rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
+            && (!fittedPeaks.contains(candidatePeak))
+            && checkMzTolerance(candidatePeakMZ, direction, n, charge, mainMZ)) {
+          goodCandidates.add(candidatePeak);
         }
 
       }
@@ -348,6 +347,33 @@ class DeisotoperTask extends AbstractTask {
 
     } while (followingPeakFound);
 
+  }
+
+  protected boolean checkMzTolerance(double candidatePeakMZ, int direction, int n, int charge, double mainMZ) {
+//    double isotopeMZ = candidatePeakMZ - isotopeDistance * direction * n / charge;
+//    return mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ);
+
+    Isotopes isotopesFactory;
+    try {
+      isotopesFactory = Isotopes.getInstance();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+
+    for (IIsotope mainIsotope : isotopesAllowed.isotopes()) {
+      IIsotope[] isotopes = isotopesFactory.getIsotopes(mainIsotope.getAtomicNumber());
+      for (IIsotope isotope: isotopes) {
+        double mzShift = Math.abs(mainIsotope.getExactMass() - isotope.getExactMass());
+        double isotopeMZ = candidatePeakMZ - mzShift * direction * n / charge;
+//        System.out.println(mzShift);
+        if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)) {
+//          System.out.println("within tolerance");
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 }
