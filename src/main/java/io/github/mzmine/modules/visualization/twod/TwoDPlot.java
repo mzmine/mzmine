@@ -214,4 +214,8 @@ class TwoDPlot extends EChartViewer {
       plot.setLogScale(logscale);
     }
   }
+
+  public void addTwoDDataSet(TwoDDataSet dataset) {
+    plot.setDataset(dataset);
+  }
 }

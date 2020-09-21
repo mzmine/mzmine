@@ -75,8 +75,12 @@ public class TwoDVisualizerTab extends MZmineTab {
   private final ToolBar toolBar;
   private final TwoDPlot twoDPlot;
   private final TwoDBottomPanel bottomPanel;
-  private final TwoDDataSet dataset;
-  private final RawDataFile dataFile;
+
+  private TwoDDataSet dataset;
+  private RawDataFile dataFile;
+  private final Range<Double> rtRange;
+  private final Range<Double> mzRange;
+  private final ParameterSet parameters;
 
   public TwoDVisualizerTab(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
       Range<Double> mzRange, ParameterSet parameters) {
@@ -89,6 +93,9 @@ public class TwoDVisualizerTab extends MZmineTab {
     // setBackground(Color.white);
 
     this.dataFile = dataFile;
+    this.rtRange = rtRange;
+    this.mzRange = mzRange;
+    this.parameters = parameters;
 
     mainPane = new BorderPane();
     //mainScene = new Scene(mainPane);
@@ -231,7 +238,27 @@ public class TwoDVisualizerTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    // TODO
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    // add new dataset
+    ScanSelection scanSel =
+        parameters.getParameter(TwoDVisualizerParameters.scanSelection).getValue();
+    Scan newScans[] = scanSel.getMatchingScans(newFile);
+    TwoDDataSet newDataset = new TwoDDataSet(newFile, newScans, rtRange, mzRange, this);
+    twoDPlot.addTwoDDataSet(newDataset);
+
+    dataFile = newFile;
+    dataset = newDataset;
+
+    updateTitle();
   }
 
   @Override
