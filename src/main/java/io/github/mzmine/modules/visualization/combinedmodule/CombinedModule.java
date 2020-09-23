@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.combinedmodule;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -50,8 +51,8 @@ public class CombinedModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    CombinedModuleVisualizerWindow newWindow = new CombinedModuleVisualizerWindow(parameters);
-    newWindow.show();
+    CombinedModuleVisualizerTab newTab = new CombinedModuleVisualizerTab(parameters);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }

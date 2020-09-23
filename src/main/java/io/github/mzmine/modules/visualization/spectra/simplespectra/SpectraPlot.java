@@ -181,7 +181,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     // add items to popup menu
     /*
-     * if (masterPlot instanceof SpectraVisualizerWindow) {
+     * if (masterPlot instanceof SpectraVisualizerTab) {
      *
      * FxMenuUtil.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
      * "EXPORT_SPECTRA"); FxMenuUtil.addMenuItem(popupMenu, "Create spectral library entry",

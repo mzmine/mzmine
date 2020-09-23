@@ -152,7 +152,7 @@ public class TICVisualizerTab extends MZmineTab {
     showSpectrumBtn.setOnAction(e -> {
       ChromatogramCursorPosition pos = getCursorPosition();
       if (pos != null) {
-        SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(), pos.getScanNumber());
+        SpectraVisualizerModule.addNewSpectrumTab(pos.getDataFile(), pos.getScanNumber());
       }
     });
 

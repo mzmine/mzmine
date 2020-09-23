@@ -12,7 +12,7 @@
 <BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
   minWidth="-Infinity" prefHeight="570.0" prefWidth="844.0" xmlns="http://javafx.com/javafx/8"
   xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.modules.visualization.combinedmodule.CombinedModuleVisualizerWindowController">
+  fx:controller="io.github.mzmine.modules.visualization.combinedmodule.CombinedModuleVisualizerTabController">
   <left>
     <Pane prefWidth="30"/>
   </left>

@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.DataPoint;
  * This class is responsible for drawing the actual data points. modified by Owen Myers 2017
  */
 class PointTwoDXYPlot extends BaseXYPlot {
+  boolean datasetChanged = false;
 
   PointTwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
@@ -90,7 +91,8 @@ class PointTwoDXYPlot extends BaseXYPlot {
         && (imageRTMax == totalRTRange.upperEndpoint())
         && (imageMZMin == totalMZRange.lowerEndpoint())
         && (imageMZMax == totalMZRange.upperEndpoint()) && (zoomOutBitmap.getWidth() == width)
-        && (zoomOutBitmap.getHeight() == height)) {
+        && (zoomOutBitmap.getHeight() == height)
+        && (!datasetChanged)) {
       g2.drawImage(zoomOutBitmap, x, y, null);
       return true;
     }
@@ -197,6 +199,9 @@ class PointTwoDXYPlot extends BaseXYPlot {
 
     // g.setColor(Color.BLACK)
 
+    // Set datasetChanged to false until setDataset is not called
+    datasetChanged = false;
+
     Date renderFinishTime = new Date();
 
     logger.finest("Finished rendering 2D visualizer, "
@@ -204,5 +209,10 @@ class PointTwoDXYPlot extends BaseXYPlot {
 
     return true;
 
+  }
+
+  public void setDataset(TwoDDataSet dataset) {
+    super.setDataset(dataset);
+    datasetChanged = true;
   }
 }

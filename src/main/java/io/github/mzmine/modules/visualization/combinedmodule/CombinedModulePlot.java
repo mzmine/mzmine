@@ -41,7 +41,7 @@ public class CombinedModulePlot extends EChartViewer {
 
   private XYPlot plot;
   private RawDataFile dataFile;
-  private CombinedModuleVisualizerWindowController visualizer;
+  private CombinedModuleVisualizerTabController visualizer;
   private CombinedModuleDataset dataset;
   private Range<Double> rtRange;
   private Range<Double> mzRange;
@@ -70,7 +70,7 @@ public class CombinedModulePlot extends EChartViewer {
         false), true, true, false, false, true);
   }
 
-  public void setPlot(RawDataFile dataFile, CombinedModuleVisualizerWindowController visualizer,
+  public void setPlot(RawDataFile dataFile, CombinedModuleVisualizerTabController visualizer,
       Range<Double> rtRange, Range<Double> mzRange, AxisType xAxisType, AxisType yAxisType,
       String massList, Double noiseLevel, ColorScale colorScale) {
 

@@ -18,6 +18,10 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
+import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -44,9 +48,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
@@ -98,7 +99,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
@@ -139,8 +139,8 @@ public class MainWindowController {
   @FXML
   private BorderPane rawDataOverview;
 
-//  @FXML
-//  private RawDataOverviewWindowController rawDataOverviewController;
+  // @FXML
+  // private RawDataOverviewWindowController rawDataOverviewController;
 
   @FXML
   private TabPane mainTabPane;
@@ -192,6 +192,7 @@ public class MainWindowController {
           }
         });
       }
+
       @Override
       protected void updateItem(RawDataFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -201,7 +202,7 @@ public class MainWindowController {
           return;
         }
         setText(item.getName());
-//        setTextFill(item.getColor());
+        // setTextFill(item.getColor());
         textFillProperty().bind(item.colorProperty());
         setGraphic(new ImageView(rawDataFileIcon));
       }
@@ -225,7 +226,7 @@ public class MainWindowController {
 
       @Override
       public void cancelEdit() {
-        if(getItem() == null) {
+        if (getItem() == null) {
           return;
         }
 
@@ -238,7 +239,7 @@ public class MainWindowController {
 
       @Override
       public void commitEdit(RawDataFile item) {
-        if(item == null) {
+        if (item == null) {
           return;
         }
 
@@ -270,10 +271,10 @@ public class MainWindowController {
           rawDataTree.edit(rawDataTree.getSelectionModel().getSelectedIndex());
         });
 
-        if(event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
+        if (event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
           timer.playFromStart();
-        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED) ||
-            event.getEventType().equals(MouseEvent.MOUSE_DRAGGED)) {
+        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED)
+            || event.getEventType().equals(MouseEvent.MOUSE_DRAGGED)) {
           timer.stop();
         }
       }
@@ -308,12 +309,12 @@ public class MainWindowController {
 
     // notify selected tab about raw file selection change
     // TODO: Add the same when the feature model is finally done
-    rawDataTree.getSelectionModel().getSelectedItems().addListener(
-        (ListChangeListener<RawDataFile>) c -> {
+    rawDataTree.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<RawDataFile>) c -> {
           c.next();
           for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-            if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
-                .isUpdateOnSelection()) {
+            if (tab instanceof MZmineTab && tab.isSelected()
+                && ((MZmineTab) tab).isUpdateOnSelection()) {
               ((MZmineTab) tab).onRawDataFileSelectionChanged(c.getList());
             }
           }
@@ -325,7 +326,7 @@ public class MainWindowController {
         if (!((MZmineTab) val).getRawDataFiles()
             .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
             || ((MZmineTab) val).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-            .getSelectedItems().size()) {
+                .getSelectedItems().size()) {
           if (((MZmineTab) val).isUpdateOnSelection()) {
             ((MZmineTab) val)
                 .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
@@ -409,8 +410,6 @@ public class MainWindowController {
      */
 
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    // rop.setClosable(false); // as the default tab, this should not be removed
-    rop.setWindowChangeAllowed(false);
     addTab(rop);
 
   }
@@ -488,8 +487,7 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowMsMsPlot(Event event) {
-  }
+  public void handleShowMsMsPlot(Event event) {}
 
   public void handleSort(Event event) {
     if (!(event.getSource() instanceof ListView)) {
@@ -500,11 +498,9 @@ public class MainWindowController {
     files.sort(Ordering.usingToString());
   }
 
-  public void handleRemoveFileExtension(Event event) {
-  }
+  public void handleRemoveFileExtension(Event event) {}
 
-  public void handleExportFile(Event event) {
-  }
+  public void handleExportFile(Event event) {}
 
   public void handleRenameFile(Event event) {
     if (rawDataTree.getSelectionModel() == null) {
@@ -568,9 +564,9 @@ public class MainWindowController {
     ObservableList<RawDataFile> rows = rawDataTree.getSelectionModel().getSelectedItems();
 
     // Show alert window
-    Alert alert = new Alert(AlertType.CONFIRMATION,
-        "Are you sure you want to remove selected files?",
-        ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+    Alert alert =
+        new Alert(AlertType.CONFIRMATION, "Are you sure you want to remove selected files?",
+            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
     stage.getIcons().add(new Image("MZmineIcon.png"));
     alert.setHeaderText("Remove file");
@@ -597,14 +593,11 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowFeatureListSummary(Event event) {
-  }
+  public void handleShowFeatureListSummary(Event event) {}
 
-  public void handleShowScatterPlot(Event event) {
-  }
+  public void handleShowScatterPlot(Event event) {}
 
-  public void handleRenameFeatureList(Event event) {
-  }
+  public void handleRenameFeatureList(Event event) {}
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
@@ -674,7 +667,7 @@ public class MainWindowController {
           if (((MZmineTab) tab).getRawDataFiles() != null && (!((MZmineTab) tab).getRawDataFiles()
               .containsAll(rawDataTree.getSelectionModel().getSelectedItems())
               || ((MZmineTab) tab).getRawDataFiles().size() != rawDataTree.getSelectionModel()
-              .getSelectedItems().size())) {
+                  .getSelectedItems().size())) {
             ((MZmineTab) tab)
                 .onRawDataFileSelectionChanged(rawDataTree.getSelectionModel().getSelectedItems());
           }
@@ -702,9 +695,8 @@ public class MainWindowController {
     // Creating new popup window
     Stage popup = new Stage();
     VBox box = new VBox(5);
-    Label label =
-        new Label("Please choose a color for \""
-            + getRawDataTree().getSelectionModel().getSelectedItem().getName() + "\":");
+    Label label = new Label("Please choose a color for \""
+        + getRawDataTree().getSelectionModel().getSelectedItem().getName() + "\":");
     ColorPicker picker =
         new ColorPicker(getRawDataTree().getSelectionModel().getSelectedItem().getColor());
 

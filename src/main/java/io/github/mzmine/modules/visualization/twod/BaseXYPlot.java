@@ -112,4 +112,9 @@ public class BaseXYPlot extends XYPlot {
     datasetChanged(new DatasetChangeEvent(dataset, dataset));
   }
 
+  public void setDataset(TwoDDataSet dataset) {
+    this.dataset = dataset;
+    setDataset(0, dataset);
+  }
+
 }

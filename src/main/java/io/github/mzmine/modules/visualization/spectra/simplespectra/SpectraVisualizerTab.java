@@ -18,14 +18,21 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
+import java.awt.Paint;
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.*;
+import javafx.scene.control.Tab;
+import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -51,17 +58,14 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ToolBar;
@@ -69,13 +73,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizerWindow extends Stage {
+public class SpectraVisualizerTab extends MZmineTab {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -111,7 +113,7 @@ public class SpectraVisualizerWindow extends Stage {
   public static Color detectedIsotopesColor = Color.magenta;
   public static Color predictedIsotopesColor = Color.green;
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final Button centroidContinuousButton, dataPointsButton, annotationsButton,
@@ -122,6 +124,7 @@ public class SpectraVisualizerWindow extends Stage {
 
   private RawDataFile dataFile;
   private String massList;
+  private final int scanNumber;
 
   // Currently loaded scan
   private Scan currentScan;
@@ -137,18 +140,21 @@ public class SpectraVisualizerWindow extends Stage {
   private boolean dppmWindowOpen;
 
   private static final double zoomCoefficient = 1.2f;
+  private Color dataFileColor;
 
-  public SpectraVisualizerWindow(RawDataFile dataFile, String massList, boolean enableProcessing) {
-
-    setTitle("Spectrum loading...");
+  public SpectraVisualizerTab(RawDataFile dataFile, int scanNumber, String massList, boolean enableProcessing) {
+    super("Spectra visualizer", true, false);
+    //setTitle("Spectrum loading...");
     this.dataFile = dataFile;
     this.massList = massList;
+    this.scanNumber = scanNumber;
+    dataFileColor = dataFile.getColorAWT();
 
     loadColorSettings();
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
-    setScene(mainScene);
+    //mainScene = new Scene(mainPane);
+    //setScene(mainScene);
 
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     // setBackground(Color.white);
@@ -193,7 +199,7 @@ public class SpectraVisualizerWindow extends Stage {
     axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(this, spectrumPlot.getXYPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), spectrumPlot.getXYPlot());
       dialog.show();
     });
 
@@ -251,6 +257,7 @@ public class SpectraVisualizerWindow extends Stage {
 
     bottomPanel = new SpectraBottomPanel(this, dataFile);
     mainPane.setBottom(bottomPanel);
+    setContent(mainPane);
 
     // MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
@@ -262,21 +269,21 @@ public class SpectraVisualizerWindow extends Stage {
     // pack();
 
     // get the window settings parameter
-    paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
-    WindowSettingsParameter settings =
-        paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
+    //paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+    //WindowSettingsParameter settings =
+    //    paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
+    //settings.applySettingsToWindow(this);
 
     dppmWindowOpen = false;
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
   }
 
-  public SpectraVisualizerWindow(RawDataFile dataFile) {
-    this(dataFile, null, false);
+  public SpectraVisualizerTab(RawDataFile dataFile) {
+    this(dataFile, 1, null, false);
   }
 
   private void loadColorSettings() {
@@ -374,13 +381,14 @@ public class SpectraVisualizerWindow extends Stage {
     final String finalSpectrumSubtitle = spectrumSubtitle;
 
     Platform.runLater(() -> {
-      setTitle(windowTitle);
+      //setTitle(windowTitle);
       spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
       // Set plot data set
       spectrumPlot.removeAllDataSets();
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
       spectrumPlot.addDataSet(massListDataSet, massListColor, false);
+      spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
     });
 
   }
@@ -394,7 +402,7 @@ public class SpectraVisualizerWindow extends Stage {
     }
 
     logger.finest(
-        "Loading a feature list " + selectedPeakList + " to a spectrum window " + getTitle());
+        "Loading a feature list " + selectedPeakList + " to a spectrum window"/* + getTitle()*/);
 
     PeakListDataSet peaksDataSet =
         new PeakListDataSet(dataFile, currentScan.getScanNumber(), selectedPeakList);
@@ -545,11 +553,11 @@ public class SpectraVisualizerWindow extends Stage {
       double yMax = yAxis.getRange().getUpperBound();
       double yTick = yAxis.getTickUnit().getSize();
 
-      for (Window frame : Stage.getWindows()) {
-        if (!(frame instanceof SpectraVisualizerWindow))
+      for (Tab tab : getTabPane().getTabs()) {
+        if (!(tab instanceof SpectraVisualizerTab))
           continue;
-        SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
-        spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+        SpectraVisualizerTab spectraTab = (SpectraVisualizerTab) tab;
+        spectraTab.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
       }
 
     }
@@ -603,4 +611,60 @@ public class SpectraVisualizerWindow extends Stage {
     spectrumPlot.addDataSet(dataset, color, true);
   }
 
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Collections.singletonList(dataFile));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    // add new scan
+    Scan newScan = newFile.getScan(scanNumber);
+    if(newScan == null) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+      return;
+    }
+
+    dataFileColor = newFile.getColorAWT();
+
+    loadRawData(newScan);
+
+    dataFile = newFile;
+    currentScan = newScan;
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
+  }
 }

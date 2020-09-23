@@ -57,44 +57,44 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
     String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
 
-    showNewSpectrumWindow(dataFiles[0], scanNumber, massList);
+    addNewSpectrumTab(dataFiles[0], scanNumber, massList);
 
     return ExitCode.OK;
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
       int scanNumber) {
-    return showNewSpectrumWindow(dataFile, scanNumber, null, null, null, null);
+    return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
       int scanNumber, String massList) {
-    return showNewSpectrumWindow(dataFile, scanNumber, null, null, null, null, massList);
+    return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null, massList);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       Feature peak) {
-    return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null, null);
+    return addNewSpectrumTab(dataFile, scanNumber, peak, null, null, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       IsotopePattern detectedPattern) {
-    return showNewSpectrumWindow(dataFile, scanNumber, null, detectedPattern, null, null);
+    return addNewSpectrumTab(dataFile, scanNumber, null, detectedPattern, null, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
-    return showNewSpectrumWindow(dataFile, scanNumber, peak, detectedPattern, predictedPattern,
+    return addNewSpectrumTab(dataFile, scanNumber, peak, detectedPattern, predictedPattern,
         null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum){
-    return showNewSpectrumWindow(dataFile, scanNumber, peak, detectedPattern, predictedPattern, spectrum, null);
+    return addNewSpectrumTab(dataFile, scanNumber, peak, detectedPattern, predictedPattern, spectrum, null);
   }
 
-  public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, int scanNumber,
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
       IsotopePattern spectrum, String massList) {
 
@@ -120,24 +120,25 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       }
     }
 
-    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, massList, true);
-    newWindow.loadRawData(scan);
+    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scanNumber, massList, true);
+    newTab.loadRawData(scan);
 
     if (peak != null)
-      newWindow.loadSinglePeak(peak);
+      newTab.loadSinglePeak(peak);
 
     if (detectedPattern != null)
-      newWindow.loadIsotopes(detectedPattern);
+      newTab.loadIsotopes(detectedPattern);
 
     if (predictedPattern != null)
-      newWindow.loadIsotopes(predictedPattern);
+      newTab.loadIsotopes(predictedPattern);
 
     if (spectrum != null)
-      newWindow.loadSpectrum(spectrum);
+      newTab.loadSpectrum(spectrum);
 
-    newWindow.show();
+    //newWindow.show();
+    MZmineCore.getDesktop().addTab(newTab);
 
-    return newWindow;
+    return newTab;
 
   }
 

@@ -58,9 +58,10 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
     RawDataFile dataFiles[] =
         parameters.getParameter(MsMsParameters.dataFiles).getValue().getMatchingRawDataFiles();
 
-    MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFiles[0], parameters);
+    MsMsVisualizerTab newTab = new MsMsVisualizerTab(dataFiles[0], parameters);
 
-    newWindow.show();
+    //newWindow.show();
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }
@@ -100,9 +101,9 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
       return;
     }
 
-    MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFile, parameters);
+    MsMsVisualizerTab newTab = new MsMsVisualizerTab(dataFile, parameters);
 
-    newWindow.show();
+    MZmineCore.getDesktop().addTab(newTab);
 
   }
 

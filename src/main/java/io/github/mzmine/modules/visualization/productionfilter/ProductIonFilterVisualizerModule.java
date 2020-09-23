@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.productionfilter;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -59,9 +60,9 @@ public class ProductIonFilterVisualizerModule implements MZmineRunnableModule {
     RawDataFile dataFiles[] = parameters.getParameter(ProductIonFilterParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
 
-    ProductIonFilterVisualizerWindow newWindow =
-        new ProductIonFilterVisualizerWindow(dataFiles[0], parameters);
-    newWindow.show();
+    ProductIonFilterVisualizerTab newTab =
+        new ProductIonFilterVisualizerTab(dataFiles[0], parameters);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }

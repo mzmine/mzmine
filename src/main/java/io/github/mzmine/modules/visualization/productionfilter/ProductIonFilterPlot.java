@@ -55,7 +55,7 @@ class ProductIonFilterPlot extends EChartViewer {
 
   private boolean showSpectrumRequest = false;
 
-  private ProductIonFilterVisualizerWindow visualizer;
+  private ProductIonFilterVisualizerTab visualizer;
 
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
@@ -82,7 +82,7 @@ class ProductIonFilterPlot extends EChartViewer {
   private Range<Double> highlightedNeutralLossRange = Range.singleton(Double.NEGATIVE_INFINITY);
 
 
-  public ProductIonFilterPlot(ProductIonFilterVisualizerWindow visualizer) {
+  public ProductIonFilterPlot(ProductIonFilterVisualizerTab visualizer) {
     super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
         false), true, true, false, false, true);
     resetZoomHistory();
@@ -165,7 +165,7 @@ class ProductIonFilterPlot extends EChartViewer {
     ProductIonFilterDataPoint pos = dataset.getDataPoint(xValue, yValue);
     RawDataFile dataFile = visualizer.getDataFile();
     if (pos != null) {
-      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
+      SpectraVisualizerModule.addNewSpectrumTab(dataFile, pos.getScanNumber());
     }
 
     resetZoomHistory();
@@ -212,11 +212,12 @@ class ProductIonFilterPlot extends EChartViewer {
 
   public void setMenuItems() {
     final ContextMenu popupMenu = getContextMenu();
+    assert MZmineCore.getDesktop() != null;
 
     MenuItem highlightPrecursorMenuItem = new MenuItem("Highlight precursor m/z range...");
     highlightPrecursorMenuItem.setOnAction(event -> {
       ProductIonFilterSetHighlightDialog dialog =
-          new ProductIonFilterSetHighlightDialog(visualizer, this, "HIGHLIGHT_PRECURSOR");
+          new ProductIonFilterSetHighlightDialog(MZmineCore.getDesktop().getMainWindow(), this, "HIGHLIGHT_PRECURSOR");
       dialog.show();
     });
     popupMenu.getItems().add(highlightPrecursorMenuItem);
@@ -224,7 +225,7 @@ class ProductIonFilterPlot extends EChartViewer {
     MenuItem highlightNLMenuItem = new MenuItem("Highlight neutral loss m/z range...");
     highlightNLMenuItem.setOnAction(event -> {
       ProductIonFilterSetHighlightDialog dialog =
-          new ProductIonFilterSetHighlightDialog(visualizer, this, "HIGHLIGHT_NEUTRALLOSS");
+          new ProductIonFilterSetHighlightDialog(MZmineCore.getDesktop().getMainWindow(), this, "HIGHLIGHT_NEUTRALLOSS");
       dialog.show();
     });
     popupMenu.getItems().add(highlightNLMenuItem);
