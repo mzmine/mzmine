@@ -57,7 +57,7 @@ class Fx3DSamplingTask extends AbstractTask {
   // maximum value on Z axis
   private double maxBinnedIntensity;
 
-  private Fx3DStageController controller;
+  private Fx3DBorderPaneController controller;
   private static final Color[] PEAK_COLORS = {Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW,
       Color.DARKORANGE, Color.CYAN, Color.FUCHSIA, Color.GOLD, Color.AQUA, Color.BROWN,
       Color.CHARTREUSE, Color.CRIMSON, Color.DARKBLUE, Color.DARKMAGENTA};
@@ -70,7 +70,7 @@ class Fx3DSamplingTask extends AbstractTask {
    * @param visualizer
    */
   Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel, Range<Double> mzRange,
-      int rtResolution, int mzResolution, Fx3DStageController controller) {
+      int rtResolution, int mzResolution, Fx3DBorderPaneController controller) {
 
     this.dataFile = dataFile;
     this.scans = scanSel.getMatchingScans(dataFile);

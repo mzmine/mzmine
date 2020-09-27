@@ -18,11 +18,28 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
+import com.google.common.collect.Range;
+import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -30,6 +47,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.XYPlot;
@@ -40,49 +58,81 @@ import org.jfree.data.xy.XYDataset;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class HistogramDialog extends Stage implements ActionListener {
+public class HistogramTab extends MZmineTab implements ActionListener {
 
   private CheckBox cbKeepSameXaxis;
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
 
   protected HistogramPanel histo;
+
+  private RawDataFile dataFile;
+
+  // scan counter
+  private int processedScans, totalScans;
+
+  // parameters
+  private ScanSelection scanSelection;
+  private Scan[] scans;
+  private String massListName;
+  private Range<Double> mzRange;
+  private Range<Double> rtRange;
+  private Boolean useRTRange;
+  private double binWidth;
+
+  private HistogramData data;
 
   /**
    * Create the dialog. Auto detect binWidth
    *
    * @wbp.parser.constructor
    */
-  public HistogramDialog(String title, String xLabel, HistogramData data) {
-    this(title, xLabel, data, 0);
-  }
+  //public HistogramTab(RawDataFile dataFile, String title, String xLabel, HistogramData data) {
+  //  this(dataFile, title, xLabel, data, 0);
+  //}
 
   /**
-   * @param title
-   * @param data
-   * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
+   * @param dataFile rawDataFile
+   * @param title title
+   * @param xLabel xLabel
+   * @param parameters parameters
    */
-  public HistogramDialog(String title, String xLabel, HistogramData data, double binWidth) {
-    setTitle(title);
+  public HistogramTab(RawDataFile dataFile, String title, String xLabel, ParameterSet parameters) {
+    super(title, true, false);
+    //setTitle(title);
+
+    this.dataFile = dataFile;
+    scanSelection = parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
+    massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
+
+    mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
+    useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
+    if (useRTRange)
+      rtRange = parameters.getParameter(MZDistributionHistoParameters.rtRange)
+          .getEmbeddedParameter().getValue();
+    binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
+
+    data = buildHistogramData(dataFile);
 
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     histo = new HistogramPanel(xLabel, data, binWidth);
 
-    setMinWidth(1050);
-    setMinHeight(700);
-    setScene(mainScene);
+    //setMinWidth(1050);
+    //setMinHeight(700);
+    //setScene(mainScene);
+    setContent(mainPane);
 
     mainPane.setCenter(histo);
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
-    addKeyBindings();
+    //WindowsMenu.addWindowsMenu(mainScene);
+    //addKeyBindings();
   }
 
   private void addKeyBindings() {
@@ -100,6 +150,47 @@ public class HistogramDialog extends Stage implements ActionListener {
     btnNext.setTooltip(new Tooltip("Jump to previous distribution (use right arrow"));
     btnNext.setOnAction(e -> jumpToNextPeak());
     pnJump.getChildren().add(btnNext);
+  }
+
+  private HistogramData buildHistogramData(RawDataFile dataFile) {
+    logger.info("Starting to build mz distribution histogram for " + dataFile);
+
+    // all selected scans
+    scans = scanSelection.getMatchingScans(dataFile);
+    totalScans = scans.length;
+
+    // histo data
+    DoubleArrayList data = new DoubleArrayList();
+
+    for (Scan scan : scans) {
+
+      // retention time in range
+      if (!useRTRange || rtRange.contains(scan.getRetentionTime())) {
+        // go through all mass lists
+        MassList massList = scan.getMassList(massListName);
+        if (massList == null) {
+          throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
+              + " does not have a mass list " + massListName);
+        }
+        DataPoint mzValues[] = massList.getDataPoints();
+
+        // insert all mz in order and count them
+        Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
+            .forEach(mz -> data.add(mz));
+        processedScans++;
+      }
+    }
+
+    double[] dataArray = new double[data.size()];
+    if (!data.isEmpty()) {
+      // to array
+      for (int i = 0; i < data.size(); i++)
+        dataArray[i] = data.get(i);
+    } else {
+      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
+    }
+
+    return new HistogramData(dataArray);
   }
 
   @Override
@@ -258,5 +349,61 @@ public class HistogramDialog extends Stage implements ActionListener {
 
   public HistogramPanel getHistoPanel() {
     return histo;
+  }
+
+  public int getTotalScans() {
+    return totalScans;
+  }
+
+  public int getProcessedScans() {
+    return processedScans;
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Collections.singletonList(dataFile));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    HistogramData newData = buildHistogramData(newFile);
+    histo.setData(newData, binWidth);
+
+    dataFile = newFile;
+    data = newData;
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 }

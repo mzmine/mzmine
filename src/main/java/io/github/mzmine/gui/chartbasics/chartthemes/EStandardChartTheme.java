@@ -18,8 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
-import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -34,6 +32,7 @@ import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
@@ -41,6 +40,8 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.util.MirrorChartFactory;
 
 /**
  * More options for the StandardChartTheme
@@ -58,7 +59,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
-          BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5.0F, 3.0F}, 0.0F);
 
   // not final because we want themes without offsets for the export.
   private RectangleInsets DEFAULT_AXIS_OFFSET = new RectangleInsets(4, 4, 4, 4);
@@ -121,9 +122,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   public void setAll(boolean antiAlias, boolean showTitle, boolean noBG, Color cBG, Color cPlotBG,
-                     boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
-                     Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
-                     Color cTitle) {
+      boolean showXGrid, boolean showYGrid, boolean showXAxis, boolean showYAxis, Font fMaster,
+      Color cMaster, Font fAxesT, Color cAxesT, Font fAxesL, Color cAxesL, Font fTitle,
+      Color cTitle) {
     this.setAntiAliased(antiAlias);
     this.setShowTitle(showTitle);
     this.setNoBackground(noBG);
@@ -153,7 +154,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     assert chart != null;
 
     super.apply(chart);
-    XYPlot p = chart.getXYPlot();
+    Plot p = chart.getPlot();
 
     // Cross hair and axis visibility colors
     applyToCrosshair(chart);
@@ -174,25 +175,34 @@ public class EStandardChartTheme extends StandardChartTheme {
 
 
   public void applyToCrosshair(@Nonnull JFreeChart chart) {
-    XYPlot p = chart.getXYPlot();
-    p.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
-    p.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
-    p.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
-    p.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
-    p.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
-    p.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+    Plot p = chart.getPlot();
+    if (p instanceof XYPlot) {
+      XYPlot xyp = (XYPlot) p;
+      xyp.setDomainCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+      xyp.setRangeCrosshairPaint(DEFAULT_CROSS_HAIR_COLOR);
+      xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+      xyp.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
+      xyp.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+      xyp.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
+    }
   }
 
   public void applyToAxes(@Nonnull JFreeChart chart) {
-    XYPlot p = chart.getXYPlot();
-    Axis domainAxis = p.getDomainAxis();
-    Axis rangeAxis = p.getRangeAxis();
+    Plot p = chart.getPlot();
 
-    p.setRangeGridlinesVisible(isShowYGrid());
-    p.setRangeGridlinePaint(getClrYGrid());
-    p.setDomainGridlinesVisible(isShowXGrid());
-    p.setDomainGridlinePaint(getClrXGrid());
-    p.setAxisOffset(DEFAULT_AXIS_OFFSET);
+    // Only apply to XYPlot
+    if (!(p instanceof XYPlot))
+      return;
+
+    XYPlot xyp = (XYPlot) p;
+    Axis domainAxis = xyp.getDomainAxis();
+    Axis rangeAxis = xyp.getRangeAxis();
+
+    xyp.setRangeGridlinesVisible(isShowYGrid());
+    xyp.setRangeGridlinePaint(getClrYGrid());
+    xyp.setDomainGridlinesVisible(isShowXGrid());
+    xyp.setDomainGridlinePaint(getClrXGrid());
+    xyp.setAxisOffset(DEFAULT_AXIS_OFFSET);
 
     // only apply labels to the main axes
     if (domainAxis != null && isUseXLabel()) {
@@ -203,8 +213,8 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
 
     // all axes
-    for (int i = 0; i < p.getDomainAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) p.getDomainAxis(i);
+    for (int i = 0; i < xyp.getDomainAxisCount(); i++) {
+      NumberAxis a = (NumberAxis) xyp.getDomainAxis(i);
       if (a == null) {
         continue;
       }
@@ -213,8 +223,8 @@ public class EStandardChartTheme extends StandardChartTheme {
       // visible?
       a.setVisible(showXAxis);
     }
-    for (int i = 0; i < p.getRangeAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) p.getRangeAxis(i);
+    for (int i = 0; i < xyp.getRangeAxisCount(); i++) {
+      NumberAxis a = (NumberAxis) xyp.getRangeAxis(i);
       if (a == null) {
         continue;
       }
@@ -257,7 +267,7 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void applyToTitles(@Nonnull JFreeChart chart) {
     TextTitle title = chart.getTitle();
-    if(title != null) {
+    if (title != null) {
       title.setVisible(isShowTitle());
       if (isChangeTitle()) {
         title.setText(getTitle());
@@ -266,17 +276,17 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     chart.getSubtitles().forEach(s -> {
       if (s != chart.getTitle() && s instanceof TextTitle) {
-        TextTitle textTitle = (TextTitle)s;
-//        ((TextTitle) s).setFont(getRegularFont());
-//        ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
+        TextTitle textTitle = (TextTitle) s;
+        // ((TextTitle) s).setFont(getRegularFont());
+        // ((TextTitle) s).setMargin(TITLE_TOP_MARGIN, 0d, 0d, 0d);
         textTitle.setVisible(isShowSubtitles());
-//        ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
-//        subtitle color is set by the chart theme parameters
+        // ((TextTitle) s).setPaint(subtitleFontColor); // should be set by the theme itself.
+        // subtitle color is set by the chart theme parameters
 
-//        if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
-//          ((PaintScaleLegend) s)
-//              .setBackgroundPaint(this.getChartBackgroundPaint());
-//        }
+        // if (PaintScaleLegend.class.isAssignableFrom(s.getClass())) {
+        // ((PaintScaleLegend) s)
+        // .setBackgroundPaint(this.getChartBackgroundPaint());
+        // }
       }
       if (s instanceof LegendTitle) {
         LegendTitle legendTitle = (LegendTitle) s;
@@ -294,9 +304,9 @@ public class EStandardChartTheme extends StandardChartTheme {
     Color cchart = ((Color) this.getChartBackgroundPaint());
     this.setPlotBackgroundPaint(new Color(c.getRed(), c.getGreen(), c.getBlue(), state ? 0 : 255));
     this.setChartBackgroundPaint(
-            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
     this.setLegendBackgroundPaint(
-            new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+        new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
   }
 
 
@@ -307,7 +317,7 @@ public class EStandardChartTheme extends StandardChartTheme {
    * @param chart The chart.
    */
   public static void fixLegend(JFreeChart chart) {
-    XYPlot plot = chart.getXYPlot();
+    Plot plot = chart.getPlot();
     LegendTitle oldLegend = chart.getLegend();
     if (oldLegend == null) {
       return;
@@ -318,12 +328,10 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     LegendTitle newLegend;
 
-    if (plot instanceof CombinedDomainXYPlot
-            && (
-            oldLegend.getSources()[0].getLegendItems().getItemCount() == MirrorChartFactory.tags.length
-                    ||
-                    oldLegend.getSources()[0].getLegendItems().getItemCount()
-                            == MirrorChartFactory.tags.length * 2)) {
+    if (plot instanceof CombinedDomainXYPlot && (oldLegend.getSources()[0].getLegendItems()
+        .getItemCount() == MirrorChartFactory.tags.length
+        || oldLegend.getSources()[0].getLegendItems()
+            .getItemCount() == MirrorChartFactory.tags.length * 2)) {
 
       newLegend = MirrorChartFactory.createLibraryMatchingLegend((CombinedDomainXYPlot) plot);
     } else {

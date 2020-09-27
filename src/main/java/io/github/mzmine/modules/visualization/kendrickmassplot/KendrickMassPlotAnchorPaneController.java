@@ -41,7 +41,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
-public class KendrickMassPlotWindowController {
+public class KendrickMassPlotAnchorPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -973,6 +973,10 @@ public class KendrickMassPlotWindowController {
     shiftLabelZAxis.setText(shiftFormat.format(zAxisShift));
     chargeLabelZAxis.setText(Integer.toString(zAxisCharge));
     divisorLabelZAxis.setText(Integer.toString(zAxisDivisor));
+  }
+
+  public PeakList getFeatureList() {
+    return featureList;
   }
 
 }

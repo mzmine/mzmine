@@ -51,10 +51,10 @@ public class ScatterPlotBottomPanel extends GridPane {
       {"2", "4", "5", "8", "10", "15", "20", "50", "100", "200", "1000"};
 
   private PeakList peakList;
-  private ScatterPlotWindow window;
+  private ScatterPlotTab window;
   private ScatterPlotChart chart;
 
-  public ScatterPlotBottomPanel(ScatterPlotWindow window, ScatterPlotChart chart,
+  public ScatterPlotBottomPanel(ScatterPlotTab window, ScatterPlotChart chart,
       PeakList peakList) {
 
     this.window = window;

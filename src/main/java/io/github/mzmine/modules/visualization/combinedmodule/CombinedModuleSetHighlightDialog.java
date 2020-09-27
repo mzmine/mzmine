@@ -34,6 +34,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.converter.NumberStringConverter;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.ValueAxis;
@@ -59,7 +60,7 @@ public class CombinedModuleSetHighlightDialog extends Stage {
 
   private CombinedModulePlot plot;
 
-  public CombinedModuleSetHighlightDialog(@Nonnull Stage parent, @Nonnull CombinedModulePlot plot,
+  public CombinedModuleSetHighlightDialog(@Nonnull Window parent, @Nonnull CombinedModulePlot plot,
       @Nonnull String command) {
 
     desktop = MZmineCore.getDesktop();

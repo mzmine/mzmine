@@ -68,7 +68,7 @@ class TwoDPlot extends EChartViewer {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer, TwoDDataSet dataset,
+  TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerTab visualizer, TwoDDataSet dataset,
       Range<Double> rtRange, Range<Double> mzRange, String whichPlotTypeStr) {
 
     super(null);
@@ -213,5 +213,9 @@ class TwoDPlot extends EChartViewer {
     if (plot != null) {
       plot.setLogScale(logscale);
     }
+  }
+
+  public void addTwoDDataSet(TwoDDataSet dataset) {
+    plot.setDataset(dataset);
   }
 }

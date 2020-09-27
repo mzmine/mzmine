@@ -20,6 +20,8 @@ package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.parameters.Parameter;
@@ -31,11 +33,15 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import java.awt.Color;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -47,13 +53,14 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javax.annotation.Nonnull;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 
 /**
  * MS/MS visualizer using JFreeChart library
  */
-public class MsMsVisualizerWindow extends Stage {
+public class MsMsVisualizerTab extends MZmineTab {
 
   private static final Image axesIcon = FxIconUtil.loadImageFromResources("icons/axesicon.png");
   private static final Image dataPointsIcon =
@@ -64,7 +71,7 @@ public class MsMsVisualizerWindow extends Stage {
       FxIconUtil.loadImageFromResources("icons/notooltips2dploticon.png");
   private static final Image findIcon = FxIconUtil.loadImageFromResources("icons/search.png");
 
-  private final Scene mainScene;
+  //private final Scene mainScene;
   private final BorderPane mainPane;
   private final ToolBar toolBar;
   private final Button toggleContinuousModeButton, findButton;
@@ -74,21 +81,28 @@ public class MsMsVisualizerWindow extends Stage {
   private MsMsDataSet dataset;
   private RawDataFile dataFile;
 
-  public MsMsVisualizerWindow(RawDataFile dataFile, ParameterSet parameters) {
-    Range<Double> rtRange = parameters.getParameter(MsMsParameters.retentionTimeRange).getValue();
-    Range<Double> mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
-    final IntensityType intensityType =
-        parameters.getParameter(MsMsParameters.intensityType).getValue();
-    final NormalizationType normalizationType =
-        parameters.getParameter(MsMsParameters.normalizationType).getValue();
-    Double minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt).getValue();
+  // parameters
+  private Range<Double> rtRange;
+  private Range<Double> mzRange;
+  private IntensityType intensityType;
+  private NormalizationType normalizationType;
+  private Double minPeakInt;
+
+  public MsMsVisualizerTab(RawDataFile dataFile, ParameterSet parameters) {
+    super("Ms/Ms Visualizer module", true, false);
+
+    rtRange = parameters.getParameter(MsMsParameters.retentionTimeRange).getValue();
+    mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
+    intensityType = parameters.getParameter(MsMsParameters.intensityType).getValue();
+    normalizationType = parameters.getParameter(MsMsParameters.normalizationType).getValue();
+    minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt).getValue();
     mainPane = new BorderPane();
-    mainScene = new Scene(mainPane);
+    //mainScene = new Scene(mainPane);
 
     // Use main CSS
-    mainScene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-    setScene(mainScene);
+    //mainScene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //setScene(mainScene);
 
     this.dataFile = dataFile;
 
@@ -188,18 +202,19 @@ public class MsMsVisualizerWindow extends Stage {
     bottomPanel.setPadding(new Insets(10));
     mainPane.setBottom(bottomPanel);
 
+    setContent(mainPane);
     updateTitle();
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(mainScene);
+    //WindowsMenu.addWindowsMenu(mainScene);
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
-    WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
+    //ParameterSet paramSet =
+    //    MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
+    //WindowSettingsParameter settings = paramSet.getParameter(MsMsParameters.windowSettings);
 
     // update the window and listen for changes
-    settings.applySettingsToWindow(this);
+    //settings.applySettingsToWindow(this);
     // this.addComponentListener(settings);
   }
 
@@ -233,5 +248,61 @@ public class MsMsVisualizerWindow extends Stage {
 
   MsMsPlot getPlot() {
     return IDAPlot;
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends RawDataFile> getRawDataFiles() {
+    return new ArrayList<>(Collections.singletonList(dataFile));
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    // get first raw data file
+    RawDataFile newFile = rawDataFiles.iterator().next();
+    if (dataFile.equals(newFile)) {
+      return;
+    }
+
+    // remove old dataset
+    IDAPlot.getXYPlot().setDataset(
+        IDAPlot.getXYPlot().indexOf(dataset),null);
+
+    // add new dataset
+    MsMsDataSet newDataset = new MsMsDataSet(newFile, rtRange, mzRange, intensityType,
+        normalizationType, minPeakInt, this);
+    IDAPlot.addMsMsDataSet(newDataset);
+
+    dataFile = newFile;
+    dataset = newDataset;
+
+    updateTitle();
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      Collection<? extends ModularFeatureList> featurelists) {
+
   }
 }

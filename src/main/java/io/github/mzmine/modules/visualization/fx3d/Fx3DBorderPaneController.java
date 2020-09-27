@@ -18,11 +18,15 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.fxml.FXMLLoader;
+import javax.annotation.Nonnull;
 import org.controlsfx.glyphfont.Glyph;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Feature;
@@ -34,7 +38,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import io.github.mzmine.util.components.SliderCell;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -48,7 +51,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
-import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -67,19 +69,18 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 /**
  * @author akshaj The controller class of the Fx3DVisualizer which handles all user actions and
  *         shows the plot along with the table.
  */
-public class Fx3DStageController {
+public class Fx3DBorderPaneController {
 
-  @FXML
-  private Stage stage;
-  @FXML
-  private Scene scene;
+  //@FXML
+  //private Stage stage;
+  //@FXML
+  //private Scene scene;
   @FXML
   private HBox hBox;
   @FXML
@@ -163,11 +164,11 @@ public class Fx3DStageController {
   private PointLight back;
   private int axesPosition = 0;
 
+  @FXML
   public void initialize() {
-
     // Use main CSS
-    scene.getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    //scene.getStylesheets()
+    //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     rotateX.setPivotZ(SIZE / 2);
     rotateX.setPivotX(SIZE / 2);
@@ -208,8 +209,7 @@ public class Fx3DStageController {
     scene3D.setPickOnBounds(true);
 
     // Add the Windows menu
-    WindowsMenu.addWindowsMenu(scene);
-
+    //WindowsMenu.addWindowsMenu(scene);
   }
 
   private void addLights() {
@@ -319,6 +319,32 @@ public class Fx3DStageController {
     });
   }
 
+  @Nonnull
+  public List<Object> getVisualizedFiles() {
+    return visualizedFiles;
+  }
+
+  public void updateVisualizedFiles(Collection<? extends RawDataFile> rawDataFiles) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
+      return;
+    }
+
+    for(RawDataFile file : allDataFiles) {
+      if(rawDataFiles.contains(file)) {
+        if (!visualizedFiles.contains(file)) {
+          MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(file, scanSel, mzRange,
+              rtResolution, mzResolution, this), TaskPriority.HIGH);
+        }
+      } else {
+        visualizedFiles.remove(file);
+        visualizedMeshPlots.removeIf(dataset -> file.equals(dataset.getDataFile()));
+      }
+    }
+
+    updateGraph();
+    addMenuItems();
+  }
+
   class SortByOpacity implements Comparator<Node> {
     @Override
     public int compare(Node a, Node b) {
@@ -366,7 +392,7 @@ public class Fx3DStageController {
       if (!visualizedFiles.contains(file)) {
         MenuItem menuItem = new MenuItem(file.getName());
         addDatafileMenu.getItems().add(menuItem);
-        final Fx3DStageController controller = this;
+        final Fx3DBorderPaneController controller = this;
         menuItem.setOnAction(new EventHandler<ActionEvent>() {
           @Override
           public void handle(ActionEvent e) {
@@ -416,7 +442,6 @@ public class Fx3DStageController {
       }
 
     }
-
   }
 
   private void updateLabel() {
@@ -424,7 +449,7 @@ public class Fx3DStageController {
     for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
       title = title + dataset.getFileName() + " ";
     }
-    stage.setTitle(title);
+    //stage.setTitle(title);
     title = "3D plot of files [" + title + "], " + mzRange.lowerEndpoint().toString() + "-"
         + mzRange.upperEndpoint().toString() + " m/z, RT "
         + (float) (Math.round(rtRange.lowerEndpoint() * 100.0) / 100.0) + "-"

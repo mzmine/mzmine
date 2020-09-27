@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,7 +66,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerWindow.scanColor, false);
+    spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerTab.scanColor, false);
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
@@ -78,7 +78,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
     DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks", mzValues);
 
-    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerWindow.peaksColor, false);
+    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false);
 
   }
 

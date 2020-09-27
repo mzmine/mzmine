@@ -40,7 +40,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
 
   private RawDataFile rawDataFile;
   private Range<Double> totalRTRange, totalMZRange;
-  private CombinedModuleVisualizerWindowController visualizer;
+  private CombinedModuleVisualizerTabController visualizer;
   private TaskStatus status = TaskStatus.WAITING;
   private int processedScans, scanNumbers[];
   private HashMap<Integer, Vector<CombinedModuleDataPoint>> dataSeries;
@@ -54,7 +54,7 @@ public class CombinedModuleDataset extends AbstractXYDataset implements Task, XY
   private static int NEUTRALLOSS_LEVEL = 2;
 
   public CombinedModuleDataset(RawDataFile dataFile, Range<Double> rtRange, Range<Double> mzRange,
-      CombinedModuleVisualizerWindowController visualizer, AxisType xAxisType, AxisType yAxisType,
+      CombinedModuleVisualizerTabController visualizer, AxisType xAxisType, AxisType yAxisType,
       Double noiseLevel, ColorScale colorScale, String massList) {
     this.rawDataFile = dataFile;
     this.totalMZRange = mzRange;

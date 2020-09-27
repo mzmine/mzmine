@@ -22,7 +22,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -56,7 +55,7 @@ class MsMsPlot extends EChartViewer  {
   private static final double ZOOM_FACTOR = 1.2;
 
   // VisualizerWindow visualizer.
-  private final MsMsVisualizerWindow visualizer;
+  private final MsMsVisualizerTab visualizer;
 
   private PeakDataRenderer peakDataRenderer;
 
@@ -83,7 +82,7 @@ class MsMsPlot extends EChartViewer  {
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-  MsMsPlot(RawDataFile rawDataFile, MsMsVisualizerWindow visualizer, MsMsDataSet dataset,
+  MsMsPlot(RawDataFile rawDataFile, MsMsVisualizerTab visualizer, MsMsDataSet dataset,
       Range<Double> rtRange, Range<Double> mzRange) {
 
     super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
@@ -201,5 +200,10 @@ class MsMsPlot extends EChartViewer  {
     } else {
       getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
     }
+  }
+
+  public void addMsMsDataSet(MsMsDataSet dataset) {
+    plot.setDataset(dataset);
+    plot.setRenderer(mainRenderer);
   }
 }

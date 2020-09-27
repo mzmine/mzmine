@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.stage.Stage?>
 <?import javafx.scene.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.* ?>
@@ -13,11 +12,8 @@
 <?import io.github.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
 
-<Stage fx:id="stage" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.fx3d.Fx3DStageController">
-   <scene>
-       <Scene fx:id="scene">
-           <root>
-				<BorderPane fx:id="root"  minWidth="800" minHeight="600">
+
+<BorderPane fx:id="root"  minWidth="800" minHeight="600" xmlns:fx="http://javafx.com/fxml" fx:controller="io.github.mzmine.modules.visualization.fx3d.Fx3DBorderPaneController">
 				   <center>
 				   <SplitPane dividerPositions="0.8058" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
 				        <items>
@@ -59,7 +55,7 @@
 																</graphic>
 															</Menu>
 														</items>
-													</ContextMenu>     
+													</ContextMenu>
 												</contextMenu>
 										        <columns>
 										          <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" style="-fx-alignment: CENTER" >
@@ -128,7 +124,6 @@
 				                   <Tooltip text="Lights ON/OFF" />
 				               </tooltip>
 				            </ToggleButton>
-				            
 				          </items>
 				      </ToolBar>
 				   </right>
@@ -142,7 +137,3 @@
 					</HBox>
 				   </top>
 				</BorderPane>
-            </root>
-       </Scene>
-   </scene>
-</Stage>

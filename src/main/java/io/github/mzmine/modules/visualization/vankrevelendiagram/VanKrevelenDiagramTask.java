@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
@@ -91,8 +92,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private int featuresWithoutFormula;
   private int featuresWithFormulasWithoutCHO;
   private int totalSteps = 3, appliedSteps = 0;
+  private ParameterSet parameters;
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
+    this.parameters = parameters;
     peakList = parameters.getParameter(VanKrevelenDiagramParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
     zAxisLabel =
@@ -181,34 +184,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         }
       });
 
-      // Create Van Krevelen Diagram window
+      // Create Van Krevelen Diagram tab
       Platform.runLater(() -> {
-        FXMLLoader loader =
-            new FXMLLoader((getClass().getResource("VanKrevelenDiagramWindowFX.fxml")));
-        Stage stage = new Stage();
-        try {
-          AnchorPane root = (AnchorPane) loader.load();
-          Scene scene = new Scene(root, 1080, 600);
-
-          // Use main CSS
-          scene.getStylesheets()
-              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-          stage.setScene(scene);
-          logger.finest("Stage has been successfully loaded from the FXML loader.");
-        } catch (IOException e) {
-          e.printStackTrace();
-          return;
-        }
-
-        // Get controller
-        VanKrevelenDiagramWindowController controller = loader.getController();
-        BorderPane plotPane = controller.getPlotPane();
-        plotPane.setCenter(chartViewer);
-
-        stage.setTitle("Van-Krevelen Diagram");
-        stage.show();
-        stage.setMinWidth(stage.getWidth());
-        stage.setMinHeight(stage.getHeight());
+        VanKrevelenDiagramTab newTab = new VanKrevelenDiagramTab(parameters, chartViewer);
+        MZmineCore.getDesktop().addTab(newTab);
 
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Results summary");
