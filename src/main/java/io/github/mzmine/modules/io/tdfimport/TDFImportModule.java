@@ -36,24 +36,28 @@ public class TDFImportModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-//    InputStream test = getClass().getClassLoader().getResourceAsStream("vendorlib/bruker/timsdata.dll");
     File timsdataLib = null;
-    String osSuffix;
+    String libraryFileName;
     try {
       if (com.sun.jna.Platform.isWindows()) {
-        osSuffix = ".dll";
+        libraryFileName = "timsdata.dll";
       } else if (com.sun.jna.Platform.isMac() || com.sun.jna.Platform.isLinux()) {
-        osSuffix = ".so";
+        libraryFileName = "libtimstdata.so";
       } else {
         throw new MSDKException(
             "Unknown OS, cannot define file suffix. Please contact the developers");
       }
       timsdataLib = Native
-          .extractFromResourcePath("vendorlib/bruker/timsdata" + osSuffix,
+          .extractFromResourcePath("vendorlib/bruker/" + libraryFileName,
               getClass().getClassLoader());
     } catch (IOException | MSDKException e) {
       e.printStackTrace();
       logger.info("Failed to load/extract timsdata.dll/.so");
+    }
+
+    if (timsdataLib == null) {
+      logger.info("TIMS data library could not be loaded.");
+      return ExitCode.ERROR;
     }
 
     TDFLibrary tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);

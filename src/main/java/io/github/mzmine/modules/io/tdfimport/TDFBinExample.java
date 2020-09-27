@@ -36,7 +36,6 @@ public class TDFBinExample {
 				long len);
 
 		interface MsMsCallback extends Callback {
-
 			void invoke(long precursor_id, int num_peaks, Pointer pMz, Pointer pIntensites);
 		}
 

@@ -1,7 +1,6 @@
 package io.github.mzmine.modules.io.tdfimport.datamodel;
 
 import com.sun.jna.Pointer;
-import io.github.mzmine.modules.io.tdfimport.TDFBinExample;
 
 public class MsMsData implements MsMsCallback {
 

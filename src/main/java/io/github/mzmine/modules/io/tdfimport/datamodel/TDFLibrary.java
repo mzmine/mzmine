@@ -1,13 +1,9 @@
 package io.github.mzmine.modules.io.tdfimport.datamodel;
 
 import com.sun.jna.Library;
-import com.sun.jna.Native;
 import io.github.mzmine.modules.io.tdfimport.TDFBinExample;
 
 public interface TDFLibrary extends Library {
-
-  TDFBinExample.TDFLibrary INSTANCE = (TDFBinExample.TDFLibrary) Native
-      .load("timsdata", TDFBinExample.TDFLibrary.class);
 
   long tims_open(String analysis_dir, long use_recalib);
 
@@ -25,10 +21,10 @@ public interface TDFLibrary extends Library {
 
 
   long tims_read_pasef_msms(long handle, long[] precursors, long num_precursors,
-      TDFBinExample.TDFLibrary.MsMsCallback my_callback);
+      MsMsCallback my_callback);
 
   long tims_read_pasef_msms_for_frame(long handle, long frameId,
-      TDFBinExample.TDFLibrary.MsMsCallback my_callback);
+      MsMsCallback my_callback);
 
   // I know this is really clumsy, I wish I could use Arrays.stream(int[]).asDoubleStream().toArray();
   public static double[] copyFromIntArray(int[] source) {
