@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class TDFMetadataReaderTask extends AbstractTask {
 
@@ -16,10 +17,14 @@ public class TDFMetadataReaderTask extends AbstractTask {
   private final File tdf;
 
   private String description;
+  private double finishedPercentage;
+  private TDFMetaDataTable metaDataTable;
+  private TDFFrameTable frameTable;
 
   public TDFMetadataReaderTask(final File tdf) {
     this.tdf = tdf;
     description = null;
+    finishedPercentage = 0;
   }
 
   @Override
@@ -29,13 +34,13 @@ public class TDFMetadataReaderTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return finishedPercentage;
   }
 
   @Override
   public void run() {
 
-    // load class
+    setDescription("Initializing SQL...");
     try {
       Class.forName("org.sqlite.JDBC");
     } catch (ClassNotFoundException e) {
@@ -45,42 +50,37 @@ public class TDFMetadataReaderTask extends AbstractTask {
       return;
     }
 
-    Connection connection = null;
-
+    setDescription("Establishing SQL connection to " + tdf.getName());
+    Connection connection;
     try {
       connection = DriverManager.getConnection("jdbc:sqlite:" + tdf.getAbsolutePath());
 
-      TDFMetaDataTable metaDataTable = new TDFMetaDataTable();
+      setDescription("Reading metadata for " + tdf.getName());
+      metaDataTable = new TDFMetaDataTable();
       metaDataTable.executeQuery(connection);
-      TDFFrameTable frameTable = new TDFFrameTable();
+
+      setDescription("Reading frame data for " + tdf.getName());
+      frameTable = new TDFFrameTable();
       frameTable.executeQuery(connection);
-//      frameTable.print();
 
-      logger.info("done");
-
-//      Statement statement = connection.createStatement();
-//      statement.setQueryTimeout(30);
-
-//      ResultSet rsFrameNum = statement.executeQuery("SELECT COUNT(*) FROM frames");
-//      if (!rsFrameNum.next()) {
-//        logger.info("invalid frame count.");
-//      }
-//      int numFrames = rsFrameNum.getInt(1);
-//      rsFrameNum.close();
-//
-//      List<Integer> frameNums = new ArrayList<>(numFrames);
-//      ResultSet rsFrameNums = statement.executeQuery("SELECT Id FROM Frames");
-
-
-//        statement.close();
       connection.close();
-    } catch (SQLException throwables) {
-      throwables.printStackTrace();
+    } catch (SQLException throwable) {
+      throwable.printStackTrace();
       logger.info("If stack trace contains \"out of memory\" the file was not found.");
       setStatus(TaskStatus.ERROR);
       return;
     }
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @Nullable
+  public TDFMetaDataTable getMetadataTable() {
+    return metaDataTable;
+  }
+
+  @Nullable
+  public TDFFrameTable getFrameTable() {
+    return frameTable;
   }
 
   private void setDescription(String desc) {
