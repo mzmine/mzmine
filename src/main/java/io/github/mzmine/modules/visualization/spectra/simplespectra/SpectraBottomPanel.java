@@ -76,6 +76,7 @@ class SpectraBottomPanel extends BorderPane {
     // topPanel.add(Box.createHorizontalStrut(10));
 
     Button prevScanBtn = new Button(leftArrow);
+    prevScanBtn.setOnAction(e -> masterFrame.loadPreviousScan());
     // prevScanBtn.setBackground(Color.white);
     // prevScanBtn.setFont(smallFont);
 

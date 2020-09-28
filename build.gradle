@@ -161,7 +161,6 @@ dependencies {
     implementation "com.panemu:tiwulfx:3.0" // For DetachableTabPane
     implementation "com.github.oshi:oshi-core:4.5.2" // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-
 }
 
 /*
@@ -264,7 +263,7 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
-                                "--linux-menu-group","MZmine",
+                                "--linux-menu-group", "MZmine",
                                 "--license-file", "LICENSE.txt",
                                 "--linux-deb-maintainer", "plusik@gmail.com"
             ]

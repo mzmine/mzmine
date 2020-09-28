@@ -96,6 +96,14 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
     return file;
   }
 
+  public File getValue(boolean allowEmptyString) {
+    String fileName = txtFilename.getText();
+    if (allowEmptyString == false && fileName.trim().isEmpty()) {
+      return null;
+    }
+    return getValue();
+  }
+
   public void setValue(File value) {
     txtFilename.setText(value.getPath());
   }

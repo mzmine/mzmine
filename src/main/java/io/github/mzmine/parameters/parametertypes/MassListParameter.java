@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.UserParameter;
 public class MassListParameter implements UserParameter<String, MassListComponent> {
 
   private String name, description, value;
+  private boolean allowEmpty = false;
 
   /**
    * This new constructor will be used if cloneParameter is called, so it's possible to create mass
@@ -39,6 +40,17 @@ public class MassListParameter implements UserParameter<String, MassListComponen
   public MassListParameter(String name1, String description1) {
     this.name = name1;
     this.description = description1;
+  }
+
+  public MassListParameter(String name, String description, boolean allowEmpty) {
+    this.name = name;
+    this.description = description;
+    this.allowEmpty = allowEmpty;
+  }
+
+  public MassListParameter(boolean allowEmpty) {
+    this();
+    this.allowEmpty = allowEmpty;
   }
 
   public MassListParameter() {
@@ -107,7 +119,7 @@ public class MassListParameter implements UserParameter<String, MassListComponen
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if ((value == null) || (value.trim().length() == 0)) {
+    if (allowEmpty == false && ((value == null) || (value.trim().length() == 0))) {
       errorMessages.add(name + " is not set properly");
       return false;
     }

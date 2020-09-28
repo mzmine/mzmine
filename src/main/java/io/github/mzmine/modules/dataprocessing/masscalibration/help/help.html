@@ -1,0 +1,321 @@
+<html>
+<head>
+    <title>Mass list processing - Mass calibration</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    <style>
+        img {
+            width: 95%;
+            height: auto;
+            margin: 10px 2.5%;
+            float: left;
+        }
+        dl {
+            border-left: 2px solid black;
+            padding-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Mass calibration</h1>
+
+<h2>Description</h2>
+
+<p>
+    Mass spectrometry instruments might introduce mass measurement errors. Some of these errors are systematic and the
+    purpose of this module is to model these errors and calibrate mass spectra (on the mass list level) against them.
+    <br/>
+    This module performs mass calibration in four stages: <b>mass peak matching and obtaining errors</b>,
+    <b>error extraction</b>, <b>bias estimation</b> and <b>mass peak shifting</b>.
+</p>
+<p>
+    First, the mass peaks are matched and thus the mass measurement errors are obtained. This is done by matching
+    detected mass peaks across all scans against a list of calibrants. The module supports two matching modes:
+    <b>standard calibrants</b> and <b>universal calibrants</b>.
+    <br/>
+    Standard calibrants are a collection of ions (together with corresponding retention times) that are expected to
+    appear in the sample. This is provided by the user (see below for details of the format) and can be very specific
+    to the experiment from which the samples come and thus provides additional flexibility.
+    <br/>
+    Universal calibrants are a collection of ions that are typically found in mass spectrometry experiments. The module
+    currently uses <a href="https://github.com/lukasz-fiszer/mzmine3/blob/shift-testing-merge/src/main/resources/">the
+    lists available at this link</a> as a source of m/z signals typically found in positive (+ve) and negative (-ve)
+    ionization modes. The lists used come from the publications
+    Keller et al. Interferences and contaminants encountered in modern mass spectrometry.
+    Anal Chim Acta, 2008 <a href="https://pubmed.ncbi.nlm.nih.gov/18790129/">[1]</a> and
+    Hawkes et al. An international laboratory comparison of dissolved organic matter composition by high resolution
+    mass spectrometry: Are we getting the same answer? Limnol Oceanogr Methods, 2020
+    <a href="https://aslopubs.onlinelibrary.wiley.com/doi/full/10.1002/lom3.10364">[2]</a>.
+    <br/>
+    To match the mass peaks present in the raw samples a certain tolerance for m/z ratio and retention
+    time is used and if a single candidate calibrant is found within the tolerance ranges for a given mass peak, a match
+    is considered. All scans (mass lists) are independently matched against the list of calibrants and then the
+    collective distribution of errors across all scans is used to model errors globally across whole dataset (typically
+    a single experimental sample).
+    <br/>
+    As ions are present in the mass spectra across certain characteristic timeframes, a single ion might have
+    corresponding mass peaks across multiple scans (mass lists). When treating them separately, multiple errors will be
+    added to the distribution. A simple approximation (that the module optionally uses) to matching each ion present
+    just once and adding just a single error for a matched ion would be to filter the duplicate error values from the
+    distribution obtained by matching all mass lists separately. To facilitate filtering-out noise, an intensity
+    threshold is used, so that only mass peaks with intensity above the threshold are considered for matching.
+</p>
+<p>
+    Then having a list of matches, measurement errors are calculated, their distribution is built and the measurement
+    bias is estimated. Currently m/z ratio PPM error type is used. A certain subset of the distribution of errors needs
+    to be extracted as likely not all errors come from correct matches, ie: when a wrong match is made an error value is
+    obtained that is not substantial towards the estimation of measurement error. We model this substantial error subset
+    by extracting a high-density error range from the distribution.
+    <br/>
+    The module supports two modes of error range extraction: <b>percentile ranges</b> and <b>extraction of most
+    populated range of certain max size possibly stretched with a fixed tolerance in the error size</b>.
+    <br/>
+    Percentile range mode is much simpler and more manual in nature. Lower and upper percentile (by default 25th and
+    75th, respectively, to reproduce interquartile range) are required and all errors within the range are extracted and
+    used for further error modeling.
+    <br/>
+    The other mode is an attempt to make the extraction more autonomous and to capture it in two parameters and a method
+    that scales better across more varied set of datasets. This is done in two steps, first a range of errors with
+    a maximum allowed length such that it contains the most errors in it is found. Then this range is additionally
+    extended with a certain tolerance such that if there is an error within the tolerance of any of these errors that
+    are already in the range, the range is extended to include this newly considered error and the process continues
+    until the range cannot be extended anymore to include any new errors within the tolerance, ie: if errors outside the
+    range exist, they are further away then the tolerance parameter. This resembles single-link clustering, but with an
+    upper bound on what can be merged together.
+</p>
+<p>
+    Then having extracted the substantial subset of errors from the initial distribution, a systematic error of
+    measurement is modeled. The module supports three modes of bias estimation: <b>arithmetic mean</b>,
+    <b>KNN regression</b> and <b>OLS regression</b>.
+    <br/>
+    The first mode is calculating the arithmetic mean of the extracted errors. The bias is estimated globally - a single
+    value that is optimized globally for the whole dataset. This mode is more suitable for datasets where not enough
+    matches and errors were extracted to reliably model the trend.
+    <br/>
+    The two other are regression methods. They try to model the trend exhibited by the relationship of error size vs
+    measured m/z ratio based on the data extracted in previous stages.
+    <br/>
+    OLS regression minimizes the mean squared error between the predicted trend and the datapoints in the dataset.
+    Available features include power features (polynomial trend), logarithmic feature and exponential feature. By
+    default, linear trend is fitted. This mode is suitable for datasets with enough data, that exhibit clear and strong
+    trend, especially if a suitable approximation is known a priori.
+    <br/>
+    KNN regression finds a certain number of closest neighbors in the error vs m/z dataset. The number of neighbors is
+    set by a chosen percentage of all the errors present in the dataset and the closest neighbors are found by the
+    absolute difference of the m/z values. Then the arithmetic mean of the neighbors' errors is calculated and provided
+    as an estimate of the error of the sample m/z in question. This mode is suitable for datasets with enough data, when
+    the trend is not necessarily clear or strong. It does not require any explicit approximations, and the estimated
+    trend is based mostly on the dataset. This allows the trend to match the dataset closely without introducing
+    additional assumptions on how the variables are related.
+</p>
+<p>
+    After estimating the mass measurement bias, mass lists across all scans are calibrated according to the model. This
+    is done by shifting all mass peaks in the mass lists against the bias estimate which might either be the global
+    estimate or an estimate based on the mass peak m/z ratio and the regression model. The resulting mass spectra are
+    calibrated accounting for the systematic error of mass measurement modeled in the above process.
+    <br/>
+</p>
+
+Notes:
+<ul>
+    <li>If you want to use standards list mode, but want to ignore retention time, you can use very large retention time
+        tolerance. If you do not have retention time for the calibrants, you can put any values and compensate
+        with large tolerance. This will effectively ignore retention time while using the standards list mode.
+    </li>
+    <li>When estimating mass error with regression, error range extraction should become less important, as the actual
+        calibration is done with a local, more accurate error estimate. This is especially the case with
+        a lot of quality matches and a large, representative distribution of errors.
+    </li>
+    <li>As usually, there exists the issue of possible overfitting when modeling the errors with regression. The range
+        of larger m/z values (800+) is especially exposed to that as it usually has far less matches and errors than
+        smaller values have.
+    </li>
+    <li>In case of mass calibration, it should be safer to underfit than overfit. Thus, for instance, it is recommended
+        that blank samples are calibrated using the global bias estimate as they will likely give a small number of
+        matches.
+    </li>
+    <li>All of the selected raw datafiles are calibrated independently (see below for module parameters description).
+        The module currently does not report any statistics or performance measures on the calibration (this would be
+        one of many valuable upgrades to the module). As such, it is important that the user verifies the extracted
+        errors and bias estimates when batch processing large number of samples. This is especially important when
+        calibrating different types of samples (like blanks) or using datafiles coming from different experiments.
+        The preview charts are a great way to gain visual insight into the dataset and how the calibration performs.
+        A quick look at the preview and a possible tweaking of the parameters should often be enough when calibrating
+        new types of similar samples.
+    </li>
+</ul>
+
+<h4>Method parameters</h4>
+<dl>
+
+    <dt>Raw data files</dt>
+    <dd>The raw datafiles to calibrate. Each selected datafile is calibrated independently in a separate task.
+    </dd>
+
+    <dt>Mass list name</dt>
+    <dd>Name of the mass lists to be calibrated. The mass lists must be previously generated for each scan by
+        the Mass detector module.
+    </dd>
+
+    <dt>Mass peak matching method</dt>
+    <dd>Method used to match mass peaks from the datafile mass lists against the calibrants.
+    <dl>
+        <dt>Standards list</dt>
+        <dd>
+        <dl>
+            <dt>Standards list</dt>
+            <dd>File with a list of standard calibrants - ion formulas together with retention times. This is the list
+                that the mass peaks are matched against, the list should contain ions that are expected to appear in
+                the dataset. Currently spreadsheet (xls and xlsx) and csv files are supported. The first column is the
+                retention time given in minutes, second column is the ion formula string. Third column is an optional
+                calibrant name. First row (column headers) is ignored. Sample standards list file:
+                <img src="standards-list-sample.png"/>
+            </dd>
+            <dt>m/z ratio tolerance</dt>
+            <dd>The max difference in m/z ratio between an actual measured mass peak and a calibrant to consider a
+                match
+            </dd>
+            <dt>Retention time tolerance</dt>
+            <dd>The max difference in retention time between an actual measured mass peak and a calibrant to
+                consider a match
+            </dd>
+        </dl>
+        </dd>
+
+        <dt>Universal calibrants</dt>
+        <dd>
+        <dl>
+            <dt>Ionization mode</dt>
+            <dd>The ionization mode for which an appropriate universal calibrants list is used.
+            </dd>
+
+            <dt>m/z ratio tolerance</dt>
+            <dd>The max difference in m/z ratio between an actual measured mass peak and a calibrant to consider a
+                match
+            </dd>
+        </dl>
+        </dd>
+    </dl>
+    </dd>
+
+    <dt>Intensity threshold</dt>
+    <dd>Only mass peaks with intensity above this threshold are considered for matching.
+    </dd>
+
+    <dt>Filter out duplicate errors</dt>
+    <dd>The collective distribution of all errors obtained by matching all mass lists separately will be filtered to
+        remove duplicate errors.
+    </dd>
+
+    <dt>Range extraction method</dt>
+    <dd>Method used to extract errors considered substantial to bias estimation.
+    <dl>
+        <dt>Most populated range plus stretch with tolerance</dt>
+        <dd>
+        <dl>
+            <dt>Range tolerance</dt>
+            <dd>This is the max distance between errors to be included within the same range. The errors are PPM m/z
+                ratio errors and this is the unit of the range tolerance parameter. See above description for more
+                details, when the range is extended this parameter is used to decide whether the range should be
+                stretched to include the next closest error. Use zero to skip this step, ie: do not extend the range
+                after the most populated fixed length range is found.
+            </dd>
+
+            <dt>Most populated error range size</dt>
+            <dd>This is the max length of the range containing most errors. The errors are PPM m/z ratio errors and this
+                is the unit of the range size parameter. See above description for more details. Use zero to skip this
+                step, ie: do find the most populated range as the basis for later extension with range tolerance, in
+                such case the distribution is split into subranges containing all the errors within the tolerance and
+                the biggest such subrange is used. When both these parameters are set to zero, no error extraction from
+                the distribution takes place and all errors obtained by matching with calibrants are used for the bias
+                estimation.
+            </dd>
+        </dl>
+        </dd>
+
+        <dt>Percentile range</dt>
+        <dd>
+        <dl>
+            <dt>Percentile range</dt>
+            <dd>The percentile range of errors to extract, as distributed over the error size.
+            </dd>
+        </dl>
+        </dd>
+    </dl>
+    </dd>
+
+
+    <dt>Bias estimation method</dt>
+    <dd>Method used to model and estimate mass measurement bias.
+    <dl>
+        <dt>Arithmetic mean</dt>
+        <dd><dl></dl></dd>
+
+        <dt>KNN regression</dt>
+        <dd>
+        <dl>
+            <dt>Nearest neighbors percentage</dt>
+            <dd>The number of nearest neighbors used for error prediction, this is given as a percentage of all
+                the extracted errors.
+            </dd>
+        </dl>
+        </dd>
+
+        <dt>OLS regression</dt>
+        <dd>
+        <dl>
+            <dt>Polynomial degree</dt>
+            <dd>The degree of polynomial trend used, the summand powers of the polynomial will be the OLS regression
+                features. Use 0 for constant component, 1 for linear, 2 for quadratic and so on.
+            </dd>
+
+            <dt>Exponential feature</dt>
+            <dd>When selected, an exponential feature exp(x/10) is included. Argument is divided by 10 to make sure the
+                typical value ranges fit within java doubles.
+            </dd>
+
+            <dt>Logarithmic feature</dt>
+            <dd>When selected, logarithmic feature ln(x) is included.
+            </dd>
+        </dl>
+        </dd>
+    </dl>
+    </dd>
+
+
+    <dt>Suffix</dt>
+    <dd>This string is added to the resulting calibrated mass list name as a suffix</dd>
+
+    <dt>Remove original mass list</dt>
+    <dd>If checked, original mass list will be removed and only calibrated version remains</dd>
+
+    <dt>Show preview</dt>
+    <dd>If checked, preview charts are displayed.</dd>
+
+    <dt>Data file</dt>
+    <dd>Data files used for preview.
+    </dd>
+
+    <dt>Labels preview</dt>
+    <dd>When selected, labels such as extraction range and bias estimation value markers plus additional trend
+        extraction details are displayed on the charts. Deselecting can come in handy when the charts get cluttered with
+        overlapping labels.
+    </dd>
+
+</dl>
+
+<h4>Visualization and module setup examples</h4>
+
+<img src="preview-charts-1.png"/>
+<img src="preview-charts-2.png"/>
+<img src="preview-charts-3.png"/>
+<img src="preview-charts-4.png"/>
+<img src="preview-charts-5.png"/>
+<img src="preview-charts-6.png"/>
+
+This help file was last updated on 5th September 2020.
+
+</body>
+</html>

@@ -109,6 +109,9 @@
 			<MenuItem onAction="#runModule"
 				text="FTMS shoulder peak filter"
 				userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule" />
+			<MenuItem onAction="#runModule"
+				text="Mass calibration"
+				userData="io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationModule" />
 		</Menu>
 
 	</Menu>

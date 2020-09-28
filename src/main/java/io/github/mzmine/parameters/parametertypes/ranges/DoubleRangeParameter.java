@@ -36,6 +36,7 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
   private final boolean nonEmptyRequired;
   private NumberFormat format;
   private Range<Double> value;
+  private Range<Double> maxAllowedRange;
 
   public DoubleRangeParameter(String name, String description, NumberFormat format) {
     this(name, description, format, true, false, null);
@@ -53,12 +54,18 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
 
   public DoubleRangeParameter(String name, String description, NumberFormat format,
       boolean valueRequired, boolean nonEmptyRequired, Range<Double> defaultValue) {
+    this(name, description, format, valueRequired, nonEmptyRequired, defaultValue, null);
+  }
+
+  public DoubleRangeParameter(String name, String description, NumberFormat format,
+      boolean valueRequired, boolean nonEmptyRequired, Range<Double> defaultValue, Range<Double> maxAllowedRange) {
     this.name = name;
     this.description = description;
     this.format = format;
     this.valueRequired = valueRequired;
     this.nonEmptyRequired = nonEmptyRequired;
     this.value = defaultValue;
+    this.maxAllowedRange = maxAllowedRange;
   }
 
   /**
@@ -153,6 +160,13 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
       }
       if (nonEmptyRequired && value.lowerEndpoint() >= value.upperEndpoint()) {
         errorMessages.add(name + " range maximum must be higher than minimum");
+        return false;
+      }
+    }
+
+    if (value != null && maxAllowedRange != null) {
+      if (maxAllowedRange.intersection(value) != value) {
+        errorMessages.add(name + " must be within " + maxAllowedRange.toString());
         return false;
       }
     }

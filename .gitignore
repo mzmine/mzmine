@@ -13,4 +13,6 @@ mzmine.log*
 bio
 not-bio
 /libglpk*
+/*.log
 /out
+/*.xlsx
