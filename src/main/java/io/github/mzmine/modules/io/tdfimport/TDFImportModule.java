@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -63,6 +65,12 @@ public class TDFImportModule implements MZmineRunnableModule {
     TDFLibrary tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
 
     logger.info(tdfLib.toString());
+
+    FileChooser dc = new FileChooser();
+    File file = dc.showOpenDialog(MZmineCore.getDesktop().getMainWindow());
+    if(file != null && file.exists()) {
+      MZmineCore.getTaskController().addTask(new TDFMetadataReaderTask(file));
+    }
     return ExitCode.OK;
   }
 

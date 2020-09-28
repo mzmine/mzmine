@@ -1,14 +1,13 @@
 package io.github.mzmine.modules.io.tdfimport;
 
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class TDFMetadataReaderTask extends AbstractTask {
@@ -42,30 +41,46 @@ public class TDFMetadataReaderTask extends AbstractTask {
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
       logger.info("Could not load sqlite.JDBC.");
+      setStatus(TaskStatus.ERROR);
       return;
     }
 
     Connection connection = null;
 
     try {
-      connection = DriverManager.getConnection("jdbc:sqilite:" + tdf.getAbsolutePath());
-      Statement statement = connection.createStatement();
-      statement.setQueryTimeout(30);
+      connection = DriverManager.getConnection("jdbc:sqlite:" + tdf.getAbsolutePath());
 
-      ResultSet rsFrameNum = statement.executeQuery("SELECT COUNT(*) FROM frames");
-      if (!rsFrameNum.next()) {
-        logger.info("invalid frame count.");
-      }
-      int numFrames = rsFrameNum.getInt(1);
-      rsFrameNum.close();
+      TDFMetaDataTable metaDataTable = new TDFMetaDataTable();
+      metaDataTable.executeQuery(connection);
+      TDFFrameTable frameTable = new TDFFrameTable();
+      frameTable.executeQuery(connection);
+//      frameTable.print();
 
-      List<Integer> frameNums = new ArrayList<>(numFrames);
-      ResultSet rsFrameNums = statement.executeQuery("SELECT Id FROM Frames");
+      logger.info("done");
+
+//      Statement statement = connection.createStatement();
+//      statement.setQueryTimeout(30);
+
+//      ResultSet rsFrameNum = statement.executeQuery("SELECT COUNT(*) FROM frames");
+//      if (!rsFrameNum.next()) {
+//        logger.info("invalid frame count.");
+//      }
+//      int numFrames = rsFrameNum.getInt(1);
+//      rsFrameNum.close();
+//
+//      List<Integer> frameNums = new ArrayList<>(numFrames);
+//      ResultSet rsFrameNums = statement.executeQuery("SELECT Id FROM Frames");
+
+
+//        statement.close();
+      connection.close();
     } catch (SQLException throwables) {
       throwables.printStackTrace();
       logger.info("If stack trace contains \"out of memory\" the file was not found.");
+      setStatus(TaskStatus.ERROR);
       return;
     }
+    setStatus(TaskStatus.FINISHED);
   }
 
   private void setDescription(String desc) {

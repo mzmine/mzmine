@@ -16,5 +16,4 @@ public class MsMsData implements MsMsCallback {
     mz_values = pMz.getDoubleArray(0, num_peaks);
     intensity_values = pIntensites.getFloatArray(0, num_peaks);
   }
-
 }
