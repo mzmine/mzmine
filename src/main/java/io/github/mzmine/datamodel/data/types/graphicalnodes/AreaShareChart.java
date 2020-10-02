@@ -20,7 +20,7 @@ import javafx.scene.shape.Rectangle;
 public class AreaShareChart extends StackPane {
 
   public AreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    Float sum = row.streamFeatures().map(ModularFeature::getArea).filter(p -> p.getValue() != null)
+    Float sum = row.streamFeatures().map(ModularFeature::getAreaProperty).filter(p -> p.getValue() != null)
         .map(Property<Float>::getValue).reduce(0f, Float::sum);
 
     List<Rectangle> all = new ArrayList<>();

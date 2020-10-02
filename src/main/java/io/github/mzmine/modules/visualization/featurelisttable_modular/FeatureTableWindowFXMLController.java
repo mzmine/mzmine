@@ -116,12 +116,12 @@ public class FeatureTableWindowFXMLController {
     cmbFilter.setConverter(new StringConverter<>() {
       @Override
       public String toString(DataType object) {
-        return object.getHeaderString();
+        return object == null ? null : object.getHeaderString();
       }
 
       @Override
       public DataType fromString(String string) {
-        return cmbFilter.getItems().stream().filter(dt -> dt.getHeaderString().equals(string))
+        return string == null ? null : cmbFilter.getItems().stream().filter(dt -> dt.getHeaderString().equals(string))
             .findFirst()
             .orElse(null);
       }
@@ -210,10 +210,11 @@ public class FeatureTableWindowFXMLController {
     xicPlot.removeAllDataSets();
     // TODO: for now we take the first raw data file, we should take the one from the
     //  selected column, though.
-    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().getValue().keySet();
+    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().keySet();
     List<RawDataFile> raws = new ArrayList<>();
-    rawDataFileSet.forEach(r -> raws.add(r));
-    ModularFeature feature = selectedRow.getFeatures().getValue().get(raws.get(0));
+    raws.addAll(rawDataFileSet);
+
+    ModularFeature feature = selectedRow.getFeatures().get(raws.get(0));
     TICDataSet dataSet = new TICDataSet(feature);
     xicPlot.addTICDataSet(dataSet);
   }
@@ -230,11 +231,11 @@ public class FeatureTableWindowFXMLController {
 
     // TODO: for now we take the first raw data file, we should take the one from the
     //  selected column, though.
-    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().getValue().keySet();
+    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().keySet();
     List<RawDataFile> raws = new ArrayList<>();
-    rawDataFileSet.forEach(r -> raws.add(r));
+    raws.addAll(rawDataFileSet);
 
-    ModularFeature feature = selectedRow.getFeatures().getValue().get(raws.get(0));
+    ModularFeature feature = selectedRow.getFeatures().get(raws.get(0));
     ScanDataSet scanDataSet = new ScanDataSet(raws.get(0).getScan((Integer) feature.getValue(
         BestScanNumberType.class)));
 

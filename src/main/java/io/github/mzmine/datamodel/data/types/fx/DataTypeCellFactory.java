@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types.fx;
 
-import java.util.logging.Level;
+import io.github.mzmine.datamodel.data.types.modifiers.ExpandingType;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -79,25 +79,29 @@ public class DataTypeCellFactory implements
           setText(null);
         } else {
           // sub columns provide values
-          if (type instanceof SubColumnsFactory) {
+          if ((type instanceof ExpandingType && ((ExpandingType<?, ?>) type).isHidden())){
+            setTooltip(new Tooltip(type.getFormattedString(item)));
+            setText(type.getFormattedString(item));
+            setGraphic(null);
+          } else if (type instanceof SubColumnsFactory) {
             // get sub column value
             SubColumnsFactory sub = (SubColumnsFactory) type;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
             setText(
-                n != null ? null : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
+                n != null ? null
+                    : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
+            setTooltip(
+                new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
+          } else if (type instanceof GraphicalColumType) {
+            Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
+            setGraphic(node);
+            setText(null);
+            setTooltip(new Tooltip(type.getFormattedString(item)));
           } else {
-            if (type instanceof GraphicalColumType) {
-              Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
-              setGraphic(node);
-              setText(null);
-              setTooltip(new Tooltip(type.getFormattedString(item)));
-            } else {
-              setTooltip(new Tooltip(type.getFormattedString(item)));
-              setText(type.getFormattedString(item));
-              setGraphic(null);
-            }
+            setTooltip(new Tooltip(type.getFormattedString(item)));
+            setText(type.getFormattedString(item));
+            setGraphic(null);
           }
         }
         setAlignment(Pos.CENTER);

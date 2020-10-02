@@ -21,6 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
+import io.github.mzmine.datamodel.data.types.numbers.TestIntType;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -416,11 +417,23 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       newPeakID++;
     }
 
+    /*
+    for(ModularFeatureListRow row : newPeakList.getRows()) {
+      row.setID(-row.getID());
+    }
+
+    newPeakList.addRowType(new TestIntType());
+    for(ModularFeatureListRow row : newPeakList.getRows()) {
+      row.set(TestIntType.class, row.getID() * 10);
+    }
+    */
+
+
     // Add new peaklist to the project
     // project.addPeakList(newPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    //QualityParameters.calculateQualityParameters(newPeakList);
 
     // show peaklist window
     Platform.runLater(() -> {

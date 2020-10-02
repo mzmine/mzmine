@@ -18,12 +18,15 @@
 
 package io.github.mzmine.datamodel.data;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javafx.util.Pair;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -34,7 +37,6 @@ import io.github.mzmine.datamodel.data.types.exceptions.WrongFeatureListExceptio
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
-import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
@@ -74,6 +76,8 @@ public class ModularFeatureListRow implements ModularDataModel {
     flist.getRowTypes().values().forEach(type -> {
       this.setProperty(type, type.createProperty());
     });
+
+    set(MZExpandingType.class, new Pair<>(30, Range.closed(2, 3)));
 
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
@@ -129,24 +133,28 @@ public class ModularFeatureListRow implements ModularDataModel {
     return get(DetectionType.class).getValue();
   }
 
-  public Property<Double> getMZ() {
-    return get(MZType.class);
+  public double getMZ() {
+    return get(MZExpandingType.class).getValue().getKey();
   }
 
-  public Property<Float> getRT() {
-    return get(RTType.class);
+  public Range<Double> getMZRange() {
+    return get(MZExpandingType.class).getValue().getValue();
   }
 
-  public Property<Float> getHeight() {
-    return get(HeightType.class);
+  public float getRT() {
+    return get(RTType.class).getValue();
   }
 
-  public Property<Float> getArea() {
-    return get(AreaType.class);
+  public float getHeight() {
+    return get(HeightType.class).getValue();
   }
 
-  public MapProperty<RawDataFile, ModularFeature> getFeatures() {
-    return get(FeaturesType.class);
+  public float getArea() {
+    return get(AreaType.class).getValue();
+  }
+
+  public ObservableMap<RawDataFile, ModularFeature> getFeatures() {
+    return get(FeaturesType.class).getValue();
   }
 
   /**
@@ -200,6 +208,10 @@ public class ModularFeatureListRow implements ModularDataModel {
    */
   public ModularFeature getFeature(RawDataFile raw) {
     return features.get(raw);
+  }
+
+  public void setID(int id) {
+    set(IDType.class, id);
   }
 
 }

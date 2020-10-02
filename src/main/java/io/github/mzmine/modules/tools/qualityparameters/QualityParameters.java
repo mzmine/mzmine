@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
+import io.github.mzmine.datamodel.data.ModularFeature;
 import java.util.List;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
@@ -44,12 +45,12 @@ public class QualityParameters {
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
     flist.streamFeatures().forEach(peak -> {
-      Property<Float> height = peak.getHeight();
-      Property<Float> rt = peak.getRT();
+      Property<Float> height = peak.getHeightProperty();
+      Property<Float> rt = peak.getRTProperty();
 
-      List<Integer> scanNumbers = peak.getScanNumbers();
+      List<Integer> scanNumbers = peak.getScanNumbersProperty();
       RawDataFile dataFile = peak.getRawDataFile();
-      List<DataPoint> dps = peak.getDataPoints();
+      List<DataPoint> dps = peak.getDataPointsProperty();
       if (height.getValue() == null || rt.getValue() == null || dataFile == null
           || scanNumbers.isEmpty() || dps.isEmpty())
         return;
@@ -58,8 +59,8 @@ public class QualityParameters {
       if (rtRange == null)
         rtRange = Range.singleton(rt.getValue());
 
-      height = peak.getHeight();
-      rt = peak.getRT();
+      height = peak.getHeightProperty();
+      rt = peak.getRTProperty();
 
       // FWHM
       double rtValues[] =
@@ -142,6 +143,103 @@ public class QualityParameters {
         }
       }
     }
+  }
+
+  public static Float calculateFWHM(ModularFeature feature) {
+    if(feature == null) {
+      return Float.NaN;
+    }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.get(RTRangeType.class).getValue();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+    // FWHM
+    double rtValues[] =
+        peakFindRTs(height / 2.0, rt, scanNumbers, dps, dataFile, rtRange);
+    double fwhm = rtValues[1] - rtValues[0];
+    if (fwhm <= 0 || Double.isInfinite(fwhm)) {
+      return Float.NaN;
+    }
+
+    return (float) fwhm;
+  }
+
+  public static Float calculateTailingFactor(ModularFeature feature) {
+    if(feature == null) {
+      return Float.NaN;
+    }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.get(RTRangeType.class).getValue();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+    // Tailing Factor - TF
+    double rtValues[] =
+        peakFindRTs(height * 0.05, rt, scanNumbers, dps, dataFile, rtRange);
+    double tf = (rtValues[1] - rtValues[0]) / (2 * (rt - rtValues[0]));
+    if (tf <= 0 || Double.isInfinite(tf)) {
+      return Float.NaN;
+    }
+
+    return (float) tf;
+  }
+
+  public static Float calculateAsymmetryFactor(ModularFeature feature) {
+    if(feature == null) {
+      return Float.NaN;
+    }
+    Float height = feature.getHeight();
+    Float rt = feature.getRT();
+
+    List<Integer> scanNumbers = feature.getScanNumbers();
+    RawDataFile dataFile = feature.getRawDataFile();
+    List<DataPoint> dps = feature.getDataPoints();
+    if (height == null || rt == null || dataFile == null
+        || scanNumbers.isEmpty() || dps.isEmpty())
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+
+    Range<Float> rtRange = feature.get(RTRangeType.class).getValue();
+    if (rtRange == null)
+      rtRange = Range.singleton(rt);
+
+    height = feature.getHeight();
+    rt = feature.getRT();
+
+
+    // Asymmetry factor - AF
+    double rtValues[] =
+        peakFindRTs(height * 0.1, rt, scanNumbers, dps, dataFile, rtRange);
+    double af = (rtValues[1] - rt) / (rt - rtValues[0]);
+    if (af <= 0 || Double.isInfinite(af)) {
+      af = Double.NaN;
+    }
+
+    return (float) af;
   }
 
   private static double[] peakFindRTs(double intensity, float featureRT, List<Integer> scanNumbers,

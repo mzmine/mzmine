@@ -1,5 +1,10 @@
 package io.github.mzmine.datamodel.data;
 
+import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
+import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import io.github.mzmine.util.DataTypeUtils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,13 +64,19 @@ public class ModularFeatureList implements PeakList {
     descriptionOfAppliedTasks = new ArrayList<>();
     dateCreated = DATA_FORMAT.format(new Date());
 
+    DataTypeUtils.addDefaultChromatographicTypeColumns(this);
     addRowType(new IDType());
     addRowType(new CommentType());
+    addRowType(new MZExpandingType());
+
     // has raw files - add column to row and feature
     if (!dataFiles.isEmpty()) {
       addRowType(new FeaturesType());
       addFeatureType(new RawFileType());
       addFeatureType(new RawColorType());
+      addFeatureType(new FwhmType());
+      addFeatureType(new TailingFactorType());
+      addFeatureType(new AsymmetryFactorType());
     }
   }
 
@@ -244,7 +255,7 @@ public class ModularFeatureList implements PeakList {
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return stream().filter(
-        row -> rtRange.contains(row.getRT().getValue()) && mzRange.contains(row.getMZ().getValue()))
+        row -> rtRange.contains(row.getRT()) && mzRange.contains(row.getMZ()))
         .collect(Collectors.toList());
   }
 
@@ -300,7 +311,7 @@ public class ModularFeatureList implements PeakList {
     return stream().map(ModularFeatureListRow::getFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
         .filter(
-            f -> rtRange.contains(f.getRT().getValue()) && mzRange.contains(f.getMZ().getValue()))
+            f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
         .collect(Collectors.toList());
   }
 

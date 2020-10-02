@@ -34,20 +34,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -208,13 +204,18 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       rowTypesParameter.isDataTypeVisible(dataType);
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
+        //col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
         // add feature columns for each raw file
         for (RawDataFile raw : flist.getRawDataFiles()) {
           // create column per name
           TreeTableColumn<ModularFeatureListRow, String> sampleCol =
-              new TreeTableColumn<>(raw.getName());
-          // TODO get RawDataFile -> Color and set column header
-          // sampleCol.setStyle("-fx-background-color: #"+ColorsFX.getHexString(color));
+              new TreeTableColumn<>();
+
+          Label headerLabel = new Label(raw.getName());
+          headerLabel.setTextFill(raw.getColor());
+          headerLabel.setGraphic(new ImageView("icons/fileicon.png"));
+          sampleCol.setGraphic(headerLabel);
+
           // add sub columns of feature
           for (DataType ftype : flist.getFeatureTypes().values()) {
             TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(raw);

@@ -158,16 +158,16 @@ public class TestDatatypes {
           .createBinding(BindingsType.AVERAGE, row);
       mzProperty.bind(avgBind);
     }
-    logger.info("avg mz=" + row.getMZ().getValue());
-    logger.info("sum area=" + row.getArea().getValue());
+    logger.info("avg mz=" + row.getMZ());
+    logger.info("sum area=" + row.getArea());
 
     // add values
     for (int i = 0; i < rawsBinding.length; i++) {
       ModularFeature f = row.getFeature(rawsBinding[i]);
       f.set(AreaType.class, area[i]);
       f.set(MZType.class, mz[i]);
-      logger.info("after settings values: avg mz=" + row.getMZ().getValue());
-      logger.info("after setting values: sum area=" + row.getArea().getValue());
+      logger.info("after settings values: avg mz=" + row.getMZ());
+      logger.info("after setting values: sum area=" + row.getArea());
     }
   }
 
