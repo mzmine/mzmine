@@ -1,17 +1,43 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.io.tdfimport;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class TDFReaderTask extends AbstractTask {
@@ -20,13 +46,15 @@ public class TDFReaderTask extends AbstractTask {
 
   private String description;
 
-  private final TDFLibrary tdfLibrary;
   private final File tdf;
   private final File tdfBin;
 
   private final TDFMetaDataTable metaDataTable;
   private final TDFFrameTable frameTable;
   private final TDFPrecursorTable precursorTable;
+  private final TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
+  private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
+  private final FramePrecursorTable framePrecursorTable;
 
   private double finishedPercentage;
 
@@ -49,24 +77,28 @@ public class TDFReaderTask extends AbstractTask {
    */
 
   /**
-   * @param tdfLibrary
    * @param tdf
    * @param tdfBin
    */
-  public TDFReaderTask(TDFLibrary tdfLibrary, File tdf, File tdfBin) {
-    this.tdfLibrary = tdfLibrary;
+  public TDFReaderTask(File tdf, File tdfBin) {
     this.tdf = tdf;
     this.tdfBin = tdfBin;
     metaDataTable = new TDFMetaDataTable();
     frameTable = new TDFFrameTable();
     precursorTable = new TDFPrecursorTable();
+    pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
+    frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
+    framePrecursorTable = new FramePrecursorTable();
 
+    if (tdf != null && tdf.exists()) {
+      setDescription("Import Bruker Daltonics " + tdf.getName());
+    }
     setStatus(TaskStatus.WAITING);
   }
 
   @Override
   public String getTaskDescription() {
-    return null;
+    return description;
   }
 
   @Override
@@ -76,7 +108,7 @@ public class TDFReaderTask extends AbstractTask {
 
   @Override
   public void run() {
-    if (tdfLibrary == null || tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
+    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
         || !tdfBin.exists() || !tdfBin.canRead()) {
       logger.info("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
       return;
@@ -85,14 +117,79 @@ public class TDFReaderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     readMetadata();
 
-    long handle = tdfLibrary.tims_open(tdfBin.getAbsolutePath(), 0);
+    RawDataFileWriter newMZmineFile;
+    try {
+      newMZmineFile = MZmineCore.createNewFile(tdfBin.getName());
+    } catch (IOException e) {
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
+    long handle = TDFUtils.openFile(tdfBin);
+
+    int scanNum = 0;
+    int numFrames = frameTable.getNumberOfFrames();
+
+    // load frame data
+    for (int i = 0; i < numFrames; i++) {
+      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
+      List<Scan> scanList = TDFUtils
+          .loadScansForPASEFFrame(handle,
+              (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i),
+              scanNum, frameTable, metaDataTable, framePrecursorTable);
+      try {
+        for (Scan scan : scanList) {
+          newMZmineFile.addScan(scan);
+          scanNum++;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+      finishedPercentage = i / numFrames;
+    }
+    /*for (int i = 0; i < numFrames; i++) {
+      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
+      if(frameTable.getMsMsTypeColumn().get(i).intValue() != 0)
+        continue;
+      Scan scan = TDFUtils
+          .exctractCentroidScanForFrame(handle,
+              (long) frameTable.getFrameIdColumn().get(i),
+              scanNum, metaDataTable, frameTable);
+      try {
+          newMZmineFile.addScan(scan);
+          scanNum++;
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+      finishedPercentage = i / numFrames;
+    }*/
+
+//    for(int i = 0; i < 30; i++) {
+//      DataPoint[] dps = TDFUtils.loadMsMsDataPointsForPrecursor_v2(handle, i);
+//      logger.info("id: " + i + " " + dps.toString());
+//    }
+
+    RawDataFile file;
+    try {
+      file = newMZmineFile.finishWriting();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return;
+    }
+
+    MZmineCore.getProjectManager().getCurrentProject().addFile(file);
+    /*long handle = tdfLibrary.tims_open(tdfBin.getAbsolutePath(), 0);
     if (handle == 0) {
       logger.info("Could not open file " + tdfBin.getAbsolutePath());
     }
 
-    byte[] buffer = new byte[200000];
+    byte[] buffer = new byte[200000];*/
+    TDFUtils.close(handle);
+    setStatus(TaskStatus.FINISHED);
   }
-
 
 
   private void readMetadata() {
@@ -114,12 +211,27 @@ public class TDFReaderTask extends AbstractTask {
 
       setDescription("Reading metadata for " + tdf.getName());
       metaDataTable.executeQuery(connection);
+      metaDataTable.print();
 
       setDescription("Reading frame data for " + tdf.getName());
       frameTable.executeQuery(connection);
+      frameTable.print();
 
       setDescription("Reading precursor info for " + tdf.getName());
+      precursorTable.executeQuery(connection);
+      precursorTable.print();
 
+      setDescription("Reading PASEF info for " + tdf.getName());
+      pasefFrameMsMsInfoTable.executeQuery(connection);
+      pasefFrameMsMsInfoTable.print();
+
+      setDescription("Reading Frame MS/MS info for " + tdf.getName());
+      frameMsMsInfoTable.executeQuery(connection);
+      frameMsMsInfoTable.print();
+
+      setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
+      framePrecursorTable.executeQuery(connection);
+      framePrecursorTable.print();
 
       connection.close();
     } catch (SQLException throwable) {
@@ -133,4 +245,18 @@ public class TDFReaderTask extends AbstractTask {
   private void setDescription(String desc) {
     description = desc;
   }
+
+
+  /*private RawDataFile readPASEFFile(TDFLibrary tdfLib, File tdfBin, TDFFrameTable frames,
+      TDFPrecursorTable precursors) {
+
+    long binHandle = tdfLib.tims_open(tdfBin.getParentFile().getAbsolutePath(), 0);
+
+    int numFrames = frames.getColumn(TDFFrameTable.FRAME_ID_COLUMN_NAME).getEntries().size();
+
+    for (int i = 0; i < numFrames; i++) {
+
+    }
+
+  };*/
 }
