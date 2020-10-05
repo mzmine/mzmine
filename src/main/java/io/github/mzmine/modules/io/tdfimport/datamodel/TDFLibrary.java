@@ -20,15 +20,18 @@ package io.github.mzmine.modules.io.tdfimport.datamodel;
 
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.MsMsCallbackV2;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileMsMsCallback;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidCallback;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.MultipleProfileData;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileCallback;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
 
 /**
  * Inteface for Java Native Access for Bruker Daltonic's tdf data format.
  * <p>
  * Javadoc added according to documentation in tdf-sdk-2.8.7_pre
  *
- * @author Bruker Daltonik GmbH - Basically copied from Bruker's java example by SteffenHeu.
+ * @author Bruker Daltonik GmbH - copied from the SDK by SteffenHeu.
  */
 public interface TDFLibrary extends Library {
 
@@ -119,11 +122,11 @@ public interface TDFLibrary extends Library {
    * @param callback       callback accepting the MS/MS spectra
    * @return 0 on error
    */
-//  long tims_read_pasef_msms(long handle, long[] precursors, long num_precursors,
-//      MsMsCallback my_callback);
+  long tims_read_pasef_msms(long handle, long[] precursors, long num_precursors,
+      CentroidCallback callback);
 
   long tims_read_pasef_msms_v2(long handle, long[] precursors, long num_precursors,
-      MsMsCallbackV2 callback, Pointer user_data);
+      CentroidData callback, Pointer user_data);
 
   /**
    * <p>
@@ -142,8 +145,44 @@ public interface TDFLibrary extends Library {
    * @param my_callback callback accepting the MS/MS spectra
    * @return 0 on error
    */
-//  long tims_read_pasef_msms_for_frame(long handle, long frameId,
-//      MsMsCallback my_callback);
+  long tims_read_pasef_msms_for_frame_v2(long handle, long frameId,
+      io.github.mzmine.modules.io.tdfimport.brukerexample.TDFBinExample.TDFLibrary.MsMsCallback my_callback);
+
+  /**
+   * TODO test
+   *
+   * @param handle
+   * @param precursors     list of PASEF precursor IDs; the returned spectra may be in different
+   *                       order
+   * @param num_precursors number of requested spectra, must be >= 1
+   * @param callback       callback accepting profile MS/MS spectra
+   * @param user_data      will be passed to callback
+   * @return 0 on error
+   */
+  long tims_read_pasef_profile_msms_v2(long handle, long[] precursors, long num_precursors,
+      ProfileData callback, Pointer user_data);
+
+  /**
+   * TODO test
+   *
+   * Read "quasi profile" MS/MS spectra for all PASEF precursors from a given frame.
+   * <p>
+   * Given a frame id, this function reads for all contained PASEF precursors the necessary PASEF
+   * frames in the same way as tims_read_pasef_profile_msms.
+   * <p>
+   * Note: the order of the returned MS/MS spectra does not necessarily match the order in the
+   * specified precursor ID list. The parameter id in the callback is the precursor ID.
+   * <p>
+   * Note: different threads must not read scans from the same storage handle concurrently.
+   *
+   * @param handle
+   * @param frame_id
+   * @param callback
+   * @param user_data
+   * @return 0 non error
+   */
+  long tims_read_pasef_profile_msms_for_frame_v2(long handle, long frame_id,
+      MultipleProfileData callback, Pointer user_data);
 
   /**
    * @param handle  see {@link TDFLibrary#tims_open(String, long)}.
@@ -192,98 +231,19 @@ public interface TDFLibrary extends Library {
    * @return 0 on error
    */
   long tims_extract_centroided_spectrum_for_frame(long handle, long frame_id, long scan_begin,
-      long scan_end, MsMsCallbackV2 callback, Pointer user_data);
-
-  long tims_extract_profile_for_frame(long handle, long frame_id, long scan_begin, long scan_end,
-      ProfileMsMsCallback callback, Pointer userData);
+      long scan_end, CentroidCallback callback, Pointer user_data);
 
   /**
-   * TODO: functions in timsdata.h
+   * TODO test
    *
-   * /// Function type that takes a centroided peak list.
-   *     typedef void(msms_spectrum_function)(
-   *         int64_t id,                //< the id of the precursor or frame
-   *         uint32_t num_peaks,        //< the number of peaks in the MS/MS spectrum
-   *         const double *mz_values,   //< all peak m/z values
-   *         const float *area_values,  //< all peak areas
-   *         void *user_data
-   *     );
-   *
-   *     /// Function type that takes a (non-centroided) profile spectrum.
-   *     typedef void(msms_profile_spectrum_function)(
-   *         int64_t id,                      //< the id of the precursor or frame
-   *         uint32_t num_points,             //< number of entries in the profile spectrum
-   *         const int32_t *intensity_values, //< the "quasi profile"
-   *         void *user_data
-   *     );
-   *
-   * BdalTimsdataDllSpec uint32_t tims_read_pasef_msms_v2(
-   *         uint64_t handle,
-   *         const int64_t *precursors,        //< list of PASEF precursor IDs; the returned spectra may be in different order
-   *         uint32_t num_precursors,          //< number of requested spectra, must be >= 1
-   *         msms_spectrum_function *callback, //< callback accepting the MS/MS spectra
-   *         void *user_data                   //< will be passed to callback
-   *     );
-   * BdalTimsdataDllSpec uint32_t tims_read_pasef_msms_for_frame_v2(
-   *         uint64_t handle,
-   *         int64_t frame_id,                 //< frame id
-   *         msms_spectrum_function *callback, //< callback accepting the MS/MS spectra
-   *         void *user_data                   //< will be passed to callback
-   *     );
-   * BdalTimsdataDllSpec uint32_t tims_read_pasef_profile_msms_v2(
-   *         uint64_t handle,
-   *         const int64_t *precursors,                //< list of PASEF precursor IDs; the returned spectra may be in different order
-   *         uint32_t num_precursors,                  //< number of requested spectra, must be >= 1
-   *         msms_profile_spectrum_function *callback, //< callback accepting profile MS/MS spectra
-   *         void *user_data                           //< will be passed to callback
-   *     );
-   * BdalTimsdataDllSpec uint32_t tims_read_pasef_profile_msms_for_frame_v2(
-   *         uint64_t handle,
-   *         int64_t frame_id,                         //< frame id
-   *         msms_profile_spectrum_function *callback, //< callback accepting profile MS/MS spectra
-   *         void *user_data                           //< will be passed to callback
-   *     );
-   *
-   * BdalTimsdataDllSpec uint32_t tims_extract_profile_for_frame(
-   *         uint64_t handle,
-   *         int64_t frame_id,                         //< frame id
-   *         uint32_t scan_begin,                      //< first scan number to read (inclusive)
-   *         uint32_t scan_end,                        //< last scan number (exclusive)
-   *         msms_profile_spectrum_function *callback, //< callback accepting profile MS/MS spectra
-   *         void *user_data                           //< will be passed to callback
-   *     );
-   *
-   *
-   * typedef uint32_t BdalTimsConversionFunction (
-   *         uint64_t handle,
-   *         int64_t frame_id,      //< from .tdf SQLite: Frames.Id
-   *         const double *index,   //<  in: array of values
-   *         double *mz,            //< out: array of values
-   *         uint32_t cnt           //< number of values to convert (arrays must have
-   *                                //< corresponding size)
-   *         );
-   *
-   *     tims_index_to_mz
-   *     tims_mz_to_index
-   *
-   *     tims_scannum_to_oneoverk0
-   *     tims_oneoverk0_to_scannum
-   *
-   *     tims_scannum_to_voltage
-   *     tims_voltage_to_scannum
-   *
-   * BdalTimsdataDllSpec void tims_set_num_threads (uint32_t n);
-   *
-   * BdalTimsdataDllSpec double tims_oneoverk0_to_ccs_for_mz(
-   *         const double ook0,
-   *         const int charge,
-   *         const double mz
-   *     );
-   * BdalTimsdataDllSpec double tims_ccs_to_oneoverk0_for_mz(
-   *         const double ccs,
-   *         const int charge,
-   *         const double mz
-   *     );
+   * @param handle
+   * @param frame_id
+   * @param scan_begin
+   * @param scan_end
+   * @param callback
+   * @param userData
+   * @return
    */
-
+  long tims_extract_profile_for_frame(long handle, long frame_id, long scan_begin, long scan_end,
+      ProfileCallback callback, Pointer userData);
 };

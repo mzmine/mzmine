@@ -4,7 +4,7 @@ import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
-public class MsMsDataV2 implements MsMsCallbackV2 {
+public class CentroidData implements CentroidCallback {
 
   private long precursorId;
   private int numPeaks;

@@ -21,7 +21,7 @@ package io.github.mzmine.modules.io.tdfimport.datamodel.callbacks;
 import com.sun.jna.Callback;
 import com.sun.jna.Pointer;
 
-public interface MsMsCallbackV2 extends Callback {
+public interface CentroidCallback extends Callback {
 
   void invoke(long precursor_id, int num_peaks, Pointer pMz, Pointer pIntensites, Pointer userData);
 }

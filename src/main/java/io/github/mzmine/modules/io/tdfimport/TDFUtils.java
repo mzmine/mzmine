@@ -10,8 +10,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.MsMsDataV2;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
@@ -78,6 +79,7 @@ public class TDFUtils {
 // -----------------------------------------------------------------------------------------------
 //                                    FILE OPENING/CLOSING
 // -----------------------------------------------------------------------------------------------
+
   /**
    * Opens the tdf_bin file.
    * <p>
@@ -119,6 +121,7 @@ public class TDFUtils {
 // -----------------------------------------------------------------------------------------------
 //                                HANDLING INDIVIDUAL SCANS
 // -----------------------------------------------------------------------------------------------
+
   /**
    * @param handle    {@link TDFUtils#openFile(File)}
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
@@ -193,10 +196,7 @@ public class TDFUtils {
 
     long numScans = (long) frameTable.getColumn(TDFFrameTable.NUM_SCANS).get(frameIndex);
     List<Scan> scans = new ArrayList<Scan>((int) numScans);
-
-//    long start = System.currentTimeMillis();
     List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
-//    long time = System.currentTimeMillis() - start;
 
     if (numScans != dataPoints.size()) {
       logger.info(
@@ -204,8 +204,6 @@ public class TDFUtils {
               + ") does not match number of loaded scans (" + dataPoints.size() + ").");
       return null;
     }
-//    logger.info(
-//        "Loaded peak data of " + numScans + " scans in " + ((double) (time) + " ms"));
 
     double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
         createPopulatedArray((int) numScans));
@@ -220,7 +218,7 @@ public class TDFUtils {
 
     // TODO: fragment scans
 
-    int addedScans = 0;
+    int addedScans = 0; // count the scans we actually add, e.g. not empty-scans
     for (int i = 0; i < dataPoints.size(); i++) {
       if (dataPoints.get(i).length == 0) {
         continue;
@@ -252,12 +250,12 @@ public class TDFUtils {
   }
 
   // ---------------------------------------------------------------------------------------------
-//                                      HANDLING FRAMES
+//                                      AVERAGE FRAMES
 // -----------------------------------------------------------------------------------------------
   public static DataPoint[] extractCentroidsForFrame(long handle, long frameId,
       int startScanNum,
       int endScanNum) {
-    MsMsDataV2 data = new MsMsDataV2();
+    CentroidData data = new CentroidData();
     long start = System.currentTimeMillis();
     long error = tdfLib
         .tims_extract_centroided_spectrum_for_frame(handle, frameId, startScanNum, endScanNum, data,
@@ -306,12 +304,60 @@ public class TDFUtils {
     return scan;
   }
 
+  @Nullable
+  public static ProfileData extractProfileForFrame(long handle, long frameId, long startScanNum,
+      long endScanNum) {
+    ProfileData data = new ProfileData();
+    long error = tdfLib
+        .tims_extract_profile_for_frame(handle, frameId, startScanNum, endScanNum, data, null);
+
+    if (error == 0) {
+      logger.info("Could not extract profile for frame " + frameId + ".");
+      return null;
+    }
+
+    return data;
+  }
+
+  @Deprecated // not ready yet, yields to wrong m/z values. How does bruker distribute them?
+  public static Scan extractProfileScanForFrame(long handle, long frameId, int scanNum,
+      TDFMetaDataTable metaDataTable, TDFFrameTable frameTable) {
+    int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    ProfileData data = extractProfileForFrame(handle, frameId, 0, numScans);
+    String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
+    int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+
+    DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
+        metaDataTable.getMzRange().upperEndpoint());
+
+    Scan scan = new SimpleScan(null,
+        scanNum,
+        msLevel,
+        (Double) frameTable.getColumn(TDFFrameTable.TIME).get(frameIndex) / 60, // to minutes
+        0,
+        0.d,
+        0,
+        null,
+        dps,
+        MassSpectrumType.CENTROIDED,
+        polarity,
+        scanDefinition,
+        metaDataTable.getMzRange());
+    return scan;
+  }
+
   // ---------------------------------------------------------------------------------------------
 //                                    PASEF MS MS FUNCTIONS
 // -----------------------------------------------------------------------------------------------
   public static DataPoint[] loadMsMsDataPointsForPrecursor_v2(long handle, long precursorId) {
 
-    MsMsDataV2 data = new MsMsDataV2();
+    CentroidData data = new CentroidData();
     long error = tdfLib
         .tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data, Pointer.NULL);
     if (error == 0) {
