@@ -1,5 +1,8 @@
 package io.github.mzmine.datamodel.data;
 
+import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
@@ -27,7 +30,7 @@ import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
-public class ModularFeatureList implements PeakList {
+public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   private final ObservableMap<Class<? extends DataType>, DataType> rowTypes =
@@ -44,7 +47,7 @@ public class ModularFeatureList implements PeakList {
   private final List<RawDataFile> dataFiles;
   private final ArrayList<ModularFeatureListRow> peakListRows;
   private String name;
-  private List<PeakListAppliedMethod> descriptionOfAppliedTasks;
+  private List<FeatureListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
@@ -77,6 +80,26 @@ public class ModularFeatureList implements PeakList {
       addFeatureType(new FwhmType());
       addFeatureType(new TailingFactorType());
       addFeatureType(new AsymmetryFactorType());
+    }
+  }
+
+  /**
+   * Temporary "copy constructor" for one rawDataFile before port to ModularFeatureList
+   */
+  public ModularFeatureList(PeakList peakList) {
+    this(peakList.getName(), peakList.getRawDataFiles().get(0));
+    //this.rtRange = peakList.getRowsRTRange();
+    //this.mzRange = peakList.getRowsMZRange();
+    //this.dateCreated = peakList.getDateCreated();
+
+    // add rows
+    for (PeakListRow row : peakList.getRows()) {
+      Feature feature = row.getPeak(getRawDataFile(0));
+      ModularFeature modularFeature = new ModularFeature(this, feature);
+      ModularFeatureListRow newRow =
+          new ModularFeatureListRow(this, row.getID(), feature.getDataFile(), modularFeature);
+      addRow(newRow);
+      newRow.setPeakIdentities(row.getPeakIdentities());
     }
   }
 
@@ -402,12 +425,12 @@ public class ModularFeatureList implements PeakList {
   }
 
   @Override
-  public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod) {
+  public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod) {
     descriptionOfAppliedTasks.add(appliedMethod);
   }
 
   @Override
-  public List<PeakListAppliedMethod> getAppliedMethods() {
+  public List<FeatureListAppliedMethod> getAppliedMethods() {
     return descriptionOfAppliedTasks;
   }
 

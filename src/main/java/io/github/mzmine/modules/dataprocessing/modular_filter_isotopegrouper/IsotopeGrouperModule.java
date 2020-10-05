@@ -18,11 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.modular_filter_isotopegrouper;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.util.DataTypeUtils;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -67,7 +63,8 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
         .getMatchingPeakLists();
 
     for (final PeakList peakList : peakLists) {
-      Task newTask = new IsotopeGrouperTask(project, peakList, parameters);
+      ModularFeatureList modularFeatureList = new ModularFeatureList(peakList);
+      Task newTask = new IsotopeGrouperTask(project, modularFeatureList, parameters);
       tasks.add(newTask);
     }
 

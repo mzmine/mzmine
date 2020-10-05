@@ -27,9 +27,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 /**
  * New interface for ModularFeatureList
  */
-public interface PeakList {
+public interface FeatureList {
 
-  public interface PeakListAppliedMethod {
+  public interface FeatureListAppliedMethod {
 
     @Nonnull
     public String getDescription();
@@ -216,12 +216,12 @@ public interface PeakList {
    */
   public ModularFeatureListRow getPeakRow(ModularFeature peak);
 
-  public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod);
+  public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod);
 
   /**
    * Returns all tasks (descriptions) applied to this feature list
    */
-  public List<PeakListAppliedMethod> getAppliedMethods();
+  public List<FeatureListAppliedMethod> getAppliedMethods();
 
   /**
    * Returns the whole m/z range of the feature list

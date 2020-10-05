@@ -63,7 +63,7 @@ import javax.annotation.Nullable;
  *
  */
 // TODO: should ModularFeature implement FeatureNew?
-public class ModularFeature implements ModularDataModel, FeatureNew {
+public class ModularFeature implements FeatureNew, ModularDataModel {
 
   private final @Nonnull ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
@@ -114,6 +114,56 @@ public class ModularFeature implements ModularDataModel, FeatureNew {
             p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
     //set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
+
+    Float fwhm = QualityParameters.calculateFWHM(this);
+    if(!fwhm.isNaN()) {
+      set(FwhmType.class, fwhm);
+    }
+    Float tf = QualityParameters.calculateTailingFactor(this);
+    if(!tf.isNaN()) {
+      set(TailingFactorType.class, tf);
+    }
+    Float af = QualityParameters.calculateAsymmetryFactor(this);
+    if(!af.isNaN()) {
+      set(AsymmetryFactorType.class, af);
+    }
+  }
+
+  /**
+   * Copy constructor
+   */
+  // TODO: calculations to p.get*()
+  public ModularFeature(@Nonnull ModularFeatureList flist, ModularFeature p) {
+    this(flist);
+
+    // add values to feature
+    int[] scans = (p.getScanNumbers()).stream().mapToInt(i -> i).toArray();
+    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    set(RawFileType.class, (p.getRawDataFile()));
+    set(DetectionType.class, (p.getFeatureStatus()));
+    set(MZType.class, (p.getMZ()));
+    set(RTType.class, ((float) p.getRT()));
+    set(HeightType.class, ((float) p.getHeight()));
+    set(AreaType.class, ((float) p.getArea()));
+    set(BestScanNumberType.class, (p.getRepresentativeScanNumber()));
+
+    // datapoints of feature
+    List<DataPoint> dps = new ArrayList<>();
+    for (int i = 0; i < scans.length; i++) {
+      dps.add(p.getDataPoint(scans[i]));
+    }
+    set(DataPointsType.class, dps);
+
+    /*
+    // ranges
+    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint().floatValue(),
+        p.getRawDataPointsRTRange().upperEndpoint().floatValue());
+    Range<Float> intensityRange =
+        Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+            p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    //set(RTRangeType.class, rtRange);
+    set(IntensityRangeType.class, intensityRange);
+    */
 
     Float fwhm = QualityParameters.calculateFWHM(this);
     if(!fwhm.isNaN()) {

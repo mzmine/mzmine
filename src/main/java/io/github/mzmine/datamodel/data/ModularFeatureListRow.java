@@ -19,7 +19,9 @@
 package io.github.mzmine.datamodel.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,12 +56,16 @@ import javafx.scene.Node;
  *  chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements ModularDataModel {
+public class ModularFeatureListRow implements /*FeatureListRow,*/ ModularDataModel {
 
   private final @Nonnull
   ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
+
+  private List<PeakIdentity> identities;
+  private PeakIdentity preferredIdentity;
+  private String comment;
 
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
@@ -77,7 +83,7 @@ public class ModularFeatureListRow implements ModularDataModel {
       this.setProperty(type, type.createProperty());
     });
 
-    set(MZExpandingType.class, new Pair<>(30, Range.closed(2, 3)));
+    set(MZExpandingType.class, new Pair<>(30.0, Range.closed(2, 3)));
 
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
@@ -214,4 +220,41 @@ public class ModularFeatureListRow implements ModularDataModel {
     set(IDType.class, id);
   }
 
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  public PeakIdentity[] getPeakIdentities() {
+    return identities.toArray(new PeakIdentity[0]);
+  }
+
+  public void setPeakIdentities(PeakIdentity[] identities) {
+    this.identities = Arrays.asList(identities);
+  }
+
+  public void addPeakIdentity(PeakIdentity identity, boolean preferred) {
+    // Verify if exists already an identity with the same name
+    for (PeakIdentity testId : identities) {
+      if (testId.getName().equals(identity.getName())) {
+        return;
+      }
+    }
+
+    identities.add(identity);
+    if ((preferredIdentity == null) || (preferred)) {
+      setPreferredPeakIdentity(identity);
+    }
+  }
+
+  public PeakIdentity getPreferredPeakIdentity() {
+    return preferredIdentity;
+  }
+
+  public void setPreferredPeakIdentity(PeakIdentity preferredIdentity) {
+    this.preferredIdentity = preferredIdentity;
+  }
 }

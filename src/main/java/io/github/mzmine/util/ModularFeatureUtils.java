@@ -137,11 +137,12 @@ public class ModularFeatureUtils {
   }
 
   // TODO PeakListRows to ModularFeatureListRows
+  // S
   /**
    * Returns true if feature list row contains a compound identity matching to id
    *
    */
-  public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
+  public static boolean containsIdentity(ModularFeatureListRow row, PeakIdentity id) {
 
     for (PeakIdentity identity : row.getPeakIdentities()) {
       if (identity.getName().equals(id.getName()))
@@ -155,7 +156,7 @@ public class ModularFeatureUtils {
    * Copies properties such as identification results and comments from the source row to the target
    * row.
    */
-  public static void copyPeakListRowProperties(ModularFeatureListRow source, ModularFeatureListRow target) {
+  public static void copyFeatureListRowProperties(ModularFeatureListRow source, ModularFeatureListRow target) {
 
     // Combine the comments
     String targetComment = target.getComment();

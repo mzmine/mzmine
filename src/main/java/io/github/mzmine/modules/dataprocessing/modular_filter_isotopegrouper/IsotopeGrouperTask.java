@@ -18,37 +18,34 @@
 
 package io.github.mzmine.modules.dataprocessing.modular_filter_isotopegrouper;
 
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.ModularFeatureSorter;
+import io.github.mzmine.util.ModularFeatureUtils;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
+//import io.github.mzmine.datamodel.PeakList;
+//import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import org.apache.xpath.operations.Mod;
+import javafx.application.Platform;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -82,10 +79,11 @@ class IsotopeGrouperTask extends AbstractTask {
   private ParameterSet parameters;
 
   /**
-   * @param rawDataFile
+   * @param project
+   * @param featureList
    * @param parameters
    */
-  IsotopeGrouperTask(MZmineProject project, PeakList featureList, ParameterSet parameters) {
+  IsotopeGrouperTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters) {
 
     this.project = project;
     this.featureList = featureList;
@@ -214,14 +212,12 @@ class IsotopeGrouperTask extends AbstractTask {
         Arrays.sort(originalPeaks, new ModularFeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
       }
 
-      ModularFeature newPeak = new SimpleFeature(originalPeaks[0]);
+      ModularFeature newPeak = new ModularFeature(deisotopedFeatureList, originalPeaks[0]);
       newPeak.setIsotopePattern(newPattern);
       newPeak.setCharge(bestFitCharge);
 
-      // Keep old ID
-      int oldID = oldRow.getID();
-      ModularFeatureListRow newRow = new SimplePeakListRow(oldID);
-      PeakUtils.copyPeakListRowProperties(oldRow, newRow);
+      ModularFeatureListRow newRow = new ModularFeatureListRow(deisotopedFeatureList, oldRow.getID(), newPeak.getRawDataFile(), newPeak);
+      ModularFeatureUtils.copyFeatureListRowProperties(oldRow, newRow);
       newRow.addPeak(dataFile, newPeak);
       deisotopedFeatureList.addRow(newRow);
 
@@ -233,24 +229,30 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // Update completion rate
       processedPeaks++;
-
     }
 
+    // TODO: !
     // Add new peakList to the project
-    project.addPeakList(deisotopedFeatureList);
+    //project.addPeakList(deisotopedFeatureList);
+
+    // show peaklist window
+    Platform.runLater(() -> {
+      FeatureTableFXUtil.createFeatureTableWindow(deisotopedFeatureList);
+    });
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : featureList.getAppliedMethods()) {
+    for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
       deisotopedFeatureList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Isotopic peaks grouper", parameters));
+        new SimpleFeatureListAppliedMethod("Isotopic peaks grouper", parameters));
 
+    // TODO: !
     // Remove the original peakList if requested
-    if (removeOriginal)
-      project.removePeakList(featureList);
+    //if (removeOriginal)
+    //  project.removePeakList(featureList);
 
     logger.info("Finished isotopic peak grouper on " + featureList);
     setStatus(TaskStatus.FINISHED);
