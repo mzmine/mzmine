@@ -67,6 +67,12 @@ public interface Scan extends MassSpectrum {
 
   /**
    *
+   * @return {@link MobilityType} of this scan
+   */
+  public MobilityType getMobilityType();
+
+  /**
+   *
    * @return The actual scanning range of the instrument
    */
   public @Nonnull Range<Double> getScanningMZRange();
@@ -101,5 +107,6 @@ public interface Scan extends MassSpectrum {
 
   public void removeMassList(@Nonnull MassList massList);
 
+//  public void addFragmentScan(int scanNumber);
 }
 

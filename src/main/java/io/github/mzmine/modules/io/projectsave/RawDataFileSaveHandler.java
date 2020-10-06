@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -64,9 +65,9 @@ class RawDataFileSaveHandler {
    * Copy the data points file of the raw data file from the temporary folder to the zip file.
    * Create an XML file which contains the description of the same raw data file an copy it into the
    * same zip file.
-   * 
+   *
    * @param rawDataFile raw data file to be copied
-   * @param rawDataSavedName name of the raw data inside the zip file
+   * @param number      number of the raw data file
    * @throws java.io.IOException
    * @throws TransformerConfigurationException
    * @throws SAXException
@@ -96,8 +97,9 @@ class RawDataFileSaveHandler {
     RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
     for (Integer storageID : dataPointsOffsets.keySet()) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       final long offset = dataPointsOffsets.get(storageID);
       dataPointsFile.seek(offset);
@@ -113,8 +115,9 @@ class RawDataFileSaveHandler {
       progress = 0.9 * ((double) offset / dataPointsFile.length());
     }
 
-    if (canceled)
+    if (canceled) {
       return;
+    }
 
     // step 2 - save raw data description
     logger.info("Saving raw data description of: " + rawDataFile.getName());
@@ -138,7 +141,7 @@ class RawDataFileSaveHandler {
 
   /**
    * Function which creates an XML file with the descripcion of the raw data
-   * 
+   *
    * @param rawDataFile
    * @param hd
    * @throws SAXException
@@ -162,8 +165,9 @@ class RawDataFileSaveHandler {
     hd.startElement("", "", RawDataElementName.STORED_DATAPOINTS.getElementName(), atts);
     atts.clear();
     for (Integer storageID : dataPointsOffsets.keySet()) {
-      if (canceled)
+      if (canceled) {
         return;
+      }
       int length = dataPointsLengths.get(storageID);
       long offset = consolidatedDataPointsOffsets.get(storageID);
       atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
@@ -186,8 +190,9 @@ class RawDataFileSaveHandler {
     // <SCAN>
     for (int scanNumber : rawDataFile.getScanNumbers()) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       StorableScan scan = (StorableScan) rawDataFile.getScan(scanNumber);
       int storageID = scan.getStorageID();
@@ -207,7 +212,7 @@ class RawDataFileSaveHandler {
 
   /**
    * Create the part of the XML document related to the scans
-   * 
+   *
    * @param scan
    * @param element
    */
@@ -248,7 +253,7 @@ class RawDataFileSaveHandler {
     hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
 
     // <MOBILITY>
-    hd.startElement("","",RawDataElementName.MOBILITY.getElementName(), atts);
+    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
     double mobility = scan.getMobility();
     hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
     hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
@@ -313,10 +318,14 @@ class RawDataFileSaveHandler {
     hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
+    hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
+    MobilityType mobilityType = scan.getMobilityType();
+    hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
+    hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+
   }
 
   /**
-   * 
    * @return the progress of these functions saving the raw data information to the zip file.
    */
   double getProgress() {

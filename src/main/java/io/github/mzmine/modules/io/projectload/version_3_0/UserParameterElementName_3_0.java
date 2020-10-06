@@ -16,22 +16,16 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.projectsave;
+package io.github.mzmine.modules.io.projectload.version_3_0;
 
-enum RawDataElementName {
+enum UserParameterElementName_3_0 {
 
-  RAWDATA("rawdata"), NAME("name"), QUANTITY_SCAN("num_scans"), ID("id"), SCAN("scan"), SCAN_ID(
-      "id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN("fragmentscans"), FRAGMENT_SCAN(
-      "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN("parent"), PRECURSOR_MZ(
-      "precursor_mz"), PRECURSOR_CHARGE("precursor_charge"), RETENTION_TIME("rt"), MOBILITY(
-      "mobility"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST(
-      "mass_list"), STORED_DATAPOINTS("stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
-      "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION("scan_description"), SCAN_MZ_RANGE(
-      "scan_mz_range"), MOBILITY_TYPE("mobility_type");
+  PARAMETERS("parameters"), COUNT("count"), PARAMETER("parameter"), NAME("name"), TYPE(
+      "type"), OPTION("option"), VALUE("value"), DATA_FILE("data_file");
 
   private String elementName;
 
-  private RawDataElementName(String itemName) {
+  private UserParameterElementName_3_0(String itemName) {
     this.elementName = itemName;
   }
 
