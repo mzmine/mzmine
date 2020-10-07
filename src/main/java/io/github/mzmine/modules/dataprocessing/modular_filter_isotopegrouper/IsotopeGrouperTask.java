@@ -231,9 +231,8 @@ class IsotopeGrouperTask extends AbstractTask {
       processedPeaks++;
     }
 
-    // TODO: !
     // Add new peakList to the project
-    //project.addPeakList(deisotopedFeatureList);
+    project.addFeatureList(deisotopedFeatureList);
 
     // show peaklist window
     Platform.runLater(() -> {

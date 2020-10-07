@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -65,7 +66,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
     this.value = newValue;
   }
 
-  public void setValue(PeakListsSelectionType selectionType, PeakList peakLists[]) {
+  public void setValue(PeakListsSelectionType selectionType, ModularFeatureList peakLists[]) {
     if (value == null)
       value = new PeakListsSelection();
     value.setSelectionType(selectionType);
@@ -98,9 +99,9 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    PeakList matchingPeakLists[];
+    ModularFeatureList matchingPeakLists[];
     if (value == null)
-      matchingPeakLists = new PeakList[0];
+      matchingPeakLists = new ModularFeatureList[0];
     else
       matchingPeakLists = value.getMatchingPeakLists();
 
@@ -118,7 +119,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    PeakList[] currentDataPeakLists =
+    ModularFeatureList[] currentDataPeakLists =
         MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
     PeakListsSelectionType selectionType;
@@ -134,12 +135,12 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
     NodeList items = xmlElement.getElementsByTagName("specific_peak_list");
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
-      for (PeakList df : currentDataPeakLists) {
+      for (ModularFeatureList df : currentDataPeakLists) {
         if (df.getName().equals(itemString))
           newValues.add(df);
       }
     }
-    PeakList specificPeakLists[] = newValues.toArray(new PeakList[0]);
+    ModularFeatureList specificPeakLists[] = newValues.toArray(new ModularFeatureList[0]);
 
     String namePattern = null;
     items = xmlElement.getElementsByTagName("name_pattern");
@@ -161,7 +162,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
     xmlElement.setAttribute("type", value.getSelectionType().name());
 
     if (value.getSpecificPeakLists() != null) {
-      for (PeakList item : value.getSpecificPeakLists()) {
+      for (ModularFeatureList item : value.getSpecificPeakLists()) {
         Element newElement = parentDocument.createElement("specific_peak_list");
         newElement.setTextContent(item.getName());
         xmlElement.appendChild(newElement);

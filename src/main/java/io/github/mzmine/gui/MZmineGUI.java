@@ -21,6 +21,8 @@ package io.github.mzmine.gui;
 
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
+
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -262,7 +264,7 @@ public class MZmineGUI extends Application implements Desktop {
       ListView<RawDataFile> rawDataTree = mainWindowController.getRawDataTree();
       rawDataTree.setItems(project.getRawDataFiles());
 
-      ListView<PeakList> featureTree = mainWindowController.getFeatureTree();
+      ListView<ModularFeatureList> featureTree = mainWindowController.getFeatureTree();
       featureTree.setItems(project.getFeatureLists());
     });
 
@@ -279,7 +281,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Nonnull
-  public static List<PeakList> getSelectedFeatureLists() {
+  public static List<ModularFeatureList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =
@@ -489,8 +491,8 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public PeakList[] getSelectedPeakLists() {
-    return getSelectedFeatureLists().toArray(new PeakList[0]);
+  public ModularFeatureList[] getSelectedPeakLists() {
+    return getSelectedFeatureLists().toArray(new ModularFeatureList[0]);
   }
 
   @Override

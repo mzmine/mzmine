@@ -18,9 +18,12 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.PeakList;
@@ -30,9 +33,9 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+/*
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
-import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
@@ -40,6 +43,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
+ */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskController;
@@ -122,7 +126,7 @@ public class MainWindowController {
   private ListView<RawDataFile> rawDataTree;
 
   @FXML
-  private ListView<PeakList> featureTree;
+  private ListView<ModularFeatureList> featureTree;
 
   @FXML
   private Tab tvAligned;
@@ -285,7 +289,7 @@ public class MainWindowController {
 
     featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
       @Override
-      protected void updateItem(PeakList item, boolean empty) {
+      protected void updateItem(ModularFeatureList item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
@@ -409,16 +413,18 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
+    // TODO:
+    /*
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
-
+    */
   }
 
   public ListView<RawDataFile> getRawDataTree() {
     return rawDataTree;
   }
 
-  public ListView<PeakList> getFeatureTree() {
+  public ListView<ModularFeatureList> getFeatureTree() {
     return featureTree;
   }
 
@@ -435,6 +441,8 @@ public class MainWindowController {
   }
 
   public void handleShowChromatogram(Event event) {
+    // TODO:
+    /*
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -445,9 +453,12 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(ChromatogramVisualizerModule.class, parameters);
     }
+    */
   }
 
   public void handleShowMsSpectrum(Event event) {
+    // TODO:
+    /*
     logger.finest("Activated Show MS spectrum menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -458,9 +469,12 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(SpectraVisualizerModule.class, parameters);
     }
+    */
   }
 
   public void handleShow2DPlot(Event event) {
+    // TODO:
+    /*
     logger.finest("Activated Show 2D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -471,10 +485,12 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
     }
-
+    */
   }
 
   public void handleShow3DPlot(Event event) {
+    // TODO:
+    /*
     logger.finest("Activated Show 3D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -485,6 +501,7 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(Fx3DVisualizerModule.class, parameters);
     }
+    */
   }
 
   public void handleShowMsMsPlot(Event event) {}
@@ -587,9 +604,12 @@ public class MainWindowController {
   }
 
   public void handleOpenFeatureList(Event event) {
-    var selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
-    for (PeakList fl : selectedFeatureLists) {
-      PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+    List<ModularFeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (ModularFeatureList fl : selectedFeatureLists) {
+      //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
+      Platform.runLater(() -> {
+        FeatureTableFXUtil.createFeatureTableWindow(fl);
+      });
     }
   }
 
@@ -601,8 +621,8 @@ public class MainWindowController {
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
-    PeakList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
-    for (PeakList fl : selectedFeatureLists) {
+    ModularFeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    for (ModularFeatureList fl : selectedFeatureLists) {
       MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
     }
   }

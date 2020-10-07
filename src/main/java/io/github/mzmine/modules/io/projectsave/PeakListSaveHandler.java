@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -26,6 +30,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.xml.transform.OutputKeys;
@@ -42,9 +47,6 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimplePeakList;
 
@@ -72,7 +74,7 @@ public class PeakListSaveHandler {
    * @param peakListSavedName name of the feature list
    * @throws java.io.IOException
    */
-  public void savePeakList(PeakList peakList)
+  public void savePeakList(FeatureList peakList)
       throws IOException, TransformerConfigurationException, SAXException {
 
     numberOfRows = peakList.getNumberOfRows();
@@ -101,8 +103,8 @@ public class PeakListSaveHandler {
 
     // <PEAKLIST_DATE>
     String dateText = "";
-    if (((SimplePeakList) peakList).getDateCreated() == null) {
-      dateText = ((SimplePeakList) peakList).getDateCreated();
+    if (((ModularFeatureList) peakList).getDateCreated() == null) {
+      dateText = ((ModularFeatureList) peakList).getDateCreated();
     } else {
       Date date = new Date();
       dateText = dateFormat.format(date);
@@ -118,8 +120,8 @@ public class PeakListSaveHandler {
     hd.endElement("", "", PeakListElementName.QUANTITY.getElementName());
 
     // <PROCESS>
-    PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
-    for (PeakListAppliedMethod proc : processes) {
+    List<FeatureListAppliedMethod> processes = peakList.getAppliedMethods();
+    for (FeatureListAppliedMethod proc : processes) {
 
       hd.startElement("", "", PeakListElementName.METHOD.getElementName(), atts);
 
@@ -153,7 +155,7 @@ public class PeakListSaveHandler {
     }
 
     // <ROW>
-    PeakListRow row;
+    ModularFeatureListRow row;
     for (int i = 0; i < numberOfRows; i++) {
 
       if (canceled)
@@ -186,7 +188,7 @@ public class PeakListSaveHandler {
    * @param element
    * @throws IOException
    */
-  private void fillRowElement(PeakListRow row, TransformerHandler hd)
+  private void fillRowElement(ModularFeatureListRow row, TransformerHandler hd)
       throws SAXException, IOException {
 
     // <PEAK_IDENTITY>

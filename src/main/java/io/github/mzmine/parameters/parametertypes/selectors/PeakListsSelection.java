@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.ArrayList;
 
 import com.google.common.base.Strings;
@@ -29,11 +30,11 @@ import io.github.mzmine.util.TextUtils;
 public class PeakListsSelection implements Cloneable {
 
   private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
-  private PeakList specificPeakLists[];
+  private ModularFeatureList specificPeakLists[];
   private String namePattern;
-  private PeakList batchLastPeakLists[];
+  private ModularFeatureList batchLastPeakLists[];
 
-  public PeakList[] getMatchingPeakLists() {
+  public ModularFeatureList[] getMatchingPeakLists() {
 
     switch (selectionType) {
 
@@ -43,15 +44,15 @@ public class PeakListsSelection implements Cloneable {
         return MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
       case SPECIFIC_PEAKLISTS:
         if (specificPeakLists == null)
-          return new PeakList[0];
+          return new ModularFeatureList[0];
         return specificPeakLists;
       case NAME_PATTERN:
         if (Strings.isNullOrEmpty(namePattern))
-          return new PeakList[0];
-        ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
-        PeakList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+          return new ModularFeatureList[0];
+        ArrayList<ModularFeatureList> matchingPeakLists = new ArrayList<ModularFeatureList>();
+        ModularFeatureList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
-        plCheck: for (PeakList pl : allPeakLists) {
+        plCheck: for (ModularFeatureList pl : allPeakLists) {
 
           final String plName = pl.getName();
 
@@ -64,10 +65,10 @@ public class PeakListsSelection implements Cloneable {
             continue plCheck;
           }
         }
-        return matchingPeakLists.toArray(new PeakList[0]);
+        return matchingPeakLists.toArray(new ModularFeatureList[0]);
       case BATCH_LAST_PEAKLISTS:
         if (batchLastPeakLists == null)
-          return new PeakList[0];
+          return new ModularFeatureList[0];
         return batchLastPeakLists;
     }
 
@@ -83,11 +84,11 @@ public class PeakListsSelection implements Cloneable {
     this.selectionType = selectionType;
   }
 
-  public PeakList[] getSpecificPeakLists() {
+  public ModularFeatureList[] getSpecificPeakLists() {
     return specificPeakLists;
   }
 
-  public void setSpecificPeakLists(PeakList[] specificPeakLists) {
+  public void setSpecificPeakLists(ModularFeatureList[] specificPeakLists) {
     this.specificPeakLists = specificPeakLists;
   }
 
@@ -99,7 +100,7 @@ public class PeakListsSelection implements Cloneable {
     this.namePattern = namePattern;
   }
 
-  public void setBatchLastPeakLists(PeakList[] batchLastPeakLists) {
+  public void setBatchLastPeakLists(ModularFeatureList[] batchLastPeakLists) {
     this.batchLastPeakLists = batchLastPeakLists;
   }
 
@@ -113,7 +114,7 @@ public class PeakListsSelection implements Cloneable {
 
   public String toString() {
     StringBuilder str = new StringBuilder();
-    PeakList pls[] = getMatchingPeakLists();
+    ModularFeatureList pls[] = getMatchingPeakLists();
     for (int i = 0; i < pls.length; i++) {
       if (i > 0)
         str.append("\n");

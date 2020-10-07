@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -33,7 +34,7 @@ public interface FeatureListRow {
   /**
    * Return raw data with peaks on this row
    */
-  public RawDataFile[] getRawDataFiles();
+  public List<RawDataFile> getRawDataFiles();
 
   /**
    * Returns ID of this row

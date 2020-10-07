@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.List;
 import java.net.URL;
@@ -107,7 +109,7 @@ public interface Desktop extends MZmineModule {
    *
    * @return Array of selected feature lists
    */
-  public PeakList[] getSelectedPeakLists();
+  public ModularFeatureList[] getSelectedPeakLists();
 
   @Nonnull
   public ExitCode exitMZmine();

@@ -26,11 +26,13 @@ import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
 import io.github.mzmine.main.MZmineCore;
+/*
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+ */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -59,8 +61,9 @@ public class FeatureTableWindowFXMLController {
       .getLogger(FeatureTableWindowFXMLController.class.getName());
 
   private static ParameterSet param;
-  private TICPlot xicPlot;
-  private SpectraPlot spectrumPlot;
+  // TODO:
+  //private TICPlot xicPlot;
+  //private SpectraPlot spectrumPlot;
 
   @FXML
   private BorderPane pnMain;
@@ -104,14 +107,14 @@ public class FeatureTableWindowFXMLController {
         .setSelected(param.getParameter(FeatureTableFXParameters.showSpectrum).getValue());
     miShowXIC.setSelected(param.getParameter(FeatureTableFXParameters.showXIC).getValue());
 
-    xicPlot = new TICPlot();
-    xicPlot.setPlotType(TICPlotType.TIC);
-    xicPlot.setMinHeight(150);
-    xicPlot.setPrefHeight(150);
+    //xicPlot = new TICPlot();
+    //xicPlot.setPlotType(TICPlotType.TIC);
+    //xicPlot.setMinHeight(150);
+    //xicPlot.setPrefHeight(150);
 
-    spectrumPlot = new SpectraPlot();
-    spectrumPlot.setMinHeight(150);
-    spectrumPlot.setPrefHeight(150);
+    //spectrumPlot = new SpectraPlot();
+    //spectrumPlot.setMinHeight(150);
+    //spectrumPlot.setPrefHeight(150);
 
     cmbFilter.setConverter(new StringConverter<>() {
       @Override
@@ -165,6 +168,7 @@ public class FeatureTableWindowFXMLController {
 
   @FXML
   void miShowXICOnAction(ActionEvent event) {
+    /*
     if (event != null) {
       event.consume();
     }
@@ -178,10 +182,12 @@ public class FeatureTableWindowFXMLController {
     }
 
     param.getParameter(FeatureTableFXParameters.showXIC).setValue(miShowXIC.isSelected());
+    */
   }
 
   @FXML
   void miShowSpectrumOnAction(ActionEvent event) {
+    /*
     if (event != null) {
       event.consume();
     }
@@ -195,6 +201,7 @@ public class FeatureTableWindowFXMLController {
     }
 
     param.getParameter(FeatureTableFXParameters.showSpectrum).setValue(miShowSpectrum.isSelected());
+    */
   }
 
 
@@ -204,6 +211,7 @@ public class FeatureTableWindowFXMLController {
    * @param selectedRow
    */
   void updateXICPlot(ModularFeatureListRow selectedRow) {
+    /*
     if (!miShowXIC.isSelected()) {
       return;
     }
@@ -217,6 +225,7 @@ public class FeatureTableWindowFXMLController {
     ModularFeature feature = selectedRow.getFeatures().get(raws.get(0));
     TICDataSet dataSet = new TICDataSet(feature);
     xicPlot.addTICDataSet(dataSet);
+    */
   }
 
   /**
@@ -225,6 +234,7 @@ public class FeatureTableWindowFXMLController {
    * @param selectedRow
    */
   void updateSpectrumPlot(ModularFeatureListRow selectedRow) {
+    /*
     if (!miShowSpectrum.isSelected()) {
       return;
     }
@@ -242,6 +252,7 @@ public class FeatureTableWindowFXMLController {
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
     spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(scanDataSet, palette.getMainColorAWT(), false);
+     */
   }
 
 

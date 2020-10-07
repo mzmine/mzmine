@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -324,7 +325,7 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    PeakList peakLists[] = savedProject.getPeakLists();
+    FeatureList peakLists[] = savedProject.getPeakLists();
 
     for (int i = 0; i < peakLists.length; i++) {
 

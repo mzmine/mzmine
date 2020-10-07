@@ -57,14 +57,11 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-
-    PeakList peakLists[] = parameters.getParameter(
-        io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters.peakLists).getValue()
+    ModularFeatureList[] peakLists= parameters.getParameter(IsotopeGrouperParameters.peakLists).getValue()
         .getMatchingPeakLists();
 
-    for (final PeakList peakList : peakLists) {
-      ModularFeatureList modularFeatureList = new ModularFeatureList(peakList);
-      Task newTask = new IsotopeGrouperTask(project, modularFeatureList, parameters);
+    for (final ModularFeatureList peakList : peakLists) {
+      Task newTask = new IsotopeGrouperTask(project, peakList, parameters);
       tasks.add(newTask);
     }
 

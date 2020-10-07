@@ -19,7 +19,12 @@
 package io.github.mzmine.datamodel.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.PeakInformation;
+import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +50,7 @@ import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javax.annotation.Nullable;
 
 /**
  * Map of all feature related data.
@@ -56,7 +62,7 @@ import javafx.scene.Node;
  *  chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements /*FeatureListRow,*/ ModularDataModel {
+public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   private final @Nonnull
   ModularFeatureList flist;
@@ -189,6 +195,68 @@ public class ModularFeatureListRow implements /*FeatureListRow,*/ ModularDataMod
     return idProp == null || idProp.getValue() == null ? -1 : get(IDType.class).getValue();
   }
 
+  // TODO: implement getters
+
+  @Override
+  public int getNumberOfPeaks() {
+    return 0;
+  }
+
+  @Override
+  public Feature[] getPeaks() {
+    return new Feature[0];
+  }
+
+  @Override
+  public Feature getPeak(RawDataFile rawData) {
+    return null;
+  }
+
+  @Override
+  public void addPeak(RawDataFile rawData, Feature peak) {
+
+  }
+
+  @Override
+  public void removePeak(RawDataFile file) {
+
+  }
+
+  @Override
+  public boolean hasPeak(Feature peak) {
+    return false;
+  }
+
+  @Override
+  public boolean hasPeak(RawDataFile rawData) {
+    return false;
+  }
+
+  @Override
+  public double getAverageMZ() {
+    return 0;
+  }
+
+  @Override
+  public double getAverageRT() {
+    return 0;
+  }
+
+  @Override
+  public double getAverageHeight() {
+    return 0;
+  }
+
+  @Override
+  public int getRowCharge() {
+    return 0;
+  }
+
+  @Override
+  public double getAverageArea() {
+    return 0;
+  }
+
   public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
@@ -220,12 +288,33 @@ public class ModularFeatureListRow implements /*FeatureListRow,*/ ModularDataMod
     set(IDType.class, id);
   }
 
+  @Nullable
+  @Override
+  public PeakList getPeakList() {
+    return null;
+  }
+
+  @Override
+  public void setPeakList(@Nonnull PeakList peakList) {
+
+  }
+
   public String getComment() {
     return comment;
   }
 
   public void setComment(String comment) {
     this.comment = comment;
+  }
+
+  @Override
+  public void setAverageMZ(double mz) {
+
+  }
+
+  @Override
+  public void setAverageRT(double rt) {
+
   }
 
   public PeakIdentity[] getPeakIdentities() {
@@ -250,11 +339,52 @@ public class ModularFeatureListRow implements /*FeatureListRow,*/ ModularDataMod
     }
   }
 
+  @Override
+  public void removePeakIdentity(PeakIdentity identity) {
+
+  }
+
   public PeakIdentity getPreferredPeakIdentity() {
     return preferredIdentity;
   }
 
   public void setPreferredPeakIdentity(PeakIdentity preferredIdentity) {
     this.preferredIdentity = preferredIdentity;
+  }
+
+  @Override
+  public void setPeakInformation(PeakInformation information) {
+
+  }
+
+  @Override
+  public PeakInformation getPeakInformation() {
+    return null;
+  }
+
+  @Override
+  public double getDataPointMaxIntensity() {
+    return 0;
+  }
+
+  @Override
+  public Feature getBestPeak() {
+    return null;
+  }
+
+  @Override
+  public Scan getBestFragmentation() {
+    return null;
+  }
+
+  @Nonnull
+  @Override
+  public Scan[] getAllMS2Fragmentations() {
+    return new Scan[0];
+  }
+
+  @Override
+  public IsotopePattern getBestIsotopePattern() {
+    return null;
   }
 }

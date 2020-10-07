@@ -41,7 +41,9 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+/*
 import io.github.mzmine.util.MirrorChartFactory;
+*/
 
 /**
  * More options for the StandardChartTheme
@@ -328,6 +330,8 @@ public class EStandardChartTheme extends StandardChartTheme {
 
     LegendTitle newLegend;
 
+    // TODO:
+    /*
     if (plot instanceof CombinedDomainXYPlot && (oldLegend.getSources()[0].getLegendItems()
         .getItemCount() == MirrorChartFactory.tags.length
         || oldLegend.getSources()[0].getLegendItems()
@@ -337,6 +341,10 @@ public class EStandardChartTheme extends StandardChartTheme {
     } else {
       newLegend = new LegendTitle(plot);
     }
+    */
+    // REMOVE
+    newLegend = new LegendTitle(plot);
+    // REMOVE
 
     newLegend.setPosition(pos);
     newLegend.setItemFont(oldLegend.getItemFont());

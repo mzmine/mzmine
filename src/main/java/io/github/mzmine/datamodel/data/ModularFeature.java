@@ -25,7 +25,9 @@ import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+/*
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
+ */
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +117,8 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     //set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
+    // TODO:
+    /*
     Float fwhm = QualityParameters.calculateFWHM(this);
     if(!fwhm.isNaN()) {
       set(FwhmType.class, fwhm);
@@ -127,6 +131,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     if(!af.isNaN()) {
       set(AsymmetryFactorType.class, af);
     }
+    */
   }
 
   /**
@@ -165,6 +170,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     set(IntensityRangeType.class, intensityRange);
     */
 
+    /*
     Float fwhm = QualityParameters.calculateFWHM(this);
     if(!fwhm.isNaN()) {
       set(FwhmType.class, fwhm);
@@ -177,6 +183,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     if(!af.isNaN()) {
       set(AsymmetryFactorType.class, af);
     }
+    */
   }
 
   public ModularFeatureList getFeatureList() {

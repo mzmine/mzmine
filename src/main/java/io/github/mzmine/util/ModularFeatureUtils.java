@@ -36,7 +36,9 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
+/*
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
+ */
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
@@ -168,11 +170,14 @@ public class ModularFeatureUtils {
     }
     target.setComment(targetComment);
 
+    // TODO:
     // Copy all peak identities, if these are not already present
+    /*
     for (PeakIdentity identity : source.getPeakIdentities()) {
       if (!containsIdentity(target, identity))
         target.addPeakIdentity(identity, false);
     }
+    */
 
     // Set the preferred identity
     target.setPreferredPeakIdentity(source.getPreferredPeakIdentity());
@@ -227,7 +232,7 @@ public class ModularFeatureUtils {
    */
   public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Double> rtRange,
       Range<Double> mzRange) {
-
+    /*
     ManualPeak newPeak = new ManualPeak(dataFile);
     boolean dataPointFound = false;
 
@@ -259,7 +264,10 @@ public class ModularFeatureUtils {
     } else {
       return 0.0;
     }
-
+    */
+    // REMOVE
+    return Double.NaN;
+    // REMOVE
   }
 
   // TODO Feature to ModularFeature

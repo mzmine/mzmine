@@ -34,7 +34,9 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
+/*
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
+ */
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
@@ -218,7 +220,8 @@ public class PeakUtils {
    */
   public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Double> rtRange,
       Range<Double> mzRange) {
-
+    // TODO:
+    /*
     ManualPeak newPeak = new ManualPeak(dataFile);
     boolean dataPointFound = false;
 
@@ -250,7 +253,10 @@ public class PeakUtils {
     } else {
       return 0.0;
     }
-
+    */
+    // REMOVE
+    return Double.NaN;
+    // REMOVE
   }
 
   /**
