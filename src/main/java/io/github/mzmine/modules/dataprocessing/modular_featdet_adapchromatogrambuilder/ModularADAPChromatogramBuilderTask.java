@@ -21,7 +21,6 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
-import io.github.mzmine.datamodel.data.types.numbers.TestIntType;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -435,9 +434,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     // show peaklist window
     Platform.runLater(() -> {
-//      FeatureTableFXWindow window = new FeatureTableFXWindow(newPeakList);
+//      FeatureTableFXTab window = new FeatureTableFXTab(newPeakList);
 //      window.show();
-      FeatureTableFXUtil.createFeatureTableWindow(newPeakList);
+      FeatureTableFXUtil.addFeatureTableTab(newPeakList);
     });
 
     progress = 1.0;

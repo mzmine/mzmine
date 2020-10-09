@@ -45,7 +45,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -236,7 +235,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // show peaklist window
     Platform.runLater(() -> {
-      FeatureTableFXUtil.createFeatureTableWindow(deisotopedFeatureList);
+      FeatureTableFXUtil.addFeatureTableTab(deisotopedFeatureList);
     });
 
     // Load previous applied methods

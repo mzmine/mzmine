@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXWindow;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -49,7 +48,7 @@ public class FXTableWindow extends Application {
     ModularFeatureList flist;
     try {
       flist = createMinimalTest();
-      FeatureTableFXUtil.createFeatureTableWindow(flist);
+      FeatureTableFXUtil.addFeatureTableTab(flist);
     } catch (IOException e) {
       e.printStackTrace();
     }

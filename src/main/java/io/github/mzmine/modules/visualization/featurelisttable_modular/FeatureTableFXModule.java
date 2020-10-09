@@ -34,7 +34,7 @@ public class FeatureTableFXModule implements MZmineModule {
    * @param flist
    */
   public static void createFeatureListTable(ModularFeatureList flist) {
-    Platform.runLater(() -> FeatureTableFXUtil.createFeatureTableWindow(flist));
+    Platform.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
   }
 
   @Nonnull

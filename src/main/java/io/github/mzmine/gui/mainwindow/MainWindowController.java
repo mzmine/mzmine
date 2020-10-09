@@ -18,7 +18,6 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.text.NumberFormat;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
@@ -45,7 +43,6 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
  */
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -608,7 +605,7 @@ public class MainWindowController {
     for (ModularFeatureList fl : selectedFeatureLists) {
       //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       Platform.runLater(() -> {
-        FeatureTableFXUtil.createFeatureTableWindow(fl);
+        FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }
   }

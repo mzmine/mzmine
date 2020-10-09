@@ -330,4 +330,8 @@ public class FeatureTableWindowFXMLController {
     updateXICPlot(selectedRow);
     updateSpectrumPlot(selectedRow);
   }
+
+  void setFeatureTable(FeatureTableFX featureTable) {
+    this.featureTable = featureTable;
+  }
 }
