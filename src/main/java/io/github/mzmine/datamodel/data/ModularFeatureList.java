@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,16 +31,25 @@ import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
+/* TODO: make addRowType and addFeatureType private and move
+ *  featureTypes = FXCollections.observableMap(featureTypesLinkedMap); and
+ *  rowTypes = FXCollections.observableMap(rowTypesLinkedMap);
+ *  to the constructor to reduce time complexity
+ */
 public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
-  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes =
-      FXCollections.observableHashMap();
-  private final ObservableMap<Class<? extends DataType>, DataType> featureTypes =
-      FXCollections.observableHashMap();
+  // using LinkedHashMaps to save columns order according to the constructor
+  private final LinkedHashMap<Class<? extends DataType>, DataType> rowTypesLinkedMap =
+      new LinkedHashMap<>();
+  private ObservableMap<Class<? extends DataType>, DataType> rowTypes;
+
+  private final LinkedHashMap<Class<? extends DataType>, DataType> featureTypesLinkedMap =
+      new LinkedHashMap<>();
+  private ObservableMap<Class<? extends DataType>, DataType> featureTypes;
+
   // bindings for values
   private final List<RowBinding> rowBindings = new ArrayList<>();
-
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -67,10 +77,9 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = new ArrayList<>();
     dateCreated = DATA_FORMAT.format(new Date());
 
-    DataTypeUtils.addDefaultChromatographicTypeColumns(this);
     addRowType(new IDType());
-    addRowType(new CommentType());
     addRowType(new MZExpandingType());
+    DataTypeUtils.addDefaultChromatographicTypeColumns(this);
 
     // has raw files - add column to row and feature
     if (!dataFiles.isEmpty()) {
@@ -81,6 +90,7 @@ public class ModularFeatureList implements FeatureList {
       addFeatureType(new TailingFactorType());
       addFeatureType(new AsymmetryFactorType());
     }
+    addRowType(new CommentType());
   }
 
   /**
@@ -152,12 +162,13 @@ public class ModularFeatureList implements FeatureList {
 
   public void addFeatureType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!getFeatureTypes().containsKey(type.getClass())) {
-        getFeatureTypes().put(type.getClass(), type);
+      if (!featureTypesLinkedMap.containsKey(type.getClass())) {
+        featureTypesLinkedMap.put(type.getClass(), type);
         // add to maps
         streamFeatures().forEach(f -> {
           f.setProperty(type, type.createProperty());
         });
+        featureTypes = FXCollections.observableMap(featureTypesLinkedMap);
       }
     }
   }
@@ -168,12 +179,13 @@ public class ModularFeatureList implements FeatureList {
 
   public void addRowType(@Nonnull List<DataType<?>> types) {
     for (DataType<?> type : types) {
-      if (!getRowTypes().containsKey(type.getClass())) {
-        getRowTypes().put(type.getClass(), type);
+      if (!rowTypesLinkedMap.containsKey(type.getClass())) {
+        rowTypesLinkedMap.put(type.getClass(), type);
         // add type columns to maps
         stream().forEach(row -> {
           row.setProperty(type, type.createProperty());
         });
+        rowTypes = FXCollections.observableMap(rowTypesLinkedMap);
       }
     }
   }
