@@ -56,7 +56,7 @@ public class StorableScan implements Scan {
   private Double totalIonCurrent;
   private MassSpectrumType spectrumType;
   private int numberOfDataPoints;
-  private RawDataFileImpl rawDataFile;
+  protected RawDataFileImpl rawDataFile;
   private ArrayList<MassList> massLists = new ArrayList<MassList>();
   private PolarityType polarity;
   private String scanDefinition;
@@ -115,6 +115,9 @@ public class StorableScan implements Scan {
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
+
+    this.mobility = -1.0d;
+    this.mobilityType = MobilityType.NONE;
   }
 
   /**
@@ -384,11 +387,11 @@ public class StorableScan implements Scan {
 
   }
 
-//  @Override
-//  public void addFragmentScan(int scanNumber) {
-//    throw new UnsupportedOperationException(
-//        "adding fragment scans is not supported by " + this.getClass().getName());
-//  }
+  @Override
+  public void addFragmentScan(int scanNumber) {
+    throw new UnsupportedOperationException(
+        "adding fragment scans is not supported by " + this.getClass().getName());
+  }
 
   @Override
   @Nonnull

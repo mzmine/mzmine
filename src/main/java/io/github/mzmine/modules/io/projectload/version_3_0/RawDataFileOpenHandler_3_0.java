@@ -19,12 +19,15 @@
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.modules.io.projectload.version_2_0.RawDataElementName_2_0;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.project.impl.StorableMassList;
 import io.github.mzmine.project.impl.StorableScan;
 import io.github.mzmine.util.RangeUtils;
@@ -34,6 +37,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import javafx.scene.paint.Color;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -67,12 +71,19 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
 
+  private Range<Double> mobilityRange;
+  private int[] mobilityScans;
+  private int numberMoblityScans;
+  private int mobilityScanCount;
+  private MobilityType mobilityType;
+  private int frameId;
+
   private boolean canceled = false;
 
   /**
    * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
    * the information from the XML raw data description file
-   * 
+   *
    * @param Name raw data file name
    * @throws SAXException
    * @throws ParserConfigurationException
@@ -105,14 +116,14 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   }
 
   /**
-   * @see DefaultHandler#startElement(String, String,
-   *      String, Attributes)
+   * @see DefaultHandler#startElement(String, String, String, Attributes)
    */
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // This will remove any remaining characters from previous elements
     getTextOfElement();
@@ -151,16 +162,27 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       StorableMassList newML = new StorableMassList(newRawDataFile, storageID, name, null);
       massLists.add(newML);
     }
+
+    if (qName.equals(RawDataElementName_3_0.QUANTITY_MOBILITY_SCANS.getElementName())) {
+      numberMoblityScans =
+          Integer.parseInt(attrs.getValue(
+              RawDataElementName_3_0.QUANTITY.getElementName()));
+      if (numberMoblityScans > 0) {
+        mobilityScans = new int[numberMoblityScans];
+        mobilityScanCount = 0;
+      }
+    }
+
   }
 
   /**
-   * @see DefaultHandler#endElement(String, String,
-   *      String)
+   * @see DefaultHandler#endElement(String, String, String)
    */
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <NAME>
     if (qName.equals(RawDataElementName_3_0.NAME.getElementName())) {
@@ -178,6 +200,11 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_3_0.SCAN_ID.getElementName())) {
       scanNumber = Integer.parseInt(getTextOfElement());
+    }
+
+    if(qName.equals(RawDataElementName_3_0.COLOR.getElementName())) {
+      String color = getTextOfElement();
+      newRawDataFile.setColor(Color.valueOf(color));
     }
 
     if (qName.equals(RawDataElementName_3_0.STORED_DATA.getElementName())) {
@@ -226,8 +253,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
-    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
-    {
+    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName())) {
       mobility = Double.parseDouble(getTextOfElement());
     }
 
@@ -239,11 +265,33 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
     }
 
+    if (qName.equals(RawDataElementName_3_0.MOBILITY_TYPE.getElementName())) {
+      mobilityType = MobilityType.valueOf(getTextOfElement());
+      mobilityType = (mobilityType == null) ? MobilityType.NONE : mobilityType;
+    }
+
+    if (qName.equals(RawDataElementName_3_0.FRAME_ID.getElementName())) {
+      frameId = Integer.valueOf(getTextOfElement());
+    }
+
+    if (qName.equals(RawDataElementName_3_0.MOBILITY_SCANNUMS.getElementName())) {
+      mobilityScans[mobilityScanCount++] = Integer.parseInt(getTextOfElement());
+    }
+
     if (qName.equals(RawDataElementName_3_0.SCAN.getElementName())) {
 
-      StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
-          dataPointsNumber, scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge,
-          fragmentScan, null, polarity, scanDescription, scanMZRange);
+      Scan storableScan;
+      if (frameId == -1) {
+        storableScan = new StorableScan(newRawDataFile, currentStorageID,
+            dataPointsNumber, scanNumber, msLevel, retentionTime, mobility, precursorMZ,
+            precursorCharge,
+            fragmentScan, null, polarity, scanDescription, scanMZRange);
+      } else {
+        storableScan = new StorableFrame(newRawDataFile, currentStorageID, dataPointsNumber,
+            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge,
+            fragmentScan, null, polarity, scanDescription, scanMZRange, frameId, mobilityType,
+            mobilityRange, mobilityScans);
+      }
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -271,12 +319,18 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       scanDescription = "";
       scanMZRange = null;
 
+      mobilityRange = Range.singleton(0d);
+      mobilityScans = null;
+      numberMoblityScans = 0;
+      mobilityScanCount = 0;
+      mobilityType = MobilityType.NONE;
+      frameId = -1;
     }
   }
 
   /**
    * Return a string without tab an EOF characters
-   * 
+   *
    * @return String element text
    */
   private String getTextOfElement() {
@@ -289,7 +343,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
 
   /**
    * characters()
-   * 
+   *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
   public void characters(char buf[], int offset, int len) throws SAXException {

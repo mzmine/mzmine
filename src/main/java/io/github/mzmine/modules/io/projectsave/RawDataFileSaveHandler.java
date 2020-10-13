@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javafx.scene.paint.Color;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -159,6 +161,12 @@ class RawDataFileSaveHandler {
     hd.characters(rawDataFile.getName().toCharArray(), 0, rawDataFile.getName().length());
     hd.endElement("", "", RawDataElementName.NAME.getElementName());
 
+    // COLOR
+    hd.startElement("", "", RawDataElementName.COLOR.getElementName(), atts);
+    hd.characters(rawDataFile.getColor().toString().toCharArray(), 0,
+        rawDataFile.getColor().toString().length());
+    hd.endElement("", "", RawDataElementName.COLOR.getElementName());
+
     // <STORED_DATAPOINTS>
     atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
         String.valueOf(dataPointsOffsets.size()));
@@ -214,7 +222,7 @@ class RawDataFileSaveHandler {
    * Create the part of the XML document related to the scans
    *
    * @param scan
-   * @param element
+   * @param hd
    */
   private void fillScanElement(Scan scan, TransformerHandler hd) throws SAXException, IOException {
     // <SCAN_ID>
@@ -318,10 +326,30 @@ class RawDataFileSaveHandler {
     hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
+    // <MOBILITY_TYPE>
     hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
     MobilityType mobilityType = scan.getMobilityType();
     hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
     hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+
+    if (scan instanceof Frame) {
+      String frameId = String.valueOf(((Frame) scan).getFrameId());
+      hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
+      hd.characters(frameId.toCharArray(), 0, frameId.length());
+      hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+
+      int[] mobilityScans = ((Frame) scan).getMobilityScanNumbers();
+      atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
+          String.valueOf(mobilityScans.length));
+      hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
+      atts.clear();
+      for (int i : mobilityScans) {
+        hd.startElement("", "", RawDataElementName.MOBILITY_SCAN.getElementName(), atts);
+        hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
+        hd.endElement("", "", RawDataElementName.MOBILITY_SCAN.getElementName());
+      }
+      hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
+    }
 
   }
 

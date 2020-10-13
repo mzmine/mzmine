@@ -27,7 +27,9 @@ enum RawDataElementName {
       "mobility"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST(
       "mass_list"), STORED_DATAPOINTS("stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
       "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION("scan_description"), SCAN_MZ_RANGE(
-      "scan_mz_range"), MOBILITY_TYPE("mobility_type");
+      "scan_mz_range"), COLOR("color"), MOBILITY_TYPE("mobility_type"), FRAME_ID("frame_id"), MOBILITY_SCANNUMS(
+      "mobility_scannums"), QUANTITY_MOBILITY_SCANS("num_mobility_scans"), MOBILITY_SCAN(
+      "mobility_scan");
 
   private String elementName;
 

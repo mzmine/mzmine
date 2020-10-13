@@ -111,6 +111,13 @@ public interface RawDataFile {
   @Nonnull
   public Range<Double> getDataMobilityRange();
 
+  /**
+   * @return The {@link MobilityType} of this data file. {@link MobilityType#NONE} if no mobility
+   * dimension was recorded.
+   */
+  @Nonnull
+  public MobilityType getMobilityType();
+
   @Nonnull
   public Range<Double> getDataMZRange(int msLevel);
 

@@ -134,23 +134,23 @@ public class TDFReaderTask extends AbstractTask {
     int numFrames = frameTable.getNumberOfFrames();
 
     // load frame data
-//    for (int i = 0; i < numFrames; i++) {
-//      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
-//      List<Scan> scanList = TDFUtils
-//          .loadScansForPASEFFrame(handle,
-//              (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i),
-//              scanNum, frameTable, metaDataTable, framePrecursorTable);
-//      try {
-//        for (Scan scan : scanList) {
-//          newMZmineFile.addScan(scan);
-//          scanNum++;
-//        }
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return;
-//      }
-//      finishedPercentage = i / numFrames;
-//    }
+    for (int i = 0; i < numFrames; i++) {
+      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
+      List<Scan> scanList = TDFUtils
+          .loadScansForPASEFFrame(handle,
+              (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i),
+              scanNum, frameTable, metaDataTable, framePrecursorTable);
+      try {
+        for (Scan scan : scanList) {
+          newMZmineFile.addScan(scan);
+          scanNum++;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+      finishedPercentage = i / numFrames;
+    }
     /*for (int i = 0; i < numFrames; i++) {
       setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
       if (frameTable.getMsMsTypeColumn().get(i).intValue() != 0) {
@@ -170,20 +170,6 @@ public class TDFReaderTask extends AbstractTask {
       finishedPercentage = i / numFrames;
     }*/
 
-    Scan scan = TDFUtils
-        .exctractCentroidScanForFrame(handle,
-            (long) 70,
-            0, metaDataTable, frameTable);
-    Scan scan2 = TDFUtils
-        .extractProfileScanForFrame(handle, (long) 70,
-            1, metaDataTable, frameTable);
-    try {
-      newMZmineFile.addScan(scan);
-      newMZmineFile.addScan(scan2);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
 //    for(int i = 0; i < 30; i++) {
 //      DataPoint[] dps = TDFUtils.loadMsMsDataPointsForPrecursor_v2(handle, i);
 //      logger.info("id: " + i + " " + dps.toString());
@@ -199,10 +185,6 @@ public class TDFReaderTask extends AbstractTask {
 
     MZmineCore.getProjectManager().getCurrentProject().addFile(file);
 
-    Platform.runLater(() -> {
-      SpectraVisualizerModule.showNewSpectrumWindow(file, 0);
-      SpectraVisualizerModule.showNewSpectrumWindow(file, 1);
-    });
     /*long handle = tdfLibrary.tims_open(tdfBin.getAbsolutePath(), 0);
     if (handle == 0) {
       logger.info("Could not open file " + tdfBin.getAbsolutePath());

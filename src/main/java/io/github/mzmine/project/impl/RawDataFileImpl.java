@@ -18,6 +18,16 @@
 
 package io.github.mzmine.project.impl;
 
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataFileWriter;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.File;
@@ -29,6 +39,7 @@ import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -37,22 +48,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.util.EnumSet;
-import java.util.stream.Collectors;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -90,6 +91,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   // notifyUpdatedMassLists() method
   private final List<MassList> newMassLists = new ArrayList<>();
 
+  private Range<Double> mobilityRange;
+  private MobilityType mobilityType;
+
   /**
    * Scans
    */
@@ -111,6 +115,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+
+    mobilityRange = Range.singleton(0.d);
+    mobilityType = MobilityType.NONE;
   }
 
   @Override
@@ -506,7 +513,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
 
     scans.put(newScan.getScanNumber(), storedScan);
-
   }
 
   /**
@@ -617,7 +623,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Nonnull
   @Override
   public Range<Double> getDataMobilityRange(int msLevel) {
-    return null;
+    return mobilityRange;
+  }
+
+  @Nonnull
+  @Override
+  public MobilityType getMobilityType() {
+    return mobilityType;
   }
 
   public void setRTRange(int msLevel, Range<Double> rtRange) {

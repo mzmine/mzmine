@@ -244,8 +244,7 @@ public class MzXMLReadTask extends AbstractTask {
         msLevelTree++;
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime, 0,
-                0,0, null, new DataPoint[0], null,
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,                 0,0, null, new DataPoint[0], null,
                 polarity, scanId, null);
 
       }

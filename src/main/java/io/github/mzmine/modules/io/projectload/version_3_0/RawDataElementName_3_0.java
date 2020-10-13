@@ -22,13 +22,14 @@ enum RawDataElementName_3_0 {
 
   RAWDATA("rawdata"), NAME("name"), QUANTITY_SCAN("num_scans"), ID("id"), SCAN("scan"), SCAN_ID(
       "id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN("fragmentscans"), FRAGMENT_SCAN(
-          "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN("parent"), PRECURSOR_MZ(
-              "precursor_mz"), PRECURSOR_CHARGE("precursor_charge"), RETENTION_TIME(
-                  "rt"), MOBILITY("mobility"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST(
-                      "mass_list"), STORED_DATAPOINTS(
-                          "stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
-                              "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION(
-                                  "scan_description"), SCAN_MZ_RANGE("scan_mz_range"), MOBILITY_TYPE("mobility_type");
+      "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN("parent"), PRECURSOR_MZ(
+      "precursor_mz"), PRECURSOR_CHARGE("precursor_charge"), RETENTION_TIME(
+      "rt"), MOBILITY("mobility"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST(
+      "mass_list"), STORED_DATAPOINTS("stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
+      "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION("scan_description"), SCAN_MZ_RANGE(
+      "scan_mz_range"), COLOR("color"), MOBILITY_TYPE("mobility_type"), FRAME_ID(
+      "frame_id"), MOBILITY_SCANNUMS("mobility_scannums"), QUANTITY_MOBILITY_SCANS(
+      "num_mobility_scans"), MOBILITY_SCAN("mobility_scan_number");
 
   private String elementName;
 

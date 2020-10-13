@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.io.projectload;
 
+import io.github.mzmine.modules.io.projectload.version_3_0.PeakListOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
+import io.github.mzmine.modules.io.projectload.version_3_0.UserParameterOpenHandler_3_0;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -336,6 +339,15 @@ public class ProjectOpeningTask extends AbstractTask {
       return;
     }
 
+    // Check if the project version is > 2.5
+    if ((projectMajorVersion == 2) && (projectMinorVersion > 4)) {
+      // Default opening handler for MZmine.5 and higher
+      rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+      peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+      userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject, dataFilesIDMap);
+      return;
+    }
+
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
@@ -347,11 +359,9 @@ public class ProjectOpeningTask extends AbstractTask {
       }
     }
 
-    // Default opening handler for MZmine.5 and higher
-    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
-    peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
-    userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject, dataFilesIDMap);
-
+    rawDataFileOpenHandler = new RawDataFileOpenHandler_3_0();
+    peakListOpenHandler = new PeakListOpenHandler_3_0(dataFilesIDMap);
+    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
   }
 
   /**
