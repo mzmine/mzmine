@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.fx.ColumnID;
 import io.github.mzmine.datamodel.data.types.fx.ColumnType;
+import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -202,15 +203,22 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       this.getColumns().add(col);
       columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
       rowTypesParameter.isDataTypeVisible(dataType);
+      // REMOVE(tmp solution)
+      if(dataType instanceof GraphicalColumType) {
+        col.setMinWidth(200);
+      }
+      // REMOVE(tmp solution)
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
-        //col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
+        col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
+        //col.setStyle(".tree-table-view .column-header-backgroundvisibility: hidden;");
         // add feature columns for each raw file
         for (RawDataFile raw : flist.getRawDataFiles()) {
           // create column per name
           TreeTableColumn<ModularFeatureListRow, String> sampleCol =
               new TreeTableColumn<>();
 
+          // add label
           Label headerLabel = new Label(raw.getName());
           headerLabel.setTextFill(raw.getColor());
           headerLabel.setGraphic(new ImageView("icons/fileicon.png"));

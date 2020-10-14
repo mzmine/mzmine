@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.data.types;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,6 +53,7 @@ import javafx.scene.layout.StackPane;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
+// TODO: remove implements SubColumnsFactory...
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements SubColumnsFactory<MapProperty<RawDataFile, ModularFeature>> {
 
@@ -69,6 +71,7 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   @Nonnull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw) {
+    /*
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
     // create bar chart
     TreeTableColumn<ModularFeatureListRow, Object> barsCol = new TreeTableColumn<>("Area Bars");
@@ -85,12 +88,12 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
     shapes.setCellValueFactory(new DataTypeCellValueFactory(null, this));
     shapes.setCellFactory(new DataTypeCellFactory(null, this, cols.size()));
     cols.add(shapes);
-
+    */
     /*
      * sample columns are created in the FeatureListFX class
      */
 
-    return cols;
+    return Collections.emptyList();
   }
 
   /**

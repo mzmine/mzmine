@@ -25,6 +25,9 @@ import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.types.AreaBarType;
+import io.github.mzmine.datamodel.data.types.AreaShareType;
+import io.github.mzmine.datamodel.data.types.FeatureShapeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
 import java.util.Arrays;
 import java.util.Collections;
@@ -101,6 +104,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       features = FXCollections.unmodifiableObservableMap(FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
+
+      // TODO: MapProperty/Map? change DataTypeCellValueFactory?
+      //set(FeatureShapeType.class, getFeatures());
+      set(FeatureShapeType.class, getFeaturesProperty());
+      set(AreaBarType.class,getFeaturesProperty());
+      set(AreaShareType.class,getFeaturesProperty());
     } else {
       features = Collections.emptyMap();
     }
@@ -167,6 +176,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   public ObservableMap<RawDataFile, ModularFeature> getFeatures() {
     return get(FeaturesType.class).getValue();
+  }
+
+  public MapProperty<RawDataFile, ModularFeature> getFeaturesProperty() {
+    return get(FeaturesType.class);
   }
 
   /**

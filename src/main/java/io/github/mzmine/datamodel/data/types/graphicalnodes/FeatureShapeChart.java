@@ -3,6 +3,8 @@ package io.github.mzmine.datamodel.data.types.graphicalnodes;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.Node;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
@@ -49,6 +51,16 @@ public class FeatureShapeChart extends StackPane {
         }
         fi++;
         bc.getData().add(data);
+
+        // set series color according to the rawDataFile color
+        Node line = data.getNode().lookup(".chart-series-line");
+        Color color = raw.getColor();
+        String rgb = String.format("%d, %d, %d",
+            (int) (color.getRed() * 255),
+            (int) (color.getGreen() * 255),
+            (int) (color.getBlue() * 255));
+        line.setStyle("-fx-stroke: rgba(" + rgb + ", 1.0);");
+
         if (progress != null)
           progress.set((double) fi / size);
       }

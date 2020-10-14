@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * New interface for ModularFeatureList
+ * Interface for ModularFeatureList
  */
 public interface FeatureList {
 

@@ -3,6 +3,9 @@ package io.github.mzmine.datamodel.data;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.types.AreaBarType;
+import io.github.mzmine.datamodel.data.types.AreaShareType;
+import io.github.mzmine.datamodel.data.types.FeatureShapeType;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
@@ -81,6 +84,9 @@ public class ModularFeatureList implements FeatureList {
     addRowType(new MZExpandingType());
     DataTypeUtils.addDefaultChromatographicTypeColumns(this);
 
+    addRowType(new FeatureShapeType());
+    addRowType(new AreaBarType());
+    addRowType(new AreaShareType());
     // has raw files - add column to row and feature
     if (!dataFiles.isEmpty()) {
       addRowType(new FeaturesType());
