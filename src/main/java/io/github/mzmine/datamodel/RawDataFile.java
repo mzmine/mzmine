@@ -109,23 +109,10 @@ public interface RawDataFile {
   public Range<Double> getDataRTRange();
 
   @Nonnull
-  public Range<Double> getDataMobilityRange();
-
-  /**
-   * @return The {@link MobilityType} of this data file. {@link MobilityType#NONE} if no mobility
-   * dimension was recorded.
-   */
-  @Nonnull
-  public MobilityType getMobilityType();
-
-  @Nonnull
   public Range<Double> getDataMZRange(int msLevel);
 
   @Nonnull
   public Range<Double> getDataRTRange(Integer msLevel);
-
-  @Nonnull
-  public Range<Double> getDataMobilityRange(int msLevel);
 
   public double getDataMaxBasePeakIntensity(int msLevel);
 

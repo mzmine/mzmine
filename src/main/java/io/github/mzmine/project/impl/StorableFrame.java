@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.project.impl;
 
 import com.google.common.collect.Range;
@@ -7,7 +25,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
@@ -28,7 +47,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private Range<Double> mobilityRange;
 
-  private final int[] mobilityScanNumbers;
+  private final List<Integer> mobilityScanNumbers;
 
   /**
    * @param originalFrame
@@ -68,13 +87,14 @@ public class StorableFrame extends StorableScan implements Frame {
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, int frameId, MobilityType mobilityType,
-      Range<Double> mobilityRange, int[] mobilityScanNumbers) {
+      Range<Double> mobilityRange, List<Integer> mobilityScanNumbers) {
     super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime, mobility,
         precursorMZ, precursorCharge, fragmentScans, spectrumType, polarity, scanDefinition,
         scanMZRange);
     this.frameId = frameId;
     this.mobilityScanNumbers = mobilityScanNumbers;
     this.mobilityRange = mobilityRange;
+    this.mobilityType = mobilityType;
 
     // TODO do we need these?
     mobilityScanIds = new TreeMap<>();
@@ -93,8 +113,8 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   @Override
-  public int[] getMobilityScanNumbers() {
-    return mobilityScanIds.keySet().stream().mapToInt(Integer::intValue).toArray();
+  public List<Integer> getMobilityScanNumbers() {
+    return new ArrayList<>(mobilityScanIds.keySet());
   }
 
   @Nonnull
@@ -111,7 +131,7 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Nonnull
   @Override
-  public Collection<Scan> getMobilityScans() {
-    return mobilityScans.values();
+  public List<Scan> getMobilityScans() {
+    return new ArrayList<>(mobilityScans.values());
   }
 }

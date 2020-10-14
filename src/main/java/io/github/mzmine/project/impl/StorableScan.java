@@ -64,7 +64,7 @@ public class StorableScan implements Scan {
 
   private int storageID;
   private double mobility;
-  private MobilityType mobilityType;
+  protected MobilityType mobilityType;
 
   /**
    * Constructor for creating a storable scan from a given scan

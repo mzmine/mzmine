@@ -23,13 +23,13 @@ import io.github.mzmine.datamodel.MobilityType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javafx.scene.paint.Color;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -338,9 +338,9 @@ class RawDataFileSaveHandler {
       hd.characters(frameId.toCharArray(), 0, frameId.length());
       hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
 
-      int[] mobilityScans = ((Frame) scan).getMobilityScanNumbers();
+      List<Integer> mobilityScans = ((Frame) scan).getMobilityScanNumbers();
       atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
-          String.valueOf(mobilityScans.length));
+          String.valueOf(mobilityScans.size()));
       hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
       atts.clear();
       for (int i : mobilityScans) {

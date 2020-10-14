@@ -91,9 +91,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   // notifyUpdatedMassLists() method
   private final List<MassList> newMassLists = new ArrayList<>();
 
-  private Range<Double> mobilityRange;
-  private MobilityType mobilityType;
-
   /**
    * Scans
    */
@@ -116,8 +113,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     color = new SimpleObjectProperty<>();
     color.setValue(MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
 
-    mobilityRange = Range.singleton(0.d);
-    mobilityType = MobilityType.NONE;
   }
 
   @Override
@@ -257,7 +252,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
+   * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
   public @Nonnull
@@ -325,7 +320,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity(int)
    */
   @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
@@ -370,7 +365,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent()
+   * @see io.github.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent(int)
    */
   @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
@@ -576,11 +571,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return getDataRTRange(0);
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange() {
-    return null;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange() {
+//    return null;
+//  }
 
   @Nonnull
   @Override
@@ -620,17 +615,17 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return rtRange;
   }
 
-  @Nonnull
-  @Override
-  public Range<Double> getDataMobilityRange(int msLevel) {
-    return mobilityRange;
-  }
-
-  @Nonnull
-  @Override
-  public MobilityType getMobilityType() {
-    return mobilityType;
-  }
+//  @Nonnull
+//  @Override
+//  public Range<Double> getDataMobilityRange(int msLevel) {
+//    return mobilityRange;
+//  }
+//
+//  @Nonnull
+//  @Override
+//  public MobilityType getMobilityType() {
+//    return mobilityType;
+//  }
 
   public void setRTRange(int msLevel, Range<Double> rtRange) {
     dataRTRange.put(msLevel, rtRange);

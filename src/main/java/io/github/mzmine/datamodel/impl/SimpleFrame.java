@@ -26,7 +26,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -76,8 +77,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    * @return Scan numbers of sub scans.
    */
   @Override
-  public int[] getMobilityScanNumbers() {
-    return mobilityScans.keySet().stream().mapToInt(Integer::intValue).toArray();
+  public List<Integer> getMobilityScanNumbers() {
+    return new ArrayList<>(mobilityScans.keySet());
   }
 
   @Override
@@ -113,8 +114,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   @Nonnull
-  public Collection<Scan> getMobilityScans() {
-    return mobilityScans.values();
+  public List<Scan> getMobilityScans() {
+    return new ArrayList<>(mobilityScans.values());
   }
 
   @Override

@@ -35,8 +35,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -83,8 +85,8 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   /**
    * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
    * the information from the XML raw data description file
-   *
-   * @param Name raw data file name
+   * @param is
+   * @param scansFile
    * @throws SAXException
    * @throws ParserConfigurationException
    */
@@ -94,6 +96,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     charBuffer = new StringBuffer();
     massLists = new ArrayList<StorableMassList>();
 
+    // TODO differentiate between IMSRawDataFile and RawDataFile here!
     newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
     newRawDataFile.openDataPointsFile(scansFile);
 
@@ -118,6 +121,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   /**
    * @see DefaultHandler#startElement(String, String, String, Attributes)
    */
+  @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
@@ -178,6 +182,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   /**
    * @see DefaultHandler#endElement(String, String, String)
    */
+  @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
     if (canceled) {
@@ -290,7 +295,8 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
         storableScan = new StorableFrame(newRawDataFile, currentStorageID, dataPointsNumber,
             scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge,
             fragmentScan, null, polarity, scanDescription, scanMZRange, frameId, mobilityType,
-            mobilityRange, mobilityScans);
+            mobilityRange, Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
+        logger.info(() -> "Loaded frame " + frameId);
       }
 
       try {

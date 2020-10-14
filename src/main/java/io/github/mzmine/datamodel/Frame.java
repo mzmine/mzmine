@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -35,7 +35,7 @@ public interface Frame extends Scan {
   @Nonnull
   public MobilityType getMobilityType();
 
-  public int[] getMobilityScanNumbers();
+  public List<Integer> getMobilityScanNumbers();
 
   @Nonnull
   public Range<Double> getMobilityRange();
@@ -44,5 +44,5 @@ public interface Frame extends Scan {
   public Scan getMobilityScan(int scanNum);
 
   @Nonnull
-  public Collection<Scan> getMobilityScans();
+  public List<Scan> getMobilityScans();
 }
