@@ -28,9 +28,8 @@ public class FeatureTableFXTab extends MZmineTab {
       e.printStackTrace();
     }
 
-    FeatureTableWindowFXMLController controller = loader.getController();
+    FeatureTableFXMLTabAnchorPaneController controller = loader.getController();
     controller.setFeatureList(flist);
-    table.addData(flist);
     controller.setFeatureTable(table);
 
     setContent(root);

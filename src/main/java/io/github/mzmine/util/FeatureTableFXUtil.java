@@ -21,8 +21,8 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXTab;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableWindowFXMLController;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javax.annotation.Nullable;
@@ -36,11 +36,11 @@ public class FeatureTableFXUtil {
    * Platform#runLater(Runnable)}.
    *
    * @param flist The feature list.
-   * @return The {@link FeatureTableWindowFXMLController} of the window or null if failed to
+   * @return The {@link FeatureTableFXMLTabAnchorPaneController} of the window or null if failed to
    * initialise.
    */
   @Nullable
-  public static void /*FeatureTableWindowFXMLController*/ addFeatureTableTab(
+  public static void /*FeatureTableFXMLTabAnchorPaneController*/ addFeatureTableTab(
       ModularFeatureList flist) {
     FeatureTableFXTab newTab = new FeatureTableFXTab(flist);
     MZmineCore.getDesktop().addTab(newTab);

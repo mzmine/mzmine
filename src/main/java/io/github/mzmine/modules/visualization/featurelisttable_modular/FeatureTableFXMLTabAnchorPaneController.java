@@ -18,13 +18,10 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
 import io.github.mzmine.main.MZmineCore;
 /*
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
@@ -35,10 +32,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
  */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.color.SimpleColorPalette;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -55,10 +48,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 
-public class FeatureTableWindowFXMLController {
+public class FeatureTableFXMLTabAnchorPaneController {
 
   private static final Logger logger = Logger
-      .getLogger(FeatureTableWindowFXMLController.class.getName());
+      .getLogger(FeatureTableFXMLTabAnchorPaneController.class.getName());
 
   private static ParameterSet param;
   // TODO:
