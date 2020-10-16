@@ -231,6 +231,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
               sampleCol.getColumns().add(subCol);
               columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, raw), subCol);
               featureTypesParameter.isDataTypeVisible(ftype);
+              applyColumnVisibility(ftype);
             }
           }
           // add all
@@ -238,7 +239,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         }
       }
     }
-    applyColumnVisibility();
+    applyColumnVisibility(dataType);
   }
 
 
@@ -306,23 +307,57 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
   }
 
   /**
-   * Sets visibility of DataType columns depending on the parameter values. Uses columnMap and
-   * ColumnID.
+   * Sets visibility of all data type columns.
+   *
+   * @param rowVisibilityMap Map containing row types names and their visibility values
+   * @param featureVisibilityMap Map containing feature types names and their visibility values
    */
-  protected void applyColumnVisibility() {
+  protected void applyColumnsVisibility(Map<String, Boolean> rowVisibilityMap,
+      Map<String, Boolean> featureVisibilityMap) {
     if (flist == null) {
       return;
     }
 
-    for (DataType dataType : flist.getRowTypes().values()) {
-      TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+    // update visibility parameters
+    rowTypesParameter.setDataTypesAndVisibility(rowVisibilityMap);
+    featureTypesParameter.setDataTypesAndVisibility(featureVisibilityMap);
+
+    // apply visibility parameters to the table
+    for (DataType<?> dataType : flist.getRowTypes().values()) {
+      TreeTableColumn<?, ?> col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
       if (col != null) {
         col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
       }
     }
 
     for (RawDataFile raw : flist.getRawDataFiles()) {
-      for (DataType dataType : flist.getFeatureTypes().values()) {
+      for (DataType<?> dataType : flist.getFeatureTypes().values()) {
+        TreeTableColumn<?, ?> col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
+        if (col != null) {
+          col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
+        }
+      }
+    }
+  }
+
+  /**
+   * Sets visibility of data type column depending on the rowTypesParameter and featureTypesParameter
+   * values.
+   *
+   * @param dataType The data type
+   */
+  private void applyColumnVisibility(DataType dataType) {
+    if (flist == null) {
+      return;
+    }
+
+    if (flist.getRowTypes().containsValue(dataType)) {
+      TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+      if (col != null) {
+        col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
+      }
+    } else if (flist.getFeatureTypes().containsValue(dataType)) {
+      for(RawDataFile raw : flist.getRawDataFiles()) {
         TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
         if (col != null) {
           col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));

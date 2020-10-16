@@ -30,7 +30,6 @@ public class FeatureTableFXTab extends MZmineTab {
 
     FeatureTableFXMLTabAnchorPaneController controller = loader.getController();
     controller.setFeatureList(flist);
-    controller.setFeatureTable(table);
 
     setContent(root);
   }

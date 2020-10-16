@@ -12,7 +12,7 @@
     <BorderPane fx:id="pnMain" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0"
       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <top>
-        <VBox BorderPane.alignment="CENTER">
+        <HBox BorderPane.alignment="CENTER">
           <children>
             <MenuBar>
               <menus>
@@ -34,6 +34,7 @@
                 </Menu>
               </menus>
             </MenuBar>
+            <Region HBox.hgrow="ALWAYS" />
             <FlowPane hgap="10.0">
               <children>
                 <Label text="Filter by:"/>
@@ -51,7 +52,7 @@
               </opaqueInsets>
             </FlowPane>
           </children>
-        </VBox>
+        </HBox>
       </top>
       <center>
         <StackPane fx:id="pnMainCenter" prefHeight="150.0" prefWidth="200.0"

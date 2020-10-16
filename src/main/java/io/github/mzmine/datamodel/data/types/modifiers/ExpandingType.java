@@ -60,13 +60,4 @@ public interface ExpandingType<T, S> extends SubColumnsFactory<ObjectProperty<S>
   String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw);
-
-
-  @Override
-  @Nullable
-  default Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    return null;
-  }
 }

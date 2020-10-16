@@ -44,13 +44,13 @@ public class DataTypeUtils {
   // bindings from row to features
   public static final @Nonnull List<RowBinding> DEFAULT_CHROMATOGRAPHIC_ROWBINDING =
       List.of(/*new RowBinding(new MZType(), BindingsType.AVERAGE),
-          new RowBinding(new RTType(), BindingsType.AVERAGE),*/
+          new RowBinding(new RTType(), BindingsType.AVERAGE),*//*
           new RowBinding(new HeightType(), BindingsType.MAX),
-          new RowBinding(new AreaType(), BindingsType.MAX)/*,
+          new RowBinding(new AreaType(), BindingsType.MAX)*//*,
           new RowBinding(new RTRangeType(), BindingsType.RANGE),
           new RowBinding(new MZRangeType(), BindingsType.RANGE)*/);
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(/*new RTType(),
-      new MZType(),*/ new HeightType(), new AreaType()/*, new RTRangeType(), new MZRangeType()*/);
+      new MZType(),*/ /*new HeightType(), new AreaType()*//*, new RTRangeType(), new MZRangeType()*/);
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
           new RTType(), new HeightType(), new AreaType(), new BestScanNumberType(),

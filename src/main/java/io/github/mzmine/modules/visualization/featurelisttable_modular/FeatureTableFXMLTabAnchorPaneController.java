@@ -154,7 +154,6 @@ public class FeatureTableFXMLTabAnchorPaneController {
       ExitCode exitCode = param.showSetupDialog(true);
       if (exitCode == ExitCode.OK) {
         updateWindowToParameterSetValues();
-        featureTable.applyColumnVisibility();
       }
     });
   }
@@ -259,6 +258,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     miShowSpectrumOnAction(null);
     miShowXICOnAction(null);
+
+    featureTable.applyColumnsVisibility(
+        param.getParameter(FeatureTableFXParameters.showRowTypeColumns).getValue(),
+        param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }
 
 
