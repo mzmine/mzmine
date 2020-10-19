@@ -25,8 +25,8 @@ public class AreaShareChart extends StackPane {
 
     List<Rectangle> all = new ArrayList<>();
     int i = 0;
-    int size = row.getFeatures().size();
-    for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
+    int size = row.getFilesFeatures().size();
+    for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       if (areaProperty.getValue() != null) {
         // color from sample

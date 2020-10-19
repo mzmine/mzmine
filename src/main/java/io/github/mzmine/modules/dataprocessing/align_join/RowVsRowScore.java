@@ -18,17 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 
 /**
  * This class represents a score between feature list row and aligned feature list row
  */
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-  private PeakListRow peakListRow, alignedRow;
+  private ModularFeatureListRow peakListRow, alignedRow;
   double score;
 
-  RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow, double mzMaxDiff, double mzWeight,
+  RowVsRowScore(ModularFeatureListRow peakListRow, ModularFeatureListRow alignedRow, double mzMaxDiff, double mzWeight,
       double rtMaxDiff, double rtWeight) {
 
     this.peakListRow = peakListRow;
@@ -46,14 +46,14 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  PeakListRow getPeakListRow() {
+  ModularFeatureListRow getPeakListRow() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  PeakListRow getAlignedRow() {
+  ModularFeatureListRow getAlignedRow() {
     return alignedRow;
   }
 

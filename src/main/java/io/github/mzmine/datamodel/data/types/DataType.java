@@ -139,7 +139,7 @@ public abstract class DataType<T extends Property<?>> {
             if (raw == null)
               event.getRowValue().getValue().set(this, data);
             else
-              event.getRowValue().getValue().getFeatures().get(raw).set(this, data);
+              event.getRowValue().getValue().getFilesFeatures().get(raw).set(this, data);
           }
         });
       } else {

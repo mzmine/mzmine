@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import java.text.Format;
@@ -68,7 +69,6 @@ public class ModularFeatureUtils {
     return buf.toString();
   }
 
-  // TODO PeakListRows to ModularFeatureListRows
   /**
    * Compares identities of two feature list rows. 1) if preferred identities are available, they
    * must be same 2) if no identities are available on both rows, return true 3) otherwise all
@@ -77,7 +77,7 @@ public class ModularFeatureUtils {
    * @return True if identities match between rows
    *
    */
-  public static boolean compareIdentities(PeakListRow row1, PeakListRow row2) {
+  public static boolean compareIdentities(ModularFeatureListRow row1, ModularFeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null))
       return false;
@@ -86,10 +86,7 @@ public class ModularFeatureUtils {
     PeakIdentity row1PreferredIdentity = row1.getPreferredPeakIdentity();
     PeakIdentity row2PreferredIdentity = row2.getPreferredPeakIdentity();
     if ((row1PreferredIdentity != null) && (row2PreferredIdentity != null)) {
-      if (row1PreferredIdentity.getName().equals(row2PreferredIdentity.getName()))
-        return true;
-      else
-        return false;
+      return row1PreferredIdentity.getName().equals(row2PreferredIdentity.getName());
     }
 
     // If no identities at all for both rows, then return true
@@ -118,7 +115,6 @@ public class ModularFeatureUtils {
     return sameID;
   }
 
-  // TODO PeakListRows to ModularFeatureListRows
   /**
    * Compare charge state of the best MS/MS precursor masses
    *
@@ -127,7 +123,7 @@ public class ModularFeatureUtils {
    *
    * @return true, same charge state
    */
-  public static boolean compareChargeState(PeakListRow row1, PeakListRow row2) {
+  public static boolean compareChargeState(FeatureListRow row1, FeatureListRow row2) {
 
     assert ((row1 != null) && (row2 != null));
 

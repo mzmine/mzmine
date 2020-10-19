@@ -70,20 +70,20 @@ public class RTToleranceComponent extends BorderPane {
 
     String valueString = toleranceField.getText();
 
-    double toleranceDouble;
+    float toleranceFloat;
     try {
       if (index == 0) {
-        toleranceDouble =
-            MZmineCore.getConfiguration().getRTFormat().parse(valueString).doubleValue();
+        toleranceFloat =
+            MZmineCore.getConfiguration().getRTFormat().parse(valueString).floatValue();
       } else {
         Number toleranceValue = Double.parseDouble(valueString);
-        toleranceDouble = toleranceValue.doubleValue() / 100;
+        toleranceFloat = toleranceValue.floatValue() / 100;
       }
     } catch (Exception e) {
       return null;
     }
 
-    RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
+    RTTolerance value = new RTTolerance(index <= 0, toleranceFloat);
 
     return value;
 

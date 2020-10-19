@@ -80,7 +80,7 @@ public class DataTypeCellValueFactory implements
   public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, Object> param) {
     if (raw != null) {
       // find data type map for feature for this raw file
-      Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFeatures();
+      Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFilesFeatures();
       // no features
       if (features.get(raw) == null)
         return null;

@@ -23,12 +23,16 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 /*
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
  */
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,12 +68,22 @@ import javax.annotation.Nullable;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-// TODO: should ModularFeature implement FeatureNew?
 public class ModularFeature implements FeatureNew, ModularDataModel {
 
-  private final @Nonnull ModularFeatureList flist;
+  private @Nonnull ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
+
+  // TODO: private variables to data types
+  private SimplePeakInformation peakInfo;
+  private int representiveScanNumber;
+  private int charge;
+  private int fragmentScanNumber;
+  private ObservableList<Integer> allMS2FragmentScanNumbers;
+
+  // Isotope pattern. Null by default but can be set later by deisotoping
+  // method.
+  private IsotopePattern isotopePattern;
 
   public ModularFeature(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -90,6 +104,8 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
     this(flist);
 
+    fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
+    representiveScanNumber = p.getRepresentativeScanNumber();
     // add values to feature
     int[] scans = p.getScanNumbers();
     set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
@@ -111,11 +127,19 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     // ranges
     Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint().floatValue(),
         p.getRawDataPointsRTRange().upperEndpoint().floatValue());
+    Range<Double> mzRange = Range.closed(p.getRawDataPointsMZRange().lowerEndpoint(),
+        p.getRawDataPointsMZRange().upperEndpoint());
     Range<Float> intensityRange =
         Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
             p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    //set(RTRangeType.class, rtRange);
+    set(MZRangeType.class, mzRange);
+    set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
+
+    // TODO: findAllMS2FragmentScans rtRange parameter Range<Double> -> Range<Float>
+    allMS2FragmentScanNumbers = FXCollections.observableArrayList(IntStream.of(ScanUtils.findAllMS2FragmentScans(p.getDataFile(),
+        Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()),
+        mzRange)).boxed().collect(Collectors.toList()));
 
     // TODO:
     /*
@@ -186,10 +210,6 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     */
   }
 
-  public ModularFeatureList getFeatureList() {
-    return flist;
-  }
-
   @Override
   public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
     return flist.getFeatureTypes();
@@ -207,65 +227,63 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     return getDataPoints().get(index);
   }
 
-  // TODO: implement getters
-
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
-    return null;
+    return get(RTRangeType.class).getValue();
   }
 
   @Nonnull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
-    return null;
+    return get(MZRangeType.class).getValue();
   }
 
   @Nonnull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
-    return null;
+    return get(IntensityRangeType.class).getValue();
   }
 
   @Override
   public int getMostIntenseFragmentScanNumber() {
-    return 0;
-  }
-
-  @Override
-  public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
-    return null;
+    return fragmentScanNumber;
   }
 
   @Override
   public void setFragmentScanNumber(int fragmentScanNumber) {
+    this.fragmentScanNumber = fragmentScanNumber;
+  }
 
+  @Override
+  public ObservableList<Integer> getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
   }
 
   @Override
   public void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers) {
-
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
   }
 
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    return null;
+    return isotopePattern;
   }
 
   @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
-
+    this.isotopePattern = isotopePattern;
   }
 
   @Override
   public int getCharge() {
-    return 0;
+    return charge;
   }
 
   @Override
   public void setCharge(int charge) {
-
+    this.charge = charge;
   }
 
   @Override
@@ -304,24 +322,24 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
   }
 
   @Override
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
-
+  public void setPeakInformation(SimplePeakInformation peakInfo) {
+    this.peakInfo = peakInfo;
   }
 
   @Override
   public SimplePeakInformation getPeakInformation() {
-    return null;
+    return peakInfo;
   }
 
   @Nullable
   @Override
-  public PeakList getPeakList() {
-    return null;
+  public FeatureList getFeatureList() {
+    return flist;
   }
 
   @Override
-  public void setPeakList(@Nonnull PeakList peakList) {
-
+  public void setFeatureList(@Nonnull FeatureList flist) {
+    this.flist = (ModularFeatureList) flist;
   }
 
   public ListProperty<Integer> getScanNumbersProperty() {
@@ -363,7 +381,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
 
   @Override
   public int getRepresentativeScanNumber() {
-    return 0;
+    return representiveScanNumber;
   }
 
   public ObservableList<DataPoint> getDataPoints() {

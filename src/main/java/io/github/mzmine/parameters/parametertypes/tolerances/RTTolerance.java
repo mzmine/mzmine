@@ -24,9 +24,9 @@ public class RTTolerance {
 
   // Tolerance can be either absolute (in min) or relative (in %).
   private final boolean isAbsolute;
-  private final double tolerance;
+  private final float tolerance;
 
-  public RTTolerance(final boolean absolute, final double rtTolerance) {
+  public RTTolerance(final boolean absolute, final float rtTolerance) {
 
     isAbsolute = absolute;
     tolerance = rtTolerance;
@@ -42,13 +42,13 @@ public class RTTolerance {
     return tolerance;
   }
 
-  public Range<Double> getToleranceRange(final double rtValue) {
+  public Range<Float> getToleranceRange(final float rtValue) {
 
-    final double absoluteTolerance = isAbsolute ? tolerance : rtValue * tolerance;
+    final float absoluteTolerance = isAbsolute ? tolerance : rtValue * tolerance;
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
-  public boolean checkWithinTolerance(final double rt1, final double rt2) {
+  public boolean checkWithinTolerance(final float rt1, final float rt2) {
 
     return getToleranceRange(rt1).contains(rt2);
   }

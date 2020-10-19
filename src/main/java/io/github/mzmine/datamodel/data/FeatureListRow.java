@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import java.util.List;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -52,17 +53,17 @@ public interface FeatureListRow {
   /**
    * Return peaks assigned to this row
    */
-  public Feature[] getPeaks();
+  public ObservableList<ModularFeature> getFeatures();
 
   /**
    * Returns peak for given raw data file
    */
-  public Feature getPeak(RawDataFile rawData);
+  public ModularFeature getPeak(RawDataFile rawData);
 
   /**
    * Add a peak
    */
-  public void addPeak(RawDataFile rawData, Feature peak);
+  public void addPeak(RawDataFile rawData, ModularFeature peak);
 
   /**
    * D Remove a peak
@@ -72,12 +73,12 @@ public interface FeatureListRow {
   /**
    * Has a peak?
    */
-  public boolean hasPeak(Feature peak);
+  public boolean hasFeature(ModularFeature peak);
 
   /**
    * Has a peak?
    */
-  public boolean hasPeak(RawDataFile rawData);
+  public boolean hasFeature(RawDataFile rawData);
 
   /**
    * Returns average M/Z for peaks on this row
@@ -87,7 +88,7 @@ public interface FeatureListRow {
   /**
    * Returns average RT for peaks on this row
    */
-  public double getAverageRT();
+  public float getAverageRT();
 
   /**
    * Returns average height for peaks on this row
@@ -117,12 +118,12 @@ public interface FeatureListRow {
   /**
    * Sets average mz for this row
    */
-  public void setAverageMZ(double mz);
+  public void setAverageMZ(double averageMZ);
 
   /**
    * Sets average rt for this row
    */
-  public void setAverageRT(double rt);
+  public void setAverageRT(float averageRT);
 
   /**
    * Add a new identity candidate (result of identification method)
@@ -169,7 +170,7 @@ public interface FeatureListRow {
    * @param information object
    */
 
-  public void setPeakInformation(PeakInformation information);
+  public void setPeakInformation(PeakInformation peakInformation);
 
   /**
    * Returns PeakInformation
@@ -184,12 +185,12 @@ public interface FeatureListRow {
    *
    * @return Maximum intensity
    */
-  public double getDataPointMaxIntensity();
+  public double getMaxDataPointIntensity();
 
   /**
    * Returns the most intense peak in this row
    */
-  public Feature getBestPeak();
+  public ModularFeature getBestPeak();
 
   /**
    * Returns the most intense fragmentation scan in this row
@@ -215,9 +216,9 @@ public interface FeatureListRow {
   public void setID(int id);
 
   @Nullable
-  PeakList getPeakList();
+  ModularFeatureList getFeatureList();
 
-  void setPeakList(@Nonnull PeakList peakList);
+  void setFeatureList(@Nonnull ModularFeatureList flist);
 
   // End DorresteinLab edit
 }

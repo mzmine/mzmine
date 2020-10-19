@@ -190,7 +190,7 @@ public interface FeatureNew {
   // dulab Edit
   void outputChromToFile();
 
-  void setPeakInformation(SimplePeakInformation peakInfoIn);
+  void setPeakInformation(SimplePeakInformation peakInfo);
 
   SimplePeakInformation getPeakInformation();
   // End dulab Edit
@@ -201,8 +201,8 @@ public interface FeatureNew {
   }
 
   @Nullable
-  PeakList getPeakList();
+  FeatureList getFeatureList();
 
-  void setPeakList(@Nonnull PeakList peakList);
+  void setFeatureList(@Nonnull FeatureList featureList);
 
 }

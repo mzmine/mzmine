@@ -19,8 +19,8 @@ public class AreaBarChart extends StackPane {
   public AreaBarChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
     XYChart.Series data = new XYChart.Series();
     int i = 1;
-    int size = row.getFeatures().size();
-    for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
+    int size = row.getFilesFeatures().size();
+    for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       data.getData().add(
           new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue()));

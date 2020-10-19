@@ -118,13 +118,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       if (keyCodeRandomComment.match(event)) {
         this.getSelectionModel().getSelectedItem().getValue().set(CommentType.class,
             ("Random" + rand.nextInt(100)));
-        this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
+        this.getSelectionModel().getSelectedItem().getValue().getFeatures().stream()
             .forEach(f -> f.set(CommentType.class, ("Random" + rand.nextInt(100))));
       }
       if (keyCodeRandomMZ.match(event)) {
         this.getSelectionModel().getSelectedItem().getValue().set(MZType.class,
             (rand.nextDouble() * 200d));
-        this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
+        this.getSelectionModel().getSelectedItem().getValue().getFeatures().stream()
             .forEach(f -> f.set(MZType.class, (rand.nextDouble() * 200d)));
       }
 
@@ -200,9 +200,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
     // add to table
     if (col != null) {
-      this.getColumns().add(col);
-      columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
-      rowTypesParameter.isDataTypeVisible(dataType);
       // REMOVE(tmp solution)
       if(dataType instanceof GraphicalColumType) {
         col.setMinWidth(200);
@@ -210,7 +207,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       // REMOVE(tmp solution)
       // is feature type?
       if (dataType.getClass().equals(FeaturesType.class)) {
-        col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
+        //col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
         //col.setStyle(".tree-table-view .column-header-backgroundvisibility: hidden;");
         // add feature columns for each raw file
         for (RawDataFile raw : flist.getRawDataFiles()) {
@@ -235,8 +232,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
             }
           }
           // add all
-          col.getColumns().add(sampleCol);
+          this.getColumns().add(sampleCol);
         }
+      } else {
+        this.getColumns().add(col);
+        columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
+        rowTypesParameter.isDataTypeVisible(dataType);
       }
     }
     applyColumnVisibility(dataType);

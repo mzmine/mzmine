@@ -9,6 +9,10 @@ import io.github.mzmine.datamodel.data.types.FeatureShapeType;
 import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.util.DataTypeUtils;
 import java.text.DateFormat;
@@ -80,8 +84,15 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = new ArrayList<>();
     dateCreated = DATA_FORMAT.format(new Date());
 
+    // Type columns will be created in the same sequence as they are initialized
     addRowType(new IDType());
-    addRowType(new MZExpandingType());
+    //addRowType(new MZExpandingType());
+    //REMOVE(test purpose)
+    addRowType(new MZType());
+    addRowType(new MZRangeType());
+    addRowType(new RTType());
+    addRowType(new RTRangeType());
+    //REMOVE(test purpose)
     DataTypeUtils.addDefaultChromatographicTypeColumns(this);
 
     addRowType(new FeatureShapeType());
@@ -249,7 +260,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public ModularFeature getPeak(int row, RawDataFile raw) {
-    return peakListRows.get(row).getFeatures().get(raw);
+    return peakListRows.get(row).getFilesFeatures().get(raw);
   }
 
   /**
@@ -349,7 +360,7 @@ public class ModularFeatureList implements FeatureList {
   public List<ModularFeature> getPeaksInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
-    return stream().map(ModularFeatureListRow::getFeatures).map(map -> map.get(raw))
+    return stream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
         .filter(
             f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
@@ -390,12 +401,12 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return stream().flatMap(row -> row.getFeatures().values().stream()).filter(Objects::nonNull);
+    return stream().flatMap(row -> row.getFilesFeatures().values().stream()).filter(Objects::nonNull);
   }
 
   @Override
   public Stream<ModularFeature> parallelStreamFeatures() {
-    return parallelStream().flatMap(row -> row.getFeatures().values().stream())
+    return parallelStream().flatMap(row -> row.getFilesFeatures().values().stream())
         .filter(Objects::nonNull);
   }
 

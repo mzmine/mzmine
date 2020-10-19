@@ -23,19 +23,25 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.types.AreaBarType;
 import io.github.mzmine.datamodel.data.types.AreaShareType;
 import io.github.mzmine.datamodel.data.types.FeatureShapeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
+import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.util.ModularFeatureSorter;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javafx.collections.ObservableList;
 import javafx.util.Pair;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -61,29 +67,39 @@ import javax.annotation.Nullable;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  * <p>
  * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
- *  of {@link ModularFeatureListRow#getFeatures}. -> add during fueature list creation in the
+ *  of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
  *  chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
-  private final @Nonnull
-  ModularFeatureList flist;
-  private final ObservableMap<DataType, Property<?>> map =
-      FXCollections.observableMap(new HashMap<>());
-
-  private List<PeakIdentity> identities;
-  private PeakIdentity preferredIdentity;
-  private String comment;
-
+  private @Nonnull ModularFeatureList flist;
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addPeak(RawDataFile, ModularFeature)}
    */
+  private final ObservableMap<DataType, Property<?>> map =
+      FXCollections.observableMap(new HashMap<>());
+
   private final Map<RawDataFile, ModularFeature> features;
 
   // buffert col charts and nodes
   private Map<String, Node> buffertColCharts = new HashMap<>();
+
+  private List<PeakIdentity> identities;
+  private PeakIdentity preferredIdentity;
+  private String comment;
+  private double maxDataPointIntensity;
+
+  /**
+   * These variables are used for caching the average values, so we don't need to calculate them
+   * again and again
+   */
+  private double averageMZ, averageHeight, averageArea;
+  private float averageRT;
+  private int rowCharge;
+
+  private PeakInformation peakInformation;
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -92,7 +108,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       this.setProperty(type, type.createProperty());
     });
 
-    set(MZExpandingType.class, new Pair<>(30.0, Range.closed(2, 3)));
+    //set(MZExpandingType.class, new Pair<>(30.0, Range.closed(2, 3)));
 
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
@@ -101,15 +117,15 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       for (RawDataFile r : raws) {
         fmap.put(r, new ModularFeature(flist));
       }
-      features = FXCollections.unmodifiableObservableMap(FXCollections.observableMap(fmap));
+      features = FXCollections.observableMap(FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
 
       // TODO: MapProperty/Map? change DataTypeCellValueFactory?
       //set(FeatureShapeType.class, getFeatures());
       set(FeatureShapeType.class, getFeaturesProperty());
-      set(AreaBarType.class,getFeaturesProperty());
-      set(AreaShareType.class,getFeaturesProperty());
+      set(AreaBarType.class, getFeaturesProperty());
+      set(AreaShareType.class, getFeaturesProperty());
     } else {
       features = Collections.emptyMap();
     }
@@ -130,8 +146,15 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     addPeak(raw, p);
   }
 
-  public ModularFeatureList getFeatureList() {
-    return flist;
+  /**
+   * Constructor for row with a specific id.
+   *
+   * @param flist Feature list
+   * @param id ID
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
+    this(flist);
+    set(IDType.class, (id));
   }
 
   @Override
@@ -145,7 +168,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   public Stream<ModularFeature> streamFeatures() {
-    return this.getFeatures().values().stream().filter(Objects::nonNull);
+    return this.getFeatures().stream().filter(Objects::nonNull);
   }
 
   // Helper methods
@@ -155,7 +178,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   public double getMZ() {
-    return get(MZExpandingType.class).getValue().getKey();
+    //return get(MZExpandingType.class).getValue().getKey();
+    //REMOVE(test purpose)
+    return get(MZType.class).getValue();
+    //REMOVE(test purpose)
   }
 
   public Range<Double> getMZRange() {
@@ -174,8 +200,13 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return get(AreaType.class).getValue();
   }
 
-  public ObservableMap<RawDataFile, ModularFeature> getFeatures() {
+  public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
     return get(FeaturesType.class).getValue();
+  }
+
+  public ObservableList<ModularFeature> getFeatures() {
+    //return FXCollections.observableArrayList(get(FeaturesType.class).getValue().values());
+    return FXCollections.observableArrayList(features.values());
   }
 
   public MapProperty<RawDataFile, ModularFeature> getFeaturesProperty() {
@@ -184,18 +215,28 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   /**
    * @param raw
-   * @param f
+   * @param feature
    */
-  public void addPeak(RawDataFile raw, ModularFeature f) {
-    if (!f.getFeatureList().equals(getFeatureList())) {
-      throw new WrongFeatureListException();
+  @Override
+  public void addPeak(RawDataFile raw, ModularFeature feature) {
+    // TODO: solve the NullPointerException while aligning previously aligned feature lists
+    if (Objects.equals(feature.getFeatureList(), getFeatureList())) {
+      // features are final - replace all values for all data types
+      // keep old feature
+      ModularFeature old = getFilesFeatures().get(raw);
+      for (DataType type : flist.getFeatureTypes().values()) {
+        old.set(type, feature.get(type).getValue());
+      }
+    } else {
+      features.put(raw, feature);
     }
-    // features are final - replace all values for all data types
-    // keep old feature
-    ModularFeature old = getFeatures().get(raw);
-    for (DataType type : flist.getFeatureTypes().values()) {
-      old.set(type, f.get(type).getValue());
-    }
+
+    feature.setFeatureList(flist);
+
+    if (feature.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
+      maxDataPointIntensity = feature.getRawDataPointsIntensityRange().upperEndpoint();
+
+    calculateAverageValues();
   }
 
   /**
@@ -208,74 +249,61 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return idProp == null || idProp.getValue() == null ? -1 : get(IDType.class).getValue();
   }
 
-  // TODO: implement getters
 
   @Override
   public int getNumberOfPeaks() {
-    return 0;
+    return features.size();
   }
 
   @Override
-  public Feature[] getPeaks() {
-    return new Feature[0];
-  }
-
-  @Override
-  public Feature getPeak(RawDataFile rawData) {
-    return null;
-  }
-
-  @Override
-  public void addPeak(RawDataFile rawData, Feature peak) {
-
+  public ModularFeature getPeak(RawDataFile rawData) {
+    return features.get(rawData);
   }
 
   @Override
   public void removePeak(RawDataFile file) {
-
-  }
-
-  @Override
-  public boolean hasPeak(Feature peak) {
-    return false;
-  }
-
-  @Override
-  public boolean hasPeak(RawDataFile rawData) {
-    return false;
+    this.features.remove(file);
+    calculateAverageValues();
   }
 
   @Override
   public double getAverageMZ() {
-    return 0;
+    return averageMZ;
   }
 
   @Override
-  public double getAverageRT() {
-    return 0;
+  public float getAverageRT() {
+    return averageRT;
   }
 
   @Override
   public double getAverageHeight() {
-    return 0;
+    return averageHeight;
   }
 
   @Override
   public int getRowCharge() {
-    return 0;
+    return rowCharge;
   }
 
   @Override
   public double getAverageArea() {
-    return 0;
+    return averageArea;
   }
 
+  @Override
   public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
+  @Override
+  public boolean hasFeature(RawDataFile rawData) {
+    return features.containsKey(rawData);
+  }
+
+  @Override
   public boolean hasFeature(ModularFeature feature) {
-    return getFeatures().values().contains(feature);
+    return features.containsValue(feature);
   }
 
   public Node getBufferedColChart(String colname) {
@@ -303,13 +331,13 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Nullable
   @Override
-  public PeakList getPeakList() {
-    return null;
+  public ModularFeatureList getFeatureList() {
+    return flist;
   }
 
   @Override
-  public void setPeakList(@Nonnull PeakList peakList) {
-
+  public void setFeatureList(@Nonnull ModularFeatureList flist) {
+    this.flist = flist;
   }
 
   public String getComment() {
@@ -321,15 +349,16 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setAverageMZ(double mz) {
-
+  public void setAverageMZ(double averageMZ) {
+    this.averageMZ = averageMZ;
   }
 
   @Override
-  public void setAverageRT(double rt) {
-
+  public void setAverageRT(float averageRT) {
+    this.averageRT = averageRT;
   }
 
+  @Override
   public PeakIdentity[] getPeakIdentities() {
     return identities.toArray(new PeakIdentity[0]);
   }
@@ -338,6 +367,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     this.identities = Arrays.asList(identities);
   }
 
+  @Override
   public void addPeakIdentity(PeakIdentity identity, boolean preferred) {
     // Verify if exists already an identity with the same name
     for (PeakIdentity testId : identities) {
@@ -354,7 +384,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public void removePeakIdentity(PeakIdentity identity) {
-
+    identities.remove(identity);
+    if (preferredIdentity == identity) {
+      if (identities.size() > 0) {
+        PeakIdentity[] identitiesArray = identities.toArray(new PeakIdentity[0]);
+        setPreferredPeakIdentity(identitiesArray[0]);
+      } else
+        preferredIdentity = null;
+    }
   }
 
   public PeakIdentity getPreferredPeakIdentity() {
@@ -366,38 +403,109 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setPeakInformation(PeakInformation information) {
-
+  public void setPeakInformation(PeakInformation peakInformation) {
+    this.peakInformation = peakInformation;
   }
 
   @Override
   public PeakInformation getPeakInformation() {
-    return null;
+    return peakInformation;
   }
 
   @Override
-  public double getDataPointMaxIntensity() {
-    return 0;
+  public double getMaxDataPointIntensity() {
+    return maxDataPointIntensity;
   }
 
+  @Nullable
   @Override
-  public Feature getBestPeak() {
-    return null;
+  public ModularFeature getBestPeak() {
+    ModularFeature features[] = getFeatures().toArray(new ModularFeature[0]);
+    Arrays.sort(features, new ModularFeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+    if (features.length == 0) {
+      return null;
+    }
+    return features[0];
   }
 
   @Override
   public Scan getBestFragmentation() {
-    return null;
+    Double bestTIC = 0.0;
+    Scan bestScan = null;
+    for (ModularFeature feature : getFeatures()) {
+      Double theTIC = 0.0;
+      RawDataFile rawData = feature.getRawDataFile();
+      int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
+      Scan theScan = rawData.getScan(bestScanNumber);
+      if (theScan != null) {
+        theTIC = theScan.getTIC();
+      }
+
+      if (theTIC > bestTIC) {
+        bestTIC = theTIC;
+        bestScan = theScan;
+      }
+    }
+    return bestScan;
   }
 
   @Nonnull
   @Override
   public Scan[] getAllMS2Fragmentations() {
-    return new Scan[0];
+    ArrayList<Scan> allMS2ScansList = new ArrayList<>();
+    for (ModularFeature feature : getFeatures()) {
+      RawDataFile rawData = feature.getRawDataFile();
+      ObservableList<Integer> scanNumbers = feature.getAllMS2FragmentScanNumbers();
+      if (scanNumbers != null) {
+        for (int scanNumber : scanNumbers) {
+          Scan scan = rawData.getScan(scanNumber);
+          allMS2ScansList.add(scan);
+        }
+      }
+    }
+
+    return allMS2ScansList.toArray(new Scan[0]);
   }
 
+  @Nullable
   @Override
   public IsotopePattern getBestIsotopePattern() {
+    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
+    Arrays.sort(features, new ModularFeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+
+    for (ModularFeature feature : features) {
+      IsotopePattern ip = feature.getIsotopePattern();
+      if (ip != null)
+        return ip;
+    }
+
     return null;
+  }
+
+  // TODO: increase speed(enumeration through features)
+  private /*synchronized*/ void calculateAverageValues() {
+    double mzSum = 0, heightSum = 0, areaSum = 0;
+    float rtSum = 0;
+    int charge = 0;
+    HashSet<Integer> chargeArr = new HashSet<Integer>();
+    for (ModularFeature feature : getFeatures()) {
+      rtSum += feature.getRT();
+      mzSum += feature.getMZ();
+      heightSum += feature.getHeight();
+      areaSum += feature.getArea();
+      if (feature.getCharge() > 0) {
+        chargeArr.add(feature.getCharge());
+        charge = feature.getCharge();
+      }
+    }
+    averageRT = rtSum / features.size();
+    averageMZ = mzSum / features.size();
+    averageHeight = heightSum / features.size();
+    averageArea = areaSum / features.size();
+    if (chargeArr.size() < 2) {
+      rowCharge = charge;
+    } else {
+      rowCharge = 0;
+    }
   }
 }

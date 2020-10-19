@@ -29,9 +29,9 @@ public class FeatureShapeChart extends StackPane {
 
       DataPoint max = null;
       double maxRT = 0;
-      int size = row.getFeatures().size();
+      int size = row.getFilesFeatures().size();
       int fi = 0;
-      for (ModularFeature f : row.getFeatures().values()) {
+      for (ModularFeature f : row.getFeatures()) {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         List<Integer> scans = f.getScanNumbers();
         List<DataPoint> dps = f.getDataPoints();

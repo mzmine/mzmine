@@ -230,10 +230,10 @@ class IsotopeGrouperTask extends AbstractTask {
       processedPeaks++;
     }
 
-    // Add new peakList to the project
+    // Add new feature list to the project
     project.addFeatureList(deisotopedFeatureList);
 
-    // show peaklist window
+    // Add feature list tab
     Platform.runLater(() -> {
       FeatureTableFXUtil.addFeatureTableTab(deisotopedFeatureList);
     });
@@ -294,7 +294,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
     double mainMZ = p.getMZ();
-    double mainRT = p.getRT();
+    float mainRT = p.getRT();
 
     // Variable n is the number of peak we are currently searching. 1=first
     // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -318,7 +318,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
         // Get properties of the candidate peak
         double candidatePeakMZ = candidatePeak.getMZ();
-        double candidatePeakRT = candidatePeak.getRT();
+        float candidatePeakRT = candidatePeak.getRT();
 
         // Does this peak fill all requirements of a candidate?
         // - within tolerances from the expected location (M/Z and RT)
