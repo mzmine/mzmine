@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
@@ -50,6 +51,8 @@ public class StorableFrame extends StorableScan implements Frame {
   private final List<Integer> mobilityScanNumbers;
 
   /**
+   * Creates a storable frame and also stores the mobility resolved scans.
+   *
    * @param originalFrame
    * @param rawDataFile
    * @param numberOfDataPoints
@@ -62,13 +65,17 @@ public class StorableFrame extends StorableScan implements Frame {
     frameId = originalFrame.getFrameId();
     mobilityScanIds = new TreeMap<>();
     mobilityScans = new TreeMap<>();
+    mobilityRange = Range.singleton(0.0);
 
     for (Scan mobilityScan : originalFrame.getMobilityScans()) {
       final int storageId = rawDataFile.storeDataPoints(mobilityScan.getDataPoints());
-      mobilityScanIds.put(mobilityScan.getScanNumber(), storageId);
-      mobilityScans.put(mobilityScan.getScanNumber(),
-          new StorableScan(mobilityScan, rawDataFile, mobilityScan.getNumberOfDataPoints(),
-              storageID));
+
+      final StorableScan storedScan = new StorableScan(mobilityScan, rawDataFile,
+          mobilityScan.getNumberOfDataPoints(), storageId);
+      mobilityScanIds.put(storedScan.getScanNumber(), storageId);
+      mobilityScans.put(storedScan.getScanNumber(), storedScan);
+
+      rawDataFile.addScan(storedScan);
 
       if (mobilityScan.getMobility() < mobilityRange.lowerEndpoint()) {
         mobilityRange = Range.closed(mobilityScan.getMobility(), mobilityRange.upperEndpoint());
@@ -126,7 +133,8 @@ public class StorableFrame extends StorableScan implements Frame {
   @Nonnull
   @Override
   public Scan getMobilityScan(int scanNum) {
-    return mobilityScans.get(scanNum);
+    return Objects.requireNonNull(
+        mobilityScans.computeIfAbsent(scanNum, i -> rawDataFile.getScan(scanNum)));
   }
 
   @Nonnull

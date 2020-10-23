@@ -18,19 +18,17 @@
 
 package io.github.mzmine.modules.io.tdfimport;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -40,7 +38,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 
 public class TDFReaderTask extends AbstractTask {
 
@@ -121,7 +118,7 @@ public class TDFReaderTask extends AbstractTask {
 
     RawDataFileWriter newMZmineFile;
     try {
-      newMZmineFile = MZmineCore.createNewFile(tdfBin.getName());
+      newMZmineFile = MZmineCore.createNewIMSFile(tdfBin.getName());
     } catch (IOException e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -129,51 +126,43 @@ public class TDFReaderTask extends AbstractTask {
     }
 
     long handle = TDFUtils.openFile(tdfBin);
-
     int scanNum = 0;
     int numFrames = frameTable.getNumberOfFrames();
 
     // load frame data
     for (int i = 0; i < numFrames; i++) {
       setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
-      List<Scan> scanList = TDFUtils
-          .loadScansForPASEFFrame(handle,
-              (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i),
-              scanNum, frameTable, metaDataTable, framePrecursorTable);
-      try {
-        for (Scan scan : scanList) {
-          newMZmineFile.addScan(scan);
-          scanNum++;
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-      finishedPercentage = i / numFrames;
-    }
-    /*for (int i = 0; i < numFrames; i++) {
-      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
-      if (frameTable.getMsMsTypeColumn().get(i).intValue() != 0) {
-        continue;
-      }
-      Scan scan = TDFUtils
-          .exctractCentroidScanForFrame(handle,
-              (long) frameTable.getFrameIdColumn().get(i),
-              scanNum, metaDataTable, frameTable);
-      try {
-        newMZmineFile.addScan(scan);
-        scanNum++;
-      } catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-      finishedPercentage = i / numFrames;
-    }*/
+      long frameId = (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i);
 
-//    for(int i = 0; i < 30; i++) {
-//      DataPoint[] dps = TDFUtils.loadMsMsDataPointsForPrecursor_v2(handle, i);
-//      logger.info("id: " + i + " " + dps.toString());
-//    }
+      SimpleFrame frame = TDFUtils
+          .exctractCentroidScanForFrame(handle, frameId, scanNum, metaDataTable, frameTable);
+      scanNum++;
+
+      List<Scan> scanList = TDFUtils
+          .loadScansForPASEFFrame(handle, frameId, scanNum, frameTable, metaDataTable,
+              framePrecursorTable);
+      assert scanList != null;
+
+      frame.addMobilityScans(scanList);
+
+      try {
+        newMZmineFile.addScan(frame);
+        scanNum += frame.getNumberOfMobilityScans();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+//      try {
+//        for (Scan scan : scanList) {
+//          newMZmineFile.addScan(scan);
+//          scanNum++;
+//        }
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return;
+//      }
+      finishedPercentage = (double) i / (double) numFrames;
+    }
 
     RawDataFile file;
     try {

@@ -104,6 +104,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityScans.put(mobilityScan.getScanNumber(), mobilityScan);
   }
 
+  public void addMobilityScans(List<Scan> mobilityScans) {
+    for(Scan scan : mobilityScans) {
+      addMobilityScan(scan);
+    }
+  }
+
   @Override
   public Scan getMobilityScan(int scanNum) {
     return mobilityScans.get(scanNum);

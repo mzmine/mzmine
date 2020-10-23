@@ -78,7 +78,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private int numberMoblityScans;
   private int mobilityScanCount;
   private MobilityType mobilityType;
-  private int frameId;
+  private int frameId = -1;
 
   private boolean canceled = false;
 

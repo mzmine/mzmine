@@ -21,11 +21,13 @@ package io.github.mzmine.modules.io.tdfimport;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
@@ -271,17 +273,17 @@ public class TDFUtils {
   // ---------------------------------------------------------------------------------------------
 //                                      AVERAGE FRAMES
 // -----------------------------------------------------------------------------------------------
-  public static DataPoint[] extractCentroidsForFrame(long handle, long frameId,
+  private static DataPoint[] extractCentroidsForFrame(long handle, long frameId,
       int startScanNum,
       int endScanNum) {
     CentroidData data = new CentroidData();
-    long start = System.currentTimeMillis();
+//    long start = System.currentTimeMillis();
     long error = tdfLib
         .tims_extract_centroided_spectrum_for_frame(handle, frameId, startScanNum, endScanNum, data,
             Pointer.NULL);
-    long time = System.currentTimeMillis() - start;
-    logger.info(
-        "Extracted scab data of frame " + frameId + " in " + ((double) (time) + " ms"));
+//    long time = System.currentTimeMillis() - start;
+//    logger.info(
+//        "Extracted scab data of frame " + frameId + " in " + ((double) (time) + " ms"));
 
     if (error == 0) {
       logger.info(
@@ -293,7 +295,7 @@ public class TDFUtils {
     return data.toDataPoints();
   }
 
-  public static Scan exctractCentroidScanForFrame(long handle, long frameId, int scanNum,
+  public static SimpleFrame exctractCentroidScanForFrame(long handle, long frameId, int scanNum,
       TDFMetaDataTable metaDataTable, TDFFrameTable frameTable) {
     int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -307,7 +309,7 @@ public class TDFUtils {
     PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
-    Scan scan = new SimpleScan(null,
+    SimpleFrame frame = new SimpleFrame(null,
         scanNum,
         msLevel,
         (Double) frameTable.getColumn(TDFFrameTable.TIME).get(frameIndex) / 60, // to minutes
@@ -318,8 +320,10 @@ public class TDFUtils {
         MassSpectrumType.CENTROIDED,
         polarity,
         scanDefinition,
-        metaDataTable.getMzRange());
-    return scan;
+        metaDataTable.getMzRange(),
+        (int) frameId,
+        MobilityType.TIMS);
+    return frame;
   }
 
   @Nullable

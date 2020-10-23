@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
@@ -49,8 +48,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public IMSRawDataFileImpl(String dataFileName) throws IOException {
     super(dataFileName);
 
-    frames = (TreeMap<Integer, StorableFrame>) Collections
-        .synchronizedMap(new TreeMap<Integer, StorableFrame>());
+    frames = /*(TreeMap<Integer, StorableFrame>) Collections
+        .synchronizedMap(*/new TreeMap<Integer, StorableFrame>()/*)*/;
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
