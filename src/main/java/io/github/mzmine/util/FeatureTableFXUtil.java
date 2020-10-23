@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -41,7 +42,7 @@ public class FeatureTableFXUtil {
    */
   @Nullable
   public static void /*FeatureTableFXMLTabAnchorPaneController*/ addFeatureTableTab(
-      ModularFeatureList flist) {
+      FeatureList flist) {
     FeatureTableFXTab newTab = new FeatureTableFXTab(flist);
     MZmineCore.getDesktop().addTab(newTab);
     //return newTab.getController();

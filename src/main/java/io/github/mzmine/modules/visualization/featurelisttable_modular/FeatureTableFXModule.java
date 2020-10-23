@@ -40,7 +40,7 @@ public class FeatureTableFXModule implements MZmineModule {
   @Nonnull
   @Override
   public String getName() {
-    return "Feature list table";
+    return "FeatureOld list table";
   }
 
   @Nullable

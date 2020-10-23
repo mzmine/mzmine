@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.scans;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -43,7 +44,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -746,7 +746,7 @@ public class ScanUtils {
   }
 
   /**
-   * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
+   * Sorted list of all MS1 {@link FeatureOld#getRepresentativeScan()} of all features. scans with n
    * signals >= noiseLevel in the specified or first massList, if none was specified
    * 
    * @param row all representative MS1 scans of all features in this row
@@ -767,7 +767,7 @@ public class ScanUtils {
   }
 
   /**
-   * List of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n signals
+   * List of all MS1 {@link FeatureOld#getRepresentativeScan()} of all features. scans with n signals
    * >= noiseLevel in the specified or first massList, if none was specified
    * 
    * @param row
@@ -784,13 +784,13 @@ public class ScanUtils {
   }
 
   /**
-   * Array of all {@link Feature#getRepresentativeScan()} of all features
+   * Array of all {@link FeatureOld#getRepresentativeScan()} of all features
    * 
    * @param row
    * @return
    */
   public static Scan[] getAllMostIntenseMS1Scans(PeakListRow row) {
-    return Arrays.stream(row.getPeaks()).map(Feature::getRepresentativeScan)
+    return Arrays.stream(row.getPeaks()).map(FeatureOld::getRepresentativeScan)
         .filter(Objects::nonNull).toArray(Scan[]::new);
   }
 

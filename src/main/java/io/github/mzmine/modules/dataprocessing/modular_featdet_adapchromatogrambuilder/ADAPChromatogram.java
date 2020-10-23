@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakList;
@@ -51,7 +51,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 /**
  * Chromatogram implementing ChromatographicPeak.
  */
-public class ADAPChromatogram implements Feature {
+public class ADAPChromatogram implements FeatureOld {
   private SimplePeakInformation peakInfo;
 
   // Data file of this chromatogram

@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import javax.annotation.Nonnull;
 public class FeatureTableFXTab extends MZmineTab {
   private FeatureTableFX table;
 
-  public FeatureTableFXTab(ModularFeatureList flist) {
+  public FeatureTableFXTab(FeatureList flist) {
     super("Feature Table", true, false);
 
     table = new FeatureTableFX();
@@ -23,7 +24,7 @@ public class FeatureTableFXTab extends MZmineTab {
     AnchorPane root = null;
     try {
       root = loader.load();
-      logger.finest("Feature table stage has been successfully loaded from the FXML loader.");
+      logger.finest("Feature table anchor pane has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -38,7 +39,7 @@ public class FeatureTableFXTab extends MZmineTab {
     return table;
   }
 
-  public ModularFeatureList getFeatureList() {
+  public FeatureList getFeatureList() {
     return table.getFeatureList();
   }
 

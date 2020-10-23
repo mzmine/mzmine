@@ -18,26 +18,22 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.FeatureOld;
+import io.github.mzmine.datamodel.impl.SimpleFeatureOld;
 import java.text.Format;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
 /*
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
  */
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Utilities for peaks and feature lists
@@ -54,7 +50,7 @@ public class PeakUtils {
    * @param peak Peak to be converted to String
    * @return String representation of the peak
    */
-  public static String peakToString(Feature peak) {
+  public static String peakToString(FeatureOld peak) {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -178,7 +174,7 @@ public class PeakUtils {
   /**
    * Copies properties such as isotope pattern and charge from the source peak to the target peak
    */
-  public static void copyPeakProperties(Feature source, Feature target) {
+  public static void copyPeakProperties(FeatureOld source, FeatureOld target) {
 
     // Copy isotope pattern
     IsotopePattern originalPattern = source.getIsotopePattern();
@@ -194,11 +190,11 @@ public class PeakUtils {
   /**
    * Finds a combined m/z range that covers all given peaks
    */
-  public static Range<Double> findMZRange(Feature peaks[]) {
+  public static Range<Double> findMZRange(FeatureOld peaks[]) {
 
     Range<Double> mzRange = null;
 
-    for (Feature p : peaks) {
+    for (FeatureOld p : peaks) {
       if (mzRange == null) {
         mzRange = p.getRawDataPointsMZRange();
       } else {
@@ -275,7 +271,7 @@ public class PeakUtils {
     double[] lower = new double[size];
     double[] upper = new double[size];
 
-    Feature[] f = row.getPeaks();
+    FeatureOld[] f = row.getPeaks();
 
     for (int i = 0; i < size; i++) {
       if (f[i] == null)
@@ -310,8 +306,8 @@ public class PeakUtils {
     PeakUtils.copyPeakListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-      final Feature newPeak = new SimpleFeature(peak);
+    for (final FeatureOld peak : row.getPeaks()) {
+      final FeatureOld newPeak = new SimpleFeatureOld(peak);
       PeakUtils.copyPeakProperties(peak, newPeak);
       newRow.addPeak(peak.getDataFile(), newPeak);
     }

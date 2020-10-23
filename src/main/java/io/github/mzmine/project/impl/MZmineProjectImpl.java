@@ -50,7 +50,7 @@ public class MZmineProjectImpl implements MZmineProject {
           ));
 
 
-  private final SimpleListProperty<ModularFeatureList> featureListsProperty = //
+  private final SimpleListProperty<FeatureList> featureListsProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
@@ -252,12 +252,12 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public ObservableList<ModularFeatureList> getFeatureLists() {
+  public ObservableList<FeatureList> getFeatureLists() {
     return featureListsProperty.get();
   }
 
   @Override
-  public ListProperty<ModularFeatureList> featureListsProperty() {
+  public ListProperty<FeatureList> featureListsProperty() {
     return featureListsProperty;
   }
 

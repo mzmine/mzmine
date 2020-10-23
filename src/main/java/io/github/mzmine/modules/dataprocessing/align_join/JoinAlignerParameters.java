@@ -34,7 +34,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
+      new StringParameter("FeatureOld list name", "FeatureOld list name", "Aligned feature list");
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 

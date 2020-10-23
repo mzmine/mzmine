@@ -21,7 +21,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import java.util.List;
 import java.util.logging.Logger;
 import org.controlsfx.control.CheckListView;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -46,8 +46,8 @@ import javafx.scene.layout.VBox;
  */
 public class FeaturesComponent extends HBox {
 
-  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
-  private ListView<Feature> featuresList = new ListView<>(currentValue);
+  public ObservableList<FeatureOld> currentValue = FXCollections.observableArrayList();
+  private ListView<FeatureOld> featuresList = new ListView<>(currentValue);
   private final Button addButton = new Button("Add");;
   private final Button removeButton = new Button("Remove");
   private VBox buttonPane = new VBox();
@@ -69,19 +69,19 @@ public class FeaturesComponent extends HBox {
       logger.finest("Add button clicked!");
 
       ComboParameter<PeakList> featureListsParam =
-          new ComboParameter<>("Feature list", "Feature list selection",
+          new ComboParameter<>("FeatureOld list", "FeatureOld list selection",
               MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
       ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
           "Raw data file selection", FXCollections.observableArrayList());
-      MultiChoiceParameter<Feature> featuresParam =
-          new MultiChoiceParameter<>("Features", "Feature selection", new Feature[0]);
+      MultiChoiceParameter<FeatureOld> featuresParam =
+          new MultiChoiceParameter<>("Features", "FeatureOld selection", new FeatureOld[0]);
       SimpleParameterSet paramSet = new SimpleParameterSet(
           new Parameter[] {featureListsParam, dataFilesParam, featuresParam});
 
       ParameterSetupDialog dialog = new ParameterSetupDialog(true, paramSet);
       ComboBox<PeakList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
       ComboBox<RawDataFile> dataFilesCombo = dialog.getComponentForParameter(dataFilesParam);
-      CheckListView<Feature> featuresSelection = dialog.getComponentForParameter(featuresParam);
+      CheckListView<FeatureOld> featuresSelection = dialog.getComponentForParameter(featuresParam);
       featureListsCombo.setOnAction(e2 -> {
         PeakList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
         if (featureList == null)
@@ -121,12 +121,12 @@ public class FeaturesComponent extends HBox {
 
   }
 
-  public void setValue(List<Feature> newValue) {
+  public void setValue(List<FeatureOld> newValue) {
     currentValue = FXCollections.observableArrayList(newValue);
     featuresList.setItems(currentValue);
   }
 
-  public List<Feature> getValue() {
+  public List<FeatureOld> getValue() {
     return currentValue;
   }
 

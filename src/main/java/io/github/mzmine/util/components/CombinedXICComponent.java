@@ -24,7 +24,7 @@ import java.awt.RenderingHints;
 import org.jfree.fx.FXGraphics2D;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Tooltip;
 
@@ -41,7 +41,7 @@ public class CombinedXICComponent extends Canvas {
       new Color(0, 192, 0), // green
       Color.magenta, Color.cyan, Color.orange};
 
-  private Feature[] peaks;
+  private FeatureOld[] peaks;
 
   private Range<Double> rtRange;
   private double maxIntensity;
@@ -49,7 +49,7 @@ public class CombinedXICComponent extends Canvas {
   /**
    * @param ChromatographicPeak [] Picked peaks to plot
    */
-  public CombinedXICComponent(Feature[] peaks, int id) {
+  public CombinedXICComponent(FeatureOld[] peaks, int id) {
 
     // We use the tool tip text as a id for customTooltipProvider
     if (id >= 0) {
@@ -61,7 +61,7 @@ public class CombinedXICComponent extends Canvas {
     this.peaks = peaks;
 
     // find data boundaries
-    for (Feature peak : peaks) {
+    for (FeatureOld peak : peaks) {
       if (peak == null)
         continue;
 
@@ -96,7 +96,7 @@ public class CombinedXICComponent extends Canvas {
 
     int colorIndex = 0;
 
-    for (Feature peak : peaks) {
+    for (FeatureOld peak : peaks) {
 
       // set color for current XIC
       g2.setColor(plotColors[colorIndex]);

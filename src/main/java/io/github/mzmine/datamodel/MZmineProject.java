@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.io.File;
 import java.util.Hashtable;
 
@@ -131,20 +130,20 @@ public interface MZmineProject {
   /**
    * Returns all feature lists of the project
    */
-  public ModularFeatureList[] getPeakLists();
+  public FeatureList[] getPeakLists();
 
   public ObservableList<RawDataFile> getRawDataFiles();
 
   public ListProperty<RawDataFile> rawDataFilesProperty();
 
-  public ObservableList<ModularFeatureList> getFeatureLists();
+  public ObservableList<FeatureList> getFeatureLists();
 
-  public ListProperty<ModularFeatureList> featureListsProperty();
+  public ListProperty<FeatureList> featureListsProperty();
 
   /**
    * Returns all feature lists which contain given data file
    */
-  public ModularFeatureList[] getPeakLists(RawDataFile file);
+  public FeatureList[] getPeakLists(RawDataFile file);
 
   public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues();
 

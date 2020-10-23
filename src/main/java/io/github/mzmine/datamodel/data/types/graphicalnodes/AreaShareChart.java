@@ -1,5 +1,6 @@
 package io.github.mzmine.datamodel.data.types.graphicalnodes;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -20,8 +21,7 @@ import javafx.scene.shape.Rectangle;
 public class AreaShareChart extends StackPane {
 
   public AreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
-    Float sum = row.streamFeatures().map(ModularFeature::getAreaProperty).filter(p -> p.getValue() != null)
-        .map(Property<Float>::getValue).reduce(0f, Float::sum);
+    Float sum = row.streamFeatures().map(Feature::getArea).reduce(0f, Float::sum);
 
     List<Rectangle> all = new ArrayList<>();
     int i = 0;

@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
- * Interface for ModularFeatureList
+ * Interface for feature list
  */
 public interface FeatureList {
 
@@ -83,103 +83,98 @@ public interface FeatureList {
    * @param row Row of the feature list
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
-  public ModularFeature getPeak(int row, RawDataFile rawDataFile);
+  public Feature getPeak(int row, RawDataFile rawDataFile);
 
   /**
    * Returns all peaks for a raw data file
    */
-  public List<ModularFeature> getPeaks(RawDataFile rawDataFile);
+  public List<Feature> getPeaks(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
    */
-  public ModularFeatureListRow getRow(int row);
+  public FeatureListRow getRow(int row);
 
   /**
    * Returns all feature list rows
    */
-  public List<ModularFeatureListRow> getRows();
+  public List<FeatureListRow> getRows();
 
   /**
    * Creates a stream of PeakListRows
    * 
    * @return
    */
-  public Stream<ModularFeatureListRow> stream();
+  public Stream<FeatureListRow> stream();
 
   /**
    * Creates a parallel stream of PeakListRows
    * 
    * @return
    */
-  public Stream<ModularFeatureListRow> parallelStream();
+  public Stream<FeatureListRow> parallelStream();
 
   /**
    * Stream of all features across all samples
    * 
    * @return
    */
-  public Stream<ModularFeature> streamFeatures();
+  public Stream<Feature> streamFeatures();
 
   /**
    * Parallel stream of all rows.features across all samples
    * 
    * @return
    */
-  public Stream<ModularFeature> parallelStreamFeatures();
+  public Stream<Feature> parallelStreamFeatures();
 
   /**
    * Returns all rows with average retention time within given range
-   * 
-   * @param startRT Start of the retention time range
-   * @param endRT End of the retention time range
+   *
+   * @param rtRange Retention time range
    */
-  public List<ModularFeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
+  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
 
   /**
    * Returns all rows with average m/z within given range
    * 
-   * @param startMZ Start of the m/z range
-   * @param endMZ End of the m/z range
+   * @param mzRange m/z range
    */
-  public List<ModularFeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
+  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
 
   /**
    * Returns all rows with average m/z and retention time within given range
-   * 
-   * @param startRT Start of the retention time range
-   * @param endRT End of the retention time range
-   * @param startMZ Start of the m/z range
-   * @param endMZ End of the m/z range
+   *
+   * @param rtRange Retention time range
+   * @param mzRange m/z range
    */
-  public List<ModularFeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
    * Returns all peaks overlapping with a retention time range
-   * 
-   * @param startRT Start of the retention time range
-   * @param endRT End of the retention time range
+   *
+   * @param file Raw data file
+   * @param rtRange Retention time range
    */
-  public List<ModularFeature> getPeaksInsideScanRange(RawDataFile file, Range<Float> rtRange);
+  public List<Feature> getPeaksInsideScanRange(RawDataFile file, Range<Float> rtRange);
 
   /**
    * Returns all peaks in a given m/z range
    * 
-   * @param startMZ Start of the m/z range
-   * @param endMZ End of the m/z range
+   * @param file Raw data file
+   * @param mzRange m/z range
    */
-  public List<ModularFeature> getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public List<Feature> getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all peaks in a given m/z & retention time ranges
-   * 
-   * @param startRT Start of the retention time range
-   * @param endRT End of the retention time range
-   * @param startMZ Start of the m/z range
-   * @param endMZ End of the m/z range
+   *
+   * @param file Raw data file
+   * @param rtRange Retention time range
+   * @param mzRange m/z range
    */
-  public List<ModularFeature> getPeaksInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
+  public List<Feature> getPeaksInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -192,7 +187,7 @@ public interface FeatureList {
   /**
    * Add a new row to the feature list
    */
-  public void addRow(ModularFeatureListRow row);
+  public void addRow(FeatureListRow row);
 
   /**
    * Removes a row from this feature list
@@ -204,17 +199,17 @@ public interface FeatureList {
    * Removes a row from this feature list
    * 
    */
-  public void removeRow(ModularFeatureListRow row);
+  public void removeRow(FeatureListRow row);
 
   /**
    * Returns a row number of given peak
    */
-  public int getPeakRowNum(ModularFeature peak);
+  public int getPeakRowNum(Feature peak);
 
   /**
    * Returns a row containing given peak
    */
-  public ModularFeatureListRow getPeakRow(ModularFeature peak);
+  public FeatureListRow getPeakRow(Feature peak);
 
   public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod);
 
@@ -236,13 +231,17 @@ public interface FeatureList {
   /**
    * Find row by ID
    * 
-   * @param id
+   * @param id id
    * @return the peaklist row or null
    */
-  public ModularFeatureListRow findRowByID(int id);
+  public FeatureListRow findRowByID(int id);
 
   default boolean isEmpty() {
     return getRows().isEmpty();
   }
+
+  public String getDateCreated();
+
+  public void setDateCreated(String date);
 
 }

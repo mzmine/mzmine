@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;

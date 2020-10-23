@@ -41,17 +41,17 @@ public interface PeakListRow {
   /**
    * Return peaks assigned to this row
    */
-  public Feature[] getPeaks();
+  public FeatureOld[] getPeaks();
 
   /**
    * Returns peak for given raw data file
    */
-  public Feature getPeak(RawDataFile rawData);
+  public FeatureOld getPeak(RawDataFile rawData);
 
   /**
    * Add a peak
    */
-  public void addPeak(RawDataFile rawData, Feature peak);
+  public void addPeak(RawDataFile rawData, FeatureOld peak);
 
   /**
    * D Remove a peak
@@ -61,7 +61,7 @@ public interface PeakListRow {
   /**
    * Has a peak?
    */
-  public boolean hasPeak(Feature peak);
+  public boolean hasPeak(FeatureOld peak);
 
   /**
    * Has a peak?
@@ -178,7 +178,7 @@ public interface PeakListRow {
   /**
    * Returns the most intense peak in this row
    */
-  public Feature getBestPeak();
+  public FeatureOld getBestPeak();
 
   /**
    * Returns the most intense fragmentation scan in this row

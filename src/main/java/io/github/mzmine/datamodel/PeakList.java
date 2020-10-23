@@ -84,12 +84,12 @@ public interface PeakList {
    * @param row Row of the feature list
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
-  public Feature getPeak(int row, RawDataFile rawDataFile);
+  public FeatureOld getPeak(int row, RawDataFile rawDataFile);
 
   /**
    * Returns all peaks for a raw data file
    */
-  public List<Feature> getPeaks(RawDataFile rawDataFile);
+  public List<FeatureOld> getPeaks(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
@@ -147,7 +147,7 @@ public interface PeakList {
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
    */
-  public Feature[] getPeaksInsideScanRange(RawDataFile file, Range<Double> rtRange);
+  public FeatureOld[] getPeaksInsideScanRange(RawDataFile file, Range<Double> rtRange);
 
   /**
    * Returns all peaks in a given m/z range
@@ -155,7 +155,7 @@ public interface PeakList {
    * @param startMZ Start of the m/z range
    * @param endMZ End of the m/z range
    */
-  public Feature[] getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public FeatureOld[] getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all peaks in a given m/z & retention time ranges
@@ -165,7 +165,7 @@ public interface PeakList {
    * @param startMZ Start of the m/z range
    * @param endMZ End of the m/z range
    */
-  public Feature[] getPeaksInsideScanAndMZRange(RawDataFile file, Range<Double> rtRange,
+  public FeatureOld[] getPeaksInsideScanAndMZRange(RawDataFile file, Range<Double> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -195,12 +195,12 @@ public interface PeakList {
   /**
    * Returns a row number of given peak
    */
-  public int getPeakRowNum(Feature peak);
+  public int getPeakRowNum(FeatureOld peak);
 
   /**
    * Returns a row containing given peak
    */
-  public PeakListRow getPeakRow(Feature peak);
+  public PeakListRow getPeakRow(FeatureOld peak);
 
   public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod);
 

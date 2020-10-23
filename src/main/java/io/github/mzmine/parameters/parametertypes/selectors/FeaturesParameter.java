@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +27,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -37,10 +37,10 @@ import io.github.mzmine.parameters.UserParameter;
  * @author akshaj This class represents the parameter Features in the parameter setup dialog of the
  *         Fx3DVisualizer.
  */
-public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesComponent> {
+public class FeaturesParameter implements UserParameter<List<FeatureOld>, FeaturesComponent> {
 
   private String name = "Features";
-  private List<Feature> value;
+  private List<FeatureOld> value;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
@@ -49,12 +49,12 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   @Override
-  public List<Feature> getValue() {
+  public List<FeatureOld> getValue() {
     return value;
   }
 
   @Override
-  public void setValue(List<Feature> newValue) {
+  public void setValue(List<FeatureOld> newValue) {
     this.value = newValue;
   }
 
@@ -71,7 +71,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
 
     PeakList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
-    List<Feature> newValues = new ArrayList<>();
+    List<FeatureOld> newValues = new ArrayList<>();
 
     NodeList items = xmlElement.getElementsByTagName("feature");
     for (int i = 0; i < items.getLength(); i++) {
@@ -90,7 +90,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
                 for (RawDataFile dataFile : dataFiles) {
                   if (dataFile.getName().equals(
                       docElement.getElementsByTagName("rawdatafile_name").item(0).getNodeValue())) {
-                    Feature feature = peakList.getPeak(rownum, dataFile);
+                    FeatureOld feature = peakList.getPeak(rownum, dataFile);
                     if (feature != null)
                       newValues.add(feature);
                   }
@@ -115,7 +115,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
       return;
     Document parentDocument = xmlElement.getOwnerDocument();
 
-    for (Feature item : value) {
+    for (FeatureOld item : value) {
       Element featureElement = parentDocument.createElement("feature");
 
       Element peakListElement = parentDocument.createElement("peaklist_name");
@@ -159,7 +159,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   }
 
   @Override
-  public void setValueToComponent(FeaturesComponent component, List<Feature> newValue) {
+  public void setValueToComponent(FeaturesComponent component, List<FeatureOld> newValue) {
     component.setValue(newValue);
   }
 
@@ -169,7 +169,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   @Override
   public FeaturesParameter cloneParameter() {
     FeaturesParameter copy = new FeaturesParameter();
-    copy.value = new ArrayList<Feature>(value);
+    copy.value = new ArrayList<FeatureOld>(value);
     return copy;
   }
 

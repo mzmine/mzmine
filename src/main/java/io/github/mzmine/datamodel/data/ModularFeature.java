@@ -20,19 +20,14 @@ package io.github.mzmine.datamodel.data;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 /*
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
  */
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +36,7 @@ import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
@@ -68,7 +63,7 @@ import javax.annotation.Nullable;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class ModularFeature implements FeatureNew, ModularDataModel {
+public class ModularFeature implements Feature, ModularDataModel {
 
   private @Nonnull ModularFeatureList flist;
   private final ObservableMap<DataType, Property<?>> map =
@@ -101,7 +96,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
    * @param flist
    * @param p
    */
-  public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
+  public ModularFeature(@Nonnull ModularFeatureList flist, FeatureOld p) {
     this(flist);
 
     fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
@@ -119,8 +114,8 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
 
     // datapoints of feature
     List<DataPoint> dps = new ArrayList<>();
-    for (int i = 0; i < scans.length; i++) {
-      dps.add(p.getDataPoint(scans[i]));
+    for (int scan : scans) {
+      dps.add(p.getDataPoint(scan));
     }
     set(DataPointsType.class, dps);
 
@@ -162,7 +157,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
    * Copy constructor
    */
   // TODO: calculations to p.get*()
-  public ModularFeature(@Nonnull ModularFeatureList flist, ModularFeature p) {
+  public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
     this(flist);
 
     // add values to feature
@@ -178,8 +173,8 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
 
     // datapoints of feature
     List<DataPoint> dps = new ArrayList<>();
-    for (int i = 0; i < scans.length; i++) {
-      dps.add(p.getDataPoint(scans[i]));
+    for (int scan : scans) {
+      dps.add(p.getDataPoint(scan));
     }
     set(DataPointsType.class, dps);
 
@@ -301,6 +296,13 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     return 0;
   }
 
+  // TODO: apply the same approach to all Feature "variables"
+  //       (e. g. declare and inherit getters and setters for common data types in Feature)
+  @Override
+  public void setMZ(double mz) {
+    set(MZType.class, mz);
+  }
+
   @Override
   public void setFWHM(double fwhm) {
 
@@ -384,6 +386,7 @@ public class ModularFeature implements FeatureNew, ModularDataModel {
     return representiveScanNumber;
   }
 
+  @Override
   public ObservableList<DataPoint> getDataPoints() {
     return get(DataPointsType.class).getValue();
   }

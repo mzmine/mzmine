@@ -140,7 +140,7 @@ public class TestDatatypes {
 
   @Test
   public void testBinding() {
-    ModularFeatureListRow row = flistWithBinding.getRow(0);
+    ModularFeatureListRow row = (ModularFeatureListRow) flistWithBinding.getRow(0);
     // add bindings first and check after changing values
     Property<Double> mzProperty = row.get(MZType.class);
     Property<Float> areaProperty = row.get(AreaType.class);

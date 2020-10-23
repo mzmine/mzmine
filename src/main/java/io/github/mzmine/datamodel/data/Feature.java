@@ -15,12 +15,20 @@
  * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.datamodel.data;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+import java.util.Objects;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
  * This interface defines the properties of a detected peak
@@ -41,29 +49,29 @@ public interface Feature {
   /**
    * This method returns raw retention time of the peak in minutes
    */
-  double getRT();
+  float getRT();
 
   /**
    * This method returns the raw height of the peak
    */
-  double getHeight();
+  float getHeight();
 
   /**
    * This method returns the raw area of the peak
    */
-  double getArea();
+  float getArea();
 
   /**
    * Returns raw data file where this peak is present
    */
   @Nonnull
-  RawDataFile getDataFile();
+  RawDataFile getRawDataFile();
 
   /**
    * This method returns numbers of scans that contain this peak
    */
   @Nonnull
-  int[] getScanNumbers();
+  ObservableList<Integer> getScanNumbers();
 
   /**
    * This method returns the number of most representative scan of this peak
@@ -73,8 +81,9 @@ public interface Feature {
   /**
    * This method returns the best scan
    */
-  default @Nonnull Scan getRepresentativeScan() {
-    return getDataFile().getScan(getRepresentativeScanNumber());
+  default @Nonnull
+  Scan getRepresentativeScan() {
+    return Objects.requireNonNull(getRawDataFile().getScan(getRepresentativeScanNumber()));
   };
 
   /**
@@ -86,10 +95,15 @@ public interface Feature {
   DataPoint getDataPoint(int scanNumber);
 
   /**
+   * Returns all data points.
+   */
+  ObservableList<DataPoint> getDataPoints();
+
+  /**
    * Returns the retention time range of all raw data points used to detect this peak
    */
   @Nonnull
-  Range<Double> getRawDataPointsRTRange();
+  Range<Float> getRawDataPointsRTRange();
 
   /**
    * Returns the range of m/z values of all raw data points used to detect this peak
@@ -101,7 +115,7 @@ public interface Feature {
    * Returns the range of intensity values of all raw data points used to detect this peak
    */
   @Nonnull
-  Range<Double> getRawDataPointsIntensityRange();
+  Range<Float> getRawDataPointsIntensityRange();
 
   /**
    * Returns the number of scan that represents the fragmentation of this peak in MS2 level.
@@ -111,7 +125,13 @@ public interface Feature {
   /**
    * Returns all scan numbers that represent fragmentations of this peak in MS2 level.
    */
-  int[] getAllMS2FragmentScanNumbers();
+  ObservableList<Integer> getAllMS2FragmentScanNumbers();
+
+  // TODO: same approach for all common "data types"
+  /**
+   * Sets raw M/Z value of the peak
+   */
+  void setMZ(double mz);
 
   /**
    * Set best fragment scan numbers
@@ -125,7 +145,8 @@ public interface Feature {
    *
    * @param allMS2FragmentScanNumbers
    */
-  void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers);
+  //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
+  void setAllMS2FragmentScanNumbers(ObservableList<Integer> allMS2FragmentScanNumbers);
 
   /**
    * Returns the isotope pattern of this peak or null if no pattern is attached
@@ -151,37 +172,37 @@ public interface Feature {
   /**
    * This method returns the full width at half maximum (FWHM) of the peak
    */
-  Double getFWHM();
+  double getFWHM();
 
   /**
    * This method returns the tailing factor of the peak
    */
-  Double getTailingFactor();
+  double getTailingFactor();
 
   /**
    * This method returns the asymmetry factor of the peak
    */
-  Double getAsymmetryFactor();
+  double getAsymmetryFactor();
 
   /**
    * Sets the full width at half maximum (FWHM)
    */
-  void setFWHM(Double fwhm);
+  void setFWHM(double fwhm);
 
   /**
    * Sets the tailing factor
    */
-  void setTailingFactor(Double tf);
+  void setTailingFactor(double tf);
 
   /**
    * Sets the asymmetry factor
    */
-  void setAsymmetryFactor(Double af);
+  void setAsymmetryFactor(double af);
 
   // dulab Edit
   void outputChromToFile();
 
-  void setPeakInformation(SimplePeakInformation peakInfoIn);
+  void setPeakInformation(SimplePeakInformation peakInfo);
 
   SimplePeakInformation getPeakInformation();
   // End dulab Edit
@@ -192,8 +213,8 @@ public interface Feature {
   }
 
   @Nullable
-  PeakList getPeakList();
+  FeatureList getFeatureList();
 
-  void setPeakList(@Nonnull PeakList peakList);
+  void setFeatureList(@Nonnull FeatureList featureList);
 
 }

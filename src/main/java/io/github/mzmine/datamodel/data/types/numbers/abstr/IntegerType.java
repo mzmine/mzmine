@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.data.ModularFeature;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -62,7 +63,7 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
   public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
     @SuppressWarnings("unchecked")
-    Property<Integer>[] prop = row.streamFeatures().map(f -> f.get(this)).toArray(Property[]::new);
+    Property<Integer>[] prop = row.streamFeatures().map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
         return Bindings.createObjectBinding(() -> {

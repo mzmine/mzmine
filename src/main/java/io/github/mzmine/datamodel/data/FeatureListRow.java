@@ -18,11 +18,9 @@
 
 package io.github.mzmine.datamodel.data;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import java.util.List;
@@ -31,7 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Interface for ModularFeatureListRow
+ * Interface representing feature list row
  */
 public interface FeatureListRow {
 
@@ -53,17 +51,17 @@ public interface FeatureListRow {
   /**
    * Return peaks assigned to this row
    */
-  public ObservableList<ModularFeature> getFeatures();
+  public ObservableList<Feature> getFeatures();
 
   /**
    * Returns peak for given raw data file
    */
-  public ModularFeature getPeak(RawDataFile rawData);
+  public Feature getPeak(RawDataFile rawData);
 
   /**
    * Add a peak
    */
-  public void addPeak(RawDataFile rawData, ModularFeature peak);
+  public void addPeak(RawDataFile rawData, Feature peak);
 
   /**
    * D Remove a peak
@@ -73,7 +71,7 @@ public interface FeatureListRow {
   /**
    * Has a peak?
    */
-  public boolean hasFeature(ModularFeature peak);
+  public boolean hasFeature(Feature peak);
 
   /**
    * Has a peak?
@@ -167,7 +165,7 @@ public interface FeatureListRow {
    * PeakInformation is used to keep extra information about peaks in the form of a map
    * <propertyName, propertyValue>
    *
-   * @param information object
+   * @param peakInformation object
    */
 
   public void setPeakInformation(PeakInformation peakInformation);
@@ -190,7 +188,7 @@ public interface FeatureListRow {
   /**
    * Returns the most intense peak in this row
    */
-  public ModularFeature getBestPeak();
+  public Feature getBestPeak();
 
   /**
    * Returns the most intense fragmentation scan in this row
@@ -216,9 +214,9 @@ public interface FeatureListRow {
   public void setID(int id);
 
   @Nullable
-  ModularFeatureList getFeatureList();
+  FeatureList getFeatureList();
 
-  void setFeatureList(@Nonnull ModularFeatureList flist);
+  void setFeatureList(@Nonnull FeatureList flist);
 
   // End DorresteinLab edit
 }

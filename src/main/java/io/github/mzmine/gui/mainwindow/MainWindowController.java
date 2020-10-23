@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.text.NumberFormat;
 import java.util.List;
@@ -123,13 +124,13 @@ public class MainWindowController {
   private ListView<RawDataFile> rawDataTree;
 
   @FXML
-  private ListView<ModularFeatureList> featureTree;
+  private ListView<FeatureList> featureTree;
 
   @FXML
   private Tab tvAligned;
 
   @FXML
-  private TreeView<ModularFeatureList> tvAlignedFeatureLists;
+  private TreeView<FeatureList> tvAlignedFeatureLists;
 
   @FXML
   private AnchorPane tbRawData;
@@ -286,7 +287,7 @@ public class MainWindowController {
 
     featureTree.setCellFactory(featureListView -> new DraggableListCellWithDraggableFiles<>() {
       @Override
-      protected void updateItem(ModularFeatureList item, boolean empty) {
+      protected void updateItem(FeatureList item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || (item == null)) {
           setText("");
@@ -421,7 +422,7 @@ public class MainWindowController {
     return rawDataTree;
   }
 
-  public ListView<ModularFeatureList> getFeatureTree() {
+  public ListView<FeatureList> getFeatureTree() {
     return featureTree;
   }
 
@@ -601,8 +602,8 @@ public class MainWindowController {
   }
 
   public void handleOpenFeatureList(Event event) {
-    List<ModularFeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
-    for (ModularFeatureList fl : selectedFeatureLists) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
       //PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       Platform.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);

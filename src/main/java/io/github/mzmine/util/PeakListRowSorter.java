@@ -18,9 +18,9 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.util.Comparator;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 
 /**
@@ -52,21 +52,21 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
   private double getValue(PeakListRow row) {
     switch (property) {
       case Area:
-        Feature[] areaPeaks = row.getPeaks();
+        FeatureOld[] areaPeaks = row.getPeaks();
         double[] peakAreas = new double[areaPeaks.length];
         for (int i = 0; i < peakAreas.length; i++)
           peakAreas[i] = areaPeaks[i].getArea();
         double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
         return medianArea;
       case Intensity:
-        Feature[] intensityPeaks = row.getPeaks();
+        FeatureOld[] intensityPeaks = row.getPeaks();
         double[] peakIntensities = new double[intensityPeaks.length];
         for (int i = 0; i < intensityPeaks.length; i++)
           peakIntensities[i] = intensityPeaks[i].getArea();
         double medianIntensity = MathUtils.calcQuantile(peakIntensities, 0.5);
         return medianIntensity;
       case Height:
-        Feature[] heightPeaks = row.getPeaks();
+        FeatureOld[] heightPeaks = row.getPeaks();
         double[] peakHeights = new double[heightPeaks.length];
         for (int i = 0; i < peakHeights.length; i++)
           peakHeights[i] = heightPeaks[i].getHeight();

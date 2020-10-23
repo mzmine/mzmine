@@ -22,6 +22,7 @@ package io.github.mzmine.gui;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
 import static io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters.fileNames;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.io.File;
 import java.net.URL;
@@ -264,7 +265,7 @@ public class MZmineGUI extends Application implements Desktop {
       ListView<RawDataFile> rawDataTree = mainWindowController.getRawDataTree();
       rawDataTree.setItems(project.getRawDataFiles());
 
-      ListView<ModularFeatureList> featureTree = mainWindowController.getFeatureTree();
+      ListView<FeatureList> featureTree = mainWindowController.getFeatureTree();
       featureTree.setItems(project.getFeatureLists());
     });
 
@@ -281,7 +282,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Nonnull
-  public static List<ModularFeatureList> getSelectedFeatureLists() {
+  public static List<FeatureList> getSelectedFeatureLists() {
 
     final var featureListView = mainWindowController.getFeatureTree();
     final var selectedFeatureLists =

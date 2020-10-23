@@ -19,7 +19,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -232,7 +232,7 @@ public class MirrorChartFactory {
     if (alwaysShowBest || raw == null) {
       scan = row.getBestFragmentation();
     } else if (raw != null) {
-      Feature peak = row.getPeak(raw);
+      FeatureOld peak = row.getPeak(raw);
       if (peak != null) {
         scan = raw.getScan(peak.getMostIntenseFragmentScanNumber());
       }

@@ -21,6 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,6 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -407,7 +407,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(newPeakList);
 
     // Add the chromatograms to the new feature list
-    for (Feature finishedPeak : chromatograms) {
+    for (FeatureOld finishedPeak : chromatograms) {
       ModularFeature modular = new ModularFeature(newPeakList, finishedPeak);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(newPeakList, newPeakID, dataFile, modular);

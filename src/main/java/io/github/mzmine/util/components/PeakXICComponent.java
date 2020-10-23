@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.components;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -27,7 +28,6 @@ import javax.swing.border.Border;
 import org.jfree.fx.FXGraphics2D;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import javafx.scene.canvas.Canvas;
 
@@ -39,7 +39,7 @@ public class PeakXICComponent extends Canvas {
   public static final Color XICColor = Color.blue;
   public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
 
-  private Feature peak;
+  private FeatureOld peak;
 
   private Range<Double> rtRange;
   private double maxIntensity;
@@ -47,14 +47,14 @@ public class PeakXICComponent extends Canvas {
   /**
    * @param peak Picked peak to plot
    */
-  public PeakXICComponent(Feature peak) {
+  public PeakXICComponent(FeatureOld peak) {
     this(peak, peak.getRawDataPointsIntensityRange().upperEndpoint());
   }
 
   /**
    * @param peak Picked peak to plot
    */
-  public PeakXICComponent(Feature peak, double maxIntensity) {
+  public PeakXICComponent(FeatureOld peak, double maxIntensity) {
 
     this.peak = peak;
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
@@ -46,8 +46,8 @@ import io.github.mzmine.util.SortingProperty;
 public class SimplePeakListRow implements PeakListRow {
 
   // faster than Hashtable
-  private ConcurrentHashMap<RawDataFile, Feature> peaks;
-  private Feature preferredPeak;
+  private ConcurrentHashMap<RawDataFile, FeatureOld> peaks;
+  private FeatureOld preferredPeak;
   private List<PeakIdentity> identities;
   private PeakIdentity preferredIdentity;
   private String comment;
@@ -67,7 +67,7 @@ public class SimplePeakListRow implements PeakListRow {
 
   public SimplePeakListRow(int myID) {
     this.myID = myID;
-    peaks = new ConcurrentHashMap<RawDataFile, Feature>();
+    peaks = new ConcurrentHashMap<RawDataFile, FeatureOld>();
     identities = new Vector<PeakIdentity>();
     information = null;
     preferredPeak = null;
@@ -85,8 +85,8 @@ public class SimplePeakListRow implements PeakListRow {
    * Return peaks assigned to this row
    */
   @Override
-  public Feature[] getPeaks() {
-    return peaks.values().toArray(new Feature[0]);
+  public FeatureOld[] getPeaks() {
+    return peaks.values().toArray(new FeatureOld[0]);
   }
 
   @Override
@@ -107,12 +107,12 @@ public class SimplePeakListRow implements PeakListRow {
    * Returns peak for given raw data file
    */
   @Override
-  public Feature getPeak(RawDataFile rawData) {
+  public FeatureOld getPeak(RawDataFile rawData) {
     return peaks.get(rawData);
   }
 
   @Override
-  public synchronized void addPeak(RawDataFile rawData, Feature peak) {
+  public synchronized void addPeak(RawDataFile rawData, FeatureOld peak) {
     if (peak == null)
       throw new IllegalArgumentException("Cannot add null feature to a feature list row");
 
@@ -155,9 +155,9 @@ public class SimplePeakListRow implements PeakListRow {
     double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
     int charge = 0;
     HashSet<Integer> chargeArr = new HashSet<Integer>();
-    Enumeration<Feature> peakEnum = peaks.elements();
+    Enumeration<FeatureOld> peakEnum = peaks.elements();
     while (peakEnum.hasMoreElements()) {
-      Feature p = peakEnum.nextElement();
+      FeatureOld p = peakEnum.nextElement();
       rtSum += p.getRT();
       mzSum += p.getMZ();
       heightSum += p.getHeight();
@@ -320,7 +320,7 @@ public class SimplePeakListRow implements PeakListRow {
   }
 
   @Override
-  public boolean hasPeak(Feature peak) {
+  public boolean hasPeak(FeatureOld peak) {
     return peaks.containsValue(peak);
   }
 
@@ -334,10 +334,10 @@ public class SimplePeakListRow implements PeakListRow {
    */
   @Override
   public IsotopePattern getBestIsotopePattern() {
-    Feature peaks[] = getPeaks();
+    FeatureOld peaks[] = getPeaks();
     Arrays.sort(peaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
 
-    for (Feature peak : peaks) {
+    for (FeatureOld peak : peaks) {
       IsotopePattern ip = peak.getIsotopePattern();
       if (ip != null)
         return ip;
@@ -350,9 +350,9 @@ public class SimplePeakListRow implements PeakListRow {
    * Returns the highest peak in this row
    */
   @Override
-  public Feature getBestPeak() {
+  public FeatureOld getBestPeak() {
 
-    Feature peaks[] = getPeaks();
+    FeatureOld peaks[] = getPeaks();
     Arrays.sort(peaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
     if (peaks.length == 0)
       return null;
@@ -364,7 +364,7 @@ public class SimplePeakListRow implements PeakListRow {
 
     Double bestTIC = 0.0;
     Scan bestScan = null;
-    for (Feature peak : this.getPeaks()) {
+    for (FeatureOld peak : this.getPeaks()) {
       Double theTIC = 0.0;
       RawDataFile rawData = peak.getDataFile();
       int bestScanNumber = peak.getMostIntenseFragmentScanNumber();
@@ -385,7 +385,7 @@ public class SimplePeakListRow implements PeakListRow {
   @Nonnull
   public Scan[] getAllMS2Fragmentations() {
     ArrayList<Scan> allMS2ScansList = new ArrayList<>();
-    for (Feature peak : this.getPeaks()) {
+    for (FeatureOld peak : this.getPeaks()) {
       RawDataFile rawData = peak.getDataFile();
       int scanNumbers[] = peak.getAllMS2FragmentScanNumbers();
       if (scanNumbers != null) {

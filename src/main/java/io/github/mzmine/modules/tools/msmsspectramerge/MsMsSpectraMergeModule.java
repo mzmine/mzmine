@@ -23,6 +23,7 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -172,7 +172,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * @param massList name of the mass list to use when extracting peaks
    * @return the merged MS/MS of all fragment spectra belonging to the feature
    */
-  public MergedSpectrum mergeFromSameSample(ParameterSet parameters, Feature feature,
+  public MergedSpectrum mergeFromSameSample(ParameterSet parameters, FeatureOld feature,
       String massList) {
     List<MergedSpectrum> spectra = mergeConsecutiveScans(parameters, feature, massList);
     if (spectra.isEmpty())
@@ -190,7 +190,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
    * @param massList name of the mass list to use when extracting peaks
    * @return all merged spectra of consecutive MS/MS scans of the given feature
    */
-  public List<MergedSpectrum> mergeConsecutiveScans(ParameterSet parameters, Feature feature,
+  public List<MergedSpectrum> mergeConsecutiveScans(ParameterSet parameters, FeatureOld feature,
       String massList) {
     MZTolerance ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue();
     final double isolationWindowOffset =

@@ -20,12 +20,12 @@ package io.github.mzmine.util;
 
 import java.util.Comparator;
 
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 
 /**
  * This is a helper class required for sorting peaks
  */
-public class PeakSorter implements Comparator<Feature> {
+public class PeakSorter implements Comparator<FeatureOld> {
 
   private SortingProperty property;
   private SortingDirection direction;
@@ -35,7 +35,7 @@ public class PeakSorter implements Comparator<Feature> {
     this.direction = direction;
   }
 
-  public int compare(Feature peak1, Feature peak2) {
+  public int compare(FeatureOld peak1, FeatureOld peak2) {
 
     Double peak1Value = getValue(peak1);
     Double peak2Value = getValue(peak2);
@@ -47,7 +47,7 @@ public class PeakSorter implements Comparator<Feature> {
 
   }
 
-  private double getValue(Feature peak) {
+  private double getValue(FeatureOld peak) {
     switch (property) {
       case Area:
         return peak.getArea();

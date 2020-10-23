@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -29,7 +30,6 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -118,7 +118,7 @@ public class SimplePeakList implements PeakList {
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
   @Override
-  public Feature getPeak(int row, RawDataFile rawDataFile) {
+  public FeatureOld getPeak(int row, RawDataFile rawDataFile) {
     return peakListRows.get(row).getPeak(rawDataFile);
   }
 
@@ -126,7 +126,7 @@ public class SimplePeakList implements PeakList {
    * Returns all peaks for a raw data file
    */
   @Override
-  public List<Feature> getPeaks(final RawDataFile rawDataFile) {
+  public List<FeatureOld> getPeaks(final RawDataFile rawDataFile) {
     var result = peakListRows.stream() //
         .map(row -> row.getPeak(rawDataFile)) //
         .filter(Objects::nonNull) //
@@ -203,7 +203,7 @@ public class SimplePeakList implements PeakList {
    * @return
    */
   @Override
-  public Feature[] getPeaksInsideScanRange(RawDataFile file, Range<Double> rtRange) {
+  public FeatureOld[] getPeaksInsideScanRange(RawDataFile file, Range<Double> rtRange) {
     Range<Double> all = Range.all();
     return getPeaksInsideScanAndMZRange(file, rtRange, all);
   }
@@ -212,7 +212,7 @@ public class SimplePeakList implements PeakList {
    * @see io.github.mzmine.datamodel.PeakList#getPeaksInsideMZRange(double, double)
    */
   @Override
-  public Feature[] getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange) {
+  public FeatureOld[] getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange) {
     Range<Double> all = Range.all();
     return getPeaksInsideScanAndMZRange(file, all, mzRange);
   }
@@ -222,17 +222,17 @@ public class SimplePeakList implements PeakList {
    *      double)
    */
   @Override
-  public Feature[] getPeaksInsideScanAndMZRange(RawDataFile file, Range<Double> rtRange,
+  public FeatureOld[] getPeaksInsideScanAndMZRange(RawDataFile file, Range<Double> rtRange,
       Range<Double> mzRange) {
-    Vector<Feature> peaksInside = new Vector<Feature>();
+    Vector<FeatureOld> peaksInside = new Vector<FeatureOld>();
 
-    Feature[] peaks = getPeaks(file).toArray(Feature[]::new);
-    for (Feature p : peaks) {
+    FeatureOld[] peaks = getPeaks(file).toArray(FeatureOld[]::new);
+    for (FeatureOld p : peaks) {
       if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
         peaksInside.add(p);
     }
 
-    return peaksInside.toArray(new Feature[0]);
+    return peaksInside.toArray(new FeatureOld[0]);
   }
 
   /**
@@ -282,10 +282,10 @@ public class SimplePeakList implements PeakList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.PeakList#getPeakRowNum(io.github.mzmine.datamodel.Feature)
+   * @see io.github.mzmine.datamodel.PeakList#getPeakRowNum(FeatureOld)
    */
   @Override
-  public int getPeakRowNum(Feature peak) {
+  public int getPeakRowNum(FeatureOld peak) {
 
     PeakListRow row = getPeakRow(peak);
 
@@ -310,7 +310,7 @@ public class SimplePeakList implements PeakList {
   }
 
   @Override
-  public PeakListRow getPeakRow(Feature peak) {
+  public PeakListRow getPeakRow(FeatureOld peak) {
 
     for (PeakListRow row : peakListRows) {
       if (row.hasPeak(peak))

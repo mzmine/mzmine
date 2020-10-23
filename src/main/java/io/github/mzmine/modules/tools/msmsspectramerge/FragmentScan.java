@@ -53,7 +53,7 @@ class FragmentScan {
   /**
    * The feature this scans are derived from
    */
-  protected final Feature feature;
+  protected final FeatureOld feature;
 
   /**
    * mass list to use
@@ -87,7 +87,7 @@ class FragmentScan {
   protected int precursorCharge;
   private PolarityType polarity;
 
-  static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList,
+  static FragmentScan[] getAllFragmentScansFor(FeatureOld feature, String massList,
       Range<Double> isolationWindow, MZTolerance massAccuracy) {
     final RawDataFile file = feature.getDataFile();
     final int[] ms2 = feature.getAllMS2FragmentScanNumbers().clone();
@@ -117,7 +117,7 @@ class FragmentScan {
     return fragmentScans.toArray(new FragmentScan[0]);
   }
 
-  FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber,
+  FragmentScan(RawDataFile origin, FeatureOld feature, String massList, Integer ms1ScanNumber,
       Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;

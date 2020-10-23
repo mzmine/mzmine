@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakList;
@@ -37,7 +37,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 /**
  * This class is a simple implementation of the peak interface.
  */
-public class SimpleFeature implements Feature {
+public class SimpleFeatureOld implements FeatureOld {
 
   private SimplePeakInformation peakInfo;
   private FeatureStatus peakStatus;
@@ -80,7 +80,7 @@ public class SimpleFeature implements Feature {
    * Initializes a new peak using given values
    *
    */
-  public SimpleFeature(RawDataFile dataFile, double MZ, double RT, double height, double area,
+  public SimpleFeatureOld(RawDataFile dataFile, double MZ, double RT, double height, double area,
       int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus peakStatus,
       int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
       @Nonnull Range<Double> rtRange, @Nonnull Range<Double> mzRange,
@@ -122,7 +122,7 @@ public class SimpleFeature implements Feature {
   /**
    * Copy constructor
    */
-  public SimpleFeature(Feature p) {
+  public SimpleFeatureOld(FeatureOld p) {
 
     this.dataFile = p.getDataFile();
 
@@ -159,7 +159,7 @@ public class SimpleFeature implements Feature {
   /**
    * Copy constructor
    */
-  public SimpleFeature(RawDataFile dataFile, FeatureStatus status,
+  public SimpleFeatureOld(RawDataFile dataFile, FeatureStatus status,
       io.github.msdk.datamodel.Feature msdkFeature) {
 
     this.dataFile = dataFile;
@@ -287,7 +287,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#getDataFile()
+   * @see FeatureOld#getDataFile()
    */
   @Override
   public @Nonnull RawDataFile getDataFile() {
@@ -295,7 +295,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#setDataFile()
+   * @see FeatureOld#setDataFile()
    */
   public void setDataFile(RawDataFile dataFile) {
     this.dataFile = dataFile;
@@ -310,7 +310,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#getRawDataPointsIntensityRange()
+   * @see FeatureOld#getRawDataPointsIntensityRange()
    */
   @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
@@ -318,7 +318,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#getRawDataPointsMZRange()
+   * @see FeatureOld#getRawDataPointsMZRange()
    */
   @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
@@ -326,7 +326,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#getRawDataPointsRTRange()
+   * @see FeatureOld#getRawDataPointsRTRange()
    */
   @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
@@ -334,7 +334,7 @@ public class SimpleFeature implements Feature {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.Feature#getRepresentativeScanNumber()
+   * @see FeatureOld#getRepresentativeScanNumber()
    */
   @Override
   public int getRepresentativeScanNumber() {

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.data.ModularFeature;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -38,7 +39,8 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
     // get all properties of all features
     @SuppressWarnings("unchecked")
     Property<Range<Double>>[] prop =
-        row.streamFeatures().map(f -> f.get(this)).toArray(Property[]::new);
+        row.streamFeatures().map(f -> (ModularFeature) f)
+            .map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case RANGE:
         return Bindings.createObjectBinding(() -> {

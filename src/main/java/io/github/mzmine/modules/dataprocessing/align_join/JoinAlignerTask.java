@@ -18,11 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.util.ModularFeatureUtils;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.TreeSet;
@@ -50,7 +52,7 @@ public class JoinAlignerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private ModularFeatureList featureLists[], alignedFeatureList;
+  private FeatureList featureLists[], alignedFeatureList;
 
   // Processed rows counter
   private int processedRows, totalRows;
@@ -149,13 +151,13 @@ public class JoinAlignerTask extends AbstractTask {
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
-    for (ModularFeatureList list : featureLists) {
+    for (FeatureList list : featureLists) {
       totalRows += list.getNumberOfRows() * 2;
     }
 
     // Collect all data files
     Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-    for (ModularFeatureList featureList : featureLists) {
+    for (FeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
 
@@ -176,15 +178,15 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList = new ModularFeatureList(featureListName, allDataFiles.toArray(new RawDataFile[0]));
 
     // Iterate source feature lists
-    for (ModularFeatureList featureList : featureLists) {
+    for (FeatureList featureList : featureLists) {
 
       // Create a sorted set of scores matching
       TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
 
-      ModularFeatureListRow allRows[] = featureList.getRows().toArray(ModularFeatureListRow[]::new);
+      FeatureListRow[] allRows = featureList.getRows().toArray(FeatureListRow[]::new);
 
       // Calculate scores for all possible alignments of this row
-      for (ModularFeatureListRow row : allRows) {
+      for (FeatureListRow row : allRows) {
 
         if (isCanceled())
           return;
@@ -194,19 +196,19 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
         // Get all rows of the aligned peaklist within parameter limits
-        List<ModularFeatureListRow> candidateRows = alignedFeatureList
+        List<FeatureListRow> candidateRows = alignedFeatureList
             .getRowsInsideScanAndMZRange(rtRange, mzRange);
 
         // Calculate scores and store them
-        for (ModularFeatureListRow candidate : candidateRows) {
+        for (FeatureListRow candidate : candidateRows) {
 
           if (sameChargeRequired) {
-            if (!ModularFeatureUtils.compareChargeState(row, candidate))
+            if (!FeatureUtils.compareChargeState(row, candidate))
               continue;
           }
 
           if (sameIDRequired) {
-            if (!ModularFeatureUtils.compareIdentities(row, candidate))
+            if (!FeatureUtils.compareIdentities(row, candidate))
               continue;
           }
 
@@ -277,8 +279,8 @@ public class JoinAlignerTask extends AbstractTask {
       }
 
       // Create a table of mappings for best scores
-      Hashtable<ModularFeatureListRow, ModularFeatureListRow> alignmentMapping =
-          new Hashtable<ModularFeatureListRow, ModularFeatureListRow>();
+      Hashtable<FeatureListRow, FeatureListRow> alignmentMapping =
+          new Hashtable<FeatureListRow, FeatureListRow>();
 
       // Iterate scores by descending order
       for (RowVsRowScore score : scoreSet) {
@@ -296,14 +298,14 @@ public class JoinAlignerTask extends AbstractTask {
       }
 
       // Align all rows using mapping
-      for (ModularFeatureListRow row : allRows) {
+      for (FeatureListRow row : allRows) {
 
-        ModularFeatureListRow targetRow = alignmentMapping.get(row);
+        FeatureListRow targetRow = alignmentMapping.get(row);
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
           // TODO: feature list in constructor?
-          targetRow = new ModularFeatureListRow(featureList, newRowID);
+          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
           newRowID++;
           alignedFeatureList.addRow(targetRow);
         }
@@ -315,7 +317,7 @@ public class JoinAlignerTask extends AbstractTask {
 
         // Add all non-existing identities from the original row to the
         // aligned row
-        ModularFeatureUtils.copyFeatureListRowProperties(row, targetRow);
+        FeatureUtils.copyFeatureListRowProperties(row, targetRow);
 
         processedRows++;
 

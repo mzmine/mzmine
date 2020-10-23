@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -66,14 +66,14 @@ public class PeakListsComponent extends BorderPane {
       PeakListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
       if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
-        final MultiChoiceParameter<ModularFeatureList> plsParameter =
-            new MultiChoiceParameter<ModularFeatureList>("Select feature lists", "Select feature lists",
+        final MultiChoiceParameter<FeatureList> plsParameter =
+            new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
                 MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
                 currentValue.getSpecificPeakLists());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
-          ModularFeatureList pls[] = paramSet.getParameter(plsParameter).getValue();
+          FeatureList pls[] = paramSet.getParameter(plsParameter).getValue();
           currentValue.setSpecificPeakLists(pls);
         }
 
@@ -120,7 +120,7 @@ public class PeakListsComponent extends BorderPane {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
     } else {
-      ModularFeatureList pls[] = currentValue.getMatchingPeakLists();
+      FeatureList pls[] = currentValue.getMatchingPeakLists();
       if (pls.length == 1) {
         String plName = pls[0].getName();
         if (plName.length() > 22)

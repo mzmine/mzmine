@@ -1,5 +1,6 @@
 package io.github.mzmine.datamodel.data.types.graphicalnodes;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -9,7 +10,6 @@ import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import javafx.event.EventHandler;
 import javafx.scene.chart.LineChart;
@@ -31,7 +31,7 @@ public class FeatureShapeChart extends StackPane {
       double maxRT = 0;
       int size = row.getFilesFeatures().size();
       int fi = 0;
-      for (ModularFeature f : row.getFeatures()) {
+      for (Feature f : row.getFeatures()) {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         List<Integer> scans = f.getScanNumbers();
         List<DataPoint> dps = f.getDataPoints();

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -202,7 +204,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    *
    * @param selectedRow
    */
-  void updateXICPlot(ModularFeatureListRow selectedRow) {
+  void updateXICPlot(FeatureListRow selectedRow) {
     /*
     if (!miShowXIC.isSelected()) {
       return;
@@ -225,7 +227,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
    *
    * @param selectedRow
    */
-  void updateSpectrumPlot(ModularFeatureListRow selectedRow) {
+  void updateSpectrumPlot(FeatureListRow selectedRow) {
     /*
     if (!miShowSpectrum.isSelected()) {
       return;
@@ -265,14 +267,15 @@ public class FeatureTableFXMLTabAnchorPaneController {
   }
 
 
-  public void setFeatureList(ModularFeatureList featureList) {
+  public void setFeatureList(FeatureList featureList) {
     featureTable.addData(featureList);
     setupFilter();
   }
 
 
   private void setupFilter() {
-    ModularFeatureList flist = featureTable.getFeatureList();
+    assert featureTable.getFeatureList() instanceof ModularFeatureList;
+    ModularFeatureList flist = (ModularFeatureList) featureTable.getFeatureList();
     if (flist == null) {
       logger.info("Cannot setup filters for feature list window. Feature list not loaded.");
     }
@@ -295,7 +298,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     }
 
     featureTable.getFilteredRowItems().setPredicate(item -> {
-      ModularFeatureListRow row = item.getValue();
+      ModularFeatureListRow row = (ModularFeatureListRow) item.getValue();
       String value = type.getFormattedString(row.get(type));
       String filter = txtSearch.getText().toLowerCase().trim();
       return value.contains(filter);
@@ -307,7 +310,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
 
   void selectedRowChanged() {
-    TreeItem<ModularFeatureListRow> selectedItem = featureTable.getSelectionModel()
+    TreeItem<FeatureListRow> selectedItem = featureTable.getSelectionModel()
         .getSelectedItem();
 //    featureTable.getColumns().forEach(c -> logger.info(c.getText()));
     logger.info(
@@ -318,7 +321,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
       return;
     }
 
-    ModularFeatureListRow selectedRow = selectedItem.getValue();
+    FeatureListRow selectedRow = selectedItem.getValue();
     if (selectedRow == null) {
       return;
     }

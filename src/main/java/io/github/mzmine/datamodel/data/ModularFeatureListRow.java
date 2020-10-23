@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.data;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
@@ -29,7 +28,7 @@ import io.github.mzmine.datamodel.data.types.AreaShareType;
 import io.github.mzmine.datamodel.data.types.FeatureShapeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.util.ModularFeatureSorter;
+import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.ArrayList;
@@ -42,14 +41,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.util.Pair;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
-import io.github.mzmine.datamodel.data.types.exceptions.WrongFeatureListException;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
@@ -76,7 +73,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private @Nonnull ModularFeatureList flist;
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
-   * this map see {@link #addPeak(RawDataFile, ModularFeature)}
+   * this map see {@link #addPeak}
    */
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
@@ -140,7 +137,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param p
    */
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
-      ModularFeature p) {
+      Feature p) {
     this(flist);
     set(IDType.class, (id));
     addPeak(raw, p);
@@ -149,7 +146,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   /**
    * Constructor for row with a specific id.
    *
-   * @param flist Feature list
+   * @param flist FeatureOld list
    * @param id ID
    */
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
@@ -167,7 +164,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return map;
   }
 
-  public Stream<ModularFeature> streamFeatures() {
+  public Stream<Feature> streamFeatures() {
     return this.getFeatures().stream().filter(Objects::nonNull);
   }
 
@@ -204,7 +201,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return get(FeaturesType.class).getValue();
   }
 
-  public ObservableList<ModularFeature> getFeatures() {
+  public ObservableList<Feature> getFeatures() {
     //return FXCollections.observableArrayList(get(FeaturesType.class).getValue().values());
     return FXCollections.observableArrayList(features.values());
   }
@@ -218,23 +215,29 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param feature
    */
   @Override
-  public void addPeak(RawDataFile raw, ModularFeature feature) {
+  public void addPeak(RawDataFile raw, Feature feature) {
+    if(!(feature instanceof ModularFeature)) {
+      throw new IllegalArgumentException("Cannot add non-modular feature to modular feature list row.");
+    }
+    ModularFeature modularFeature = (ModularFeature) feature;
+
     // TODO: solve the NullPointerException while aligning previously aligned feature lists
-    if (Objects.equals(feature.getFeatureList(), getFeatureList())) {
+
+    if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) {
       // features are final - replace all values for all data types
       // keep old feature
       ModularFeature old = getFilesFeatures().get(raw);
       for (DataType type : flist.getFeatureTypes().values()) {
-        old.set(type, feature.get(type).getValue());
+        old.set(type, modularFeature.get(type).getValue());
       }
     } else {
-      features.put(raw, feature);
+      features.put(raw, modularFeature);
     }
 
-    feature.setFeatureList(flist);
+    modularFeature.setFeatureList(flist);
 
-    if (feature.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
-      maxDataPointIntensity = feature.getRawDataPointsIntensityRange().upperEndpoint();
+    if (modularFeature.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
+      maxDataPointIntensity = modularFeature.getRawDataPointsIntensityRange().upperEndpoint();
 
     calculateAverageValues();
   }
@@ -302,8 +305,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public boolean hasFeature(ModularFeature feature) {
-    return features.containsValue(feature);
+  public boolean hasFeature(Feature feature) {
+    if (!(feature instanceof ModularFeature)) {
+      //throw new IllegalArgumentException("Modular feature list row can not contain non-modular feature.");
+      return false;
+    }
+    return features.containsValue((ModularFeature) feature);
   }
 
   public Node getBufferedColChart(String colname) {
@@ -336,8 +343,11 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setFeatureList(@Nonnull ModularFeatureList flist) {
-    this.flist = flist;
+  public void setFeatureList(@Nonnull FeatureList flist) {
+    if(!(flist instanceof ModularFeatureList)) {
+      throw new IllegalArgumentException("Cannot set non-modular feature list to modular feature list row.");
+    }
+    this.flist = (ModularFeatureList) flist;
   }
 
   public String getComment() {
@@ -421,7 +431,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public ModularFeature getBestPeak() {
     ModularFeature features[] = getFeatures().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new ModularFeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
     if (features.length == 0) {
       return null;
     }
@@ -432,7 +442,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   public Scan getBestFragmentation() {
     Double bestTIC = 0.0;
     Scan bestScan = null;
-    for (ModularFeature feature : getFeatures()) {
+    for (Feature feature : getFeatures()) {
       Double theTIC = 0.0;
       RawDataFile rawData = feature.getRawDataFile();
       int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
@@ -453,7 +463,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public Scan[] getAllMS2Fragmentations() {
     ArrayList<Scan> allMS2ScansList = new ArrayList<>();
-    for (ModularFeature feature : getFeatures()) {
+    for (Feature feature : getFeatures()) {
       RawDataFile rawData = feature.getRawDataFile();
       ObservableList<Integer> scanNumbers = feature.getAllMS2FragmentScanNumbers();
       if (scanNumbers != null) {
@@ -471,7 +481,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new ModularFeatureSorter(SortingProperty.Height, SortingDirection.Descending));
+    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
 
     for (ModularFeature feature : features) {
       IsotopePattern ip = feature.getIsotopePattern();
@@ -488,7 +498,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     float rtSum = 0;
     int charge = 0;
     HashSet<Integer> chargeArr = new HashSet<Integer>();
-    for (ModularFeature feature : getFeatures()) {
+    for (Feature feature : getFeatures()) {
       rtSum += feature.getRT();
       mzSum += feature.getMZ();
       heightSum += feature.getHeight();

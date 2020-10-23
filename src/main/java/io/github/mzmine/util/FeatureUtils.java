@@ -18,35 +18,30 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.Feature;
 import java.text.Format;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
+import io.github.mzmine.datamodel.impl.SimpleFeatureOld;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
 /*
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
  */
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Utilities for feature lists
  *
  */
-public class ModularFeatureUtils {
+public class FeatureUtils {
 
   private static final PeakListRowSorter ascMzRowSorter =
       new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
@@ -54,10 +49,10 @@ public class ModularFeatureUtils {
   /**
    * Common utility method to be used as Peak.toString() method in various Peak implementations
    *
-   * @param feature Feature to be converted to String
+   * @param feature FeatureOld to be converted to String
    * @return String representation of the peak
    */
-  public static String peakToString(ModularFeature feature) {
+  public static String peakToString(Feature feature) {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -77,7 +72,7 @@ public class ModularFeatureUtils {
    * @return True if identities match between rows
    *
    */
-  public static boolean compareIdentities(ModularFeatureListRow row1, ModularFeatureListRow row2) {
+  public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null))
       return false;
@@ -134,13 +129,13 @@ public class ModularFeatureUtils {
 
   }
 
-  // TODO PeakListRows to ModularFeatureListRows
+  // TODO PeakListRows to FeatureListRows
   // S
   /**
    * Returns true if feature list row contains a compound identity matching to id
    *
    */
-  public static boolean containsIdentity(ModularFeatureListRow row, PeakIdentity id) {
+  public static boolean containsIdentity(FeatureListRow row, PeakIdentity id) {
 
     for (PeakIdentity identity : row.getPeakIdentities()) {
       if (identity.getName().equals(id.getName()))
@@ -154,7 +149,7 @@ public class ModularFeatureUtils {
    * Copies properties such as identification results and comments from the source row to the target
    * row.
    */
-  public static void copyFeatureListRowProperties(ModularFeatureListRow source, ModularFeatureListRow target) {
+  public static void copyFeatureListRowProperties(FeatureListRow source, FeatureListRow target) {
 
     // Combine the comments
     String targetComment = target.getComment();
@@ -180,11 +175,11 @@ public class ModularFeatureUtils {
 
   }
 
-  // TODO Feature to ModularFeature
+  // TODO FeatureOld to Feature
   /**
    * Copies properties such as isotope pattern and charge from the source peak to the target peak
    */
-  public static void copyPeakProperties(Feature source, Feature target) {
+  public static void copyPeakProperties(FeatureOld source, FeatureOld target) {
 
     // Copy isotope pattern
     IsotopePattern originalPattern = source.getIsotopePattern();
@@ -197,15 +192,15 @@ public class ModularFeatureUtils {
 
   }
 
-  // TODO Feature to ModularFeature
+  // TODO FeatureOld to Feature
   /**
    * Finds a combined m/z range that covers all given peaks
    */
-  public static Range<Double> findMZRange(Feature peaks[]) {
+  public static Range<Double> findMZRange(FeatureOld peaks[]) {
 
     Range<Double> mzRange = null;
 
-    for (Feature p : peaks) {
+    for (FeatureOld p : peaks) {
       if (mzRange == null) {
         mzRange = p.getRawDataPointsMZRange();
       } else {
@@ -217,7 +212,7 @@ public class ModularFeatureUtils {
 
   }
 
-  // TODO Feature(ManualPeak) to ModularFeature
+  // TODO FeatureOld(ManualPeak) to Feature
   /**
    * Integrates over a given m/z and rt range within a raw data file.
    *
@@ -266,7 +261,7 @@ public class ModularFeatureUtils {
     // REMOVE
   }
 
-  // TODO Feature to ModularFeature
+  // TODO FeatureOld to Feature
   /**
    *
    * @param row The row.
@@ -283,7 +278,7 @@ public class ModularFeatureUtils {
     double[] lower = new double[size];
     double[] upper = new double[size];
 
-    Feature[] f = row.getPeaks();
+    FeatureOld[] f = row.getPeaks();
 
     for (int i = 0; i < size; i++) {
       if (f[i] == null)
@@ -306,7 +301,7 @@ public class ModularFeatureUtils {
     return Range.closed(avgL, avgU);
   }
 
-  // TODO PeakListRow to ModularFeatureListRow
+  // TODO PeakListRow to FeatureListRow
   /**
    * Creates a copy of a PeakListRow.
    *
@@ -319,8 +314,8 @@ public class ModularFeatureUtils {
     PeakUtils.copyPeakListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-      final Feature newPeak = new SimpleFeature(peak);
+    for (final FeatureOld peak : row.getPeaks()) {
+      final FeatureOld newPeak = new SimpleFeatureOld(peak);
       PeakUtils.copyPeakProperties(peak, newPeak);
       newRow.addPeak(peak.getDataFile(), newPeak);
     }
@@ -328,7 +323,7 @@ public class ModularFeatureUtils {
     return newRow;
   }
 
-  // TODO PeakListRow to ModularFeatureListRow
+  // TODO PeakListRow to FeatureListRow
   /**
    * Creates a copy of an array of PeakListRows.
    *
@@ -345,7 +340,7 @@ public class ModularFeatureUtils {
     return newRows;
   }
 
-  // TODO PeakListRow to ModularFeatureListRow
+  // TODO PeakListRow to FeatureListRow
   /**
    * Convenience method to sort an array of PeakListRows by ascending m/z
    *

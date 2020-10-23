@@ -15,6 +15,7 @@
  */
 package io.github.mzmine.util.adap;
 
+import io.github.mzmine.datamodel.FeatureOld;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -26,13 +27,12 @@ import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
+import io.github.mzmine.datamodel.impl.SimpleFeatureOld;
 
 /**
  *
@@ -54,7 +54,7 @@ public class ADAPInterface {
     }
 
     // Read Chromatogram
-    final Feature peak = row.getBestPeak();
+    final FeatureOld peak = row.getBestPeak();
     final RawDataFile dataFile = peak.getDataFile();
 
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
@@ -71,7 +71,7 @@ public class ADAPInterface {
   }
 
   @Nonnull
-  public static Feature peakToFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
+  public static FeatureOld peakToFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
 
     Chromatogram chromatogram = peak.chromatogram;
 
@@ -102,7 +102,7 @@ public class ADAPInterface {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
+    return new SimpleFeatureOld(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
         scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
         new int[] {}, Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
@@ -110,7 +110,7 @@ public class ADAPInterface {
   }
 
   @Nonnull
-  public static Feature peakToFeature(@Nonnull RawDataFile file, @Nonnull Peak peak) {
+  public static FeatureOld peakToFeature(@Nonnull RawDataFile file, @Nonnull Peak peak) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 

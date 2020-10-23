@@ -18,23 +18,23 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.Comparator;
 
 /**
  * This is a helper class required for sorting features
  */
-public class ModularFeatureSorter implements Comparator<ModularFeature> {
+public class FeatureSorter implements Comparator<Feature> {
 
-  private SortingProperty property;
-  private SortingDirection direction;
+  private final SortingProperty property;
+  private final SortingDirection direction;
 
-  public ModularFeatureSorter(SortingProperty property, SortingDirection direction) {
+  public FeatureSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
     this.direction = direction;
   }
 
-  public int compare(ModularFeature feature1, ModularFeature feature2) {
+  public int compare(Feature feature1, Feature feature2) {
 
     Double peak1Value = getValue(feature1);
     Double peak2Value = getValue(feature2);
@@ -46,7 +46,7 @@ public class ModularFeatureSorter implements Comparator<ModularFeature> {
 
   }
 
-  private double getValue(ModularFeature peak) {
+  private double getValue(Feature peak) {
     switch (property) {
       case Area:
         return peak.getArea();
