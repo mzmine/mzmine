@@ -395,7 +395,7 @@ public class ModularFeatureList implements FeatureList {
     return peakListRows.stream();
   }
 
-  private Stream<ModularFeatureListRow> modularStream() {
+  public Stream<ModularFeatureListRow> modularStream() {
     return peakListRows.stream().map(row -> (ModularFeatureListRow) row);
   }
 
@@ -404,7 +404,7 @@ public class ModularFeatureList implements FeatureList {
     return peakListRows.parallelStream();
   }
 
-  private Stream<ModularFeatureListRow> modularParallelStream() {
+  public Stream<ModularFeatureListRow> modularParallelStream() {
     return peakListRows.parallelStream().map(row -> (ModularFeatureListRow) row);
   }
 
@@ -413,7 +413,7 @@ public class ModularFeatureList implements FeatureList {
     return stream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
-  private Stream<ModularFeature> modularStreamFeatures() {
+  public Stream<ModularFeature> modularStreamFeatures() {
     return streamFeatures().map(feature -> (ModularFeature) feature);
   }
 
@@ -423,7 +423,7 @@ public class ModularFeatureList implements FeatureList {
         .filter(Objects::nonNull);
   }
 
-  private Stream<ModularFeature> modularParallelStreamFeatures() {
+  public Stream<ModularFeature> modularParallelStreamFeatures() {
     return parallelStreamFeatures().map(feature -> (ModularFeature) feature);
   }
 

@@ -20,12 +20,13 @@ package io.github.mzmine.datamodel.data;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-/*
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
- */
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,21 +137,18 @@ public class ModularFeature implements Feature, ModularDataModel {
         Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()),
         mzRange)).boxed().collect(Collectors.toList()));
 
-    // TODO:
-    /*
-    Float fwhm = QualityParameters.calculateFWHM(this);
-    if(!fwhm.isNaN()) {
+    float fwhm = QualityParameters.calculateFWHM(this);
+    if(!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
-    Float tf = QualityParameters.calculateTailingFactor(this);
-    if(!tf.isNaN()) {
+    float tf = QualityParameters.calculateTailingFactor(this);
+    if(!Float.isNaN(tf)) {
       set(TailingFactorType.class, tf);
     }
-    Float af = QualityParameters.calculateAsymmetryFactor(this);
-    if(!af.isNaN()) {
+    float af = QualityParameters.calculateAsymmetryFactor(this);
+    if(!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
-    */
   }
 
   /**
@@ -178,31 +176,31 @@ public class ModularFeature implements Feature, ModularDataModel {
     }
     set(DataPointsType.class, dps);
 
-    /*
-    // ranges
-    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint().floatValue(),
-        p.getRawDataPointsRTRange().upperEndpoint().floatValue());
-    Range<Float> intensityRange =
-        Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    //set(RTRangeType.class, rtRange);
-    set(IntensityRangeType.class, intensityRange);
-    */
 
-    /*
-    Float fwhm = QualityParameters.calculateFWHM(this);
-    if(!fwhm.isNaN()) {
+    // ranges
+    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint(),
+        p.getRawDataPointsRTRange().upperEndpoint());
+    Range<Double> mzRange = Range.closed(p.getRawDataPointsMZRange().lowerEndpoint(),
+        p.getRawDataPointsMZRange().upperEndpoint());
+    Range<Float> intensityRange =
+        Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint(),
+            p.getRawDataPointsIntensityRange().upperEndpoint());
+    set(MZRangeType.class, mzRange);
+    set(RTRangeType.class, rtRange);
+    set(IntensityRangeType.class, intensityRange);
+
+    float fwhm = QualityParameters.calculateFWHM(this);
+    if(!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
-    Float tf = QualityParameters.calculateTailingFactor(this);
-    if(!tf.isNaN()) {
+    float tf = QualityParameters.calculateTailingFactor(this);
+    if(!Float.isNaN(tf)) {
       set(TailingFactorType.class, tf);
     }
-    Float af = QualityParameters.calculateAsymmetryFactor(this);
-    if(!af.isNaN()) {
+    float af = QualityParameters.calculateAsymmetryFactor(this);
+    if(!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
-    */
   }
 
   @Override

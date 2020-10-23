@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -26,25 +26,13 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 
 public class QualityParametersTask extends AbstractTask {
 
-  private final PeakList featureList;
+  private final FeatureList featureList;
   private final ParameterSet parameterSet;
 
-  private final ModularFeatureList modularFeatureList;
-
   private double finishedPercentage;
-
-  public QualityParametersTask(PeakList peakList, ParameterSet parameterSet) {
-    this.featureList = peakList;
+  public QualityParametersTask(FeatureList featureList, ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
-    modularFeatureList = null;
-    setStatus(TaskStatus.WAITING);
-    finishedPercentage = 0.d;
-  }
-
-  public QualityParametersTask(ModularFeatureList modularFeatureList, ParameterSet parameterSet) {
-    this.modularFeatureList = modularFeatureList;
-    this.parameterSet = parameterSet;
-    featureList = null;
+    this.featureList = featureList;
     setStatus(TaskStatus.WAITING);
     finishedPercentage = 0.d;
   }
@@ -62,12 +50,8 @@ public class QualityParametersTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.WAITING);
-    if (featureList != null) {
-      QualityParameters.calculateQualityParameters(featureList);
-    }
-    else if(modularFeatureList != null) {
-      QualityParameters.calculateQualityParameters(modularFeatureList);
-    }
+
+    QualityParameters.calculateAndSetModularQualityParameters((ModularFeatureList) featureList);
     finishedPercentage = 1.d;
     setStatus(TaskStatus.FINISHED);
   }
