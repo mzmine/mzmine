@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Comparator;
 
 import io.github.mzmine.datamodel.PeakListRow;
@@ -24,20 +25,20 @@ import io.github.mzmine.datamodel.RawDataFile;
 
 public class AlignStructMol implements Comparator<AlignStructMol> {
 
-  public PeakListRow row1, row2;
+  public FeatureListRow row1, row2;
   public double RT, RT2;
   public boolean Aligned = false;
   public boolean ransacMaybeInLiers;
   public boolean ransacAlsoInLiers;
 
-  public AlignStructMol(PeakListRow row1, PeakListRow row2) {
+  public AlignStructMol(FeatureListRow row1, FeatureListRow row2) {
     this.row1 = row1;
     this.row2 = row2;
     RT = row1.getAverageRT();
     RT2 = row2.getAverageRT();
   }
 
-  public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file, RawDataFile file2) {
+  public AlignStructMol(FeatureListRow row1, FeatureListRow row2, RawDataFile file, RawDataFile file2) {
     this.row1 = row1;
     this.row2 = row2;
     if (row1.getPeak(file) != null) {

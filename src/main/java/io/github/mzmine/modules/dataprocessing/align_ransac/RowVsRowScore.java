@@ -19,17 +19,18 @@
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 
 /**
  * This class represents a score between feature list row and aligned feature list row
  */
 public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-  private PeakListRow peakListRow, alignedRow;
+  private FeatureListRow peakListRow, alignedRow;
   double score;
   private String errorMessage;
 
-  public RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow, double mzMaxDiff,
+  public RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
       double rtMaxDiff, double correctedRT) throws Exception {
 
     this.alignedRow = alignedRow;
@@ -45,14 +46,14 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  public PeakListRow getPeakListRow() {
+  public FeatureListRow getPeakListRow() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  public PeakListRow getAlignedRow() {
+  public FeatureListRow getAlignedRow() {
     return alignedRow;
   }
 

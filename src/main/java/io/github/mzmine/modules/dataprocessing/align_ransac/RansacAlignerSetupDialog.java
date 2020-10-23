@@ -18,11 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -48,7 +49,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
   private final FlowPane peakListsPanel;
   private final CheckBox previewCheckBox;
   private final AlignmentRansacPlot chart;
-  private final ComboBox<PeakList> peakListsComboX, peakListsComboY;
+  private final ComboBox<FeatureList> peakListsComboX, peakListsComboY;
   private final Button alignmentPreviewButton;
 
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
@@ -56,7 +57,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
 
     var featureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists();
 
-    PeakList selectedPeakLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    FeatureList[] selectedPeakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
     // Preview check box
     previewCheckBox = new CheckBox("Show preview of RANSAC alignment");
@@ -71,9 +72,9 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     // Panel for the combo boxes with the feature lists
     comboPanel = new GridPane();
 
-    peakListsComboX = new ComboBox<PeakList>(featureLists);
+    peakListsComboX = new ComboBox<FeatureList>(featureLists);
     // peakListsComboX.addActionListener(this);
-    peakListsComboY = new ComboBox<PeakList>(featureLists);
+    peakListsComboY = new ComboBox<FeatureList>(featureLists);
     // peakListsComboY.addActionListener(this);
 
     alignmentPreviewButton = new Button("Preview alignment");
@@ -111,12 +112,12 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
    *
    * @return vector which contains all the possible aligned peaks.
    */
-  private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY,
+  private Vector<AlignStructMol> getVectorAlignment(FeatureList peakListX, FeatureList peakListY,
       RawDataFile file, RawDataFile file2) {
 
     Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
-    for (PeakListRow row : peakListX.getRows()) {
+    for (FeatureListRow row : peakListX.getRows()) {
 
       // Calculate limits for a row with which the row can be aligned
       MZTolerance mzTolerance =
@@ -124,12 +125,12 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
       RTTolerance rtTolerance =
           super.parameterSet.getParameter(RansacAlignerParameters.RTToleranceBefore).getValue();
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-      Range<Double> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
+      Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
       // Get all rows of the aligned peaklist within parameter limits
-      PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
+      List<FeatureListRow> candidateRows = peakListY.getRowsInsideScanAndMZRange(rtRange, mzRange);
 
-      for (PeakListRow candidateRow : candidateRows) {
+      for (FeatureListRow candidateRow : candidateRows) {
         if (file == null || file2 == null) {
           alignMol.addElement(new AlignStructMol(row, candidateRow));
         } else {
@@ -144,8 +145,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
 
   private void updatePreview() {
 
-    PeakList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
-    PeakList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
+    FeatureList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
+    FeatureList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
 
     if ((peakListX == null) || (peakListY == null))
       return;
