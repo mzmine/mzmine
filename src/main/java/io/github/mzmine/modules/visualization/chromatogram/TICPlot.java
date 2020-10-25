@@ -500,9 +500,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    */
   public synchronized void addFeatureDataSet(final FeatureDataSet dataSet) {
     final FeatureTICRenderer renderer = new FeatureTICRenderer();
-    if (dataSet.getFeature() != null && dataSet.getFeature().getDataFile() != null
-        && dataSet.getFeature().getDataFile().getColor() != null) {
-      Color clr = dataSet.getFeature().getDataFile().getColorAWT();
+    if (dataSet.getFeature() != null && dataSet.getFeature().getRawDataFile() != null
+        && dataSet.getFeature().getRawDataFile().getColor() != null) {
+      Color clr = dataSet.getFeature().getRawDataFile().getColorAWT();
       renderer.setSeriesPaint(0, clr);
       renderer.setSeriesFillPaint(0, clr);
     } else {
@@ -569,7 +569,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       XYDataset ds = plot.getDataset(i);
       if (ds != null && ds instanceof FeatureDataSet) {
         FeatureDataSet pds = (FeatureDataSet) ds;
-        if (pds.getFeature().getDataFile() == file) {
+        if (pds.getFeature().getRawDataFile() == file) {
           plot.setDataset(getXYPlot().indexOf(pds), null);
           plot.setRenderer(getXYPlot().indexOf(pds), null);
         }
@@ -690,7 +690,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
     } else if (dataSet instanceof FeatureDataSet) {
       renderer.setDefaultItemLabelPaint(
-          ((FeatureDataSet) dataSet).getFeature().getDataFile().getColorAWT());
+          ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
     }
 
     plot.setRenderer(index, renderer);
@@ -717,7 +717,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
                 ((TICDataSet) dataset).getDataFile().getColorAWT());
           } else if (dataset instanceof FeatureDataSet) {
             renderer.setDefaultItemLabelPaint(
-                ((FeatureDataSet) dataset).getFeature().getDataFile().getColorAWT());
+                ((FeatureDataSet) dataset).getFeature().getRawDataFile().getColorAWT());
           }
         }
       } else {

@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -34,7 +35,7 @@ public class ResultWindowFX extends Stage {
 
     public ResultWindowController controller;
 
-    public ResultWindowFX(PeakListRow peakListRow, double searchedMass, Task searchTask){
+    public ResultWindowFX(FeatureListRow peakListRow, double searchedMass, Task searchTask){
 
         try {
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectload;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -29,7 +30,7 @@ import io.github.mzmine.datamodel.PeakList;
 
 public interface PeakListOpenHandler {
 
-  PeakList readPeakList(InputStream inputStream)
+  FeatureList readPeakList(InputStream inputStream)
       throws IOException, ParserConfigurationException, SAXException;
 
   void cancel();

@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.text.NumberFormat;
 import java.util.Map;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.main.MZmineCore;
 

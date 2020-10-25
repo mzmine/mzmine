@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;

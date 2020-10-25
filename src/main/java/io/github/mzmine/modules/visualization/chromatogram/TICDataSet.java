@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -136,12 +137,14 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    *
    * @param feature The feature.
    */
-  public TICDataSet(ModularFeature feature) {
+  public TICDataSet(Feature feature) {
 
-    dataFile = (RawDataFile) feature.getValue(RawFileType.class);
-    mzRange = (Range<Double>) feature.getValue(MZRangeType.class);
-    Range<Double> rtRange = (Range<Double>) feature.getValue(RTRangeType.class);
-    List<Integer> scanNums = (List<Integer>) feature.getValue(ScanNumbersType.class);
+    // TODO: remove cast
+    ModularFeature modularFeature = (ModularFeature) feature;
+    dataFile = (RawDataFile) modularFeature.getValue(RawFileType.class);
+    mzRange = (Range<Double>) modularFeature.getValue(MZRangeType.class);
+    Range<Double> rtRange = (Range<Double>) modularFeature.getValue(RTRangeType.class);
+    List<Integer> scanNums = (List<Integer>) modularFeature.getValue(ScanNumbersType.class);
 
     scans = new Scan[scanNums.size()];
 

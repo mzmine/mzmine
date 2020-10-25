@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -55,10 +55,10 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    final PeakList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
+    final FeatureList[] featureLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
         .getValue().getMatchingPeakLists();
-    for (final PeakList peakList : peakLists) {
-      Task newTask = new PeakListIdentificationTask(parameters, peakList);
+    for (final FeatureList featureList : featureLists) {
+      Task newTask = new PeakListIdentificationTask(parameters, featureList);
       tasks.add(newTask);
     }
 
@@ -70,7 +70,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
    *
    * @param row the feature list row.
    */
-  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+  public static void showSingleRowIdentificationDialog(final FeatureListRow row) {
 
     assert Platform.isFxApplicationThread();
 

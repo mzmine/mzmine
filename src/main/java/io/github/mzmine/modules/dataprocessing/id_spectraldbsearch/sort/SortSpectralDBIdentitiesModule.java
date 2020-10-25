@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
@@ -50,11 +51,11 @@ public class SortSpectralDBIdentitiesModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(SortSpectralDBIdentitiesParameters.peakLists)
+    FeatureList featureLists[] = parameters.getParameter(SortSpectralDBIdentitiesParameters.peakLists)
         .getValue().getMatchingPeakLists();
 
-    for (PeakList peakList : peakLists) {
-      Task newTask = new SortSpectralDBIdentitiesTask(peakList, parameters);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new SortSpectralDBIdentitiesTask(featureList, parameters);
       tasks.add(newTask);
     }
 

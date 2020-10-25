@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
@@ -38,7 +40,6 @@ import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -386,7 +387,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   }
 
-  public void loadPeaks(PeakList selectedPeakList) {
+  public void loadPeaks(FeatureList selectedPeakList) {
 
     spectrumPlot.removePeakListDataSets();
 

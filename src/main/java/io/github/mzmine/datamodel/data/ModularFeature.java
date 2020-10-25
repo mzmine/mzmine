@@ -90,6 +90,73 @@ public class ModularFeature implements Feature, ModularDataModel {
     });
   }
 
+  // NOT TESTED
+  /**
+   * Initializes a new feature using given values
+   *
+   */
+  public ModularFeature(RawDataFile dataFile, double mz, float rt, double height, double area,
+      int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
+      int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
+      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
+      @Nonnull Range<Float> intensityRange) {
+
+    this(new ModularFeatureList("", dataFile));
+
+    System.out.println("CONSTRUCTOR 1");
+    assert dataFile != null;
+    assert scanNumbers != null;
+    assert dataPointsPerScan != null;
+    assert featureStatus != null;
+
+    if (dataPointsPerScan.length == 0) {
+      throw new IllegalArgumentException("Cannot create a SimplePeak instance with no data points");
+    }
+
+    this.fragmentScanNumber = fragmentScanNumber;
+    this.representiveScanNumber = representativeScan;
+    // add values to feature
+    int[] scans = allMS2FragmentScanNumbers;
+    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+    set(MZType.class, mz);
+    set(RTType.class, rt);
+    set(HeightType.class, height);
+    set(AreaType.class, area);
+    set(BestScanNumberType.class, representativeScan);
+
+    // datapoints of feature
+    /* TODO:
+    List<DataPoint> dps = new ArrayList<>();
+    for (int scan : scans) {
+      dps.add(p.getDataPoint(scan));
+    }
+    set(DataPointsType.class, dps);
+     */
+
+    // ranges
+    set(MZRangeType.class, mzRange);
+    set(RTRangeType.class, rtRange);
+    set(IntensityRangeType.class, intensityRange);
+
+    // TODO:
+    //this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+
+    float fwhm = QualityParameters.calculateFWHM(this);
+    if(!Float.isNaN(fwhm)) {
+      set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(this);
+    if(!Float.isNaN(tf)) {
+      set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(this);
+    if(!Float.isNaN(af)) {
+      set(AsymmetryFactorType.class, af);
+    }
+  }
+
   /**
    * Creates a ModularFeature on the basis of chromatogram results with the
    * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
@@ -99,7 +166,7 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   public ModularFeature(@Nonnull ModularFeatureList flist, FeatureOld p) {
     this(flist);
-
+    System.out.println("CONSTRUCTOR 2");
     fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
     representiveScanNumber = p.getRepresentativeScanNumber();
     // add values to feature
@@ -157,7 +224,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   // TODO: calculations to p.get*()
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
     this(flist);
-
+    System.out.println("CONSTRUCTOR 3");
     // add values to feature
     int[] scans = (p.getScanNumbers()).stream().mapToInt(i -> i).toArray();
     set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));

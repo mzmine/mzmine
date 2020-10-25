@@ -19,8 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+//import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -42,7 +44,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakListRow[] peakListRows;
+  private final FeatureListRow[] peakListRows;
   private final @Nonnull
   String massListName;
   private final File dataBaseFile;
@@ -53,11 +55,11 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private SpectraIdentificationResultsWindowFX resultWindow;
 
-  private PeakListTable table;
+  private FeatureTableFX table;
 
   private int totalTasks;
 
-  public SelectedRowsLocalSpectralDBSearchTask(PeakListRow[] peakListRows, PeakListTable table,
+  public SelectedRowsLocalSpectralDBSearchTask(FeatureListRow[] peakListRows, FeatureTableFX table,
       ParameterSet parameters) {
     this.peakListRows = peakListRows;
     this.parameters = parameters;
@@ -145,9 +147,11 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
     }
 
     // work around to update feature list identities
+    /* TODO:
     if (table.getRowCount() > 0) {
       table.setRowSelectionInterval(0, 0);
     }
+    */
     setStatus(TaskStatus.FINISHED);
 
   }

@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Vector;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
@@ -36,20 +36,20 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
    */
   private static final long serialVersionUID = 1L;
 
-  private PeakList peakList;
+  private FeatureList featureList;
 
   private Feature displayedPeaks[];
   private double mzValues[], intensityValues[];
   private String label;
 
-  public PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
+  public PeakListDataSet(RawDataFile dataFile, int scanNumber, FeatureList featureList) {
 
-    this.peakList = peakList;
+    this.featureList = featureList;
 
-    Feature peaks[] = peakList.getPeaks(dataFile).toArray(Feature[]::new);
+    Feature features[] = featureList.getPeaks(dataFile).toArray(Feature[]::new);
 
     Vector<Feature> candidates = new Vector<Feature>();
-    for (Feature peak : peaks) {
+    for (Feature peak : features) {
       DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
       if (peakDataPoint != null)
         candidates.add(peak);
@@ -67,7 +67,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
       intensityValues[i] = dp.getIntensity();
     }
 
-    label = "Peaks in " + peakList.getName();
+    label = "Features in " + featureList.getName();
 
   }
 
@@ -81,8 +81,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     return label;
   }
 
-  public PeakList getPeakList() {
-    return peakList;
+  public FeatureList getFeatureList() {
+    return featureList;
   }
 
   public Feature getPeak(int series, int item) {

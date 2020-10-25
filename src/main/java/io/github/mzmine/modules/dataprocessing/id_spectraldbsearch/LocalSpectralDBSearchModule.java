@@ -18,16 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -53,11 +53,11 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
+    FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
         .getValue().getMatchingPeakLists();
 
-    for (PeakList peakList : peakLists) {
-      Task newTask = new LocalSpectralDBSearchTask(peakList, parameters);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new LocalSpectralDBSearchTask(featureList, parameters);
       tasks.add(newTask);
     }
 
@@ -70,8 +70,8 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
    * 
    * @param row the feature list row.
    */
-  public static void showSelectedRowsIdentificationDialog(final PeakListRow[] rows,
-      PeakListTable table) {
+  public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
+      FeatureTableFX table) {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 

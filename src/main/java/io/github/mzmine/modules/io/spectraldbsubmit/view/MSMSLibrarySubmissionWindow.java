@@ -17,6 +17,7 @@
  */
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -78,7 +79,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleCompo
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.PeakListRowSorter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.GridBagPanel;
@@ -140,7 +141,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
   //
   private boolean isFragmentScan = true;
   // data either rows or list of entries with 1 or multiple scans
-  private PeakListRow[] rows;
+  private FeatureListRow[] rows;
   private List<Scan[]> scanList;
   private ResultsTextPane txtResults;
 
@@ -250,9 +251,9 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * @param sorting
    * @param direction
    */
-  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction,
+  public void setData(FeatureListRow[] rows, SortingProperty sorting, SortingDirection direction,
       boolean isFragmentScan) {
-    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
+    Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, isFragmentScan);
   }
 
@@ -262,7 +263,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
    * @param rows
    * @param raw
    */
-  public void setData(PeakListRow[] rows, boolean isFragmentScan) {
+  public void setData(FeatureListRow[] rows, boolean isFragmentScan) {
     getMSLevelComponent().setText(isFragmentScan ? "2" : "1");
     scanList = null;
     this.rows = rows;
@@ -270,7 +271,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
     setFragmentScan(isFragmentScan);
     // set rt
-    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
+    double rt = Arrays.stream(rows).mapToDouble(FeatureListRow::getAverageRT).average().orElse(-1);
     setRetentionTimeToComponent(rt);
     updateAllChartSelectors();
   }
@@ -698,9 +699,11 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
         ScanSortMode sort = getComboSortMode().getSelectionModel().getSelectedItem();
 
         if (rows != null) {
+          // TODO: ScanSelectPanel to JavaFX
+          /*
           // create MS2 of all rows
           for (int i = 0; i < rows.length; i++) {
-            PeakListRow row = rows[i];
+            FeatureListRow row = rows[i];
             ScanSelectPanel pn =
                 new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
             pnScanSelect[i] = pn;
@@ -713,6 +716,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
               group.add(new ChartViewWrapper(c));
             }
           }
+          */
         } else if (scanList != null) {
           // all selectors of scanlist
           for (int i = 0; i < scanList.size(); i++) {

@@ -18,9 +18,11 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import java.text.Format;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
@@ -28,10 +30,7 @@ import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeatureOld;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
 /*
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
@@ -43,8 +42,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
  */
 public class FeatureUtils {
 
-  private static final PeakListRowSorter ascMzRowSorter =
-      new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
+  private static final FeatureListRowSorter ascMzRowSorter =
+      new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
 
   /**
    * Common utility method to be used as Peak.toString() method in various Peak implementations
@@ -179,7 +178,7 @@ public class FeatureUtils {
   /**
    * Copies properties such as isotope pattern and charge from the source peak to the target peak
    */
-  public static void copyPeakProperties(FeatureOld source, FeatureOld target) {
+  public static void copyPeakProperties(Feature source, Feature target) {
 
     // Copy isotope pattern
     IsotopePattern originalPattern = source.getIsotopePattern();
@@ -194,13 +193,13 @@ public class FeatureUtils {
 
   // TODO FeatureOld to Feature
   /**
-   * Finds a combined m/z range that covers all given peaks
+   * Finds a combined m/z range that covers all given features
    */
-  public static Range<Double> findMZRange(FeatureOld peaks[]) {
+  public static Range<Double> findMZRange(Feature features[]) {
 
     Range<Double> mzRange = null;
 
-    for (FeatureOld p : peaks) {
+    for (Feature p : features) {
       if (mzRange == null) {
         mzRange = p.getRawDataPointsMZRange();
       } else {
@@ -269,28 +268,28 @@ public class FeatureUtils {
    *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
-  public @Nonnull static Range<Double> getPeakListRowAvgRtRange(PeakListRow row) {
+  public @Nonnull static Range<Float> getPeakListRowAvgRtRange(FeatureListRow row) {
 
     if (row == null || row.getBestPeak() == null)
-      return Range.closed(0.d, 0.d);
+      return Range.closed(0.f, 0.f);
 
-    int size = row.getPeaks().length;
+    int size = row.getFeatures().size();
     double[] lower = new double[size];
     double[] upper = new double[size];
 
-    FeatureOld[] f = row.getPeaks();
+    Feature[] f = row.getFeatures().toArray(new Feature[0]);
 
     for (int i = 0; i < size; i++) {
       if (f[i] == null)
         continue;
 
-      Range<Double> r = f[i].getRawDataPointsRTRange();
+      Range<Float> r = f[i].getRawDataPointsRTRange();
 
       lower[i] = r.lowerEndpoint();
       upper[i] = r.upperEndpoint();
     }
 
-    double avgL = 0, avgU = 0;
+    float avgL = 0, avgU = 0;
     for (int i = 0; i < size; i++) {
       avgL += lower[i];
       avgU += upper[i];
@@ -308,16 +307,17 @@ public class FeatureUtils {
    * @param row A row.
    * @return A copy of row.
    */
-  public static PeakListRow copyPeakRow(final PeakListRow row) {
+  public static FeatureListRow copyPeakRow(final FeatureListRow row) {
+    // TODO: generalize beyond modular
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) row.getFeatureList());
+    copyFeatureListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final FeatureOld peak : row.getPeaks()) {
-      final FeatureOld newPeak = new SimpleFeatureOld(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+    for (final Feature peak : row.getFeatures()) {
+      final Feature newPeak = new ModularFeature((ModularFeatureList) peak.getFeatureList());
+      copyPeakProperties(peak, newPeak);
+      newRow.addPeak(peak.getRawDataFile(), newPeak);
     }
 
     return newRow;
@@ -330,8 +330,8 @@ public class FeatureUtils {
    * @param rows The rows to be copied.
    * @return A copy of rows.
    */
-  public static PeakListRow[] copyPeakRows(final PeakListRow[] rows) {
-    PeakListRow[] newRows = new PeakListRow[rows.length];
+  public static FeatureListRow[] copyPeakRows(final FeatureListRow[] rows) {
+    FeatureListRow[] newRows = new FeatureListRow[rows.length];
 
     for (int i = 0; i < newRows.length; i++) {
       newRows[i] = copyPeakRow(rows[i]);
@@ -347,7 +347,7 @@ public class FeatureUtils {
    * @param rows
    * @return Array sorted by ascending m/z.
    */
-  public static PeakListRow[] sortRowsMzAsc(PeakListRow[] rows) {
+  public static FeatureListRow[] sortRowsMzAsc(FeatureListRow[] rows) {
     Arrays.sort(rows, ascMzRowSorter);
     return rows;
   }

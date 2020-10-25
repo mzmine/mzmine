@@ -32,11 +32,12 @@ import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.components.MultiLineLabel;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
-import io.github.mzmine.util.swing.IconUtil;
-import io.github.mzmine.util.swing.SwingExportUtil;
+//import io.github.mzmine.util.swing.IconUtil;
+//import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -49,6 +50,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.scene.image.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -81,11 +83,11 @@ public class SpectralMatchPanel extends JPanel {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final int ICON_WIDTH = 50;
-  static final ImageIcon iconAll = IconUtil.loadIconFromResources("icons/exp_graph_all.png");
-  static final ImageIcon iconPdf = IconUtil.loadIconFromResources("icons/exp_graph_pdf.png");
-  static final ImageIcon iconEps = IconUtil.loadIconFromResources("icons/exp_graph_eps.png");
-  static final ImageIcon iconEmf = IconUtil.loadIconFromResources("icons/exp_graph_emf.png");
-  static final ImageIcon iconSvg = IconUtil.loadIconFromResources("icons/exp_graph_svg.png");
+  static final Image iconAll = FxIconUtil.loadImageFromResources("icons/exp_graph_all.png");
+  static final Image iconPdf = FxIconUtil.loadImageFromResources("icons/exp_graph_pdf.png");
+  static final Image iconEps = FxIconUtil.loadImageFromResources("icons/exp_graph_eps.png");
+  static final Image iconEmf = FxIconUtil.loadImageFromResources("icons/exp_graph_emf.png");
+  static final Image iconSvg = FxIconUtil.loadImageFromResources("icons/exp_graph_svg.png");
 
   public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
 
@@ -291,7 +293,8 @@ public class SpectralMatchPanel extends JPanel {
     JButton btnExport = null;
 
     if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
-      btnExport = new JButton(IconUtil.scaled(iconAll, ICON_WIDTH));
+      // TODO: uncomment all and change to JavaFX
+      btnExport = new JButton(/*IconUtil.scaled(iconAll, ICON_WIDTH)*/);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("all"));
@@ -299,7 +302,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
-      btnExport = new JButton(IconUtil.scaled(iconPdf, ICON_WIDTH));
+      btnExport = new JButton(/*IconUtil.scaled(iconPdf, ICON_WIDTH)*/);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("pdf"));
@@ -307,7 +310,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.emf).getValue()) {
-      btnExport = new JButton(IconUtil.scaled(iconEmf, ICON_WIDTH));
+      btnExport = new JButton(/*IconUtil.scaled(iconEmf, ICON_WIDTH)*/);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("emf"));
@@ -315,7 +318,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.eps).getValue()) {
-      btnExport = new JButton(IconUtil.scaled(iconEps, ICON_WIDTH));
+      btnExport = new JButton(/*IconUtil.scaled(iconEps, ICON_WIDTH)*/);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("eps"));
@@ -323,7 +326,7 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-      btnExport = new JButton(IconUtil.scaled(iconSvg, ICON_WIDTH));
+      btnExport = new JButton(/*IconUtil.scaled(iconSvg, ICON_WIDTH)*/);
       btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("svg"));
@@ -357,7 +360,9 @@ public class SpectralMatchPanel extends JPanel {
         pnExport.getParent().revalidate();
         pnExport.getParent().repaint();
 
+        /*
         SwingExportUtil.writeToGraphics(this, f.getParentFile(), f.getName(), format);
+        */
         // save path
         param.setValue(FileAndPathUtil.eraseFormat(f));
       } catch (Exception ex) {
@@ -394,7 +399,9 @@ public class SpectralMatchPanel extends JPanel {
 
   public void exportToGraphics(String format, File file) {
     try {
+      /*
       SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
+      */
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
     } finally {

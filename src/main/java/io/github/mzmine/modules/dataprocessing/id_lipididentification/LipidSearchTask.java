@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,8 +27,6 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
@@ -51,7 +51,7 @@ public class LipidSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedSteps, totalSteps;
-  private PeakList peakList;
+  private FeatureList featureList;
   private Object[] selectedObjects;
   private LipidClasses[] selectedLipids;
   private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
@@ -69,11 +69,11 @@ public class LipidSearchTask extends AbstractTask {
 
   /**
    * @param parameters
-   * @param peakList
+   * @param featureList
    */
-  public LipidSearchTask(ParameterSet parameters, PeakList peakList) {
+  public LipidSearchTask(ParameterSet parameters, FeatureList featureList) {
 
-    this.peakList = peakList;
+    this.featureList = featureList;
     this.parameters = parameters;
 
     this.minChainLength =
@@ -123,7 +123,7 @@ public class LipidSearchTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Prediction of lipids in " + peakList;
+    return "Prediction of lipids in " + featureList;
   }
 
   /**
@@ -133,9 +133,9 @@ public class LipidSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info("Starting lipid search in " + peakList);
+    logger.info("Starting lipid search in " + featureList);
 
-    PeakListRow rows[] = peakList.getRows().toArray(PeakListRow[]::new);
+    FeatureListRow rows[] = featureList.getRows().toArray(FeatureListRow[]::new);
 
     // Check if lipids should be modified
     if (searchForModifications == true) {
@@ -179,12 +179,12 @@ public class LipidSearchTask extends AbstractTask {
       }
     }
     // Add task description to peakList
-    ((SimplePeakList) peakList)
+    ((SimplePeakList) featureList)
         .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Lipid search", parameters));
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished lipid search task in " + peakList);
+    logger.info("Finished lipid search task in " + featureList);
   }
 
   /**
@@ -193,7 +193,7 @@ public class LipidSearchTask extends AbstractTask {
    * @param mainPeak
    * @param possibleFragment
    */
-  private void findPossibleLipid(LipidIdentity lipid, PeakListRow rows[]) {
+  private void findPossibleLipid(LipidIdentity lipid, FeatureListRow rows[]) {
     double lipidIonMass = 0.0;
     double lipidMass = lipid.getMass();
     lipidIonMass = lipidMass + ionizationType.getAddedMass();
@@ -232,7 +232,7 @@ public class LipidSearchTask extends AbstractTask {
    * no mass list is present for MS2 scans it will create one using centroid or exact mass detection
    * algorithm
    */
-  private void searchMsmsFragments(PeakListRow row, double lipidIonMass, LipidIdentity lipid) {
+  private void searchMsmsFragments(FeatureListRow row, double lipidIonMass, LipidIdentity lipid) {
 
     // Check if selected feature has MSMS spectra
     if (row.getAllMS2Fragmentations() != null) {
@@ -363,7 +363,7 @@ public class LipidSearchTask extends AbstractTask {
     }
   }
 
-  private void searchModifications(PeakListRow rows, double lipidIonMass, LipidIdentity lipid,
+  private void searchModifications(FeatureListRow rows, double lipidIonMass, LipidIdentity lipid,
       double[] lipidModificationMasses, Range<Double> mzTolModification) {
     for (int j = 0; j < lipidModificationMasses.length; j++) {
       if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j]))) {

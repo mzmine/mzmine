@@ -17,6 +17,8 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -39,8 +41,6 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
@@ -50,7 +50,7 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrum;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.PeakListRowSorter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import javafx.scene.control.TextInputDialog;
@@ -96,7 +96,7 @@ public class MultiMSMSWindow extends JFrame {
   private JCheckBox cbBestRaw;
   private JCheckBox cbUseBestForMissingRaw;
 
-  private PeakListRow[] rows;
+  private FeatureListRow[] rows;
   private RawDataFile raw;
   private RawDataFile[] allRaw;
   private boolean createMS1;
@@ -198,7 +198,7 @@ public class MultiMSMSWindow extends JFrame {
    * @return
    */
   private boolean rawContainsFragmentation(RawDataFile raw) {
-    for (PeakListRow row : rows) {
+    for (FeatureListRow row : rows) {
       Feature peak = row.getPeak(raw);
       if (peak != null && peak.getMostIntenseFragmentScanNumber() > 0) {
         return true;
@@ -331,9 +331,9 @@ public class MultiMSMSWindow extends JFrame {
    * @param sorting
    * @param direction
    */
-  public void setData(PeakListRow[] rows, RawDataFile[] allRaw, RawDataFile raw, boolean createMS1,
+  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw, boolean createMS1,
       SortingProperty sorting, SortingDirection direction) {
-    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
+    Arrays.sort(rows, new FeatureListRowSorter(sorting, direction));
     setData(rows, allRaw, raw, createMS1);
   }
 
@@ -343,7 +343,7 @@ public class MultiMSMSWindow extends JFrame {
    * @param rows
    * @param raw
    */
-  public void setData(PeakListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
+  public void setData(FeatureListRow[] rows, RawDataFile[] allRaw, RawDataFile raw,
       boolean createMS1) {
     this.rows = rows;
     this.allRaw = allRaw;
@@ -352,7 +352,7 @@ public class MultiMSMSWindow extends JFrame {
     // check raw
     if (raw != null && !rawContainsFragmentation(raw)) {
       // change to best of highest row
-      raw = Arrays.stream(rows).map(PeakListRow::getBestFragmentation).filter(Objects::nonNull)
+      raw = Arrays.stream(rows).map(FeatureListRow::getBestFragmentation).filter(Objects::nonNull)
           .findFirst().get().getDataFile();
     }
     // set raw and update
@@ -369,14 +369,14 @@ public class MultiMSMSWindow extends JFrame {
     if (createMS1) {
       Scan scan = null;
       Feature best = null;
-      for (PeakListRow r : rows) {
+      for (FeatureListRow r : rows) {
         Feature f = raw == null ? r.getBestPeak() : r.getPeak(raw);
         if (f != null && (best == null || f.getHeight() > best.getHeight())) {
           best = f;
         }
       }
       if (best != null) {
-        scan = best.getDataFile().getScan(best.getRepresentativeScanNumber());
+        scan = best.getRawDataFile().getScan(best.getRepresentativeScanNumber());
         EChartPanel cp = SpectrumChartFactory.createScanChartPanel(scan, showTitle, showLegend);
         if (cp != null)
           msone = new ChartViewWrapper(cp);
@@ -396,7 +396,7 @@ public class MultiMSMSWindow extends JFrame {
 
     // COMMON
     // MS2 of all rows
-    for (PeakListRow row : rows) {
+    for (FeatureListRow row : rows) {
       EChartPanel c = MirrorChartFactory.createMSMSChartPanel(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
 

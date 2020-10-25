@@ -18,7 +18,9 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.image.Image;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
@@ -48,7 +51,6 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.gui.framework.documentfilter.DocumentSizeFilter;
@@ -61,7 +63,6 @@ import io.github.mzmine.util.color.Vision;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
-import io.github.mzmine.util.swing.IconUtil;
 import net.miginfocom.swing.MigLayout;
 
 public class ScanSelectPanel extends JPanel implements ActionListener {
@@ -71,17 +72,17 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   private static final int SIZE = 40;
   // icons
-  static final Icon iconTIC = IconUtil.loadIconFromResources("icons/btnTIC.png", SIZE);
-  static final Icon iconTICFalse = IconUtil.loadIconFromResources("icons/btnTIC_grey.png", SIZE);
-  static final Icon iconSignals = IconUtil.loadIconFromResources("icons/btnSignals.png", SIZE);
-  static final Icon iconSignalsFalse =
-      IconUtil.loadIconFromResources("icons/btnSignals_grey.png", SIZE);
-  static final Icon iconAccept = IconUtil.loadIconFromResources("icons/btnAccept.png", SIZE);
-  static final Icon iconCross = IconUtil.loadIconFromResources("icons/btnCross.png", SIZE);
-  static final Icon iconNext = IconUtil.loadIconFromResources("icons/btnNext.png", SIZE);
-  static final Icon iconPrev = IconUtil.loadIconFromResources("icons/btnPrev.png", SIZE);
-  static final Icon iconNextGrey = IconUtil.loadIconFromResources("icons/btnNext_grey.png", SIZE);
-  static final Icon iconPrevGrey = IconUtil.loadIconFromResources("icons/btnPrev_grey.png", SIZE);
+  static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
+  static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
+  static final Image iconSignals = FxIconUtil.loadImageFromResources("icons/btnSignals.png");
+  static final Image iconSignalsFalse =
+      FxIconUtil.loadImageFromResources("icons/btnSignals_grey.png");
+  static final Image iconAccept = FxIconUtil.loadImageFromResources("icons/btnAccept.png");
+  static final Image iconCross = FxIconUtil.loadImageFromResources("icons/btnCross.png");
+  static final Image iconNext = FxIconUtil.loadImageFromResources("icons/btnNext.png");
+  static final Image iconPrev = FxIconUtil.loadImageFromResources("icons/btnPrev.png");
+  static final Image iconNextGrey = FxIconUtil.loadImageFromResources("icons/btnNext_grey.png");
+  static final Image iconPrevGrey = FxIconUtil.loadImageFromResources("icons/btnPrev_grey.png");
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   private final Color errorColor = Color.decode("#ffb3b3");
@@ -125,7 +126,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   private boolean isFragmentScan = true;
 
   // data either row or scans
-  private PeakListRow row;
+  private FeatureListRow row;
   private Scan[] scansEntry;
   private JLabel lblAdduct;
   private JPanel pnData;
@@ -135,7 +136,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   /**
    * Create the panel.
    */
-  public ScanSelectPanel(PeakListRow row, ScanSortMode sort, double noiseLevel,
+  public ScanSelectPanel(FeatureListRow row, ScanSortMode sort, double noiseLevel,
       int minNumberOfSignals, String massListName) {
     this(sort, noiseLevel, minNumberOfSignals, massListName);
     this.row = row;
@@ -181,8 +182,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     pnMenu.add(pnButtons, BorderLayout.WEST);
     pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
 
-    btnToggleUse = new JToggleButton(iconCross);
-    btnToggleUse.setSelectedIcon(iconAccept);
+    // TODO: uncomment all and change to JavaFX
+    btnToggleUse = new JToggleButton(/*iconCross*/);
+    //btnToggleUse.setSelectedIcon(iconAccept);
     btnToggleUse.setToolTipText(
         "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once.");
     btnToggleUse.setPreferredSize(new Dimension(SIZE, SIZE));
@@ -191,25 +193,25 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     btnToggleUse.setSelected(true);
     btnToggleUse.addItemListener(il -> applySelectionState());
 
-    btnNext = new JButton(iconNext);
-    btnNext.setDisabledIcon(iconNextGrey);
+    btnNext = new JButton(/*iconNext*/);
+    //btnNext.setDisabledIcon(iconNextGrey);
     btnNext.setToolTipText("Next spectrum (in respect to sorting)");
     btnNext.setPreferredSize(new Dimension(SIZE, SIZE));
     btnNext.setMaximumSize(new Dimension(SIZE, SIZE));
     btnNext.addActionListener(a -> nextScan());
     pnButtons.add(btnNext, "cell 0 2,grow");
 
-    btnPrev = new JButton(iconPrev);
-    btnPrev.setDisabledIcon(iconPrevGrey);
+    btnPrev = new JButton(/*iconPrev*/);
+    //btnPrev.setDisabledIcon(iconPrevGrey);
     btnPrev.setToolTipText("Previous spectrum (in respect to sorting)");
     btnPrev.setPreferredSize(new Dimension(SIZE, SIZE));
     btnPrev.setMaximumSize(new Dimension(SIZE, SIZE));
     btnPrev.addActionListener(a -> prevScan());
     pnButtons.add(btnPrev, "cell 0 3,grow");
 
-    btnMaxTic = new JToggleButton(iconTICFalse);
+    btnMaxTic = new JToggleButton(/*iconTICFalse*/);
     btnMaxTic.setToolTipText("Change sorting to max TIC");
-    btnMaxTic.setSelectedIcon(iconTIC);
+    //btnMaxTic.setSelectedIcon(iconTIC);
     btnMaxTic.setPreferredSize(new Dimension(SIZE, SIZE));
     btnMaxTic.setMaximumSize(new Dimension(SIZE, SIZE));
     btnMaxTic.addItemListener(a -> {
@@ -218,9 +220,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     });
     pnButtons.add(btnMaxTic, "cell 0 4,grow");
 
-    btnSignals = new JToggleButton(iconSignalsFalse);
+    btnSignals = new JToggleButton(/*iconSignalsFalse*/);
     btnSignals.setToolTipText("Change sorting to max number of signals");
-    btnSignals.setSelectedIcon(iconSignals);
+    //btnSignals.setSelectedIcon(iconSignals);
     btnSignals.setPreferredSize(new Dimension(SIZE, SIZE));
     btnSignals.setMaximumSize(new Dimension(SIZE, SIZE));
     btnSignals.addItemListener(a -> {
@@ -350,7 +352,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     btnToggleUse.setVisible(state);
   }
 
-  public PeakListRow getRow() {
+  public FeatureListRow getRow() {
     return row;
   }
 

@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
@@ -226,13 +228,13 @@ public class MirrorChartFactory {
 
 
   // ---- From old SpectrumChartFactory
-  public static Scan getMSMSScan(PeakListRow row, RawDataFile raw, boolean alwaysShowBest,
+  public static Scan getMSMSScan(FeatureListRow row, RawDataFile raw, boolean alwaysShowBest,
       boolean useBestForMissingRaw) {
     Scan scan = null;
     if (alwaysShowBest || raw == null) {
       scan = row.getBestFragmentation();
     } else if (raw != null) {
-      FeatureOld peak = row.getPeak(raw);
+      Feature peak = row.getPeak(raw);
       if (peak != null) {
         scan = raw.getScan(peak.getMostIntenseFragmentScanNumber());
       }
@@ -436,7 +438,7 @@ public class MirrorChartFactory {
    * @param alwaysShowBest
    * @return
    */
-  public static EChartPanel createMSMSChartPanel(PeakListRow row, RawDataFile raw,
+  public static EChartPanel createMSMSChartPanel(FeatureListRow row, RawDataFile raw,
       boolean showTitle, boolean showLegend, boolean alwaysShowBest, boolean useBestForMissingRaw) {
     Scan scan = getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
     if (scan == null) {

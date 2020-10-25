@@ -17,6 +17,8 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -30,16 +32,15 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakListRow;
+
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
 
 public class PseudoSpectrum {
 
-  public static PseudoSpectrumDataSet createDataSet(PeakListRow[] group, RawDataFile raw,
+  public static PseudoSpectrumDataSet createDataSet(FeatureListRow[] group, RawDataFile raw,
       boolean sum) {
     // data
     PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, "pseudo");
@@ -48,7 +49,7 @@ public class PseudoSpectrum {
     // raw isotopes in a different color
     XYSeries rawIsoSeries = new XYSeries("Raw isotope pattern", true);
     // for each row
-    for (PeakListRow row : group) {
+    for (FeatureListRow row : group) {
       String annotation = null;
       // sum -> heighest peak
       if (sum)
@@ -70,7 +71,7 @@ public class PseudoSpectrum {
     return series;
   }
 
-  public static EChartPanel createChartPanel(PeakListRow[] group, RawDataFile raw, boolean sum,
+  public static EChartPanel createChartPanel(FeatureListRow[] group, RawDataFile raw, boolean sum,
       String title) {
     PseudoSpectrumDataSet data = createDataSet(group, raw, sum);
     if (data == null)

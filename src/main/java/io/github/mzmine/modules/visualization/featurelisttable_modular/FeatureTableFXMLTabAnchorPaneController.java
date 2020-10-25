@@ -25,15 +25,14 @@ import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
-/*
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
- */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -56,9 +55,8 @@ public class FeatureTableFXMLTabAnchorPaneController {
       .getLogger(FeatureTableFXMLTabAnchorPaneController.class.getName());
 
   private static ParameterSet param;
-  // TODO:
-  //private TICPlot xicPlot;
-  //private SpectraPlot spectrumPlot;
+  private TICPlot xicPlot;
+  private SpectraPlot spectrumPlot;
 
   @FXML
   private BorderPane pnMain;
@@ -102,14 +100,14 @@ public class FeatureTableFXMLTabAnchorPaneController {
         .setSelected(param.getParameter(FeatureTableFXParameters.showSpectrum).getValue());
     miShowXIC.setSelected(param.getParameter(FeatureTableFXParameters.showXIC).getValue());
 
-    //xicPlot = new TICPlot();
-    //xicPlot.setPlotType(TICPlotType.TIC);
-    //xicPlot.setMinHeight(150);
-    //xicPlot.setPrefHeight(150);
+    xicPlot = new TICPlot();
+    xicPlot.setPlotType(TICPlotType.TIC);
+    xicPlot.setMinHeight(150);
+    xicPlot.setPrefHeight(150);
 
-    //spectrumPlot = new SpectraPlot();
-    //spectrumPlot.setMinHeight(150);
-    //spectrumPlot.setPrefHeight(150);
+    spectrumPlot = new SpectraPlot();
+    spectrumPlot.setMinHeight(150);
+    spectrumPlot.setPrefHeight(150);
 
     cmbFilter.setConverter(new StringConverter<>() {
       @Override
@@ -162,7 +160,6 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
   @FXML
   void miShowXICOnAction(ActionEvent event) {
-    /*
     if (event != null) {
       event.consume();
     }
@@ -176,12 +173,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
     }
 
     param.getParameter(FeatureTableFXParameters.showXIC).setValue(miShowXIC.isSelected());
-    */
   }
 
   @FXML
   void miShowSpectrumOnAction(ActionEvent event) {
-    /*
     if (event != null) {
       event.consume();
     }
@@ -195,7 +190,6 @@ public class FeatureTableFXMLTabAnchorPaneController {
     }
 
     param.getParameter(FeatureTableFXParameters.showSpectrum).setValue(miShowSpectrum.isSelected());
-    */
   }
 
 
@@ -205,21 +199,15 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * @param selectedRow
    */
   void updateXICPlot(FeatureListRow selectedRow) {
-    /*
     if (!miShowXIC.isSelected()) {
       return;
     }
     xicPlot.removeAllDataSets();
     // TODO: for now we take the first raw data file, we should take the one from the
     //  selected column, though.
-    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().keySet();
-    List<RawDataFile> raws = new ArrayList<>();
-    raws.addAll(rawDataFileSet);
 
-    ModularFeature feature = selectedRow.getFeatures().get(raws.get(0));
-    TICDataSet dataSet = new TICDataSet(feature);
+    TICDataSet dataSet = new TICDataSet(selectedRow.getFeatures().get(0));
     xicPlot.addTICDataSet(dataSet);
-    */
   }
 
   /**
@@ -228,25 +216,16 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * @param selectedRow
    */
   void updateSpectrumPlot(FeatureListRow selectedRow) {
-    /*
     if (!miShowSpectrum.isSelected()) {
       return;
     }
-
+    spectrumPlot.removeAllDataSets();
     // TODO: for now we take the first raw data file, we should take the one from the
     //  selected column, though.
-    Set<RawDataFile> rawDataFileSet = selectedRow.getFeatures().keySet();
-    List<RawDataFile> raws = new ArrayList<>();
-    raws.addAll(rawDataFileSet);
 
-    ModularFeature feature = selectedRow.getFeatures().get(raws.get(0));
-    ScanDataSet scanDataSet = new ScanDataSet(raws.get(0).getScan((Integer) feature.getValue(
-        BestScanNumberType.class)));
-
+    ScanDataSet scanDataSet = new ScanDataSet(selectedRow.getFeatures().get(0).getRepresentativeScan());
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(scanDataSet, palette.getMainColorAWT(), false);
-     */
   }
 
 

@@ -24,6 +24,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +60,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private int charge;
   private int numOfResults;
-  private PeakListRow peakListRow;
+  private FeatureListRow peakListRow;
   private IonizationType ionType;
   private boolean isotopeFilter = false;
   private ParameterSet isotopeFilterParameters;
@@ -72,7 +73,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
 
     this.peakListRow = peakListRow;
 

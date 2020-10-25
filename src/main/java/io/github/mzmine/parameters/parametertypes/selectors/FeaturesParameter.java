@@ -19,6 +19,9 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.FeatureOld;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,10 +40,10 @@ import io.github.mzmine.parameters.UserParameter;
  * @author akshaj This class represents the parameter Features in the parameter setup dialog of the
  *         Fx3DVisualizer.
  */
-public class FeaturesParameter implements UserParameter<List<FeatureOld>, FeaturesComponent> {
+public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesComponent> {
 
   private String name = "Features";
-  private List<FeatureOld> value;
+  private List<Feature> value;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
@@ -49,12 +52,12 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
   }
 
   @Override
-  public List<FeatureOld> getValue() {
+  public List<Feature> getValue() {
     return value;
   }
 
   @Override
-  public void setValue(List<FeatureOld> newValue) {
+  public void setValue(List<Feature> newValue) {
     this.value = newValue;
   }
 
@@ -69,28 +72,28 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    PeakList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
-    List<FeatureOld> newValues = new ArrayList<>();
+    List<Feature> newValues = new ArrayList<>();
 
     NodeList items = xmlElement.getElementsByTagName("feature");
     for (int i = 0; i < items.getLength(); i++) {
       Node doc = items.item(i);
       if (doc instanceof Element) {
         Element docElement = (Element) doc;
-        for (PeakList peakList : allPeakLists) {
-          PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+        for (FeatureList peakList : allPeakLists) {
+          FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
           RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
           if (peakList.getName()
               .equals(docElement.getElementsByTagName("peaklist_name").item(0).getNodeValue())) {
             int rownum = 0;
-            for (PeakListRow row : rows) {
+            for (FeatureListRow row : rows) {
               if (row.toString().equals(
                   docElement.getElementsByTagName("peaklist_row_id").item(0).getNodeValue())) {
                 for (RawDataFile dataFile : dataFiles) {
                   if (dataFile.getName().equals(
                       docElement.getElementsByTagName("rawdatafile_name").item(0).getNodeValue())) {
-                    FeatureOld feature = peakList.getPeak(rownum, dataFile);
+                    Feature feature = peakList.getPeak(rownum, dataFile);
                     if (feature != null)
                       newValues.add(feature);
                   }
@@ -115,15 +118,15 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
       return;
     Document parentDocument = xmlElement.getOwnerDocument();
 
-    for (FeatureOld item : value) {
+    for (Feature item : value) {
       Element featureElement = parentDocument.createElement("feature");
 
       Element peakListElement = parentDocument.createElement("peaklist_name");
-      if (item.getPeakList() != null) {
-        peakListElement.setNodeValue(item.getPeakList().getName());
+      if (item.getFeatureList() != null) {
+        peakListElement.setNodeValue(item.getFeatureList().getName());
         featureElement.appendChild(peakListElement);
 
-        PeakListRow row = item.getPeakList().getPeakRow(item);
+        FeatureListRow row = item.getFeatureList().getPeakRow(item);
         Element peakListRowElement = parentDocument.createElement("peaklist_row_id");
         if (row != null) {
           peakListRowElement.setNodeValue(row.toString());
@@ -132,8 +135,8 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
       }
 
       Element rawDataFileElement = parentDocument.createElement("rawdatafile_name");
-      if (item.getDataFile() != null) {
-        rawDataFileElement.setNodeValue(item.getDataFile().getName());
+      if (item.getRawDataFile() != null) {
+        rawDataFileElement.setNodeValue(item.getRawDataFile().getName());
       }
       featureElement.appendChild(rawDataFileElement);
 
@@ -159,7 +162,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
   }
 
   @Override
-  public void setValueToComponent(FeaturesComponent component, List<FeatureOld> newValue) {
+  public void setValueToComponent(FeaturesComponent component, List<Feature> newValue) {
     component.setValue(newValue);
   }
 
@@ -169,7 +172,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureOld>, Featur
   @Override
   public FeaturesParameter cloneParameter() {
     FeaturesParameter copy = new FeaturesParameter();
-    copy.value = new ArrayList<FeatureOld>(value);
+    copy.value = new ArrayList<Feature>(value);
     return copy;
   }
 

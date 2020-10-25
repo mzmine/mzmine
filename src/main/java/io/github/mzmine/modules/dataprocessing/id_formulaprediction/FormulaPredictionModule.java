@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -34,7 +34,7 @@ public class FormulaPredictionModule implements MZmineModule {
 
   private static final String MODULE_NAME = "Formula prediction";
 
-  public static void showSingleRowIdentificationDialog(PeakListRow row) {
+  public static void showSingleRowIdentificationDialog(FeatureListRow row) {
 
     ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class);
@@ -44,7 +44,7 @@ public class FormulaPredictionModule implements MZmineModule {
 
     int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
     if (bestScanNum > 0) {
-      RawDataFile dataFile = row.getBestPeak().getDataFile();
+      RawDataFile dataFile = row.getBestPeak().getRawDataFile();
       Scan bestScan = dataFile.getScan(bestScanNum);
       PolarityType scanPolarity = bestScan.getPolarity();
       switch (scanPolarity) {

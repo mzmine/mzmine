@@ -37,11 +37,13 @@ import com.google.common.io.CountingInputStream;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+/*
 import io.github.mzmine.modules.io.projectload.version_2_0.PeakListOpenHandler_2_0;
 import io.github.mzmine.modules.io.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import io.github.mzmine.modules.io.projectload.version_2_3.PeakListOpenHandler_2_3;
 import io.github.mzmine.modules.io.projectload.version_2_3.RawDataFileOpenHandler_2_3;
 import io.github.mzmine.modules.io.projectload.version_2_3.UserParameterOpenHandler_2_3;
+ */
 import io.github.mzmine.modules.io.projectload.version_2_5.PeakListOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.RawDataFileOpenHandler_2_5;
 import io.github.mzmine.modules.io.projectload.version_2_5.UserParameterOpenHandler_2_5;
@@ -323,6 +325,7 @@ public class ProjectOpeningTask extends AbstractTask {
           + projectVersionString + ") and it cannot be opened in MZmine " + mzmineVersionString);
     }
 
+    /* TODO:
     // Check if the project version is 2.0 to 2.2
     if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
       rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
@@ -337,6 +340,7 @@ public class ProjectOpeningTask extends AbstractTask {
       userParameterOpenHandler = new UserParameterOpenHandler_2_3(newProject, dataFilesIDMap);
       return;
     }
+    */
 
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {

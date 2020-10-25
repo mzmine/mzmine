@@ -18,14 +18,14 @@
 
 package io.github.mzmine.util.dialogs;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
@@ -53,7 +53,7 @@ public class FeatureOverviewWindow extends Stage {
   private Feature feature;
   private RawDataFile[] rawFiles;
 
-  public FeatureOverviewWindow(PeakListRow row) {
+  public FeatureOverviewWindow(FeatureListRow row) {
 
     mainPane = new BorderPane();
     mainScene = new Scene(mainPane);
@@ -64,7 +64,7 @@ public class FeatureOverviewWindow extends Stage {
     setScene(mainScene);
 
     this.feature = row.getBestPeak();
-    rawFiles = row.getRawDataFiles();
+    rawFiles = row.getRawDataFiles().toArray(new RawDataFile[0]);
 
     // setBackground(Color.white);
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -110,7 +110,7 @@ public class FeatureOverviewWindow extends Stage {
 
   }
 
-  private SplitPane addTicPlot(PeakListRow row) {
+  private SplitPane addTicPlot(FeatureListRow row) {
     SplitPane pane = new SplitPane();
     pane.setOrientation(Orientation.HORIZONTAL);
     // labels for TIC visualizer
@@ -131,7 +131,7 @@ public class FeatureOverviewWindow extends Stage {
     // labels
     labelsMap.put(feature, feature.toString());
 
-    List<Feature> featureSelection = Arrays.asList(row.getPeaks());
+    List<Feature> featureSelection = row.getFeatures();
 
     TICVisualizerTab window = new TICVisualizerTab(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type
@@ -144,7 +144,7 @@ public class FeatureOverviewWindow extends Stage {
     return pane;
   }
 
-  private FlowPane addFeatureDataSummary(PeakListRow row) {
+  private FlowPane addFeatureDataSummary(FeatureListRow row) {
     var featureDataNode = new FlowPane(Orientation.VERTICAL);
     // featureDataSummary.setBackground(Color.WHITE);
     var featureDataSummary = featureDataNode.getChildren();

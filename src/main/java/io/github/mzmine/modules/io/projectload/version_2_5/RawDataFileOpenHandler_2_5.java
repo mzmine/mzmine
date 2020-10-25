@@ -28,8 +28,9 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
+/*
 import io.github.mzmine.modules.io.projectload.version_2_0.RawDataElementName_2_0;
+*/
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -224,10 +225,12 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
+    /* TODO:
     if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
     {
       mobility = Double.parseDouble(getTextOfElement());
     }
+    */
 
     if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS.getElementName())) {
       dataPointsNumber = Integer.parseInt(getTextOfElement());

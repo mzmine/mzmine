@@ -19,6 +19,8 @@
 package io.github.mzmine.util.scans;
 
 import io.github.mzmine.datamodel.FeatureOld;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -719,7 +721,7 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllFragmentScans(PeakListRow row, @Nullable String massListName,
+  public static List<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
     List<Scan> scans = listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals);
@@ -739,7 +741,7 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllFragmentScans(PeakListRow row, @Nullable String massListName,
+  public static List<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
     Scan[] scans = row.getAllMS2Fragmentations();
     return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
@@ -757,7 +759,7 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllMS1Scans(PeakListRow row, @Nullable String massListName,
+  public static List<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
     List<Scan> scans = listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals);
@@ -777,7 +779,7 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllMS1Scans(PeakListRow row, @Nullable String massListName,
+  public static List<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
     Scan[] scans = getAllMostIntenseMS1Scans(row);
     return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
@@ -789,8 +791,8 @@ public class ScanUtils {
    * @param row
    * @return
    */
-  public static Scan[] getAllMostIntenseMS1Scans(PeakListRow row) {
-    return Arrays.stream(row.getPeaks()).map(FeatureOld::getRepresentativeScan)
+  public static Scan[] getAllMostIntenseMS1Scans(FeatureListRow row) {
+    return row.getFeatures().stream().map(Feature::getRepresentativeScan)
         .filter(Objects::nonNull).toArray(Scan[]::new);
   }
 

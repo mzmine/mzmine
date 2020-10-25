@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -45,7 +47,7 @@ public class ResultWindowController {
     private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
-    private PeakListRow peakListRow;
+    private FeatureListRow peakListRow;
     private Task searchTask;
     private double searchedMass;
 
@@ -99,7 +101,7 @@ public class ResultWindowController {
      * @param searchTask
      * @param searchedMass
      */
-    public void initValues(PeakListRow peakListRow, Task searchTask, double searchedMass){
+    public void initValues(FeatureListRow peakListRow, Task searchTask, double searchedMass){
         this.peakListRow = peakListRow;
         this.searchTask = searchTask;
         this.searchedMass = searchedMass;
@@ -185,7 +187,7 @@ public class ResultWindowController {
 
         Feature peak = peakListRow.getBestPeak();
 
-        RawDataFile dataFile = peak.getDataFile();
+        RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);

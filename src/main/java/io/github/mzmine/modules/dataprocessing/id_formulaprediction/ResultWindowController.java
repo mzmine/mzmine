@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -127,12 +129,12 @@ public class ResultWindowController {
     }
 
 
-    private  PeakListRow peakListRow;
+    private FeatureListRow peakListRow;
     private  Task searchTask;
     private  String title;
     private double searchedMass;
 
-    public void initValues(String title, PeakListRow peakListRow, double searchedMass, int charge,
+    public void initValues(String title, FeatureListRow peakListRow, double searchedMass, int charge,
                         Task searchTask) {
 
         this.title = title;
@@ -221,7 +223,7 @@ public class ResultWindowController {
 
         Feature peak = peakListRow.getBestPeak();
 
-        RawDataFile dataFile = peak.getDataFile();
+        RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
@@ -254,7 +256,7 @@ public class ResultWindowController {
 
         Feature bestPeak = peakListRow.getBestPeak();
 
-        RawDataFile dataFile = bestPeak.getDataFile();
+        RawDataFile dataFile = bestPeak.getRawDataFile();
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
         if (msmsScanNumber < 1)
