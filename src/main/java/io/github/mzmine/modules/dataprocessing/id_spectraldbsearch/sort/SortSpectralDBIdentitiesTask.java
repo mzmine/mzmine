@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import javafx.collections.ObservableList;
 
 public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
@@ -115,8 +116,8 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    */
   public static void sortIdentities(FeatureListRow row, boolean filterMinSimilarity, double minScore) {
     // get all row identities
-    PeakIdentity[] identities = row.getPeakIdentities();
-    if (identities == null || identities.length == 0)
+    ObservableList<PeakIdentity> identities = row.getPeakIdentities();
+    if (identities == null || identities.isEmpty())
       return;
 
     // filter for SpectralDBPeakIdentity and write to map
@@ -134,9 +135,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
       return;
 
     // reversed order: by similarity score
-    match.sort((a, b) -> {
-      return Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore());
-    });
+    match.sort((a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
 
     for (SpectralDBPeakIdentity entry : match) {
       row.addPeakIdentity(entry, false);

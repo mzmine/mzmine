@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.data;
 
-import java.util.List;
 import java.util.stream.Stream;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -57,7 +57,7 @@ public interface FeatureList {
   /**
    * Returns all raw data files participating in the feature list
    */
-  public List<RawDataFile> getRawDataFiles();
+  public ObservableList<RawDataFile> getRawDataFiles();
 
   /**
    * Returns true if this feature list contains given file
@@ -88,7 +88,7 @@ public interface FeatureList {
   /**
    * Returns all peaks for a raw data file
    */
-  public List<Feature> getPeaks(RawDataFile rawDataFile);
+  public ObservableList<Feature> getPeaks(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
@@ -98,7 +98,7 @@ public interface FeatureList {
   /**
    * Returns all feature list rows
    */
-  public List<FeatureListRow> getRows();
+  public ObservableList<FeatureListRow> getRows();
 
   /**
    * Creates a stream of PeakListRows
@@ -133,14 +133,14 @@ public interface FeatureList {
    *
    * @param rtRange Retention time range
    */
-  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
+  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
 
   /**
    * Returns all rows with average m/z within given range
    * 
    * @param mzRange m/z range
    */
-  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
+  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
 
   /**
    * Returns all rows with average m/z and retention time within given range
@@ -148,7 +148,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -157,7 +157,7 @@ public interface FeatureList {
    * @param file Raw data file
    * @param rtRange Retention time range
    */
-  public List<Feature> getPeaksInsideScanRange(RawDataFile file, Range<Float> rtRange);
+  public ObservableList<Feature> getPeaksInsideScanRange(RawDataFile file, Range<Float> rtRange);
 
   /**
    * Returns all peaks in a given m/z range
@@ -165,7 +165,7 @@ public interface FeatureList {
    * @param file Raw data file
    * @param mzRange m/z range
    */
-  public List<Feature> getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public ObservableList<Feature> getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all peaks in a given m/z & retention time ranges
@@ -174,7 +174,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public List<Feature> getPeaksInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
+  public ObservableList<Feature> getPeaksInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -216,7 +216,7 @@ public interface FeatureList {
   /**
    * Returns all tasks (descriptions) applied to this feature list
    */
-  public List<FeatureListAppliedMethod> getAppliedMethods();
+  public ObservableList<FeatureListAppliedMethod> getAppliedMethods();
 
   /**
    * Returns the whole m/z range of the feature list

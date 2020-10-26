@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -127,7 +128,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   // data either row or scans
   private FeatureListRow row;
-  private Scan[] scansEntry;
+  private ObservableList<Scan> scansEntry;
   private JLabel lblAdduct;
   private JPanel pnData;
   private JButton btnPrev;
@@ -146,7 +147,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     setMZandChargeFromScan();
   }
 
-  public ScanSelectPanel(Scan[] scansEntry, ScanSortMode sort, double noiseLevel,
+  public ScanSelectPanel(ObservableList<Scan> scansEntry, ScanSortMode sort, double noiseLevel,
       int minNumberOfSignals, String massListName) {
     this(sort, noiseLevel, minNumberOfSignals, massListName);
     this.scansEntry = scansEntry;
@@ -561,9 +562,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   private int getTotalScans() {
     if (row != null)
-      return row.getAllMS2Fragmentations().length;
+      return row.getAllMS2Fragmentations().size();
     if (scansEntry != null)
-      return scansEntry.length;
+      return scansEntry.size();
     return 0;
   }
 

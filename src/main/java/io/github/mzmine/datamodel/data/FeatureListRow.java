@@ -36,7 +36,7 @@ public interface FeatureListRow {
   /**
    * Return raw data with peaks on this row
    */
-  public List<RawDataFile> getRawDataFiles();
+  public ObservableList<RawDataFile> getRawDataFiles();
 
   /**
    * Returns ID of this row
@@ -143,7 +143,7 @@ public interface FeatureListRow {
    *
    * @return Identity candidates
    */
-  public PeakIdentity[] getPeakIdentities();
+  public ObservableList<PeakIdentity> getPeakIdentities();
 
   /**
    * Returns preferred peak identity among candidates
@@ -199,7 +199,7 @@ public interface FeatureListRow {
    * Returns all fragmentation scans of this row
    */
   @Nonnull
-  public Scan[] getAllMS2Fragmentations();
+  public ObservableList<Scan> getAllMS2Fragmentations();
 
   /**
    * Returns the most intense isotope pattern in this row. If there are no isotope patterns present

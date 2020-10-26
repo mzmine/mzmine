@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import java.text.Format;
 import java.util.Arrays;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
@@ -84,14 +85,14 @@ public class FeatureUtils {
     }
 
     // If no identities at all for both rows, then return true
-    PeakIdentity[] row1Identities = row1.getPeakIdentities();
-    PeakIdentity[] row2Identities = row2.getPeakIdentities();
-    if ((row1Identities.length == 0) && (row2Identities.length == 0))
+    ObservableList<PeakIdentity> row1Identities = row1.getPeakIdentities();
+    ObservableList<PeakIdentity> row2Identities = row2.getPeakIdentities();
+    if ((row1Identities.isEmpty()) && (row2Identities.isEmpty()))
       return true;
 
     // Otherwise compare all against all and require that each identity has
     // a matching identity on the other row
-    if (row1Identities.length != row2Identities.length)
+    if (row1Identities.size() != row2Identities.size())
       return false;
     boolean sameID = false;
     for (PeakIdentity row1Identity : row1Identities) {

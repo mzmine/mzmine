@@ -18,13 +18,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -60,10 +60,10 @@ public class ModularFeatureList implements FeatureList {
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
   // unmodifiable list
-  private final List<RawDataFile> dataFiles;
-  private final ArrayList<FeatureListRow> peakListRows;
+  private final ObservableList<RawDataFile> dataFiles;
+  private ObservableList<FeatureListRow> peakListRows;
   private String name;
-  private List<FeatureListAppliedMethod> descriptionOfAppliedTasks;
+  private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
@@ -78,9 +78,9 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
-    this.dataFiles = Collections.unmodifiableList(dataFiles);
-    peakListRows = new ArrayList<>();
-    descriptionOfAppliedTasks = new ArrayList<>();
+    this.dataFiles = FXCollections.observableList(dataFiles);
+    peakListRows = FXCollections.observableArrayList();
+    descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
 
     // Type columns will be created in the same sequence as they are initialized
@@ -125,7 +125,7 @@ public class ModularFeatureList implements FeatureList {
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(this, row.getID(), feature.getDataFile(), modularFeature);
       addRow(newRow);
-      newRow.setPeakIdentities(row.getPeakIdentities());
+      newRow.setPeakIdentities(FXCollections.observableArrayList(row.getPeakIdentities()));
     }
   }
 
@@ -227,9 +227,10 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Returns all raw data files participating in the alignment
+   * @return
    */
   @Override
-  public List<RawDataFile> getRawDataFiles() {
+  public ObservableList<RawDataFile> getRawDataFiles() {
     return dataFiles;
   }
 
@@ -264,14 +265,14 @@ public class ModularFeatureList implements FeatureList {
    * Returns all peaks for a raw data file
    */
   @Override
-  public List<Feature> getPeaks(RawDataFile raw) {
-    List<Feature> peakSet = new ArrayList<>();
+  public ObservableList<Feature> getPeaks(RawDataFile raw) {
+    ObservableList<Feature> features = FXCollections.observableArrayList();
     for (int row = 0; row < getNumberOfRows(); row++) {
       ModularFeature f = getPeak(row, raw);
       if (f != null)
-        peakSet.add(f);
+        features.add(f);
     }
-    return peakSet;
+    return features;
   }
 
   /**
@@ -283,29 +284,29 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public List<FeatureListRow> getRows() {
+  public ObservableList<FeatureListRow> getRows() {
     return peakListRows;
   }
 
   @Override
-  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
+  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
   }
 
   @Override
-  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
+  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getRowsInsideScanAndMZRange(rtRange, all);
   }
 
   @Override
-  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
         row -> rtRange.contains(row.getRT()) && mzRange.contains(row.getMZ()))
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
   @Override
@@ -315,7 +316,7 @@ public class ModularFeatureList implements FeatureList {
     }
     ModularFeatureListRow modularRow = (ModularFeatureListRow) row;
 
-    List<RawDataFile> myFiles = this.getRawDataFiles();
+    ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
       if (!myFiles.contains(testFile))
         throw (new IllegalArgumentException(
@@ -340,7 +341,7 @@ public class ModularFeatureList implements FeatureList {
    * @return
    */
   @Override
-  public List<Feature> getPeaksInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
+  public ObservableList<Feature> getPeaksInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getPeaksInsideScanAndMZRange(raw, rtRange, all);
   }
@@ -349,7 +350,7 @@ public class ModularFeatureList implements FeatureList {
    * @see io.github.mzmine.datamodel.data.FeatureList#getPeaksInsideMZRange
    */
   @Override
-  public List<Feature> getPeaksInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
+  public ObservableList<Feature> getPeaksInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getPeaksInsideScanAndMZRange(raw, all, mzRange);
   }
@@ -358,14 +359,14 @@ public class ModularFeatureList implements FeatureList {
    * @see io.github.mzmine.datamodel.data.FeatureList#getPeaksInsideScanAndMZRange
    */
   @Override
-  public List<Feature> getPeaksInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
+  public ObservableList<Feature> getPeaksInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
         .filter(
             f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
   /**
@@ -476,7 +477,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public List<FeatureListAppliedMethod> getAppliedMethods() {
+  public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return descriptionOfAppliedTasks;
   }
 

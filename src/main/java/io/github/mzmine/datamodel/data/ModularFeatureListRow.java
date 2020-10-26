@@ -83,7 +83,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   // buffert col charts and nodes
   private Map<String, Node> buffertColCharts = new HashMap<>();
 
-  private List<PeakIdentity> identities;
+  private ObservableList<PeakIdentity> identities = FXCollections.observableArrayList();
   private PeakIdentity preferredIdentity;
   private String comment;
   private double maxDataPointIntensity;
@@ -295,7 +295,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public List<RawDataFile> getRawDataFiles() {
+  public ObservableList<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
@@ -369,12 +369,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public PeakIdentity[] getPeakIdentities() {
-    return identities.toArray(new PeakIdentity[0]);
+  public ObservableList<PeakIdentity> getPeakIdentities() {
+    return identities;
   }
 
-  public void setPeakIdentities(PeakIdentity[] identities) {
-    this.identities = Arrays.asList(identities);
+  public void setPeakIdentities(ObservableList<PeakIdentity> identities) {
+    this.identities = identities;
   }
 
   @Override
@@ -461,8 +461,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Nonnull
   @Override
-  public Scan[] getAllMS2Fragmentations() {
-    ArrayList<Scan> allMS2ScansList = new ArrayList<>();
+  public ObservableList<Scan> getAllMS2Fragmentations() {
+    ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();
     for (Feature feature : getFeatures()) {
       RawDataFile rawData = feature.getRawDataFile();
       ObservableList<Integer> scanNumbers = feature.getAllMS2FragmentScanNumbers();
@@ -474,7 +474,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       }
     }
 
-    return allMS2ScansList.toArray(new Scan[0]);
+    return allMS2ScansList;
   }
 
   @Nullable

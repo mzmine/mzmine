@@ -18,7 +18,6 @@
 
 package io.github.mzmine.util.scans;
 
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.ByteArrayInputStream;
@@ -38,7 +37,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.base.Strings;
@@ -741,14 +743,14 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
+  public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
-    Scan[] scans = row.getAllMS2Fragmentations();
+    ObservableList<Scan> scans = row.getAllMS2Fragmentations();
     return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
   }
 
   /**
-   * Sorted list of all MS1 {@link FeatureOld#getRepresentativeScan()} of all features. scans with n
+   * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
    * signals >= noiseLevel in the specified or first massList, if none was specified
    * 
    * @param row all representative MS1 scans of all features in this row
@@ -769,7 +771,7 @@ public class ScanUtils {
   }
 
   /**
-   * List of all MS1 {@link FeatureOld#getRepresentativeScan()} of all features. scans with n signals
+   * List of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n signals
    * >= noiseLevel in the specified or first massList, if none was specified
    * 
    * @param row
@@ -779,21 +781,21 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
+  public static ObservableList<Scan> listAllMS1Scans(FeatureListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
-    Scan[] scans = getAllMostIntenseMS1Scans(row);
+    ObservableList<Scan> scans = getAllMostIntenseMS1Scans(row);
     return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
   }
 
   /**
-   * Array of all {@link FeatureOld#getRepresentativeScan()} of all features
+   * Array of all {@link Feature#getRepresentativeScan()} of all features
    * 
    * @param row
    * @return
    */
-  public static Scan[] getAllMostIntenseMS1Scans(FeatureListRow row) {
-    return row.getFeatures().stream().map(Feature::getRepresentativeScan)
-        .filter(Objects::nonNull).toArray(Scan[]::new);
+  public static ObservableList<Scan> getAllMostIntenseMS1Scans(FeatureListRow row) {
+    return row.getFeatures().stream().map(Feature::getRepresentativeScan).filter(Objects::nonNull)
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
   /**
@@ -806,10 +808,10 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllScans(Scan[] scans, @Nullable String massListName,
+  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
       throws MissingMassListException {
-    List<Scan> filtered = listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    ObservableList<Scan> filtered = listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
     filtered.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
     return filtered;
@@ -825,9 +827,9 @@ public class ScanUtils {
    * @return
    */
   @Nonnull
-  public static List<Scan> listAllScans(Scan[] scans, @Nullable String massListName,
+  public static ObservableList<Scan> listAllScans(ObservableList<Scan> scans, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
-    List<Scan> filtered = new ArrayList<>();
+    ObservableList<Scan> filtered = FXCollections.observableArrayList();
     for (Scan scan : scans) {
       // find mass list: with name or first
       final MassList massList = getMassListOrFirst(scan, massListName);

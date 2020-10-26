@@ -33,6 +33,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javafx.collections.ObservableList;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -191,10 +192,10 @@ public class PeakListSaveHandler {
 
     // <PEAK_IDENTITY>
     PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
-    PeakIdentity[] identities = row.getPeakIdentities();
+    ObservableList<PeakIdentity> identities = row.getPeakIdentities();
     AttributesImpl atts = new AttributesImpl();
 
-    for (int i = 0; i < identities.length; i++) {
+    for (int i = 0; i < identities.size(); i++) {
 
       if (canceled)
         return;
@@ -202,9 +203,9 @@ public class PeakListSaveHandler {
       atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA",
           String.valueOf(i));
       atts.addAttribute("", "", PeakListElementName.PREFERRED.getElementName(), "CDATA",
-          String.valueOf(identities[i] == preferredIdentity));
+          String.valueOf(identities.get(i) == preferredIdentity));
       hd.startElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName(), atts);
-      fillIdentityElement(identities[i], hd);
+      fillIdentityElement(identities.get(i), hd);
       hd.endElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName());
     }
 

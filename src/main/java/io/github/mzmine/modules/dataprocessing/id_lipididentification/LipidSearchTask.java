@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.collections.ObservableList;
 
 /**
  * Task to search and annotate lipids in feature list
@@ -236,7 +237,7 @@ public class LipidSearchTask extends AbstractTask {
 
     // Check if selected feature has MSMS spectra
     if (row.getAllMS2Fragmentations() != null) {
-      Scan[] msmsScans = row.getAllMS2Fragmentations();
+      ObservableList<Scan> msmsScans = row.getAllMS2Fragmentations();
       for (Scan msmsScan : msmsScans) {
 
         DataPoint[] massList = null;
