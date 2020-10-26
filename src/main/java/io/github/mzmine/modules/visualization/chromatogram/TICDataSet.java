@@ -139,12 +139,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    */
   public TICDataSet(Feature feature) {
 
-    // TODO: remove cast
-    ModularFeature modularFeature = (ModularFeature) feature;
-    dataFile = (RawDataFile) modularFeature.getValue(RawFileType.class);
-    mzRange = (Range<Double>) modularFeature.getValue(MZRangeType.class);
-    Range<Double> rtRange = (Range<Double>) modularFeature.getValue(RTRangeType.class);
-    List<Integer> scanNums = (List<Integer>) modularFeature.getValue(ScanNumbersType.class);
+    dataFile = feature.getRawDataFile();
+    mzRange =  feature.getRawDataPointsMZRange();
+    Range<Float> rtRange = feature.getRawDataPointsRTRange();
+    List<Integer> scanNums = feature.getScanNumbers();
 
     scans = new Scan[scanNums.size()];
 

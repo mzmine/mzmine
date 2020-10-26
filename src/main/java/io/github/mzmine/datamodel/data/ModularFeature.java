@@ -103,7 +103,6 @@ public class ModularFeature implements Feature, ModularDataModel {
 
     this(new ModularFeatureList("", dataFile));
 
-    System.out.println("CONSTRUCTOR 1");
     assert dataFile != null;
     assert scanNumbers != null;
     assert dataPointsPerScan != null;
@@ -166,7 +165,6 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   public ModularFeature(@Nonnull ModularFeatureList flist, FeatureOld p) {
     this(flist);
-    System.out.println("CONSTRUCTOR 2");
     fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
     representiveScanNumber = p.getRepresentativeScanNumber();
     // add values to feature
@@ -224,7 +222,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   // TODO: calculations to p.get*()
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
     this(flist);
-    System.out.println("CONSTRUCTOR 3");
     // add values to feature
     int[] scans = (p.getScanNumbers()).stream().mapToInt(i -> i).toArray();
     set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
@@ -348,17 +345,17 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public double getFWHM() {
-    return 0;
+    return get(FwhmType.class).getValue();
   }
 
   @Override
   public double getTailingFactor() {
-    return 0;
+    return get(TailingFactorType.class).getValue();
   }
 
   @Override
   public double getAsymmetryFactor() {
-    return 0;
+    return get(AsymmetryFactorType.class).getValue();
   }
 
   // TODO: apply the same approach to all Feature "variables"
@@ -370,17 +367,17 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public void setFWHM(double fwhm) {
-
+    set(FwhmType.class, fwhm);
   }
 
   @Override
   public void setTailingFactor(double tf) {
-
+    set(TailingFactorType.class, tf);
   }
 
   @Override
   public void setAsymmetryFactor(double af) {
-
+    set(AsymmetryFactorType.class, af);
   }
 
   @Override

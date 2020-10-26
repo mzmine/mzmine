@@ -128,8 +128,6 @@ public class FeatureUtils {
 
   }
 
-  // TODO PeakListRows to FeatureListRows
-  // S
   /**
    * Returns true if feature list row contains a compound identity matching to id
    *
@@ -160,21 +158,18 @@ public class FeatureUtils {
     }
     target.setComment(targetComment);
 
-    // TODO:
     // Copy all peak identities, if these are not already present
-    /*
     for (PeakIdentity identity : source.getPeakIdentities()) {
       if (!containsIdentity(target, identity))
         target.addPeakIdentity(identity, false);
     }
-    */
+
 
     // Set the preferred identity
     target.setPreferredPeakIdentity(source.getPreferredPeakIdentity());
 
   }
 
-  // TODO FeatureOld to Feature
   /**
    * Copies properties such as isotope pattern and charge from the source peak to the target peak
    */
@@ -191,7 +186,6 @@ public class FeatureUtils {
 
   }
 
-  // TODO FeatureOld to Feature
   /**
    * Finds a combined m/z range that covers all given features
    */
@@ -260,7 +254,7 @@ public class FeatureUtils {
     // REMOVE
   }
 
-  // TODO FeatureOld to Feature
+
   /**
    *
    * @param row The row.
@@ -300,7 +294,6 @@ public class FeatureUtils {
     return Range.closed(avgL, avgU);
   }
 
-  // TODO PeakListRow to FeatureListRow
   /**
    * Creates a copy of a PeakListRow.
    *
@@ -323,7 +316,6 @@ public class FeatureUtils {
     return newRow;
   }
 
-  // TODO PeakListRow to FeatureListRow
   /**
    * Creates a copy of an array of PeakListRows.
    *
@@ -340,7 +332,6 @@ public class FeatureUtils {
     return newRows;
   }
 
-  // TODO PeakListRow to FeatureListRow
   /**
    * Convenience method to sort an array of PeakListRows by ascending m/z
    *
