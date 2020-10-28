@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.main.MZmineCore;
@@ -84,19 +83,19 @@ public abstract class MZmineTab extends Tab {
   public abstract Collection<? extends RawDataFile> getRawDataFiles();
 
   @Nonnull
-  public abstract Collection<? extends ModularFeatureList> getFeatureLists();
+  public abstract Collection<? extends FeatureList> getFeatureLists();
 
   @Nonnull
-  public abstract Collection<? extends ModularFeatureList> getAlignedFeatureLists();
+  public abstract Collection<? extends FeatureList> getAlignedFeatureLists();
 
   public abstract void onRawDataFileSelectionChanged(
       Collection<? extends RawDataFile> rawDataFiles);
 
   public abstract void onFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featureLists);
+      Collection<? extends FeatureList> featureLists);
 
   public abstract void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists);
+      Collection<? extends FeatureList> featurelists);
 
   public boolean isUpdateOnSelection() {
     return cbUpdateOnSelection.isSelected();
