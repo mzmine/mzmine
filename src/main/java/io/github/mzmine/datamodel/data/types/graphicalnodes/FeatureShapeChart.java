@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel.data.types.graphicalnodes;
 
 import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.util.color.ColorsFX;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,12 +55,11 @@ public class FeatureShapeChart extends StackPane {
 
         // set series color according to the rawDataFile color
         Node line = data.getNode().lookup(".chart-series-line");
-        Color color = raw.getColor();
-        String rgb = String.format("%d, %d, %d",
-            (int) (color.getRed() * 255),
-            (int) (color.getGreen() * 255),
-            (int) (color.getBlue() * 255));
-        line.setStyle("-fx-stroke: rgba(" + rgb + ", 1.0);");
+        Color fileColor = raw.getColor();
+        if(fileColor == null) {
+          fileColor = Color.DARKORANGE;
+        }
+        line.setStyle("-fx-stroke: " + ColorsFX.toHexString(fileColor) + ";");
 
         if (progress != null)
           progress.set((double) fi / size);

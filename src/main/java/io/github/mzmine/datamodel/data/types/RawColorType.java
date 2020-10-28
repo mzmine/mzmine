@@ -53,7 +53,7 @@ public class RawColorType extends DataType<ObjectProperty<Color>>
       ObjectProperty<Color> value, RawDataFile raw) {
 
     Pane pane = new Pane();
-    pane.setStyle("-fx-background-color: #"
+    pane.setStyle("-fx-background-color: "
         + ColorsFX.toHexString(value.getValue() == null ? Color.BLACK : value.getValue()));
     return pane;
   }

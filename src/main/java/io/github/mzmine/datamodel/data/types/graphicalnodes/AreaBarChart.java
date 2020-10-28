@@ -1,6 +1,12 @@
 package io.github.mzmine.datamodel.data.types.graphicalnodes;
 
+import io.github.mzmine.util.color.ColorsFX;
 import java.util.Map.Entry;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.paint.Color;
 import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -22,8 +28,19 @@ public class AreaBarChart extends StackPane {
     int size = row.getFilesFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
-      data.getData().add(
-          new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue()));
+      // set bar color according to the raw data file
+      Data newData = new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue());
+      newData.nodeProperty().addListener((ChangeListener<Node>) (ov, oldNode, newNode) -> {
+        if (newNode != null) {
+          Node node = newData.getNode();
+          Color fileColor = entry.getKey().getColor();
+          if (fileColor == null) {
+            fileColor = Color.DARKORANGE;
+          }
+          node.setStyle("-fx-bar-fill: " + ColorsFX.toHexString(fileColor) + ";");
+        }
+      });
+      data.getData().add(newData);
       i++;
       if (progress != null)
         progress.addAndGet(1.0 / size);
