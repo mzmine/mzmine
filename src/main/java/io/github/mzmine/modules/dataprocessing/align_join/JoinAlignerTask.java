@@ -271,8 +271,7 @@ public class JoinAlignerTask extends AbstractTask {
 
           RowVsRowScore score =
               new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
-                  // TODO: generic range utils(double and float)
-                  RangeUtils.rangeLength(Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.lowerEndpoint().doubleValue())) / 2.0, rtWeight);
+                  RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
           scoreSet.add(score);
         }
         processedRows++;

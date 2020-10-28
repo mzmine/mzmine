@@ -208,7 +208,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_2_5.SCAN_MZ_RANGE.getElementName())) {
       final String text = getTextOfElement();
-      scanMZRange = RangeUtils.parseRange(text);
+      scanMZRange = RangeUtils.parseDoubleRange(text);
     }
 
     if (qName.equals(RawDataElementName_2_5.PRECURSOR_CHARGE.getElementName())) {
