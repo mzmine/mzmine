@@ -28,8 +28,8 @@ public class FeatureShapeChart extends StackPane {
       final NumberAxis yAxis = new NumberAxis();
       final LineChart<Number, Number> bc = new LineChart<>(xAxis, yAxis);
 
-      DataPoint max = null;
-      double maxRT = 0;
+      //DataPoint max = null;
+      double minRT = Double.MAX_VALUE, maxRT = 0;
       int size = row.getFilesFeatures().size();
       int fi = 0;
       for (Feature f : row.getFeatures()) {
@@ -43,9 +43,16 @@ public class FeatureShapeChart extends StackPane {
           double retentionTime = raw.getScan(scans.get(i)).getRetentionTime();
           double intensity = dp == null ? 0 : dp.getIntensity();
           data.getData().add(new XYChart.Data<>(retentionTime, intensity));
+          /*
           if (dp != null && (max == null || max.getIntensity() < dp.getIntensity())) {
             max = dp;
+          }
+           */
+          if(retentionTime > maxRT) {
             maxRT = retentionTime;
+          }
+          if(retentionTime < minRT) {
+            minRT = retentionTime;
           }
           if (progress != null)
             progress.addAndGet(1.0 / size / scans.size());
@@ -74,8 +81,8 @@ public class FeatureShapeChart extends StackPane {
 
       // do not add data to chart
       xAxis.setAutoRanging(false);
-      xAxis.setUpperBound(maxRT + 1.5d);
-      xAxis.setLowerBound(maxRT - 1.5d);
+      xAxis.setUpperBound(maxRT);
+      xAxis.setLowerBound(minRT == Double.MAX_VALUE ? 0 : minRT);
 
       bc.setOnScroll(new EventHandler<>() {
         @Override
