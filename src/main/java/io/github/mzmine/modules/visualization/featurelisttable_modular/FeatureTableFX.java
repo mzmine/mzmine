@@ -23,23 +23,26 @@ import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.fx.ColumnID;
 import io.github.mzmine.datamodel.data.types.fx.ColumnType;
-import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.data.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Random;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
@@ -50,6 +53,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javax.annotation.Nullable;
 
 /**
@@ -200,51 +205,83 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
    * @param dataType
    */
   public void addColumn(DataType dataType) {
-    // value binding
-    TreeTableColumn<FeatureListRow, ? extends DataType> col = dataType.createColumn(null);
-    // add to table
-    if (col != null) {
-      // REMOVE(tmp solution)
-      if(dataType instanceof GraphicalColumType) {
-        col.setMinWidth(200);
+    // Is feature type?
+    if (dataType.getClass().equals(FeaturesType.class)) {
+      addFeaturesColumns();
+    } else {
+      TreeTableColumn<FeatureListRow, ? extends DataType> col = dataType.createColumn(null);
+      if (col == null) {
+        return;
       }
-      // REMOVE(tmp solution)
-      // is feature type?
-      if (dataType.getClass().equals(FeaturesType.class)) {
-        //col.setStyle(".tree-table-view .column-header-background {-fx-max-height: 0; -fx-pref-height: 0;}");
-        //col.setStyle(".tree-table-view .column-header-backgroundvisibility: hidden;");
-        // add feature columns for each raw file
-        for (RawDataFile raw : flist.getRawDataFiles()) {
-          // create column per name
-          TreeTableColumn<FeatureListRow, String> sampleCol =
-              new TreeTableColumn<>();
 
-          // add label
-          Label headerLabel = new Label(raw.getName());
-          headerLabel.setTextFill(raw.getColor());
-          headerLabel.setGraphic(new ImageView("icons/fileicon.png"));
-          sampleCol.setGraphic(headerLabel);
+      if(dataType instanceof ExpandableType) {
+        setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
+      }
 
-          // add sub columns of feature
-          for (DataType ftype : ((ModularFeatureList) flist).getFeatureTypes().values()) {
-            TreeTableColumn<FeatureListRow, ?> subCol = ftype.createColumn(raw);
-            if (subCol != null) {
-              sampleCol.getColumns().add(subCol);
-              columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, raw), subCol);
-              featureTypesParameter.isDataTypeVisible(ftype);
-              applyColumnVisibility(ftype);
-            }
-          }
-          // add all
-          this.getColumns().add(sampleCol);
-        }
-      } else {
-        this.getColumns().add(col);
-        columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
-        rowTypesParameter.isDataTypeVisible(dataType);
+      // Add column
+      this.getColumns().add(col);
+      columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
+      if(!(dataType instanceof ExpandableType)) {
+        applyColumnVisibility(dataType, ColumnType.ROW_TYPE);
       }
     }
-    applyColumnVisibility(dataType);
+  }
+
+  private void setupExpandableColumn(DataType<?> dataType, TreeTableColumn<FeatureListRow, ?> col,
+      ColumnType colType, RawDataFile dataFile) {
+    // Initialize buddy(expanded/hidden for hidden/expanded respectively) column and it's data type
+    TreeTableColumn<FeatureListRow, ?> buddyCol = null;
+    DataType<?> buddyDataType = null;
+    // Find column's buddy
+    for (Entry<ColumnID, TreeTableColumn> entry : columnMap.entrySet()) {
+      if (Objects.equals(entry.getKey().getDataType().getClass(),
+          ((ExpandableType) dataType).getBuddyTypeClass())
+          && Objects.equals(entry.getKey().getType(), colType)
+          && Objects.equals(entry.getKey().getRaw(), dataFile)) {
+        buddyCol = entry.getValue();
+        buddyDataType = entry.getKey().getDataType();
+      }
+    }
+
+    // If buddyCol == null, then only one of the two buddy columns was initialized(so, do nothing)
+    if (buddyCol == null) {
+      return;
+    }
+
+    // Set expanding headers
+    col.setGraphic(createExpandableHeader(dataType, col, buddyCol));
+    buddyCol.setGraphic(createExpandableHeader(buddyDataType, buddyCol, col));
+
+    // Set columns visibility state
+    if (((ExpandableType) dataType).isExpandedType()) {
+      col.setVisible(false);
+    } else {
+      buddyCol.setVisible(false);
+    }
+  }
+
+  Node createExpandableHeader(DataType<?> dataType, TreeTableColumn<FeatureListRow, ?> col, TreeTableColumn<FeatureListRow, ?> buddyCol) {
+    // Create labels to process mouse click event(text for sorting, button for expanding)
+    Label headerText = new Label(dataType.getHeaderString());
+
+    Label headerButton = new Label(" " + ((ExpandableType) dataType).getSymbol() + " ");
+    headerButton.setTextFill(Color.rgb(80, 80, 80));
+
+    HBox headerLabel = new HBox(headerButton, headerText);
+    headerLabel.setAlignment(Pos.CENTER);
+
+    // Define mouse click behaviour
+    headerButton.setOnMousePressed(event -> {
+      boolean visible = col.isVisible();
+      col.setVisible(!visible);
+      buddyCol.setVisible(visible);
+    });
+
+    // Add labels to the column headers
+    col.setGraphic(headerLabel);
+    col.setText("");
+
+    return headerLabel;
   }
 
 
@@ -323,23 +360,29 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
       return;
     }
 
-    // update visibility parameters
+    // Update visibility parameters
     rowTypesParameter.setDataTypesAndVisibility(rowVisibilityMap);
     featureTypesParameter.setDataTypesAndVisibility(featureVisibilityMap);
 
-    // apply visibility parameters to the table
+    // Apply visibility parameters to the table
     for (DataType<?> dataType : ((ModularFeatureList) flist).getRowTypes().values()) {
-      TreeTableColumn<?, ?> col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+      TreeTableColumn<?, ?> col =
+          columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
       if (col != null) {
-        col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
+        if(!(dataType instanceof ExpandableType && ((ExpandableType) dataType).isExpandedType())) {
+          col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
+        }
       }
     }
 
     for (RawDataFile raw : flist.getRawDataFiles()) {
       for (DataType<?> dataType : ((ModularFeatureList) flist).getFeatureTypes().values()) {
-        TreeTableColumn<?, ?> col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
+        TreeTableColumn<?, ?> col =
+            columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
         if (col != null) {
-          col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
+          if(!(dataType instanceof ExpandableType && ((ExpandableType) dataType).isExpandedType())) {
+            col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
+          }
         }
       }
     }
@@ -351,23 +394,65 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
    *
    * @param dataType The data type
    */
-  private void applyColumnVisibility(DataType dataType) {
+  private void applyColumnVisibility(DataType<?> dataType, ColumnType colType) {
     if (flist == null) {
       return;
     }
 
-    if (((ModularFeatureList) flist).getRowTypes().containsValue(dataType)) {
-      TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.ROW_TYPE, null));
+    if (colType == ColumnType.ROW_TYPE) {
+      if (!((ModularFeatureList) flist).getRowTypes().containsValue(dataType)) {
+        return;
+      }
+
+      // Set visibility of the data type column
+      TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, null));
       if (col != null) {
         col.setVisible(rowTypesParameter.isDataTypeVisible(dataType));
       }
-    } else if (((ModularFeatureList) flist).getFeatureTypes().containsValue(dataType)) {
+    } else if (colType == ColumnType.FEATURE_TYPE) {
+      if (!((ModularFeatureList) flist).getFeatureTypes().containsValue(dataType)) {
+        return;
+      }
+
+      // Set visibility of the data type column of every raw data file
       for(RawDataFile raw : flist.getRawDataFiles()) {
-        TreeTableColumn col = columnMap.get(new ColumnID(dataType, ColumnType.FEATURE_TYPE, raw));
+        TreeTableColumn col = columnMap.get(new ColumnID(dataType, colType, raw));
         if (col != null) {
           col.setVisible(featureTypesParameter.isDataTypeVisible(dataType));
         }
       }
+    }
+  }
+
+  private void addFeaturesColumns() {
+    // Add feature columns for each raw file
+    for (RawDataFile dataFile : flist.getRawDataFiles()) {
+      TreeTableColumn<FeatureListRow, String> sampleCol =
+          new TreeTableColumn<>();
+
+      // Add raw data file label
+      Label headerLabel = new Label(dataFile.getName());
+      headerLabel.setTextFill(dataFile.getColor());
+      headerLabel.setGraphic(new ImageView("icons/fileicon.png"));
+      sampleCol.setGraphic(headerLabel);
+
+      // Add sub columns of feature
+      for (DataType ftype : ((ModularFeatureList) flist).getFeatureTypes().values()) {
+        TreeTableColumn<FeatureListRow, ?> subCol = ftype.createColumn(dataFile);
+        if (subCol != null) {
+          if(ftype instanceof ExpandableType) {
+            setupExpandableColumn(ftype, subCol, ColumnType.FEATURE_TYPE, dataFile);
+          }
+          sampleCol.getColumns().add(subCol);
+          columnMap.put(new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile), subCol);
+          if(!(ftype instanceof ExpandableType)) {
+            applyColumnVisibility(ftype, ColumnType.FEATURE_TYPE);
+          }
+        }
+      }
+      // Add sample column
+      // NOTE: sample column is not added to the columnMap
+      this.getColumns().add(sampleCol);
     }
   }
 }

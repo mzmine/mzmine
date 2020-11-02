@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -71,5 +72,10 @@ public class FeatureShapeType extends DataType<MapProperty<RawDataFile, ModularF
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;
+  }
+
+  @Override
+  public double getColumnWidth() {
+    return 205;
   }
 }

@@ -26,12 +26,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.types.AreaBarType;
 import io.github.mzmine.datamodel.data.types.AreaShareType;
 import io.github.mzmine.datamodel.data.types.FeatureShapeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZExpandingType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -182,7 +181,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   public Range<Double> getMZRange() {
-    return get(MZExpandingType.class).getValue().getValue();
+    return get(MZRangeType.class).getValue();
   }
 
   public float getRT() {

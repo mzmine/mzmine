@@ -25,13 +25,11 @@ import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.data.types.modifiers.ExpandingType;
 import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
-import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -99,27 +97,6 @@ public abstract class DataType<T extends Property<?>> {
 
     if (this instanceof SubColumnsFactory) {
       col.setSortable(false);
-      if(this instanceof ExpandingType) {
-        // setup header label
-        Label headerLabel = new Label(getHeaderString());
-        // TODO: solve collision with sort
-        headerLabel.setOnMouseClicked(event -> {
-          // add subcolumns according to the current state
-          ((ExpandingType<?, ?>) this).invertState();
-          double width = col.getWidth();
-          col.getColumns().setAll(((SubColumnsFactory)this).createSubColumns(null));
-          col.setMaxWidth(width);
-          col.setMinWidth(width);
-          headerLabel.setText(getHeaderString());
-        });
-
-        // setup main column
-        col.setGraphic(headerLabel);
-        col.setText("");
-        col.setSortable(false);
-        col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
-        col.setCellFactory(new DataTypeCellFactory(raw, this));
-      }
       // add sub columns
       List<TreeTableColumn<ModularFeatureListRow, ?>> children =
           ((SubColumnsFactory) this).createSubColumns(raw);

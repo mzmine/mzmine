@@ -18,7 +18,6 @@
 
 package io.github.mzmine.datamodel.data.types.fx;
 
-import io.github.mzmine.datamodel.data.types.modifiers.ExpandingType;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -79,11 +78,7 @@ public class DataTypeCellFactory implements
           setText(null);
         } else {
           // sub columns provide values
-          if ((type instanceof ExpandingType && ((ExpandingType<?, ?>) type).isHidden())){
-            setTooltip(new Tooltip(type.getFormattedString(item)));
-            setText(type.getFormattedString(item));
-            setGraphic(null);
-          } else if (type instanceof SubColumnsFactory) {
+          if (type instanceof SubColumnsFactory) {
             // get sub column value
             SubColumnsFactory sub = (SubColumnsFactory) type;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
@@ -95,6 +90,7 @@ public class DataTypeCellFactory implements
                 new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
           } else if (type instanceof GraphicalColumType) {
             Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
+            getTableColumn().setMinWidth(((GraphicalColumType<?>) type).getColumnWidth());
             setGraphic(node);
             setText(null);
             setTooltip(new Tooltip(type.getFormattedString(item)));

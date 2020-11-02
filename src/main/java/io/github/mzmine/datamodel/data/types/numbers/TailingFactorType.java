@@ -18,10 +18,29 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-public class TailingFactorType extends RTType {
+import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatType;
+import io.github.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+public class TailingFactorType extends FloatType {
+
+  public TailingFactorType() {
+    super(new DecimalFormat("0.00"));
+  }
 
   @Override
   public String getHeaderString() {
     return "Tailing";
+  }
+
+  @Override
+  public NumberFormat getFormatter() {
+    try {
+      return MZmineCore.getConfiguration().getRTFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
   }
 }

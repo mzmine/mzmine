@@ -63,4 +63,9 @@ public class RawColorType extends DataType<ObjectProperty<Color>>
     return new SimpleObjectProperty<Color>();
   }
 
+  @Override
+  public double getColumnWidth() {
+    return 25;
+  }
+
 }

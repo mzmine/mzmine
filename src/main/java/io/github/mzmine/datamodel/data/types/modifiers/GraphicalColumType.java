@@ -41,4 +41,11 @@ public interface GraphicalColumType<T> {
    */
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, T> cell,
       TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw);
+
+  /**
+   * Returns width of the column.
+   *
+   * @return width of the column
+   */
+  public double getColumnWidth();
 }

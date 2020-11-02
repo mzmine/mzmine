@@ -18,13 +18,15 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.ExpandableType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.main.MZmineCore;
 
-public class MZRangeType extends DoubleRangeType {
+public class MZRangeType extends DoubleRangeType implements ExpandableType {
 
   public MZRangeType() {
     super(new DecimalFormat("0.0000"));
@@ -46,4 +48,15 @@ public class MZRangeType extends DoubleRangeType {
     return "m/z Range";
   }
 
+  @Nonnull
+  @Override
+  public Class<? extends DataType<?>> getExpandedTypeClass() {
+    return getClass();
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends DataType<?>> getHiddenTypeClass() {
+    return MZType.class;
+  }
 }

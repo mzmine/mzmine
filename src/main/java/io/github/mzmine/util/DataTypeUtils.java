@@ -53,8 +53,8 @@ public class DataTypeUtils {
       new MZType(),*/ /*new HeightType(), new AreaType()*//*, new RTRangeType(), new MZRangeType()*/);
   public static final @Nonnull List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new ScanNumbersType(), new RawFileType(), new DetectionType(), new MZType(),
-          new RTType(), new HeightType(), new AreaType(), new BestScanNumberType(),
-          new DataPointsType(), new RTRangeType(), new MZRangeType(), new IntensityRangeType());
+          new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
+          new BestScanNumberType(), new DataPointsType(), new IntensityRangeType());
 
 
   /**

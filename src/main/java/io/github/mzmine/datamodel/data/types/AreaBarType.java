@@ -72,4 +72,9 @@ public class AreaBarType extends DataType<MapProperty<RawDataFile, ModularFeatur
 
     return pane;
   }
+
+  @Override
+  public double getColumnWidth() {
+    return 205;
+  }
 }

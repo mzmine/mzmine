@@ -73,4 +73,9 @@ public class AreaShareType extends DataType<MapProperty<RawDataFile, ModularFeat
 
     return pane;
   }
+
+  @Override
+  public double getColumnWidth() {
+    return 150;
+  }
 }

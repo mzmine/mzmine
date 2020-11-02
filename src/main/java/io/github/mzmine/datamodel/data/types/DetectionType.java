@@ -53,6 +53,11 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
   }
 
   @Override
+  public double getColumnWidth() {
+    return 10;
+  }
+
+  @Override
   public ObjectProperty<FeatureStatus> createProperty() {
     return new SimpleObjectProperty<FeatureStatus>();
   }

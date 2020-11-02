@@ -101,7 +101,6 @@ public class ModularFeatureList implements FeatureList {
     if (!dataFiles.isEmpty()) {
       addRowType(new FeaturesType());
       addFeatureType(new RawFileType());
-      addFeatureType(new RawColorType());
       addFeatureType(new FwhmType());
       addFeatureType(new TailingFactorType());
       addFeatureType(new AsymmetryFactorType());

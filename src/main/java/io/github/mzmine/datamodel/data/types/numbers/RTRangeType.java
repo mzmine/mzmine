@@ -18,13 +18,15 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
+import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.ExpandableType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.numbers.abstr.FloatRangeType;
 import io.github.mzmine.main.MZmineCore;
 
-public class RTRangeType extends FloatRangeType {
+public class RTRangeType extends FloatRangeType implements ExpandableType {
 
   public RTRangeType() {
     super(new DecimalFormat("0.00"));
@@ -46,4 +48,15 @@ public class RTRangeType extends FloatRangeType {
     return "RT Range";
   }
 
+  @Nonnull
+  @Override
+  public Class<? extends DataType<?>> getExpandedTypeClass() {
+    return getClass();
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends DataType<?>> getHiddenTypeClass() {
+    return RTType.class;
+  }
 }
