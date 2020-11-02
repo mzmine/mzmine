@@ -439,7 +439,13 @@ public class TDFUtils {
     switch (msMsType) {
       case 0:
         return 1;
-      case 2, 8, 9, 10:
+      case 2:
+        return 2;
+      case 9:
+        return 2;
+      case 10:
+        return 2;
+      case 8:
         return 2;
       default:
         return 0;
