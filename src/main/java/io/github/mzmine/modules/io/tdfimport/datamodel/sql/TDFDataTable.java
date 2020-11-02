@@ -105,11 +105,25 @@ public abstract class TDFDataTable<EntryKeyType> {
       while (rs.next()) {
         for (int i = 0; i < columns.size(); i++) {
           switch (types[i]) {
-            case Types.CHAR, Types.LONGNVARCHAR, Types.LONGVARCHAR, Types.NCHAR,
-                Types.NVARCHAR, Types.VARCHAR:
+            case Types.VARCHAR:
               ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
               break;
-            case Types.INTEGER, Types.BIGINT, Types.SMALLINT, Types.TINYINT:
+            case Types.NVARCHAR:
+              ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
+              break;
+            case Types.NCHAR:
+              ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
+              break;
+            case Types.LONGVARCHAR:
+              ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
+              break;
+            case Types.LONGNVARCHAR:
+              ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
+              break;
+            case Types.CHAR:
+              ((TDFDataColumn<String>) columns.get(i)).add(rs.getString(i + 1));
+              break;
+            case Types.INTEGER:
               // Bruker stores every natural number value as INTEGER in the sql database
               // Maximum size of INTEGER in SQLite: 8 bytes (64 bits) - https://sqlite.org/datatype3.html
               // So we treat everything as long (64 bit) to be on the save side.
@@ -118,7 +132,22 @@ public abstract class TDFDataTable<EntryKeyType> {
               // cast there
               ((TDFDataColumn<Long>) columns.get(i)).add(rs.getLong(i + 1));
               break;
-            case Types.DOUBLE, Types.REAL, Types.FLOAT:
+            case Types.BIGINT:
+              ((TDFDataColumn<Long>) columns.get(i)).add(rs.getLong(i + 1));
+              break;
+            case Types.TINYINT:
+              ((TDFDataColumn<Long>) columns.get(i)).add(rs.getLong(i + 1));
+              break;
+            case Types.SMALLINT:
+              ((TDFDataColumn<Long>) columns.get(i)).add(rs.getLong(i + 1));
+              break;
+            case Types.DOUBLE:
+              ((TDFDataColumn<Double>) columns.get(i)).add(rs.getDouble(i + 1));
+              break;
+            case Types.FLOAT:
+              ((TDFDataColumn<Double>) columns.get(i)).add(rs.getDouble(i + 1));
+              break;
+            case Types.REAL:
               ((TDFDataColumn<Double>) columns.get(i)).add(rs.getDouble(i + 1));
               break;
             default:
