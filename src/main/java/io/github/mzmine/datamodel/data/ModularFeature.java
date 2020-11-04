@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
@@ -37,7 +38,6 @@ import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
@@ -163,7 +163,7 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param flist
    * @param p
    */
-  public ModularFeature(@Nonnull ModularFeatureList flist, FeatureOld p) {
+  public ModularFeature(@Nonnull ModularFeatureList flist, ADAPChromatogram p) {
     this(flist);
     fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
     representiveScanNumber = p.getRepresentativeScanNumber();
@@ -197,10 +197,9 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    // TODO: findAllMS2FragmentScans rtRange parameter Range<Double> -> Range<Float>
-    allMS2FragmentScanNumbers = FXCollections.observableArrayList(IntStream.of(ScanUtils.findAllMS2FragmentScans(p.getDataFile(),
-        Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()),
-        mzRange)).boxed().collect(Collectors.toList()));
+    allMS2FragmentScanNumbers = FXCollections.observableArrayList(
+        IntStream.of(ScanUtils.findAllMS2FragmentScans(p.getDataFile(), rtRange, mzRange)).boxed()
+            .collect(Collectors.toList()));
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {

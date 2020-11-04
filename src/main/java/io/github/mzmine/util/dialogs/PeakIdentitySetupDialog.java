@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.dialogs;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -32,7 +33,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
@@ -56,7 +56,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
   // Buttons
   private JButton btnOK, btnCancel;
 
-  private PeakListRow peakListRow;
+  private FeatureListRow peakListRow;
   private PeakIdentity editIdentity;
 
   private ExitCode exitCode = ExitCode.UNKNOWN;
@@ -64,11 +64,11 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
   // Desktop
   private Desktop desktop = MZmineCore.getDesktop();
 
-  public PeakIdentitySetupDialog(JFrame parent, PeakListRow peakListRow) {
+  public PeakIdentitySetupDialog(JFrame parent, FeatureListRow peakListRow) {
     this(parent, peakListRow, null);
   }
 
-  public PeakIdentitySetupDialog(JFrame parent, PeakListRow peakListRow,
+  public PeakIdentitySetupDialog(JFrame parent, FeatureListRow peakListRow,
       PeakIdentity editIdentity) {
 
     // Make dialog modal

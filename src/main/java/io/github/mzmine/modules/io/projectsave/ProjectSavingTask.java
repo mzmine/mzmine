@@ -33,7 +33,6 @@ import javax.xml.transform.TransformerConfigurationException;
 import org.xml.sax.SAXException;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;

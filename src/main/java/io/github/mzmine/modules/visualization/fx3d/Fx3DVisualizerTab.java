@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.visualization.fx3d;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -36,7 +36,7 @@ import javax.annotation.Nonnull;
 public class Fx3DVisualizerTab extends MZmineTab {
   private final Fx3DBorderPaneController controller;
 
-  public Fx3DVisualizerTab(RawDataFile dataFiles[], ScanSelection scanSel, Range<Double> rtRange, Range<Double> mzRange,
+  public Fx3DVisualizerTab(RawDataFile dataFiles[], ScanSelection scanSel, Range<Float> rtRange, Range<Double> mzRange,
       int rtRes, int mzRes, List<Feature> featureSelList) {
     super("3D Visualizer", true, false);
 
@@ -72,13 +72,13 @@ public class Fx3DVisualizerTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -88,13 +88,13 @@ public class Fx3DVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

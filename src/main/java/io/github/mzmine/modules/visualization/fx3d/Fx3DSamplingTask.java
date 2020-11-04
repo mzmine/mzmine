@@ -47,7 +47,8 @@ class Fx3DSamplingTask extends AbstractTask {
 
   private RawDataFile dataFile;
   private Scan scans[];
-  private Range<Double> rtRange, mzRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange;
 
   // Data resolution on m/z and retention time axis
   private int rtResolution, mzResolution;

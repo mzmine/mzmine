@@ -21,7 +21,6 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +48,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataTypeUtils;
-import io.github.mzmine.util.PeakSorter;
+import io.github.mzmine.util.ADAPChromatogramSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import javafx.application.Platform;
@@ -156,7 +155,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     scans = scanSelection.getMatchingScans(dataFile);
     int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
 
-    List<Double> rtListForChromCDF = new ArrayList<Double>();
+    List<Float> rtListForChromCDF = new ArrayList<Float>();
 
     // Check if the scans are properly ordered by RT
     double prevRT = Double.NEGATIVE_INFINITY;
@@ -398,7 +397,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
 
     // Sort the final chromatograms by m/z
-    Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    Arrays.sort(chromatograms, new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
 
     // Create new feature list
@@ -407,7 +406,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultChromatographicTypeColumns(newPeakList);
 
     // Add the chromatograms to the new feature list
-    for (FeatureOld finishedPeak : chromatograms) {
+    for (ADAPChromatogram finishedPeak : chromatograms) {
       ModularFeature modular = new ModularFeature(newPeakList, finishedPeak);
       ModularFeatureListRow newRow =
           new ModularFeatureListRow(newPeakList, newPeakID, dataFile, modular);

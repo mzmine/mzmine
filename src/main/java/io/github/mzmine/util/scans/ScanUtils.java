@@ -50,7 +50,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -528,7 +527,7 @@ public class ScanUtils {
    * Finds the MS/MS scan with highest intensity, within given retention time range and with
    * precursor m/z within given m/z range
    */
-  public static int findBestFragmentScan(RawDataFile dataFile, Range<Double> rtRange,
+  public static int findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
 
     assert dataFile != null;
@@ -568,7 +567,7 @@ public class ScanUtils {
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Double> rtRange,
+  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
 
     assert dataFile != null;
@@ -637,12 +636,12 @@ public class ScanUtils {
   /**
    * Find the RT range of given scans. We assume there is at least one scan.
    */
-  public static @Nonnull Range<Double> findRtRange(@Nonnull Scan scans[]) {
+  public static @Nonnull Range<Float> findRtRange(@Nonnull Scan scans[]) {
 
     assert scans.length > 0;
 
-    double lowRt = scans[0].getRetentionTime();
-    double highRt = lowRt;
+    float lowRt = scans[0].getRetentionTime();
+    float highRt = lowRt;
     for (int i = 1; i < scans.length; i++) {
       if (scans[i].getRetentionTime() < lowRt) {
         lowRt = scans[i].getRetentionTime();
@@ -707,8 +706,8 @@ public class ScanUtils {
     return dataPoints;
   }
 
-  public static Stream<Scan> streamAllFragmentScans(PeakListRow row) {
-    return Arrays.stream(row.getAllMS2Fragmentations());
+  public static Stream<Scan> streamAllFragmentScans(FeatureListRow row) {
+    return row.getAllMS2Fragmentations().stream();
   }
 
   /**
@@ -958,11 +957,11 @@ public class ScanUtils {
   /**
    * Selects best N MS/MS scans from a feature list row
    */
-  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull PeakListRow row,
+  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull FeatureListRow row,
       @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
 
     @SuppressWarnings("null")
-    final @Nonnull List<Scan> allMS2Scans = Arrays.asList(row.getAllMS2Fragmentations());
+    final @Nonnull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
 
     return selectBestMS2Scans(allMS2Scans, massListName, topN);
   }

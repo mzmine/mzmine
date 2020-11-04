@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Comparator;
 
-import io.github.mzmine.datamodel.PeakListRow;
 
 /**
  * Compare feature list rows either by ID, average m/z or median area of peaks

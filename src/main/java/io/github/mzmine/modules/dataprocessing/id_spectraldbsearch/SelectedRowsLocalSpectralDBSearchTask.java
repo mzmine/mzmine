@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 //import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;

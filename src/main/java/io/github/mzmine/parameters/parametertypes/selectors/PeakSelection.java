@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 
 import javax.annotation.concurrent.Immutable;
@@ -25,17 +26,17 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 @Immutable
 public class PeakSelection {
 
   private final Range<Integer> idRange;
-  private final Range<Double> mzRange, rtRange;
+  private final Range<Float> rtRange;
+  private final Range<Double> mzRange;
   private final String name;
 
-  public PeakSelection(Range<Integer> idRange, Range<Double> mzRange, Range<Double> rtRange,
+  public PeakSelection(Range<Integer> idRange, Range<Double> mzRange, Range<Float> rtRange,
       String name) {
     this.idRange = idRange;
     this.mzRange = mzRange;
@@ -51,7 +52,7 @@ public class PeakSelection {
     return mzRange;
   }
 
-  public Range<Double> getRTRange() {
+  public Range<Float> getRTRange() {
     return rtRange;
   }
 
@@ -109,7 +110,7 @@ public class PeakSelection {
     return sb.toString();
   }
 
-  public boolean checkPeakListRow(PeakListRow row) {
+  public boolean checkPeakListRow(FeatureListRow row) {
     if ((idRange != null) && (!idRange.contains(row.getID())))
       return false;
 

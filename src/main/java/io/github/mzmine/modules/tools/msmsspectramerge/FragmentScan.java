@@ -30,6 +30,7 @@ package io.github.mzmine.modules.tools.msmsspectramerge;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -53,7 +54,7 @@ class FragmentScan {
   /**
    * The feature this scans are derived from
    */
-  protected final FeatureOld feature;
+  protected final Feature feature;
 
   /**
    * mass list to use
@@ -87,10 +88,10 @@ class FragmentScan {
   protected int precursorCharge;
   private PolarityType polarity;
 
-  static FragmentScan[] getAllFragmentScansFor(FeatureOld feature, String massList,
+  static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList,
       Range<Double> isolationWindow, MZTolerance massAccuracy) {
-    final RawDataFile file = feature.getDataFile();
-    final int[] ms2 = feature.getAllMS2FragmentScanNumbers().clone();
+    final RawDataFile file = feature.getRawDataFile();
+    final Integer[] ms2 = (feature.getAllMS2FragmentScanNumbers().toArray(new Integer[0])).clone();
     Arrays.sort(ms2);
     final List<FragmentScan> fragmentScans = new ArrayList<>();
     // search for ms1 scans
@@ -117,7 +118,7 @@ class FragmentScan {
     return fragmentScans.toArray(new FragmentScan[0]);
   }
 
-  FragmentScan(RawDataFile origin, FeatureOld feature, String massList, Integer ms1ScanNumber,
+  FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber,
       Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow,
       MZTolerance massAccuracy) {
     this.origin = origin;
@@ -166,7 +167,7 @@ class FragmentScan {
       Scan right = origin.getScan(ms1SucceedingScanNumber);
       for (int k = 0; k < ms2ScanNumbers.length; ++k) {
         Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
-        double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())
+        float rtRange = (ms2.getRetentionTime() - left.getRetentionTime())
             / (right.getRetentionTime() - left.getRetentionTime());
         if (rtRange >= 0 && rtRange <= 1) {
           values[0][k] =

@@ -69,7 +69,7 @@ public class MzDataReadTask extends AbstractTask {
   private int msLevel;
   // private int parentScan;
   private PolarityType polarity = PolarityType.UNKNOWN;
-  private double retentionTime;
+  private float retentionTime;
   private double precursorMz;
   private int precursorCharge = 0;
   private DefaultHandler handler = new MzDataHandler();
@@ -213,12 +213,12 @@ public class MzDataReadTask extends AbstractTask {
           }
           if ((attrs.getValue("accession").equals("PSI:1000038"))
               || (attrs.getValue("name").equals("time.min"))) {
-            retentionTime = Double.parseDouble(attrs.getValue("value"));
+            retentionTime = (float) Double.parseDouble(attrs.getValue("value"));
           }
 
           if ((attrs.getValue("accession").equals("PSI:1000039"))
               || (attrs.getValue("name").equals("time.sec"))) {
-            retentionTime = Double.parseDouble(attrs.getValue("value")) / 60d;
+            retentionTime = (float) (Double.parseDouble(attrs.getValue("value")) / 60d);
           }
         }
         if (precursorFlag) {

@@ -34,9 +34,9 @@ import java.util.zip.ZipFile;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import com.google.common.io.CountingInputStream;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+// TODO:
 /*
 import io.github.mzmine.modules.io.projectload.version_2_0.PeakListOpenHandler_2_0;
 import io.github.mzmine.modules.io.projectload.version_2_0.RawDataFileOpenHandler_2_0;

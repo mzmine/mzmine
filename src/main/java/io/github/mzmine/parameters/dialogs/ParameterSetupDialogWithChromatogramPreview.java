@@ -50,6 +50,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
   private final BorderPane pnlPreviewFields = new BorderPane();
   private final ComboBox<RawDataFile> comboDataFileName = new ComboBox<RawDataFile>(
       MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+  // TODO: FloatRangeComponent
   private final DoubleRangeComponent rtRangeBox =
       new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
   private final DoubleRangeComponent mzRangeBox =
@@ -121,7 +122,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     ticViewComboBox.getSelectionModel().select(TICPlotType.TIC);
     ticViewComboBox.setOnAction(e -> parametersChanged());
 
-    rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
+    // TODO: FloatRangeComponent
+    rtRangeBox.setValue(Range.closed(previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue(), previewDataFile.getDataRTRange(1).lowerEndpoint().doubleValue()));
     mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
     pnlFlds.getChildren().add(comboDataFileName);

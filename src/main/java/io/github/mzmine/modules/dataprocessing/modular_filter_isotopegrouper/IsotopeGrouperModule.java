@@ -19,13 +19,11 @@
 package io.github.mzmine.modules.dataprocessing.modular_filter_isotopegrouper;
 
 import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;

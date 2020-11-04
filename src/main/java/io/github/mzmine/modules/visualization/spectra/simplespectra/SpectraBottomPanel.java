@@ -21,7 +21,6 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 import io.github.mzmine.datamodel.data.FeatureList;
 import java.awt.Font;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;

@@ -141,7 +141,7 @@ public class MzMLReadTask extends AbstractTask {
 
         // Extract scan data
         int msLevel = extractMSLevel(spectrum);
-        double retentionTime = extractRetentionTime(spectrum);
+        float retentionTime = (float) extractRetentionTime(spectrum);
         PolarityType polarity = extractPolarity(spectrum);
         int parentScan = extractParentScanNumber(spectrum);
         double precursorMz = extractPrecursorMz(spectrum);

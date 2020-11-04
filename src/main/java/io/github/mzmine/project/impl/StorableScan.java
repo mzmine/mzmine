@@ -49,7 +49,7 @@ public class StorableScan implements Scan {
   private int scanNumber, msLevel, fragmentScans[];
   private double precursorMZ;
   private int precursorCharge;
-  private double retentionTime;
+  private float retentionTime;
   private Range<Double> mzRange;
   private DataPoint basePeak;
   private Double totalIonCurrent;
@@ -93,7 +93,7 @@ public class StorableScan implements Scan {
   }
 
   public StorableScan(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, double retentionTime, double mobility, double precursorMZ,
+      int scanNumber, int msLevel, float retentionTime, double mobility, double precursorMZ,
       int precursorCharge, int fragmentScans[], MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition, Range<Double> scanMZRange) {
 
@@ -235,7 +235,7 @@ public class StorableScan implements Scan {
    * @see io.github.mzmine.datamodel.Scan#getScanAcquisitionTime()
    */
   @Override
-  public double getRetentionTime() {
+  public float getRetentionTime() {
     return retentionTime;
   }
 

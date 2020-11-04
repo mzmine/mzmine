@@ -15,8 +15,8 @@
  */
 package io.github.mzmine.util.adap;
 
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -31,7 +31,6 @@ import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
@@ -41,7 +40,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
  */
 public class ADAPInterface {
 
-  public static Component getComponent(final PeakListRow row) {
+  public static Component getComponent(final FeatureListRow row) {
     if (row.getNumberOfPeaks() == 0)
       throw new IllegalArgumentException("No peaks found");
 
@@ -55,15 +54,15 @@ public class ADAPInterface {
     }
 
     // Read Chromatogram
-    final FeatureOld peak = row.getBestPeak();
-    final RawDataFile dataFile = peak.getDataFile();
+    final Feature peak = row.getBestPeak();
+    final RawDataFile dataFile = peak.getRawDataFile();
 
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();
 
     for (final int scan : peak.getScanNumbers()) {
       final DataPoint dataPoint = peak.getDataPoint(scan);
       if (dataPoint != null)
-        chromatogram.put(dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
+        chromatogram.put((double) dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
     }
 
     return new Component(null,

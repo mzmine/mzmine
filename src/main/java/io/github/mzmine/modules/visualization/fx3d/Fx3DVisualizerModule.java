@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -73,7 +73,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(Fx3DVisualizerParameters.features).getValue();
     logger.finest("Feature selection is:" + featureSelList.toString());
 
-    Range<Double> rtRange = ScanUtils.findRtRange(scanSel
+    Range<Float> rtRange = ScanUtils.findRtRange(scanSel
         .getMatchingScans(MZmineCore.getProjectManager().getCurrentProject().getDataFiles()[0]));
 
     ParameterSet myParameters =
@@ -107,7 +107,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
-      final Range<Double> rtRange, final Feature featureToShow) {
+      final Range<Float> rtRange, final Feature featureToShow) {
 
     final ParameterSet myParameters =
         MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);

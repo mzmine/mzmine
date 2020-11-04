@@ -18,13 +18,13 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 /**
@@ -36,11 +36,11 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
-  private PeakListRow rows[];
+  private FeatureListRow rows[];
   private String featureIdentity;
 
   public ScatterPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
-      PeakListRow rows[]) {
+      FeatureListRow rows[]) {
     super();
     this.xAxisLabel = xAxisLabel;
     this.yAxisLabel = yAxisLabel;

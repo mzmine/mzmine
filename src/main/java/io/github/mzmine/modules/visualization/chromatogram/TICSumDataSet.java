@@ -61,7 +61,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   private final @Nonnull List<SummedTICDataPoint> data;
 
   private final Range<Double> mzRange;
-  private Range<Double> rangeRT;
+  private Range<Float> rangeRT;
   private double intensityMin;
   private double intensityMax;
 
@@ -82,7 +82,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * @param rangeMZ        range of m/z to plot.
    * @param window         visualizer window.
    */
-  public TICSumDataSet(final RawDataFile[] files, final Range<Double> rangeRT,
+  public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
     this(files, rangeRT, rangeMZ, window,
         ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
@@ -98,7 +98,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * @param window         visualizer window.
    * @param plotType       plot type.
    */
-  public TICSumDataSet(final RawDataFile[] files, final Range<Double> rangeRT,
+  public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window, TICPlotType plotType) {
     data = new ArrayList<>();
     mzRange = rangeMZ;
@@ -230,7 +230,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
       for (int index = 0; status != TaskStatus.CANCELED && index < scans.length; index++) {
         // Current scan.
         final Scan scan = raw.getScan(scans[index]);
-        double rt = scan.getRetentionTime();
+        float rt = scan.getRetentionTime();
         double mzBasePeak = 0;
         double intensityBasePeak = 0;
         double intensity = 0.0;
@@ -266,7 +266,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
               if (intensityBasePeak > dp.getIntensityBasePeak())
                 dp.setMzBasePeak(mzBasePeak);
               intensity += dp.getIntensity();
-              rt = (rt + dp.getRetentionTime()) / 2.0;
+              rt = (rt + dp.getRetentionTime()) / 2.0f;
               dp.setIntensity(intensity);
               dp.setRetentionTime(rt);
             } else if (dp.getRetentionTime() > rt) {

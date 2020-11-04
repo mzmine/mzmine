@@ -21,6 +21,7 @@
 
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,10 +37,8 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureOld;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
@@ -51,7 +50,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 /**
  * Chromatogram implementing ChromatographicPeak.
  */
-public class ADAPChromatogram implements FeatureOld {
+public class ADAPChromatogram {
   private SimplePeakInformation peakInfo;
 
   // Data file of this chromatogram
@@ -72,7 +71,8 @@ public class ADAPChromatogram implements FeatureOld {
   private int[] allMS2FragmentScanNumbers = new int[] {};
 
   // Ranges of raw data points
-  private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
+  private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange;
+  private Range<Float> rawDataPointsRTRange;
 
   // A set of scan numbers of a segment which is currently being connected
   private Vector<Integer> buildingSegment;
@@ -245,7 +245,6 @@ public class ADAPChromatogram implements FeatureOld {
 
   }
 
-  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
@@ -260,7 +259,6 @@ public class ADAPChromatogram implements FeatureOld {
   /**
    * This method returns m/z value of the chromatogram
    */
-  @Override
   public double getMZ() {
     return mz;
   }
@@ -283,77 +281,62 @@ public class ADAPChromatogram implements FeatureOld {
     return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
-  @Override
   public double getArea() {
     return area;
   }
 
-  @Override
   public double getHeight() {
     return height;
   }
 
-  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
-  @Override
   public int[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
-  @Override
   public double getRT() {
     return rt;
   }
 
-  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  @Override
-  public @Nonnull Range<Double> getRawDataPointsRTRange() {
+  public @Nonnull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
-  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
-  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
-  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
 
-  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
-  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
-  @Override
   public void outputChromToFile() {
     // int allScanNumbers[] = Ints.toArray(dataPointsMap.keySet());
     int allScanNumbers[] = getScanNumbers();
@@ -473,7 +456,7 @@ public class ADAPChromatogram implements FeatureOld {
     rawDataPointsRTRange = null;
 
     for (int scanNum : allScanNumbers) {
-      double scanRt = dataFile.getScan(scanNum).getRetentionTime();
+      float scanRt = dataFile.getScan(scanNum).getRetentionTime();
       DataPoint dp = getDataPoint(scanNum);
 
       if ((dp == null) || (dp.getIntensity() == 0.0))
@@ -522,62 +505,50 @@ public class ADAPChromatogram implements FeatureOld {
     }
   }
 
-  @Override
   public int getCharge() {
     return charge;
   }
 
-  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
-  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
-  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
-  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
-  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
-  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
-  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
-  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
-  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
 
-  @Override
   public void setFragmentScanNumber(int fragmentScanNumber) {
     this.fragmentScan = fragmentScanNumber;
   }
 
-  @Override
   public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     // also set best scan by TIC
@@ -592,15 +563,13 @@ public class ADAPChromatogram implements FeatureOld {
     setFragmentScanNumber(best);
   }
 
-  private PeakList peakList;
+  private FeatureList peakList;
 
-  @Override
-  public PeakList getPeakList() {
+  public FeatureList getPeakList() {
     return peakList;
   }
 
-  @Override
-  public void setPeakList(PeakList peakList) {
+  public void setPeakList(FeatureList peakList) {
     this.peakList = peakList;
   }
 

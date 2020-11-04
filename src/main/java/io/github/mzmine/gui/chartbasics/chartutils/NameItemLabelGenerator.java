@@ -18,10 +18,10 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 /**
@@ -31,9 +31,9 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class NameItemLabelGenerator implements XYItemLabelGenerator {
 
-  private PeakListRow rows[];
+  private FeatureListRow rows[];
 
-  public NameItemLabelGenerator(PeakListRow rows[]) {
+  public NameItemLabelGenerator(FeatureListRow rows[]) {
     this.rows = rows;
   }
 

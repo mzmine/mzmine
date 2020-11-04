@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;

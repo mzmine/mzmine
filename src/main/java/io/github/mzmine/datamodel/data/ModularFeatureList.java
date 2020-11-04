@@ -1,8 +1,5 @@
 package io.github.mzmine.datamodel.data;
 
-import io.github.mzmine.datamodel.FeatureOld;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.data.types.AreaBarType;
 import io.github.mzmine.datamodel.data.types.AreaShareType;
 import io.github.mzmine.datamodel.data.types.FeatureShapeType;
@@ -111,6 +108,7 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Temporary "copy constructor" for one rawDataFile before port to ModularFeatureList
    */
+  /*
   public ModularFeatureList(PeakList peakList) {
     this(peakList.getName(), peakList.getRawDataFiles().get(0));
     //this.rtRange = peakList.getRowsRTRange();
@@ -127,6 +125,7 @@ public class ModularFeatureList implements FeatureList {
       newRow.setPeakIdentities(FXCollections.observableArrayList(row.getPeakIdentities()));
     }
   }
+  */
 
   @Override
   public String getName() {

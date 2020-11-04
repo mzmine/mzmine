@@ -619,8 +619,8 @@ public class MainWindowController {
 
   @FXML
   public void handleRemoveFeatureList(Event event) {
-    ModularFeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
-    for (ModularFeatureList fl : selectedFeatureLists) {
+    FeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+    for (FeatureList fl : selectedFeatureLists) {
       MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
     }
   }

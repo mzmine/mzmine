@@ -19,8 +19,6 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureOld;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.Feature;

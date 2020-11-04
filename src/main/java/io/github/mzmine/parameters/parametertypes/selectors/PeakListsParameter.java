@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import com.google.common.base.Strings;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 

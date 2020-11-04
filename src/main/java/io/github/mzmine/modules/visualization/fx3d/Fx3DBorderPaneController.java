@@ -18,19 +18,17 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.fxml.FXMLLoader;
 import javax.annotation.Nonnull;
 import org.controlsfx.glyphfont.Glyph;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -143,14 +141,14 @@ public class Fx3DBorderPaneController {
       FXCollections.observableArrayList();
   private List<Object> visualizedFiles = new ArrayList<Object>();
   private ObservableList<Node> meshViewList = FXCollections.observableArrayList();
-  private PeakList[] allPeakLists;
+  private FeatureList[] allFeatureLists;
   private PerspectiveCamera camera = new PerspectiveCamera();
   private ScanSelection scanSel;
   private List<RawDataFile> allDataFiles;
   private List<Feature> featureSelections;
   private Timeline rotateAnimationTimeline;
   boolean animationRunning = false;
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Range<Double> mzRange;
   public Translate pivot = new Translate(250, 0, 250);
   public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
@@ -202,7 +200,7 @@ public class Fx3DBorderPaneController {
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
     allDataFiles = Arrays.asList(MZmineCore.getProjectManager().getCurrentProject().getDataFiles());
-    allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
@@ -407,14 +405,14 @@ public class Fx3DBorderPaneController {
     }
 
     addFeatureMenu.getItems().clear();
-    for (PeakList peakList : allPeakLists) {
-      Menu peakListMenu = new Menu(peakList.getName());
+    for (FeatureList featureList : allFeatureLists) {
+      Menu peakListMenu = new Menu(featureList.getName());
       addFeatureMenu.getItems().add(peakListMenu);
-      RawDataFile[] dataFiles = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
+      RawDataFile[] dataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
       for (RawDataFile dataFile : dataFiles) {
         Menu dataFileMenu = new Menu(dataFile.getName());
         peakListMenu.getItems().add(dataFileMenu);
-        Feature[] features = peakList.getPeaks(dataFile).toArray(Feature[]::new);
+        Feature[] features = featureList.getPeaks(dataFile).toArray(Feature[]::new);
         for (Feature feature : features) {
           if (feature.getRawDataPointsRTRange().lowerEndpoint() >= rtRange.lowerEndpoint()
               && feature.getRawDataPointsRTRange().upperEndpoint() <= mzRange.upperEndpoint()
@@ -705,7 +703,7 @@ public class Fx3DBorderPaneController {
     this.scanSel = scanselectn;
   }
 
-  public void setRtAndMzValues(Range<Double> rt, Range<Double> mz) {
+  public void setRtAndMzValues(Range<Float> rt, Range<Double> mz) {
     this.rtRange = rt;
     this.mzRange = mz;
   }

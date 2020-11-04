@@ -18,24 +18,24 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ADAPChromatogram;
 import java.util.Comparator;
 
-import io.github.mzmine.datamodel.FeatureOld;
 
 /**
- * This is a helper class required for sorting peaks
+ * This is a helper class required for sorting adap chromatograms
  */
-public class PeakSorter implements Comparator<FeatureOld> {
+public class ADAPChromatogramSorter implements Comparator<ADAPChromatogram> {
 
   private SortingProperty property;
   private SortingDirection direction;
 
-  public PeakSorter(SortingProperty property, SortingDirection direction) {
+  public ADAPChromatogramSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
     this.direction = direction;
   }
 
-  public int compare(FeatureOld peak1, FeatureOld peak2) {
+  public int compare(ADAPChromatogram peak1, ADAPChromatogram peak2) {
 
     Double peak1Value = getValue(peak1);
     Double peak2Value = getValue(peak2);
@@ -47,7 +47,7 @@ public class PeakSorter implements Comparator<FeatureOld> {
 
   }
 
-  private double getValue(FeatureOld peak) {
+  private double getValue(ADAPChromatogram peak) {
     switch (property) {
       case Area:
         return peak.getArea();

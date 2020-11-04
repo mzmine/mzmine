@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -25,7 +26,6 @@ import java.util.regex.PatternSyntaxException;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakListRow;
 
 /**
  * This class defines a search condition - searching either by peak name, m/z or retention time.
@@ -83,7 +83,7 @@ public class SearchDefinition {
   /**
    * Checks whether given feature list row conforms to this search condition.
    */
-  public boolean conforms(PeakListRow row) {
+  public boolean conforms(FeatureListRow row) {
     switch (type) {
       case NAME:
         PeakIdentity identity = row.getPreferredPeakIdentity();
@@ -102,7 +102,7 @@ public class SearchDefinition {
         return range.contains(row.getAverageMZ());
 
       case RT:
-        return range.contains(row.getAverageRT());
+        return range.contains((double) row.getAverageRT());
 
     }
     return false;

@@ -26,7 +26,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import io.github.mzmine.datamodel.PeakList;
 
 public interface PeakListOpenHandler {
 

@@ -18,13 +18,13 @@
 
 package io.github.mzmine.util.components;
 
+import io.github.mzmine.datamodel.data.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import org.jfree.fx.FXGraphics2D;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureOld;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Tooltip;
 
@@ -41,15 +41,15 @@ public class CombinedXICComponent extends Canvas {
       new Color(0, 192, 0), // green
       Color.magenta, Color.cyan, Color.orange};
 
-  private FeatureOld[] peaks;
+  private Feature[] peaks;
 
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private double maxIntensity;
 
   /**
    * @param ChromatographicPeak [] Picked peaks to plot
    */
-  public CombinedXICComponent(FeatureOld[] peaks, int id) {
+  public CombinedXICComponent(Feature[] peaks, int id) {
 
     // We use the tool tip text as a id for customTooltipProvider
     if (id >= 0) {
@@ -61,15 +61,15 @@ public class CombinedXICComponent extends Canvas {
     this.peaks = peaks;
 
     // find data boundaries
-    for (FeatureOld peak : peaks) {
+    for (Feature peak : peaks) {
       if (peak == null)
         continue;
 
       maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().upperEndpoint());
       if (rtRange == null)
-        rtRange = peak.getDataFile().getDataRTRange();
+        rtRange = peak.getRawDataFile().getDataRTRange();
       else
-        rtRange = rtRange.span(peak.getDataFile().getDataRTRange());
+        rtRange = rtRange.span(peak.getRawDataFile().getDataRTRange());
     }
 
     this.maxIntensity = maxIntensity;
@@ -96,18 +96,18 @@ public class CombinedXICComponent extends Canvas {
 
     int colorIndex = 0;
 
-    for (FeatureOld peak : peaks) {
+    for (Feature peak : peaks) {
 
       // set color for current XIC
       g2.setColor(plotColors[colorIndex]);
       colorIndex = (colorIndex + 1) % plotColors.length;
 
       // if we have no data, just return
-      if ((peak == null) || (peak.getScanNumbers().length == 0))
+      if ((peak == null) || (peak.getScanNumbers().size() == 0))
         continue;
 
       // get scan numbers, one data point per each scan
-      int scanNumbers[] = peak.getScanNumbers();
+      Integer scanNumbers[] = peak.getScanNumbers().toArray(new Integer[0]);
 
       // for each datapoint, find [X:Y] coordinates of its point in
       // painted image
@@ -124,7 +124,7 @@ public class CombinedXICComponent extends Canvas {
           dataPointIntensity = dataPoint.getIntensity();
 
         // get retention time (X value)
-        double retentionTime = peak.getDataFile().getScan(scanNumbers[i]).getRetentionTime();
+        float retentionTime = peak.getRawDataFile().getScan(scanNumbers[i]).getRetentionTime();
 
         // calculate [X:Y] coordinates
         xValues[i + 1] = (int) Math.floor((retentionTime - rtRange.lowerEndpoint())

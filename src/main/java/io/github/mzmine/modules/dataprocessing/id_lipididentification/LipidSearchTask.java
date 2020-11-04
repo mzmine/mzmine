@@ -20,6 +20,9 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +32,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
@@ -180,8 +180,8 @@ public class LipidSearchTask extends AbstractTask {
       }
     }
     // Add task description to peakList
-    ((SimplePeakList) featureList)
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Lipid search", parameters));
+    featureList
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid search", parameters));
 
     setStatus(TaskStatus.FINISHED);
 

@@ -19,12 +19,10 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import java.util.ArrayList;
 
 import com.google.common.base.Strings;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.TextUtils;
 

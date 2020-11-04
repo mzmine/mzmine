@@ -30,7 +30,6 @@ import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
