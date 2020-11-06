@@ -111,7 +111,7 @@
 				userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule" />
 			<MenuItem onAction="#runModule"
 				text="Mass calibration"
-				userData="io.github.mzmine.modules.dataprocessing.masscalibration.MassCalibrationModule" />
+				userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule" />
 		</Menu>
 
 	</Menu>
