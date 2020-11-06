@@ -141,7 +141,7 @@ class IsotopeGrouperTask extends AbstractTask {
       charges[i] = i + 1;
 
     // Sort peaks by descending height
-    Feature[] sortedPeaks = featureList.getPeaks(dataFile).toArray(Feature[]::new);
+    Feature[] sortedPeaks = featureList.getFeatures(dataFile).toArray(Feature[]::new);
     Arrays.sort(sortedPeaks, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Loop through all peaks
@@ -217,9 +217,9 @@ class IsotopeGrouperTask extends AbstractTask {
       newPeak.setIsotopePattern(newPattern);
       newPeak.setCharge(bestFitCharge);
 
-      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList, oldRow.getID(), newPeak.getRawDataFile(), newPeak);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) deisotopedFeatureList, oldRow.getID(), newPeak);
       FeatureUtils.copyFeatureListRowProperties(oldRow, newRow);
-      newRow.addPeak(dataFile, newPeak);
+      newRow.addFeature(dataFile, newPeak);
       deisotopedFeatureList.addRow(newRow);
 
       // Remove all peaks already assigned to isotope pattern

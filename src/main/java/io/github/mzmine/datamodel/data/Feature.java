@@ -127,7 +127,6 @@ public interface Feature {
    */
   ObservableList<Integer> getAllMS2FragmentScanNumbers();
 
-  // TODO: same approach for all common "data types"
   /**
    * Sets raw M/Z value of the peak
    */

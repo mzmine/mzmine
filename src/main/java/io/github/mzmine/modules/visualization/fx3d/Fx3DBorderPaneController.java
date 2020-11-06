@@ -412,7 +412,7 @@ public class Fx3DBorderPaneController {
       for (RawDataFile dataFile : dataFiles) {
         Menu dataFileMenu = new Menu(dataFile.getName());
         peakListMenu.getItems().add(dataFileMenu);
-        Feature[] features = featureList.getPeaks(dataFile).toArray(Feature[]::new);
+        Feature[] features = featureList.getFeatures(dataFile).toArray(Feature[]::new);
         for (Feature feature : features) {
           if (feature.getRawDataPointsRTRange().lowerEndpoint() >= rtRange.lowerEndpoint()
               && feature.getRawDataPointsRTRange().upperEndpoint() <= mzRange.upperEndpoint()

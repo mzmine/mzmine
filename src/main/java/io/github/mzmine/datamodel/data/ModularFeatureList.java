@@ -28,17 +28,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
-import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.RawFileType;
 import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
-/* TODO: make addRowType and addFeatureType private and move
- *  featureTypes = FXCollections.observableMap(featureTypesLinkedMap); and
- *  rowTypes = FXCollections.observableMap(rowTypesLinkedMap);
- *  to the constructor to reduce time complexity
- */
+
 public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
@@ -58,7 +53,7 @@ public class ModularFeatureList implements FeatureList {
 
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
-  private ObservableList<FeatureListRow> peakListRows;
+  private ObservableList<FeatureListRow> featureListRows;
   private String name;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
@@ -76,19 +71,16 @@ public class ModularFeatureList implements FeatureList {
   public ModularFeatureList(String name, @Nonnull List<RawDataFile> dataFiles) {
     this.name = name;
     this.dataFiles = FXCollections.observableList(dataFiles);
-    peakListRows = FXCollections.observableArrayList();
+    featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
 
     // Type columns will be created in the same sequence as they are initialized
     addRowType(new IDType());
-    //addRowType(new MZExpandingType());
-    //REMOVE(test purpose)
     addRowType(new MZType());
     addRowType(new MZRangeType());
     addRowType(new RTType());
     addRowType(new RTRangeType());
-    //REMOVE(test purpose)
     DataTypeUtils.addDefaultChromatographicTypeColumns(this);
 
     addRowType(new FeatureShapeType());
@@ -105,28 +97,6 @@ public class ModularFeatureList implements FeatureList {
     addRowType(new CommentType());
   }
 
-  /**
-   * Temporary "copy constructor" for one rawDataFile before port to ModularFeatureList
-   */
-  /*
-  public ModularFeatureList(PeakList peakList) {
-    this(peakList.getName(), peakList.getRawDataFiles().get(0));
-    //this.rtRange = peakList.getRowsRTRange();
-    //this.mzRange = peakList.getRowsMZRange();
-    //this.dateCreated = peakList.getDateCreated();
-
-    // add rows
-    for (PeakListRow row : peakList.getRows()) {
-      FeatureOld feature = row.getPeak(getRawDataFile(0));
-      ModularFeature modularFeature = new ModularFeature(this, feature);
-      ModularFeatureListRow newRow =
-          new ModularFeatureListRow(this, row.getID(), feature.getDataFile(), modularFeature);
-      addRow(newRow);
-      newRow.setPeakIdentities(FXCollections.observableArrayList(row.getPeakIdentities()));
-    }
-  }
-  */
-
   @Override
   public String getName() {
     return name;
@@ -140,7 +110,7 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Bind row types to feature types to calculate averages, sums, min, max, counts.
    * 
-   * @param binding
+   * @param bindings list of bindings
    */
   public void addRowBinding(@Nonnull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
@@ -245,28 +215,28 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public int getNumberOfRows() {
-    return peakListRows.size();
+    return featureListRows.size();
   }
 
   /**
-   * Returns the peak of a given raw data file on a give row of the alignment result
+   * Returns the feature of a given raw data file on a give row of the alignment result
    * 
    * @param row Row of the alignment result
-   * @param rawDataFile Raw data file where the peak is detected/estimated
+   * @param raw Raw data file where the feature is detected/estimated
    */
   @Override
-  public ModularFeature getPeak(int row, RawDataFile raw) {
-    return ((ModularFeatureListRow) peakListRows.get(row)).getFilesFeatures().get(raw);
+  public ModularFeature getFeature(int row, RawDataFile raw) {
+    return ((ModularFeatureListRow) featureListRows.get(row)).getFilesFeatures().get(raw);
   }
 
   /**
-   * Returns all peaks for a raw data file
+   * Returns all features for a raw data file
    */
   @Override
-  public ObservableList<Feature> getPeaks(RawDataFile raw) {
+  public ObservableList<Feature> getFeatures(RawDataFile raw) {
     ObservableList<Feature> features = FXCollections.observableArrayList();
     for (int row = 0; row < getNumberOfRows(); row++) {
-      ModularFeature f = getPeak(row, raw);
+      ModularFeature f = getFeature(row, raw);
       if (f != null)
         features.add(f);
     }
@@ -274,16 +244,16 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * Returns all peaks on one row
+   * Returns all features on one row
    */
   @Override
   public FeatureListRow getRow(int row) {
-    return peakListRows.get(row);
+    return featureListRows.get(row);
   }
 
   @Override
   public ObservableList<FeatureListRow> getRows() {
-    return peakListRows;
+    return featureListRows;
   }
 
   @Override
@@ -321,7 +291,7 @@ public class ModularFeatureList implements FeatureList {
             "Data file " + testFile + " is not in this feature list"));
     }
 
-    peakListRows.add(modularRow);
+    featureListRows.add(modularRow);
 
     applyRowBindings(modularRow);
 
@@ -332,7 +302,7 @@ public class ModularFeatureList implements FeatureList {
 
 
   /**
-   * Returns all peaks overlapping with a retention time range
+   * Returns all features overlapping with a retention time range
    * 
    * @param startRT Start of the retention time range
    * @param endRT End of the retention time range
@@ -341,23 +311,23 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public ObservableList<Feature> getPeaksInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
     Range<Double> all = Range.all();
-    return getPeaksInsideScanAndMZRange(raw, rtRange, all);
+    return getFeaturesInsideScanAndMZRange(raw, rtRange, all);
   }
 
   /**
-   * @see io.github.mzmine.datamodel.data.FeatureList#getPeaksInsideMZRange
+   * @see io.github.mzmine.datamodel.data.FeatureList#getFeaturesInsideMZRange
    */
   @Override
-  public ObservableList<Feature> getPeaksInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
+  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile raw, Range<Double> mzRange) {
     Range<Float> all = Range.all();
-    return getPeaksInsideScanAndMZRange(raw, all, mzRange);
+    return getFeaturesInsideScanAndMZRange(raw, all, mzRange);
   }
 
   /**
-   * @see io.github.mzmine.datamodel.data.FeatureList#getPeaksInsideScanAndMZRange
+   * @see io.github.mzmine.datamodel.data.FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public ObservableList<Feature> getPeaksInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
+  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
@@ -368,20 +338,20 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see io.github.mzmine.datamodel.PeakList#removeRow(io.github.mzmine.datamodel.PeakListRow)
+   * @see io.github.mzmine.datamodel.data.FeatureList#removeRow(FeatureListRow)
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    peakListRows.remove(row);
+    featureListRows.remove(row);
     updateMaxIntensity();
   }
 
   /**
-   * @see io.github.mzmine.datamodel.PeakList#removeRow(io.github.mzmine.datamodel.PeakListRow)
+   * @see io.github.mzmine.datamodel.data.FeatureList#removeRow(FeatureListRow)
    */
   @Override
   public void removeRow(int rowNum) {
-    removeRow(peakListRows.get(rowNum));
+    removeRow(featureListRows.get(rowNum));
   }
 
   private void updateMaxIntensity() {
@@ -391,20 +361,20 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public Stream<FeatureListRow> stream() {
-    return peakListRows.stream();
+    return featureListRows.stream();
   }
 
   public Stream<ModularFeatureListRow> modularStream() {
-    return peakListRows.stream().map(row -> (ModularFeatureListRow) row);
+    return featureListRows.stream().map(row -> (ModularFeatureListRow) row);
   }
 
   @Override
   public Stream<FeatureListRow> parallelStream() {
-    return peakListRows.parallelStream();
+    return featureListRows.parallelStream();
   }
 
   public Stream<ModularFeatureListRow> modularParallelStream() {
-    return peakListRows.parallelStream().map(row -> (ModularFeatureListRow) row);
+    return featureListRows.parallelStream().map(row -> (ModularFeatureListRow) row);
   }
 
   @Override
@@ -426,22 +396,20 @@ public class ModularFeatureList implements FeatureList {
     return parallelStreamFeatures().map(feature -> (ModularFeature) feature);
   }
 
-
-
   /**
-   * @see io.github.mzmine.datamodel.PeakList#getPeakRowNum(FeatureOld)
+   * @see io.github.mzmine.datamodel.data.FeatureList#getFeatureListRowNum(Feature)
    */
   @Override
-  public int getPeakRowNum(Feature feature) {
-    for (int i = 0; i < peakListRows.size(); i++) {
-      if (peakListRows.get(i).hasFeature(feature))
+  public int getFeatureListRowNum(Feature feature) {
+    for (int i = 0; i < featureListRows.size(); i++) {
+      if (featureListRows.get(i).hasFeature(feature))
         return i;
     }
     return -1;
   }
 
   /**
-   * @see io.github.mzmine.datamodel.PeakList#getDataPointMaxIntensity()
+   * @see io.github.mzmine.datamodel.data.FeatureList#getDataPointMaxIntensity()
    */
   @Override
   public double getDataPointMaxIntensity() {

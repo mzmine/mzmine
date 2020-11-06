@@ -157,15 +157,15 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     RawDataFile file2 = null;
 
     for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-      if (peakListX.getPeaks(rfile).size() > numPeaks) {
-        numPeaks = peakListX.getPeaks(rfile).size();
+      if (peakListX.getFeatures(rfile).size() > numPeaks) {
+        numPeaks = peakListX.getFeatures(rfile).size();
         file = rfile;
       }
     }
     numPeaks = 0;
     for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-      if (peakListY.getPeaks(rfile).size() > numPeaks) {
-        numPeaks = peakListY.getPeaks(rfile).size();
+      if (peakListY.getFeatures(rfile).size() > numPeaks) {
+        numPeaks = peakListY.getFeatures(rfile).size();
         file2 = rfile;
       }
     }

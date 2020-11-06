@@ -76,7 +76,7 @@ public class FXTableWindow extends Application {
 
       ModularFeatureListRow r = new ModularFeatureListRow(flist);
       r.set(IDType.class, (i));
-      r.addPeak(raw, p);
+      r.addFeature(raw, p);
       flist.addRow(r);
     }
   }

@@ -311,7 +311,7 @@ public class JoinAlignerTask extends AbstractTask {
 
         // Add all peaks from the original row to the aligned row
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addPeak(file, row.getPeak(file));
+          targetRow.addFeature(file, row.getPeak(file));
         }
 
         // Add all non-existing identities from the original row to the

@@ -220,7 +220,7 @@ public class TestDatatypes {
 
       ModularFeatureListRow r = new ModularFeatureListRow(flistWithRaw);
       r.set(IDType.class, (i));
-      r.addPeak(raw, p);
+      r.addFeature(raw, p);
       flistWithRaw.addRow(r);
     }
   }

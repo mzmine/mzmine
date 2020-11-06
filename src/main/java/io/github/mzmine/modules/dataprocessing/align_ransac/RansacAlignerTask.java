@@ -36,7 +36,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
@@ -167,7 +166,7 @@ class RansacAlignerTask extends AbstractTask {
 
         // Add all peaks from the original row to the aligned row
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addPeak(file, row.getPeak(file));
+          targetRow.addFeature(file, row.getPeak(file));
         }
 
         // Add all non-existing identities from the original row to the

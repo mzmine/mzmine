@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import java.util.List;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,7 +33,7 @@ import javax.annotation.Nullable;
 public interface FeatureListRow {
 
   /**
-   * Return raw data with peaks on this row
+   * Return raw data with features on this row
    */
   public ObservableList<RawDataFile> getRawDataFiles();
 
@@ -44,62 +43,62 @@ public interface FeatureListRow {
   public int getID();
 
   /**
-   * Returns number of peaks assigned to this row
+   * Returns number of features assigned to this row
    */
   public int getNumberOfPeaks();
 
   /**
-   * Return peaks assigned to this row
+   * Return features assigned to this row
    */
   public ObservableList<Feature> getFeatures();
 
   /**
-   * Returns peak for given raw data file
+   * Returns feature for given raw data file
    */
   public Feature getPeak(RawDataFile rawData);
 
   /**
-   * Add a peak
+   * Add a feature
    */
-  public void addPeak(RawDataFile rawData, Feature peak);
+  public void addFeature(RawDataFile rawData, Feature feature);
 
   /**
-   * D Remove a peak
+   * Remove a feature
    */
-  public void removePeak(RawDataFile file);
+  public void removeFeature(RawDataFile file);
 
   /**
-   * Has a peak?
+   * Has a feature?
    */
-  public boolean hasFeature(Feature peak);
+  public boolean hasFeature(Feature feature);
 
   /**
-   * Has a peak?
+   * Has a feature?
    */
   public boolean hasFeature(RawDataFile rawData);
 
   /**
-   * Returns average M/Z for peaks on this row
+   * Returns average M/Z for features on this row
    */
   public double getAverageMZ();
 
   /**
-   * Returns average RT for peaks on this row
+   * Returns average RT for features on this row
    */
   public float getAverageRT();
 
   /**
-   * Returns average height for peaks on this row
+   * Returns average height for features on this row
    */
   public double getAverageHeight();
 
   /**
-   * Returns the charge for peak on this row. If more charges are found 0 is returned
+   * Returns the charge for feature on this row. If more charges are found 0 is returned
    */
   public int getRowCharge();
 
   /**
-   * Returns average area for peaks on this row
+   * Returns average area for features on this row
    */
   public double getAverageArea();
 
@@ -126,7 +125,7 @@ public interface FeatureListRow {
   /**
    * Add a new identity candidate (result of identification method)
    *
-   * @param identity New peak identity
+   * @param identity New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
   public void addPeakIdentity(PeakIdentity identity, boolean preffered);
@@ -139,21 +138,21 @@ public interface FeatureListRow {
   public void removePeakIdentity(PeakIdentity identity);
 
   /**
-   * Returns all candidates for this peak's identity
+   * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
    */
   public ObservableList<PeakIdentity> getPeakIdentities();
 
   /**
-   * Returns preferred peak identity among candidates
+   * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
    */
   public PeakIdentity getPreferredPeakIdentity();
 
   /**
-   * Sets a preferred peak identity among candidates
+   * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
    */
@@ -162,7 +161,7 @@ public interface FeatureListRow {
   /**
    * Adds a new PeakInformation object.
    *
-   * PeakInformation is used to keep extra information about peaks in the form of a map
+   * PeakInformation is used to keep extra information about features in the form of a map
    * <propertyName, propertyValue>
    *
    * @param peakInformation object
@@ -179,14 +178,14 @@ public interface FeatureListRow {
   public PeakInformation getPeakInformation();
 
   /**
-   * Returns maximum raw data point intensity among all peaks in this row
+   * Returns maximum raw data point intensity among all features in this row
    *
    * @return Maximum intensity
    */
   public double getMaxDataPointIntensity();
 
   /**
-   * Returns the most intense peak in this row
+   * Returns the most intense feature in this row
    */
   public Feature getBestPeak();
 

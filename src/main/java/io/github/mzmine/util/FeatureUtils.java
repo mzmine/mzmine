@@ -311,7 +311,7 @@ public class FeatureUtils {
     for (final Feature peak : row.getFeatures()) {
       final Feature newPeak = new ModularFeature((ModularFeatureList) peak.getFeatureList());
       copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getRawDataFile(), newPeak);
+      newRow.addFeature(peak.getRawDataFile(), newPeak);
     }
 
     return newRow;

@@ -72,7 +72,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private @Nonnull ModularFeatureList flist;
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
-   * this map see {@link #addPeak}
+   * this map see {@link #addFeature}
    */
   private final ObservableMap<DataType, Property<?>> map =
       FXCollections.observableMap(new HashMap<>());
@@ -80,7 +80,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private final Map<RawDataFile, ModularFeature> features;
 
   // buffert col charts and nodes
-  private Map<String, Node> buffertColCharts = new HashMap<>();
+  private final Map<String, Node> buffertColCharts = new HashMap<>();
 
   private ObservableList<PeakIdentity> identities = FXCollections.observableArrayList();
   private PeakIdentity preferredIdentity;
@@ -104,8 +104,6 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       this.setProperty(type, type.createProperty());
     });
 
-    //set(MZExpandingType.class, new Pair<>(30.0, Range.closed(2, 3)));
-
     List<RawDataFile> raws = flist.getRawDataFiles();
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
@@ -117,7 +115,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       // set
       set(FeaturesType.class, features);
 
-      // TODO: MapProperty/Map? change DataTypeCellValueFactory?
+      // TODO: MapProperty/Map? change DataTypeCellValueFactory? Bind to features?
       //set(FeatureShapeType.class, getFeatures());
       set(FeatureShapeType.class, getFeaturesProperty());
       set(AreaBarType.class, getFeaturesProperty());
@@ -139,7 +137,20 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       Feature p) {
     this(flist);
     set(IDType.class, (id));
-    addPeak(raw, p);
+    addFeature(raw, p);
+  }
+
+  /**
+   * Constructor for row with only one feature.
+   *
+   * @param flist
+   * @param id
+   * @param feature
+   */
+  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, Feature feature) {
+    this(flist);
+    set(IDType.class, (id));
+    addFeature(feature.getRawDataFile(), feature);
   }
 
   /**
@@ -174,10 +185,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   public double getMZ() {
-    //return get(MZExpandingType.class).getValue().getKey();
-    //REMOVE(test purpose)
     return get(MZType.class).getValue();
-    //REMOVE(test purpose)
   }
 
   public Range<Double> getMZRange() {
@@ -214,7 +222,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param feature
    */
   @Override
-  public void addPeak(RawDataFile raw, Feature feature) {
+  public void addFeature(RawDataFile raw, Feature feature) {
     if(!(feature instanceof ModularFeature)) {
       throw new IllegalArgumentException("Cannot add non-modular feature to modular feature list row.");
     }
@@ -263,7 +271,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void removePeak(RawDataFile file) {
+  public void removeFeature(RawDataFile file) {
     this.features.remove(file);
     calculateAverageValues();
   }
@@ -439,10 +447,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public Scan getBestFragmentation() {
-    Double bestTIC = 0.0;
+    double bestTIC = 0.0;
     Scan bestScan = null;
     for (Feature feature : getFeatures()) {
-      Double theTIC = 0.0;
+      double theTIC = 0.0;
       RawDataFile rawData = feature.getRawDataFile();
       int bestScanNumber = feature.getMostIntenseFragmentScanNumber();
       Scan theScan = rawData.getScan(bestScanNumber);

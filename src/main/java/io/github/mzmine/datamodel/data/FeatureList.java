@@ -83,12 +83,12 @@ public interface FeatureList {
    * @param row Row of the feature list
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
-  public Feature getPeak(int row, RawDataFile rawDataFile);
+  public Feature getFeature(int row, RawDataFile rawDataFile);
 
   /**
    * Returns all peaks for a raw data file
    */
-  public ObservableList<Feature> getPeaks(RawDataFile rawDataFile);
+  public ObservableList<Feature> getFeatures(RawDataFile rawDataFile);
 
   /**
    * Returns all peaks on one row
@@ -165,7 +165,7 @@ public interface FeatureList {
    * @param file Raw data file
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all peaks in a given m/z & retention time ranges
@@ -174,7 +174,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getPeaksInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
+  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -204,7 +204,7 @@ public interface FeatureList {
   /**
    * Returns a row number of given peak
    */
-  public int getPeakRowNum(Feature peak);
+  public int getFeatureListRowNum(Feature peak);
 
   /**
    * Returns a row containing given peak

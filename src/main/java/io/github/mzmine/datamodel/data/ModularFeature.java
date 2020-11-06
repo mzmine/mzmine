@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogramb
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -109,14 +110,13 @@ public class ModularFeature implements Feature, ModularDataModel {
     assert featureStatus != null;
 
     if (dataPointsPerScan.length == 0) {
-      throw new IllegalArgumentException("Cannot create a SimplePeak instance with no data points");
+      throw new IllegalArgumentException("Cannot create a ModularFeature instance with no data points");
     }
 
     this.fragmentScanNumber = fragmentScanNumber;
     this.representiveScanNumber = representativeScan;
     // add values to feature
-    int[] scans = allMS2FragmentScanNumbers;
-    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    set(ScanNumbersType.class, IntStream.of(allMS2FragmentScanNumbers).boxed().collect(Collectors.toList()));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -126,21 +126,15 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(BestScanNumberType.class, representativeScan);
 
     // datapoints of feature
-    /* TODO:
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(p.getDataPoint(scan));
-    }
-    set(DataPointsType.class, dps);
-     */
+    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
 
     // ranges
     set(MZRangeType.class, mzRange);
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    // TODO:
-    //this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    this.allMS2FragmentScanNumbers = IntStream.of(allMS2FragmentScanNumbers).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {
@@ -186,8 +180,8 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(DataPointsType.class, dps);
 
     // ranges
-    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint().floatValue(),
-        p.getRawDataPointsRTRange().upperEndpoint().floatValue());
+    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint(),
+        p.getRawDataPointsRTRange().upperEndpoint());
     Range<Double> mzRange = Range.closed(p.getRawDataPointsMZRange().lowerEndpoint(),
         p.getRawDataPointsMZRange().upperEndpoint());
     Range<Float> intensityRange =
@@ -197,9 +191,9 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    allMS2FragmentScanNumbers = FXCollections.observableArrayList(
-        IntStream.of(ScanUtils.findAllMS2FragmentScans(p.getDataFile(), rtRange, mzRange)).boxed()
-            .collect(Collectors.toList()));
+    allMS2FragmentScanNumbers = IntStream.of(ScanUtils
+        .findAllMS2FragmentScans(p.getDataFile(), rtRange, mzRange)).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if(!Float.isNaN(fwhm)) {
@@ -218,52 +212,30 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Copy constructor
    */
-  // TODO: calculations to p.get*()
-  public ModularFeature(@Nonnull ModularFeatureList flist, Feature p) {
+  public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
     this(flist);
     // add values to feature
-    int[] scans = (p.getScanNumbers()).stream().mapToInt(i -> i).toArray();
-    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
-    set(RawFileType.class, (p.getRawDataFile()));
-    set(DetectionType.class, (p.getFeatureStatus()));
-    set(MZType.class, (p.getMZ()));
-    set(RTType.class, ((float) p.getRT()));
-    set(HeightType.class, ((float) p.getHeight()));
-    set(AreaType.class, ((float) p.getArea()));
-    set(BestScanNumberType.class, (p.getRepresentativeScanNumber()));
+    set(ScanNumbersType.class, f.getScanNumbers());
+    set(RawFileType.class, (f.getRawDataFile()));
+    set(DetectionType.class, (f.getFeatureStatus()));
+    set(MZType.class, (f.getMZ()));
+    set(RTType.class, (f.getRT()));
+    set(HeightType.class, (f.getHeight()));
+    set(AreaType.class, (f.getArea()));
+    set(BestScanNumberType.class, (f.getRepresentativeScanNumber()));
 
     // datapoints of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(p.getDataPoint(scan));
-    }
-    set(DataPointsType.class, dps);
-
+    set(DataPointsType.class, f.getDataPoints());
 
     // ranges
-    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint(),
-        p.getRawDataPointsRTRange().upperEndpoint());
-    Range<Double> mzRange = Range.closed(p.getRawDataPointsMZRange().lowerEndpoint(),
-        p.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange =
-        Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint(),
-            p.getRawDataPointsIntensityRange().upperEndpoint());
-    set(MZRangeType.class, mzRange);
-    set(RTRangeType.class, rtRange);
-    set(IntensityRangeType.class, intensityRange);
+    set(MZRangeType.class, f.getRawDataPointsMZRange());
+    set(RTRangeType.class, f.getRawDataPointsRTRange());
+    set(IntensityRangeType.class, f.getRawDataPointsIntensityRange());
 
-    float fwhm = QualityParameters.calculateFWHM(this);
-    if(!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(this);
-    if(!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
-    if(!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
-    }
+    // quality parameters
+    set(FwhmType.class, f.getFWHM());
+    set(TailingFactorType.class, f.getTailingFactor());
+    set(AsymmetryFactorType.class, f.getAsymmetryFactor());
   }
 
   @Override
@@ -357,8 +329,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     return get(AsymmetryFactorType.class).getValue();
   }
 
-  // TODO: apply the same approach to all Feature "variables"
-  //       (e. g. declare and inherit getters and setters for common data types in Feature)
   @Override
   public void setMZ(double mz) {
     set(MZType.class, mz);
@@ -459,7 +429,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nonnull
   @Override
   public FeatureStatus getFeatureStatus() {
-    return null;
+    return get(DetectionType.class).getValue();
   }
 
   public double getMZ() {

@@ -90,7 +90,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
                 for (RawDataFile dataFile : dataFiles) {
                   if (dataFile.getName().equals(
                       docElement.getElementsByTagName("rawdatafile_name").item(0).getNodeValue())) {
-                    Feature feature = peakList.getPeak(rownum, dataFile);
+                    Feature feature = peakList.getFeature(rownum, dataFile);
                     if (feature != null)
                       newValues.add(feature);
                   }

@@ -414,7 +414,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // TODO:
       //peak.setParentChromatogramRowID(parentChromatogramRowID);
 
-      buildingRow.addPeak(dataFile, peak);
+      buildingRow.addFeature(dataFile, peak);
 
     }
 

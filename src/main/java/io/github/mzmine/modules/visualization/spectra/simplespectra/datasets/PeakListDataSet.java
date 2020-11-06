@@ -46,7 +46,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
     this.featureList = featureList;
 
-    Feature features[] = featureList.getPeaks(dataFile).toArray(Feature[]::new);
+    Feature features[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);
 
     Vector<Feature> candidates = new Vector<Feature>();
     for (Feature peak : features) {
