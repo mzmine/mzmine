@@ -156,7 +156,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   /**
    * Constructor for row with a specific id.
    *
-   * @param flist FeatureOld list
+   * @param flist Feature list
    * @param id ID
    */
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
@@ -228,13 +228,21 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
     ModularFeature modularFeature = (ModularFeature) feature;
 
-    // TODO: solve the NullPointerException while aligning previously aligned feature lists
-
+    /*
     if (Objects.equals(modularFeature.getFeatureList(), getFeatureList())) {
       // features are final - replace all values for all data types
       // keep old feature
       ModularFeature old = getFilesFeatures().get(raw);
       for (DataType type : flist.getFeatureTypes().values()) {
+        old.set(type, modularFeature.get(type).getValue());
+      }
+    } else {
+      features.put(raw, modularFeature);
+    }
+    */
+    if(hasFeature(raw)) {
+      ModularFeature old = getFeature(raw);
+      for (DataType<?> type : flist.getFeatureTypes().values()) {
         old.set(type, modularFeature.get(type).getValue());
       }
     } else {
@@ -506,6 +514,10 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     int charge = 0;
     HashSet<Integer> chargeArr = new HashSet<Integer>();
     for (Feature feature : getFeatures()) {
+      // Alignned feature list rows can contain "empty" features
+      if(feature.getRawDataFile() == null) {
+        continue;
+      }
       rtSum += feature.getRT();
       mzSum += feature.getMZ();
       heightSum += feature.getHeight();

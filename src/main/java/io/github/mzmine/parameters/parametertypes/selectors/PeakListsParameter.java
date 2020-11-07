@@ -93,7 +93,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
 
   @Override
   public String getDescription() {
-    return "FeatureOld lists that this module will take as its input.";
+    return "Feature lists that this module will take as its input.";
   }
 
   @Override

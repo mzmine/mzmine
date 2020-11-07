@@ -303,13 +303,14 @@ public class JoinAlignerTask extends AbstractTask {
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          // TODO: feature list in constructor?
           targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
           newRowID++;
           alignedFeatureList.addRow(targetRow);
         }
 
         // Add all peaks from the original row to the aligned row
+        // TODO: test aligned feature list correctness, seems like rows are not aligned correctly
+        //  while aligning previously aligned feature lists
         for (RawDataFile file : row.getRawDataFiles()) {
           targetRow.addFeature(file, row.getPeak(file));
         }

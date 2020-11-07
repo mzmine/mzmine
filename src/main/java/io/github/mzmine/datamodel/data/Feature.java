@@ -171,17 +171,17 @@ public interface Feature {
   /**
    * This method returns the full width at half maximum (FWHM) of the peak
    */
-  double getFWHM();
+  float getFWHM();
 
   /**
    * This method returns the tailing factor of the peak
    */
-  double getTailingFactor();
+  float getTailingFactor();
 
   /**
    * This method returns the asymmetry factor of the peak
    */
-  double getAsymmetryFactor();
+  float getAsymmetryFactor();
 
   /**
    * Sets the full width at half maximum (FWHM)

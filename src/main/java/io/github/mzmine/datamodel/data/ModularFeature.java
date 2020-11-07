@@ -233,9 +233,18 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(IntensityRangeType.class, f.getRawDataPointsIntensityRange());
 
     // quality parameters
-    set(FwhmType.class, f.getFWHM());
-    set(TailingFactorType.class, f.getTailingFactor());
-    set(AsymmetryFactorType.class, f.getAsymmetryFactor());
+    float fwhm = f.getFWHM();
+    if(!Float.isNaN(fwhm)) {
+      set(FwhmType.class, fwhm);
+    }
+    float tf = f.getTailingFactor();
+    if(!Float.isNaN(tf)) {
+      set(TailingFactorType.class, tf);
+    }
+    float af = f.getAsymmetryFactor();
+    if(!Float.isNaN(af)) {
+      set(AsymmetryFactorType.class, af);
+    }
   }
 
   @Override
@@ -315,18 +324,18 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public double getFWHM() {
-    return get(FwhmType.class).getValue();
+  public float getFWHM() {
+    return get(FwhmType.class) == null ? Float.NaN : get(FwhmType.class).getValue();
   }
 
   @Override
-  public double getTailingFactor() {
-    return get(TailingFactorType.class).getValue();
+  public float getTailingFactor() {
+    return get(TailingFactorType.class) == null ? Float.NaN : get(TailingFactorType.class).getValue();
   }
 
   @Override
-  public double getAsymmetryFactor() {
-    return get(AsymmetryFactorType.class).getValue();
+  public float getAsymmetryFactor() {
+    return get(AsymmetryFactorType.class) == null ? Float.NaN : get(AsymmetryFactorType.class).getValue();
   }
 
   @Override
