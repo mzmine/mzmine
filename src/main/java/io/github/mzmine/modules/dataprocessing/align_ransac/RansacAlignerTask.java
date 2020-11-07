@@ -156,8 +156,7 @@ class RansacAlignerTask extends AbstractTask {
 
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
-          //targetRow = new ModularFeatureListRow(newRowID);
-          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList);
+          targetRow = new ModularFeatureListRow((ModularFeatureList) featureList, newRowID);
           //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
