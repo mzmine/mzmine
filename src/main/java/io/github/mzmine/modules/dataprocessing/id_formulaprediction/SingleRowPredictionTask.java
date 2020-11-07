@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import javafx.application.Platform;
 import java.util.Map;
-import java.util.concurrent.FutureTask;
 import java.util.logging.Logger;
 
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -54,7 +53,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.concurrent.CountDownLatch;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
@@ -241,7 +239,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // MS/MS evaluation is slowest, so let's do it last
     Double msmsScore = null;
-    Feature bestPeak = peakListRow.getBestPeak();
+    Feature bestPeak = peakListRow.getBestFeature();
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Map<DataPoint, String> msmsAnnotations = null;
     int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();

@@ -21,7 +21,6 @@ package io.github.mzmine.util.dialogs;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +62,7 @@ public class FeatureOverviewWindow extends Stage {
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     setScene(mainScene);
 
-    this.feature = row.getBestPeak();
+    this.feature = row.getBestFeature();
     rawFiles = row.getRawDataFiles().toArray(new RawDataFile[0]);
 
     // setBackground(Color.white);

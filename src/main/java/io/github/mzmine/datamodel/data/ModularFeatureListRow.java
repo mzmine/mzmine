@@ -269,13 +269,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
 
   @Override
-  public int getNumberOfPeaks() {
+  public int getNumberOfFeatures() {
     return features.size();
-  }
-
-  @Override
-  public ModularFeature getPeak(RawDataFile rawData) {
-    return features.get(rawData);
   }
 
   @Override
@@ -343,6 +338,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param raw
    * @return
    */
+  @Override
   public ModularFeature getFeature(RawDataFile raw) {
     return features.get(raw);
   }
@@ -444,7 +440,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Nullable
   @Override
-  public ModularFeature getBestPeak() {
+  public ModularFeature getBestFeature() {
     ModularFeature features[] = getFeatures().toArray(new ModularFeature[0]);
     Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
     if (features.length == 0) {

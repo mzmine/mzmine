@@ -45,7 +45,7 @@ public interface FeatureListRow {
   /**
    * Returns number of features assigned to this row
    */
-  public int getNumberOfPeaks();
+  public int getNumberOfFeatures();
 
   /**
    * Return features assigned to this row
@@ -55,7 +55,7 @@ public interface FeatureListRow {
   /**
    * Returns feature for given raw data file
    */
-  public Feature getPeak(RawDataFile rawData);
+  public Feature getFeature(RawDataFile rawData);
 
   /**
    * Add a feature
@@ -187,7 +187,7 @@ public interface FeatureListRow {
   /**
    * Returns the most intense feature in this row
    */
-  public Feature getBestPeak();
+  public Feature getBestFeature();
 
   /**
    * Returns the most intense fragmentation scan in this row

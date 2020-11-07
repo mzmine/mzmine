@@ -31,9 +31,6 @@ import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
@@ -332,7 +329,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
     if (msLevel == 1) {
       List<Scan> scans = new ArrayList<>();
-      scans.add(row.getBestPeak().getRepresentativeScan());
+      scans.add(row.getBestFeature().getRepresentativeScan());
       return scans;
     } else {
       // first entry is the best scan

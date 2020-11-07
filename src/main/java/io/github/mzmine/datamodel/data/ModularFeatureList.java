@@ -304,12 +304,11 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all features overlapping with a retention time range
    * 
-   * @param startRT Start of the retention time range
-   * @param endRT End of the retention time range
-   * @return
+   * @param rtRange Retention time range
+   * @return List of features
    */
   @Override
-  public ObservableList<Feature> getPeaksInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
+  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile raw, Range<Float> rtRange) {
     Range<Double> all = Range.all();
     return getFeaturesInsideScanAndMZRange(raw, rtRange, all);
   }
@@ -423,7 +422,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public FeatureListRow getPeakRow(Feature feature) {
+  public FeatureListRow getFeatureRow(Feature feature) {
     return stream().filter(row -> row.hasFeature(feature)).findFirst().orElse(null);
   }
 

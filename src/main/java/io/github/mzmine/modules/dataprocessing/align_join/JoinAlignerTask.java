@@ -238,8 +238,8 @@ public class JoinAlignerTask extends AbstractTask {
             // scans
             if (msLevel == 1) {
               rowDPs =
-                  row.getBestPeak().getRepresentativeScan().getMassList(massList).getDataPoints();
-              candidateDPs = candidate.getBestPeak().getRepresentativeScan().getMassList(massList)
+                  row.getBestFeature().getRepresentativeScan().getMassList(massList).getDataPoints();
+              candidateDPs = candidate.getBestFeature().getRepresentativeScan().getMassList(massList)
                   .getDataPoints();
             }
 
@@ -312,7 +312,7 @@ public class JoinAlignerTask extends AbstractTask {
         // TODO: test aligned feature list correctness, seems like rows are not aligned correctly
         //  while aligning previously aligned feature lists
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addFeature(file, row.getPeak(file));
+          targetRow.addFeature(file, row.getFeature(file));
         }
 
         // Add all non-existing identities from the original row to the

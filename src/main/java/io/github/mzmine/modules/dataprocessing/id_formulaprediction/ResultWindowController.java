@@ -221,7 +221,7 @@ public class ResultWindowController {
         if (predictedPattern == null)
             return;
 
-        Feature peak = peakListRow.getBestPeak();
+        Feature peak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
@@ -254,7 +254,7 @@ public class ResultWindowController {
             return;
         }
 
-        Feature bestPeak = peakListRow.getBestPeak();
+        Feature bestPeak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = bestPeak.getRawDataFile();
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();

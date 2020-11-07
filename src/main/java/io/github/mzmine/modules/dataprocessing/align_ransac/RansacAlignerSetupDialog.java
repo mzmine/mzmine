@@ -134,7 +134,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
         if (file == null || file2 == null) {
           alignMol.addElement(new AlignStructMol(row, candidateRow));
         } else {
-          if (candidateRow.getPeak(file2) != null) {
+          if (candidateRow.getFeature(file2) != null) {
             alignMol.addElement(new AlignStructMol(row, candidateRow, file, file2));
           }
         }

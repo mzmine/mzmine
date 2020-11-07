@@ -155,7 +155,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     currentRow = row;
 
     // Determine peak charge.
-    final Feature bestPeak = row.getBestPeak();
+    final Feature bestPeak = row.getBestFeature();
     int charge = bestPeak.getCharge();
     if (charge <= 0) {
       charge = 1;

@@ -199,7 +199,7 @@ public class MultiMSMSWindow extends JFrame {
    */
   private boolean rawContainsFragmentation(RawDataFile raw) {
     for (FeatureListRow row : rows) {
-      Feature peak = row.getPeak(raw);
+      Feature peak = row.getFeature(raw);
       if (peak != null && peak.getMostIntenseFragmentScanNumber() > 0) {
         return true;
       }
@@ -370,7 +370,7 @@ public class MultiMSMSWindow extends JFrame {
       Scan scan = null;
       Feature best = null;
       for (FeatureListRow r : rows) {
-        Feature f = raw == null ? r.getBestPeak() : r.getPeak(raw);
+        Feature f = raw == null ? r.getBestFeature() : r.getFeature(raw);
         if (f != null && (best == null || f.getHeight() > best.getHeight())) {
           best = f;
         }

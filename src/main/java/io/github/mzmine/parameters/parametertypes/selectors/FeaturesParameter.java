@@ -123,7 +123,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
         peakListElement.setNodeValue(item.getFeatureList().getName());
         featureElement.appendChild(peakListElement);
 
-        FeatureListRow row = item.getFeatureList().getPeakRow(item);
+        FeatureListRow row = item.getFeatureList().getFeatureRow(item);
         Element peakListRowElement = parentDocument.createElement("peaklist_row_id");
         if (row != null) {
           peakListRowElement.setNodeValue(row.toString());

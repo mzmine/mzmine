@@ -41,7 +41,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 public class ADAPInterface {
 
   public static Component getComponent(final FeatureListRow row) {
-    if (row.getNumberOfPeaks() == 0)
+    if (row.getNumberOfFeatures() == 0)
       throw new IllegalArgumentException("No peaks found");
 
     NavigableMap<Double, Double> spectrum = new TreeMap<>();
@@ -54,7 +54,7 @@ public class ADAPInterface {
     }
 
     // Read Chromatogram
-    final Feature peak = row.getBestPeak();
+    final Feature peak = row.getBestFeature();
     final RawDataFile dataFile = peak.getRawDataFile();
 
     NavigableMap<Double, Double> chromatogram = new TreeMap<>();

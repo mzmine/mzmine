@@ -232,7 +232,7 @@ public class MirrorChartFactory {
     if (alwaysShowBest || raw == null) {
       scan = row.getBestFragmentation();
     } else if (raw != null) {
-      Feature peak = row.getPeak(raw);
+      Feature peak = row.getFeature(raw);
       if (peak != null) {
         scan = raw.getScan(peak.getMostIntenseFragmentScanNumber());
       }

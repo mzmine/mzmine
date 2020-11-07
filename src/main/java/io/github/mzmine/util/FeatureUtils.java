@@ -122,8 +122,8 @@ public class FeatureUtils {
 
     assert ((row1 != null) && (row2 != null));
 
-    int firstCharge = row1.getBestPeak().getCharge();
-    int secondCharge = row2.getBestPeak().getCharge();
+    int firstCharge = row1.getBestFeature().getCharge();
+    int secondCharge = row2.getBestFeature().getCharge();
 
     return (firstCharge == 0) || (secondCharge == 0) || (firstCharge == secondCharge);
 
@@ -265,7 +265,7 @@ public class FeatureUtils {
    */
   public @Nonnull static Range<Float> getPeakListRowAvgRtRange(FeatureListRow row) {
 
-    if (row == null || row.getBestPeak() == null)
+    if (row == null || row.getBestFeature() == null)
       return Range.closed(0.f, 0.f);
 
     int size = row.getFeatures().size();

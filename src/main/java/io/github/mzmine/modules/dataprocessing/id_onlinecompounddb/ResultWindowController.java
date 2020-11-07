@@ -185,7 +185,7 @@ public class ResultWindowController {
         if (predictedPattern == null)
             return;
 
-        Feature peak = peakListRow.getBestPeak();
+        Feature peak = peakListRow.getBestFeature();
 
         RawDataFile dataFile = peak.getRawDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();

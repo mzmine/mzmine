@@ -42,9 +42,9 @@ public class FormulaPredictionModule implements MZmineModule {
     double mzValue = row.getAverageMZ();
     parameters.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(mzValue);
 
-    int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
+    int bestScanNum = row.getBestFeature().getRepresentativeScanNumber();
     if (bestScanNum > 0) {
-      RawDataFile dataFile = row.getBestPeak().getRawDataFile();
+      RawDataFile dataFile = row.getBestFeature().getRawDataFile();
       Scan bestScan = dataFile.getScan(bestScanNum);
       PolarityType scanPolarity = bestScan.getPolarity();
       switch (scanPolarity) {
@@ -61,7 +61,7 @@ public class FormulaPredictionModule implements MZmineModule {
       }
     }
 
-    int charge = row.getBestPeak().getCharge();
+    int charge = row.getBestFeature().getCharge();
     if (charge > 0) {
       parameters.getParameter(FormulaPredictionParameters.neutralMass).setCharge(charge);
     }

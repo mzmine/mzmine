@@ -170,7 +170,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
    * @return true if row has peak with MS2 spectrum in RawDataFile raw
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
-    Feature peak = row.getPeak(raw);
+    Feature peak = row.getFeature(raw);
     // no peak / no ms2 - return false
     if (peak == null || peak.getAllMS2FragmentScanNumbers() == null
         || peak.getAllMS2FragmentScanNumbers().size() == 0)
@@ -208,7 +208,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     // labels for TIC visualizer
     Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
 
-    Feature peak = row.getPeak(activeRaw);
+    Feature peak = row.getFeature(activeRaw);
 
     // scan selection
     ScanSelection scanSelection = new ScanSelection(activeRaw.getDataRTRange(1), 1);

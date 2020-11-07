@@ -40,14 +40,14 @@ public class AlignStructMol implements Comparator<AlignStructMol> {
   public AlignStructMol(FeatureListRow row1, FeatureListRow row2, RawDataFile file, RawDataFile file2) {
     this.row1 = row1;
     this.row2 = row2;
-    if (row1.getPeak(file) != null) {
-      RT = row1.getPeak(file).getRT();
+    if (row1.getFeature(file) != null) {
+      RT = row1.getFeature(file).getRT();
     } else {
       RT = row1.getAverageRT();
     }
 
-    if (row2.getPeak(file2) != null) {
-      RT2 = row2.getPeak(file2).getRT();
+    if (row2.getFeature(file2) != null) {
+      RT2 = row2.getFeature(file2).getRT();
     } else {
       RT = row1.getAverageRT();
     }

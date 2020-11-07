@@ -53,9 +53,9 @@ public class PseudoSpectrum {
       String annotation = null;
       // sum -> heighest peak
       if (sum)
-        series.addDP(row.getAverageMZ(), row.getBestPeak().getHeight(), annotation);
+        series.addDP(row.getAverageMZ(), row.getBestFeature().getHeight(), annotation);
       else {
-        Feature f = raw == null ? row.getBestPeak() : row.getPeak(raw);
+        Feature f = raw == null ? row.getBestFeature() : row.getFeature(raw);
         if (f != null)
           series.addDP(f.getMZ(), f.getHeight(), null);
       }

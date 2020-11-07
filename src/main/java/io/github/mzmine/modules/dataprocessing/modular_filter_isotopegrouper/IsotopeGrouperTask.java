@@ -179,7 +179,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
       }
 
-      FeatureListRow oldRow = featureList.getPeakRow(aPeak);
+      FeatureListRow oldRow = featureList.getFeatureRow(aPeak);
 
       assert bestFitPeaks != null;
 

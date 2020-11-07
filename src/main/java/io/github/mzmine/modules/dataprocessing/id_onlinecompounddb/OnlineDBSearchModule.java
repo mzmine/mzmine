@@ -81,7 +81,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
         .setIonMass(row.getAverageMZ());
 
     // Set charge.
-    final int charge = row.getBestPeak().getCharge();
+    final int charge = row.getBestFeature().getCharge();
     if (charge > 0) {
 
       parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(charge);

@@ -78,20 +78,20 @@ public interface FeatureList {
   public int getNumberOfRows();
 
   /**
-   * Returns the peak of a given raw data file on a give row of the feature list
+   * Returns the feature of a given raw data file on a give row of the feature list
    * 
    * @param row Row of the feature list
-   * @param rawDataFile Raw data file where the peak is detected/estimated
+   * @param rawDataFile Raw data file where the feature is detected/estimated
    */
   public Feature getFeature(int row, RawDataFile rawDataFile);
 
   /**
-   * Returns all peaks for a raw data file
+   * Returns all features for a raw data file
    */
   public ObservableList<Feature> getFeatures(RawDataFile rawDataFile);
 
   /**
-   * Returns all peaks on one row
+   * Returns all features on one row
    */
   public FeatureListRow getRow(int row);
 
@@ -101,14 +101,14 @@ public interface FeatureList {
   public ObservableList<FeatureListRow> getRows();
 
   /**
-   * Creates a stream of PeakListRows
+   * Creates a stream of FeatureListRows
    * 
    * @return
    */
   public Stream<FeatureListRow> stream();
 
   /**
-   * Creates a parallel stream of PeakListRows
+   * Creates a parallel stream of FeatureListRows
    * 
    * @return
    */
@@ -152,15 +152,15 @@ public interface FeatureList {
       Range<Double> mzRange);
 
   /**
-   * Returns all peaks overlapping with a retention time range
+   * Returns all features overlapping with a retention time range
    *
    * @param file Raw data file
    * @param rtRange Retention time range
    */
-  public ObservableList<Feature> getPeaksInsideScanRange(RawDataFile file, Range<Float> rtRange);
+  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile file, Range<Float> rtRange);
 
   /**
-   * Returns all peaks in a given m/z range
+   * Returns all features in a given m/z range
    * 
    * @param file Raw data file
    * @param mzRange m/z range
@@ -168,7 +168,7 @@ public interface FeatureList {
   public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
-   * Returns all peaks in a given m/z & retention time ranges
+   * Returns all features in a given m/z & retention time ranges
    *
    * @param file Raw data file
    * @param rtRange Retention time range
@@ -178,7 +178,7 @@ public interface FeatureList {
       Range<Double> mzRange);
 
   /**
-   * Returns maximum raw data point intensity among all peaks in this feature list
+   * Returns maximum raw data point intensity among all features in this feature list
    * 
    * @return Maximum intensity
    */
@@ -202,14 +202,14 @@ public interface FeatureList {
   public void removeRow(FeatureListRow row);
 
   /**
-   * Returns a row number of given peak
+   * Returns a row number of given feature
    */
-  public int getFeatureListRowNum(Feature peak);
+  public int getFeatureListRowNum(Feature feature);
 
   /**
-   * Returns a row containing given peak
+   * Returns a row containing given feature
    */
-  public FeatureListRow getPeakRow(Feature peak);
+  public FeatureListRow getFeatureRow(Feature feature);
 
   public void addDescriptionOfAppliedTask(FeatureListAppliedMethod appliedMethod);
 
@@ -232,7 +232,7 @@ public interface FeatureList {
    * Find row by ID
    * 
    * @param id id
-   * @return the peaklist row or null
+   * @return the feature list row or null
    */
   public FeatureListRow findRowByID(int id);
 
