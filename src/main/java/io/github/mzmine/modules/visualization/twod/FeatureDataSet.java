@@ -18,66 +18,66 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Vector;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
  * Picked peaks data set
  */
-class PeakDataSet extends AbstractXYDataset {
+class FeatureDataSet extends AbstractXYDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakList peakList;
+  private FeatureList featureList;
 
-  private Feature peaks[];
+  private Feature features[];
 
-  private PeakDataPoint dataPoints[][];
+  private FeatureDataPoint dataPoints[][];
 
-  PeakDataSet(RawDataFile dataFile, PeakList peakList, Range<Double> rtRange,
+  FeatureDataSet(RawDataFile dataFile, FeatureList featureList, Range<Float> rtRange,
       Range<Double> mzRange) {
 
-    this.peakList = peakList;
+    this.featureList = featureList;
 
-    Vector<Feature> processedPeaks = new Vector<Feature>(1024, 1024);
-    Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(1024, 1024);
-    Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
+    Vector<Feature> processedFeatures = new Vector<Feature>(1024, 1024);
+    Vector<FeatureDataPoint[]> processedFeatureDataPoints = new Vector<FeatureDataPoint[]>(1024, 1024);
+    Vector<FeatureDataPoint> thisFeatureDataPoints = new Vector<FeatureDataPoint>();
 
-    Feature allPeaks[] = peakList.getPeaks(dataFile).toArray(Feature[]::new);
+    Feature allFeatures[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);
 
-    for (Feature peak : allPeaks) {
+    for (Feature feature : allFeatures) {
 
-      int scanNumbers[] = peak.getScanNumbers();
+      int scanNumbers[] = feature.getScanNumbers().stream().mapToInt(i->i).toArray();
 
       for (int scan : scanNumbers) {
 
-        double rt = dataFile.getScan(scan).getRetentionTime();
-        DataPoint dp = peak.getDataPoint(scan);
+        float rt = dataFile.getScan(scan).getRetentionTime();
+        DataPoint dp = feature.getDataPoint(scan);
         if (dp != null) {
           if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
-            PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
-            thisPeakDataPoints.add(newDP);
+            FeatureDataPoint newDP = new FeatureDataPoint(scan, rt, dp);
+            thisFeatureDataPoints.add(newDP);
           }
         }
 
       }
 
-      if (thisPeakDataPoints.size() > 0) {
-        PeakDataPoint dpArray[] = thisPeakDataPoints.toArray(new PeakDataPoint[0]);
-        processedPeaks.add(peak);
-        processedPeakDataPoints.add(dpArray);
-        thisPeakDataPoints.clear();
+      if (thisFeatureDataPoints.size() > 0) {
+        FeatureDataPoint dpArray[] = thisFeatureDataPoints.toArray(new FeatureDataPoint[0]);
+        processedFeatures.add(feature);
+        processedFeatureDataPoints.add(dpArray);
+        thisFeatureDataPoints.clear();
       }
 
     }
 
-    peaks = processedPeaks.toArray(new Feature[0]);
-    dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
+    features = processedFeatures.toArray(new Feature[0]);
+    dataPoints = processedFeatureDataPoints.toArray(new FeatureDataPoint[0][]);
 
   }
 
@@ -96,15 +96,15 @@ class PeakDataSet extends AbstractXYDataset {
     return dataPoints[series].length;
   }
 
-  public PeakList getPeakList() {
-    return peakList;
+  public FeatureList getFeatureList() {
+    return featureList;
   }
 
-  public Feature getPeak(int series) {
-    return peaks[series];
+  public Feature getFeature(int series) {
+    return features[series];
   }
 
-  public PeakDataPoint getDataPoint(int series, int item) {
+  public FeatureDataPoint getDataPoint(int series, int item) {
     return dataPoints[series][item];
   }
 

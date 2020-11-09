@@ -18,11 +18,10 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,14 +29,10 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
@@ -45,7 +40,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 
 /**
@@ -78,11 +72,11 @@ public class TwoDVisualizerTab extends MZmineTab {
 
   private TwoDDataSet dataset;
   private RawDataFile dataFile;
-  private final Range<Double> rtRange;
+  private final Range<Float> rtRange;
   private final Range<Double> mzRange;
   private final ParameterSet parameters;
 
-  public TwoDVisualizerTab(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
+  public TwoDVisualizerTab(RawDataFile dataFile, Scan scans[], Range<Float> rtRange,
       Range<Double> mzRange, ParameterSet parameters) {
 
     super("2D Visualizer", true, false);
@@ -156,10 +150,10 @@ public class TwoDVisualizerTab extends MZmineTab {
     toggleTooltipButton.setSelected(true);
     toggleTooltipButton.setOnAction(e -> {
       if (toggleTooltipButton.isSelected()) {
-        twoDPlot.showPeaksTooltips(false);
+        twoDPlot.showFeaturesTooltips(false);
         toggleTooltipButton.setGraphic(new ImageView(notooltipsIcon));
       } else {
-        twoDPlot.showPeaksTooltips(true);
+        twoDPlot.showFeaturesTooltips(true);
         toggleTooltipButton.setGraphic(new ImageView(tooltipsIcon));
       }
       toggleTooltipButton.setSelected(!toggleTooltipButton.isSelected());
@@ -262,13 +256,13 @@ public class TwoDVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

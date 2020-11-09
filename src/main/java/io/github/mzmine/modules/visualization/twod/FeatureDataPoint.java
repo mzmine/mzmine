@@ -23,15 +23,15 @@ import io.github.mzmine.datamodel.DataPoint;
 /**
  * This class represents one peak datapoint (retention time and m/z)
  */
-class PeakDataPoint {
+class FeatureDataPoint {
 
   private int scanNumber;
-  private double rt;
+  private float rt;
   private DataPoint dataPoint;
 
   /**
    */
-  PeakDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
+  FeatureDataPoint(int scanNumber, float rt, DataPoint dataPoint) {
     this.scanNumber = scanNumber;
     this.rt = rt;
     this.dataPoint = dataPoint;
@@ -41,7 +41,7 @@ class PeakDataPoint {
     return scanNumber;
   }
 
-  double getRT() {
+  float getRT() {
     return rt;
   }
 
