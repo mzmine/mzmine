@@ -18,8 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.util.RangeUtils;
 import java.util.Collection;
 
+import java.util.Objects;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -93,8 +95,8 @@ public class ScanSelectionParameter
     String scanDefinition = null;
 
     scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
-    Range<Double> scanRTRangeDouble = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
-    scanRTRange = Range.closed(scanRTRangeDouble.lowerEndpoint().floatValue(), scanRTRangeDouble.upperEndpoint().floatValue());
+    scanRTRange = RangeUtils.toFloatRange(
+        Objects.requireNonNull(XMLUtils.parseDoubleRange(xmlElement, "retention_time")));
 
     NodeList items = xmlElement.getElementsByTagName("ms_level");
     for (int i = 0; i < items.getLength(); i++) {

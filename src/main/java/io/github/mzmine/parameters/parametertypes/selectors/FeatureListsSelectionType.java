@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-public enum PeakListsSelectionType {
+public enum FeatureListsSelectionType {
 
   GUI_SELECTED_PEAKLISTS("As selected in main window"), //
   ALL_PEAKLISTS("All feature lists"), //
@@ -28,7 +28,7 @@ public enum PeakListsSelectionType {
 
   private final String stringValue;
 
-  PeakListsSelectionType(String stringValue) {
+  FeatureListsSelectionType(String stringValue) {
     this.stringValue = stringValue;
   }
 

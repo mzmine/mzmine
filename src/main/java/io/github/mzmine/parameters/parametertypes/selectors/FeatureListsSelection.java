@@ -26,9 +26,9 @@ import com.google.common.base.Strings;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.TextUtils;
 
-public class PeakListsSelection implements Cloneable {
+public class FeatureListsSelection implements Cloneable {
 
-  private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
+  private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS;
   private FeatureList specificPeakLists[];
   private String namePattern;
   private FeatureList batchLastPeakLists[];
@@ -75,11 +75,11 @@ public class PeakListsSelection implements Cloneable {
 
   }
 
-  public PeakListsSelectionType getSelectionType() {
+  public FeatureListsSelectionType getSelectionType() {
     return selectionType;
   }
 
-  public void setSelectionType(PeakListsSelectionType selectionType) {
+  public void setSelectionType(FeatureListsSelectionType selectionType) {
     this.selectionType = selectionType;
   }
 
@@ -103,8 +103,8 @@ public class PeakListsSelection implements Cloneable {
     this.batchLastPeakLists = batchLastPeakLists;
   }
 
-  public PeakListsSelection clone() {
-    PeakListsSelection newSelection = new PeakListsSelection();
+  public FeatureListsSelection clone() {
+    FeatureListsSelection newSelection = new FeatureListsSelection();
     newSelection.selectionType = selectionType;
     newSelection.specificPeakLists = specificPeakLists;
     newSelection.namePattern = namePattern;

@@ -32,15 +32,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 
-public class PeakListsComponent extends BorderPane {
+public class FeatureListsComponent extends BorderPane {
 
 
-  private final ComboBox<PeakListsSelectionType> typeCombo;
+  private final ComboBox<FeatureListsSelectionType> typeCombo;
   private final Button detailsButton;
   private final Label numPeakListsLabel;
-  private PeakListsSelection currentValue = new PeakListsSelection();
+  private FeatureListsSelection currentValue = new FeatureListsSelection();
 
-  public PeakListsComponent() {
+  public FeatureListsComponent() {
 
     // setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
@@ -51,21 +51,21 @@ public class PeakListsComponent extends BorderPane {
     detailsButton.setDisable(true);
     setRight(detailsButton);
 
-    typeCombo = new ComboBox<>(FXCollections.observableArrayList(PeakListsSelectionType.values()));
+    typeCombo = new ComboBox<>(FXCollections.observableArrayList(FeatureListsSelectionType.values()));
     typeCombo.setOnAction(e -> {
-      PeakListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
+      FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
       currentValue.setSelectionType(type);
-      detailsButton.setDisable((type != PeakListsSelectionType.NAME_PATTERN)
-          && (type != PeakListsSelectionType.SPECIFIC_PEAKLISTS));
+      detailsButton.setDisable((type != FeatureListsSelectionType.NAME_PATTERN)
+          && (type != FeatureListsSelectionType.SPECIFIC_PEAKLISTS));
       updateNumPeakLists();
     });
     typeCombo.getSelectionModel().selectFirst();
     setCenter(typeCombo);
 
     detailsButton.setOnAction(e -> {
-      PeakListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
+      FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
-      if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
+      if (type == FeatureListsSelectionType.SPECIFIC_PEAKLISTS) {
         final MultiChoiceParameter<FeatureList> plsParameter =
             new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
                 MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
@@ -79,7 +79,7 @@ public class PeakListsComponent extends BorderPane {
 
       }
 
-      if (type == PeakListsSelectionType.NAME_PATTERN) {
+      if (type == FeatureListsSelectionType.NAME_PATTERN) {
         final StringParameter nameParameter = new StringParameter("Name pattern",
             "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
             currentValue.getNamePattern());
@@ -97,15 +97,15 @@ public class PeakListsComponent extends BorderPane {
 
   }
 
-  void setValue(PeakListsSelection newValue) {
+  void setValue(FeatureListsSelection newValue) {
     currentValue = newValue.clone();
-    PeakListsSelectionType type = newValue.getSelectionType();
+    FeatureListsSelectionType type = newValue.getSelectionType();
     if (type != null)
       typeCombo.getSelectionModel().select(type);
     updateNumPeakLists();
   }
 
-  PeakListsSelection getValue() {
+  FeatureListsSelection getValue() {
     return currentValue;
   }
 
@@ -116,7 +116,7 @@ public class PeakListsComponent extends BorderPane {
   }
 
   private void updateNumPeakLists() {
-    if (currentValue.getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
+    if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_PEAKLISTS) {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
     } else {

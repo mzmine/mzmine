@@ -29,58 +29,59 @@ import com.google.common.base.Strings;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 
-public class PeakListsParameter implements UserParameter<PeakListsSelection, PeakListsComponent> {
+public class FeatureListsParameter implements UserParameter<FeatureListsSelection, FeatureListsComponent> {
 
-  private String name = "FeatureOld lists";
+  private String name = "Feature lists";
   private int minCount, maxCount;
 
-  private @Nonnull PeakListsSelection value = new PeakListsSelection();
+  private @Nonnull
+  FeatureListsSelection value = new FeatureListsSelection();
 
-  public PeakListsParameter() {
+  public FeatureListsParameter() {
     this(1, Integer.MAX_VALUE);
   }
 
-  public PeakListsParameter(int minCount) {
+  public FeatureListsParameter(int minCount) {
     this(minCount, Integer.MAX_VALUE);
   }
 
-  public PeakListsParameter(int minCount, int maxCount) {
+  public FeatureListsParameter(int minCount, int maxCount) {
     this.minCount = minCount;
     this.maxCount = maxCount;
   }
 
-  public PeakListsParameter(String name, int minCount, int maxCount) {
+  public FeatureListsParameter(String name, int minCount, int maxCount) {
     this.name = name;
     this.minCount = minCount;
     this.maxCount = maxCount;
   }
 
   @Override
-  public PeakListsSelection getValue() {
+  public FeatureListsSelection getValue() {
     return value;
   }
 
   @Override
-  public void setValue(@Nonnull PeakListsSelection newValue) {
+  public void setValue(@Nonnull FeatureListsSelection newValue) {
     this.value = newValue;
   }
 
-  public void setValue(PeakListsSelectionType selectionType, FeatureList peakLists[]) {
+  public void setValue(FeatureListsSelectionType selectionType, FeatureList peakLists[]) {
     if (value == null)
-      value = new PeakListsSelection();
+      value = new FeatureListsSelection();
     value.setSelectionType(selectionType);
     value.setSpecificPeakLists(peakLists);
   }
 
-  public void setValue(PeakListsSelectionType selectionType) {
+  public void setValue(FeatureListsSelectionType selectionType) {
     if (value == null)
-      value = new PeakListsSelection();
+      value = new FeatureListsSelection();
     value.setSelectionType(selectionType);
   }
 
   @Override
-  public PeakListsParameter cloneParameter() {
-    PeakListsParameter copy = new PeakListsParameter(name, minCount, maxCount);
+  public FeatureListsParameter cloneParameter() {
+    FeatureListsParameter copy = new FeatureListsParameter(name, minCount, maxCount);
     if (value != null)
       copy.value = value.clone();
     return copy;
@@ -121,13 +122,13 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
     FeatureList[] currentDataPeakLists =
         MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
 
-    PeakListsSelectionType selectionType;
+    FeatureListsSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
 
     if (Strings.isNullOrEmpty(attrValue))
-      selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
+      selectionType = FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS;
     else
-      selectionType = PeakListsSelectionType.valueOf(xmlElement.getAttribute("type"));
+      selectionType = FeatureListsSelectionType.valueOf(xmlElement.getAttribute("type"));
 
     ArrayList<Object> newValues = new ArrayList<Object>();
 
@@ -147,7 +148,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
       namePattern = items.item(i).getTextContent();
     }
 
-    this.value = new PeakListsSelection();
+    this.value = new FeatureListsSelection();
     this.value.setSelectionType(selectionType);
     this.value.setSpecificPeakLists(specificPeakLists);
     this.value.setNamePattern(namePattern);
@@ -177,17 +178,17 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
   }
 
   @Override
-  public PeakListsComponent createEditingComponent() {
-    return new PeakListsComponent();
+  public FeatureListsComponent createEditingComponent() {
+    return new FeatureListsComponent();
   }
 
   @Override
-  public void setValueFromComponent(PeakListsComponent component) {
+  public void setValueFromComponent(FeatureListsComponent component) {
     value = component.getValue();
   }
 
   @Override
-  public void setValueToComponent(PeakListsComponent component, PeakListsSelection newValue) {
+  public void setValueToComponent(FeatureListsComponent component, FeatureListsSelection newValue) {
     component.setValue(newValue);
   }
 

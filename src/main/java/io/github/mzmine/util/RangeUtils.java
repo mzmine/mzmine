@@ -52,6 +52,16 @@ public class RangeUtils {
   }
 
   /**
+   * Converts given range to Float range.
+   *
+   * @param range Imput range
+   * @return Converted Float range
+   */
+  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+    return Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue());
+  }
+
+  /**
    * Splits the range in numOfBins bins and then returns the index of the bin which contains given
    * value. Indexes are from 0 to (numOfBins - 1).
    *

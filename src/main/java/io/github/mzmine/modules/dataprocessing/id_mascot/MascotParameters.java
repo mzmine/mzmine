@@ -23,7 +23,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 public class MascotParameters extends SimpleParameterSet {
 
   /*
-   * public static final PeakListsParameter peakLists = new PeakListsParameter();
+   * public static final FeatureListsParameter peakLists = new FeatureListsParameter();
    * 
    * ArrayList<Parameter> para = new ArrayList<Parameter>(); HTTPForm iForm = null;
    * 

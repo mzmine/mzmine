@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.util.RangeUtils;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import com.google.common.collect.ImmutableList;
@@ -39,14 +40,14 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
-public class PeakSelectionComponent extends BorderPane {
+public class FeatureSelectionComponent extends BorderPane {
 
-  private final ObservableList<PeakSelection> selection = FXCollections.observableArrayList();
-  private final ListView<PeakSelection> selectionList;
+  private final ObservableList<FeatureSelection> selection = FXCollections.observableArrayList();
+  private final ListView<FeatureSelection> selectionList;
   private final FlowPane buttonPanel;
   private final Button addButton, removeButton, allButton, clearButton;
 
-  public PeakSelectionComponent() {
+  public FeatureSelectionComponent() {
 
     selectionList = new ListView<>(selection);
     selectionList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -70,9 +71,10 @@ public class PeakSelectionComponent extends BorderPane {
       if (exitCode == ExitCode.OK) {
         Range<Integer> idRange = paramSet.getParameter(idParameter).getValue();
         Range<Double> mzRange = paramSet.getParameter(mzParameter).getValue();
-        Range<Double> rtRange = paramSet.getParameter(rtParameter).getValue();
+        // TODO: FloatRangeParameter
+        Range<Float> rtRange = RangeUtils.toFloatRange(paramSet.getParameter(rtParameter).getValue());
         String name = paramSet.getParameter(nameParameter).getValue();
-        PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange, name);
+        FeatureSelection ps = new FeatureSelection(idRange, mzRange, rtRange, name);
         selection.add(ps);
       }
     });
@@ -84,7 +86,7 @@ public class PeakSelectionComponent extends BorderPane {
 
     allButton = new Button("Set to all");
     allButton.setOnAction(e -> {
-      PeakSelection ps = new PeakSelection(null, null, null, null);
+      FeatureSelection ps = new FeatureSelection(null, null, null, null);
       selection.clear();
       selection.add(ps);
     });
@@ -99,12 +101,12 @@ public class PeakSelectionComponent extends BorderPane {
     setRight(buttonPanel);
   }
 
-  void setValue(List<PeakSelection> newValue) {
+  void setValue(List<FeatureSelection> newValue) {
     selection.clear();
     selection.addAll(newValue);
   }
 
-  public List<PeakSelection> getValue() {
+  public List<FeatureSelection> getValue() {
     return ImmutableList.copyOf(selection);
   }
 

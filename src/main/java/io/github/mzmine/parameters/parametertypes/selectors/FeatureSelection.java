@@ -29,14 +29,14 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 
 @Immutable
-public class PeakSelection {
+public class FeatureSelection {
 
   private final Range<Integer> idRange;
   private final Range<Float> rtRange;
   private final Range<Double> mzRange;
   private final String name;
 
-  public PeakSelection(Range<Integer> idRange, Range<Double> mzRange, Range<Float> rtRange,
+  public FeatureSelection(Range<Integer> idRange, Range<Double> mzRange, Range<Float> rtRange,
       String name) {
     this.idRange = idRange;
     this.mzRange = mzRange;
