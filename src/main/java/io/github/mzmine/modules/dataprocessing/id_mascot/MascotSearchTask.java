@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_mascot;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.logging.Logger;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
@@ -30,7 +30,7 @@ public class MascotSearchTask extends AbstractTask {
 
   private int finishedRows, totalRows;
 
-  private PeakList pp;
+  private FeatureList pp;
 
   /**
    * private static int MIN_MSMS_LEVEL = 2; private MascotParameters parameters; private String
