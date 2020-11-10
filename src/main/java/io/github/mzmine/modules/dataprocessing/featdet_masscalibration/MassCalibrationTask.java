@@ -59,7 +59,7 @@ import java.util.logging.Logger;
 public class MassCalibrationTask extends AbstractTask {
 
   protected static boolean runCalibrationOnPreview = false;
-  
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
@@ -180,26 +180,31 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
-    Double intensityThreshold = parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
-    Boolean filterDuplicates = parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
+    Double intensityThreshold =
+        parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
+    Boolean filterDuplicates =
+        parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
     extractToleranceParameters();
 
     extractErrorTrend();
 
     massCalibrator = null;
-    NestedCombo rangeExtractionMethod = parameters.
-            getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
+    NestedCombo rangeExtractionMethod =
+        parameters.getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
     ParameterSet rangeParameterSet = rangeExtractionMethod.getCurrentChoiceParameterSet();
 
     if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.RANGE_METHOD)) {
-      Double tolerance = rangeParameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
-      Double rangeSize = rangeParameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
-      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance,
-              tolerance, rangeSize, standardsList, errorTrend);
+      Double tolerance =
+          rangeParameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
+      Double rangeSize =
+          rangeParameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
+          standardsList, errorTrend);
     } else if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.PERCENTILE_RANGE)) {
-      Range<Double> percentileRange = rangeParameterSet.getParameter(MassCalibrationParameters.percentileRange)
-              .getValue();
-      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange, standardsList, errorTrend);
+      Range<Double> percentileRange =
+          rangeParameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
+      massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange,
+          standardsList, errorTrend);
     }
 
 
@@ -243,11 +248,13 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-      /*List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks, scan.getRetentionTime(),
-              massPeakMatches);
-      errors.addAll(massListErrors);*/
+      /*
+       * List<Double> massListErrors = massCalibrator.findMassListErrors(mzPeaks,
+       * scan.getRetentionTime(), massPeakMatches); errors.addAll(massListErrors);
+       */
 
-      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), scanNumbers[i], intensityThreshold);
+      massCalibrator.addMassList(mzPeaks, scan.getRetentionTime(), scanNumbers[i],
+          intensityThreshold);
 
       processedScans++;
     }
@@ -258,24 +265,26 @@ public class MassCalibrationTask extends AbstractTask {
     Collections.sort(errors);
 
     if (errors.size() == 0) {
-      String warningMessage = "No matches were made between the extracted standards list and the mass lists" +
-              " in the selected raw datafile. The module will continue to calibrate mass lists using" +
-              " no matches, the bias estimate is zero, so the mass peaks will be shifted by zero.";
+      String warningMessage =
+          "No matches were made between the extracted standards list and the mass lists"
+              + " in the selected raw datafile. The module will continue to calibrate mass lists using"
+              + " no matches, the bias estimate is zero, so the mass peaks will be shifted by zero.";
       logger.warning("Mass calibration warning: " + warningMessage);
       if (previewRun == false) {
         MZmineCore.getDesktop().displayMessage("Mass calibration warning", warningMessage);
       }
     }
 
-//    Collections.sort(errors);
-//    biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
+    // Collections.sort(errors);
+    // biasEstimate = massCalibrator.estimateBiasFromErrors(errors, filterDuplicates, errorRanges);
     biasEstimate = massCalibrator.estimateBias(filterDuplicates);
     errorRanges = massCalibrator.getErrorRanges();
 
     if (runCalibrationOnPreview == false && previewRun) {
       endMillis = System.currentTimeMillis();
       setStatus(TaskStatus.FINISHED);
-      logger.info("Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
+      logger.info(
+          "Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
       return;
     }
 
@@ -299,11 +308,11 @@ public class MassCalibrationTask extends AbstractTask {
 
       DataPoint[] mzPeaks = massList.getDataPoints();
 
-//      DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
+      // DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
       SimpleMassList newMassList =
-              new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
+          new SimpleMassList(massListName + " " + suffix, scan, newMzPeaks);
 
       scan.addMassList(newMassList);
 
@@ -316,35 +325,42 @@ public class MassCalibrationTask extends AbstractTask {
 
     endMillis = System.currentTimeMillis();
     setStatus(TaskStatus.FINISHED);
-    logger.info("Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
+    logger.info(
+        "Finished mass calibration on " + dataFile + ", running time: " + getRunningTimeString());
 
   }
 
   protected boolean extractStandardsList() {
-    NestedCombo massPeakMatchingMethod = parameters.
-            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+    NestedCombo massPeakMatchingMethod =
+        parameters.getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
     try {
       if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
-        String universalCalibrantsIonizationMode = massPeakMatchingMethod.getCurrentChoiceParameterSet().
-                getParameter(MassCalibrationParameters.ionizationMode).getValue();
-        String universalCalibrantsFilename = MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
-        URL universalCalibrantsPath = getClass().getClassLoader().getResource(universalCalibrantsFilename);
+        String universalCalibrantsIonizationMode =
+            massPeakMatchingMethod.getCurrentChoiceParameterSet()
+                .getParameter(MassCalibrationParameters.ionizationMode).getValue();
+        String universalCalibrantsFilename =
+            MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
+        URL universalCalibrantsPath =
+            getClass().getClassLoader().getResource(universalCalibrantsFilename);
         standardsListFilename = universalCalibrantsPath.getPath();
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(universalCalibrantsFilename);
-        UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(standardsListFilename,
-                inputStream);
+        InputStream inputStream =
+            getClass().getClassLoader().getResourceAsStream(universalCalibrantsFilename);
+        UniversalCalibrantsListCsvExtractor extractor =
+            new UniversalCalibrantsListCsvExtractor(standardsListFilename, inputStream);
         standardsListExtractor = extractor;
       } else {
-        standardsListFilename = massPeakMatchingMethod.getChoices().
-                get(MassPeakMatchingChoice.STANDARDS_LIST.toString()).
-                getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
-        standardsListExtractor = StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+        standardsListFilename = massPeakMatchingMethod.getChoices()
+            .get(MassPeakMatchingChoice.STANDARDS_LIST.toString())
+            .getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
+        standardsListExtractor =
+            StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       }
       standardsList = standardsListExtractor.extractStandardsList();
 
       if (standardsList.getStandardMolecules().size() == 0) {
-        throw new RuntimeException("Empty standards list extracted, make sure the file adheres to the expected" +
-                " format, first column is retention time given in minutes, second column is ion formula string.");
+        throw new RuntimeException(
+            "Empty standards list extracted, make sure the file adheres to the expected"
+                + " format, first column is retention time given in minutes, second column is ion formula string.");
       }
 
     } catch (Exception e) {
@@ -352,49 +368,54 @@ public class MassCalibrationTask extends AbstractTask {
       logger.warning("Exception when extracting standards list from " + standardsListFilename);
       logger.warning(e.toString());
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Exception when extracting standards list from " + standardsListFilename + "\n" + e.toString());
+      setErrorMessage("Exception when extracting standards list from " + standardsListFilename
+          + "\n" + e.toString());
       return false;
     }
     return true;
   }
 
   protected void extractToleranceParameters() {
-    NestedCombo massPeakMatchingMethod = parameters.
-            getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
-    ParameterSet massPeakMatchingParameterSet = massPeakMatchingMethod.getCurrentChoiceParameterSet();
+    NestedCombo massPeakMatchingMethod =
+        parameters.getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+    ParameterSet massPeakMatchingParameterSet =
+        massPeakMatchingMethod.getCurrentChoiceParameterSet();
     if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.STANDARDS_LIST)) {
-      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.mzRatioTolerance)
-              .getValue();
-      rtTolerance = massPeakMatchingParameterSet.getParameter(MassCalibrationParameters.retentionTimeTolerance)
-              .getValue();
-    } else if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
-      mzRatioTolerance = massPeakMatchingParameterSet.
-              getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
+      mzRatioTolerance = massPeakMatchingParameterSet
+          .getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+      rtTolerance = massPeakMatchingParameterSet
+          .getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
+    } else if (massPeakMatchingMethod
+        .isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
+      mzRatioTolerance = massPeakMatchingParameterSet
+          .getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
       rtTolerance = null;
     }
   }
 
   protected void extractErrorTrend() {
-    NestedCombo trendMethod = parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
+    NestedCombo trendMethod =
+        parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
     ParameterSet trendParameterSet = trendMethod.getCurrentChoiceParameterSet();
 
     if (trendMethod.isCurrentChoice(BiasEstimationChoice.KNN_REGRESSION)) {
-      Double percentageNeighbors =
-              trendParameterSet.getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
+      Double percentageNeighbors = trendParameterSet
+          .getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
       errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
     } else if (trendMethod.isCurrentChoice(BiasEstimationChoice.OLS_REGRESSION)) {
-      Integer polynomialDegree = trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
-      Boolean exponentialFeature = trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature)
-              .getValue();
-      Boolean logarithmicFeature = trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature)
-              .getValue();
+      Integer polynomialDegree =
+          trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
+      Boolean exponentialFeature =
+          trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature).getValue();
+      Boolean logarithmicFeature =
+          trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature).getValue();
       errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
     }
   }
 
   /**
-   * Get running time of this task in milliseconds
-   * if it was not started and then finished, then returns null
+   * Get running time of this task in milliseconds if it was not started and then finished, then
+   * returns null
    *
    * @return
    */
@@ -407,8 +428,8 @@ public class MassCalibrationTask extends AbstractTask {
 
 
   /**
-   * Get running time of this task formatted as a string
-   * if it was not started and then finished, then returns null
+   * Get running time of this task formatted as a string if it was not started and then finished,
+   * then returns null
    *
    * @return
    */

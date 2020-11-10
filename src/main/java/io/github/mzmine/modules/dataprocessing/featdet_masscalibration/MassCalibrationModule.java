@@ -33,28 +33,26 @@ public class MassCalibrationModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Mass calibration";
   private static final String MODULE_DESCRIPTION =
-          "This module estimates systematic error of measurement by analysing differences between actual mass peaks"
-                  + " and masses of assigned compounds, it then shifts the mass peaks to account against that bias.";
+      "This module estimates systematic error of measurement by analysing differences between actual mass peaks"
+          + " and masses of assigned compounds, it then shifts the mass peaks to account against that bias.";
 
   @Override
-  public @Nonnull
-  String getName() {
+  public @Nonnull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
-  String getDescription() {
+  public @Nonnull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-                            @Nonnull Collection<Task> tasks) {
+      @Nonnull Collection<Task> tasks) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
-            .getValue().getMatchingRawDataFiles();
+        .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
       Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet());
       tasks.add(newTask);
@@ -64,14 +62,12 @@ public class MassCalibrationModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull
-  MZmineModuleCategory getModuleCategory() {
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.PEAKPICKING;
   }
 
   @Override
-  public @Nonnull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
     return MassCalibrationParameters.class;
   }
 

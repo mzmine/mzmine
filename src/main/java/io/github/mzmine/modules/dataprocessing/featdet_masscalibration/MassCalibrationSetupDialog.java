@@ -38,8 +38,9 @@ import org.apache.commons.text.WordUtils;
 import java.util.ArrayList;
 
 /**
- * This class extends ParameterSetupDialog class to include mass calibration plots. This is used to preview
- * how the chosen mass calibration setup will match peaks, estimate bias and calibrate the mass spectra.
+ * This class extends ParameterSetupDialog class to include mass calibration plots. This is used to
+ * preview how the chosen mass calibration setup will match peaks, estimate bias and calibrate the
+ * mass spectra.
  */
 public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
@@ -64,20 +65,21 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected MassCalibrationTask previewTask;
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
-  protected static final String universalCalibrantsMessage = "Universal calibrants list disclaimer: " +
-          "If you use universal calibrants matching mode, please cite suitable publication (source of universal " +
-          "calibrants list) depending on which list you used. References are available in the help file.";
+  protected static final String universalCalibrantsMessage =
+      "Universal calibrants list disclaimer: "
+          + "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
+          + "calibrants list) depending on which list you used. References are available in the help file.";
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
-//    super(valueCheckRequired, parameters);
+    // super(valueCheckRequired, parameters);
 
     super(valueCheckRequired, parameters, universalCalibrantsMessage);
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
     if (dataFiles.length == 0) {
-//      throw new RuntimeException("No datafiles");
+      // throw new RuntimeException("No datafiles");
     }
 
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
@@ -100,7 +102,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlDataFile.getChildren().add(new Label("Data file "));
 
     comboDataFileName = new ComboBox<RawDataFile>(
-            MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.setOnAction(e -> {
       parametersChanged(false);
     });
@@ -120,7 +122,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     errorVsMzButton.setToggleGroup(chartChoice);
     measuredVsMatchedMzButton = new RadioButton("Measured vs matched mz");
     measuredVsMatchedMzButton.setToggleGroup(chartChoice);
-//    chartChoice.selectedToggleProperty().addListener(e -> loadPreview(false));
+    // chartChoice.selectedToggleProperty().addListener(e -> loadPreview(false));
     chartChoice.selectedToggleProperty().addListener(e -> chartChoiceChange());
 
     FlowPane chartChoicePane = new FlowPane();
@@ -130,9 +132,11 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     chartChoicePane.setHgap(5);
 
     labelsCheckbox = new CheckBox("Labels preview");
-    labelsCheckbox.setTooltip(new Tooltip(WordUtils.wrap("When selected, labels such as extraction range" +
-            " and bias estimation value markers plus additional trend extraction details are displayed on the charts." +
-            " Deselecting can come in handy when the charts get cluttered with overlapping labels.", 90)));
+    labelsCheckbox.setTooltip(new Tooltip(WordUtils.wrap(
+        "When selected, labels such as extraction range"
+            + " and bias estimation value markers plus additional trend extraction details are displayed on the charts."
+            + " Deselecting can come in handy when the charts get cluttered with overlapping labels.",
+        90)));
     labelsCheckbox.setSelected(true);
     labelsCheckbox.setOnAction(event -> loadPreview(false));
 
@@ -180,8 +184,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   }
 
   protected void cancelRunningPreviewTask() {
-    if (previewTask != null &&
-            (previewTask.getStatus() == TaskStatus.PROCESSING || previewTask.getStatus() == TaskStatus.WAITING)) {
+    if (previewTask != null && (previewTask.getStatus() == TaskStatus.PROCESSING
+        || previewTask.getStatus() == TaskStatus.WAITING)) {
       previewTask.cancel();
     }
   }
@@ -204,7 +208,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       }
 
       previewTask = new MassCalibrationTask(previewDataFile, parameterSet, true);
-//      previewTask.run();
+      // previewTask.run();
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);
@@ -217,28 +221,29 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
-        MZmineCore.getDesktop().displayMessage("Mass calibration error message", previewTask.getErrorMessage());
+        MZmineCore.getDesktop().displayMessage("Mass calibration error message",
+            previewTask.getErrorMessage());
       }
       return;
     }
 
     if (rerun) {
       errorDistributionChart.cleanDistributionPlot();
-      errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(), previewTask.getErrors(),
-              previewTask.getErrorRanges(), previewTask.getBiasEstimate());
+      errorDistributionChart.updateDistributionPlot(previewTask.getMassPeakMatches(),
+          previewTask.getErrors(), previewTask.getErrorRanges(), previewTask.getBiasEstimate());
 
       errorVsMzChart.cleanPlot();
       errorVsMzChart.updatePlot(previewTask.getMassPeakMatches(), previewTask.getErrorRanges(),
-              previewTask.getBiasEstimate(), previewTask.getErrorVsMzTrend());
+          previewTask.getBiasEstimate(), previewTask.getErrorVsMzTrend());
 
       measuredVsMatchedMzChart.cleanPlot();
       measuredVsMatchedMzChart.updatePlot(previewTask.getMassPeakMatches());
     }
 
-    /*if (labelsCheckbox.isSelected() == false) {
-      errorDistributionChart.cleanPlotLabels();
-      errorVsMzChart.cleanPlotLabels();
-    }*/
+    /*
+     * if (labelsCheckbox.isSelected() == false) { errorDistributionChart.cleanPlotLabels();
+     * errorVsMzChart.cleanPlotLabels(); }
+     */
     errorDistributionChart.displayPlotLabels(labelsCheckbox.isSelected());
     errorVsMzChart.displayPlotLabels(labelsCheckbox.isSelected());
 

@@ -25,10 +25,10 @@ import java.util.Comparator;
 
 public class MassPeakMatch {
   public static final Comparator<MassPeakMatch> mzErrorComparator =
-          Comparator.comparing(MassPeakMatch::getMzError);
+      Comparator.comparing(MassPeakMatch::getMzError);
 
   public static final Comparator<MassPeakMatch> measuredMzComparator =
-          Comparator.comparing(MassPeakMatch::getMeasuredMzRatio);
+      Comparator.comparing(MassPeakMatch::getMeasuredMzRatio);
 
   protected final double measuredMzRatio;
   protected final double measuredRetentionTime;
@@ -42,45 +42,45 @@ public class MassPeakMatch {
   protected StandardsListItem matchedCalibrant;
   protected int scanNumber;
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime) {
     this.measuredMzRatio = measuredMzRatio;
     this.measuredRetentionTime = measuredRetentionTime;
     this.matchedMzRatio = matchedMzRatio;
     this.matchedRetentionTime = matchedRetentionTime;
   }
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime, ErrorType mzErrorType) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime);
     this.mzErrorType = mzErrorType;
     this.mzError = mzErrorType.calculateError(measuredMzRatio, matchedMzRatio);
   }
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
-                       DataPoint measuredDataPoint) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime, ErrorType mzErrorType, DataPoint measuredDataPoint) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType);
     this.measuredDataPoint = measuredDataPoint;
   }
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
-                       DataPoint measuredDataPoint, int scanNumber) {
-    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType, measuredDataPoint);
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime, ErrorType mzErrorType, DataPoint measuredDataPoint,
+      int scanNumber) {
+    this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType,
+        measuredDataPoint);
     this.scanNumber = scanNumber;
   }
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType,
-                       DataPoint measuredDataPoint, int scanNumber, StandardsListItem matchedCalibrant) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime, ErrorType mzErrorType, DataPoint measuredDataPoint,
+      int scanNumber, StandardsListItem matchedCalibrant) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime, mzErrorType,
-            measuredDataPoint, scanNumber);
+        measuredDataPoint, scanNumber);
     this.matchedCalibrant = matchedCalibrant;
   }
 
-  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime,
-                       double matchedMzRatio, double matchedRetentionTime, ErrorType mzErrorType, double mzError) {
+  public MassPeakMatch(double measuredMzRatio, double measuredRetentionTime, double matchedMzRatio,
+      double matchedRetentionTime, ErrorType mzErrorType, double mzError) {
     this(measuredMzRatio, measuredRetentionTime, matchedMzRatio, matchedRetentionTime);
     this.mzErrorType = mzErrorType;
     this.mzError = mzError;
