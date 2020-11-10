@@ -69,7 +69,7 @@ public class SpectraDataSetCalc extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     if (showSpectraOfEveryRawFile) {
-      double rt = pos.getRetentionTime();
+      float rt = pos.getRetentionTime();
       rawDataFiles.forEach(rawDataFile -> {
         int num = -1;
         if (scanSelection.getMsLevel() != null) {

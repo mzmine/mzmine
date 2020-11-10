@@ -39,16 +39,16 @@ public class FeatureDataSet extends AbstractXYDataset {
    */
   private static final long serialVersionUID = 1L;
   private final Feature feature;
-  private final double[] retentionTimes;
+  private final float[] retentionTimes;
   private final double[] intensities;
   private final double[] mzValues;
   private final String name;
-  private final int peakItem;
+  private final int featureItem;
 
   /**
    * Create the data set.
    *
-   * @param p the peak.
+   * @param p the feature.
    * @param id peak identity to use as a label.
    */
   public FeatureDataSet(final Feature p, final String id) {
@@ -62,7 +62,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
     // Copy peak data.
     final int scanCount = scanNumbers.size();
-    retentionTimes = new double[scanCount];
+    retentionTimes = new float[scanCount];
     intensities = new double[scanCount];
     mzValues = new double[scanCount];
     int peakIndex = -1;
@@ -90,7 +90,7 @@ public class FeatureDataSet extends AbstractXYDataset {
       }
     }
 
-    peakItem = peakIndex;
+    featureItem = peakIndex;
   }
 
   /**
@@ -139,8 +139,8 @@ public class FeatureDataSet extends AbstractXYDataset {
     return name;
   }
 
-  public boolean isPeak(final int item) {
-    return item == peakItem;
+  public boolean isFeature(final int item) {
+    return item == featureItem;
   }
 
   @Override
@@ -152,7 +152,7 @@ public class FeatureDataSet extends AbstractXYDataset {
       return false;
     }
     FeatureDataSet that = (FeatureDataSet) o;
-    return peakItem == that.peakItem &&
+    return featureItem == that.featureItem &&
         Objects.equals(feature, that.feature) &&
         Arrays.equals(retentionTimes, that.retentionTimes) &&
         Arrays.equals(intensities, that.intensities) &&

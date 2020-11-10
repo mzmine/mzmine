@@ -491,7 +491,7 @@ public class TICVisualizerTab extends MZmineTab {
    * @return current cursor position
    */
   public ChromatogramCursorPosition getCursorPosition() {
-    double selectedRT = ticPlot.getXYPlot().getDomainCrosshairValue();
+    float selectedRT = (float) ticPlot.getXYPlot().getDomainCrosshairValue();
     double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
     Enumeration<TICDataSet> e = ticDataSets.elements();
     while (e.hasMoreElements()) {
@@ -537,7 +537,7 @@ public class TICVisualizerTab extends MZmineTab {
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());
         if (index > 0) {
           index--;
-          pos.setRetentionTime(dataSet.getXValue(0, index));
+          pos.setRetentionTime((float) dataSet.getXValue(0, index));
           pos.setIntensityValue(dataSet.getYValue(0, index));
           setCursorPosition(pos);
 
@@ -553,7 +553,7 @@ public class TICVisualizerTab extends MZmineTab {
         if (index >= 0) {
           index++;
           if (index < dataSet.getItemCount(0)) {
-            pos.setRetentionTime(dataSet.getXValue(0, index));
+            pos.setRetentionTime((float) dataSet.getXValue(0, index));
             pos.setIntensityValue(dataSet.getYValue(0, index));
             setCursorPosition(pos);
           }

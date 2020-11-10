@@ -61,7 +61,6 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import javafx.scene.Cursor;
 import javafx.scene.control.MenuItem;
-import javafx.stage.Window;
 
 /**
  * TIC plot.
@@ -542,7 +541,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
         @Override
         public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
-          return ((FeatureDataSet) xyDataSet).isPeak(item) ? label : null;
+          return ((FeatureDataSet) xyDataSet).isFeature(item) ? label : null;
         }
       });
 
@@ -772,7 +771,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    */
   @Nullable
   private ChromatogramCursorPosition getCurrentCursorPosition() {
-    double selectedRT = getXYPlot().getDomainCrosshairValue();
+    float selectedRT = (float) getXYPlot().getDomainCrosshairValue();
     double selectedIT = getXYPlot().getRangeCrosshairValue();
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
