@@ -245,12 +245,14 @@ public class NistMsSearchTask extends AbstractTask {
                 progressMax = peakList.getNumberOfRows();
                 for (final PeakListRow row : peakList.getRows()) {
 
-                    DataPoint[] dataPoints;
+                    DataPoint[] dataPoints = null;
 
                     // Get MS level data points.
                     if (msLevel == 1) {
                         IsotopePattern ip = row.getBestIsotopePattern();
-                        dataPoints = ip.getDataPoints();
+                        if(ip != null){
+                            dataPoints = ip.getDataPoints();
+                        }
                     } else {
                         //TODO - Handle MS/MS Merging
                         //TODO - Handle MSn fragmentation
@@ -452,14 +454,29 @@ public class NistMsSearchTask extends AbstractTask {
                     + (identity == null ? "" : " (" + identity + ')') + " of " + peakList.getName();
             writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
             writer.newLine();
-            writer.write("Num Peaks: " + dataPoint.length);
+            writer.write("PrecursorMZ: " + peakRow.getAverageMZ());
             writer.newLine();
-
+            
             // Write ions.
-            for (final DataPoint dp : dataPoint) {
-
-                writer.write(dp.getMZ() + "\t" + dp.getIntensity());
+            if(dataPoint == null){
+                
+                // Write precursor MZ if no clustered spectra or MSn spectra.
+                writer.write("Num Peaks: 1");
                 writer.newLine();
+                
+                writer.write(peakRow.getAverageMZ() + "\t" + peakRow.getAverageHeight());
+                
+            } else {
+                
+                // Write clustered spectra or MSn spectra.
+                writer.write("Num Peaks: " + dataPoint.length);
+                writer.newLine();
+                
+                for (final DataPoint dp : dataPoint) {
+
+                    writer.write(dp.getMZ() + "\t" + dp.getIntensity());
+                    writer.newLine();
+                }
             }
         } finally {
 
