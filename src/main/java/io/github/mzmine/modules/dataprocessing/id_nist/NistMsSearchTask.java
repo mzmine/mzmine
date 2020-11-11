@@ -240,10 +240,21 @@ public class NistMsSearchTask extends AbstractTask {
                 // Search command string.
                 final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
+                List<PeakListRow> peakRow = new ArrayList();
+                
+                // Searching FeatureList or FeatureListRow?
+                if(peakListRow == null){
+                    peakRow = peakList.getRows();
+                } else {
+                    peakRow.add(peakListRow);
+                }
+                
+                
+                
                 // Perform searches for each feature list row.
                 progress = 0;
                 progressMax = peakList.getNumberOfRows();
-                for (final PeakListRow row : peakList.getRows()) {
+                for (final PeakListRow row : peakRow) {
 
                     DataPoint[] dataPoints = null;
 
