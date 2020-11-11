@@ -195,9 +195,9 @@ public class MassCalibrationTask extends AbstractTask {
 
     if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.RANGE_METHOD)) {
       Double tolerance =
-          rangeParameterSet.getParameter(MassCalibrationParameters.tolerance).getValue();
+          rangeParameterSet.getParameter(MassCalibrationParameters.errorRangeTolerance).getValue();
       Double rangeSize =
-          rangeParameterSet.getParameter(MassCalibrationParameters.rangeSize).getValue();
+          rangeParameterSet.getParameter(MassCalibrationParameters.errorRangeSize).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
           standardsList, errorTrend);
     } else if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.PERCENTILE_RANGE)) {
@@ -332,7 +332,7 @@ public class MassCalibrationTask extends AbstractTask {
 
   protected boolean extractStandardsList() {
     NestedCombo massPeakMatchingMethod =
-        parameters.getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+        parameters.getParameter(MassCalibrationParameters.referenceLibrary).getValue();
     try {
       if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
         String universalCalibrantsIonizationMode =
@@ -377,18 +377,18 @@ public class MassCalibrationTask extends AbstractTask {
 
   protected void extractToleranceParameters() {
     NestedCombo massPeakMatchingMethod =
-        parameters.getParameter(MassCalibrationParameters.massPeakMatchingMethod).getValue();
+        parameters.getParameter(MassCalibrationParameters.referenceLibrary).getValue();
     ParameterSet massPeakMatchingParameterSet =
         massPeakMatchingMethod.getCurrentChoiceParameterSet();
     if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.STANDARDS_LIST)) {
       mzRatioTolerance = massPeakMatchingParameterSet
-          .getParameter(MassCalibrationParameters.mzRatioTolerance).getValue();
+          .getParameter(MassCalibrationParameters.mzToleranceSCL).getValue();
       rtTolerance = massPeakMatchingParameterSet
           .getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
     } else if (massPeakMatchingMethod
         .isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
       mzRatioTolerance = massPeakMatchingParameterSet
-          .getParameter(MassCalibrationParameters.mzRatioToleranceUniversalCalibrants).getValue();
+          .getParameter(MassCalibrationParameters.mzToleranceUCL).getValue();
       rtTolerance = null;
     }
   }
