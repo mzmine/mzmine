@@ -43,7 +43,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "NIST MS Search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for spectra in the NIST library.";
+      "This method searches spectra against the NIST library.";
 
   @Override
   public @Nonnull String getName() {
