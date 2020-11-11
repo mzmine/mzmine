@@ -52,6 +52,15 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public static final DirectoryParameter NIST_MS_SEARCH_DIR =
       new DirectoryParameter("NIST MS Search directory",
           "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
+  
+  /**
+   * MS Level for search.
+   */
+  public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+       2,1,1000
+  );
+  
   /**
    * Match factor cut-off.
    */
@@ -72,8 +81,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MIN_MATCH_FACTOR,
-        MIN_REVERSE_MATCH_FACTOR});
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL,
+        MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR});
   }
 
   @Override
