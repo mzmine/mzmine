@@ -16,11 +16,6 @@
  * USA
  */
 
- /*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.datamodel.DataPoint;
