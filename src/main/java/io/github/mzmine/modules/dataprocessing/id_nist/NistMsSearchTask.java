@@ -28,6 +28,9 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MASS_LIST;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
+import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,30 +38,29 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Hashtable;
 
 /**
  * Performs NIST MS Search.
@@ -111,8 +113,9 @@ public class NistMsSearchTask extends AbstractTask {
     private static final String CAS_PROPERTY = "CAS number";
     private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
-    // The peak-list.
+    // The mass-list and peak-list.
     private final PeakList peakList;
+    private final String massList;
 
     // The feature list row to search for (null => all).
     private final PeakListRow peakListRow;
@@ -125,8 +128,12 @@ public class NistMsSearchTask extends AbstractTask {
     private final int minMatchFactor;
     private final int minReverseMatchFactor;
 
-    // MS Level
+    // MS Level.
     private final int msLevel;
+
+    // Optional params.
+    private final MsMsSpectraMergeParameters mergeParameters;
+    private final String integerMZ;
 
     // NIST MS Search directory and executable.
     private final File nistMsSearchDir;
@@ -164,6 +171,21 @@ public class NistMsSearchTask extends AbstractTask {
         msLevel = params.getParameter(MS_LEVEL).getValue();
         nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
         nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
+        massList = params.getParameter(MASS_LIST).getValue();
+
+        // Optional parameters.
+        if (params.getParameter(MERGE_PARAMETER).getValue()) {
+            mergeParameters = params.getParameter(MERGE_PARAMETER)
+                    .getEmbeddedParameters();
+        } else {
+            mergeParameters = null;
+        }
+        if (params.getParameter(INTEGER_MZ).getValue()) {
+            integerMZ = params.getParameter(INTEGER_MZ)
+                    .getEmbeddedParameter().getValue();
+        } else {
+            integerMZ = null;
+        }
     }
 
     @Override
@@ -241,40 +263,65 @@ public class NistMsSearchTask extends AbstractTask {
                 final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
                 List<PeakListRow> peakRow = new ArrayList();
-                
+
                 // Searching FeatureList or FeatureListRow?
-                if(peakListRow == null){
+                if (peakListRow == null) {
                     peakRow = peakList.getRows();
                 } else {
                     peakRow.add(peakListRow);
                 }
-                
-                
-                
+
                 // Perform searches for each feature list row.
                 progress = 0;
                 progressMax = peakList.getNumberOfRows();
                 for (final PeakListRow row : peakRow) {
 
                     DataPoint[] dataPoints = null;
+                    String comment = null;
 
                     // Get MS level data points.
                     if (msLevel == 1) {
+
+                        // Clustered Spectra.
                         IsotopePattern ip = row.getBestIsotopePattern();
-                        if(ip != null){
+                        if (ip != null) {
                             dataPoints = ip.getDataPoints();
+                            comment = "Clustered spectra at RT= "
+                                    + row.getAverageRT();
                         }
                     } else {
-                        //TODO - Handle MS/MS Merging
-                        //TODO - Handle MSn fragmentation
-                        Scan scan = row.getBestFragmentation();
-                        dataPoints = scan.getDataPoints();
+
+                        // Merge multiple MSn fragment spectra.
+                        if (mergeParameters != null) {
+                            MsMsSpectraMergeModule merger
+                                    = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+                            MergedSpectrum spectrum
+                                    = merger.getBestMergedSpectrum(mergeParameters, row, massList);
+                            if (spectrum != null) {
+                                dataPoints = spectrum.data;
+                                comment = "MERGED_STATS= "
+                                        + spectrum.getMergeStatsDescription();
+                            }
+                        } else {
+
+                            // Get best fragment scan.
+                            Scan scan = row.getBestFragmentation();
+                            dataPoints = scan.getDataPoints();
+                            comment = "DATA_FILE = "
+                                    + scan.getDataFile().getName()
+                                    + " SCAN = " + scan.getScanNumber();
+                        }
+                    }
+
+                    // Round high-res to low-res.
+                    if (integerMZ != null) {
+                        dataPoints = integerDataPoints(dataPoints, integerMZ);
                     }
 
                     if (!isCanceled()) {
 
                         // Write spectra file.
-                        final File spectraFile = writeSpectraFile(row, dataPoints);
+                        final File spectraFile = writeSpectraFile(row, dataPoints, comment);
 
                         // Write locator file.
                         writeSecondaryLocatorFile(locatorFile2, spectraFile);
@@ -307,7 +354,7 @@ public class NistMsSearchTask extends AbstractTask {
 
                                     isPreferred = false;
                                 }
-                                
+
                                 // Add peak identity.
                                 row.addPeakIdentity(id, isPreferred);
                             }
@@ -443,15 +490,16 @@ public class NistMsSearchTask extends AbstractTask {
     }
 
     /**
-     * Writes a search spectrum file for the given row and its neighbours.
+     * Writes a search spectrum file for the given row and data points.
      *
      * @param peakRow the row.
-     * @param neighbourRows its neighbouring rows.
+     * @param dataPoint the chosen spectral results.
+     * @param comment details of scan or merging stats.
      * @return the file.
      * @throws IOException if an i/o problem occurs.
      */
     private File writeSpectraFile(final PeakListRow peakRow,
-            final DataPoint[] dataPoint) throws IOException {
+            final DataPoint[] dataPoint, final String comment) throws IOException {
 
         final File spectraFile = File.createTempFile(SPECTRA_FILE_PREFIX, SPECTRA_FILE_SUFFIX);
         spectraFile.deleteOnExit();
@@ -467,22 +515,31 @@ public class NistMsSearchTask extends AbstractTask {
             writer.newLine();
             writer.write("PrecursorMZ: " + peakRow.getAverageMZ());
             writer.newLine();
-            
+            writer.write("Comments: " + comment);
+            writer.newLine();
+
             // Write ions.
-            if(dataPoint == null){
-                
+            if (dataPoint == null) {
+
                 // Write precursor MZ if no clustered spectra or MSn spectra.
                 writer.write("Num Peaks: 1");
                 writer.newLine();
-                
-                writer.write(peakRow.getAverageMZ() + "\t" + peakRow.getAverageHeight());
-                
+
+                double mz = peakRow.getAverageMZ();
+
+                // If integer, round.
+                if (integerMZ != null) {
+                    mz = (int) Math.round(mz);
+                }
+
+                writer.write(mz + "\t" + peakRow.getAverageHeight());
+
             } else {
-                
+
                 // Write clustered spectra or MSn spectra.
                 writer.write("Num Peaks: " + dataPoint.length);
                 writer.newLine();
-                
+
                 for (final DataPoint dp : dataPoint) {
 
                     writer.write(dp.getMZ() + "\t" + dp.getIntensity());
@@ -557,5 +614,45 @@ public class NistMsSearchTask extends AbstractTask {
         }
 
         return locatorFile2;
+    }
+
+    /**
+     * Converts DataPoint ions mz to int.
+     *
+     * Function adapted from module: adap.mspexport.
+     *
+     * @param dataPoints spectra to convert.
+     * @param mode conversion method.
+     * @return DataPoint array converted to integers.
+     * @throws IOException if there are i/o problems.
+     */
+    private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, final String mode) {
+
+        int size = dataPoints.length;
+
+        Map<Double, Double> integerDataPoints = new HashMap<>();
+
+        for (int i = 0; i < size; ++i) {
+            double mz = (double) Math.round(dataPoints[i].getMZ());
+            double intensity = dataPoints[i].getIntensity();
+            Double prevIntensity = integerDataPoints.get(mz);
+            if (prevIntensity == null) {
+                prevIntensity = 0.0;
+            }
+
+            if ("Merging mode: Sum".equals(mode)) {
+                integerDataPoints.put(mz, prevIntensity + intensity);
+            } else {
+                integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
+            }
+        }
+
+        DataPoint[] result = new DataPoint[integerDataPoints.size()];
+        int count = 0;
+        for (Entry<Double, Double> e : integerDataPoints.entrySet()) {
+            result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
+        }
+
+        return result;
     }
 }
