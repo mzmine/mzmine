@@ -314,7 +314,7 @@ public class NistMsSearchTask extends AbstractTask {
                     }
 
                     // Round high-res to low-res.
-                    if (integerMZ != null) {
+                    if (integerMZ != null & dataPoints != null) {
                         dataPoints = integerDataPoints(dataPoints, integerMZ);
                     }
 
