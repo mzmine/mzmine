@@ -15,23 +15,20 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import java.io.File;
 import java.util.Collection;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MassListParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 
 /**
  * Holds NIST MS Search parameters.
@@ -41,93 +38,118 @@ import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
-  /**
-   * Feature lists to operate on.
-   */
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+    /**
+     * Feature lists to operate on.
+     */
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-  /**
-   * NIST MS Search path.
-   */
-  public static final DirectoryParameter NIST_MS_SEARCH_DIR =
-      new DirectoryParameter("NIST MS Search directory",
-          "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
-  
-  /**
-   * MS Level for search.
-   */
-  public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
-       2,1,1000
-  );
-  
-  /**
-   * Match factor cut-off.
-   */
-  public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
-      "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+    /**
+     * Mass List of MSn fragment ions.
+     */
+    public static final MassListParameter MASS_LIST = new MassListParameter();
 
-  /**
-   * Reverse match factor cut-off.
-   */
-  public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR =
-      new IntegerParameter("Min. reverse match factor",
-          "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+    /**
+     * NIST MS Search path.
+     */
+    public static final DirectoryParameter NIST_MS_SEARCH_DIR
+            = new DirectoryParameter("NIST MS Search directory",
+                    "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
 
-  // NIST MS Search executable.
-  private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
+    /**
+     * MS Level for search.
+     */
+    public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
+            "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+            2, 1, 1000
+    );
 
-  /**
-   * Construct the parameter set.
-   */
-  public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL,
-        MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR});
-  }
+    /**
+     * Match factor cut-off.
+     */
+    public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
+            "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
 
-  @Override
-  public boolean checkParameterValues(final Collection<String> errorMessages) {
+    /**
+     * Reverse match factor cut-off.
+     */
+    public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR
+            = new IntegerParameter("Min. reverse match factor",
+                    "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
 
-    // Unsupported OS.
-    if (!isWindows()) {
-      errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
-      return false;
+    /**
+     * Optional MSMS merging parameters.
+     */
+    public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER
+            = new OptionalModuleParameter<>("Merge MS/MS (experimental)",
+                    "Merge high-quality MS/MS instead of exporting just the most intense one.",
+                    new MsMsSpectraMergeParameters(), true);
+
+    /**
+     * Optional MZ rounding.
+     */
+    public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ
+            = new OptionalParameter<>(new ComboParameter<>("Integer m/z",
+                    "If selected, fractional m/z values will be merged into integer values, based on the selected "
+                    + "merging mode",
+                    new String[]{"Merging mode: Maximum", "Merging mode: Sum"},
+                    "Merging mode: Maximum"), false);
+
+    // NIST MS Search executable.
+    private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
+
+    /**
+     * Construct the parameter set.
+     */
+    public NistMsSearchParameters() {
+        super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MASS_LIST,
+            MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER,
+            INTEGER_MZ});
     }
 
-    boolean result = super.checkParameterValues(errorMessages);
+    @Override
+    public boolean checkParameterValues(final Collection<String> errorMessages) {
 
-    // NIST MS Search home directory and executable.
-    final File executable = getNistMsSearchExecutable();
+        // Unsupported OS.
+        if (!isWindows()) {
+            errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
+            return false;
+        }
 
-    // Executable missing.
-    if (executable == null || !executable.exists()) {
+        boolean result = super.checkParameterValues(errorMessages);
 
-      errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
-          + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
-      result = false;
+        // NIST MS Search home directory and executable.
+        final File executable = getNistMsSearchExecutable();
+
+        // Executable missing.
+        if (executable == null || !executable.exists()) {
+
+            errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
+                    + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
+            result = false;
+        }
+
+        return result;
     }
 
-    return result;
-  }
+    /**
+     * Gets the full path to the NIST MS Search executable.
+     *
+     * @return the path.
+     */
+    public File getNistMsSearchExecutable() {
 
-  /**
-   * Gets the full path to the NIST MS Search executable.
-   *
-   * @return the path.
-   */
-  public File getNistMsSearchExecutable() {
+        final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
+        return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
+    }
 
-    final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
-    return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
-  }
+    /**
+     * Is this a Windows OS?
+     *
+     * @return true/false if the os.name property does/doesn't contain
+     * "Windows".
+     */
+    private static boolean isWindows() {
 
-  /**
-   * Is this a Windows OS?
-   *
-   * @return true/false if the os.name property does/doesn't contain "Windows".
-   */
-  private static boolean isWindows() {
-
-    return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
-  }
+        return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
+    }
 }
