@@ -17,12 +17,11 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
-import java.util.Arrays;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -32,7 +31,7 @@ import io.github.mzmine.util.FormulaUtils;
 public class FormulaSortTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  private PeakList peakList;
+  private FeatureList featureList;
   private String message;
   private int totalRows;
   private int finishedRows = 0;
@@ -54,10 +53,10 @@ public class FormulaSortTask extends AbstractTask {
     weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
   }
 
-  public FormulaSortTask(PeakList peakList, ParameterSet parameters) {
+  public FormulaSortTask(FeatureList featureList, ParameterSet parameters) {
     this(parameters);
-    this.peakList = peakList;
-    message = "Sorting formula lists of peak list " + peakList.getName();
+    this.featureList = featureList;
+    message = "Sorting formula lists of feature list " + featureList.getName();
   }
 
   /**
@@ -85,9 +84,9 @@ public class FormulaSortTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    for (PeakListRow row : peakList.getRows()) {
+    for (FeatureListRow row : featureList.getRows()) {
       // all formulas
-      List<MolecularFormulaIdentity> formulas = Arrays.stream(row.getPeakIdentities())
+      List<MolecularFormulaIdentity> formulas = row.getPeakIdentities().stream()
           .filter(pi -> pi instanceof MolecularFormulaIdentity)
           .map(pi -> (MolecularFormulaIdentity) pi).collect(Collectors.toList());
       if (formulas.isEmpty())
