@@ -183,7 +183,7 @@ public class MassCalibrationTask extends AbstractTask {
     Double intensityThreshold =
         parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
     Boolean filterDuplicates =
-        parameters.getParameter(MassCalibrationParameters.filterDuplicates).getValue();
+        parameters.getParameter(MassCalibrationParameters.duplicateErrorFilter).getValue();
     extractToleranceParameters();
 
     extractErrorTrend();

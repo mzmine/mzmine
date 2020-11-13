@@ -18,6 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Logger;
+import org.jfree.data.xy.XYSeries;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -31,10 +40,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standards
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.StandardsListItem;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import org.jfree.data.xy.XYSeries;
-
-import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * Class for calibrating mass spectra
@@ -229,7 +234,7 @@ public class MassCalibrator {
             DistributionExtractor.fixedToleranceExtensionRange(range, errorDistributionDistance);
         extractedRange = stretchedRange;
 
-        errorRanges.put("Most populated range", range);
+        errorRanges.put("High-density range of errors", range);
         if (errorDistributionDistance != 0) {
           errorRanges.put("Tolerance extended range", stretchedRange);
         }

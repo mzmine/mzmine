@@ -19,10 +19,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
 
-import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.DistributionRange;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.AxisLocation;
@@ -36,16 +36,14 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.DistributionRange;
 
 /**
- * Chart for error size vs mz ratio plots (xy scatter plot of error values vs mz ratio)
- * with additional extraction ranges and bias estimates lines shown up
- * plus estimated trend
+ * Chart for error size vs mz ratio plots (xy scatter plot of error values vs mz ratio) with
+ * additional extraction ranges and bias estimates lines shown up plus estimated trend
  */
 public class ErrorVsMzChart extends EChartViewer {
 
@@ -56,7 +54,6 @@ public class ErrorVsMzChart extends EChartViewer {
     }
   }
 
-  private final JFreeChart chart;
   private final XYPlot plot;
 
   protected List<MassPeakMatch> matches;
@@ -65,7 +62,6 @@ public class ErrorVsMzChart extends EChartViewer {
 
   protected ErrorVsMzChart(JFreeChart chart) {
     super(chart);
-    this.chart = chart;
     this.plot = chart.getXYPlot();
     plot.getRenderer(0).setDefaultToolTipGenerator(new ErrorVsMzTooltipGenerator());
   }
@@ -90,7 +86,7 @@ public class ErrorVsMzChart extends EChartViewer {
     plot.setRenderer(1, ChartUtils.createTrendRenderer());
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-//    JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+    // JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     JFreeChart chart = new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, false);
     chart.setTitle((String) null);
     return chart;
@@ -105,9 +101,9 @@ public class ErrorVsMzChart extends EChartViewer {
   }
 
   public void updatePlot(List<MassPeakMatch> matches, Map<String, DistributionRange> errorRanges,
-                         double biasEstimate, Trend2D errorVsMzTrend) {
-//    this.matches = matches;
-//    updateChartDataset(matches, errorVsMzTrend);
+      double biasEstimate, Trend2D errorVsMzTrend) {
+    // this.matches = matches;
+    // updateChartDataset(matches, errorVsMzTrend);
     this.matches = new ArrayList<>(matches);
     Collections.sort(this.matches, MassPeakMatch.measuredMzComparator);
     rangeMarkers.clear();
@@ -118,8 +114,10 @@ public class ErrorVsMzChart extends EChartViewer {
       DistributionRange errorRange = errorRanges.get(label);
       Range<Double> errorValueRange = errorRange.getValueRange();
 
-      ValueMarker valueMarkerLower = ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
-      ValueMarker valueMarkerUpper = ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
+      ValueMarker valueMarkerLower =
+          ChartUtils.createValueMarker(label + " lower", errorValueRange.lowerEndpoint());
+      ValueMarker valueMarkerUpper =
+          ChartUtils.createValueMarker(label + " upper", errorValueRange.upperEndpoint());
       rangeMarkers.add(valueMarkerLower);
       rangeMarkers.add(valueMarkerUpper);
     }
@@ -127,14 +125,11 @@ public class ErrorVsMzChart extends EChartViewer {
   }
 
   public void displayPlotLabels(boolean display) {
-    cleanPlotLabels();
     if (display) {
       for (ValueMarker valueMarker : rangeMarkers) {
-//        plot.addRangeMarker(valueMarker);
-        plot.addRangeMarker(0, valueMarker, Layer.FOREGROUND, false);
+        plot.addRangeMarker(0, valueMarker, Layer.FOREGROUND, true);
       }
       if (trendNameAnnotation != null) {
-//        plot.addAnnotation(trendNameAnnotation);
         plot.addAnnotation(trendNameAnnotation, true);
       }
     }
@@ -150,13 +145,14 @@ public class ErrorVsMzChart extends EChartViewer {
     plot.setDataset(0, dataset);
 
     if (trend != null) {
-      XYSeries trendSeries = DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
+      XYSeries trendSeries =
+          DatasetUtils.sampleFunction2DToSeries(trend, dataset.getDomainLowerBound(false),
               dataset.getDomainUpperBound(false), 1000, "trend series");
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
       trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
-              plot.getDomainAxis().getRange().getCentralValue(),
-              plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
+          plot.getDomainAxis().getRange().getCentralValue(),
+          plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
     }
   }
 }

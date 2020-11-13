@@ -113,7 +113,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   };
 
   public static final NestedComboParameter referenceLibrary =
-      new NestedComboParameter("Refeence library of ions",
+      new NestedComboParameter("Reference library of ions",
           "Method used to match mass peaks from the dataset with reference values",
           massPeakMatchingChoices, MassPeakMatchingChoice.STANDARDS_LIST.toString(), true, 250);
 
@@ -124,7 +124,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           + " matching, use 0 to allow all.",
       NumberFormat.getNumberInstance(), 0.0, 0.0, Double.POSITIVE_INFINITY);
 
-  public static final BooleanParameter filterDuplicates =
+  public static final BooleanParameter duplicateErrorFilter =
       new BooleanParameter("Duplicate error filter",
           "If checked, the distribution of errors will be filtered to remove duplicates");
 
@@ -250,8 +250,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           "If checked, original mass list will be removed and only filtered version remains");
 
   public MassCalibrationParameters() {
-    super(new Parameter[] {dataFiles, massList, filterDuplicates, referenceLibrary,
-        intensityThreshold, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
+    super(new Parameter[] {dataFiles, massList, intensityThreshold, duplicateErrorFilter,
+        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix, autoRemove});
   }
 
   @Override
