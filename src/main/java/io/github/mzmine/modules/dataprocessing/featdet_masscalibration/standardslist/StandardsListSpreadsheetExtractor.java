@@ -95,7 +95,7 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
           Cell retentionCell = row.getCell(retentionTimeColumn);
           Cell ionCell = row.getCell(ionFormulaColumn);
           Cell nameCell = row.getCell(nameColumn);
-          double retentionTime = retentionCell.getNumericCellValue();
+          float retentionTime = (float) retentionCell.getNumericCellValue();
           String molecularFormula = ionCell.getStringCellValue();
           StandardsListItem calibrant = new StandardsListItem(molecularFormula, retentionTime);
           try {
