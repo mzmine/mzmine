@@ -19,14 +19,12 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import java.io.File;
-import java.util.concurrent.FutureTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
-import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -59,11 +57,8 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
         fileChooser.setInitialDirectory(currentDir);
     }
 
-    final FutureTask<File> task = new FutureTask<>(() -> fileChooser.showSaveDialog(null));
-    Platform.runLater(task);
-
     try {
-      File selectedFile = task.get();
+      File selectedFile = fileChooser.showSaveDialog(null);
       if (selectedFile == null)
         return ExitCode.CANCEL;
       if (!selectedFile.getName().endsWith(".mzmine")) {

@@ -1,0 +1,21 @@
+Monoisotopic ion mass (singly charged),Name,Ion type,Formula for M or subunit or sequence,Compound ID or species,Possible origin and other comments ,ESI,MALDI,References 
+26.00362, f-,f-,CN,,Fragment from acetonitrile ,,,F
+44.9982, [M-H]-,[M-H]-,HCOOH,,"Formic acid, FA (anion)",,,F
+59.01385, [M-H]-,[M-H]-,CH3COOH,,"Acetic Acid, Ac (anion)",,,F
+78.95906, [M-H3O]-,[M-H3O]-,H3PO4,,"Phosphoric acid (phosphate, anion) also from oligonucleotides or phosphopeptides",,,F
+79.95737, [M-H2O]-,[M-H2O]-,H2SO4,,"Sulfuric acid (sulfate, anion) also from other sulfated materials",,,F
+94.98084, [M-H]-,[M-H]-,CH3SO3H,,"Methanesulfuric acid (methanesulfonate, anion)",,,F
+96.96011, [M-H]-,[M-H]-,H2SO4,,"Sulfuric acid (sulfate, anion)",,,F
+96.96962, [M-H]-,[M-H]-,H3PO4,,"Phosphoric acid (phosphate, anion) also from oligonucleotides or phosphopeptides",,,F
+112.98559, [M-H]-,[M-H]-,CF3COOH,,"Trifluoroacetic acid, TFA (anion)",,,F
+112.98563, [M2+Na-2H]-,[M2+Na-2H]-,HCOOH,,"Formic acid, dimer, FA (anion)",,,F
+126.90502, A-,A-,I,,Iodine anion (Iodide),,,V
+162.9824, [M-H]-,[M-H]-,CF3CF2COOH,,"Pentafluoropropionic acid, Perfluoropropionic acid",,,E
+212.07507, [M-H]-,[M-H]-,C10H15NO2S,,n-butyl benzenesulfonamide,,,"A, K"
+226.97845, [M2-H]-,[M2-H]-,CF3COOH,,"Trifluoroacetic acid, TFA (anion)",,,A
+248.9604, [M2+Na-2H]-,[M2+Na-2H]-,CF3COOH,,"Trifluoroacetic acid, TFA, sodiated (anion)",,,A
+255.23295, [M-H]-,[M-H]-,C16H32O2,,Palmitic acid (carboxylate anion) C16:0,,,K
+281.2486, [M-H]-,[M-H]-,C18H34O2,,Oleic acid (carboxylate anion) C18:1,,,K
+283.26425, [M-H]-,[M-H]-,C18H36O2,,Stearic acid (carboxylate anion) 18:0,,,K
+316.7391, [63CuI+I]-,[63CuI+I]-,CuI,,Copper catalyst iodide adduct,,,K
+318.73729, [65CuI+I]-,[65CuI+I]-,CuI,,Copper catalyst iodide adduct,,,K

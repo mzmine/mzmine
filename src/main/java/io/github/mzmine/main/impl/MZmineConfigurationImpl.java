@@ -160,6 +160,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public NumberFormat getPPMFormat() {
+    return preferences.getParameter(MZminePreferences.ppmFormat).getValue();
+  }
+
+  @Override
   public String getRexecPath() {
     File f = preferences.getParameter(MZminePreferences.rExecPath).getValue();
     if (f == null)

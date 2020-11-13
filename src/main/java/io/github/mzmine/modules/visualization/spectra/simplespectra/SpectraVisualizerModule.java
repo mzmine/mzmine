@@ -21,10 +21,8 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 import io.github.mzmine.datamodel.data.Feature;
 import java.util.Collection;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -58,8 +56,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
         .getValue().getMatchingRawDataFiles();
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
+    String massList = parameters.getParameter(SpectraVisualizerParameters.massList).getValue();
 
-    addNewSpectrumTab(dataFiles[0], scanNumber);
+    addNewSpectrumTab(dataFiles[0], scanNumber, massList);
 
     return ExitCode.OK;
   }
@@ -67,6 +66,11 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
       int scanNumber) {
     return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null);
+  }
+
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile,
+      int scanNumber, String massList) {
+    return addNewSpectrumTab(dataFile, scanNumber, null, null, null, null, massList);
   }
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
@@ -87,7 +91,13 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
   public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
       Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
-      IsotopePattern spectrum) {
+      IsotopePattern spectrum){
+    return addNewSpectrumTab(dataFile, scanNumber, peak, detectedPattern, predictedPattern, spectrum, null);
+  }
+
+  public static SpectraVisualizerTab addNewSpectrumTab(RawDataFile dataFile, int scanNumber,
+      Feature peak, IsotopePattern detectedPattern, IsotopePattern predictedPattern,
+      IsotopePattern spectrum, String massList) {
 
     Scan scan = dataFile.getScan(scanNumber);
 
@@ -97,7 +107,21 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       return null;
     }
 
-    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scanNumber,true);
+    if (massList != null && massList.trim().length() == 0) {
+      massList = null;
+    }
+
+    // check if the scan contains the specified mass list
+    if (massList != null) {
+      MassList massListObject = scan.getMassList(massList);
+      if (massListObject == null) {
+        MZmineCore.getDesktop().displayErrorMessage(
+          "Raw data file " + dataFile + " scan #" + scanNumber + " does not contain mass list " + massList);
+        return null;
+      }
+    }
+
+    SpectraVisualizerTab newTab = new SpectraVisualizerTab(dataFile, scanNumber, massList, true);
     newTab.loadRawData(scan);
 
     if (peak != null)

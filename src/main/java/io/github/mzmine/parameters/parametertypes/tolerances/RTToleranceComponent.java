@@ -18,6 +18,7 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -26,17 +27,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 
 /**
+ *
  */
 public class RTToleranceComponent extends BorderPane {
 
-
+  // the same order that the unit enum in RTTolerance is defined in
   private static final ObservableList<String> toleranceTypes =
-      FXCollections.observableArrayList("absolute (min)", "relative (%)");
-  private TextField toleranceField;
-  private ComboBox<String> toleranceType;
+          FXCollections.observableArrayList("absolute (min)", "absolute (sec)", "relative (%)");
+  private final TextField toleranceField;
+  private final ComboBox<String> toleranceType;
 
   public RTToleranceComponent() {
-
 
 
     // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
@@ -45,48 +46,45 @@ public class RTToleranceComponent extends BorderPane {
     toleranceField.setPrefColumnCount(6);
 
     toleranceType = new ComboBox<String>(toleranceTypes);
+    toleranceType.getSelectionModel().select(1);
 
     setCenter(toleranceField);
     setRight(toleranceType);
 
   }
 
-  public void setValue(RTTolerance value) {
-    double tolerance = value.getTolerance();
-    if (value.isAbsolute()) {
-      toleranceType.getSelectionModel().clearAndSelect(0);
-      String valueString = String.valueOf(tolerance);
-      toleranceField.setText(valueString);
-    } else {
-      toleranceType.getSelectionModel().clearAndSelect(1);
-      String valueString = String.valueOf(tolerance * 100);
-      toleranceField.setText(valueString);
-    }
-  }
-
   public RTTolerance getValue() {
 
     int index = toleranceType.getSelectionModel().getSelectedIndex();
-
     String valueString = toleranceField.getText();
 
     float toleranceFloat;
+    Unit toleranceUnit = Unit.values()[index];
     try {
-      if (index == 0) {
+      if (toleranceUnit == Unit.SECONDS || toleranceUnit == Unit.MINUTES) {
         toleranceFloat =
-            MZmineCore.getConfiguration().getRTFormat().parse(valueString).floatValue();
+                MZmineCore.getConfiguration().getRTFormat().parse(valueString).floatValue();
       } else {
         Number toleranceValue = Double.parseDouble(valueString);
-        toleranceFloat = toleranceValue.floatValue() / 100;
+        toleranceFloat = toleranceValue.floatValue();
       }
     } catch (Exception e) {
       return null;
     }
 
-    RTTolerance value = new RTTolerance(index <= 0, toleranceFloat);
+    RTTolerance value = new RTTolerance(toleranceFloat, toleranceUnit);
 
     return value;
 
+  }
+
+  public void setValue(RTTolerance value) {
+    double tolerance = value.getTolerance();
+    int choiceIndex = value.getUnit().ordinal();
+
+    toleranceType.getSelectionModel().clearAndSelect(choiceIndex);
+    String valueString = String.valueOf(tolerance);
+    toleranceField.setText(valueString);
   }
 
   public void setToolTipText(String toolTip) {

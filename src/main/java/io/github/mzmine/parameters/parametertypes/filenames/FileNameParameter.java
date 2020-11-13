@@ -42,6 +42,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   private String extension;
   private int textfield_columns = 15;
   private FileSelectionType type;
+  private boolean allowEmptyString = true;
 
 //  /**
 //   * Creates a parameter for opening a file. To save a file specify FileSelectionType.SAVE in
@@ -65,6 +66,17 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   /**
+   *
+   * @param name
+   * @param description
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   * @param allowEmptyString
+   */
+  public FileNameParameter(String name, String description, FileSelectionType type, boolean allowEmptyString) {
+    this(name, description, null, type, allowEmptyString);
+  }
+
+  /**
    * 
    * @param name
    * @param description
@@ -78,6 +90,24 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
     this.extension = extension;
     lastFiles = new ArrayList<>();
     this.type = type;
+  }
+
+  /**
+   *
+   * @param name
+   * @param description
+   * @param extension
+   * @param type FileSelectionType.OPEN to open a file, FileSelectionType.SAVE to save to a file.
+   * @param allowEmptyString
+   */
+  public FileNameParameter(String name, String description, String extension,
+      FileSelectionType type, boolean allowEmptyString) {
+    this.name = name;
+    this.description = description;
+    this.extension = extension;
+    lastFiles = new ArrayList<>();
+    this.type = type;
+    this.allowEmptyString = allowEmptyString;
   }
 
   /**
@@ -139,7 +169,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description, type);
+    FileNameParameter copy = new FileNameParameter(name, description, type, allowEmptyString);
     copy.setValue(this.getValue());
     copy.setLastFiles(new ArrayList<>(lastFiles));
     return copy;
@@ -147,17 +177,20 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public void setValueFromComponent(FileNameComponent component) {
-    File compValue = component.getValue();
+    File compValue = component.getValue(allowEmptyString);
+    if (compValue == null) {
+      this.value = compValue;
+      return;
+    }
+
     if (extension != null) {
       if (!compValue.getName().toLowerCase().endsWith(extension.toLowerCase()))
         compValue = new File(compValue.getPath() + "." + extension);
     }
-    if (compValue != null) {
-      // add to last files if not already inserted
-      lastFiles.remove(compValue);
-      lastFiles.add(0, compValue);
-      setLastFiles(lastFiles);
-    }
+    // add to last files if not already inserted
+    lastFiles.remove(compValue);
+    lastFiles.add(0, compValue);
+    setLastFiles(lastFiles);
 
     this.value = compValue;
   }
