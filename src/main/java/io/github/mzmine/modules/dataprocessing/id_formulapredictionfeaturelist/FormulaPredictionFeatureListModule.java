@@ -15,21 +15,21 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-package io.github.mzmine.modules.dataprocessing.id_formulapredictionpeaklist;
+package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
+public class FormulaPredictionFeatureListModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Formula prediction";
   private static final String MODULE_DESCRIPTION =
@@ -46,7 +46,7 @@ public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return FormulaPredictionPeakListParameters.class;
+    return FormulaPredictionFeatureListParameters.class;
   }
 
   public @Nonnull String getDescription() {
@@ -56,11 +56,11 @@ public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
   @Override
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-    PeakList peakLists[] = parameters.getParameter(FormulaPredictionPeakListParameters.PEAK_LISTS)
+    FeatureList featureLists[] = parameters.getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
         .getValue().getMatchingPeakLists();
 
-    for (PeakList peakList : peakLists) {
-      Task newTask = new FormulaPredictionPeakListTask(peakList, parameters);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new FormulaPredictionFeatureListTask(featureList, parameters);
       tasks.add(newTask);
     }
     return ExitCode.OK;

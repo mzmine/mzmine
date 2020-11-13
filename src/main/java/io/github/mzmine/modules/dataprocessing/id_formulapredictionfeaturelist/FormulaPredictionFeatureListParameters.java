@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-package io.github.mzmine.modules.dataprocessing.id_formulapredictionpeaklist;
+package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
@@ -28,13 +28,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
+public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final OptionalModuleParameter<FormulaSortParameters> sorting =
       new OptionalModuleParameter<>("Sorting", "Apply sorting to all resulting lists",
@@ -48,9 +48,9 @@ public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final IntegerParameter maxBestFormulasPerPeak =
-      new IntegerParameter("Max best formulas per peak",
-          "Enter the number of the maximum number of added formulas per peak");
+  public static final IntegerParameter maxBestFormulasPerFeature =
+      new IntegerParameter("Max best formulas per feature",
+          "Enter the number of the maximum number of added formulas per feature");
 
   public static final ElementsParameter elements =
       new ElementsParameter("Elements", "Elements and ranges");
@@ -72,9 +72,9 @@ public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter msmsFilter =
       new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
-  public FormulaPredictionPeakListParameters() {
-    super(new Parameter[] {charge, ionization, PEAK_LISTS, sorting, mzTolerance,
-        maxBestFormulasPerPeak, elements, elementalRatios, rdbeRestrictions, isotopeFilter,
+  public FormulaPredictionFeatureListParameters() {
+    super(new Parameter[] {charge, ionization, FEATURE_LISTS, sorting, mzTolerance,
+        maxBestFormulasPerFeature, elements, elementalRatios, rdbeRestrictions, isotopeFilter,
         msmsFilter});
   }
 }
