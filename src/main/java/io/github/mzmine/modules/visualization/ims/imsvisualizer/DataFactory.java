@@ -54,14 +54,14 @@ public class DataFactory {
     private Double[] mobilityIntensityMobility;
 
     public Map<Double, Double> scanMobilityMap = new HashMap<>();
-    public Map<Double, Double> scanRetentionTimeMap = new HashMap<>();
-    private Double selectedRetentionTime;
+    public Map<Float, Double> scanRetentionTimeMap = new HashMap<>();
+    private Float selectedRetentionTime;
     private final int scanSize;
     private final ImsVisualizerTask imsTask;
-    List<Double> rtIntensity = new ArrayList<>();
+    List<Float> rtIntensity = new ArrayList<>();
 
 
-    public DataFactory(ParameterSet param, double rt, ImsVisualizerTask imsTask) {
+    public DataFactory(ParameterSet param, float rt, ImsVisualizerTask imsTask) {
         RawDataFile[] dataFiles = param
                 .getParameter(ImsVisualizerParameters.dataFiles)
                 .getValue()
