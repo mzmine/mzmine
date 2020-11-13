@@ -771,7 +771,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    */
   @Nullable
   private ChromatogramCursorPosition getCurrentCursorPosition() {
-    float selectedRT = (float) getXYPlot().getDomainCrosshairValue();
+    double selectedRT = getXYPlot().getDomainCrosshairValue();
     double selectedIT = getXYPlot().getRangeCrosshairValue();
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = getXYPlot().getDataset(i);

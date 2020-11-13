@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-public enum PeakThresholdMode {
+public enum FeatureThresholdMode {
 
-  NONE("None"), ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
-      "Peaks above user-defined intensity"), TOP_PEAKS(
-          "User-defined top peaks"), TOP_PEAKS_AREA("User-defined top peaks in the displayed area");
+  NONE("None"), ALL_FEATURES("All features"), ABOVE_INTENSITY_FEATURES(
+      "Features above user-defined intensity"), TOP_FEATURES(
+          "User-defined top features"), TOP_FEATURES_AREA("User-defined top features in the displayed area");
 
   private final String name;
 
-  PeakThresholdMode(String name) {
+  FeatureThresholdMode(String name) {
     this.name = name;
   }
 

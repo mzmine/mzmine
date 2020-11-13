@@ -26,22 +26,22 @@ import org.w3c.dom.NodeList;
 
 import io.github.mzmine.parameters.Parameter;
 
-public class PeakThresholdParameter implements Parameter<Object> {
+public class FeatureThresholdParameter implements Parameter<Object> {
 
-  private PeakThresholdMode mode = PeakThresholdMode.ALL_PEAKS;
+  private FeatureThresholdMode mode = FeatureThresholdMode.ALL_FEATURES;
   private double intensityThreshold;
-  private int topPeaksThreshold;
+  private int topFeaturesThreshold;
 
   @Override
   public String getName() {
     return "Peak threshold settings";
   }
 
-  public PeakThresholdMode getMode() {
+  public FeatureThresholdMode getMode() {
     return mode;
   }
 
-  public void setMode(PeakThresholdMode mode) {
+  public void setMode(FeatureThresholdMode mode) {
     this.mode = mode;
   }
 
@@ -53,12 +53,12 @@ public class PeakThresholdParameter implements Parameter<Object> {
     this.intensityThreshold = intensityThreshold;
   }
 
-  public int getTopPeaksThreshold() {
-    return topPeaksThreshold;
+  public int getTopFeaturesThreshold() {
+    return topFeaturesThreshold;
   }
 
-  public void setTopPeaksThreshold(int topPeaksThreshold) {
-    this.topPeaksThreshold = topPeaksThreshold;
+  public void setTopFeaturesThreshold(int topFeaturesThreshold) {
+    this.topFeaturesThreshold = topFeaturesThreshold;
   }
 
   @Override
@@ -67,7 +67,7 @@ public class PeakThresholdParameter implements Parameter<Object> {
     if (nodes.getLength() != 1)
       return;
     String content = nodes.item(0).getTextContent();
-    mode = PeakThresholdMode.valueOf(content);
+    mode = FeatureThresholdMode.valueOf(content);
 
     nodes = xmlElement.getElementsByTagName("intensityThreshold");
     if (nodes.getLength() != 1)
@@ -79,7 +79,7 @@ public class PeakThresholdParameter implements Parameter<Object> {
     if (nodes.getLength() != 1)
       return;
     content = nodes.item(0).getTextContent();
-    topPeaksThreshold = Integer.valueOf(content);
+    topFeaturesThreshold = Integer.valueOf(content);
 
   }
 
@@ -97,13 +97,13 @@ public class PeakThresholdParameter implements Parameter<Object> {
     xmlElement.appendChild(newElement);
 
     newElement = parentDocument.createElement("topPeaksThreshold");
-    newElement.setTextContent(String.valueOf(topPeaksThreshold));
+    newElement.setTextContent(String.valueOf(topFeaturesThreshold));
     xmlElement.appendChild(newElement);
 
   }
 
   @Override
-  public PeakThresholdParameter cloneParameter() {
+  public FeatureThresholdParameter cloneParameter() {
     return this;
   }
 

@@ -21,9 +21,9 @@ package io.github.mzmine.modules.visualization.msms;
 import io.github.mzmine.datamodel.DataPoint;
 
 /**
- * This class represents one peak datapoint (retention time and m/z)
+ * This class represents one feature datapoint (retention time and m/z)
  */
-class PeakDataPoint {
+class FeatureDataPoint {
 
   private int scanNumber;
   private double rt;
@@ -31,7 +31,7 @@ class PeakDataPoint {
 
   /**
    */
-  PeakDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
+  FeatureDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
     this.scanNumber = scanNumber;
     this.rt = rt;
     this.dataPoint = dataPoint;

@@ -18,20 +18,20 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.main.MZmineCore;
 
 /**
  * Tooltip generator for 2D visualizer
  */
-class PeakToolTipGenerator implements XYToolTipGenerator {
+class FeatureToolTipGenerator implements XYToolTipGenerator {
 
   private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -43,19 +43,19 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
    */
   public String generateToolTip(XYDataset dataset, int series, int item) {
 
-    PeakDataSet peakDataSet = (PeakDataSet) dataset;
-    PeakDataPoint dataPoint = peakDataSet.getDataPoint(series, item);
+    FeatureDataSet featureDataSet = (FeatureDataSet) dataset;
+    FeatureDataPoint dataPoint = featureDataSet.getDataPoint(series, item);
 
-    PeakList peakList = peakDataSet.getPeakList();
-    Feature peak = peakDataSet.getPeak(series);
-    PeakListRow row = peakList.getPeakRow(peak);
+    FeatureList featureList = featureDataSet.getFeatureList();
+    Feature feature = featureDataSet.getFeature(series);
+    FeatureListRow row = featureList.getFeatureRow(feature);
     double rtValue = dataPoint.getRT();
     double intValue = dataPoint.getIntensity();
     double mzValue = dataPoint.getMZ();
     int scanNumber = dataPoint.getScanNumber();
 
     String toolTip =
-        "Peak: " + peak + "\nStatus: " + peak.getFeatureStatus() + "\nFeature list row: " + row
+        "Peak: " + feature + "\nStatus: " + feature.getFeatureStatus() + "\nFeature list row: " + row
             + "\nScan #" + scanNumber + "\nRetention time: " + rtFormat.format(rtValue) + "\nm/z: "
             + mzFormat.format(mzValue) + "\nIntensity: " + intensityFormat.format(intValue);
 

@@ -48,10 +48,10 @@ public class MsMsParameters extends SimpleParameterSet {
           "The color of the data points can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
           NormalizationType.values());
 
-  public static final DoubleParameter minPeakInt = new DoubleParameter("Min. MS/MS peak intensity",
+  public static final DoubleParameter minFeatureInt = new DoubleParameter("Min. MS/MS peak intensity",
       "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the MS/MS visualizer.\nSet to 0 to show all.");
 
-  public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
+  public static final FeatureThresholdParameter featureThresholdSettings = new FeatureThresholdParameter();
 
   /**
    * Windows size and position
@@ -60,7 +60,7 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public MsMsParameters() {
     super(new Parameter[] {dataFiles, retentionTimeRange, mzRange, intensityType, normalizationType,
-        minPeakInt, peakThresholdSettings, windowSettings});
+        minFeatureInt, featureThresholdSettings, windowSettings});
   }
 
 }

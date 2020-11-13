@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -33,7 +34,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -45,7 +45,8 @@ import io.github.mzmine.main.MZmineCore;
 class MsMsPlot extends EChartViewer  {
 
   private RawDataFile rawDataFile;
-  private Range<Double> rtRange, mzRange;
+  private Range<Double> mzRange;
+  private Range<Float> rtRange;
 
   private JFreeChart chart;
 
@@ -57,7 +58,7 @@ class MsMsPlot extends EChartViewer  {
   // VisualizerWindow visualizer.
   private final MsMsVisualizerTab visualizer;
 
-  private PeakDataRenderer peakDataRenderer;
+  private FeatureDataRenderer featureDataRenderer;
 
   // grid color
   private static final Color gridColor = Color.lightGray;
@@ -83,7 +84,7 @@ class MsMsPlot extends EChartViewer  {
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
   MsMsPlot(RawDataFile rawDataFile, MsMsVisualizerTab visualizer, MsMsDataSet dataset,
-      Range<Double> rtRange, Range<Double> mzRange) {
+      Range<Float> rtRange, Range<Double> mzRange) {
 
     super(ChartFactory.createXYLineChart("", "", "", null, PlotOrientation.VERTICAL, true, true,
         false), true, true, false, false, true);
@@ -153,7 +154,7 @@ class MsMsPlot extends EChartViewer  {
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    peakDataRenderer = new PeakDataRenderer();
+    featureDataRenderer = new FeatureDataRenderer();
 
 
     // reset zoom history
@@ -170,25 +171,25 @@ class MsMsPlot extends EChartViewer  {
     chartTitle.setText(title);
   }
 
-  void loadPeakList(PeakList peakList) {
+  void loadFeatureList(FeatureList featureList) {
 
-    PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList, rtRange, mzRange);
+    FeatureDataSet featureDataSet = new FeatureDataSet(rawDataFile, featureList, rtRange, mzRange);
 
-    plot.setDataset(1, peaksDataSet);
-    plot.setRenderer(1, peakDataRenderer);
+    plot.setDataset(1, featureDataSet);
+    plot.setRenderer(1, featureDataRenderer);
   }
 
   void switchDataPointsVisible() {
-    boolean dataPointsVisible = peakDataRenderer.getDefaultShapesVisible();
-    peakDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
+    boolean dataPointsVisible = featureDataRenderer.getDefaultShapesVisible();
+    featureDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
   }
 
-  public void showPeaksTooltips(boolean mode) {
+  public void showFeaturesTooltips(boolean mode) {
     if (mode) {
-      PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-      this.peakDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
+      FeatureToolTipGenerator toolTipGenerator = new FeatureToolTipGenerator();
+      this.featureDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
     } else {
-      this.peakDataRenderer.setDefaultToolTipGenerator(null);
+      this.featureDataRenderer.setDefaultToolTipGenerator(null);
     }
   }
 

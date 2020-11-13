@@ -20,9 +20,8 @@ package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -30,13 +29,11 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import java.awt.Color;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
@@ -44,7 +41,6 @@ import java.util.Collection;
 import java.util.Collections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
@@ -52,7 +48,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
@@ -82,20 +77,20 @@ public class MsMsVisualizerTab extends MZmineTab {
   private RawDataFile dataFile;
 
   // parameters
-  private Range<Double> rtRange;
+  private Range<Float> rtRange;
   private Range<Double> mzRange;
   private IntensityType intensityType;
   private NormalizationType normalizationType;
-  private Double minPeakInt;
+  private Double minFeatureInt;
 
   public MsMsVisualizerTab(RawDataFile dataFile, ParameterSet parameters) {
     super("Ms/Ms Visualizer module", true, false);
 
-    rtRange = parameters.getParameter(MsMsParameters.retentionTimeRange).getValue();
+    rtRange = RangeUtils.toFloatRange(parameters.getParameter(MsMsParameters.retentionTimeRange).getValue());
     mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
     intensityType = parameters.getParameter(MsMsParameters.intensityType).getValue();
     normalizationType = parameters.getParameter(MsMsParameters.normalizationType).getValue();
-    minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt).getValue();
+    minFeatureInt = parameters.getParameter(MsMsParameters.minFeatureInt).getValue();
     mainPane = new BorderPane();
     //mainScene = new Scene(mainPane);
 
@@ -107,7 +102,7 @@ public class MsMsVisualizerTab extends MZmineTab {
     this.dataFile = dataFile;
 
     dataset = new MsMsDataSet(dataFile, rtRange, mzRange, intensityType, normalizationType,
-        minPeakInt, this);
+        minFeatureInt, this);
 
     IDAPlot = new MsMsPlot(dataFile, this, dataset, rtRange, mzRange);
     mainPane.setCenter(IDAPlot);
@@ -117,20 +112,20 @@ public class MsMsVisualizerTab extends MZmineTab {
 
     toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
     toggleContinuousModeButton
-        .setTooltip(new Tooltip("Toggle displaying of data points for the peaks"));
+        .setTooltip(new Tooltip("Toggle displaying of data points for the features"));
     toggleContinuousModeButton.setOnAction(e -> {
       IDAPlot.switchDataPointsVisible();
     });
 
     toggleTooltipButton = new ToggleButton(null, new ImageView(tooltipsIcon));
     toggleTooltipButton.setSelected(true);
-    toggleTooltipButton.setTooltip(new Tooltip("Toggle displaying of tool tips on the peaks"));
+    toggleTooltipButton.setTooltip(new Tooltip("Toggle displaying of tool tips on the features"));
     toggleTooltipButton.setOnAction(e -> {
       if (toggleTooltipButton.isSelected()) {
-        IDAPlot.showPeaksTooltips(false);
+        IDAPlot.showFeaturesTooltips(false);
         toggleTooltipButton.setSelected(false);
       } else {
-        IDAPlot.showPeaksTooltips(true);
+        IDAPlot.showFeaturesTooltips(true);
         toggleTooltipButton.setSelected(true);
       }
     });
@@ -258,13 +253,13 @@ public class MsMsVisualizerTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -286,7 +281,7 @@ public class MsMsVisualizerTab extends MZmineTab {
 
     // add new dataset
     MsMsDataSet newDataset = new MsMsDataSet(newFile, rtRange, mzRange, intensityType,
-        normalizationType, minPeakInt, this);
+        normalizationType, minFeatureInt, this);
     IDAPlot.addMsMsDataSet(newDataset);
 
     dataFile = newFile;
@@ -296,13 +291,13 @@ public class MsMsVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

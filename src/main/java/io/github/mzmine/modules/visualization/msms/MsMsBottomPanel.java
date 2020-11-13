@@ -19,14 +19,14 @@
 package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.PeakListRowSorter;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.awt.Font;
@@ -49,10 +49,10 @@ class MsMsBottomPanel extends HBox {
 
   private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-  private ComboBox<PeakList> peakListSelector;
-  private ComboBox<PeakThresholdMode> thresholdCombo;
-  private TextField peakTextField;
-  private PeakThresholdParameter thresholdSettings;
+  private ComboBox<FeatureList> featureListSelector;
+  private ComboBox<FeatureThresholdMode> thresholdCombo;
+  private TextField featureTextField;
+  private FeatureThresholdParameter thresholdSettings;
 
   private MsMsVisualizerTab masterFrame;
   private RawDataFile dataFile;
@@ -62,60 +62,60 @@ class MsMsBottomPanel extends HBox {
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;
 
-    thresholdCombo = new ComboBox<>(FXCollections.observableArrayList(PeakThresholdMode.values()));
+    thresholdCombo = new ComboBox<>(FXCollections.observableArrayList(FeatureThresholdMode.values()));
     thresholdCombo.setOnAction(e -> {
-      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
+      FeatureThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
 
       switch (mode) {
-        case ABOVE_INTENSITY_PEAKS:
-          peakTextField.setText(String.valueOf(thresholdSettings.getIntensityThreshold()));
-          peakTextField.setDisable(false);
+        case ABOVE_INTENSITY_FEATURES:
+          featureTextField.setText(String.valueOf(thresholdSettings.getIntensityThreshold()));
+          featureTextField.setDisable(false);
           break;
-        case ALL_PEAKS:
-          peakTextField.setDisable(true);
+        case ALL_FEATURES:
+          featureTextField.setDisable(true);
           break;
-        case TOP_PEAKS:
-        case TOP_PEAKS_AREA:
-          peakTextField.setText(String.valueOf(thresholdSettings.getTopPeaksThreshold()));
-          peakTextField.setDisable(false);
+        case TOP_FEATURES:
+        case TOP_FEATURES_AREA:
+          featureTextField.setText(String.valueOf(thresholdSettings.getTopFeaturesThreshold()));
+          featureTextField.setDisable(false);
           break;
       }
 
       thresholdSettings.setMode(mode);
-      PeakList selectedPeakList = getPeaksInThreshold();
-      if (selectedPeakList != null) {
-        masterFrame.getPlot().loadPeakList(selectedPeakList);
+      FeatureList selectedFeatureList = getFeaturesInThreshold();
+      if (selectedFeatureList != null) {
+        masterFrame.getPlot().loadFeatureList(selectedFeatureList);
       }
     });
 
-    peakTextField = new TextField();
-    peakTextField.setOnAction(e -> {
-      PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
-      String value = peakTextField.getText();
+    featureTextField = new TextField();
+    featureTextField.setOnAction(e -> {
+      FeatureThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
+      String value = featureTextField.getText();
       switch (mode) {
-        case ABOVE_INTENSITY_PEAKS:
+        case ABOVE_INTENSITY_FEATURES:
           double topInt = Double.parseDouble(value);
           thresholdSettings.setIntensityThreshold(topInt);
           break;
-        case TOP_PEAKS:
-        case TOP_PEAKS_AREA:
-          int topPeaks = Integer.parseInt(value);
-          thresholdSettings.setTopPeaksThreshold(topPeaks);
+        case TOP_FEATURES:
+        case TOP_FEATURES_AREA:
+          int topFeatures = Integer.parseInt(value);
+          thresholdSettings.setTopFeaturesThreshold(topFeatures);
           break;
         default:
           break;
       }
-      PeakList selectedPeakList = getPeaksInThreshold();
-      if (selectedPeakList != null) {
-        masterFrame.getPlot().loadPeakList(selectedPeakList);
+      FeatureList selectedFeatureList = getFeaturesInThreshold();
+      if (selectedFeatureList != null) {
+        masterFrame.getPlot().loadFeatureList(selectedFeatureList);
       }
 
     });
 
-    peakListSelector =
+    featureListSelector =
         new ComboBox<>(MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
 
-    thresholdSettings = parameters.getParameter(MsMsParameters.peakThresholdSettings);
+    thresholdSettings = parameters.getParameter(MsMsParameters.featureThresholdSettings);
 
     thresholdCombo.getSelectionModel().select(thresholdSettings.getMode());
     setSpacing(10);
@@ -123,32 +123,32 @@ class MsMsBottomPanel extends HBox {
         new Label("Show: "), //
         thresholdCombo, //
         new Label("Value: "), //
-        peakTextField, //
+        featureTextField, //
         new Label(" from feature list: ") //
     );
 
   }
 
   /**
-   * Returns a feature list different peaks depending on the selected option of the "peak Threshold"
+   * Returns a feature list different features depending on the selected option of the "peak Threshold"
    * combo box
    */
-  PeakList getPeaksInThreshold() {
+  FeatureList getFeaturesInThreshold() {
 
-    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    PeakThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
+    FeatureList selectedFeatureList = featureListSelector.getSelectionModel().getSelectedItem();
+    FeatureThresholdMode mode = thresholdCombo.getSelectionModel().getSelectedItem();
 
     switch (mode) {
-      case ABOVE_INTENSITY_PEAKS:
+      case ABOVE_INTENSITY_FEATURES:
         double threshold = thresholdSettings.getIntensityThreshold();
         return getIntensityThresholdPeakList(threshold);
 
-      case ALL_PEAKS:
-        return selectedPeakList;
-      case TOP_PEAKS:
-      case TOP_PEAKS_AREA:
-        int topPeaks = thresholdSettings.getTopPeaksThreshold();
-        return getTopThresholdPeakList(topPeaks);
+      case ALL_FEATURES:
+        return selectedFeatureList;
+      case TOP_FEATURES:
+      case TOP_FEATURES_AREA:
+        int topFeatures = thresholdSettings.getTopFeaturesThreshold();
+        return getTopThresholdFeatureList(topFeatures);
     }
 
     return null;
@@ -157,21 +157,21 @@ class MsMsBottomPanel extends HBox {
   /**
    * Returns a feature list with the peaks which intensity is above the parameter "intensity"
    */
-  PeakList getIntensityThresholdPeakList(double intensity) {
-    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    if (selectedPeakList == null) {
+  FeatureList getIntensityThresholdPeakList(double intensity) {
+    FeatureList selectedFeatureList = featureListSelector.getSelectionModel().getSelectedItem();
+    if (selectedFeatureList == null) {
       return null;
     }
-    SimplePeakList newList =
-        new SimplePeakList(selectedPeakList.getName(), selectedPeakList.getRawDataFiles());
+    ModularFeatureList newList =
+        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
 
-    for (PeakListRow peakRow : selectedPeakList.getRows()) {
-      Feature peak = peakRow.getPeak(dataFile);
-      if (peak == null) {
+    for (FeatureListRow featureListRow : selectedFeatureList.getRows()) {
+      Feature feature = featureListRow.getFeature(dataFile);
+      if (feature == null) {
         continue;
       }
-      if (peak.getRawDataPointsIntensityRange().upperEndpoint() > intensity) {
-        newList.addRow(peakRow);
+      if (feature.getRawDataPointsIntensityRange().upperEndpoint() > intensity) {
+        newList.addRow(featureListRow);
       }
     }
     return newList;
@@ -180,43 +180,43 @@ class MsMsBottomPanel extends HBox {
   /**
    * Returns a feature list with the top peaks defined by the parameter "threshold"
    */
-  PeakList getTopThresholdPeakList(int threshold) {
+  FeatureList getTopThresholdFeatureList(int threshold) {
 
-    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    if (selectedPeakList == null) {
+    FeatureList selectedFeatureList = featureListSelector.getSelectionModel().getSelectedItem();
+    if (selectedFeatureList == null) {
       return null;
     }
-    SimplePeakList newList =
-        new SimplePeakList(selectedPeakList.getName(), selectedPeakList.getRawDataFiles());
+    ModularFeatureList newList =
+        new ModularFeatureList(selectedFeatureList.getName(), selectedFeatureList.getRawDataFiles());
 
-    Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
+    Vector<FeatureListRow> featureListRows = new Vector<FeatureListRow>();
 
-    Range<Double> mzRange = selectedPeakList.getRowsMZRange();
-    Range<Double> rtRange = selectedPeakList.getRowsRTRange();
+    Range<Double> mzRange = selectedFeatureList.getRowsMZRange();
+    Range<Float> rtRange = selectedFeatureList.getRowsRTRange();
 
-    PeakThresholdMode selectedPeakOption = thresholdCombo.getSelectionModel().getSelectedItem();
-    if (selectedPeakOption == PeakThresholdMode.TOP_PEAKS_AREA) {
+    FeatureThresholdMode selectedFeatureOption = thresholdCombo.getSelectionModel().getSelectedItem();
+    if (selectedFeatureOption == FeatureThresholdMode.TOP_FEATURES_AREA) {
       XYPlot xyPlot = masterFrame.getPlot().getXYPlot();
       org.jfree.data.Range yAxis = xyPlot.getRangeAxis().getRange();
       org.jfree.data.Range xAxis = xyPlot.getDomainAxis().getRange();
-      rtRange = Range.closed(xAxis.getLowerBound(), xAxis.getUpperBound());
+      rtRange = Range.closed((float) xAxis.getLowerBound(), (float) xAxis.getUpperBound());
       mzRange = Range.closed(yAxis.getLowerBound(), yAxis.getUpperBound());
     }
 
-    for (PeakListRow peakRow : selectedPeakList.getRows()) {
-      if (mzRange.contains(peakRow.getAverageMZ()) && rtRange.contains(peakRow.getAverageRT())) {
-        peakRows.add(peakRow);
+    for (FeatureListRow featureListRow : selectedFeatureList.getRows()) {
+      if (mzRange.contains(featureListRow.getAverageMZ()) && rtRange.contains(featureListRow.getAverageRT())) {
+        featureListRows.add(featureListRow);
       }
     }
 
-    Collections.sort(peakRows,
-        new PeakListRowSorter(SortingProperty.Intensity, SortingDirection.Descending));
+    Collections.sort(featureListRows,
+        new FeatureListRowSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
-    if (threshold > peakRows.size()) {
-      threshold = peakRows.size();
+    if (threshold > featureListRows.size()) {
+      threshold = featureListRows.size();
     }
     for (int i = 0; i < threshold; i++) {
-      newList.addRow(peakRows.elementAt(i));
+      newList.addRow(featureListRows.elementAt(i));
     }
     return newList;
   }
@@ -224,9 +224,9 @@ class MsMsBottomPanel extends HBox {
   /**
    * Returns selected feature list
    */
-  PeakList getSelectedPeakList() {
-    PeakList selectedPeakList = peakListSelector.getSelectionModel().getSelectedItem();
-    return selectedPeakList;
+  FeatureList getSelectedFeatureList() {
+    FeatureList selectedFeatureList = featureListSelector.getSelectionModel().getSelectedItem();
+    return selectedFeatureList;
   }
 
 

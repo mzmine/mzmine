@@ -28,33 +28,33 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 /**
  * 
  */
-class PeakDataRenderer extends XYLineAndShapeRenderer {
+class FeatureDataRenderer extends XYLineAndShapeRenderer {
 
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
 
-  private static final Color peakColor = Color.green;
+  private static final Color featureColor = Color.green;
 
   // data points shape
   private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
 
-  PeakDataRenderer() {
+  FeatureDataRenderer() {
     setDefaultShapesFilled(true);
     setDrawOutlines(false);
     setUseFillPaint(false);
     setDefaultShapesVisible(false);
     setDefaultShape(dataPointsShape);
 
-    PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
+    FeatureToolTipGenerator toolTipGenerator = new FeatureToolTipGenerator();
     setDefaultToolTipGenerator(toolTipGenerator);
 
     setDrawSeriesLineAsPath(true);
   }
 
   public Paint getItemPaint(int row, int column) {
-    return peakColor;
+    return featureColor;
   }
 
   public Shape getItemShape(int row, int column) {
