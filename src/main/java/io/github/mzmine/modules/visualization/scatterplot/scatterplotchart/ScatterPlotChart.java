@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.util.FeatureUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -34,10 +37,8 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -48,7 +49,6 @@ import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelecti
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SearchDefinition;
 import io.github.mzmine.util.components.ComponentToolTipManager;
 import javafx.scene.control.ContextMenu;
@@ -80,17 +80,17 @@ public class ScatterPlotChart extends EChartViewer {
   private ComponentToolTipManager ttm;
 
   private ScatterPlotTab tab;
-  private PeakList peakList;
+  private FeatureList featureList;
   private ScatterPlotAxisSelection axisX, axisY;
   private int fold;
 
   public ScatterPlotChart(ScatterPlotTab tab, ScatterPlotTopPanel topPanel,
-      PeakList peakList) {
+      FeatureList featureList) {
 
     super(null);
 
     this.tab = tab;
-    this.peakList = peakList;
+    this.featureList = featureList;
     this.topPanel = topPanel;
 
     // initialize the chart by default time series chart from factory
@@ -143,7 +143,7 @@ public class ScatterPlotChart extends EChartViewer {
     plot.setRangeCrosshairStroke(crossHairStroke);
 
     // Create data sets;
-    mainDataSet = new ScatterPlotDataSet(peakList);
+    mainDataSet = new ScatterPlotDataSet(featureList);
     plot.setDataset(0, mainDataSet);
     diagonalLineDataset = new DiagonalLineDataset();
     plot.setDataset(1, diagonalLineDataset);
@@ -205,7 +205,7 @@ public class ScatterPlotChart extends EChartViewer {
     if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
       double valueX = plot.getDomainCrosshairValue();
       double valueY = plot.getRangeCrosshairValue();
-      PeakListRow selectedRow = mainDataSet.getRow(valueX, valueY);
+      FeatureListRow selectedRow = mainDataSet.getRow(valueX, valueY);
       topPanel.updateItemNameText(selectedRow);
     }
   }
@@ -225,19 +225,19 @@ public class ScatterPlotChart extends EChartViewer {
 
       double valueX = plot.getDomainCrosshairValue();
       double valueY = plot.getRangeCrosshairValue();
-      PeakListRow selectedRow = mainDataSet.getRow(valueX, valueY);
+      FeatureListRow selectedRow = mainDataSet.getRow(valueX, valueY);
 
       if (selectedRow == null) {
-        MZmineCore.getDesktop().displayErrorMessage("No peak is selected");
+        MZmineCore.getDesktop().displayErrorMessage("No feature is selected");
         return;
       }
 
-      Feature[] peaks = selectedRow.getPeaks();
-      Range<Double> rtRange = peakList.getRowsRTRange();
-      Range<Double> mzRange = PeakUtils.findMZRange(peaks);
+      Feature[] peaks = selectedRow.getFeatures().toArray(new Feature[0]);
+      Range<Float> rtRange = featureList.getRowsRTRange();
+      Range<Double> mzRange = FeatureUtils.findMZRange(peaks);
 
       // Label best peak with preferred identity.
-      final Feature bestPeak = selectedRow.getBestPeak();
+      final Feature bestPeak = selectedRow.getBestFeature();
       final PeakIdentity peakIdentity = selectedRow.getPreferredPeakIdentity();
       final Map<Feature, String> labelMap = new HashMap<Feature, String>(1);
       if (bestPeak != null && peakIdentity != null) {
@@ -248,7 +248,7 @@ public class ScatterPlotChart extends EChartViewer {
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
       ChromatogramVisualizerModule.showNewTICVisualizerWindow(
-          peakList.getRawDataFiles().toArray(RawDataFile[]::new),
+          featureList.getRawDataFiles().toArray(RawDataFile[]::new),
           Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEPEAK,
           mzRange);
     }
@@ -271,7 +271,7 @@ public class ScatterPlotChart extends EChartViewer {
     mainDataSet.setDisplayedAxes(axisX, axisY);
     diagonalLineDataset.updateDiagonalData(mainDataSet, fold);
 
-    topPanel.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
+    topPanel.updateNumOfItemsText(featureList, mainDataSet, axisX, axisY, fold);
   }
 
   public void setItemLabels(boolean enabled) {
@@ -280,7 +280,7 @@ public class ScatterPlotChart extends EChartViewer {
 
   public void updateSearchDefinition(SearchDefinition newSearch) {
     mainDataSet.updateSearchDefinition(newSearch);
-    topPanel.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
+    topPanel.updateNumOfItemsText(featureList, mainDataSet, axisX, axisY, fold);
   }
 
 }

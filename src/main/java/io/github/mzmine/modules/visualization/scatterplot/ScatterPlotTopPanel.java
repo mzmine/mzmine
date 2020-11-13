@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.scatterplot;
 
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotDataSet;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -43,7 +43,7 @@ public class ScatterPlotTopPanel extends HBox {
 
   }
 
-  public void updateNumOfItemsText(PeakList peakList, ScatterPlotDataSet dataSet,
+  public void updateNumOfItemsText(FeatureList featureList, ScatterPlotDataSet dataSet,
       ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY, int fold) {
 
     int percentage = 100;
@@ -95,7 +95,7 @@ public class ScatterPlotTopPanel extends HBox {
     numOfDisplayedItems.setText(display);
   }
 
-  public void updateItemNameText(PeakListRow selectedRow) {
+  public void updateItemNameText(FeatureListRow selectedRow) {
 
     if (selectedRow == null) {
       itemNameLabel.setText("");

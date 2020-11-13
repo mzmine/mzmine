@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.text.NumberFormat;
 import java.util.regex.PatternSyntaxException;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.util.SearchDefinition;
@@ -50,20 +50,20 @@ public class ScatterPlotBottomPanel extends GridPane {
   private static final String[] foldXvalues =
       {"2", "4", "5", "8", "10", "15", "20", "50", "100", "200", "1000"};
 
-  private PeakList peakList;
+  private FeatureList featureList;
   private ScatterPlotTab window;
   private ScatterPlotChart chart;
 
   public ScatterPlotBottomPanel(ScatterPlotTab window, ScatterPlotChart chart,
-      PeakList peakList) {
+      FeatureList featureList) {
 
     this.window = window;
-    this.peakList = peakList;
+    this.featureList = featureList;
     this.chart = chart;
 
     // Axes combo boxes
     ScatterPlotAxisSelection axesOptions[] =
-        ScatterPlotAxisSelection.generateOptionsForPeakList(peakList);
+        ScatterPlotAxisSelection.generateOptionsForFeatureList(featureList);
 
     comboX = new ComboBox<>(FXCollections.observableArrayList(axesOptions));
     comboX.setOnAction(e -> dataChange());
@@ -113,7 +113,7 @@ public class ScatterPlotBottomPanel extends GridPane {
           labelRange.setVisible(true);
           txtSearchField.setVisible(false);
           NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-          Range<Double> mzRange = peakList.getRowsMZRange();
+          Range<Double> mzRange = featureList.getRowsMZRange();
           minSearchField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(mzFormat)));
           minSearchField.setText(mzFormat.format(mzRange.lowerEndpoint()));
           maxSearchField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(mzFormat)));
@@ -126,7 +126,7 @@ public class ScatterPlotBottomPanel extends GridPane {
           labelRange.setVisible(true);
           txtSearchField.setVisible(false);
           NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-          Range<Double> rtRange = peakList.getRowsRTRange();
+          Range<Float> rtRange = featureList.getRowsRTRange();
           minSearchField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(rtFormat)));
           minSearchField.setText(rtFormat.format(rtRange.lowerEndpoint()));
           maxSearchField.setTextFormatter(new TextFormatter<>(new NumberStringConverter(rtFormat)));

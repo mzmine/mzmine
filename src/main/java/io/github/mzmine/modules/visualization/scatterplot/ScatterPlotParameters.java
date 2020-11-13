@@ -21,14 +21,14 @@ package io.github.mzmine.modules.visualization.scatterplot;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.util.ExitCode;
 
 public class ScatterPlotParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   /**
    * Windows size and position
@@ -36,14 +36,14 @@ public class ScatterPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public ScatterPlotParameters() {
-    super(new Parameter[] {peakLists, windowSettings});
+    super(new Parameter[] {featureLists, windowSettings});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    PeakListsSelection fixedSelection = new PeakListsSelection();
-    fixedSelection.setSelectionType(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
-    peakLists.setValue(fixedSelection);
+    FeatureListsSelection fixedSelection = new FeatureListsSelection();
+    fixedSelection.setSelectionType(FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS);
+    featureLists.setValue(fixedSelection);
     return ExitCode.OK;
   }
 
