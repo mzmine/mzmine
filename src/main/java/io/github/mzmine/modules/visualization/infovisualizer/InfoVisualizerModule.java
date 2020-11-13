@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 
@@ -32,8 +32,8 @@ public class InfoVisualizerModule implements MZmineModule {
     return MODULE_NAME;
   }
 
-  public static void showNewPeakListInfo(PeakList peakList) {
-    InfoVisualizerWindow newWindow = new InfoVisualizerWindow(peakList);
+  public static void showNewPeakListInfo(FeatureList featureList) {
+    InfoVisualizerWindow newWindow = new InfoVisualizerWindow(featureList);
     newWindow.show();
   }
 
