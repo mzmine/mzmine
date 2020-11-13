@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.intensityplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
@@ -47,24 +48,19 @@ import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 /**
  *
@@ -86,7 +82,7 @@ public class IntensityPlotTab extends MZmineTab {
   private IntensityPlotDataset dataset;
   private JFreeChart chart;
 
-  private PeakList peakList;
+  private FeatureList featureList;
 
   public IntensityPlotTab(ParameterSet parameters) {
     super("Intensity plot", true, false);
@@ -99,10 +95,10 @@ public class IntensityPlotTab extends MZmineTab {
     //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     //setScene(mainScene);
 
-    peakList = parameters.getParameter(IntensityPlotParameters.peakList).getValue()
+    featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
         .getMatchingPeakLists()[0];
 
-    String title = "Intensity plot [" + peakList + "]";
+    String title = "Intensity plot [" + featureList + "]";
     String xAxisLabel =
         parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue().toString();
     String yAxisLabel =
@@ -276,18 +272,18 @@ public class IntensityPlotTab extends MZmineTab {
   @Nonnull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return peakList.getRawDataFiles();
+    return featureList.getRawDataFiles();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
-    return new ArrayList<>(Collections.singletonList((ModularFeatureList)peakList));
+  public Collection<? extends FeatureList> getFeatureLists() {
+    return new ArrayList<>(Collections.singletonList((ModularFeatureList) featureList));
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -297,13 +293,13 @@ public class IntensityPlotTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }

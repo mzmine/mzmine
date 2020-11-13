@@ -25,7 +25,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 
@@ -40,17 +40,17 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator, XYToolT
    */
   public String generateToolTip(CategoryDataset dataset, int row, int column) {
     Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    Feature peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
+    Feature features[] = ((IntensityPlotDataset) dataset).getFeatures(row, column);
     RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < files.length; i++) {
       sb.append(files[i].getName());
       sb.append(": ");
-      if (peaks[i] != null) {
-        sb.append(peaks[i].toString());
+      if (features[i] != null) {
+        sb.append(features[i].toString());
         sb.append(", height: ");
-        sb.append(intensityFormat.format(peaks[i].getHeight()));
+        sb.append(intensityFormat.format(features[i].getHeight()));
       } else {
         sb.append("N/A");
       }
