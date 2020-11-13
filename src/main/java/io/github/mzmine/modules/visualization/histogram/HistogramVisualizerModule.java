@@ -47,6 +47,7 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
+    System.out.println("HISTOGRAM RUN MODULE");
     HistogramTab newTab = new HistogramTab(parameters);
     //newTab.show();
     MZmineCore.getDesktop().addTab(newTab);
@@ -55,7 +56,7 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override

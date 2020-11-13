@@ -18,23 +18,23 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class HistogramParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Raw data files", "Column of peaks to be plotted",
+      new MultiChoiceParameter<RawDataFile>("Raw data files", "Column of features to be plotted",
           new RawDataFile[0]);
 
   public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();
@@ -48,18 +48,18 @@ public class HistogramParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public HistogramParameters() {
-    super(new Parameter[] {peakList, dataFiles, dataRange, numOfBins, windowSettings});
+    super(new Parameter[] {featureList, dataFiles, dataRange, numOfBins, windowSettings});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    PeakList selectedPeaklists[] =
-        getParameter(HistogramParameters.peakList).getValue().getMatchingPeakLists();
+    FeatureList selectedFeatureLists[] =
+        getParameter(HistogramParameters.featureList).getValue().getMatchingPeakLists();
     RawDataFile dataFiles[];
-    if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
+    if ((selectedFeatureLists == null) || (selectedFeatureLists.length != 1)) {
       dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     } else {
-      dataFiles = selectedPeaklists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+      dataFiles = selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
     }
     getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
     return super.showSetupDialog(valueCheckRequired);
