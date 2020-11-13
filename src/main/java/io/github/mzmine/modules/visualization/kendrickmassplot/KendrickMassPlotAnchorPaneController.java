@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.logging.Logger;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.PaintScaleLegend;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -45,8 +45,8 @@ public class KendrickMassPlotAnchorPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakListRow selectedRows[];
-  private PeakList featureList;
+  private FeatureListRow selectedRows[];
+  private FeatureList featureList;
   private String xAxisKMBase;
   private String zAxisKMBase;
   private String customYAxisKMBase;
@@ -204,7 +204,7 @@ public class KendrickMassPlotAnchorPaneController {
 
   public void initialize(ParameterSet parameters) {
 
-    this.featureList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
+    this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingPeakLists()[0];
 
     this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
@@ -874,13 +874,13 @@ public class KendrickMassPlotAnchorPaneController {
           } else if (zAxisKMBase.equals("Area")) {
             zValues[i] = selectedRows[i].getAverageArea();
           } else if (zAxisKMBase.equals("Tailing factor")) {
-            zValues[i] = selectedRows[i].getBestPeak().getTailingFactor();
+            zValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
           } else if (zAxisKMBase.equals("Asymmetry factor")) {
-            zValues[i] = selectedRows[i].getBestPeak().getAsymmetryFactor();
+            zValues[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
           } else if (zAxisKMBase.equals("FWHM")) {
-            zValues[i] = selectedRows[i].getBestPeak().getFWHM();
+            zValues[i] = selectedRows[i].getBestFeature().getFWHM();
           } else if (zAxisKMBase.equals("m/z")) {
-            zValues[i] = selectedRows[i].getBestPeak().getMZ();
+            zValues[i] = selectedRows[i].getBestFeature().getMZ();
           }
         }
       dataset.setyValues(yValues);
@@ -975,7 +975,7 @@ public class KendrickMassPlotAnchorPaneController {
     divisorLabelZAxis.setText(Integer.toString(zAxisDivisor));
   }
 
-  public PeakList getFeatureList() {
+  public FeatureList getFeatureList() {
     return featureList;
   }
 
