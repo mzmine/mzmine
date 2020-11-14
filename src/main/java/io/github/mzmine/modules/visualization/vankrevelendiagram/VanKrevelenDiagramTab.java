@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -34,12 +34,12 @@ import javafx.scene.layout.BorderPane;
 import javax.annotation.Nonnull;
 
 public class VanKrevelenDiagramTab extends MZmineTab {
-  private PeakList featureList;
+  private FeatureList featureList;
 
   public VanKrevelenDiagramTab(ParameterSet parameters, EChartViewer chartViewer) {
     super("Van Krevelen Diagram", true, false);
 
-    featureList = parameters.getParameter(VanKrevelenDiagramParameters.peakList).getValue()
+    featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
         .getMatchingPeakLists()[0];
 
     FXMLLoader loader =
@@ -69,14 +69,14 @@ public class VanKrevelenDiagramTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return
         new ArrayList<>(Collections.singletonList((ModularFeatureList)featureList));
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -86,13 +86,13 @@ public class VanKrevelenDiagramTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }
