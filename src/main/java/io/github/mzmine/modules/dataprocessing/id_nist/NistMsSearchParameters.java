@@ -38,118 +38,115 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
-    /**
-     * Feature lists to operate on.
-     */
-    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  /**
+   * Feature lists to operate on.
+   */
+  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-    /**
-     * Mass List of MSn fragment ions.
-     */
-    public static final MassListParameter MASS_LIST = new MassListParameter();
+  /**
+   * Mass List of MSn fragment ions.
+   */
+  public static final MassListParameter MASS_LIST = new MassListParameter();
 
-    /**
-     * NIST MS Search path.
-     */
-    public static final DirectoryParameter NIST_MS_SEARCH_DIR
-            = new DirectoryParameter("NIST MS Search directory",
-                    "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
+  /**
+   * NIST MS Search path.
+   */
+  public static final DirectoryParameter NIST_MS_SEARCH_DIR =
+      new DirectoryParameter("NIST MS Search directory",
+          "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
 
-    /**
-     * MS Level for search.
-     */
-    public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-            "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
-            2, 1, 1000
-    );
+  /**
+   * MS Level for search.
+   */
+  public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+      2, 1, 1000);
 
-    /**
-     * Match factor cut-off.
-     */
-    public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
-            "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+  /**
+   * Match factor cut-off.
+   */
+  public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
+      "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
 
-    /**
-     * Reverse match factor cut-off.
-     */
-    public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR
-            = new IntegerParameter("Min. reverse match factor",
-                    "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+  /**
+   * Reverse match factor cut-off.
+   */
+  public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR =
+      new IntegerParameter("Min. reverse match factor",
+          "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
 
-    /**
-     * Optional MSMS merging parameters.
-     */
-    public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER
-            = new OptionalModuleParameter<>("Merge MS/MS (experimental)",
-                    "Merge high-quality MS/MS instead of exporting just the most intense one.",
-                    new MsMsSpectraMergeParameters(), true);
+  /**
+   * Optional MSMS merging parameters.
+   */
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
+      new OptionalModuleParameter<>("Merge MS/MS (experimental)",
+          "Merge high-quality MS/MS instead of exporting just the most intense one.",
+          new MsMsSpectraMergeParameters(), true);
 
-    /**
-     * Optional MZ rounding.
-     */
-    public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ
-            = new OptionalParameter<>(new ComboParameter<>("Integer m/z",
-                    "If selected, fractional m/z values will be merged into integer values, based on the selected "
-                    + "merging mode",
-                    new String[]{"Merging mode: Maximum", "Merging mode: Sum"},
-                    "Merging mode: Maximum"), false);
+  /**
+   * Optional MZ rounding.
+   */
+  public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ =
+      new OptionalParameter<>(new ComboParameter<>("Integer m/z",
+          "If selected, fractional m/z values will be merged into integer values, based on the selected "
+              + "merging mode",
+          new String[] {"Merging mode: Maximum", "Merging mode: Sum"}, "Merging mode: Maximum"),
+          false);
 
-    // NIST MS Search executable.
-    private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
+  // NIST MS Search executable.
+  private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
 
-    /**
-     * Construct the parameter set.
-     */
-    public NistMsSearchParameters() {
-        super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MASS_LIST,
-            MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER,
-            INTEGER_MZ});
+  /**
+   * Construct the parameter set.
+   */
+  public NistMsSearchParameters() {
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MASS_LIST, MIN_MATCH_FACTOR,
+        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
+  }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages) {
+
+    // Unsupported OS.
+    if (!isWindows()) {
+      errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
+      return false;
     }
 
-    @Override
-    public boolean checkParameterValues(final Collection<String> errorMessages) {
+    boolean result = super.checkParameterValues(errorMessages);
 
-        // Unsupported OS.
-        if (!isWindows()) {
-            errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
-            return false;
-        }
+    // NIST MS Search home directory and executable.
+    final File executable = getNistMsSearchExecutable();
 
-        boolean result = super.checkParameterValues(errorMessages);
+    // Executable missing.
+    if (executable == null || !executable.exists()) {
 
-        // NIST MS Search home directory and executable.
-        final File executable = getNistMsSearchExecutable();
-
-        // Executable missing.
-        if (executable == null || !executable.exists()) {
-
-            errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
-                    + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
-            result = false;
-        }
-
-        return result;
+      errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
+          + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
+      result = false;
     }
 
-    /**
-     * Gets the full path to the NIST MS Search executable.
-     *
-     * @return the path.
-     */
-    public File getNistMsSearchExecutable() {
+    return result;
+  }
 
-        final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
-        return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
-    }
+  /**
+   * Gets the full path to the NIST MS Search executable.
+   *
+   * @return the path.
+   */
+  public File getNistMsSearchExecutable() {
 
-    /**
-     * Is this a Windows OS?
-     *
-     * @return true/false if the os.name property does/doesn't contain
-     * "Windows".
-     */
-    private static boolean isWindows() {
+    final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
+    return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
+  }
 
-        return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
-    }
+  /**
+   * Is this a Windows OS?
+   *
+   * @return true/false if the os.name property does/doesn't contain "Windows".
+   */
+  private static boolean isWindows() {
+
+    return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
+  }
 }
