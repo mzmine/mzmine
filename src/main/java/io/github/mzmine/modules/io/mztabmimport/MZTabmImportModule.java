@@ -57,7 +57,7 @@ public class MZTabmImportModule implements MZmineProcessingModule {
   @Nonnull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTIMPORT;
+    return MZmineModuleCategory.FEATURELISTIMPORT;
   }
 
   @Nonnull

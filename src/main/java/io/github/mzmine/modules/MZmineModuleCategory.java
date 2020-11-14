@@ -34,8 +34,8 @@ public enum MZmineModuleCategory {
   ALIGNMENT("Alignment"), //
   NORMALIZATION("Normalization"), //
   IDENTIFICATION("Identification"), //
-  PEAKLISTEXPORT("Feature list export"), //
-  PEAKLISTIMPORT("Feature list import"), //
+  FEATURELISTEXPORT("Feature list export"), //
+  FEATURELISTIMPORT("Feature list import"), //
   VISUALIZATIONRAWDATA("Visualization"), //
   VISUALIZATIONFEATURELIST("Visualization feature list"), //
   DATAANALYSIS("Data analysis"), //
