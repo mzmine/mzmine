@@ -20,14 +20,18 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureTICRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.ManualFeatureUtils;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -69,7 +73,7 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating base peak chromatogram(s) of m/z " + mzFormat
+    return "Calculating base feature chromatogram(s) of m/z " + mzFormat
         .format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles
         .size() + " file(s).";
   }
@@ -84,16 +88,21 @@ public class FeatureDataSetCalc extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
+    // TODO: new ModularFeatureList name
+    FeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode());
+
     for (RawDataFile rawDataFile : rawDataFiles) {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
 
-      ManualPeak feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
+      ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
           rawDataFile.getDataRTRange(scanSelection.getMsLevel()), mzRange);
+      feature.setFeatureList(newFeatureList);
+      ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(feature);
       if (feature != null && feature.getScanNumbers() != null
           && feature.getScanNumbers().length > 0) {
-        features.add(new FeatureDataSet(feature));
+        features.add(new FeatureDataSet(modularFeature));
       } else {
         logger.finest("No scans found for " + rawDataFile.getName());
       }
