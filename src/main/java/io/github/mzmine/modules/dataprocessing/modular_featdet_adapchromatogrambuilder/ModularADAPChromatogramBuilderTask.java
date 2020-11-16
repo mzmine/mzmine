@@ -21,6 +21,7 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 
+import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +72,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   // private int processedPoints = 0, totalPoints;
   private double progress = 0.0;
   private ScanSelection scanSelection;
-  private int newPeakID = 1;
+  private int newFeatureID = 1;
   private Scan[] scans;
 
   // User parameters
@@ -83,8 +84,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private double IntensityThresh2;
   private double minIntensityForStartChrom;
 
-  private ModularFeatureList newPeakList;
-
+  private ModularFeatureList newFeatureList;
 
   /**
    * @param dataFile
@@ -92,8 +92,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters) {
-
-
 
     this.project = project;
     this.dataFile = dataFile;
@@ -117,8 +115,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         parameters.getParameter(ADAPChromatogramBuilderParameters.IntensityThresh2).getValue();
     this.minIntensityForStartChrom =
         parameters.getParameter(ADAPChromatogramBuilderParameters.startIntensity).getValue();
-
-
   }
 
   /**
@@ -226,12 +222,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
-      for (DataPoint mzPeak : mzValues) {
-        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzPeak, scan.getScanNumber());
+      for (DataPoint mzFeature : mzValues) {
+        ExpandedDataPoint curDatP = new ExpandedDataPoint(mzFeature, scan.getScanNumber());
         allMzValues.add(curDatP);
         // corespondingScanNum.add(scan.getScanNumber());
       }
-
     }
 
     // Integer[] simpleCorespondingScanNums = new Integer[corespondingScanNum.size()];
@@ -244,11 +239,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     Arrays.sort(simpleAllMzVals,
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
-
     // Set<Chromatogram> buildingChromatograms;
     // buildingChromatograms = new LinkedHashSet<Chromatogram>();
-
-
 
     double maxIntensity = simpleAllMzVals[0].getIntensity();
 
@@ -262,7 +254,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     progress = 0.0;
     double progressStep = (simpleAllMzVals.length > 0) ? 0.5 / simpleAllMzVals.length : 0.0;
 
-    for (ExpandedDataPoint mzPeak : simpleAllMzVals) {
+    for (ExpandedDataPoint mzFeature : simpleAllMzVals) {
 
       progress += progressStep;
 
@@ -270,18 +262,18 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
-      if (mzPeak == null || Double.isNaN(mzPeak.getMZ()) || Double.isNaN(mzPeak.getIntensity())) {
+      if (mzFeature == null || Double.isNaN(mzFeature.getMZ()) || Double.isNaN(mzFeature.getIntensity())) {
         continue;
       }
 
       //////////////////////////////////////////////////
 
-      Range<Double> containsPointRange = rangeSet.rangeContaining(mzPeak.getMZ());
+      Range<Double> containsPointRange = rangeSet.rangeContaining(mzFeature.getMZ());
 
-      Range<Double> toleranceRange = mzTolerance.getToleranceRange(mzPeak.getMZ());
+      Range<Double> toleranceRange = mzTolerance.getToleranceRange(mzFeature.getMZ());
       if (containsPointRange == null) {
         // skip it entierly if the intensity is not high enough
-        if (mzPeak.getIntensity() < minIntensityForStartChrom) {
+        if (mzFeature.getIntensity() < minIntensityForStartChrom) {
           continue;
         }
         // look +- mz tolerance to see if ther is a range near by.
@@ -292,8 +284,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         Double toBeLowerBound;
         Double toBeUpperBound;
 
-        double cur_max_testing_mz = mzPeak.getMZ();
-
+        double cur_max_testing_mz = mzFeature.getMZ();
 
         // If both of the above ranges are null then we make the new range spaning the full
         // mz tolerance range.
@@ -325,9 +316,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
           Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
           ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, allScanNumbers);
 
-          newChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+          newChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
 
-          newChrom.setHighPointMZ(mzPeak.getMZ());
+          newChrom.setHighPointMZ(mzFeature.getMZ());
 
 
           rangeToChromMap.put(newRange, newChrom);
@@ -336,23 +327,20 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
           rangeSet.add(newRange);
         } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           ADAPChromatogram curChrom = rangeToChromMap.get(plusRange);
-          curChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+          curChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
         } else
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
-              toBeLowerBound, toBeUpperBound, mzPeak.getMZ()));
+              toBeLowerBound, toBeUpperBound, mzFeature.getMZ()));
 
       } else {
         // In this case we do not need to update the rangeSet
 
-
         ADAPChromatogram curChrom = rangeToChromMap.get(containsPointRange);
 
-        curChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+        curChrom.addMzFeature(mzFeature.getScanNumber(), mzFeature);
 
         // update the entry in the map
         rangeToChromMap.put(containsPointRange, curChrom);
-
-
       }
     }
 
@@ -395,47 +383,30 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
 
-
     // Sort the final chromatograms by m/z
     Arrays.sort(chromatograms, new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
-
     // Create new feature list
-    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
+    newFeatureList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
     // ensure that the default columns are available
-    DataTypeUtils.addDefaultChromatographicTypeColumns(newPeakList);
+    DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 
     // Add the chromatograms to the new feature list
-    for (ADAPChromatogram finishedPeak : chromatograms) {
-      ModularFeature modular = new ModularFeature(newPeakList, finishedPeak);
+    for (ADAPChromatogram finishedFeature : chromatograms) {
+      finishedFeature.setFeatureList(newFeatureList);
+      ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
       ModularFeatureListRow newRow =
-          new ModularFeatureListRow(newPeakList, newPeakID, dataFile, modular);
-      newPeakList.addRow(newRow);
-      newPeakID++;
+          new ModularFeatureListRow(newFeatureList, newFeatureID, dataFile, modular);
+      newFeatureList.addRow(newRow);
+      newFeatureID++;
     }
 
-    /*
-    for(ModularFeatureListRow row : newPeakList.getRows()) {
-      row.setID(-row.getID());
-    }
+    // Add new feature list to the project
+    project.addFeatureList(newFeatureList);
 
-    newPeakList.addRowType(new TestIntType());
-    for(ModularFeatureListRow row : newPeakList.getRows()) {
-      row.set(TestIntType.class, row.getID() * 10);
-    }
-    */
-
-    // Add new peaklist to the project
-    project.addFeatureList(newPeakList);
-
-    // Add quality parameters to peaks
-    //QualityParameters.calculateQualityParameters(newPeakList);
-
-    // show peaklist window
+    // show feature list window
     Platform.runLater(() -> {
-//      FeatureTableFXTab window = new FeatureTableFXTab(newPeakList);
-//      window.show();
-      FeatureTableFXUtil.addFeatureTableTab(newPeakList);
+      FeatureTableFXUtil.addFeatureTableTab(newFeatureList);
     });
 
     progress = 1.0;

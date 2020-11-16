@@ -45,10 +45,10 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final IntegerParameter minimumScanSpan = new IntegerParameter(
       "Min group size in # of scans",
-      "Minimum scan span over which some peak in the chromatogram must have (continuous) points above the noise level\n"
+      "Minimum scan span over which some feature in the chromatogram must have (continuous) points above the noise level\n"
           + "to be recognized as a chromatogram.\n"
           + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
-          + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
+          + "is by studying the raw data and determining what is the typical time span of chromatographic features.",
       5, true, 2, null);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
@@ -79,7 +79,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
         + "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative "
         + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
-        + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
+        + "<br>Ion Chromatograms and Detecting Chromatographic Features. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
         + "</html>";
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();

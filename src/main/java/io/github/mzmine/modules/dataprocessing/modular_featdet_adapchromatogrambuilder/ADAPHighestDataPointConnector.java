@@ -62,7 +62,7 @@ public class ADAPHighestDataPointConnector {
 
   public void addScan(int scanNumber, DataPoint mzValues[]) {
 
-    // Sort m/z peaks by descending intensity
+    // Sort m/z features by descending intensity
     Arrays.sort(mzValues,
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
@@ -70,18 +70,18 @@ public class ADAPHighestDataPointConnector {
     Set<ADAPChromatogram> connectedChromatograms = new LinkedHashSet<ADAPChromatogram>();
 
     // TODO: these two nested cycles should be optimized for speed
-    for (DataPoint mzPeak : mzValues) {
+    for (DataPoint mzFeature : mzValues) {
 
       // Search for best chromatogram, which has highest last data point
       ADAPChromatogram bestChromatogram = null;
 
       for (ADAPChromatogram testChrom : buildingChromatograms) {
 
-        DataPoint lastMzPeak = testChrom.getLastMzPeak();
-        Range<Double> toleranceRange = mzTolerance.getToleranceRange(lastMzPeak.getMZ());
-        if (toleranceRange.contains(mzPeak.getMZ())) {
-          if ((bestChromatogram == null) || (testChrom.getLastMzPeak()
-              .getIntensity() > bestChromatogram.getLastMzPeak().getIntensity())) {
+        DataPoint lastMzFeature = testChrom.getLastMzFeature();
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(lastMzFeature.getMZ());
+        if (toleranceRange.contains(mzFeature.getMZ())) {
+          if ((bestChromatogram == null) || (testChrom.getLastMzFeature()
+              .getIntensity() > bestChromatogram.getLastMzFeature().getIntensity())) {
             bestChromatogram = testChrom;
           }
         }
@@ -99,15 +99,15 @@ public class ADAPHighestDataPointConnector {
         bestChromatogram = new ADAPChromatogram(dataFile, allScanNumbers);
       }
 
-      // Add this mzPeak to the chromatogram
-      bestChromatogram.addMzPeak(scanNumber, mzPeak);
+      // Add this mzFeature to the chromatogram
+      bestChromatogram.addMzFeature(scanNumber, mzFeature);
 
       // Move the chromatogram to the set of connected chromatograms
       connectedChromatograms.add(bestChromatogram);
 
     }
 
-    // Process those chromatograms which were not connected to any m/z peak
+    // Process those chromatograms which were not connected to any m/z feature
     for (ADAPChromatogram testChrom : buildingChromatograms) {
 
       // Skip those which were connected

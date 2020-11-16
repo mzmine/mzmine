@@ -48,7 +48,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 
 
 /**
- * Chromatogram implementing ChromatographicPeak.
+ * Chromatogram.
  */
 public class ADAPChromatogram {
   private SimplePeakInformation peakInfo;
@@ -56,7 +56,7 @@ public class ADAPChromatogram {
   // Data file of this chromatogram
   private RawDataFile dataFile;
 
-  // Data points of the chromatogram (map of scan number -> m/z peak)
+  // Data points of the chromatogram (map of scan number -> m/z feature)
   // private Hashtable<Integer, DataPoint> dataPointsMap;
   private HashMap<Integer, DataPoint> dataPointsMap;
 
@@ -80,7 +80,7 @@ public class ADAPChromatogram {
   private List<Integer> chromScanList;
 
   // Keep track of last added data point
-  private DataPoint lastMzPeak;
+  private DataPoint lastMzFeature;
 
   // Number of connected segments, which have been committed by
   // commitBuildingSegment()
@@ -103,6 +103,9 @@ public class ADAPChromatogram {
   private final int scanNumbers[];
 
   public int tmp_see_same_scan_count = 0;
+
+  // Feature list
+  private FeatureList featureList;
 
   /**
    * Initializes this Chromatogram
@@ -204,12 +207,12 @@ public class ADAPChromatogram {
   }
 
   /**
-   * This method adds a MzPeak to this Chromatogram. All values of this Chromatogram (rt, m/z,
+   * This method adds a MzFeature to this Chromatogram. All values of this Chromatogram (rt, m/z,
    * intensity and ranges) are updated on request
    *
    * @param mzValue
    */
-  public void addMzPeak(int scanNumber, DataPoint mzValue) {
+  public void addMzFeature(int scanNumber, DataPoint mzValue) {
     double curIntensity;
     // System.out.println("---------------- Adding MZ value to Chromatogram ----------------");
 
@@ -228,7 +231,7 @@ public class ADAPChromatogram {
 
 
     dataPointsMap.put(scanNumber, mzValue);
-    lastMzPeak = mzValue;
+    lastMzFeature = mzValue;
     mzSum += mzValue.getMZ();
     mzN++;
     mz = mzSum / mzN;
@@ -252,8 +255,8 @@ public class ADAPChromatogram {
   /**
    * Returns m/z value of last added data point
    */
-  public DataPoint getLastMzPeak() {
-    return lastMzPeak;
+  public DataPoint getLastMzFeature() {
+    return lastMzFeature;
   }
 
   /**
@@ -272,7 +275,7 @@ public class ADAPChromatogram {
 
 
   /**
-   * This method returns a string with the basic information that defines this peak
+   * This method returns a string with the basic information that defines this feature
    *
    * @return String information
    */
@@ -366,14 +369,14 @@ public class ADAPChromatogram {
 
 
         curRt = dataFile.getScan(i).getRetentionTime();
-        DataPoint mzPeak = getDataPoint(i);
+        DataPoint mzFeature = getDataPoint(i);
 
-        if (mzPeak == null) {
+        if (mzFeature == null) {
           curInt = 0.0;
           curMz = -1;
         } else {
-          curInt = mzPeak.getIntensity();
-          curMz = mzPeak.getMZ();
+          curInt = mzFeature.getIntensity();
+          curMz = mzFeature.getMZ();
         }
 
         curIntStr = String.valueOf(curInt);
@@ -404,25 +407,25 @@ public class ADAPChromatogram {
     height = Double.MIN_VALUE;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
-      DataPoint mzPeak = dataPointsMap.get(allScanNumbers[i]);
+      DataPoint mzFeature = dataPointsMap.get(allScanNumbers[i]);
 
-      // Replace the MzPeak instance with an instance of SimpleDataPoint,
+      // Replace the MzFeature instance with an instance of SimpleDataPoint,
       // to reduce the memory usage. After we finish this Chromatogram, we
-      // don't need the additional data provided by the MzPeak
+      // don't need the additional data provided by the MzFeature
 
-      dataPointsMap.put(allScanNumbers[i], mzPeak);
+      dataPointsMap.put(allScanNumbers[i], mzFeature);
 
       if (i == 0) {
-        rawDataPointsIntensityRange = Range.singleton(mzPeak.getIntensity());
-        rawDataPointsMZRange = Range.singleton(mzPeak.getMZ());
+        rawDataPointsIntensityRange = Range.singleton(mzFeature.getIntensity());
+        rawDataPointsMZRange = Range.singleton(mzFeature.getMZ());
       } else {
         rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton(mzPeak.getIntensity()));
-        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(mzPeak.getMZ()));
+            rawDataPointsIntensityRange.span(Range.singleton(mzFeature.getIntensity()));
+        rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(mzFeature.getMZ()));
       }
 
-      if (height < mzPeak.getIntensity()) {
-        height = mzPeak.getIntensity();
+      if (height < mzFeature.getIntensity()) {
+        height = mzFeature.getIntensity();
         rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
         representativeScan = allScanNumbers[i];
       }
@@ -470,7 +473,7 @@ public class ADAPChromatogram {
 
     // Discard the fields we don't need anymore
     buildingSegment = null;
-    lastMzPeak = null;
+    lastMzFeature = null;
 
   }
 
@@ -501,7 +504,7 @@ public class ADAPChromatogram {
 
   public void addDataPointsFromChromatogram(ADAPChromatogram ch) {
     for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
-      addMzPeak(dp.getKey(), dp.getValue());
+      addMzFeature(dp.getKey(), dp.getValue());
     }
   }
 
@@ -563,14 +566,12 @@ public class ADAPChromatogram {
     setFragmentScanNumber(best);
   }
 
-  private FeatureList peakList;
-
-  public FeatureList getPeakList() {
-    return peakList;
+  public FeatureList getFeatureList() {
+    return featureList;
   }
 
-  public void setPeakList(FeatureList peakList) {
-    this.peakList = peakList;
+  public void setFeatureList(FeatureList featureList) {
+    this.featureList = featureList;
   }
 
 }
