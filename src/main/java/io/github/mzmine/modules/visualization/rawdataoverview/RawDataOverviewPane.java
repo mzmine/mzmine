@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
@@ -61,12 +62,12 @@ public class RawDataOverviewPane extends MZmineTab {
   }
 
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return null;
   }
 
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return null;
   }
 
@@ -76,13 +77,13 @@ public class RawDataOverviewPane extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     return;
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
     return;
   }
 }

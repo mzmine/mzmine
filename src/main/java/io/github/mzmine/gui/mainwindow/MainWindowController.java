@@ -19,6 +19,17 @@
 package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.text.NumberFormat;
 import java.util.List;
@@ -32,17 +43,6 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
-/*
-import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
- */
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -141,8 +141,8 @@ public class MainWindowController {
   @FXML
   private BorderPane rawDataOverview;
 
-  // @FXML
-  // private RawDataOverviewWindowController rawDataOverviewController;
+  @FXML
+  private RawDataOverviewWindowController rawDataOverviewController;
 
   @FXML
   private TabPane mainTabPane;
@@ -411,11 +411,8 @@ public class MainWindowController {
      * mzmineTask.refreshStatus(); } } })); msdkTaskUpdater.play();
      */
 
-    // TODO:
-    /*
     RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
     addTab(rop);
-    */
   }
 
   public ListView<RawDataFile> getRawDataTree() {
@@ -439,8 +436,6 @@ public class MainWindowController {
   }
 
   public void handleShowChromatogram(Event event) {
-    // TODO:
-    /*
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -451,12 +446,9 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(ChromatogramVisualizerModule.class, parameters);
     }
-    */
   }
 
   public void handleShowMsSpectrum(Event event) {
-    // TODO:
-    /*
     logger.finest("Activated Show MS spectrum menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -467,12 +459,9 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(SpectraVisualizerModule.class, parameters);
     }
-    */
   }
 
   public void handleShow2DPlot(Event event) {
-    // TODO:
-    /*
     logger.finest("Activated Show 2D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -483,12 +472,9 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
     }
-    */
   }
 
   public void handleShow3DPlot(Event event) {
-    // TODO:
-    /*
     logger.finest("Activated Show 3D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
     ParameterSet parameters =
@@ -499,7 +485,6 @@ public class MainWindowController {
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(Fx3DVisualizerModule.class, parameters);
     }
-    */
   }
 
   public void handleShowMsMsPlot(Event event) {}

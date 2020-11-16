@@ -28,9 +28,6 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -62,10 +59,10 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, String> rtColumn;
 
   @FXML
-  private TableColumn<ScanDescription, Double> basePeakColumn;
+  private TableColumn<ScanDescription, Double> baseFeatureColumn;
 
   @FXML
-  private TableColumn<ScanDescription, String> basePeakIntensityColumn;
+  private TableColumn<ScanDescription, String> baseFeatureIntensityColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> msLevelColumn;
@@ -162,8 +159,8 @@ public class RawDataFileInfoPaneController {
     scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
     rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
     msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
-    basePeakColumn.setCellValueFactory(new PropertyValueFactory<>("basePeak"));
-    basePeakIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("basePeakIntensity"));
+    baseFeatureColumn.setCellValueFactory(new PropertyValueFactory<>("baseFeature"));
+    baseFeatureIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("baseFeatureIntensity"));
     precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
     mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
@@ -174,8 +171,8 @@ public class RawDataFileInfoPaneController {
     scanColumn.setComparator(new StringToDoubleComparator());
     rtColumn.setComparator(new StringToDoubleComparator());
     msLevelColumn.setComparator(new StringToDoubleComparator());
-//    basePeakColumn.setComparator(new StringToDoubleComparator());
-    basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
+//    baseFeatureColumn.setComparator(new StringToDoubleComparator());
+    baseFeatureIntensityColumn.setComparator(new StringToDoubleComparator());
     mobilityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
@@ -266,12 +263,12 @@ public class RawDataFileInfoPaneController {
             mzFormat.format(scan.getDataPointMZRange().lowerEndpoint())
                 + "-" + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
 
-        String basePeakMZ = "-";
-        String basePeakIntensity = "-";
+        String baseFeatureMZ = "-";
+        String baseFeatureIntensity = "-";
 
         if (scan.getHighestDataPoint() != null) {
-          basePeakMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
-          basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
+          baseFeatureMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
+          baseFeatureIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
         }
 
         tableData.add(new ScanDescription(Integer.toString(i), // scan number
@@ -283,8 +280,8 @@ public class RawDataFileInfoPaneController {
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(),      // definition
             mobility,  // mobility
-            basePeakMZ, // base peak mz
-            basePeakIntensity) // base peak intensity
+            baseFeatureMZ, // base feature mz
+            baseFeatureIntensity) // base feature intensity
         );
 
         perc = i / (numberOfScans + 1);
