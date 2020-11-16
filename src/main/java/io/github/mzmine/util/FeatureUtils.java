@@ -18,11 +18,15 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Arrays;
 import javafx.collections.ObservableList;
@@ -33,9 +37,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-/*
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
- */
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 
 /**
  * Utilities for feature lists
@@ -49,7 +51,7 @@ public class FeatureUtils {
   /**
    * Common utility method to be used as Peak.toString() method in various Peak implementations
    *
-   * @param feature FeatureOld to be converted to String
+   * @param feature Feature to be converted to String
    * @return String representation of the peak
    */
   public static String peakToString(Feature feature) {
@@ -206,7 +208,6 @@ public class FeatureUtils {
 
   }
 
-  // TODO FeatureOld(ManualPeak) to Feature
   /**
    * Integrates over a given m/z and rt range within a raw data file.
    *
@@ -215,10 +216,9 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Double> rtRange,
+  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-    /*
-    ManualPeak newPeak = new ManualPeak(dataFile);
+    ManualFeature newPeak = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
     int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
@@ -244,15 +244,11 @@ public class FeatureUtils {
     }
 
     if (dataPointFound) {
-      newPeak.finalizePeak();
+      newPeak.finalizeFeature();
       return newPeak.getArea();
     } else {
       return 0.0;
     }
-    */
-    // REMOVE
-    return Double.NaN;
-    // REMOVE
   }
 
 

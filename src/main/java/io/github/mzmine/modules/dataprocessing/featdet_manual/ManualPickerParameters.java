@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class ManualPickerParameters extends SimpleParameterSet {
 
+  // TODO: retentionTimeRange to float range
   public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
       "Retention time", "Retention time range", MZmineCore.getConfiguration().getRTFormat());
 

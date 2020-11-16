@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
@@ -35,11 +35,11 @@ public class ManualFeatureUtils {
    * @param dataFile The raw data file
    * @param rtRange  The rt range of the feature
    * @param mzRange  The mz range of the feature
-   * @return The manual peak or null of no peaks were found
+   * @return The manual feature or null of no features were found
    */
-  public static ManualPeak pickFeatureManually(RawDataFile dataFile, Range<Double> rtRange,
+  public static ManualFeature pickFeatureManually(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-    ManualPeak newPeak = new ManualPeak(dataFile);
+    ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
     int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
@@ -49,24 +49,24 @@ public class ManualFeatureUtils {
       // Get next scan
       Scan scan = dataFile.getScan(scanNumber);
 
-      // Find most intense m/z peak
-      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+      // Find most intense m/z feature
+      DataPoint baseFeature = ScanUtils.findBasePeak(scan, mzRange);
 
-      if (basePeak != null) {
-        if (basePeak.getIntensity() > 0) {
+      if (baseFeature != null) {
+        if (baseFeature.getIntensity() > 0) {
           dataPointFound = true;
         }
-        newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+        newFeature.addDatapoint(scan.getScanNumber(), baseFeature);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
       }
     }
 
     if (dataPointFound) {
-      newPeak.finalizePeak();
-      return newPeak;
+      newFeature.finalizeFeature();
+      return newFeature;
     }
     return null;
   }

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -45,7 +47,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.geometry.Point2D;
@@ -267,7 +268,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   private void setValuesToRangeParameter() {
     if (!checkRanges() || rtRange == null)
       return;
-    parameters.getParameter(XICManualPickerParameters.rtRange).setValue(rtRange);;
+    parameters.getParameter(XICManualPickerParameters.rtRange).setValue(rtRange);
   }
 
   @Override
@@ -290,7 +291,8 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       @Override
       public void run() {
         setStatus(TaskStatus.PROCESSING);
-        double area = PeakUtils.integrateOverMzRtRange(rawDataFile, rtRange, mzRange);
+        double area = FeatureUtils.integrateOverMzRtRange(rawDataFile,
+            RangeUtils.toFloatRange(rtRange), mzRange);
         SwingUtilities.invokeLater(new Runnable() {
 
           @Override

@@ -151,65 +151,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Creates a ModularFeature on the basis of chromatogram results with the
-   * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
-   *
-   * @param flist
-   * @param p
-   */
-  public ModularFeature(@Nonnull ModularFeatureList flist, ADAPChromatogram p) {
-    this(flist);
-    fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
-    representiveScanNumber = p.getRepresentativeScanNumber();
-    // add values to feature
-    int[] scans = p.getScanNumbers();
-    set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
-    set(RawFileType.class, (p.getDataFile()));
-    set(DetectionType.class, (p.getFeatureStatus()));
-    set(MZType.class, (p.getMZ()));
-    set(RTType.class, ((float) p.getRT()));
-    set(HeightType.class, ((float) p.getHeight()));
-    set(AreaType.class, ((float) p.getArea()));
-    set(BestScanNumberType.class, (p.getRepresentativeScanNumber()));
-
-    // datapoints of feature
-    List<DataPoint> dps = new ArrayList<>();
-    for (int scan : scans) {
-      dps.add(p.getDataPoint(scan));
-    }
-    set(DataPointsType.class, dps);
-
-    // ranges
-    Range<Float> rtRange = Range.closed(p.getRawDataPointsRTRange().lowerEndpoint(),
-        p.getRawDataPointsRTRange().upperEndpoint());
-    Range<Double> mzRange = Range.closed(p.getRawDataPointsMZRange().lowerEndpoint(),
-        p.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange =
-        Range.closed(p.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            p.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    set(MZRangeType.class, mzRange);
-    set(RTRangeType.class, rtRange);
-    set(IntensityRangeType.class, intensityRange);
-
-    allMS2FragmentScanNumbers = IntStream.of(ScanUtils
-        .findAllMS2FragmentScans(p.getDataFile(), rtRange, mzRange)).boxed()
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
-
-    float fwhm = QualityParameters.calculateFWHM(this);
-    if(!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(this);
-    if(!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
-    if(!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
-    }
-  }
-
-  /**
    * Copy constructor
    */
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
@@ -419,6 +360,11 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public ObservableList<Integer> getScanNumbers() {
     return get(ScanNumbersType.class).getValue();
+  }
+
+  @Override
+  public void setRepresentativeScanNumber(int representiveScanNumber) {
+    this.representiveScanNumber = representiveScanNumber;
   }
 
   @Override

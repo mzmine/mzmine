@@ -54,12 +54,23 @@ public class RangeUtils {
   /**
    * Converts given range to Float range.
    *
-   * @param range Imput range
+   * @param range Input range
    * @return Converted Float range
    */
   public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
     return Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue());
   }
+
+  /**
+   * Converts given range to Double range.
+   *
+   * @param range Input range
+   * @return Converted Double range
+   */
+  public static <N extends Number & Comparable<N>> Range<Double> toDoubleRange(Range<N> range) {
+    return Range.closed(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue());
+  }
+
 
   /**
    * Splits the range in numOfBins bins and then returns the index of the bin which contains given

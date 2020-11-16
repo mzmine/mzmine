@@ -73,6 +73,11 @@ public interface Feature {
   ObservableList<Integer> getScanNumbers();
 
   /**
+   * This method sets the number of most representative scan of this feature
+   */
+  void setRepresentativeScanNumber(int representiveScanNumber);
+
+  /**
    * This method returns the number of most representative scan of this feature
    */
   int getRepresentativeScanNumber();

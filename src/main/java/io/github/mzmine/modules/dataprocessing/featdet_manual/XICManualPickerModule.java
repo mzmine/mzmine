@@ -18,17 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.RangeUtils;
 import javax.annotation.Nonnull;
 
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -40,7 +41,7 @@ public class XICManualPickerModule implements MZmineModule {
    * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
    */
   public @Nonnull String getName() {
-    return "XIC Manual peak detector";
+    return "XIC Manual feature detector";
   }
 
   // public static ExitCode runManualDetection(RawDataFile dataFile,
@@ -50,34 +51,36 @@ public class XICManualPickerModule implements MZmineModule {
   // peakList, table);
   // }
 
-  public static ExitCode runManualDetection(RawDataFile dataFile, PeakListRow peakListRow,
-      PeakList peakList, PeakListTable table) {
+  public static ExitCode runManualDetection(RawDataFile dataFile, FeatureListRow featureListRow,
+      FeatureList featureList, FeatureTableFX table) {
 
-    Range<Double> mzRange = null, rtRange = null;
-    mzRange = Range.closed(peakListRow.getAverageMZ(), peakListRow.getAverageMZ());
-    rtRange = Range.closed(peakListRow.getAverageRT(), peakListRow.getAverageRT());
+    Range<Double> mzRange = null;
+    Range<Float> rtRange = null;
+    mzRange = Range.closed(featureListRow.getAverageMZ(), featureListRow.getAverageMZ());
+    rtRange = Range.closed(featureListRow.getAverageRT(), featureListRow.getAverageRT());
 
-    for (Feature peak : peakListRow.getPeaks()) {
-      if (peak == null)
+    for (Feature feature : featureListRow.getFeatures()) {
+      if (feature == null)
         continue;
-      // if the peak exists in the file, then we just use that one as a
+      // if the feature exists in the file, then we just use that one as a
       // base
-      if (peak.getDataFile() == dataFile) {
-        mzRange = peak.getRawDataPointsMZRange();
-        rtRange = peak.getRawDataPointsRTRange();
+      if (feature.getRawDataFile() == dataFile) {
+        mzRange = feature.getRawDataPointsMZRange();
+        rtRange = feature.getRawDataPointsRTRange();
         break;
       }
-      // if it does not exist, we set up on basis of the other peaks
-      if (peak != null) {
-        mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-        rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+      // if it does not exist, we set up on basis of the other features
+      if (feature != null) {
+        mzRange = mzRange.span(feature.getRawDataPointsMZRange());
+        rtRange = rtRange.span(feature.getRawDataPointsRTRange());
       }
     }
 
     XICManualPickerParameters parameters = new XICManualPickerParameters();
 
     if (mzRange != null) {
-      parameters.getParameter(XICManualPickerParameters.rtRange).setValue(rtRange);
+      // TODO: FloatRangeParameter
+      parameters.getParameter(XICManualPickerParameters.rtRange).setValue(RangeUtils.toDoubleRange(rtRange));
       parameters.getParameter(XICManualPickerParameters.mzRange).setValue(mzRange);
     }
     if (dataFile != null) {
@@ -99,7 +102,7 @@ public class XICManualPickerModule implements MZmineModule {
         .setValue(parameters.getParameter(XICManualPickerParameters.rtRange).getValue());
 
     ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
-        peakListRow, new RawDataFile[] {dataFile}, param, peakList, table);
+        featureListRow, new RawDataFile[] {dataFile}, param, featureList, table);
 
     MZmineCore.getTaskController().addTask(task);
     return exitCode;

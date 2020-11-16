@@ -18,65 +18,66 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import javax.annotation.Nonnull;
 
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 
-public class ManualPeakPickerModule implements MZmineModule {
+public class ManualFeaturePickerModule implements MZmineModule {
 
   /**
    * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
    */
   public @Nonnull String getName() {
-    return "Manual peak detector";
+    return "Manual feature detector";
   }
 
-  public static ExitCode runManualDetection(RawDataFile dataFile, PeakListRow peakListRow,
-      PeakList peakList, PeakListTable table) {
-    return runManualDetection(new RawDataFile[] {dataFile}, peakListRow, peakList, table);
+  public static ExitCode runManualDetection(RawDataFile dataFile, FeatureListRow featureListRow,
+      FeatureList featureList, FeatureTableFX table) {
+    return runManualDetection(new RawDataFile[] {dataFile}, featureListRow, featureList, table);
   }
 
-  public static ExitCode runManualDetection(RawDataFile dataFiles[], PeakListRow peakListRow,
-      PeakList peakList, PeakListTable table) {
+  public static ExitCode runManualDetection(RawDataFile dataFiles[], FeatureListRow featureListRow,
+      FeatureList featureList, FeatureTableFX table) {
 
-    Range<Double> mzRange = null, rtRange = null;
+    Range<Double> mzRange = null;
+    Range<Float> rtRange = null;
 
-    // Check the peaks for selected data files
+    // Check the features for selected data files
     for (RawDataFile dataFile : dataFiles) {
-      Feature peak = peakListRow.getPeak(dataFile);
-      if (peak == null)
+      Feature feature = featureListRow.getFeature(dataFile);
+      if (feature == null)
         continue;
       if ((mzRange == null) || (rtRange == null)) {
-        mzRange = peak.getRawDataPointsMZRange();
-        rtRange = peak.getRawDataPointsRTRange();
+        mzRange = feature.getRawDataPointsMZRange();
+        rtRange = feature.getRawDataPointsRTRange();
       } else {
-        mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-        rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+        mzRange = mzRange.span(feature.getRawDataPointsMZRange());
+        rtRange = rtRange.span(feature.getRawDataPointsRTRange());
       }
 
     }
 
-    // If none of the data files had a peak, check the whole row
+    // If none of the data files had a feature, check the whole row
     if (mzRange == null) {
-      for (Feature peak : peakListRow.getPeaks()) {
-        if (peak == null)
+      for (Feature feature : featureListRow.getFeatures()) {
+        if (feature == null)
           continue;
         if ((mzRange == null) || (rtRange == null)) {
-          mzRange = peak.getRawDataPointsMZRange();
-          rtRange = peak.getRawDataPointsRTRange();
+          mzRange = feature.getRawDataPointsMZRange();
+          rtRange = feature.getRawDataPointsRTRange();
         } else {
-          mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-          rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+          mzRange = mzRange.span(feature.getRawDataPointsMZRange());
+          rtRange = rtRange.span(feature.getRawDataPointsRTRange());
         }
 
       }
@@ -85,7 +86,8 @@ public class ManualPeakPickerModule implements MZmineModule {
     ManualPickerParameters parameters = new ManualPickerParameters();
 
     if (mzRange != null) {
-      parameters.getParameter(ManualPickerParameters.retentionTimeRange).setValue(rtRange);
+      // TODO: retentionTimeRange parameter to float range
+      parameters.getParameter(ManualPickerParameters.retentionTimeRange).setValue(Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()));
       parameters.getParameter(ManualPickerParameters.mzRange).setValue(mzRange);
     }
 
@@ -95,7 +97,7 @@ public class ManualPeakPickerModule implements MZmineModule {
       return exitCode;
 
     ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
-        peakListRow, dataFiles, parameters, peakList, table);
+        featureListRow, dataFiles, parameters, featureList, table);
 
     MZmineCore.getTaskController().addTask(task);
     return exitCode;
