@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
-import io.github.mzmine.modules.io.projectload.version_2_0.RawDataElementName_2_0;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.project.impl.StorableFrame;
 import io.github.mzmine.project.impl.StorableMassList;
@@ -85,19 +85,24 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   /**
    * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
    * the information from the XML raw data description file
+   *
    * @param is
    * @param scansFile
+   * @param isIMSRawDataFile
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  public RawDataFile readRawDataFile(InputStream is, File scansFile)
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
       throws IOException, ParserConfigurationException, SAXException {
 
     charBuffer = new StringBuffer();
     massLists = new ArrayList<StorableMassList>();
 
-    // TODO differentiate between IMSRawDataFile and RawDataFile here!
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+    if (isIMSRawDataFile) {
+      newRawDataFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(null);
+    } else {
+      newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+    }
     newRawDataFile.openDataPointsFile(scansFile);
 
     dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
@@ -167,6 +172,11 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       massLists.add(newML);
     }
 
+    if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
+      currentStorageID = Integer
+          .parseInt(attrs.getValue(RawDataElementName_3_0.STORAGE_ID.getElementName()));
+    }
+
     if (qName.equals(RawDataElementName_3_0.QUANTITY_MOBILITY_SCANS.getElementName())) {
       numberMoblityScans =
           Integer.parseInt(attrs.getValue(
@@ -207,7 +217,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       scanNumber = Integer.parseInt(getTextOfElement());
     }
 
-    if(qName.equals(RawDataElementName_3_0.COLOR.getElementName())) {
+    if (qName.equals(RawDataElementName_3_0.COLOR.getElementName())) {
       String color = getTextOfElement();
       newRawDataFile.setColor(Color.valueOf(color));
     }
@@ -258,10 +268,6 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
-    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName())) {
-      mobility = Double.parseDouble(getTextOfElement());
-    }
-
     if (qName.equals(RawDataElementName_3_0.QUANTITY_DATAPOINTS.getElementName())) {
       dataPointsNumber = Integer.parseInt(getTextOfElement());
     }
@@ -270,34 +276,29 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
     }
 
+    if (qName.equals(RawDataElementName_3_0.MOBILITY.getElementName())) {
+      mobility = Double.parseDouble(getTextOfElement());
+    }
+
     if (qName.equals(RawDataElementName_3_0.MOBILITY_TYPE.getElementName())) {
       mobilityType = MobilityType.valueOf(getTextOfElement());
       mobilityType = (mobilityType == null) ? MobilityType.NONE : mobilityType;
     }
 
     if (qName.equals(RawDataElementName_3_0.FRAME_ID.getElementName())) {
-      frameId = Integer.valueOf(getTextOfElement());
+      frameId = Integer.parseInt(getTextOfElement());
     }
 
-    if (qName.equals(RawDataElementName_3_0.MOBILITY_SCANNUMS.getElementName())) {
+    if (qName.equals(RawDataElementName_3_0.MOBILITY_SCANNUM.getElementName())) {
       mobilityScans[mobilityScanCount++] = Integer.parseInt(getTextOfElement());
     }
 
     if (qName.equals(RawDataElementName_3_0.SCAN.getElementName())) {
 
-      Scan storableScan;
-      if (frameId == -1) {
-        storableScan = new StorableScan(newRawDataFile, currentStorageID,
-            dataPointsNumber, scanNumber, msLevel, retentionTime, mobility, precursorMZ,
-            precursorCharge,
-            fragmentScan, null, polarity, scanDescription, scanMZRange);
-      } else {
-        storableScan = new StorableFrame(newRawDataFile, currentStorageID, dataPointsNumber,
-            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge,
-            fragmentScan, null, polarity, scanDescription, scanMZRange, frameId, mobilityType,
-            mobilityRange, Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
-        logger.info(() -> "Loaded frame " + frameId);
-      }
+      final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
+          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ,
+          precursorCharge, fragmentScan, null, polarity, scanDescription, scanMZRange,
+          mobility, mobilityType);
 
       try {
         newRawDataFile.addScan(storableScan);
@@ -311,27 +312,33 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       }
 
       // Cleanup
-      massLists.clear();
-      currentStorageID = -1;
-      dataPointsNumber = -1;
-      scanNumber = -1;
-      msLevel = -1;
-      retentionTime = -1;
-      mobility = -1;
-      precursorMZ = -1;
-      precursorCharge = -1;
-      fragmentScan = null;
-      polarity = PolarityType.UNKNOWN;
-      scanDescription = "";
-      scanMZRange = null;
-
-      mobilityRange = Range.singleton(0d);
-      mobilityScans = null;
-      numberMoblityScans = 0;
-      mobilityScanCount = 0;
-      mobilityType = MobilityType.NONE;
-      frameId = -1;
+      resetReadValues();
     }
+
+    if (qName.equals(RawDataElementName_3_0.FRAME.getElementName())) {
+
+      final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
+          dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
+          fragmentScan, null, polarity, scanDescription, scanMZRange, frameId,
+          mobilityType, mobilityRange,
+          Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
+
+      logger.info(() -> "Loaded frame " + frameId);
+
+      try {
+        newRawDataFile.addScan(storableScan);
+      } catch (IOException e) {
+        throw new SAXException(e);
+      }
+
+      for (StorableMassList newML : massLists) {
+        newML.setScan(storableScan);
+        storableScan.addMassList(newML);
+      }
+
+      resetReadValues();
+    }
+
   }
 
   /**
@@ -354,5 +361,28 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
    */
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
+  }
+
+  private void resetReadValues() {
+    massLists.clear();
+    currentStorageID = -1;
+    dataPointsNumber = -1;
+    scanNumber = -1;
+    msLevel = -1;
+    retentionTime = -1;
+    mobility = -1;
+    precursorMZ = -1;
+    precursorCharge = -1;
+    fragmentScan = null;
+    polarity = PolarityType.UNKNOWN;
+    scanDescription = "";
+    scanMZRange = null;
+
+    mobilityRange = Range.singleton(0d);
+    mobilityScans = null;
+    numberMoblityScans = 0;
+    mobilityScanCount = 0;
+    mobilityType = MobilityType.NONE;
+    frameId = -1;
   }
 }

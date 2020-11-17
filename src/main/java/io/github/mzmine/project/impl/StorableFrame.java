@@ -68,13 +68,19 @@ public class StorableFrame extends StorableScan implements Frame {
     mobilityRange = Range.singleton(0.0);
 
     for (Scan mobilityScan : originalFrame.getMobilityScans()) {
-      final int storageId = rawDataFile.storeDataPoints(mobilityScan.getDataPoints());
 
-      final StorableScan storedScan = new StorableScan(mobilityScan, rawDataFile,
-          mobilityScan.getNumberOfDataPoints(), storageId);
-      mobilityScanIds.put(storedScan.getScanNumber(), storageId);
-      mobilityScans.put(storedScan.getScanNumber(), storedScan);
+      StorableScan storedScan = null;
 
+      if (!(mobilityScan instanceof StorableScan)) {
+        final int storageId = rawDataFile.storeDataPoints(mobilityScan.getDataPoints());
+
+        storedScan = new StorableScan(mobilityScan, rawDataFile,
+            mobilityScan.getNumberOfDataPoints(), storageId);
+        mobilityScanIds.put(storedScan.getScanNumber(), storageId);
+        mobilityScans.put(storedScan.getScanNumber(), storedScan);
+      } else {
+        storedScan = (StorableScan) mobilityScan;
+      }
       rawDataFile.addScan(storedScan);
 
       if (mobilityScan.getMobility() < mobilityRange.lowerEndpoint()) {
@@ -89,15 +95,17 @@ public class StorableFrame extends StorableScan implements Frame {
   }
 
   public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
-      int scanNumber, int msLevel, double retentionTime, double mobility, double precursorMZ,
+      int scanNumber, int msLevel, double retentionTime, double precursorMZ,
       int precursorCharge, int[] fragmentScans,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, int frameId, MobilityType mobilityType,
-      Range<Double> mobilityRange, List<Integer> mobilityScanNumbers) {
-    super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime, mobility,
+      Range<Double> scanMZRange, int frameId, @Nonnull MobilityType mobilityType,
+      @Nonnull Range<Double> mobilityRange, @Nonnull List<Integer> mobilityScanNumbers) {
+
+    super(rawDataFile, storageID, numberOfDataPoints, scanNumber, msLevel, retentionTime,
         precursorMZ, precursorCharge, fragmentScans, spectrumType, polarity, scanDefinition,
         scanMZRange);
+
     this.frameId = frameId;
     this.mobilityScanNumbers = mobilityScanNumbers;
     this.mobilityRange = mobilityRange;

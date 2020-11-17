@@ -53,7 +53,6 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
-  private double mobility;
   private MassSpectrumType spectrumType;
   private int dataPointsNumber;
   private long storageFileOffset;
@@ -64,12 +63,19 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
   /**
    * Create a new raw data file using the information from the XML raw data description file
    * 
-   * @param Name raw data file name
+   * @param is
+   * @param scansFile
+   * @param isIMSRawDataFile this parameter is ignored in project version 2.0
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  public RawDataFile readRawDataFile(InputStream is, File scansFile)
-      throws IOException, ParserConfigurationException, SAXException {
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
+      throws IOException, ParserConfigurationException, SAXException, UnsupportedOperationException {
+
+    if (isIMSRawDataFile) {
+      throw new UnsupportedOperationException(
+          "Ion mobility is not supported in projects created before MZmine 3.0");
+    }
 
     storageFileOffset = 0;
 
@@ -165,10 +171,10 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
-    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
-    {
-      mobility = Double.parseDouble(getTextOfElement());
-    }
+//    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName()))
+//    {
+//      mobility = Double.parseDouble(getTextOfElement());
+//    }
 
     if (qName.equals(RawDataElementName_2_0.CENTROIDED.getElementName())) {
       boolean centroided = Boolean.parseBoolean(getTextOfElement());
@@ -196,7 +202,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements RawDat
           newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
 
         StorableScan storableScan = new StorableScan(newRawDataFile, newStorageID, dataPointsNumber,
-            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge, fragmentScan,
+            scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScan,
             spectrumType, PolarityType.UNKNOWN, "", null);
         newRawDataFile.addScan(storableScan);
 

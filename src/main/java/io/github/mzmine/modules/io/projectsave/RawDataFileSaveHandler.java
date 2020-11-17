@@ -19,7 +19,10 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.project.impl.StorableFrame;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -87,7 +90,14 @@ class RawDataFileSaveHandler {
     // step 1 - save data file
     logger.info("Saving data points of: " + rawDataFile.getName());
 
-    String rawDataSavedName = "Raw data file #" + number + " " + rawDataFile.getName();
+    String rawDataSavedName;
+    if (rawDataFile instanceof IMSRawDataFile) {
+      rawDataSavedName =
+          IMSRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
+    } else {
+      rawDataSavedName =
+          RawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
+    }
 
     zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 
@@ -211,7 +221,42 @@ class RawDataFileSaveHandler {
       hd.endElement("", "", RawDataElementName.SCAN.getElementName());
       atts.clear();
       completedScans++;
-      progress = 0.9 + (0.1 * ((double) completedScans / numOfScans));
+      progress = 0.8 + (0.1 * ((double) completedScans / numOfScans));
+    }
+
+    // for loading frames it is important, that scans have already been loaded! so save frames after scans
+    // <FRAME>
+    if (rawDataFile instanceof IMSRawDataFile) {
+
+      final IMSRawDataFile imsFile = (IMSRawDataFile) rawDataFile;
+      final int numOfFrames = imsFile.getNumberOfFrames();
+
+      // <QUANTITY>
+      hd.startElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName(), atts);
+      hd.characters(String.valueOf(numOfFrames).toCharArray(), 0,
+          String.valueOf(numOfFrames).length());
+      hd.endElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName());
+
+      int completedFrames = 0;
+      for (int frameNum : imsFile.getFrameNumbers()) {
+
+        if (canceled) {
+          return;
+        }
+
+        StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
+        int storageID = frame.getStorageID();
+        atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+            String.valueOf(storageID));
+        hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
+        fillScanElement(frame, hd);
+        fillFrameElement(frame, hd);
+        hd.endElement("", "", RawDataElementName.FRAME.getElementName());
+        atts.clear();
+
+        completedFrames++;
+        progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+      }
     }
 
     hd.endElement("", "", RawDataElementName.RAWDATA.getElementName());
@@ -259,12 +304,6 @@ class RawDataFileSaveHandler {
     double rt = scan.getRetentionTime() * 60d;
     hd.characters(String.valueOf(rt).toCharArray(), 0, String.valueOf(rt).length());
     hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
-
-    // <MOBILITY>
-    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    double mobility = scan.getMobility();
-    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
 
     // <CENTROIDED>
     hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(), atts);
@@ -326,30 +365,39 @@ class RawDataFileSaveHandler {
     hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
     hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
 
+    // <MOBILITY>
+    hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
+    double mobility = scan.getMobility();
+    hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
+    hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
+
     // <MOBILITY_TYPE>
     hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
     MobilityType mobilityType = scan.getMobilityType();
     hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
     hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
+  }
 
-    if (scan instanceof Frame) {
-      String frameId = String.valueOf(((Frame) scan).getFrameId());
-      hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
-      hd.characters(frameId.toCharArray(), 0, frameId.length());
-      hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+  private void fillFrameElement(Frame frame, TransformerHandler hd)
+      throws SAXException, IOException {
+    AttributesImpl atts = new AttributesImpl();
 
-      List<Integer> mobilityScans = ((Frame) scan).getMobilityScanNumbers();
-      atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
-          String.valueOf(mobilityScans.size()));
-      hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
-      atts.clear();
-      for (int i : mobilityScans) {
-        hd.startElement("", "", RawDataElementName.MOBILITY_SCAN.getElementName(), atts);
-        hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
-        hd.endElement("", "", RawDataElementName.MOBILITY_SCAN.getElementName());
-      }
-      hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
+    String frameId = String.valueOf(frame.getFrameId());
+    hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
+    hd.characters(frameId.toCharArray(), 0, frameId.length());
+    hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
+
+    List<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
+    atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
+        String.valueOf(mobilityScanNumbers.size()));
+    hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
+    atts.clear();
+    for (int i : mobilityScanNumbers) {
+      hd.startElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName(), atts);
+      hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
+      hd.endElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName());
     }
+    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());
 
   }
 

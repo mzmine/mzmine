@@ -55,7 +55,6 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
   private int msLevel;
   private int[] fragmentScan;
   private int numberOfFragments;
-  private double mobility;
   private double precursorMZ;
   private int precursorCharge;
   private double retentionTime;
@@ -70,13 +69,20 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
   /**
    * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
    * the information from the XML raw data description file
-   * 
-   * @param Name raw data file name
+   *
+   * @param is
+   * @param scansFile
+   * @param isIMSRawDataFile this parameter is ignored in version 2_3
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  public RawDataFile readRawDataFile(InputStream is, File scansFile)
-      throws IOException, ParserConfigurationException, SAXException {
+  public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
+      throws IOException, ParserConfigurationException, SAXException, UnsupportedOperationException {
+
+    if (isIMSRawDataFile) {
+      throw new UnsupportedOperationException(
+          "Ion mobility is not supported in projects created before MZmine 3.0");
+    }
 
     storageFileOffset = 0;
 
@@ -112,13 +118,14 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
-   *      java.lang.String, org.xml.sax.Attributes)
+   * java.lang.String, org.xml.sax.Attributes)
    */
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // This will remove any remaining characters from previous elements
     getTextOfElement();
@@ -141,12 +148,13 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
 
   /**
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
-   *      java.lang.String)
+   * java.lang.String)
    */
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
-    if (canceled)
+    if (canceled) {
       throw new SAXException("Parsing canceled");
+    }
 
     // <NAME>
     if (qName.equals(RawDataElementName_2_3.NAME.getElementName())) {
@@ -177,10 +185,10 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
     if (qName.equals(RawDataElementName_2_3.PRECURSOR_MZ.getElementName())) {
       precursorMZ = Double.parseDouble(getTextOfElement());
     }
-    // need to work
-    if (qName.equals(RawDataElementName_2_3.ION_MOBILITY.getElementName())){
-      mobility = Double.parseDouble(getTextOfElement());
-    }
+
+//    if (qName.equals(RawDataElementName_2_3.ION_MOBILITY.getElementName())) {
+//      mobility = Double.parseDouble(getTextOfElement());
+//    }
 
     if (qName.equals(RawDataElementName_2_3.PRECURSOR_CHARGE.getElementName())) {
       precursorCharge = Integer.parseInt(getTextOfElement());
@@ -195,10 +203,11 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_2_3.CENTROIDED.getElementName())) {
       boolean centroided = Boolean.parseBoolean(getTextOfElement());
-      if (centroided)
+      if (centroided) {
         spectrumType = MassSpectrumType.CENTROIDED;
-      else
+      } else {
         spectrumType = MassSpectrumType.PROFILE;
+      }
     }
 
     if (qName.equals(RawDataElementName_2_3.QUANTITY_DATAPOINTS.getElementName())) {
@@ -222,11 +231,12 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
         int newStorageID = 1;
         TreeMap<Integer, Long> dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
         TreeMap<Integer, Integer> dataPointsLengths = newRawDataFile.getDataPointsLengths();
-        if (!dataPointsOffsets.isEmpty())
+        if (!dataPointsOffsets.isEmpty()) {
           newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
+        }
 
         StorableScan storableScan = new StorableScan(newRawDataFile, newStorageID, dataPointsNumber,
-            scanNumber, msLevel, retentionTime, mobility, precursorMZ, precursorCharge, fragmentScan,
+            scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, fragmentScan,
             spectrumType, PolarityType.UNKNOWN, "", null);
         newRawDataFile.addScan(storableScan);
 
@@ -249,7 +259,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
 
   /**
    * Return a string without tab an EOF characters
-   * 
+   *
    * @return String element text
    */
   private String getTextOfElement() {
@@ -262,7 +272,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements RawDat
 
   /**
    * characters()
-   * 
+   *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
   public void characters(char buf[], int offset, int len) throws SAXException {
