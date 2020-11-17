@@ -323,8 +323,6 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
           mobilityType, mobilityRange,
           Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
 
-      logger.info(() -> "Loaded frame " + frameId);
-
       try {
         newRawDataFile.addScan(storableScan);
       } catch (IOException e) {

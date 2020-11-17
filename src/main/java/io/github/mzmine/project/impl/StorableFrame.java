@@ -35,10 +35,7 @@ import javax.annotation.Nonnull;
 public class StorableFrame extends StorableScan implements Frame {
 
   private final int frameId;
-  /**
-   * key = scan Num, value = storage id  // TODO do we need this?
-   */
-  private final SortedMap<Integer, Integer> mobilityScanIds;
+
   /**
    * key = scan num, value = mobility scan // TODO do we need this?
    */
@@ -48,7 +45,7 @@ public class StorableFrame extends StorableScan implements Frame {
    */
   private Range<Double> mobilityRange;
 
-  private final List<Integer> mobilityScanNumbers;
+//  private final List<Integer> mobilityScanNumbers;
 
   /**
    * Creates a storable frame and also stores the mobility resolved scans.
@@ -63,7 +60,6 @@ public class StorableFrame extends StorableScan implements Frame {
     super(originalFrame, rawDataFile, numberOfDataPoints, storageID);
 
     frameId = originalFrame.getFrameId();
-    mobilityScanIds = new TreeMap<>();
     mobilityScans = new TreeMap<>();
     mobilityRange = Range.singleton(0.0);
 
@@ -76,7 +72,6 @@ public class StorableFrame extends StorableScan implements Frame {
 
         storedScan = new StorableScan(mobilityScan, rawDataFile,
             mobilityScan.getNumberOfDataPoints(), storageId);
-        mobilityScanIds.put(storedScan.getScanNumber(), storageId);
         mobilityScans.put(storedScan.getScanNumber(), storedScan);
       } else {
         storedScan = (StorableScan) mobilityScan;
@@ -90,8 +85,6 @@ public class StorableFrame extends StorableScan implements Frame {
         mobilityRange = Range.closed(mobilityRange.lowerEndpoint(), mobilityScan.getMobility());
       }
     }
-
-    mobilityScanNumbers = originalFrame.getMobilityScanNumbers();
   }
 
   public StorableFrame(RawDataFileImpl rawDataFile, int storageID, int numberOfDataPoints,
@@ -107,14 +100,13 @@ public class StorableFrame extends StorableScan implements Frame {
         scanMZRange);
 
     this.frameId = frameId;
-    this.mobilityScanNumbers = mobilityScanNumbers;
     this.mobilityRange = mobilityRange;
     this.mobilityType = mobilityType;
 
-    // TODO do we need these?
-    mobilityScanIds = new TreeMap<>();
     mobilityScans = new TreeMap<>();
-
+    for(int scannum : mobilityScanNumbers) {
+      mobilityScans.put(scannum, rawDataFile.getScan(scannum));
+    }
   }
 
   @Override
@@ -124,12 +116,12 @@ public class StorableFrame extends StorableScan implements Frame {
 
   @Override
   public int getNumberOfMobilityScans() {
-    return mobilityScanIds.size();
+    return mobilityScans.size();
   }
 
   @Override
   public List<Integer> getMobilityScanNumbers() {
-    return new ArrayList<>(mobilityScanIds.keySet());
+    return new ArrayList<>(mobilityScans.keySet());
   }
 
   @Nonnull
