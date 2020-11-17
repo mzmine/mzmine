@@ -33,10 +33,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -46,7 +43,6 @@ import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -55,6 +51,8 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameter
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.util.Hashtable;
 
 /**
@@ -128,7 +126,7 @@ public class NistMsSearchTask extends AbstractTask {
 
   // Optional params.
   private final MsMsSpectraMergeParameters mergeParameters;
-  private final String integerMZ;
+  private final IntegerMode integerMZ;
 
   // NIST MS Search directory and executable.
   private final File nistMsSearchDir;
@@ -305,7 +303,7 @@ public class NistMsSearchTask extends AbstractTask {
 
           // Round high-res to low-res.
           if (integerMZ != null & dataPoints != null) {
-            dataPoints = integerDataPoints(dataPoints, integerMZ);
+            dataPoints = ScanUtils.integerDataPoints(dataPoints, integerMZ);
           }
 
           if (!isCanceled()) {
@@ -602,45 +600,5 @@ public class NistMsSearchTask extends AbstractTask {
     }
 
     return locatorFile2;
-  }
-
-  /**
-   * Converts DataPoint ions mz to int.
-   *
-   * Function adapted from module: adap.mspexport.
-   *
-   * @param dataPoints spectra to convert.
-   * @param mode       conversion method.
-   * @return DataPoint array converted to integers.
-   * @throws IOException if there are i/o problems.
-   */
-  private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, final String mode) {
-
-    int size = dataPoints.length;
-
-    Map<Double, Double> integerDataPoints = new HashMap<>();
-
-    for (int i = 0; i < size; ++i) {
-      double mz = (double) Math.round(dataPoints[i].getMZ());
-      double intensity = dataPoints[i].getIntensity();
-      Double prevIntensity = integerDataPoints.get(mz);
-      if (prevIntensity == null) {
-        prevIntensity = 0.0;
-      }
-
-      if ("Merging mode: Sum".equals(mode)) {
-        integerDataPoints.put(mz, prevIntensity + intensity);
-      } else {
-        integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
-      }
-    }
-
-    DataPoint[] result = new DataPoint[integerDataPoints.size()];
-    int count = 0;
-    for (Entry<Double, Double> e : integerDataPoints.entrySet()) {
-      result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
-    }
-
-    return result;
   }
 }
