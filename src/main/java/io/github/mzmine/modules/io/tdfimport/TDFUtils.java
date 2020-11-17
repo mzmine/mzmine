@@ -152,41 +152,42 @@ public class TDFUtils {
   public static List<DataPoint[]> loadDataPointsForFrame(long handle, long frameId, long scanBegin,
       long scanEnd) {
 
-    List<DataPoint[]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
+    final List<DataPoint[]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
     // load scans in packs of 50 to not cause a buffer overflow
     long start = scanBegin;
     while (start < scanEnd) {
       // start is inclusive, end is exclusive
-      long end = (start + 50) < scanEnd ? start + 50 : scanEnd;
-      int numScans = (int) (end - start);
+      final long end = (start + 50) < scanEnd ? start + 50 : scanEnd;
+      final int numScans = (int) (end - start);
 
-      byte[] buffer = new byte[200000];
-      long buf_len = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer, buffer.length);
+      final byte[] buffer = new byte[200000];
+      final long buf_len = tdfLib
+          .tims_read_scans_v2(handle, frameId, start, end, buffer, buffer.length);
       // we increment here in case we failed to read
       start = start + 50;
 
-      IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+      final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
 
       if (buf_len == 0) {
         logger.warning("Cannot read scans " + start + "-" + end + " for frame " + frameId);
         continue;
       }
-      int[] scanBuffer = new int[intBuffer.remaining()];
+      final int[] scanBuffer = new int[intBuffer.remaining()];
       intBuffer.get(scanBuffer);
       // check out the layout of scanBuffer:
       // - the first numScan integers specify the number of peaks for each scan
       // - the next integers are pairs of (x,y) values for the scans. The x values are not masses but index values
       int d = numScans;
       for (int i = 0; i < numScans; i++) {
-        int numPeaks = scanBuffer[i];
-        int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
+        final int numPeaks = scanBuffer[i];
+        final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
         d += numPeaks;
-        int[] intensities = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
+        final int[] intensities = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
         d += numPeaks;
-        double[] masses = convertIndicesToMZ(handle, frameId, indices);
+        final double[] masses = convertIndicesToMZ(handle, frameId, indices);
 
-        DataPoint[] dps = new DataPoint[numPeaks];
+        final DataPoint[] dps = new DataPoint[numPeaks];
         for (int j = 0; j < numPeaks; j++) {
           dps[j] = new SimpleDataPoint(masses[j], intensities[j]);
         }
@@ -212,11 +213,11 @@ public class TDFUtils {
       TDFFrameTable frameTable, TDFMetaDataTable metaDataTable,
       FramePrecursorTable framePrecursorTable) {
     // idk if frames are ordered consecutively and there are no skipped numbers, but let's play it safe
-    int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
 
-    long numScans = (long) frameTable.getColumn(TDFFrameTable.NUM_SCANS).get(frameIndex);
-    List<Scan> scans = new ArrayList<Scan>((int) numScans);
-    List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
+    final long numScans = (long) frameTable.getColumn(TDFFrameTable.NUM_SCANS).get(frameIndex);
+    final List<Scan> scans = new ArrayList<>((int) numScans);
+    final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
       logger.info(
@@ -225,15 +226,15 @@ public class TDFUtils {
       return null;
     }
 
-    double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
         createPopulatedArray((int) numScans));
 
-    String scanDefinition =
+    final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
-    int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    PolarityType polarity = PolarityType.fromSingleChar(
+    final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
     // TODO: fragment scans
@@ -274,16 +275,12 @@ public class TDFUtils {
 //                                      AVERAGE FRAMES
 // -----------------------------------------------------------------------------------------------
   private static DataPoint[] extractCentroidsForFrame(long handle, long frameId,
-      int startScanNum,
-      int endScanNum) {
-    CentroidData data = new CentroidData();
-//    long start = System.currentTimeMillis();
-    long error = tdfLib
+      int startScanNum, int endScanNum) {
+
+    final CentroidData data = new CentroidData();
+    final long error = tdfLib
         .tims_extract_centroided_spectrum_for_frame(handle, frameId, startScanNum, endScanNum, data,
             Pointer.NULL);
-//    long time = System.currentTimeMillis() - start;
-//    logger.info(
-//        "Extracted scab data of frame " + frameId + " in " + ((double) (time) + " ms"));
 
     if (error == 0) {
       logger.info(
@@ -297,16 +294,17 @@ public class TDFUtils {
 
   public static SimpleFrame exctractCentroidScanForFrame(long handle, long frameId, int scanNum,
       TDFMetaDataTable metaDataTable, TDFFrameTable frameTable) {
-    int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
-    int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    DataPoint[] dps = extractCentroidsForFrame(handle, frameId, 0, numScans);
 
-    String scanDefinition =
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    final DataPoint[] dps = extractCentroidsForFrame(handle, frameId, 0, numScans);
+
+    final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
-    int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    PolarityType polarity = PolarityType.fromSingleChar(
+    final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
     SimpleFrame frame = new SimpleFrame(null,
@@ -329,8 +327,9 @@ public class TDFUtils {
   @Nullable
   public static ProfileData extractProfileForFrame(long handle, long frameId, long startScanNum,
       long endScanNum) {
-    ProfileData data = new ProfileData();
-    long error = tdfLib
+
+    final ProfileData data = new ProfileData();
+    final long error = tdfLib
         .tims_extract_profile_for_frame(handle, frameId, startScanNum, endScanNum, data, null);
 
     if (error == 0) {
@@ -378,8 +377,8 @@ public class TDFUtils {
 // -----------------------------------------------------------------------------------------------
   public static DataPoint[] loadMsMsDataPointsForPrecursor_v2(long handle, long precursorId) {
 
-    CentroidData data = new CentroidData();
-    long error = tdfLib
+    final CentroidData data = new CentroidData();
+    final long error = tdfLib
         .tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data, Pointer.NULL);
     if (error == 0) {
       logger.info("Could not extract msms for precursor " + precursorId + ".");
@@ -392,9 +391,9 @@ public class TDFUtils {
 //                                    CONVERSION FUNCTIONS
 // -----------------------------------------------------------------------------------------------
   private static double[] convertIndicesToMZ(long handle, long frameId, int[] indices) {
-    double[] buffer = new double[indices.length];
 
-    long error = tdfLib
+    final double[] buffer = new double[indices.length];
+    final long error = tdfLib
         .tims_index_to_mz(handle, frameId, Arrays.stream(indices).asDoubleStream().toArray(),
             buffer, indices.length);
     if (error == 0) {
