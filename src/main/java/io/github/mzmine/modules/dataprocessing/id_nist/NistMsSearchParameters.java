@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  * Holds NIST MS Search parameters.
@@ -81,17 +82,14 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
       new OptionalModuleParameter<>("Merge MS/MS (experimental)",
           "Merge high-quality MS/MS instead of exporting just the most intense one.",
-          new MsMsSpectraMergeParameters(), true);
+          new MsMsSpectraMergeParameters(), false);
 
   /**
    * Optional MZ rounding.
    */
-  public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ =
-      new OptionalParameter<>(new ComboParameter<>("Integer m/z",
-          "If selected, fractional m/z values will be merged into integer values, based on the selected "
-              + "merging mode",
-          new String[] {"Merging mode: Maximum", "Merging mode: Sum"}, "Merging mode: Maximum"),
-          false);
+  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
+      new OptionalParameter<>(new ComboParameter<IntegerMode>("Integer m/z",
+          "Merging mode for fractional m/z to unit mass", IntegerMode.values()), false);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
