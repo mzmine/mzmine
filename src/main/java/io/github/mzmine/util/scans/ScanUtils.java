@@ -55,6 +55,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import java.util.Map;
 
 /**
  * Scan related utilities
@@ -109,7 +110,7 @@ public class ScanUtils {
   /**
    * Find a base peak of a given scan in a given m/z range
    * 
-   * @param scan Scan to search
+   * @param scan    Scan to search
    * @param mzRange mz range to search in
    * @return double[2] containing base peak m/z and intensity
    */
@@ -130,7 +131,7 @@ public class ScanUtils {
   /**
    * Calculate the total ion count of a scan within a given mass range.
    * 
-   * @param scan the scan.
+   * @param scan    the scan.
    * @param mzRange mass range.
    * @return the total ion count of the scan within the mass range.
    */
@@ -181,13 +182,13 @@ public class ScanUtils {
    * This method bins values on x-axis. Each bin is assigned biggest y-value of all values in the
    * same bin.
    * 
-   * @param x X-coordinates of the data
-   * @param y Y-coordinates of the data
-   * @param binRange x coordinates of the left and right edge of the first bin
+   * @param x            X-coordinates of the data
+   * @param y            Y-coordinates of the data
+   * @param binRange     x coordinates of the left and right edge of the first bin
    * @param numberOfBins Number of bins
-   * @param interpolate If true, then empty bins will be filled with interpolation using other bins
-   * @param binningType Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y', avg of
-   *        'y')
+   * @param interpolate  If true, then empty bins will be filled with interpolation using other bins
+   * @param binningType  Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y', avg
+   *                     of 'y')
    * @return Values for each bin
    */
   public static double[] binValues(double[] x, double[] y, Range<Double> binRange, int numberOfBins,
@@ -351,7 +352,7 @@ public class ScanUtils {
    * the given mass range
    * 
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findFirstPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
@@ -374,7 +375,7 @@ public class ScanUtils {
    * the given mass range
    * 
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findLastPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
@@ -397,7 +398,7 @@ public class ScanUtils {
    * within the given mass range
    * 
    * @param dataPoints sorted(!) list of datapoints
-   * @param mzRange m/z range to search in
+   * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findMostIntensePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
@@ -711,11 +712,11 @@ public class ScanUtils {
    * Sorted list (best first) of all MS2 fragmentation scans with n signals >= noiseLevel in the
    * specified or first massList, if none was specified
    * 
-   * @param row all MS2 scans of all features in this row
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param row                all MS2 scans of all features in this row
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
-   * @param sort the sorting property (best first, index=0)
+   * @param sort               the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
@@ -733,7 +734,7 @@ public class ScanUtils {
    * massList, if none was specified
    * 
    * @param row
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
@@ -749,11 +750,11 @@ public class ScanUtils {
    * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
    * signals >= noiseLevel in the specified or first massList, if none was specified
    * 
-   * @param row all representative MS1 scans of all features in this row
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param row                all representative MS1 scans of all features in this row
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
-   * @param sort the sorting property (best first, index=0)
+   * @param sort               the sorting property (best first, index=0)
    * @return
    */
   @Nonnull
@@ -771,7 +772,7 @@ public class ScanUtils {
    * >= noiseLevel in the specified or first massList, if none was specified
    * 
    * @param row
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
@@ -798,7 +799,7 @@ public class ScanUtils {
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
    * 
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
@@ -817,7 +818,7 @@ public class ScanUtils {
    * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
    * specified
    * 
-   * @param massListName the name or null/empty to always use the first masslist
+   * @param massListName       the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
    * @return
@@ -990,8 +991,8 @@ public class ScanUtils {
    * most intense peaks within the window. This is a very simple and robust method to remove most
    * noise in the spectrum without having to estimate any noise intensity parameter.
    * 
-   * @param dataPoints spectrum
-   * @param binRange sliding mass window. Is shifted in each step by its width.
+   * @param dataPoints          spectrum
+   * @param binRange            sliding mass window. Is shifted in each step by its width.
    * @param numberOfPeaksPerBin number of peaks to keep within the sliding mass window
    * @return
    */
@@ -1026,12 +1027,14 @@ public class ScanUtils {
    * As for cosine similarity it is recommended to first take the square root of all peak
    * intensities, before calling this method.
    *
-   * @param scanLeft the first spectrum
-   * @param scanRight the second spectrum
+   * @param scanLeft                   the first spectrum
+   * @param scanRight                  the second spectrum
    * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass
-   *        deviation). Rather use a larger than a small value! Value is given in ppm and Dalton.
-   * @param noiseLevel the lowest intensity for a peak to be considered
-   * @param mzRange the m/z range in which the peaks are compared. use null for the whole spectrum
+   *                                   deviation). Rather use a larger than a small value! Value is
+   *                                   given in ppm and Dalton.
+   * @param noiseLevel                 the lowest intensity for a peak to be considered
+   * @param mzRange                    the m/z range in which the peaks are compared. use null for
+   *                                   the whole spectrum
    *
    */
   public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight,
@@ -1132,4 +1135,67 @@ public class ScanUtils {
     return (lp.getIntensity() * rp.getIntensity()) * propOverlap;
   }
 
+
+  /**
+   * Integer conversion methods.
+   */
+  public static enum IntegerMode {
+
+    SUM("Merging mode: Sum"),
+    MAX("Merging mode: Maximum");
+    
+    private final String intMode;
+
+    IntegerMode(String intMode){
+        this.intMode = intMode;
+    }
+    
+    @Override
+    public String toString() {
+      return this.intMode;
+    }
+  }
+
+  /**
+   * Converts DataPoint ion mz to int.
+   *
+   * Function adapted from module: adap.mspexport.
+   *
+   * @param dataPoints spectra to convert.
+   * @param intMode    conversion method: MAX or SUM.
+   * @return DataPoint array converted to integers.
+   */
+  public static DataPoint[] integerDataPoints(final DataPoint[] dataPoints,
+      final IntegerMode intMode) {
+
+    int size = dataPoints.length;
+
+    Map<Double, Double> integerDataPoints = new HashMap<>();
+
+    for (int i = 0; i < size; ++i) {
+      double mz = (double) Math.round(dataPoints[i].getMZ());
+      double intensity = dataPoints[i].getIntensity();
+      Double prevIntensity = integerDataPoints.get(mz);
+      if (prevIntensity == null) {
+        prevIntensity = 0.0;
+      }
+
+      switch (intMode) {
+        case MAX:
+          integerDataPoints.put(mz, prevIntensity + intensity);
+          break;
+        case SUM:
+          integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
+          break;
+      }
+    }
+
+    DataPoint[] result = new DataPoint[integerDataPoints.size()];
+    int count = 0;
+    for (Map.Entry<Double, Double> e : integerDataPoints.entrySet()) {
+      result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
+    }
+
+    return result;
+  }
 }
