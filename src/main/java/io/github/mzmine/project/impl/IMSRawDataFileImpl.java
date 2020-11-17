@@ -37,6 +37,8 @@ import javax.annotation.Nullable;
 
 public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFile {
 
+  public static final String SAVE_IDENTIFIER = "Ion mobility Raw data file";
+
   private final TreeMap<Integer, StorableFrame> frames;
   private final Hashtable<Integer, List<Integer>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
@@ -124,7 +126,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Nonnull
   @Override
   public List<Integer> getFrameNumbers(int msLevel) {
-    if (frameNumbersCache.get(msLevel) == null) {
+    return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
       List<Integer> frameNums = new ArrayList<>();
       synchronized (frames) {
         for (Entry<Integer, StorableFrame> e : frames.entrySet()) {
@@ -133,9 +135,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
           }
         }
       }
-      frameNumbersCache.put(msLevel, frameNums);
-    }
-    return frameNumbersCache.get(msLevel);
+      return frameNums;
+    });
   }
 
   @Override

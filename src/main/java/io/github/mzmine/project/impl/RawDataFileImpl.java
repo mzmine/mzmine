@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
@@ -66,6 +65,8 @@ import javax.annotation.Nullable;
  * - only data points referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
+
+  public static final String SAVE_IDENTIFIER = "Raw data file";
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
