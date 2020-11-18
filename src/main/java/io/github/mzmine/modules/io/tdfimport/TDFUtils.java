@@ -202,16 +202,17 @@ public class TDFUtils {
    *
    * @param handle              {@link TDFUtils#openFile(File)}
    * @param frameId             The id of the frame. See {@link TDFFrameTable}
-   * @param startScanNum        The first scan num
+   * @param firstScanNum        The first scan num
    * @param frameTable          The frame table
    * @param metaDataTable       The metadata table
    * @param framePrecursorTable The FramePrecursorTable
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public static List<Scan> loadScansForPASEFFrame(long handle, long frameId, int startScanNum,
-      TDFFrameTable frameTable, TDFMetaDataTable metaDataTable,
-      FramePrecursorTable framePrecursorTable) {
+  public static List<Scan> loadScansForPASEFFrame(final long handle, final long frameId, final int firstScanNum,
+      final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable,
+      final FramePrecursorTable framePrecursorTable) {
+
     // idk if frames are ordered consecutively and there are no skipped numbers, but let's play it safe
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
 
@@ -239,7 +240,6 @@ public class TDFUtils {
 
     // TODO: fragment scans
 
-    int addedScans = 0; // count the scans we actually add, e.g. not empty-scans
     for (int i = 0; i < dataPoints.size(); i++) {
       if (dataPoints.get(i).length == 0) {
         continue;
@@ -252,7 +252,7 @@ public class TDFUtils {
         precursorCharge = fpi.getCharge();
       }
       Scan scan = new SimpleScan(null,
-          startScanNum + addedScans,
+          firstScanNum + i, // scans are numbered consecutively
           msLevel,
           frameTable.getTimeColumn().get(frameIndex) / 60, // to minutes
           precursorMz,
@@ -266,7 +266,6 @@ public class TDFUtils {
           mobilities[i],
           MobilityType.TIMS);
       scans.add(scan);
-      addedScans++;
     }
     return scans;
   }

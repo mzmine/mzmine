@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.io.tdfimport.datamodel.sql;
 
-import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper.Type;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -18,17 +18,20 @@
 
 package io.github.mzmine.modules.io.tdfimport;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -36,8 +39,11 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
 public class TDFReaderTask extends AbstractTask {
 
@@ -152,15 +158,6 @@ public class TDFReaderTask extends AbstractTask {
         e.printStackTrace();
       }
 
-//      try {
-//        for (Scan scan : scanList) {
-//          newMZmineFile.addScan(scan);
-//          scanNum++;
-//        }
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return;
-//      }
       finishedPercentage = (double) i / (double) numFrames;
     }
 
@@ -239,17 +236,52 @@ public class TDFReaderTask extends AbstractTask {
     description = desc;
   }
 
+  /**
+   * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
+   *
+   * @param rawDataFile The raw file the scans will be added to
+   * @param handle handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link TDFUtils#openFile(File, long)}
+   * @param firstFrameId id of the first frame in the segment
+   * @param lastFrameId id of the last frame in the segment
+   * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
+   * @param tdfMetaDataTable {@link TDFMetaDataTable} of the tdf file
+   * @param tdfPasefFrameMsMsInfoTable {@link TDFPasefFrameMsMsInfoTable} of the tdf file
+   * @param framePrecursorTable {@link FramePrecursorTable} of the tdf file
+   */
+  private void appendScansFromPASEFSegment(@Nonnull final IMSRawDataFileImpl rawDataFile,
+      @Nonnull final long handle,
+      final long firstFrameId, final long lastFrameId,
+      @Nonnull final TDFFrameTable tdfFrameTable,
+      @Nonnull final TDFMetaDataTable tdfMetaDataTable,
+      @Nonnull final TDFPasefFrameMsMsInfoTable tdfPasefFrameMsMsInfoTable,
+      @Nonnull final FramePrecursorTable framePrecursorTable) {
 
-  /*private RawDataFile readPASEFFile(TDFLibrary tdfLib, File tdfBin, TDFFrameTable frames,
-      TDFPrecursorTable precursors) {
+    for (long frameId = firstFrameId; frameId < lastFrameId; frameId++) {
+      // scans are numbered consecutively. To be able to remap to the tdf raw file, this needs
+      // to be consistent, because Bruker does not have consecutive scan numbers, just consecutive
+      // frames with sub scans!
+      final int[] scanNumbers = rawDataFile.getScanNumbers();
+      Arrays.sort(scanNumbers);
+      final int lastScanNumber = scanNumbers[scanNumbers.length - 1];
+      final int scansInFrame = tdfFrameTable.getNumScansColumn()
+          .get(tdfFrameTable.getFrameIdColumn().indexOf(frameId)).intValue();
+      logger.finest(() -> "Loading scans for PASEF frameid\t" + firstFrameId +
+          "\tscanNum\t" + lastScanNumber + 1 + "\t-\t" + scansInFrame);
 
-    long binHandle = tdfLib.tims_open(tdfBin.getParentFile().getAbsolutePath(), 0);
+      final List<Scan> scans = TDFUtils.loadScansForPASEFFrame(handle, frameId, lastScanNumber + 1, tdfFrameTable,
+          tdfMetaDataTable,
+          framePrecursorTable);
 
-    int numFrames = frames.getColumn(TDFFrameTable.FRAME_ID_COLUMN_NAME).getEntries().size();
-
-    for (int i = 0; i < numFrames; i++) {
-
+      scans.forEach(scan -> {
+        try {
+          rawDataFile.addScan(scan);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
     }
 
-  };*/
+  }
+
+
 }
