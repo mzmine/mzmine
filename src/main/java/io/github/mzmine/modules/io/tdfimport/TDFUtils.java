@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.tdfimport.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
 import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
@@ -202,7 +203,6 @@ public class TDFUtils {
    *
    * @param handle              {@link TDFUtils#openFile(File)}
    * @param frameId             The id of the frame. See {@link TDFFrameTable}
-   * @param firstScanNum        The first scan num
    * @param frameTable          The frame table
    * @param metaDataTable       The metadata table
    * @param framePrecursorTable The FramePrecursorTable
@@ -210,15 +210,13 @@ public class TDFUtils {
    */
   @Nullable
   public static List<Scan> loadScansForPASEFFrame(final long handle, final long frameId,
-      final int firstScanNum,
       final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable,
       final FramePrecursorTable framePrecursorTable) {
 
-    // idk if frames are ordered consecutively and there are no skipped numbers, but let's play it safe
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
-
-    final long numScans = (long) frameTable.getColumn(TDFFrameTable.NUM_SCANS).get(frameIndex);
-    final List<Scan> scans = new ArrayList<>((int) numScans);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    final long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
+    final List<Scan> scans = new ArrayList<>(numScans);
     final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -229,10 +227,10 @@ public class TDFUtils {
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArray((int) numScans));
+        createPopulatedArray(numScans));
 
     final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
     final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
@@ -247,19 +245,64 @@ public class TDFUtils {
       }
       double precursorMz = 0.d;
       int precursorCharge = 0;
-      if (msLevel == 2) {
+      if (msLevel == 2 && framePrecursorTable != null) {
         FramePrecursorInfo fpi = framePrecursorTable.getPrecursorInfoAtScanNum(frameId, i);
         precursorMz = fpi.getLargestPeakMz();
         precursorCharge = fpi.getCharge();
       }
       Scan scan = new SimpleScan(null,
-          firstScanNum + i, msLevel, frameTable.getTimeColumn().get(frameIndex) / 60, // to minutes
+          Math.toIntExact(firstScanNum + i), msLevel,
+          frameTable.getTimeColumn().get(frameIndex) / 60, // to minutes
           precursorMz, precursorCharge, null, dataPoints.get(i), MassSpectrumType.CENTROIDED,
           polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);
       scans.add(scan);
     }
     return scans;
   }
+
+  /*
+  @Nullable
+  public static List<Scan> loadScansForMsOneFrame(final long handle, final long frameId,
+      final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable) {
+
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+    final long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
+
+    List<Scan> scans = new ArrayList<>(numScans);
+    final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
+    if (numScans != dataPoints.size()) {
+      logger.warning(() ->
+          "Number of scans for frame " + frameId + " in tdf (" + numScans
+              + ") does not match number of loaded scans (" + dataPoints.size() + ").");
+      return null;
+    }
+
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
+        createPopulatedArray(numScans));
+
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final int msLevel = 1;
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+
+    for (int i = 0; i < dataPoints.size(); i++) {
+      if (dataPoints.get(i).length == 0) {
+        continue;
+      }
+      double precursorMz = 0.d;
+      int precursorCharge = 0;
+      Scan scan = new SimpleScan(null,
+          Math.toIntExact(firstScanNum + i), msLevel,
+          frameTable.getTimeColumn().get(frameIndex) / 60, // to minutes
+          precursorMz, precursorCharge, null, dataPoints.get(i), MassSpectrumType.CENTROIDED,
+          polarity, scanDefinition, metaDataTable.getMzRange(), mobilities[i], MobilityType.TIMS);
+      scans.add(scan);
+    }
+    return scans;
+  } */
 
   // ---------------------------------------------------------------------------------------------
 //                                      AVERAGE FRAMES
@@ -290,7 +333,7 @@ public class TDFUtils {
     final DataPoint[] dps = extractCentroidsForFrame(handle, frameId, 0, numScans);
 
     final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
     final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
@@ -334,7 +377,7 @@ public class TDFUtils {
     int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     ProfileData data = extractProfileForFrame(handle, frameId, 0, numScans);
     String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + getDescriptionFromBrukerScanMode(
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue());
     int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
@@ -344,19 +387,10 @@ public class TDFUtils {
     DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
         metaDataTable.getMzRange().upperEndpoint());
 
-    Scan scan = new SimpleScan(null,
-        scanNum,
-        msLevel,
+    return new SimpleScan(null, scanNum, msLevel,
         (Double) frameTable.getColumn(TDFFrameTable.TIME).get(frameIndex) / 60, // to minutes
-        0.d,
-        0,
-        null,
-        dps,
-        MassSpectrumType.CENTROIDED,
-        polarity,
-        scanDefinition,
+        0.d, 0, null, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
         metaDataTable.getMzRange());
-    return scan;
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -442,37 +476,6 @@ public class TDFUtils {
         return 2;
       default:
         return 0;
-    }
-  }
-
-  /**
-   * @param scanMode The ScanMode of the respective frame from the {@link TDFFrameTable}. The types
-   *                 are also listed there.
-   * @return Descriptive string for the scan description.
-   */
-  public static String getDescriptionFromBrukerScanMode(int scanMode) {
-    switch (scanMode) {
-      case 0:
-        return "MS^1";
-      case 1:
-        return "Auto MS/MS";
-      case 2:
-        return "MRM";
-      case 3:
-        return "in-source CID";
-      case 4:
-        return "broadband CID";
-      case 8:
-        return "PASEF";
-      case 9:
-        return "DIA";
-      case 10:
-        return "PRM";
-      case 20:
-        return "MALDI";
-      default:
-        return "Unknown scan mode";
-
     }
   }
 

@@ -31,7 +31,6 @@ import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -39,10 +38,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 public class TDFReaderTask extends AbstractTask {
@@ -53,6 +50,7 @@ public class TDFReaderTask extends AbstractTask {
 
   private final File tdf;
   private final File tdfBin;
+  private final String rawDataFileName;
 
   private final TDFMetaDataTable metaDataTable;
   private final TDFFrameTable frameTable;
@@ -95,9 +93,14 @@ public class TDFReaderTask extends AbstractTask {
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
     framePrecursorTable = new FramePrecursorTable();
 
-    if (tdf != null && tdf.exists()) {
-      setDescription("Import Bruker Daltonics " + tdf.getName());
+    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
+        || !tdfBin.exists() || !tdfBin.canRead()) {
+      throw new IllegalArgumentException(
+          "\"Cannot open sql or bin files: \" + tdf.getName() + \"; \" + tdfBin.getName()");
     }
+
+    rawDataFileName = tdfBin.getParentFile().getName();
+
     setStatus(TaskStatus.WAITING);
   }
 
@@ -113,18 +116,13 @@ public class TDFReaderTask extends AbstractTask {
 
   @Override
   public void run() {
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
-        || !tdfBin.exists() || !tdfBin.canRead()) {
-      logger.info("Cannot open sql or bin files: " + tdf.getName() + "; " + tdfBin.getName());
-      return;
-    }
 
     setStatus(TaskStatus.PROCESSING);
     readMetadata();
 
-    IMSRawDataFileImpl newMZmineFile;
+    RawDataFileWriter newMZmineFile;
     try {
-      newMZmineFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(tdfBin.getName());
+      newMZmineFile = MZmineCore.createNewIMSFile(rawDataFileName);
     } catch (IOException e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -140,7 +138,9 @@ public class TDFReaderTask extends AbstractTask {
     TDFUtils.close(handle);
 
     try {
+      setDescription("Importing " + rawDataFileName +": Writing raw data file...");
       RawDataFile file = newMZmineFile.finishWriting();
+      finishedPercentage = 1.0;
       MZmineCore.getProjectManager().getCurrentProject().addFile(file);
     } catch (IOException e) {
       e.printStackTrace();
@@ -216,31 +216,30 @@ public class TDFReaderTask extends AbstractTask {
    * @param tdfPasefFrameMsMsInfoTable {@link TDFPasefFrameMsMsInfoTable} of the tdf file
    * @param framePrecursorTable        {@link FramePrecursorTable} of the tdf file
    */
-  private void appendScansFromPASEFSegment(@Nonnull final IMSRawDataFileImpl rawDataFile,
+  private void appendScansFromPASEFSegment(@Nonnull final RawDataFileWriter rawDataFile,
       @Nonnull final long handle,
       final long firstFrameId, final long lastFrameId,
       @Nonnull final TDFFrameTable tdfFrameTable,
       @Nonnull final TDFMetaDataTable tdfMetaDataTable,
       @Nonnull final TDFPasefFrameMsMsInfoTable tdfPasefFrameMsMsInfoTable,
       @Nonnull final FramePrecursorTable framePrecursorTable) {
+    final long numFrames = tdfFrameTable.getNumberOfFrames();
 
     for (long frameId = firstFrameId; frameId < lastFrameId; frameId++) {
-
-      final long firstScanNumber = tdfFrameTable.getFirstScanNumForFrame(frameId);
+      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
+      finishedPercentage = 0.95 * frameId / numFrames;
       final List<Scan> scans = TDFUtils.loadScansForPASEFFrame(
-          handle, frameId, (int) firstScanNumber, tdfFrameTable, tdfMetaDataTable,
+          handle, frameId, tdfFrameTable, tdfMetaDataTable,
           framePrecursorTable);
 
       try {
-        for(Scan scan : scans) {
+        for (Scan scan : scans) {
           rawDataFile.addScan(scan);
         }
       } catch (IOException e) {
         e.printStackTrace();
       }
-
     }
-
   }
 
 }
