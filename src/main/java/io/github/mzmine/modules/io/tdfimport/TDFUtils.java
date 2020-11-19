@@ -36,6 +36,7 @@ import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import java.io.File;
 import java.io.IOException;
@@ -199,7 +200,8 @@ public class TDFUtils {
   }
 
   /**
-   * Loads mobility resolved scans of a specific pasef frame. (ScanMode 8 in the Frames Table)
+   * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
+   * PASEF-MS/MS)
    *
    * @param handle              {@link TDFUtils#openFile(File)}
    * @param frameId             The id of the frame. See {@link TDFFrameTable}
@@ -209,7 +211,7 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public static List<Scan> loadScansForPASEFFrame(final long handle, final long frameId,
+  public static List<Scan> loadScansForTIMSFrame(final long handle, final long frameId,
       final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable,
       final FramePrecursorTable framePrecursorTable) {
 
@@ -237,8 +239,7 @@ public class TDFUtils {
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
-    // TODO: fragment scans
-
+    // TODO: fragment scan numbers
     for (int i = 0; i < dataPoints.size(); i++) {
       if (dataPoints.get(i).length == 0) {
         continue;
@@ -260,10 +261,10 @@ public class TDFUtils {
     return scans;
   }
 
-  /*
   @Nullable
-  public static List<Scan> loadScansForMsOneFrame(final long handle, final long frameId,
-      final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable) {
+  public static List<Scan> loadScansForMaldiTimsFrame(final long handle, final long frameId,
+      final TDFFrameTable frameTable, final TDFMetaDataTable metaDataTable, final
+  TDFMaldiFrameInfoTable maldiTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -281,9 +282,12 @@ public class TDFUtils {
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
         createPopulatedArray(numScans));
 
+//    final String scanDefinition =
+//        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+//            frameTable.getScanModeColumn().get(frameIndex).intValue());
     final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
+        "x: " + maldiTable.getxIndexPosColumn().get(frameIndex) + " y: " + maldiTable
+            .getyIndexPosColumn().get(frameIndex);
     final int msLevel = 1;
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
@@ -292,8 +296,8 @@ public class TDFUtils {
       if (dataPoints.get(i).length == 0) {
         continue;
       }
-      double precursorMz = 0.d;
-      int precursorCharge = 0;
+      final double precursorMz = 0.d;
+      final int precursorCharge = 0;
       Scan scan = new SimpleScan(null,
           Math.toIntExact(firstScanNum + i), msLevel,
           frameTable.getTimeColumn().get(frameIndex) / 60, // to minutes
@@ -302,7 +306,7 @@ public class TDFUtils {
       scans.add(scan);
     }
     return scans;
-  } */
+  }
 
   // ---------------------------------------------------------------------------------------------
 //                                      AVERAGE FRAMES
@@ -325,7 +329,7 @@ public class TDFUtils {
     return data.toDataPoints();
   }
 
-  public static SimpleFrame exctractCentroidScanForFrame(final long handle, final long frameId,
+  public static SimpleFrame exctractCentroidScanForTimsFrame(final long handle, final long frameId,
       final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable frameTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);

@@ -164,7 +164,7 @@ public interface TDFLibrary extends Library {
 
   /**
    * TODO test
-   *
+   * <p>
    * Read "quasi profile" MS/MS spectra for all PASEF precursors from a given frame.
    * <p>
    * Given a frame id, this function reads for all contained PASEF precursors the necessary PASEF
@@ -207,6 +207,17 @@ public interface TDFLibrary extends Library {
    */
   long tims_scannum_to_oneoverk0(long handle, long frameId, double[] scannum, double[] oneOverK0,
       long len);
+
+  /**
+   * Converts the 1/K0 value to CCS (in Angstrom^2) using the Mason-Shamp equation
+   *
+   * @param ook0   the 1/K0 value in Vs/cm2
+   * @param charge the charge
+   * @param mz     the mz of the ion
+   * @return the CCS value in Angstrom^2
+   */
+  double tims_oneoverk0_to_ccs_for_mz(double ook0, long charge, double mz);
+
 
   /**
    * Read peak-picked spectra for a tims frame.

@@ -18,16 +18,15 @@
 
 package io.github.mzmine.modules.io.tdfimport;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.tdfimport.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
@@ -58,8 +57,10 @@ public class TDFReaderTask extends AbstractTask {
   private final TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
   private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final FramePrecursorTable framePrecursorTable;
+  private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
 
   private double finishedPercentage;
+  private boolean isMaldi;
 
   /**
    * Bruker tims format:
@@ -92,6 +93,8 @@ public class TDFReaderTask extends AbstractTask {
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
     framePrecursorTable = new FramePrecursorTable();
+    maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
+    isMaldi = false;
 
     if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
         || !tdfBin.exists() || !tdfBin.canRead()) {
@@ -132,13 +135,18 @@ public class TDFReaderTask extends AbstractTask {
     long handle = TDFUtils.openFile(tdfBin);
     int numFrames = frameTable.getNumberOfFrames();
 
-    appendScansFromPASEFSegment(newMZmineFile, handle, 1, numFrames, frameTable, metaDataTable,
-        pasefFrameMsMsInfoTable, framePrecursorTable);
+    if (!isMaldi) {
+      appendScansFromTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable, metaDataTable,
+          pasefFrameMsMsInfoTable, framePrecursorTable);
+    } else {
+      appendScansFromMaldiTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable,
+          metaDataTable, maldiFrameInfoTable);
+    }
 
     TDFUtils.close(handle);
 
     try {
-      setDescription("Importing " + rawDataFileName +": Writing raw data file...");
+      setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
       RawDataFile file = newMZmineFile.finishWriting();
       finishedPercentage = 1.0;
       MZmineCore.getProjectManager().getCurrentProject().addFile(file);
@@ -175,21 +183,30 @@ public class TDFReaderTask extends AbstractTask {
       frameTable.executeQuery(connection);
       frameTable.print();
 
-      setDescription("Reading precursor info for " + tdf.getName());
-      precursorTable.executeQuery(connection);
-      precursorTable.print();
+      isMaldi = frameTable.getScanModeColumn()
+          .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
-      setDescription("Reading PASEF info for " + tdf.getName());
-      pasefFrameMsMsInfoTable.executeQuery(connection);
-      pasefFrameMsMsInfoTable.print();
+      if (!isMaldi) {
+        setDescription("Reading precursor info for " + tdf.getName());
+        precursorTable.executeQuery(connection);
+        precursorTable.print();
 
-      setDescription("Reading Frame MS/MS info for " + tdf.getName());
-      frameMsMsInfoTable.executeQuery(connection);
-      frameMsMsInfoTable.print();
+        setDescription("Reading PASEF info for " + tdf.getName());
+        pasefFrameMsMsInfoTable.executeQuery(connection);
+        pasefFrameMsMsInfoTable.print();
 
-      setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
-      framePrecursorTable.executeQuery(connection);
-      framePrecursorTable.print();
+        setDescription("Reading Frame MS/MS info for " + tdf.getName());
+        frameMsMsInfoTable.executeQuery(connection);
+        frameMsMsInfoTable.print();
+
+        setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
+        framePrecursorTable.executeQuery(connection);
+        framePrecursorTable.print();
+      } else {
+        setDescription("MALDI info for " + tdf.getName());
+        maldiFrameInfoTable.executeQuery(connection);
+        maldiFrameInfoTable.print();
+      }
 
       connection.close();
     } catch (SQLException throwable) {
@@ -216,8 +233,8 @@ public class TDFReaderTask extends AbstractTask {
    * @param tdfPasefFrameMsMsInfoTable {@link TDFPasefFrameMsMsInfoTable} of the tdf file
    * @param framePrecursorTable        {@link FramePrecursorTable} of the tdf file
    */
-  private void appendScansFromPASEFSegment(@Nonnull final RawDataFileWriter rawDataFile,
-      @Nonnull final long handle,
+  private void appendScansFromTimsSegment(@Nonnull final RawDataFileWriter rawDataFile,
+      final long handle,
       final long firstFrameId, final long lastFrameId,
       @Nonnull final TDFFrameTable tdfFrameTable,
       @Nonnull final TDFMetaDataTable tdfMetaDataTable,
@@ -225,10 +242,10 @@ public class TDFReaderTask extends AbstractTask {
       @Nonnull final FramePrecursorTable framePrecursorTable) {
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
-    for (long frameId = firstFrameId; frameId < lastFrameId; frameId++) {
+    for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
       setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
       finishedPercentage = 0.95 * frameId / numFrames;
-      final List<Scan> scans = TDFUtils.loadScansForPASEFFrame(
+      final List<Scan> scans = TDFUtils.loadScansForTIMSFrame(
           handle, frameId, tdfFrameTable, tdfMetaDataTable,
           framePrecursorTable);
 
@@ -240,6 +257,32 @@ public class TDFReaderTask extends AbstractTask {
         e.printStackTrace();
       }
     }
+  }
+
+  private void appendScansFromMaldiTimsSegment(@Nonnull final RawDataFileWriter rawDataFile,
+      final long handle, final long firstFrameId, final long lastFrameId,
+      @Nonnull final TDFFrameTable tdfFrameTable,
+      @Nonnull final TDFMetaDataTable tdfMetaDataTable,
+      @Nonnull final TDFMaldiFrameInfoTable tdfMaldiTable) {
+
+    final long numFrames = tdfFrameTable.getNumberOfFrames();
+
+    for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
+      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
+      finishedPercentage = 0.95 * frameId / numFrames;
+      final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(
+          handle, frameId, tdfFrameTable, tdfMetaDataTable, tdfMaldiTable);
+
+      try {
+        for (Scan scan : scans) {
+          rawDataFile.addScan(scan);
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+
   }
 
 }
