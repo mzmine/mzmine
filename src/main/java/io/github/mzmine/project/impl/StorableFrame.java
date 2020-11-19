@@ -63,26 +63,10 @@ public class StorableFrame extends StorableScan implements Frame {
     mobilityScans = new TreeMap<>();
     mobilityRange = Range.singleton(0.0);
 
-    for (Scan mobilityScan : originalFrame.getMobilityScans()) {
-
-      StorableScan storedScan = null;
-
-      if (!(mobilityScan instanceof StorableScan)) {
-        final int storageId = rawDataFile.storeDataPoints(mobilityScan.getDataPoints());
-
-        storedScan = new StorableScan(mobilityScan, rawDataFile,
-            mobilityScan.getNumberOfDataPoints(), storageId);
-        mobilityScans.put(storedScan.getScanNumber(), storedScan);
-      } else {
-        storedScan = (StorableScan) mobilityScan;
-      }
-      rawDataFile.addScan(storedScan);
-
-      if (mobilityScan.getMobility() < mobilityRange.lowerEndpoint()) {
-        mobilityRange = Range.closed(mobilityScan.getMobility(), mobilityRange.upperEndpoint());
-      }
-      if (mobilityScan.getMobility() > mobilityRange.upperEndpoint()) {
-        mobilityRange = Range.closed(mobilityRange.lowerEndpoint(), mobilityScan.getMobility());
+    for (int scannum : originalFrame.getMobilityScanNumbers()) {
+      Scan scan = rawDataFile.getScan(scannum);
+      if (scan != null) {
+        mobilityScans.put(scannum, scan);
       }
     }
   }
@@ -104,7 +88,7 @@ public class StorableFrame extends StorableScan implements Frame {
     this.mobilityType = mobilityType;
 
     mobilityScans = new TreeMap<>();
-    for(int scannum : mobilityScanNumbers) {
+    for (int scannum : mobilityScanNumbers) {
       mobilityScans.put(scannum, rawDataFile.getScan(scannum));
     }
   }
