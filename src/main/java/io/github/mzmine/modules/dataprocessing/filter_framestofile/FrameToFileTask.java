@@ -12,6 +12,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 
 public class FrameToFileTask extends AbstractTask {
@@ -95,6 +97,7 @@ public class FrameToFileTask extends AbstractTask {
     @Override
     public void run() {
       setStatus(TaskStatus.PROCESSING);
+      NumberFormat rtFormat = new DecimalFormat("#.000");
       for (Frame frame : frames) {
         if (FrameToFileTask.this.isCanceled() || SaveThread.this.isCanceled()) {
           setStatus(TaskStatus.CANCELED);
@@ -102,7 +105,8 @@ public class FrameToFileTask extends AbstractTask {
         }
         try {
           RawDataFileWriter newFile = MZmineCore
-              .createNewFile(file.getName() + " - " + frame.getScanDefinition());
+              .createNewFile(file.getName() + " - " + frame.getScanDefinition() + " " + rtFormat
+                  .format(frame.getRetentionTime()));
 
           for (Scan scan : frame.getMobilityScans()) {
             SimpleScan newScan = new SimpleScan(null, scan.getScanNumber(), scan.getMSLevel(),
