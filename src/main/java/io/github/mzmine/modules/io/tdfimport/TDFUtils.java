@@ -109,7 +109,7 @@ public class TDFUtils {
    * @return 0 on error, the handle otherwise.
    */
   public static long openFile(final File path, final long useRecalibratedState) {
-    if (tdfLib == null || !loadLibrary()) {
+    if (!loadLibrary() || tdfLib == null) {
       return 0L;
     }
     if (path.isFile()) {
@@ -122,12 +122,14 @@ public class TDFUtils {
   /**
    * Opens the tdf_bin file.
    * <p>
-   * Note: Separate Threads may not concurrently use the same handle!
+   * Note: Separate Threads may not concurrently use the same handle! Note: Uses the recalibrated
+   * state by default, if there is any.
    *
    * @param path The path
    * @return 0 on error, the handle otherwise.
    */
   public static long openFile(final File path) {
+
     return openFile(path, 0);
   }
 
@@ -295,21 +297,10 @@ public class TDFUtils {
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
-    SimpleFrame frame = new SimpleFrame(null,
-        scanNum,
-        msLevel,
+    return new SimpleFrame(null, scanNum, msLevel,
         (Double) frameTable.getColumn(TDFFrameTable.TIME).get(frameIndex) / 60, // to minutes
-        0.d,
-        0,
-        null,
-        dps,
-        MassSpectrumType.CENTROIDED,
-        polarity,
-        scanDefinition,
-        metaDataTable.getMzRange(),
-        (int) frameId,
-        MobilityType.TIMS);
-    return frame;
+        0.d, 0, null, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
+        metaDataTable.getMzRange(), (int) frameId, MobilityType.TIMS);
   }
 
   @Nullable
@@ -321,7 +312,7 @@ public class TDFUtils {
         .tims_extract_profile_for_frame(handle, frameId, startScanNum, endScanNum, data, null);
 
     if (error == 0) {
-      logger.info("Could not extract profile for frame " + frameId + ".");
+      logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
       return null;
     }
 
@@ -329,14 +320,13 @@ public class TDFUtils {
   }
 
   /**
-   * @deprecated not ready yet, yields to wrong m/z values. How does bruker distribute them?
-   *
    * @param handle
    * @param frameId
    * @param scanNum
    * @param metaDataTable
    * @param frameTable
    * @return
+   * @deprecated not ready yet, yields to wrong m/z values. How does bruker distribute them?
    */
   public static Scan extractProfileScanForFrame(final long handle, final long frameId,
       final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable frameTable) {
@@ -379,7 +369,7 @@ public class TDFUtils {
     final long error = tdfLib
         .tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data, Pointer.NULL);
     if (error == 0) {
-      logger.info("Could not extract msms for precursor " + precursorId + ".");
+      logger.warning(() -> "Could not extract MS/MS for precursor " + precursorId + ".");
       return new DataPoint[0];
     }
     return data.toDataPoints();
@@ -396,7 +386,7 @@ public class TDFUtils {
         .tims_index_to_mz(handle, frameId, Arrays.stream(indices).asDoubleStream().toArray(),
             buffer, indices.length);
     if (error == 0) {
-      logger.info("Could not convert indices to mzs for frame " + frameId);
+      logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
     return buffer;
   }
@@ -410,7 +400,7 @@ public class TDFUtils {
             Arrays.stream(scanNums).asDoubleStream().toArray(),
             buffer, scanNums.length);
     if (error == 0) {
-      logger.info("Could not convert scan nums to 1/K0 for frame " + frameId);
+      logger.warning(() -> "Could not convert scan nums to 1/K0 for frame " + frameId);
     }
     return buffer;
   }
