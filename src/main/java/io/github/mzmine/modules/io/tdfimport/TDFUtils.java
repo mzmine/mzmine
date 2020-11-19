@@ -221,7 +221,7 @@ public class TDFUtils {
     final List<DataPoint[]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
-      logger.info(
+      logger.warning(
           "Number of scans for frame " + frameId + " in tdf (" + numScans
               + ") does not match number of loaded scans (" + dataPoints.size() + ").");
       return null;
@@ -420,7 +420,7 @@ public class TDFUtils {
    * @param size The size
    * @return the array
    */
-  public static int[] createPopulatedArray(int size) {
+  private static int[] createPopulatedArray(int size) {
     int[] array = new int[size];
     for (int i = 0; i < size; i++) {
       array[i] = i;

@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.io.tdfimport.datamodel.sql;
 
+import java.sql.Connection;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An analysis consists of several frames (or "mobility scans"). A frame represents all TOF scans
@@ -139,6 +142,8 @@ public class TDFFrameTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Double> accumulationTimeColumn;
   private final TDFDataColumn<Double> rampTimeColumn;
 
+  private final Map<Long, Long> firstScanNumForFrame;
+
   public TDFFrameTable() {
     super(FRAME_TABLE_NAME, FRAME_ID);
     columns.addAll(Arrays.asList(new TDFDataColumn<Double>(TIME),
@@ -175,6 +180,8 @@ public class TDFFrameTable extends TDFDataTable<Long> {
     propertyGroupColumn = (TDFDataColumn<Long>) getColumn(PROPERTY_GROUP);
     accumulationTimeColumn = (TDFDataColumn<Double>) getColumn(ACCUMULATION_TIME);
     rampTimeColumn = (TDFDataColumn<Double>) getColumn(RAMP_TIME);
+
+    firstScanNumForFrame = new HashMap<>();
   }
 
   public long getFirstFrameNumber() {
@@ -251,5 +258,36 @@ public class TDFFrameTable extends TDFDataTable<Long> {
 
   public TDFDataColumn<Double> getRampTimeColumn() {
     return rampTimeColumn;
+  }
+
+  @Override
+  public boolean executeQuery(Connection connection) {
+    if (super.executeQuery(connection)) {
+      computeMZmineScanIndicesForFrameSubscans();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Since MZmine numbers scans consecutively and Bruker numbers the scans in their frames starting
+   * from 0, we have to be able to "convert" the scan numbers. This table has everything we need for
+   * that (#frames and #subscans per frame), so it's the easiest to do it here.
+   */
+  private void computeMZmineScanIndicesForFrameSubscans() {
+    long firstScanNumber = 0;
+    for (int numEntry = 0; numEntry < getFrameIdColumn().size(); numEntry++) {
+      final long frameId = getFrameIdColumn().get(numEntry);
+      firstScanNumForFrame.put(frameId, firstScanNumber);
+      firstScanNumber += getNumScansColumn().get(numEntry);
+    }
+  }
+
+  /**
+   * @param frameId requested frame
+   * @return The first scan number (MZmine style) for the given Frame.
+   */
+  public long getFirstScanNumForFrame(long frameId) {
+    return firstScanNumForFrame.get(frameId);
   }
 }

@@ -285,7 +285,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   @Nonnull
   public int[] getScanNumbers() {
 
-    if (scanNumbersCache.containsKey(0)) {
+    if (scanNumbersCache.containsKey(0) && scanNumbersCache.get(0).length == scans.size()) {
       return scanNumbersCache.get(0);
     }
 
@@ -508,7 +508,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     StorableScan storedScan = new StorableScan(newScan, this, dataPoints.length, storageID);
 
-    scans.put(newScan.getScanNumber(), storedScan);
+    if(scans.put(newScan.getScanNumber(), storedScan) != null) {
+      logger.info("scan " + newScan.getScanNumber() + " already existed");
+    };
   }
 
   /**

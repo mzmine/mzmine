@@ -122,9 +122,9 @@ public class TDFReaderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     readMetadata();
 
-    RawDataFileWriter newMZmineFile;
+    IMSRawDataFileImpl newMZmineFile;
     try {
-      newMZmineFile = MZmineCore.createNewIMSFile(tdfBin.getName());
+      newMZmineFile = (IMSRawDataFileImpl) MZmineCore.createNewIMSFile(tdfBin.getName());
     } catch (IOException e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -132,55 +132,23 @@ public class TDFReaderTask extends AbstractTask {
     }
 
     long handle = TDFUtils.openFile(tdfBin);
-    int scanNum = 0;
     int numFrames = frameTable.getNumberOfFrames();
 
-    // load frame data
-    for (int i = 0; i < numFrames; i++) {
-      setDescription(tdfBin.getName() + " - Reading frame " + (i + 1) + "/" + numFrames);
-      long frameId = (long) frameTable.getColumn(TDFFrameTable.FRAME_ID).get(i);
+    appendScansFromPASEFSegment(newMZmineFile, handle, 1, numFrames, frameTable, metaDataTable,
+        pasefFrameMsMsInfoTable, framePrecursorTable);
 
-      SimpleFrame frame = TDFUtils
-          .exctractCentroidScanForFrame(handle, frameId, scanNum, metaDataTable, frameTable);
-      scanNum++;
+    TDFUtils.close(handle);
 
-      List<Scan> scanList = TDFUtils
-          .loadScansForPASEFFrame(handle, frameId, scanNum, frameTable, metaDataTable,
-              framePrecursorTable);
-      assert scanList != null;
-
-      frame.addMobilityScans(scanList);
-
-      try {
-        newMZmineFile.addScan(frame);
-        scanNum += frame.getNumberOfMobilityScans();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
-      finishedPercentage = (double) i / (double) numFrames;
-    }
-
-    RawDataFile file;
     try {
-      file = newMZmineFile.finishWriting();
+      RawDataFile file = newMZmineFile.finishWriting();
+      MZmineCore.getProjectManager().getCurrentProject().addFile(file);
     } catch (IOException e) {
       e.printStackTrace();
-      return;
     }
 
-    MZmineCore.getProjectManager().getCurrentProject().addFile(file);
-
-    /*long handle = tdfLibrary.tims_open(tdfBin.getAbsolutePath(), 0);
-    if (handle == 0) {
-      logger.info("Could not open file " + tdfBin.getAbsolutePath());
-    }
-
-    byte[] buffer = new byte[200000];*/
-    TDFUtils.close(handle);
     setStatus(TaskStatus.FINISHED);
-  }
 
+  }
 
   private void readMetadata() {
     setDescription("Initializing SQL...");
@@ -228,7 +196,6 @@ public class TDFReaderTask extends AbstractTask {
       throwable.printStackTrace();
       logger.info("If stack trace contains \"out of memory\" the file was not found.");
       setStatus(TaskStatus.ERROR);
-      return;
     }
   }
 
@@ -239,14 +206,15 @@ public class TDFReaderTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param rawDataFile The raw file the scans will be added to
-   * @param handle handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link TDFUtils#openFile(File, long)}
-   * @param firstFrameId id of the first frame in the segment
-   * @param lastFrameId id of the last frame in the segment
-   * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
-   * @param tdfMetaDataTable {@link TDFMetaDataTable} of the tdf file
+   * @param rawDataFile                The raw file the scans will be added to
+   * @param handle                     handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
+   *                                   TDFUtils#openFile(File, long)}
+   * @param firstFrameId               id of the first frame in the segment
+   * @param lastFrameId                id of the last frame in the segment
+   * @param tdfFrameTable              {@link TDFFrameTable} of the tdf file
+   * @param tdfMetaDataTable           {@link TDFMetaDataTable} of the tdf file
    * @param tdfPasefFrameMsMsInfoTable {@link TDFPasefFrameMsMsInfoTable} of the tdf file
-   * @param framePrecursorTable {@link FramePrecursorTable} of the tdf file
+   * @param framePrecursorTable        {@link FramePrecursorTable} of the tdf file
    */
   private void appendScansFromPASEFSegment(@Nonnull final IMSRawDataFileImpl rawDataFile,
       @Nonnull final long handle,
@@ -257,31 +225,22 @@ public class TDFReaderTask extends AbstractTask {
       @Nonnull final FramePrecursorTable framePrecursorTable) {
 
     for (long frameId = firstFrameId; frameId < lastFrameId; frameId++) {
-      // scans are numbered consecutively. To be able to remap to the tdf raw file, this needs
-      // to be consistent, because Bruker does not have consecutive scan numbers, just consecutive
-      // frames with sub scans!
-      final int[] scanNumbers = rawDataFile.getScanNumbers();
-      Arrays.sort(scanNumbers);
-      final int lastScanNumber = scanNumbers[scanNumbers.length - 1];
-      final int scansInFrame = tdfFrameTable.getNumScansColumn()
-          .get(tdfFrameTable.getFrameIdColumn().indexOf(frameId)).intValue();
-      logger.finest(() -> "Loading scans for PASEF frameid\t" + firstFrameId +
-          "\tscanNum\t" + lastScanNumber + 1 + "\t-\t" + scansInFrame);
 
-      final List<Scan> scans = TDFUtils.loadScansForPASEFFrame(handle, frameId, lastScanNumber + 1, tdfFrameTable,
-          tdfMetaDataTable,
+      final long firstScanNumber = tdfFrameTable.getFirstScanNumForFrame(frameId);
+      final List<Scan> scans = TDFUtils.loadScansForPASEFFrame(
+          handle, frameId, (int) firstScanNumber, tdfFrameTable, tdfMetaDataTable,
           framePrecursorTable);
 
-      scans.forEach(scan -> {
-        try {
+      try {
+        for(Scan scan : scans) {
           rawDataFile.addScan(scan);
-        } catch (IOException e) {
-          e.printStackTrace();
         }
-      });
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
     }
 
   }
-
 
 }

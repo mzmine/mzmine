@@ -241,11 +241,11 @@ public class RawDataFileInfoPaneController {
 
       tableData.clear();
 
-      int numberOfScans = rawDataFile.getNumOfScans();
+      final int[] scanNumbers = rawDataFile.getScanNumbers();
 
       // add raw data to table
-      for (int i = 1; i < numberOfScans + 1; i++) {
-        Scan scan = rawDataFile.getScan(i);
+      for (int i = 1; i < scanNumbers.length; i++) {
+        Scan scan = rawDataFile.getScan(scanNumbers[i]);
 
         if (scan == null) {
           continue;
@@ -274,7 +274,7 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
         }
 
-        tableData.add(new ScanDescription(Integer.toString(i), // scan number
+        tableData.add(new ScanDescription(Integer.toString(scan.getScanNumber()), // scan number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
@@ -287,8 +287,8 @@ public class RawDataFileInfoPaneController {
             basePeakIntensity) // base peak intensity
         );
 
-        perc = i / (numberOfScans + 1);
-        if (isCanceled == true) {
+        perc = i / (scanNumbers.length + 1);
+        if (isCanceled) {
           status = TaskStatus.CANCELED;
           return;
         }
