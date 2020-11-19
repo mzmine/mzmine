@@ -28,10 +28,8 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -47,6 +45,8 @@ import javafx.scene.layout.GridPane;
 import javax.annotation.Nonnull;
 
 public class RawDataFileInfoPaneController {
+
+  private static Logger logger = Logger.getLogger(RawDataFileInfoPaneController.class.getName());
 
   private RawDataFile rawDataFile;
   private boolean populated = false;
@@ -242,6 +242,16 @@ public class RawDataFileInfoPaneController {
       tableData.clear();
 
       final int[] scanNumbers = rawDataFile.getScanNumbers();
+      if (scanNumbers.length > 5E5) {
+        status = TaskStatus.FINISHED;
+        // it's not the computation that takes long, it's putting the data into the table.
+        // This bricks the MZmine window
+        logger.info(
+            "Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
+                + rawDataFile.getNumOfScans() + ")");
+        logger.info("Will not compute table data.");
+        return;
+      }
 
       // add raw data to table
       for (int i = 1; i < scanNumbers.length; i++) {
