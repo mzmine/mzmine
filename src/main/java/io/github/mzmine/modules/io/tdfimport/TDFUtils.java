@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TDFUtils {
@@ -329,8 +331,17 @@ public class TDFUtils {
     return data.toDataPoints();
   }
 
+  /**
+   * @param handle
+   * @param frameId
+   * @param scanNum
+   * @param metaDataTable
+   * @param frameTable
+   * @return
+   */
   public static SimpleFrame exctractCentroidScanForTimsFrame(final long handle, final long frameId,
-      final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable frameTable) {
+      final int scanNum, @Nonnull final TDFMetaDataTable metaDataTable,
+      @Nonnull final TDFFrameTable frameTable) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -344,10 +355,16 @@ public class TDFUtils {
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
+    final ArrayList<Integer> subscanNumbers = new ArrayList<>(numScans);
+    long firstScanNum = frameTable.getFirstScanNumForFrame(frameId);
+    for(long i = firstScanNum; i < firstScanNum + numScans; i++) {
+      subscanNumbers.add(Math.toIntExact(i));
+    }
+
     return new SimpleFrame(null, scanNum, msLevel,
         (Double) frameTable.getColumn(TDFFrameTable.TIME).get(frameIndex) / 60, // to minutes
         0.d, 0, null, dps, MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        metaDataTable.getMzRange(), (int) frameId, MobilityType.TIMS);
+        metaDataTable.getMzRange(), (int) frameId, MobilityType.TIMS, subscanNumbers);
   }
 
   @Nullable

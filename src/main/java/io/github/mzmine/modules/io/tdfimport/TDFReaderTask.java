@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.tdfimport;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
@@ -143,12 +144,34 @@ public class TDFReaderTask extends AbstractTask {
           metaDataTable, maldiFrameInfoTable);
     }
 
+    final long lastFrameId = frameTable.getFrameIdColumn().get(frameTable.getNumberOfFrames() - 1);
+    final int lastScanNum = Math.toIntExact(
+        frameTable.getFirstScanNumForFrame(lastFrameId) +
+            frameTable.getNumScansColumn().get(frameTable.getFrameIdColumn().indexOf(lastFrameId)));
+
+    int frameId = 1;
+    try {
+      for (int scanNum = lastScanNum; scanNum < lastScanNum + numFrames; scanNum++) {
+        finishedPercentage = 0.9 + 0.1 * frameId/numFrames;
+        setDescription(
+            "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
+        Scan frame = TDFUtils
+            .exctractCentroidScanForTimsFrame(handle, frameId, scanNum, metaDataTable, frameTable);
+        newMZmineFile.addScan(frame);
+        frameId++;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
     TDFUtils.close(handle);
 
     try {
       setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
       RawDataFile file = newMZmineFile.finishWriting();
       finishedPercentage = 1.0;
+      logger.info("Imported " + rawDataFileName + ". Loaded " + file.getNumOfScans() + " scans and "
+          + ((IMSRawDataFile) file).getNumberOfFrames() + " frames.");
       MZmineCore.getProjectManager().getCurrentProject().addFile(file);
     } catch (IOException e) {
       e.printStackTrace();
@@ -244,7 +267,7 @@ public class TDFReaderTask extends AbstractTask {
 
     for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
       setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      finishedPercentage = 0.95 * frameId / numFrames;
+      finishedPercentage = 0.9 * frameId / numFrames;
       final List<Scan> scans = TDFUtils.loadScansForTIMSFrame(
           handle, frameId, tdfFrameTable, tdfMetaDataTable,
           framePrecursorTable);
@@ -255,6 +278,7 @@ public class TDFReaderTask extends AbstractTask {
         }
       } catch (IOException e) {
         e.printStackTrace();
+        TDFUtils.close(handle);
       }
     }
   }
@@ -268,8 +292,9 @@ public class TDFReaderTask extends AbstractTask {
     final long numFrames = tdfFrameTable.getNumberOfFrames();
 
     for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
-      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      finishedPercentage = 0.95 * frameId / numFrames;
+      setDescription(
+          "Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
+      finishedPercentage = 0.9 * frameId / numFrames;
       final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(
           handle, frameId, tdfFrameTable, tdfMetaDataTable, tdfMaldiTable);
 
@@ -279,10 +304,9 @@ public class TDFReaderTask extends AbstractTask {
         }
       } catch (IOException e) {
         e.printStackTrace();
+        TDFUtils.close(handle);
       }
     }
-
-
   }
 
 }

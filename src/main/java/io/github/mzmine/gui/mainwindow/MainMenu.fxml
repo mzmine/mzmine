@@ -104,6 +104,9 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
       <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+      <SeparatorMenuItem/>
+      <MenuItem text="Frames to File" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_framestofile.FrameToFileModule"/>
     </Menu>
 
     <Menu text="Mass detection">
