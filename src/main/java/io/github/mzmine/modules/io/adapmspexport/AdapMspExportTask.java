@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  *
@@ -51,7 +53,7 @@ public class AdapMspExportTask extends AbstractTask {
   private final boolean addAnovaPValue;
   private final String anovaAttributeName;
   private final boolean integerMZ;
-  private final String roundMode;
+  private final IntegerMode roundMode;
 
   AdapMspExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
@@ -197,7 +199,7 @@ public class AdapMspExportTask extends AbstractTask {
       DataPoint[] dataPoints = ip.getDataPoints();
 
       if (integerMZ)
-        dataPoints = integerDataPoints(dataPoints, roundMode);
+        dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
 
       String numFeatures = Integer.toString(dataPoints.length);
       if (numFeatures != null)
@@ -210,37 +212,6 @@ public class AdapMspExportTask extends AbstractTask {
 
       writer.write(newLine);
     }
-  }
-
-  private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, final String mode) {
-    int size = dataPoints.length;
-
-    Map<Double, Double> integerDataPoints = new HashMap<>();
-
-    for (int i = 0; i < size; ++i) {
-      double mz = (double) Math.round(dataPoints[i].getMZ());
-      double intensity = dataPoints[i].getIntensity();
-      Double prevIntensity = integerDataPoints.get(mz);
-      if (prevIntensity == null)
-        prevIntensity = 0.0;
-
-      switch (mode) {
-        case AdapMspExportParameters.ROUND_MODE_SUM:
-          integerDataPoints.put(mz, prevIntensity + intensity);
-          break;
-
-        case AdapMspExportParameters.ROUND_MODE_MAX:
-          integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
-          break;
-      }
-    }
-
-    DataPoint[] result = new DataPoint[integerDataPoints.size()];
-    int count = 0;
-    for (Entry<Double, Double> e : integerDataPoints.entrySet())
-      result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
-
-    return result;
   }
 
   private String checkAttributeName(String name) {

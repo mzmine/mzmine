@@ -38,6 +38,8 @@ import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  * Export of a feature cluster (ADAP) to mgf. Used in GC-GNPS
@@ -57,7 +59,7 @@ public class AdapMgfExportTask extends AbstractTask {
   private final File fileName;
   private final String plNamePattern = "{}";
   private final boolean fractionalMZ;
-  private final String roundMode;
+  private final IntegerMode roundMode;
   private MzMode representativeMZ;
   private final int totalRows;
   private int finishedRows = 0;
@@ -169,7 +171,7 @@ public class AdapMgfExportTask extends AbstractTask {
     // data points of this cluster
     DataPoint[] dataPoints = ip.getDataPoints();
     if (!fractionalMZ)
-      dataPoints = integerDataPoints(dataPoints, roundMode);
+      dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
     // get m/z and rt
     double mz = getRepresentativeMZ(row, dataPoints);
     String retTimeInSeconds = rtsForm.format(row.getAverageRT() * 60);
@@ -223,43 +225,5 @@ public class AdapMgfExportTask extends AbstractTask {
     }
 
     return mz;
-  }
-
-  /**
-   * Round to nominal masses and select intensity
-   * 
-   * @param dataPoints
-   * @param mode
-   * @return
-   */
-  private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, final String mode) {
-    int size = dataPoints.length;
-
-    Map<Double, Double> integerDataPoints = new HashMap<>();
-
-    for (int i = 0; i < size; ++i) {
-      double mz = Math.round(dataPoints[i].getMZ());
-      double intensity = dataPoints[i].getIntensity();
-      Double prevIntensity = integerDataPoints.get(mz);
-      if (prevIntensity == null)
-        prevIntensity = 0.0;
-
-      switch (mode) {
-        case AdapMgfExportParameters.ROUND_MODE_SUM:
-          integerDataPoints.put(mz, prevIntensity + intensity);
-          break;
-
-        case AdapMgfExportParameters.ROUND_MODE_MAX:
-          integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
-          break;
-      }
-    }
-
-    DataPoint[] result = new DataPoint[integerDataPoints.size()];
-    int count = 0;
-    for (Entry<Double, Double> e : integerDataPoints.entrySet())
-      result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
-
-    return result;
   }
 }

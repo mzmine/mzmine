@@ -16,12 +16,6 @@
  * USA
  */
 
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import java.util.Collection;
@@ -43,7 +37,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "NIST MS Search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for spectra in the NIST library.";
+      "This method searches spectra against the NIST library.";
 
   @Override
   public @Nonnull String getName() {

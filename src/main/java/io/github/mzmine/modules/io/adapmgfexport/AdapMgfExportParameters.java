@@ -23,6 +23,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import javafx.collections.FXCollections;
 
 /**
@@ -53,9 +54,6 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
     }
   }
 
-  public static final String ROUND_MODE_MAX = "Maximum";
-  public static final String ROUND_MODE_SUM = "Sum";
-
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
@@ -68,9 +66,8 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);
 
-  public static final ComboParameter<String> ROUND_MODE = new ComboParameter<>("Merging Mode",
-      "Determines how to merge intensities with the same m/z values",
-      FXCollections.observableArrayList(ROUND_MODE_MAX, ROUND_MODE_SUM), ROUND_MODE_MAX);
+  public static final ComboParameter<IntegerMode> ROUND_MODE = new ComboParameter<IntegerMode>(
+      "Integer m/z", "Merging mode for fractional m/z to unit mass", IntegerMode.values());
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
       new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
