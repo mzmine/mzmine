@@ -65,7 +65,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATUREPICKING;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
 
   @Override
