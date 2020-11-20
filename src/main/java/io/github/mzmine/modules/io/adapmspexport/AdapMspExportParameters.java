@@ -23,7 +23,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 /**
  *
@@ -34,12 +34,12 @@ public class AdapMspExportParameters extends SimpleParameterSet {
   public static final String ROUND_MODE_MAX = "Merging mode: Maximum";
   public static final String ROUND_MODE_SUM = "Merging mode: Sum";
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MSP file. "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
+          + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
           + "If the file already exists, it will be overwritten.",
       "msp", FileSelectionType.SAVE);
 
@@ -61,6 +61,6 @@ public class AdapMspExportParameters extends SimpleParameterSet {
           new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX), false);
 
   public AdapMspExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
   }
 }
