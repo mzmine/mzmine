@@ -16,8 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.modules.tools.sortpeaklists;
+package io.github.mzmine.modules.tools.sortfeaturelists;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,7 +37,7 @@ import io.github.mzmine.util.ExitCode;
  * This is a very simple module which reorders feature lists alphabetically
  * 
  */
-public class SortPeakListsModule implements MZmineProcessingModule {
+public class SortFeatureListsModule implements MZmineProcessingModule {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -59,8 +59,8 @@ public class SortPeakListsModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    List<PeakList> peakLists = Arrays.asList(parameters
-        .getParameter(SortPeakListsParameters.peakLists).getValue().getMatchingPeakLists());
+    List<FeatureList> featureLists = Arrays.asList(parameters
+        .getParameter(SortFeatureListsParameters.featureLists).getValue().getMatchingPeakLists());
     /*
      * PeakListTreeModel model = null; if (project instanceof MZmineProjectImpl) { model =
      * ((MZmineProjectImpl) project).getPeakListTreeModel(); } else if (MZmineCore.getDesktop()
@@ -77,7 +77,7 @@ public class SortPeakListsModule implements MZmineProcessingModule {
      * 
      * for (int row = 0; row < rootNode.getChildCount(); row++) { DefaultMutableTreeNode
      * selectedNode = (DefaultMutableTreeNode) rootNode .getChildAt(row); Object selectedObject =
-     * selectedNode.getUserObject(); if (peakLists.contains(selectedObject)) {
+     * selectedNode.getUserObject(); if (featureLists.contains(selectedObject)) {
      * selectedNodes.add(selectedNode); } }
      * 
      * // Get the index of the first selected item final ArrayList<Integer> positions = new
@@ -105,7 +105,7 @@ public class SortPeakListsModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return SortPeakListsParameters.class;
+    return SortFeatureListsParameters.class;
   }
 
 }

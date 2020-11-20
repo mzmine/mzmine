@@ -16,18 +16,18 @@
  * USA
  */
 
-package io.github.mzmine.modules.tools.sortpeaklists;
+package io.github.mzmine.modules.tools.sortfeaturelists;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public class SortPeakListsParameters extends SimpleParameterSet {
+public class SortFeatureListsParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public SortPeakListsParameters() {
-    super(new Parameter[] {peakLists});
+  public SortFeatureListsParameters() {
+    super(new Parameter[] {featureLists});
   }
 
 }
