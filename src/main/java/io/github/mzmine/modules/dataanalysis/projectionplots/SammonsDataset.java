@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYDataset;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -44,13 +44,13 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
   private double[] component1Coords;
   private double[] component2Coords;
 
-  private PeakList peakList;
+  private FeatureList featureList;
   private ParameterSet parameters;
 
   private ColoringType coloringType;
 
   private RawDataFile[] selectedRawDataFiles;
-  private PeakListRow[] selectedRows;
+  private FeatureListRow[] selectedRows;
 
   private int[] groupsForSelectedRawDataFiles;
   private Object[] parameterValuesForGroups;
@@ -67,7 +67,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
 
   public SammonsDataset(MZmineProject project, ParameterSet parameters) {
 
-    this.peakList = parameters.getParameter(ProjectionPlotParameters.peakLists).getValue()
+    this.featureList = parameters.getParameter(ProjectionPlotParameters.featureLists).getValue()
         .getMatchingPeakLists()[0];
     this.parameters = parameters;
     this.xAxisDimension =
@@ -78,7 +78,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     coloringType = parameters.getParameter(ProjectionPlotParameters.coloringType).getValue();
     selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
-    selectedRows = peakList.getRows().toArray(PeakListRow[]::new);
+    selectedRows = featureList.getRows().toArray(FeatureListRow[]::new);
 
     datasetTitle = "Sammon's projection";
 
@@ -205,7 +205,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
 
     if (selectedRows.length == 0) {
       this.status = TaskStatus.ERROR;
-      errorMessage = "No peaks selected for Sammons plot";
+      errorMessage = "No features selected for Sammons plot";
       return;
     }
     if (selectedRawDataFiles.length == 0) {
@@ -218,16 +218,16 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
 
     // Generate matrix of raw data (input to Sammon's projection)
     boolean useArea = false;
-    if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType)
+    if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
         .getValue() == PeakMeasurementType.AREA)
       useArea = true;
 
     double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
     for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-      PeakListRow peakListRow = selectedRows[rowIndex];
+      FeatureListRow featureListRow = selectedRows[rowIndex];
       for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
         RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-        Feature p = peakListRow.getPeak(rawDataFile);
+        Feature p = featureListRow.getFeature(rawDataFile);
         if (p != null) {
           if (useArea)
             rawData[fileIndex][rowIndex] = p.getArea();
@@ -260,7 +260,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     component1Coords = result[xAxisDimension - 1];
     component2Coords = result[yAxisDimension - 1];
 
-    ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this, parameters);
+    ProjectionPlotWindow newFrame = new ProjectionPlotWindow(featureList, this, parameters);
     newFrame.show();
 
     setStatus(TaskStatus.FINISHED);
