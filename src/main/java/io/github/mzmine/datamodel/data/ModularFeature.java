@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.collections.ObservableList;
@@ -153,6 +154,13 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Copy constructor
    */
+  public ModularFeature(@Nonnull Feature f) {
+    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
+  }
+
+  /**
+   * Copy constructor with custom feature list
+   */
   public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
     this(flist);
     // add values to feature
@@ -266,22 +274,41 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public float getFWHM() {
-    return get(FwhmType.class) == null ? Float.NaN : get(FwhmType.class).getValue();
+    if (get(FwhmType.class) == null || get(FwhmType.class).getValue() == null) {
+      return Float.NaN;
+    }
+    return get(FwhmType.class).getValue();
   }
 
   @Override
   public float getTailingFactor() {
-    return get(TailingFactorType.class) == null ? Float.NaN : get(TailingFactorType.class).getValue();
+    if (get(TailingFactorType.class) == null || get(TailingFactorType.class).getValue() == null) {
+      return Float.NaN;
+    }
+    return get(TailingFactorType.class).getValue();
   }
 
   @Override
   public float getAsymmetryFactor() {
-    return get(AsymmetryFactorType.class) == null ? Float.NaN : get(AsymmetryFactorType.class).getValue();
+    if (get(AsymmetryFactorType.class) == null || get(AsymmetryFactorType.class).getValue() == null) {
+      return Float.NaN;
+    }
+    return get(AsymmetryFactorType.class).getValue();
   }
 
   @Override
   public void setMZ(double mz) {
     set(MZType.class, mz);
+  }
+
+  @Override
+  public void setHeight(float height) {
+    set(HeightType.class, height);
+  }
+
+  @Override
+  public void setArea(float area) {
+    set(AreaType.class, area);
   }
 
   @Override

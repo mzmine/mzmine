@@ -23,12 +23,12 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.PeakMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
@@ -46,7 +46,7 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
           "If checked, original feature list will be removed and only normalized version remains");
 
   public LinearNormalizerParameters() {
-    super(new Parameter[] {peakLists, suffix, normalizationType, peakMeasurementType, autoRemove});
+    super(new Parameter[] {featureLists, suffix, normalizationType, peakMeasurementType, autoRemove});
   }
 
 }

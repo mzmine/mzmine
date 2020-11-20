@@ -137,6 +137,16 @@ public interface Feature {
   void setMZ(double mz);
 
   /**
+   * Sets height of the feature
+   */
+  void setHeight(float height);
+
+  /**
+   * Sets area of the feature
+   */
+  void setArea(float area);
+
+  /**
    * Set best fragment scan numbers
    *
    * @param fragmentScanNumber
