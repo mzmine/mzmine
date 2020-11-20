@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -223,7 +223,7 @@ public class ResultWindowController {
 
         RawDataFile dataFile = peak.getDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
-        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
+        SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
     }
 
@@ -260,8 +260,8 @@ public class ResultWindowController {
         if (msmsScanNumber < 1)
             return;
 
-        SpectraVisualizerWindow msmsPlot =
-                SpectraVisualizerModule.showNewSpectrumWindow(dataFile, msmsScanNumber);
+        SpectraVisualizerTab msmsPlot =
+                SpectraVisualizerModule.addNewSpectrumTab(dataFile, msmsScanNumber);
 
         if (msmsPlot == null)
             return;

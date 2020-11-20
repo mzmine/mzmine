@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -423,10 +424,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     final int numOfDataPoints = dataPoints.length;
 
-    // Convert the dataPoints into a byte array. Each float takes 4 bytes,
-    // so we get the current float offset by dividing the size of the file
-    // by 4
-    final int numOfBytes = numOfDataPoints * 2 * 4;
+    // Convert the dataPoints into a byte array. Each double takes 8 bytes,
+    // so we get the current double offset by dividing the size of the file
+    // by 8
+    final int numOfBytes = numOfDataPoints * 2 * 8;
 
     if (buffer.capacity() < numOfBytes) {
       buffer = ByteBuffer.allocate(numOfBytes * 2);
@@ -436,10 +437,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       ((Buffer) buffer).clear();
     }
 
-    FloatBuffer floatBuffer = buffer.asFloatBuffer();
+    DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
     for (DataPoint dp : dataPoints) {
-      floatBuffer.put((float) dp.getMZ());
-      floatBuffer.put((float) dp.getIntensity());
+      doubleBuffer.put((double) dp.getMZ());
+      doubleBuffer.put((double) dp.getIntensity());
     }
 
     dataPointsFile.seek(currentOffset);
@@ -461,7 +462,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       throw new IllegalArgumentException("Unknown storage ID " + ID);
     }
 
-    final int numOfBytes = numOfDataPoints * 2 * 4;
+    final int numOfBytes = numOfDataPoints * 2 * 8;
 
     if (buffer.capacity() < numOfBytes) {
       buffer = ByteBuffer.allocate(numOfBytes * 2);
@@ -474,13 +475,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsFile.seek(currentOffset);
     dataPointsFile.read(buffer.array(), 0, numOfBytes);
 
-    FloatBuffer floatBuffer = buffer.asFloatBuffer();
+    DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
 
     DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
 
     for (int i = 0; i < numOfDataPoints; i++) {
-      float mz = floatBuffer.get();
-      float intensity = floatBuffer.get();
+      double mz = doubleBuffer.get();
+      double intensity = doubleBuffer.get();
       dataPoints[i] = new SimpleDataPoint(mz, intensity);
     }
 

@@ -68,6 +68,8 @@ public interface MZmineConfiguration {
 
   public NumberFormat getIntensityFormat();
 
+  public NumberFormat getPPMFormat();
+
   public void loadConfiguration(File file) throws IOException;
 
   public void saveConfiguration(File file) throws IOException;

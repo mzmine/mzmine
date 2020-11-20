@@ -19,16 +19,31 @@
 package io.github.mzmine.modules.io.projectload.version_2_5;
 
 enum RawDataElementName_2_5 {
-
-  RAWDATA("rawdata"), NAME("name"), QUANTITY_SCAN("num_scans"), ID("id"), SCAN("scan"), SCAN_ID(
-      "id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN("fragmentscans"), FRAGMENT_SCAN(
-          "fragmentscan"), QUANTITY("quantity"), PARENT_SCAN("parent"), PRECURSOR_MZ(
-              "precursor_mz"), PRECURSOR_CHARGE("precursor_charge"), RETENTION_TIME(
-                  "rt"), MOBILITY("mobility"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS("num_dp"), MASS_LIST(
-                      "mass_list"), STORED_DATAPOINTS(
-                          "stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
-                              "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION(
-                                  "scan_description"), SCAN_MZ_RANGE("scan_mz_range");
+  
+  RAWDATA("rawdata"), //
+  NAME("name"), //
+  QUANTITY_SCAN("num_scans"), //
+  ID("id"), //
+  SCAN("scan"), //
+  SCAN_ID("id"), //
+  MS_LEVEL("mslevel"), //
+  QUANTITY_FRAGMENT_SCAN("fragmentscans"), //
+  FRAGMENT_SCAN("fragmentscan"), //
+  QUANTITY("quantity"), //
+  PARENT_SCAN("parent"), //
+  PRECURSOR_MZ("precursor_mz"), //
+  PRECURSOR_CHARGE("precursor_charge"), //
+  RETENTION_TIME("rt"), //
+  CENTROIDED("centroid"), //
+  QUANTITY_DATAPOINTS("num_dp"), //
+  MASS_LIST("mass_list"), //
+  STORED_DATAPOINTS("stored_datapoints"), //
+  STORED_DATA("stored_data"), //
+  STORAGE_ID("storage_id"), //
+  POLARITY("polarity"), //
+  SCAN_DESCRIPTION("scan_description"), //
+  SCAN_MZ_RANGE("scan_mz_range"), //
+  ION_MOBILITY("mobility");
 
   private String elementName;
 

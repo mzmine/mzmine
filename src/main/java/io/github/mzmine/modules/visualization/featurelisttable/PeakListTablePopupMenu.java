@@ -527,7 +527,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       final Feature showPeak = getSelectedPeak();
       if (showPeak != null) {
 
-        SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
+        SpectraVisualizerModule.addNewSpectrumTab(showPeak.getDataFile(),
             showPeak.getRepresentativeScanNumber(), showPeak);
       }
     }
@@ -557,7 +557,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         if (showPeak != null) {
           final int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
           if (scanNumber > 0) {
-            SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(), scanNumber);
+            SpectraVisualizerModule.addNewSpectrumTab(showPeak.getDataFile(), scanNumber);
           } else {
             MZmineCore.getDesktop().displayMessage(null,
                 "There is no fragment for "
@@ -632,7 +632,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       final Feature showPeak = getSelectedPeak();
       if (showPeak != null && showPeak.getIsotopePattern() != null) {
         Platform
-            .runLater(() -> SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
+            .runLater(() -> SpectraVisualizerModule.addNewSpectrumTab(showPeak.getDataFile(),
                 showPeak.getRepresentativeScanNumber(), showPeak.getIsotopePattern()));
       }
     }

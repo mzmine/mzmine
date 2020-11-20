@@ -57,7 +57,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
   MsMsDataSet(RawDataFile rawDataFile, Range<Double> rtRange, Range<Double> mzRange,
       IntensityType intensityType, NormalizationType normalizationType, Double minPeakInt,
-      MsMsVisualizerWindow visualizer) {
+      MsMsVisualizerTab visualizer) {
 
     this.rawDataFile = rawDataFile;
 

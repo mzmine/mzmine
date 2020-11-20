@@ -432,9 +432,9 @@ public class ParameterSetupDialog extends Stage {
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
         Node child =
             panelComp.getChildrenUnmodifiable().get(i);
-        if (!(child instanceof Control)) {
+        /*if (!(child instanceof Control)) {
           continue;
-        }
+        }*/
         addListenersToNode(child);
       }
     }

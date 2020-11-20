@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -55,10 +54,10 @@ class MsMsBottomPanel extends HBox {
   private TextField peakTextField;
   private PeakThresholdParameter thresholdSettings;
 
-  private MsMsVisualizerWindow masterFrame;
+  private MsMsVisualizerTab masterFrame;
   private RawDataFile dataFile;
 
-  MsMsBottomPanel(MsMsVisualizerWindow masterFrame, RawDataFile dataFile, ParameterSet parameters) {
+  MsMsBottomPanel(MsMsVisualizerTab masterFrame, RawDataFile dataFile, ParameterSet parameters) {
 
     this.dataFile = dataFile;
     this.masterFrame = masterFrame;

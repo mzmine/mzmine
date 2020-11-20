@@ -52,7 +52,7 @@ class SpectraBottomPanel extends BorderPane {
   private Button processingParametersBtn;
 
   private RawDataFile dataFile;
-  private SpectraVisualizerWindow masterFrame;
+  private SpectraVisualizerTab masterFrame;
 
   // Last time the data set was redrawn.
   private static long lastRebuildTime = System.currentTimeMillis();
@@ -60,7 +60,7 @@ class SpectraBottomPanel extends BorderPane {
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 1000L;
 
-  SpectraBottomPanel(SpectraVisualizerWindow masterFrame, RawDataFile dataFile) {
+  SpectraBottomPanel(SpectraVisualizerTab masterFrame, RawDataFile dataFile) {
 
     // super(new BorderLayout());
     this.dataFile = dataFile;
@@ -76,6 +76,7 @@ class SpectraBottomPanel extends BorderPane {
     // topPanel.add(Box.createHorizontalStrut(10));
 
     Button prevScanBtn = new Button(leftArrow);
+    prevScanBtn.setOnAction(e -> masterFrame.loadPreviousScan());
     // prevScanBtn.setBackground(Color.white);
     // prevScanBtn.setFont(smallFont);
 
@@ -141,7 +142,7 @@ class SpectraBottomPanel extends BorderPane {
       selectedScanString = selectedScanString.substring(sharpIndex + 1, commaIndex);
       int selectedScan = Integer.valueOf(selectedScanString);
 
-      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
+      SpectraVisualizerModule.addNewSpectrumTab(dataFile, selectedScan);
     });
     // showButton.setFont(smallFont);
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.dialogs;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +30,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
@@ -174,18 +174,18 @@ public class FeatureOverviewWindow extends Stage {
   private SplitPane addSpectraMS1() {
     SplitPane pane = new SplitPane();
     pane.setOrientation(Orientation.HORIZONTAL);
-    SpectraVisualizerWindow spectraWindowMS1 = new SpectraVisualizerWindow(rawFiles[0]);
+    SpectraVisualizerTab spectraWindowMS1 = new SpectraVisualizerTab(rawFiles[0]);
     spectraWindowMS1.loadRawData(rawFiles[0].getScan(feature.getRepresentativeScanNumber()));
-    pane.getItems().add(spectraWindowMS1.getScene().getRoot());
+    pane.getItems().add(spectraWindowMS1.getContent());
     return pane;
   }
 
   private SplitPane addSpectraMS2() {
     SplitPane pane = new SplitPane();
     pane.setOrientation(Orientation.HORIZONTAL);
-    SpectraVisualizerWindow spectraWindowMS2 = new SpectraVisualizerWindow(rawFiles[0]);
+    SpectraVisualizerTab spectraWindowMS2 = new SpectraVisualizerTab(rawFiles[0]);
     spectraWindowMS2.loadRawData(rawFiles[0].getScan(feature.getMostIntenseFragmentScanNumber()));
-    pane.getItems().add(spectraWindowMS2.getScene().getRoot());
+    pane.getItems().add(spectraWindowMS2.getContent());
     return pane;
   }
 }

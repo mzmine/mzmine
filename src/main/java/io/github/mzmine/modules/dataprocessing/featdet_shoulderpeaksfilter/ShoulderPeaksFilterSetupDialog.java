@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
@@ -65,7 +65,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
     // Add scan data set
     ScanDataSet scanDataSet = new ScanDataSet(previewScan);
-    spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor, false);
+    spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerTab.scanColor, false);
 
     // If the scan is centroided, switch to centroid mode
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
@@ -98,7 +98,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
         new DataPointsDataSet("Remaining peaks", remainingMzValues);
 
     spectrumPlot.addDataSet(removedPeaksDataSet, removedPeaksColor, false);
-    spectrumPlot.addDataSet(remainingPeaksDataSet, SpectraVisualizerWindow.peaksColor, false);
+    spectrumPlot.addDataSet(remainingPeaksDataSet, SpectraVisualizerTab.peaksColor, false);
 
   }
 

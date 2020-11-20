@@ -165,7 +165,7 @@ class ProductIonFilterPlot extends EChartViewer {
     ProductIonFilterDataPoint pos = dataset.getDataPoint(xValue, yValue);
     RawDataFile dataFile = visualizer.getDataFile();
     if (pos != null) {
-      SpectraVisualizerModule.showNewSpectrumWindow(dataFile, pos.getScanNumber());
+      SpectraVisualizerModule.addNewSpectrumTab(dataFile, pos.getScanNumber());
     }
 
     resetZoomHistory();

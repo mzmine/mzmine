@@ -28,12 +28,12 @@ import java.nio.channels.WritableByteChannel;
 
 public class StreamCopy {
 
-  private long copiedLength, totalLength;
-  private boolean canceled = false, finished = false;
+  protected long copiedLength, totalLength;
+  protected boolean canceled = false, finished = false;
 
   /**
    * Copy the data from inputStream to outputStream using nio channels
-   * 
+   *
    * @param input InputStream
    * @param output OutputStream
    */
@@ -43,7 +43,7 @@ public class StreamCopy {
 
   /**
    * Copy the data from inputStream to outputStream using nio channels
-   * 
+   *
    * @param input InputStream
    * @param output OutputStream
    */
@@ -75,7 +75,7 @@ public class StreamCopy {
   }
 
   /**
-   * 
+   *
    * @return the progress of the "copy()" function copying the data from one stream to another
    */
   public double getProgress() {
@@ -85,7 +85,7 @@ public class StreamCopy {
       return 0;
     if (copiedLength >= totalLength)
       return 1.0;
-    return (double) (double) copiedLength / (double) totalLength;
+    return copiedLength / totalLength;
   }
 
   /**

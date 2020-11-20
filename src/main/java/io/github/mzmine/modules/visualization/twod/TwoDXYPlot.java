@@ -34,6 +34,7 @@ import com.google.common.collect.Range;
  * This class is responsible for drawing the actual data points. Modified by Owen Myers 2017
  */
 class TwoDXYPlot extends BaseXYPlot {
+  boolean datasetChanged = false;
 
   TwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,
       ValueAxis domainAxis, ValueAxis rangeAxis) {
@@ -71,7 +72,8 @@ class TwoDXYPlot extends BaseXYPlot {
         && (imageRTMax == totalRTRange.upperEndpoint())
         && (imageMZMin == totalMZRange.lowerEndpoint())
         && (imageMZMax == totalMZRange.upperEndpoint()) && (zoomOutBitmap.getWidth() == width)
-        && (zoomOutBitmap.getHeight() == height)) {
+        && (zoomOutBitmap.getHeight() == height)
+        && (!datasetChanged)) {
       g2.drawImage(zoomOutBitmap, x, y, null);
       return true;
     }
@@ -139,6 +141,9 @@ class TwoDXYPlot extends BaseXYPlot {
     // Paint image
     g2.drawImage(image, x, y, null);
 
+    // Set datasetChanged to false until setDataset is not called
+    datasetChanged = false;
+
     Date renderFinishTime = new Date();
 
     logger.finest("Finished rendering 2D visualizer, "
@@ -146,5 +151,10 @@ class TwoDXYPlot extends BaseXYPlot {
 
     return true;
 
+  }
+
+  public void setDataset(TwoDDataSet dataset) {
+    super.setDataset(dataset);
+    datasetChanged = true;
   }
 }

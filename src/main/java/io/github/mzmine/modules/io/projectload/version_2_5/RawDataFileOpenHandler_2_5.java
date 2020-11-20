@@ -24,18 +24,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
-import io.github.mzmine.modules.io.projectload.version_2_0.RawDataElementName_2_0;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -82,6 +77,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @throws SAXException
    * @throws ParserConfigurationException
    */
+  @Override
   public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile)
       throws IOException, ParserConfigurationException, SAXException, UnsupportedOperationException {
 
@@ -110,6 +106,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
@@ -118,6 +115,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
    * java.lang.String, org.xml.sax.Attributes)
    */
+  @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
@@ -162,6 +160,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
    * java.lang.String)
    */
+  @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
     if (canceled) {
@@ -187,7 +186,10 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     }
 
     if (qName.equals(RawDataElementName_2_5.STORED_DATA.getElementName())) {
-      long offset = Long.parseLong(getTextOfElement());
+      // need to multiply the offsets by 2 to account for the fact that the old projects used floats
+      // but now we use doubles
+      // TODO is this still necessary? @tomas
+      long offset = Long.parseLong(getTextOfElement()) * 2;
       dataPointsOffsets.put(storedDataID, offset);
       dataPointsLengths.put(storedDataID, storedDataNumDP);
     }
@@ -232,7 +234,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
       retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
     }
 
-//    if (qName.equals(RawDataElementName_2_0.ION_MOBILITY.getElementName())) {
+//    if (qName.equals(RawDataElementName_2_5.ION_MOBILITY.getElementName())) {
 //      mobility = Double.parseDouble(getTextOfElement());
 //    }
 
@@ -296,6 +298,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }

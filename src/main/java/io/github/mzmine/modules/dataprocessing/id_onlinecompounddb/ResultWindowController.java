@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.taskcontrol.Task;
@@ -32,8 +31,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -190,7 +187,7 @@ public class ResultWindowController {
 
         RawDataFile dataFile = peak.getDataFile();
         int scanNumber = peak.getRepresentativeScanNumber();
-        SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
+        SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
                 peak.getIsotopePattern(), predictedPattern);
     }
 

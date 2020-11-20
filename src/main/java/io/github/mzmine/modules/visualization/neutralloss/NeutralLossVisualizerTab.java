@@ -190,7 +190,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if(rawDataFiles.isEmpty()) {
+    if(rawDataFiles == null || rawDataFiles.isEmpty()) {
       return;
     }
 
@@ -212,7 +212,7 @@ public class NeutralLossVisualizerTab extends MZmineTab {
     dataFile = newFile;
     dataset = newDataset;
 
-    newDataset.run();
+    MZmineCore.getTaskController().addTask(newDataset, TaskPriority.HIGH);
     updateTitle();
   }
 
