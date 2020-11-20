@@ -437,7 +437,10 @@ public class ProjectOpeningTask extends AbstractTask {
 
     final FileOutputStream os = new FileOutputStream(tempFile);
 
-    copyMachine = new StreamCopy32to64();
+//    If the project was saved with 2.5 version < 3.0
+    copyMachine =
+        (rawDataFileOpenHandler instanceof RawDataFileOpenHandler_2_5) ? new StreamCopy32to64()
+            : new StreamCopy();
     copyMachine.copy(is, os);
     os.close();
 
