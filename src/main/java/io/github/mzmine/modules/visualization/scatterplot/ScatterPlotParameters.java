@@ -42,7 +42,7 @@ public class ScatterPlotParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     FeatureListsSelection fixedSelection = new FeatureListsSelection();
-    fixedSelection.setSelectionType(FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS);
+    fixedSelection.setSelectionType(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS);
     featureLists.setValue(fixedSelection);
     return ExitCode.OK;
   }

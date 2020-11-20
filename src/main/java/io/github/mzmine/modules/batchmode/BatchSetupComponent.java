@@ -210,7 +210,7 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
             if (param instanceof FeatureListsParameter) {
               final FeatureListsParameter plp = (FeatureListsParameter) param;
               final FeatureListsSelection selection = new FeatureListsSelection();
-              selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_PEAKLISTS);
+              selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
               plp.setValue(selection);
             }
           }

@@ -126,7 +126,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     final String attrValue = xmlElement.getAttribute("type");
 
     if (Strings.isNullOrEmpty(attrValue))
-      selectionType = FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS;
+      selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
     else
       selectionType = FeatureListsSelectionType.valueOf(xmlElement.getAttribute("type"));
 

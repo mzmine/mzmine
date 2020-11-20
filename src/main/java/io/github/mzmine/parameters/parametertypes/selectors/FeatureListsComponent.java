@@ -56,7 +56,7 @@ public class FeatureListsComponent extends BorderPane {
       FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
       currentValue.setSelectionType(type);
       detailsButton.setDisable((type != FeatureListsSelectionType.NAME_PATTERN)
-          && (type != FeatureListsSelectionType.SPECIFIC_PEAKLISTS));
+          && (type != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
       updateNumPeakLists();
     });
     typeCombo.getSelectionModel().selectFirst();
@@ -65,7 +65,7 @@ public class FeatureListsComponent extends BorderPane {
     detailsButton.setOnAction(e -> {
       FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
-      if (type == FeatureListsSelectionType.SPECIFIC_PEAKLISTS) {
+      if (type == FeatureListsSelectionType.SPECIFIC_FEATURELISTS) {
         final MultiChoiceParameter<FeatureList> plsParameter =
             new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
                 MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
@@ -116,7 +116,7 @@ public class FeatureListsComponent extends BorderPane {
   }
 
   private void updateNumPeakLists() {
-    if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_PEAKLISTS) {
+    if (currentValue.getSelectionType() == FeatureListsSelectionType.BATCH_LAST_FEATURELISTS) {
       numPeakListsLabel.setText("");
       numPeakListsLabel.setTooltip(null);
     } else {

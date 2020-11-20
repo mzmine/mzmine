@@ -28,7 +28,7 @@ import io.github.mzmine.util.TextUtils;
 
 public class FeatureListsSelection implements Cloneable {
 
-  private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_PEAKLISTS;
+  private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
   private FeatureList specificPeakLists[];
   private String namePattern;
   private FeatureList batchLastPeakLists[];
@@ -37,11 +37,11 @@ public class FeatureListsSelection implements Cloneable {
 
     switch (selectionType) {
 
-      case GUI_SELECTED_PEAKLISTS:
+      case GUI_SELECTED_FEATURELISTS:
         return MZmineCore.getDesktop().getSelectedPeakLists();
-      case ALL_PEAKLISTS:
+      case ALL_FEATURELISTS:
         return MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
-      case SPECIFIC_PEAKLISTS:
+      case SPECIFIC_FEATURELISTS:
         if (specificPeakLists == null)
           return new FeatureList[0];
         return specificPeakLists;
@@ -65,7 +65,7 @@ public class FeatureListsSelection implements Cloneable {
           }
         }
         return matchingPeakLists.toArray(new FeatureList[0]);
-      case BATCH_LAST_PEAKLISTS:
+      case BATCH_LAST_FEATURELISTS:
         if (batchLastPeakLists == null)
           return new FeatureList[0];
         return batchLastPeakLists;

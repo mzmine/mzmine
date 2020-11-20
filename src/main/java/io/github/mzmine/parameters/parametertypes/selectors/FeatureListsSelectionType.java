@@ -20,11 +20,11 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 public enum FeatureListsSelectionType {
 
-  GUI_SELECTED_PEAKLISTS("As selected in main window"), //
-  ALL_PEAKLISTS("All feature lists"), //
-  SPECIFIC_PEAKLISTS("Specific feature lists"), //
+  GUI_SELECTED_FEATURELISTS("As selected in main window"), //
+  ALL_FEATURELISTS("All feature lists"), //
+  SPECIFIC_FEATURELISTS("Specific feature lists"), //
   NAME_PATTERN("Feature list name pattern"), //
-  BATCH_LAST_PEAKLISTS("Those created by previous batch step");
+  BATCH_LAST_FEATURELISTS("Those created by previous batch step");
 
   private final String stringValue;
 
