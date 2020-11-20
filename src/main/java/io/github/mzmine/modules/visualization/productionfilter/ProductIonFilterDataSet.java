@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -56,7 +57,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   private List<Double> targetedMZ_List;
   private List<Double> targetedNF_List;
   private File fileName;
-  private Double basePeakPercent;
+  private Double baseFeaturePercent;
 
   private TaskStatus status = TaskStatus.WAITING;
 
@@ -70,7 +71,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
   ProductIonFilterDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Double> rtRange,
       Range<Double> mzRange, ProductIonFilterVisualizerTab visualizer, MZTolerance mzDifference,
-      List<Double> targetedMZ_List, List<Double> targetedNF_List, Double basePeakPercent,
+      List<Double> targetedMZ_List, List<Double> targetedNF_List, Double baseFeaturePercent,
       File fileName) {
 
     this.rawDataFile = rawDataFile;
@@ -90,12 +91,12 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // output filename
     this.fileName = fileName;
 
-    // Percent of base peak of which product ions must be above in order to
+    // Percent of base feature of which product ions must be above in order to
     // include in analysis
-    this.basePeakPercent = basePeakPercent / 100;
+    this.baseFeaturePercent = baseFeaturePercent / 100;
 
     // get MS/MS scans
-    scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
+    scanNumbers = rawDataFile.getScanNumbers(2, RangeUtils.toFloatRange(rtRange));
 
     totalScans = scanNumbers.length;
 
@@ -144,11 +145,11 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         continue;
       }
 
-      // topPeaks will contain indexes to mzValues in scan above a
+      // topFeatures will contain indexes to mzValues in scan above a
       // threshold defined as : 'scan
-      // basePeak Intensity' * percent of base Peak to include
-      List<Integer> topPeaksList = new ArrayList<Integer>();
-      double highestIntensity = scan.getHighestDataPoint().getIntensity() * basePeakPercent;
+      // baseFeature Intensity' * percent of base Feature to include
+      List<Integer> topFeaturesList = new ArrayList<Integer>();
+      double highestIntensity = scan.getHighestDataPoint().getIntensity() * baseFeaturePercent;
 
       for (int i = 0; i < scanDataPoints.length; i++) {
         // Cancel?
@@ -157,13 +158,13 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         }
 
         if ((scanDataPoints[i].getIntensity()) > highestIntensity) {
-          // add the peaks
-          topPeaksList.add(i);
+          // add the features
+          topFeaturesList.add(i);
         }
       }
 
-      // Transfer topPeakList over to array
-      Integer[] topPeaks = topPeaksList.toArray(new Integer[topPeaksList.size()]);
+      // Transfer topFeatureList over to array
+      Integer[] topFeatures = topFeaturesList.toArray(new Integer[topFeaturesList.size()]);
 
       // Default set to pass scan and not add to list
       boolean pass = false;
@@ -182,18 +183,18 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         boolean[] booleanValuesA = new boolean[targetedMZ_List.size()];
         boolean[] booleanValuesB = new boolean[targetedNF_List.size()];
 
-        // scan through each m/z within scan m/z peaks
-        for (int h = 0; h < topPeaks.length; h++) {
+        // scan through each m/z within scan m/z features
+        for (int h = 0; h < topFeatures.length; h++) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {
             return;
           }
 
-          int peakIndex = topPeaks[h];
-          if (peakIndex < 0) {
+          int featureIndex = topFeatures[h];
+          if (featureIndex < 0) {
             break;
           }
-          double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[peakIndex].getMZ();
+          double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[featureIndex].getMZ();
 
           // scan for all m/z values if more than one, set pass to
           // true if all m/z values are found
@@ -204,7 +205,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
             }
 
             if (mzDifference.getToleranceRange(targetedMZ_List.get(j))
-                .contains(scanDataPoints[peakIndex].getMZ())) {
+                .contains(scanDataPoints[featureIndex].getMZ())) {
               booleanValuesA[j] = true;
             }
           }
@@ -242,8 +243,8 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // if found in scan
       } else if (targetedMZ_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (int peakIndex : topPeaks) {
-          if (peakIndex < 0) {
+        for (int featureIndex : topFeatures) {
+          if (featureIndex < 0) {
             break;
           }
           for (int j = 0; j < targetedMZ_List.size(); j++) {
@@ -253,7 +254,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
             }
 
             if (mzDifference.getToleranceRange(targetedMZ_List.get(j))
-                .contains(scanDataPoints[peakIndex].getMZ())) {
+                .contains(scanDataPoints[featureIndex].getMZ())) {
               booleanValues[j] = true;
             }
           }
@@ -266,17 +267,17 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
         // searched for
       } else if (targetedNF_List.get(0) != 0) {
         boolean[] booleanValues = new boolean[targetedMZ_List.size()];
-        for (Integer topPeak : topPeaks) {
+        for (Integer topFeature : topFeatures) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {
             return;
           }
 
-          int peakIndex = topPeak;
-          if (peakIndex < 0) {
+          int featureIndex = topFeature;
+          if (featureIndex < 0) {
             break;
           }
-          double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[peakIndex].getMZ();
+          double neutralLoss = scan.getPrecursorMZ() - scanDataPoints[featureIndex].getMZ();
           for (int j = 0; j < targetedNF_List.size(); j++) {
             // Cancel?
             if (status == TaskStatus.CANCELED) {
@@ -303,21 +304,21 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       if (pass) {
 
         // Add all data points to visual plot and output file from scan
-        for (Integer topPeak : topPeaks) {
+        for (Integer topFeature : topFeatures) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {
             return;
           }
 
-          int peakIndex = topPeak;
+          int featureIndex = topFeature;
 
-          // if we have a very few peaks, the array may not be full
-          if (peakIndex < 0) {
+          // if we have a very few features, the array may not be full
+          if (featureIndex < 0) {
             break;
           }
 
           ProductIonFilterDataPoint newPoint =
-              new ProductIonFilterDataPoint(scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
+              new ProductIonFilterDataPoint(scanDataPoints[featureIndex].getMZ(), scan.getScanNumber(),
                   scan.getPrecursorMZ(), scan.getPrecursorCharge(), scan.getRetentionTime());
 
           dataSeries.get(0).add(newPoint);
@@ -325,7 +326,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
           // Grab product ion, precursor ion, and retention time for
           // sending to output file
           String temp = scan.getPrecursorMZ() + ","
-              + scanDataPoints[peakIndex].getMZ() + ","
+              + scanDataPoints[featureIndex].getMZ() + ","
               + scan.getRetentionTime();
           // add to output file
           dataListVisual.add(temp);

@@ -20,15 +20,13 @@ package io.github.mzmine.modules.visualization.productionfilter;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.WindowsMenu;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +40,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javax.annotation.Nonnull;
 
 /**
@@ -64,7 +61,7 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
   private List<Double> targetedMZ_List;
   private List<Double> targetedNF_List;
   private File fileName;
-  private double basePeakPercent;
+  private double baseFeaturePercent;
   private Range<Double> rtRange;
   private Range<Double> mzRange;
   private Object xAxisType;
@@ -92,12 +89,12 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
 
     fileName = parameters.getParameter(ProductIonFilterParameters.fileName).getValue();
 
-    basePeakPercent =
-        parameters.getParameter(ProductIonFilterParameters.basePeakPercent).getValue();
+    baseFeaturePercent =
+        parameters.getParameter(ProductIonFilterParameters.baseFeaturePercent).getValue();
 
     // Set window components
     dataset = new ProductIonFilterDataSet(dataFile, xAxisType, rtRange, mzRange, this, mzDifference,
-        targetedMZ_List, targetedNF_List, basePeakPercent, fileName);
+        targetedMZ_List, targetedNF_List, baseFeaturePercent, fileName);
 
     productIonFilterPlot = new ProductIonFilterPlot(this);
     productIonFilterPlot.setAxisTypes(xAxisType);
@@ -182,13 +179,13 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getFeatureLists() {
+  public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
   @Nonnull
   @Override
-  public Collection<? extends ModularFeatureList> getAlignedFeatureLists() {
+  public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
   }
 
@@ -210,7 +207,7 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
 
     // add new dataset
     ProductIonFilterDataSet newDataset = new ProductIonFilterDataSet(newFile, xAxisType, rtRange, mzRange, this, mzDifference,
-        targetedMZ_List, targetedNF_List, basePeakPercent, fileName);
+        targetedMZ_List, targetedNF_List, baseFeaturePercent, fileName);
     productIonFilterPlot.addProductionFilterDataSet(newDataset);
 
     dataFile = newFile;
@@ -221,13 +218,13 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends ModularFeatureList> featureLists) {
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends ModularFeatureList> featurelists) {
+      Collection<? extends FeatureList> featurelists) {
 
   }
 }
