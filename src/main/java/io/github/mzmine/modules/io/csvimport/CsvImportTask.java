@@ -21,15 +21,15 @@ package io.github.mzmine.modules.io.csvimport;
 import com.google.common.collect.Range;
 import com.opencsv.CSVReader;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -41,7 +41,7 @@ public class CsvImportTask extends AbstractTask {
   private final MZmineProject project;
   private RawDataFile rawDataFile;
   private final File fileName;
-  private double percent=0.0;
+  private double percent = 0.0;
 
   CsvImportTask(MZmineProject project, ParameterSet parameters){
     this.project = project;
@@ -68,7 +68,7 @@ public class CsvImportTask extends AbstractTask {
     try{
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      PeakList newPeakList = new SimplePeakList( fileName.getName(), rawDataFile);
+      FeatureList newFeatureList = new ModularFeatureList( fileName.getName(), rawDataFile);
       String[] dataLine;
       int counter = 0;
       while((dataLine = csvReader.readNext()) != null){
@@ -78,17 +78,17 @@ public class CsvImportTask extends AbstractTask {
         if(counter++ == 0){
           continue;
         }
-        double peak_mz = 0.0, peak_rt = 0.0, peak_height = 0.0, abundance = 0.0,
-            rtMin = 0.0, rtMax = 0.0, mzMin = 0.0, mzMax = 0.0, intensity = 0.0;
-        Range<Double> finalRTRange;
+        double feature_mz = 0.0, feature_height = 0.0, abundance = 0.0, mzMin = 0.0, mzMax = 0.0;
+        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f;
+        Range<Float> finalRTRange;
         Range<Double> finalMZRange;
-        Range<Double> finalIntensityRange;
+        Range<Float> finalIntensityRange;
 
-        SimplePeakListRow newRow = new SimplePeakListRow(counter-1);
+        ModularFeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) newFeatureList, counter-1);
         for(int j=0 ; j<dataLine.length ; j++){
           switch(j){
             case 1:
-              peak_mz = Double.parseDouble(dataLine[j]);
+              feature_mz = Double.parseDouble(dataLine[j]);
               break;
             case 2:
               mzMin = Double.parseDouble(dataLine[j]);
@@ -98,17 +98,17 @@ public class CsvImportTask extends AbstractTask {
               break;
             case 4:
               //Retention times are taken in minutes
-              peak_rt = Double.parseDouble(dataLine[j])/60.0;
+              feature_rt = (float) (Double.parseDouble(dataLine[j])/60.0);
               break;
             case 5:
-              rtMin = Double.parseDouble(dataLine[j])/60.0;
+              rtMin = (float) (Double.parseDouble(dataLine[j])/60.0);
               break;
             case 6:
-              rtMax = Double.parseDouble(dataLine[j])/60.0;
+              rtMax = (float) (Double.parseDouble(dataLine[j])/60.0);
               break;
             case 9:
-              intensity = Double.parseDouble(dataLine[j]);
-              peak_height = Double.parseDouble(dataLine[j]);
+              intensity = (float) Double.parseDouble(dataLine[j]);
+              feature_height = Double.parseDouble(dataLine[j]);
               break;
           }
         }
@@ -117,14 +117,14 @@ public class CsvImportTask extends AbstractTask {
         finalIntensityRange = Range.singleton(intensity);
         int[] scanNumbers = {};
         DataPoint[] finalDataPoint = new DataPoint[1];
-        finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
+        finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
         int representativeScan = 0;
         for(int s_no : rawDataFile.getScanNumbers()){
-          if(rawDataFile.getScan(s_no).getRetentionTime() == peak_rt){
+          if(rawDataFile.getScan(s_no).getRetentionTime() == feature_rt){
             representativeScan = s_no;
             for(DataPoint dp : rawDataFile.getScan(s_no).getDataPoints()){
-              if(dp.getMZ() == peak_mz){
+              if(dp.getMZ() == feature_mz){
                 finalDataPoint[0] = dp;
                 break;
               }
@@ -135,17 +135,17 @@ public class CsvImportTask extends AbstractTask {
         int fragmentScan = -1;
         int[] allFragmentScans = new int[]{0};
 
-        Feature peak = new SimpleFeature(rawDataFile, peak_mz, peak_rt, peak_height, abundance,
+        Feature feature = new ModularFeature(rawDataFile, feature_mz, feature_rt, feature_height, abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
-        newRow.addPeak(rawDataFile,peak);
-        newPeakList.addRow(newRow);
+        newRow.addFeature(rawDataFile,feature);
+        newFeatureList.addRow(newRow);
       }
 
     if(isCanceled())
       return;
 
-    project.addPeakList(newPeakList);
+    project.addFeatureList(newFeatureList);
     }
     catch (Exception e){
       e.printStackTrace();
