@@ -22,7 +22,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import javafx.collections.FXCollections;
 
 /**
@@ -56,12 +56,12 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
   public static final String ROUND_MODE_MAX = "Maximum";
   public static final String ROUND_MODE_SUM = "Sum";
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MGF file. "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
+          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
       "mgf", FileSelectionType.SAVE);
 
@@ -78,6 +78,6 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
           FXCollections.observableArrayList(MzMode.values()), MzMode.AS_IN_FEATURE_TABLE);
 
   public AdapMgfExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
   }
 }

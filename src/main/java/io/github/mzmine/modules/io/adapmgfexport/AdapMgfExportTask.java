@@ -16,6 +16,8 @@
 
 package io.github.mzmine.modules.io.adapmgfexport;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,8 +32,6 @@ import java.util.stream.Stream;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters.MzMode;
@@ -53,7 +53,7 @@ public class AdapMgfExportTask extends AbstractTask {
   // seconds
   private NumberFormat rtsForm = new DecimalFormat("0.###");
 
-  private final PeakList[] peakLists;
+  private final FeatureList[] featureLists;
   private final File fileName;
   private final String plNamePattern = "{}";
   private final boolean fractionalMZ;
@@ -63,13 +63,13 @@ public class AdapMgfExportTask extends AbstractTask {
   private int finishedRows = 0;
 
   public AdapMgfExportTask(ParameterSet parameters) {
-    this(parameters, parameters.getParameter(AdapMgfExportParameters.PEAK_LISTS).getValue()
+    this(parameters, parameters.getParameter(AdapMgfExportParameters.FEATURE_LISTS).getValue()
         .getMatchingPeakLists());
   }
 
-  public AdapMgfExportTask(ParameterSet parameters, PeakList[] peakLists) {
-    this.peakLists = peakLists;
-    totalRows = (int) Stream.of(peakLists).map(PeakList::getRows).count();
+  public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists) {
+    this.featureLists = featureLists;
+    totalRows = (int) Stream.of(featureLists).map(FeatureList::getRows).count();
 
     this.fileName = parameters.getParameter(AdapMgfExportParameters.FILENAME).getValue();
 
@@ -87,7 +87,7 @@ public class AdapMgfExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
   }
 
   @Override
@@ -98,13 +98,13 @@ public class AdapMgfExportTask extends AbstractTask {
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Process feature lists
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
       // Filename
       File curFile = fileName;
       if (substitute) {
         // Cleanup from illegal filename characters
-        String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+        String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
         String newFilename =
             fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
@@ -122,7 +122,7 @@ public class AdapMgfExportTask extends AbstractTask {
       }
 
       try {
-        exportPeakList(peakList, writer);
+        exportFeatureList(featureList, writer);
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
@@ -153,8 +153,8 @@ public class AdapMgfExportTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
   }
 
-  private void exportPeakList(PeakList peakList, FileWriter writer) throws IOException {
-    for (PeakListRow row : peakList.getRows()) {
+  private void exportFeatureList(FeatureList featureList, FileWriter writer) throws IOException {
+    for (FeatureListRow row : featureList.getRows()) {
       IsotopePattern ip = row.getBestIsotopePattern();
       if (ip == null)
         continue;
@@ -165,7 +165,7 @@ public class AdapMgfExportTask extends AbstractTask {
     }
   }
 
-  private void exportRow(FileWriter writer, PeakListRow row, IsotopePattern ip) throws IOException {
+  private void exportRow(FileWriter writer, FeatureListRow row, IsotopePattern ip) throws IOException {
     // data points of this cluster
     DataPoint[] dataPoints = ip.getDataPoints();
     if (!fractionalMZ)
@@ -203,7 +203,7 @@ public class AdapMgfExportTask extends AbstractTask {
     return fractionalMZ ? mzForm.format(mz) : mzNominalForm.format(mz);
   }
 
-  private double getRepresentativeMZ(PeakListRow row, DataPoint[] data) {
+  private double getRepresentativeMZ(FeatureListRow row, DataPoint[] data) {
     final double mz;
     switch (representativeMZ) {
       case AS_IN_FEATURE_TABLE:
