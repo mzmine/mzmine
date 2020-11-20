@@ -66,7 +66,7 @@ public class LearnerModule implements MZmineProcessingModule {
     /**
      * Change category: will automatically be added to the linked menu
      */
-    return MZmineModuleCategory.PEAKLISTFILTERING;
+    return MZmineModuleCategory.FEATURELISTFILTERING;
   }
 
   @Override
