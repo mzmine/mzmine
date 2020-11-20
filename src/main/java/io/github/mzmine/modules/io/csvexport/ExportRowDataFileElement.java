@@ -20,14 +20,14 @@ package io.github.mzmine.modules.io.csvexport;
 
 public enum ExportRowDataFileElement {
 
-  PEAK_STATUS("Peak status", false), PEAK_NAME("Peak name", false), PEAK_MZ("Peak m/z",
-      false), PEAK_RT("Peak RT", false), PEAK_RT_START("Peak RT start", false), PEAK_RT_END(
-          "Peak RT end", false), PEAK_DURATION("Peak duration time", false), PEAK_HEIGHT(
-              "Peak height", false), PEAK_AREA("Peak area", false), PEAK_CHARGE("Peak charge",
-                  false), PEAK_DATAPOINTS("Peak # data points", false), PEAK_FWHM("Peak FWHM",
-                      false), PEAK_TAILINGFACTOR("Peak tailing factor",
-                          false), PEAK_ASYMMETRYFACTOR("Peak asymmetry factor", false), PEAK_MZMIN(
-                              "Peak m/z min", false), PEAK_MZMAX("Peak m/z max", false);
+  FEATURE_STATUS("Feature status", false), FEATURE_NAME("Feature name", false), FEATURE_MZ("Feature m/z",
+      false), FEATURE_RT("Feature RT", false), FEATURE_RT_START("Feature RT start", false), FEATURE_RT_END(
+          "Feature RT end", false), FEATURE_DURATION("Feature duration time", false), FEATURE_HEIGHT(
+              "Feature height", false), FEATURE_AREA("Feature area", false), FEATURE_CHARGE("Feature charge",
+                  false), FEATURE_DATAPOINTS("Feature # data points", false), FEATURE_FWHM("Feature FWHM",
+                      false), FEATURE_TAILINGFACTOR("Feature tailing factor",
+                          false), FEATURE_ASYMMETRYFACTOR("Feature asymmetry factor", false), FEATURE_MZMIN(
+                              "Feature m/z min", false), FEATURE_MZMAX("Feature m/z max", false);
 
   private final String name;
   private final boolean common;
