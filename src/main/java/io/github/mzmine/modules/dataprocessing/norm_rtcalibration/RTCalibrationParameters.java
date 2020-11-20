@@ -16,6 +16,7 @@
  * USA
  */
 
+
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import io.github.mzmine.main.MZmineCore;
@@ -24,13 +25,13 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class RTCalibrationParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(2);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(2);
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
@@ -40,7 +41,7 @@ public class RTCalibrationParameters extends SimpleParameterSet {
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum standard intensity",
-      "Minimum height of a peak to be selected as normalization standard",
+      "Minimum height of a feature to be selected as normalization standard",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final BooleanParameter autoRemove =
@@ -48,7 +49,7 @@ public class RTCalibrationParameters extends SimpleParameterSet {
           "If checked, original feature list will be removed and only normalized version remains");
 
   public RTCalibrationParameters() {
-    super(new Parameter[] {peakLists, suffix, MZTolerance, RTTolerance, minHeight, autoRemove});
+    super(new Parameter[] {featureLists, suffix, MZTolerance, RTTolerance, minHeight, autoRemove});
   }
 
 }

@@ -137,6 +137,11 @@ public interface Feature {
   void setMZ(double mz);
 
   /**
+   * Sets retention time of the feature
+   */
+  void setRT(float rt);
+
+  /**
    * Sets height of the feature
    */
   void setHeight(float height);

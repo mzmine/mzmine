@@ -302,6 +302,11 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
+  public void setRT(float rt) {
+    set(RTType.class, rt);
+  }
+
+  @Override
   public void setHeight(float height) {
     set(HeightType.class, height);
   }
