@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -47,9 +50,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesComponent;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -207,10 +207,10 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
               selection.setSelectionType(RawDataFilesSelectionType.BATCH_LAST_FILES);
               rdfp.setValue(selection);
             }
-            if (param instanceof PeakListsParameter) {
-              final PeakListsParameter plp = (PeakListsParameter) param;
-              final PeakListsSelection selection = new PeakListsSelection();
-              selection.setSelectionType(PeakListsSelectionType.BATCH_LAST_PEAKLISTS);
+            if (param instanceof FeatureListsParameter) {
+              final FeatureListsParameter plp = (FeatureListsParameter) param;
+              final FeatureListsSelection selection = new FeatureListsSelection();
+              selection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_PEAKLISTS);
               plp.setValue(selection);
             }
           }

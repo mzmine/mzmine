@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -54,16 +54,16 @@ public class BatchTask extends AbstractTask {
   private final BatchQueue queue;
 
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles;
-  private List<PeakList> createdPeakLists, previousCreatedPeakLists;
+  private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists;
 
   BatchTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     totalSteps = queue.size();
     createdDataFiles = new ArrayList<>();
-    createdPeakLists = new ArrayList<>();
+    createdFeatureLists = new ArrayList<>();
     previousCreatedDataFiles = new ArrayList<>();
-    previousCreatedPeakLists = new ArrayList<>();
+    previousCreatedFeatureLists = new ArrayList<>();
   }
 
   @Override
@@ -101,15 +101,15 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<PeakList> beforePeakLists = ImmutableList.copyOf(project.getFeatureLists());
+    final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
     final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
     if (createdDataFiles.isEmpty())
       createdDataFiles = previousCreatedDataFiles;
-    if (createdPeakLists.isEmpty())
-      createdPeakLists = previousCreatedPeakLists;
+    if (createdFeatureLists.isEmpty())
+      createdFeatureLists = previousCreatedFeatureLists;
 
     // Update the RawDataFilesParameter parameters to reflect the current
     // state of the batch
@@ -129,24 +129,24 @@ public class BatchTask extends AbstractTask {
     }
 
     createdDataFiles = new ArrayList<>(project.getRawDataFiles());
-    createdPeakLists = new ArrayList<>(project.getFeatureLists());
+    createdFeatureLists = new ArrayList<>(project.getFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
-    createdPeakLists.removeAll(beforePeakLists);
+    createdFeatureLists.removeAll(beforeFeatureLists);
 
-    // Update the PeakListsParameter parameters to reflect the current
+    // Update the FeatureListsParameter parameters to reflect the current
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
-      if (p instanceof PeakListsParameter) {
-        PeakListsParameter rdp = (PeakListsParameter) p;
-        PeakList createdPls[] = createdPeakLists.toArray(new PeakList[0]);
-        final PeakListsSelection selectedPeakLists = rdp.getValue();
-        if (selectedPeakLists == null) {
+      if (p instanceof FeatureListsParameter) {
+        FeatureListsParameter rdp = (FeatureListsParameter) p;
+        FeatureList createdPls[] = createdFeatureLists.toArray(new FeatureList[0]);
+        final FeatureListsSelection selectedFeatureLists = rdp.getValue();
+        if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
               + "Missing parameter value for " + p.getName());
           return;
         }
-        selectedPeakLists.setBatchLastPeakLists(createdPls);
+        selectedFeatureLists.setBatchLastPeakLists(createdPls);
       }
     }
 
@@ -154,8 +154,8 @@ public class BatchTask extends AbstractTask {
     // "previous" lists, in case the next step does not produce any new data
     if (!createdDataFiles.isEmpty())
       previousCreatedDataFiles = createdDataFiles;
-    if (!createdPeakLists.isEmpty())
-      previousCreatedPeakLists = createdPeakLists;
+    if (!createdFeatureLists.isEmpty())
+      previousCreatedFeatureLists = createdFeatureLists;
 
     // Check if the parameter settings are valid
     ArrayList<String> messages = new ArrayList<String>();
