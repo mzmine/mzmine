@@ -24,13 +24,13 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import io.github.mzmine.util.PeakMeasurementType;
 
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureList = new FeatureListsParameter(1, 1);
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
@@ -49,11 +49,11 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
   public static final BooleanParameter autoRemove = new BooleanParameter(
       "Remove original feature list", "If checked, the original feature list will be removed");
 
-  public static final PeakSelectionParameter standardCompounds = new PeakSelectionParameter(
+  public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
       "Standard compounds", "List of peaks for choosing the normalization standards", null);
 
   public StandardCompoundNormalizerParameters() {
-    super(new Parameter[] {peakList, suffix, standardUsageType, peakMeasurementType, MZvsRTBalance,
+    super(new Parameter[] {featureList, suffix, standardUsageType, peakMeasurementType, MZvsRTBalance,
         standardCompounds, autoRemove});
   }
 
