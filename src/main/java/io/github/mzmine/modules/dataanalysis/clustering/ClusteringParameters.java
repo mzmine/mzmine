@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.clustering;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
 import java.util.Arrays;
 
 import io.github.mzmine.modules.dataanalysis.clustering.em.EMClusterer;
@@ -28,9 +31,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -38,18 +38,18 @@ import io.github.mzmine.util.PeakMeasurementType;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
+  public static final ComboParameter<PeakMeasurementType> featureMeasurementType =
+      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure features using",
           PeakMeasurementType.values());
 
   public static final RawDataFilesParameter dataFiles =
       new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
-  public static final PeakSelectionParameter rows =
-      new PeakSelectionParameter("Feature list rows", "Feature list rows to include in calculation",
-          Arrays.asList(new PeakSelection[] {new PeakSelection(null, null, null, null)}));
+  public static final FeatureSelectionParameter rows =
+      new FeatureSelectionParameter("Feature list rows", "Feature list rows to include in calculation",
+          Arrays.asList(new FeatureSelection[] {new FeatureSelection(null, null, null, null)}));
 
   private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {new EMClusterer(),
       new FarthestFirstClusterer(), new SimpleKMeansClusterer(), new HierarClusterer()};
@@ -64,7 +64,7 @@ public class ClusteringParameters extends SimpleParameterSet {
           ClusteringDataType.values());
 
   public ClusteringParameters() {
-    super(new Parameter[] {peakLists, peakMeasurementType, dataFiles, rows, clusteringAlgorithm,
+    super(new Parameter[] {featureLists, featureMeasurementType, dataFiles, rows, clusteringAlgorithm,
         typeOfData});
   }
 
