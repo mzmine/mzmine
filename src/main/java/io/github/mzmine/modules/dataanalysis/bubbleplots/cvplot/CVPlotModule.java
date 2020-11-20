@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.awt.Color;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZAnalyzerWindow;
@@ -53,10 +53,10 @@ public class CVPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] =
-        parameters.getParameter(CVParameters.peakLists).getValue().getMatchingPeakLists();
+    FeatureList featureLists[] =
+        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingPeakLists();
 
-    for (PeakList pl : peakLists) {
+    for (FeatureList pl : featureLists) {
 
       // Create dataset & paint scale
       AbstractXYZDataset dataset = new CVDataset(pl, parameters);

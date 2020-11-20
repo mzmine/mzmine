@@ -18,20 +18,20 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.PeakMeasurementType;
 
 public class LogratioParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> groupOneFiles =
       new MultiChoiceParameter<RawDataFile>("Group one", "Samples in group one", new RawDataFile[0],
@@ -47,15 +47,15 @@ public class LogratioParameters extends SimpleParameterSet {
           PeakMeasurementType.values());
 
   public LogratioParameters() {
-    super(new Parameter[] {peakLists, groupOneFiles, groupTwoFiles, measurementType});
+    super(new Parameter[] {featureLists, groupOneFiles, groupTwoFiles, measurementType});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    PeakListsSelection peakListSel = getParameter(peakLists).getValue();
-    PeakList selectedPeakLists[] = peakListSel.getMatchingPeakLists();
-    RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+    FeatureListsSelection featureListSel = getParameter(featureLists).getValue();
+    FeatureList selectedFeatureLists[] = featureListSel.getMatchingPeakLists();
+    RawDataFile plDataFiles[] = selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
 
     getParameter(groupOneFiles).setChoices(plDataFiles);
     getParameter(groupTwoFiles).setChoices(plDataFiles);

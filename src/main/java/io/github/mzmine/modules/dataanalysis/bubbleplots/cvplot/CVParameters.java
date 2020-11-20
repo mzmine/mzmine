@@ -18,19 +18,19 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.PeakMeasurementType;
 
 public class CVParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
   public static final MultiChoiceParameter<RawDataFile> dataFiles =
       new MultiChoiceParameter<RawDataFile>("Data files", "Samples for CV analysis",
@@ -42,12 +42,12 @@ public class CVParameters extends SimpleParameterSet {
           PeakMeasurementType.values());
 
   public CVParameters() {
-    super(new Parameter[] {peakLists, dataFiles, measurementType});
+    super(new Parameter[] {featureLists, dataFiles, measurementType});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    PeakList selectedPeakLists[] = getParameter(peakLists).getValue().getMatchingPeakLists();
+    FeatureList selectedPeakLists[] = getParameter(featureLists).getValue().getMatchingPeakLists();
     if (selectedPeakLists.length > 0) {
       RawDataFile plDataFiles[] =
           selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);

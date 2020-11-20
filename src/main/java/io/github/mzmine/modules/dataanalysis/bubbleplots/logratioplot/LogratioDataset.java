@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -25,9 +28,6 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 import com.google.common.primitives.Doubles;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
@@ -46,12 +46,12 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
   private double[] xCoords = new double[0];
   private double[] yCoords = new double[0];
   private double[] colorCoords = new double[0];
-  private PeakListRow[] peakListRows = new PeakListRow[0];
+  private FeatureListRow[] featureListRows = new FeatureListRow[0];
 
   private String datasetTitle;
 
-  public LogratioDataset(PeakList alignedPeakList, ParameterSet parameters) {
-    int numOfRows = alignedPeakList.getNumberOfRows();
+  public LogratioDataset(FeatureList alignedFeatureList, ParameterSet parameters) {
+    int numOfRows = alignedFeatureList.getNumberOfRows();
 
     RawDataFile groupOneFiles[] =
         parameters.getParameter(LogratioParameters.groupOneFiles).getValue();
@@ -64,9 +64,9 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
     datasetTitle = "Logratio analysis";
     datasetTitle = datasetTitle.concat(" (");
     if (measurementType == PeakMeasurementType.AREA)
-      datasetTitle = datasetTitle.concat("Logratio of average peak areas");
+      datasetTitle = datasetTitle.concat("Logratio of average feature areas");
     else
-      datasetTitle = datasetTitle.concat("Logratio of average peak heights");
+      datasetTitle = datasetTitle.concat("Logratio of average feature heights");
     datasetTitle = datasetTitle
         .concat(" in " + groupOneFiles.length + " vs. " + groupTwoFiles.length + " files");
     datasetTitle = datasetTitle.concat(")");
@@ -75,53 +75,53 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
     Vector<Double> xCoordsV = new Vector<Double>();
     Vector<Double> yCoordsV = new Vector<Double>();
     Vector<Double> colorCoordsV = new Vector<Double>();
-    Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
+    Vector<FeatureListRow> featureListRowsV = new Vector<FeatureListRow>();
 
     for (int rowIndex = 0; rowIndex < numOfRows; rowIndex++) {
 
-      PeakListRow row = alignedPeakList.getRow(rowIndex);
+      FeatureListRow row = alignedFeatureList.getRow(rowIndex);
 
-      // Collect available peak intensities for selected files
-      Vector<Double> groupOnePeakIntensities = new Vector<Double>();
+      // Collect available feature intensities for selected files
+      Vector<Double> groupOneFeatureIntensities = new Vector<Double>();
       for (int fileIndex = 0; fileIndex < groupOneFiles.length; fileIndex++) {
-        Feature p = row.getPeak(groupOneFiles[fileIndex]);
+        Feature p = row.getFeature(groupOneFiles[fileIndex]);
         if (p != null) {
           if (measurementType == PeakMeasurementType.AREA)
-            groupOnePeakIntensities.add(p.getArea());
+            groupOneFeatureIntensities.add((double) p.getArea());
           else
-            groupOnePeakIntensities.add(p.getHeight());
+            groupOneFeatureIntensities.add((double) p.getHeight());
         }
       }
-      Vector<Double> groupTwoPeakIntensities = new Vector<Double>();
+      Vector<Double> groupTwoFeatureIntensities = new Vector<Double>();
       for (int fileIndex = 0; fileIndex < groupTwoFiles.length; fileIndex++) {
-        Feature p = row.getPeak(groupTwoFiles[fileIndex]);
+        Feature p = row.getFeature(groupTwoFiles[fileIndex]);
         if (p != null) {
           if (measurementType == PeakMeasurementType.AREA)
-            groupTwoPeakIntensities.add(p.getArea());
+            groupTwoFeatureIntensities.add((double) p.getArea());
           else
-            groupTwoPeakIntensities.add(p.getHeight());
+            groupTwoFeatureIntensities.add((double) p.getHeight());
         }
       }
 
       // If there are at least one measurement from each group for this
-      // peak then calc logratio and include this peak in the plot
-      if ((groupOnePeakIntensities.size() > 0) && (groupTwoPeakIntensities.size() > 0)) {
+      // feature then calc logratio and include this feature in the plot
+      if ((groupOneFeatureIntensities.size() > 0) && (groupTwoFeatureIntensities.size() > 0)) {
 
-        double[] groupOneInts = Doubles.toArray(groupOnePeakIntensities);
+        double[] groupOneInts = Doubles.toArray(groupOneFeatureIntensities);
         double groupOneAvg = MathUtils.calcAvg(groupOneInts);
-        double[] groupTwoInts = Doubles.toArray(groupTwoPeakIntensities);
+        double[] groupTwoInts = Doubles.toArray(groupTwoFeatureIntensities);
         double groupTwoAvg = MathUtils.calcAvg(groupTwoInts);
         double logratio = Double.NaN;
         if (groupTwoAvg != 0.0)
           logratio = (double) (Math.log(groupOneAvg / groupTwoAvg) / Math.log(2.0));
 
-        Double rt = row.getAverageRT();
+        Double rt = (double) row.getAverageRT();
         Double mz = row.getAverageMZ();
 
         xCoordsV.add(rt);
         yCoordsV.add(mz);
         colorCoordsV.add(logratio);
-        peakListRowsV.add(row);
+        featureListRowsV.add(row);
 
       }
 
@@ -131,7 +131,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
     xCoords = Doubles.toArray(xCoordsV);
     yCoords = Doubles.toArray(yCoordsV);
     colorCoords = Doubles.toArray(colorCoordsV);
-    peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
+    featureListRows = featureListRowsV.toArray(new FeatureListRow[0]);
 
   }
 
@@ -180,8 +180,8 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
     return yCoords[item];
   }
 
-  public PeakListRow getPeakListRow(int item) {
-    return peakListRows[item];
+  public FeatureListRow getFeatureListRow(int item) {
+    return featureListRows[item];
   }
 
 }
