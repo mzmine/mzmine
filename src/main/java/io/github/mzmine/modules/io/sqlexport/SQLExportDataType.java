@@ -25,8 +25,8 @@ public enum SQLExportDataType {
   ID("      ID", false, true, "INT"), //
   MZ("      Average m/z", false, true, "DOUBLE"), //
   RT("      Average retention time", false, true, "DOUBLE"), //
-  HEIGHT("      Average peak height", false, true, "DOUBLE"), //
-  AREA("      Average peak area", false, true, "DOUBLE"), //
+  HEIGHT("      Average feature height", false, true, "DOUBLE"), //
+  AREA("      Average feature area", false, true, "DOUBLE"), //
   COMMENT("      Comment", false, true, "STRING"), //
 
   // Identity elements
@@ -37,15 +37,15 @@ public enum SQLExportDataType {
 
   // Data file elements
   TITLE3("Data file elements", false, false, ""), //
-  PEAKSTATUS("      Status", false, true, "STRING"), //
-  PEAKMZ("      m/z", false, true, "DOUBLE"), //
-  PEAKRT("      RT", false, true, "DOUBLE"), //
-  PEAKRT_START("      RT start", false, true, "DOUBLE"), //
-  PEAKRT_END("      RT end", false, true, "DOUBLE"), //
-  PEAKDURATION("      Duration", false, true, "DOUBLE"), //
-  PEAKHEIGHT("      Height", false, true, "DOUBLE"), //
-  PEAKAREA("      Area", false, true, "DOUBLE"), //
-  PEAKCHARGE("      Charge", false, true, "INT"), //
+  FEATURESTATUS("      Status", false, true, "STRING"), //
+  FEATUREMZ("      m/z", false, true, "DOUBLE"), //
+  FEATURERT("      RT", false, true, "DOUBLE"), //
+  FEATURERT_START("      RT start", false, true, "DOUBLE"), //
+  FEATURERT_END("      RT end", false, true, "DOUBLE"), //
+  FEATUREDURATION("      Duration", false, true, "DOUBLE"), //
+  FEATUREHEIGHT("      Height", false, true, "DOUBLE"), //
+  FEATUREAREA("      Area", false, true, "DOUBLE"), //
+  FEATURECHARGE("      Charge", false, true, "INT"), //
   DATAPOINTS("      # Data points", false, true, "INT"), //
   FWHM("      FWHM", false, true, "DOUBLE"), //
   TAILINGFACTOR("      Tailing factor", false, true, "DOUBLE"), //
