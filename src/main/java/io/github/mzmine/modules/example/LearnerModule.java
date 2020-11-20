@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.example;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,12 +48,12 @@ public class LearnerModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     // get parameters
-    PeakList peakLists[] =
-        parameters.getParameter(LearnerParameters.peakLists).getValue().getMatchingPeakLists();
+    FeatureList featureLists[] =
+        parameters.getParameter(LearnerParameters.featureLists).getValue().getMatchingPeakLists();
 
-    // create and start one task for each peaklist
-    for (final PeakList peakList : peakLists) {
-      Task newTask = new PeakListRowLearnerTask(project, peakList, parameters);
+    // create and start one task for each feature list
+    for (final FeatureList featureList : featureLists) {
+      Task newTask = new FeatureListRowLearnerTask(project, featureList, parameters);
       tasks.add(newTask);
     }
 
