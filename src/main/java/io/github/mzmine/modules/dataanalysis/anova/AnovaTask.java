@@ -16,6 +16,8 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -46,11 +48,11 @@ public class AnovaTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedPercentage = 0.0;
 
-  private final PeakListRow[] peakListRows;
+  private final FeatureListRow[] featureListRows;
   private final UserParameter userParameter;
 
-  public AnovaTask(PeakListRow[] peakListRows, ParameterSet parameters) {
-    this.peakListRows = peakListRows;
+  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters) {
+    this.featureListRows = featureListRows;
     this.userParameter = parameters.getParameter(AnovaParameters.selectionData).getValue();
   }
 
@@ -96,16 +98,16 @@ public class AnovaTask extends AbstractTask {
 
   private void calculateSignificance() throws IllegalStateException {
 
-    if (peakListRows.length == 0) {
+    if (featureListRows.length == 0) {
       return;
     }
 
     List<Set<RawDataFile>> groups = getGroups(userParameter);
 
     finishedPercentage = 0.0;
-    final double finishedStep = 1.0 / peakListRows.length;
+    final double finishedStep = 1.0 / featureListRows.length;
 
-    for (PeakListRow row : peakListRows) {
+    for (FeatureListRow row : featureListRows) {
 
       if (isCanceled()) {
         break;
@@ -117,7 +119,7 @@ public class AnovaTask extends AbstractTask {
       for (int i = 0; i < groups.size(); ++i) {
         Set<RawDataFile> groupFiles = groups.get(i);
         intensityGroups[i] =
-            Arrays.stream(row.getPeaks()).filter(peak -> groupFiles.contains(peak.getDataFile()))
+            row.getFeatures().stream().filter(feature -> groupFiles.contains(feature.getRawDataFile()))
                 .mapToDouble(Feature::getHeight).toArray();
       }
 
@@ -140,7 +142,7 @@ public class AnovaTask extends AbstractTask {
 
     // Find the parameter value of each data file
     Map<RawDataFile, Object> paramMap = new HashMap<>();
-    for (PeakListRow row : peakListRows) {
+    for (FeatureListRow row : featureListRows) {
       for (RawDataFile file : row.getRawDataFiles()) {
         Object paramValue = project.getParameterValue(factor, file);
         if (paramValue != null) {

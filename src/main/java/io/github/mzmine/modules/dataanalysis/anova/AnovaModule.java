@@ -16,11 +16,11 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,11 +48,11 @@ public class AnovaModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList[] peakLists =
-        parameters.getParameter(AnovaParameters.peakLists).getValue().getMatchingPeakLists();
+    FeatureList[] featureLists =
+        parameters.getParameter(AnovaParameters.featureLists).getValue().getMatchingPeakLists();
 
-    for (PeakList peakList : peakLists) {
-      tasks.add(new AnovaTask(peakList.getRows().toArray(PeakListRow[]::new), parameters));
+    for (FeatureList featureList : featureLists) {
+      tasks.add(new AnovaTask(featureList.getRows().toArray(FeatureListRow[]::new), parameters));
     }
 
     return ExitCode.OK;
