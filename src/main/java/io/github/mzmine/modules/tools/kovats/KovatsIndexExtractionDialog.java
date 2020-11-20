@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.tools.kovats;
 
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -72,7 +71,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
-import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -536,7 +534,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       // create dataset
       TICSumDataSet data =
-          new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null, TICPlotType.BASEPEAK);
+          new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null, TICPlotType.BASEFEATURE);
       chart = new TICPlot();
       chart.addDataSet(data);
       if (domainZoom != null)

@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.chromatogram;
 
 public enum TICPlotType {
 
-  BASEPEAK("Base peak intensity"), TIC("Total ion current (TIC/XIC)");
+  BASEFEATURE("Base feature intensity"), TIC("Total ion current (TIC/XIC)");
 
   private String type;
 

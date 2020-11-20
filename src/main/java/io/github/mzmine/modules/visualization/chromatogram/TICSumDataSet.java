@@ -85,7 +85,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
     this(files, rangeRT, rangeMZ, window,
-        ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
+        ((window != null) ? window.getPlotType() : TICPlotType.BASEFEATURE));
   }
 
   /**
@@ -251,7 +251,7 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
           intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
               : ScanUtils.calculateTIC(scan, mzRange);
 
-        } else if (plotType == TICPlotType.BASEPEAK && basePeak != null) {
+        } else if (plotType == TICPlotType.BASEFEATURE && basePeak != null) {
 
           intensity = basePeak.getIntensity();
         }

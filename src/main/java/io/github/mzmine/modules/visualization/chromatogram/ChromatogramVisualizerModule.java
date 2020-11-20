@@ -113,7 +113,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         MZmineCore.getModuleInstance(ChromatogramVisualizerModule.class);
     final TICVisualizerParameters myParameters = (TICVisualizerParameters) MZmineCore
         .getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
-    myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE).setValue(TICPlotType.BASEPEAK);
+    myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE).setValue(TICPlotType.BASEFEATURE);
 
     if (scanSelection != null) {
       myParameters.getParameter(TICVisualizerParameters.scanSelection).setValue(scanSelection);
