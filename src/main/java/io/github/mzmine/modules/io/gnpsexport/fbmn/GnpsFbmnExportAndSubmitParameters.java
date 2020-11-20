@@ -29,7 +29,7 @@
 
 package io.github.mzmine.modules.io.gnpsexport.fbmn;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -39,7 +39,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MassListParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 
@@ -65,7 +65,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
      * @param row
      * @return
      */
-    public boolean filter(PeakListRow row) {
+    public boolean filter(FeatureListRow row) {
       switch (this) {
         case ALL:
           return true;
@@ -76,12 +76,12 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
     }
   }
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Base name of the output files (.MGF and .CSV). "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
+          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
       "mgf", FileSelectionType.SAVE);
 
@@ -110,7 +110,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           new MsMsSpectraMergeParameters(), true);
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
+    super(new Parameter[] {FEATURE_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
         OPEN_FOLDER});
   }
 
