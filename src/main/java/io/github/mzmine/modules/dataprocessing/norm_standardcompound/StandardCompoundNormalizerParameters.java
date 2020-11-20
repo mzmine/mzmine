@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
@@ -39,9 +39,9 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       new ComboParameter<StandardUsageType>("Normalization type", "Normalize intensities using ",
           StandardUsageType.values());
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using ",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> peakMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure peaks using ",
+          FeatureMeasurementType.values());
 
   public static final DoubleParameter MZvsRTBalance = new DoubleParameter("m/z vs RT balance",
       "Used in distance measuring as multiplier of m/z difference");

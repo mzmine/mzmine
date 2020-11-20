@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -212,7 +212,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     // Generate matrix of raw data (input to PCA)
     final boolean useArea = (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
-        .getValue() == PeakMeasurementType.AREA);
+        .getValue() == FeatureMeasurementType.AREA);
 
     if (selectedRows.length == 0) {
       this.status = TaskStatus.ERROR;

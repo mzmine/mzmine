@@ -36,7 +36,7 @@ import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotWindo
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
@@ -371,11 +371,11 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     // Generate matrix of raw data (input to CDA)
     boolean useArea = true;
     if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
-        .getValue() == PeakMeasurementType.AREA) {
+        .getValue() == FeatureMeasurementType.AREA) {
       useArea = true;
     }
     if (parameters.getParameter(ClusteringParameters.featureMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT) {
+        .getValue() == FeatureMeasurementType.HEIGHT) {
       useArea = false;
     }
     double[][] rawData;

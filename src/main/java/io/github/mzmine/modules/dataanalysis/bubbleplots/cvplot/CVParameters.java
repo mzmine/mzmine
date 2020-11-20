@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class CVParameters extends SimpleParameterSet {
 
@@ -36,10 +36,10 @@ public class CVParameters extends SimpleParameterSet {
       new MultiChoiceParameter<RawDataFile>("Data files", "Samples for CV analysis",
           new RawDataFile[0], null, 2);
 
-  public static final ComboParameter<PeakMeasurementType> measurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type",
+  public static final ComboParameter<FeatureMeasurementType> measurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type",
           "Determines whether peak's area or height is used in computations.",
-          PeakMeasurementType.values());
+          FeatureMeasurementType.values());
 
   public CVParameters() {
     super(new Parameter[] {featureLists, dataFiles, measurementType});

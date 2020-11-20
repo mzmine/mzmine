@@ -34,15 +34,15 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ComboParameter<PeakMeasurementType> featureMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure features using",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure features using",
+          FeatureMeasurementType.values());
 
   public static final RawDataFilesParameter dataFiles =
       new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));

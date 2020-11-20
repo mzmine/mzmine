@@ -24,7 +24,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
@@ -37,9 +37,9 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
       new ComboParameter<NormalizationType>("Normalization type", "Normalize intensities by...",
           NormalizationType.values());
 
-  public static final ComboParameter<PeakMeasurementType> peakMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure peaks using",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> peakMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure peaks using",
+          FeatureMeasurementType.values());
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove original feature list",

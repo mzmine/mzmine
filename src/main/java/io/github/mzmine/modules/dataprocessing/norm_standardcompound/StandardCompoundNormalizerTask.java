@@ -35,7 +35,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerParam
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class StandardCompoundNormalizerTask extends AbstractTask {
 
@@ -48,7 +48,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
   private String suffix;
   private StandardUsageType normalizationType;
-  private PeakMeasurementType peakMeasurementType;
+  private FeatureMeasurementType featureMeasurementType;
   private double MZvsRTBalance;
   private boolean removeOriginal;
   private FeatureListRow[] standardRows;
@@ -63,7 +63,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType =
         parameters.getParameter(StandardCompoundNormalizerParameters.standardUsageType).getValue();
-    peakMeasurementType = parameters
+    featureMeasurementType = parameters
         .getParameter(StandardCompoundNormalizerParameters.peakMeasurementType).getValue();
     MZvsRTBalance =
         parameters.getParameter(StandardCompoundNormalizerParameters.MZvsRTBalance).getValue();
@@ -167,7 +167,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
             // What to do if standard feature is not available?
             normalizationFactors[0] = 1.0;
           } else {
-            if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               normalizationFactors[0] = standardFeature.getHeight();
             } else {
               normalizationFactors[0] = standardFeature.getArea();
@@ -199,7 +199,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
               normalizationFactors[standardRowIndex] = 1.0;
               normalizationFactorWeights[standardRowIndex] = 0.0;
             } else {
-              if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+              if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
                 normalizationFactors[standardRowIndex] = standardFeature.getHeight();
               } else {
                 normalizationFactors[standardRowIndex] = standardFeature.getArea();

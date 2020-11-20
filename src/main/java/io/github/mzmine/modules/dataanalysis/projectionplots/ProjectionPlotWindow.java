@@ -24,7 +24,7 @@ import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotParameters;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
@@ -84,7 +84,7 @@ public class ProjectionPlotWindow extends Stage {
     title = title.concat(" : ");
     title = title.concat(dataset.toString());
     if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
-        .getValue() == PeakMeasurementType.HEIGHT)
+        .getValue() == FeatureMeasurementType.HEIGHT)
       title = title.concat(" (using feature heights)");
     else
       title = title.concat(" (using feature areas)");

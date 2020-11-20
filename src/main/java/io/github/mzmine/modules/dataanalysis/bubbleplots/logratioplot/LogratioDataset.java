@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
 
@@ -57,13 +57,13 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
         parameters.getParameter(LogratioParameters.groupOneFiles).getValue();
     RawDataFile groupTwoFiles[] =
         parameters.getParameter(LogratioParameters.groupTwoFiles).getValue();
-    PeakMeasurementType measurementType =
+    FeatureMeasurementType measurementType =
         parameters.getParameter(LogratioParameters.measurementType).getValue();
 
     // Generate title for the dataset
     datasetTitle = "Logratio analysis";
     datasetTitle = datasetTitle.concat(" (");
-    if (measurementType == PeakMeasurementType.AREA)
+    if (measurementType == FeatureMeasurementType.AREA)
       datasetTitle = datasetTitle.concat("Logratio of average feature areas");
     else
       datasetTitle = datasetTitle.concat("Logratio of average feature heights");
@@ -86,7 +86,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
       for (int fileIndex = 0; fileIndex < groupOneFiles.length; fileIndex++) {
         Feature p = row.getFeature(groupOneFiles[fileIndex]);
         if (p != null) {
-          if (measurementType == PeakMeasurementType.AREA)
+          if (measurementType == FeatureMeasurementType.AREA)
             groupOneFeatureIntensities.add((double) p.getArea());
           else
             groupOneFeatureIntensities.add((double) p.getHeight());
@@ -96,7 +96,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset {
       for (int fileIndex = 0; fileIndex < groupTwoFiles.length; fileIndex++) {
         Feature p = row.getFeature(groupTwoFiles[fileIndex]);
         if (p != null) {
-          if (measurementType == PeakMeasurementType.AREA)
+          if (measurementType == FeatureMeasurementType.AREA)
             groupTwoFeatureIntensities.add((double) p.getArea());
           else
             groupTwoFeatureIntensities.add((double) p.getHeight());

@@ -25,7 +25,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
@@ -36,9 +36,9 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 
   public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
-  public static final ComboParameter<PeakMeasurementType> featureMeasurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type", "Measure features using",
-          PeakMeasurementType.values());
+  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure features using",
+          FeatureMeasurementType.values());
 
   public static final Integer[] componentPossibleValues = {1, 2, 3, 4, 5};
 

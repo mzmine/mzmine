@@ -18,14 +18,14 @@
 
 package io.github.mzmine.util;
 
-public enum PeakMeasurementType {
+public enum FeatureMeasurementType {
 
-  HEIGHT("Peak height"), //
-  AREA("Peak area");
+  HEIGHT("Feature height"), //
+  AREA("Feature area");
 
   private final String name;
 
-  PeakMeasurementType(String name) {
+  FeatureMeasurementType(String name) {
     this.name = name;
   }
 

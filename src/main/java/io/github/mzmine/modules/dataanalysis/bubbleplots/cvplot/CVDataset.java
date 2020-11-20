@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
@@ -55,13 +55,13 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
     int numOfRows = alignedFeatureList.getNumberOfRows();
 
     RawDataFile selectedFiles[] = parameters.getParameter(CVParameters.dataFiles).getValue();
-    PeakMeasurementType measurementType =
+    FeatureMeasurementType measurementType =
         parameters.getParameter(CVParameters.measurementType).getValue();
 
     // Generate title for the dataset
     datasetTitle = "Correlation of variation analysis";
     datasetTitle = datasetTitle.concat(" (");
-    if (measurementType == PeakMeasurementType.AREA)
+    if (measurementType == FeatureMeasurementType.AREA)
       datasetTitle = datasetTitle.concat("CV of feature areas");
     else
       datasetTitle = datasetTitle.concat("CV of feature heights");
@@ -85,7 +85,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
       for (int fileIndex = 0; fileIndex < selectedFiles.length; fileIndex++) {
         Feature feature = row.getFeature(selectedFiles[fileIndex]);
         if (feature != null) {
-          if (measurementType == PeakMeasurementType.AREA)
+          if (measurementType == FeatureMeasurementType.AREA)
             featureIntensities.add((double) feature.getArea());
           else
             featureIntensities.add((double) feature.getHeight());

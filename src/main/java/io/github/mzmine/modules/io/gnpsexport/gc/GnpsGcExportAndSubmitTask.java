@@ -59,7 +59,7 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
 
 /**
@@ -77,7 +77,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
   private FeatureList featureList;
   private MzMode representativeMZ;
-  private PeakMeasurementType featureMeasure;
+  private FeatureMeasurementType featureMeasure;
 
   private File file;
   private boolean submit;
@@ -234,7 +234,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
     // height or area?
     ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[] {
-        featureMeasure.equals(PeakMeasurementType.AREA) ? ExportRowDataFileElement.FEATURE_AREA
+        featureMeasure.equals(FeatureMeasurementType.AREA) ? ExportRowDataFileElement.FEATURE_AREA
             : ExportRowDataFileElement.FEATURE_HEIGHT};
 
     CSVExportTask quanExport = new CSVExportTask(new FeatureList[] {featureList}, full, ",", common,

@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 class LinearNormalizerTask extends AbstractTask {
 
@@ -51,7 +51,7 @@ class LinearNormalizerTask extends AbstractTask {
 
   private String suffix;
   private NormalizationType normalizationType;
-  private PeakMeasurementType featureMeasurementType;
+  private FeatureMeasurementType featureMeasurementType;
   private boolean removeOriginal;
   private ParameterSet parameters;
 
@@ -124,7 +124,7 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               intensitySum += p.getHeight();
             } else {
               intensitySum += p.getArea();
@@ -142,7 +142,7 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               intensitySum += (p.getHeight() * p.getHeight());
             } else {
               intensitySum += (p.getArea() * p.getArea());
@@ -159,7 +159,7 @@ class LinearNormalizerTask extends AbstractTask {
         for (FeatureListRow featureListRow : originalFeatureList.getRows()) {
           Feature p = featureListRow.getFeature(file);
           if (p != null) {
-            if (featureMeasurementType == PeakMeasurementType.HEIGHT) {
+            if (featureMeasurementType == FeatureMeasurementType.HEIGHT) {
               if (maximumIntensity < p.getHeight())
                 maximumIntensity = p.getHeight();
             } else {

@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import jmprojection.Sammons;
@@ -219,7 +219,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     // Generate matrix of raw data (input to Sammon's projection)
     boolean useArea = false;
     if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
-        .getValue() == PeakMeasurementType.AREA)
+        .getValue() == FeatureMeasurementType.AREA)
       useArea = true;
 
     double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];

@@ -41,7 +41,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
@@ -55,9 +55,9 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
           "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
           MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
 
-  public static final ComboParameter<PeakMeasurementType> FEATURE_INTENSITY =
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
       new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
-          PeakMeasurementType.values(), PeakMeasurementType.AREA);
+          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
 
   public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT =
       new OptionalModuleParameter<>("Submit to GNPS GC-MS", "Directly submits a GNPS-GC job",

@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.PeakMeasurementType;
+import io.github.mzmine.util.FeatureMeasurementType;
 
 public class LogratioParameters extends SimpleParameterSet {
 
@@ -41,10 +41,10 @@ public class LogratioParameters extends SimpleParameterSet {
       new MultiChoiceParameter<RawDataFile>("Group two", "Samples in group two", new RawDataFile[0],
           null, 1);
 
-  public static final ComboParameter<PeakMeasurementType> measurementType =
-      new ComboParameter<PeakMeasurementType>("Peak measurement type",
+  public static final ComboParameter<FeatureMeasurementType> measurementType =
+      new ComboParameter<FeatureMeasurementType>("Peak measurement type",
           "Determines whether peak's area or height is used in computations.",
-          PeakMeasurementType.values());
+          FeatureMeasurementType.values());
 
   public LogratioParameters() {
     super(new Parameter[] {featureLists, groupOneFiles, groupTwoFiles, measurementType});
