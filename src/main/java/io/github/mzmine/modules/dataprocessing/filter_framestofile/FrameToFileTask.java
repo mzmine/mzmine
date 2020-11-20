@@ -15,24 +15,47 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.stream.Collectors;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleLongProperty;
 
 public class FrameToFileTask extends AbstractTask {
 
   private String description;
-  private double finishedPercentage;
   private ParameterSet parameters;
   private RawDataFile file;
   private boolean threading;
-  private int finishedFiles;
+  private LongProperty finishedFiles;
   private int numFrames;
+  private final int minFrame;
+  private int maxFrame;
 
   public FrameToFileTask(RawDataFile file, ParameterSet parameters) {
     this.file = file;
     this.parameters = parameters;
     description = "";
-    finishedPercentage = 0;
     threading = true;
     numFrames = 1;
+    minFrame = parameters.getParameter(FrameToFileParameters.minFrame).getValue();
+    maxFrame = parameters.getParameter(FrameToFileParameters.maxFrame).getValue();
+
+    if (!(file instanceof IMSRawDataFile)) {
+      throw new IllegalArgumentException("Not an IMSRawDataFile");
+    }
+
+    if(maxFrame <= 0) {
+      maxFrame = ((IMSRawDataFile) file).getNumberOfFrames();
+    }
+
+    if (minFrame > maxFrame) {
+      throw new IllegalArgumentException("minFrame > maxFrame");
+    }
+
+    numFrames = maxFrame - minFrame;
+
+    finishedFiles = new SimpleLongProperty(0L);
     setStatus(TaskStatus.WAITING);
   }
 
@@ -43,33 +66,29 @@ public class FrameToFileTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return (double) finishedFiles / numFrames;
+    return (double) finishedFiles.getValue() / numFrames;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    if (!(file instanceof IMSRawDataFile)) {
-      setStatus(TaskStatus.FINISHED);
-      return;
-    }
 
-    numFrames = ((IMSRawDataFile) file).getNumberOfFrames();
-    List<Frame> allFrames = ((IMSRawDataFile) file).getFrames();
+    List<Frame> allEligibleFrames = ((IMSRawDataFile) file).getFrames().stream()
+        .filter(frame -> frame.getFrameId() >= minFrame && frame.getFrameId() <= maxFrame).collect(
+            Collectors.toList());
     List<List<Frame>> frameLists =
-        (threading) ? Lists.partition(allFrames, 300)
-            : Lists.partition(allFrames, allFrames.size() + 1);
+        (threading) ? Lists.partition(allEligibleFrames, 300)
+            : Lists.partition(allEligibleFrames, allEligibleFrames.size() + 1);
 
     for (List<Frame> frames : frameLists) {
       SaveThread thread = new SaveThread(frames);
       MZmineCore.getTaskController().addTask(thread);
     }
-
     setStatus(TaskStatus.FINISHED);
   }
 
   private synchronized void incrementFinishedFiles() {
-    finishedFiles++;
+    finishedFiles.setValue(finishedFiles.getValue() + 1);
   }
 
   private class SaveThread extends AbstractTask {
@@ -97,16 +116,18 @@ public class FrameToFileTask extends AbstractTask {
     @Override
     public void run() {
       setStatus(TaskStatus.PROCESSING);
-      NumberFormat rtFormat = new DecimalFormat("#.000");
+      NumberFormat rtFormat = new DecimalFormat("#.0000");
       for (Frame frame : frames) {
         if (FrameToFileTask.this.isCanceled() || SaveThread.this.isCanceled()) {
           setStatus(TaskStatus.CANCELED);
           return;
         }
         try {
+          final String newFilename = (file.getName() + " - " + frame.getScanDefinition() + "Frame "
+              + frame.getFrameId() + " RT-" + rtFormat.format(frame.getRetentionTime()))
+              .replaceAll("\\.", "_");
           RawDataFileWriter newFile = MZmineCore
-              .createNewFile(file.getName() + " - " + frame.getScanDefinition() + " " + rtFormat
-                  .format(frame.getRetentionTime()));
+              .createNewFile(newFilename);
 
           for (Scan scan : frame.getMobilityScans()) {
             SimpleScan newScan = new SimpleScan(null, scan.getScanNumber(), scan.getMSLevel(),
