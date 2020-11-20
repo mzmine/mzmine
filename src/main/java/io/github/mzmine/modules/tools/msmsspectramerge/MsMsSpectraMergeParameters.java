@@ -23,9 +23,6 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -38,7 +35,7 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
 
   public MsMsSpectraMergeParameters() {
     super(new Parameter[] {MERGE_MODE, MZ_MERGE_MODE, INTENSITY_MERGE_MODE, MASS_ACCURACY,
-        COSINE_PARAMETER, PEAK_COUNT_PARAMETER, ISOLATION_WINDOW_OFFSET, ISOLATION_WINDOW_WIDTH});
+        COSINE_PARAMETER, FEATURE_COUNT_PARAMETER, ISOLATION_WINDOW_OFFSET, ISOLATION_WINDOW_WIDTH});
   }
 
   public static final PercentParameter COSINE_PARAMETER = new PercentParameter(
@@ -46,9 +43,9 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
       "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!",
       0.7d, 0d, 1d);
 
-  public static final PercentParameter PEAK_COUNT_PARAMETER =
-      new PercentParameter("Peak count threshold (%)",
-          "After merging, remove all peaks which occur in less than X % of the merged spectra.",
+  public static final PercentParameter FEATURE_COUNT_PARAMETER =
+      new PercentParameter("Feature count threshold (%)",
+          "After merging, remove all features which occur in less than X % of the merged spectra.",
           0.2d, 0d, 1d);
 
   public static final MZToleranceParameter MASS_ACCURACY = new MZToleranceParameter(
@@ -57,12 +54,12 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
 
   public static final ComboParameter<MzMergeMode> MZ_MERGE_MODE = new ComboParameter<MzMergeMode>(
       "m/z merge mode",
-      "How to merge the m/z values of peaks from different spectra with similar mass. Choose 'most intense' to pick always the m/z of the best peak - this is a very conservative and safe option. However, 'weighted average (cuttoff outliers)' will often have better results.",
+      "How to merge the m/z values of features from different spectra with similar mass. Choose 'most intense' to pick always the m/z of the best feature - this is a very conservative and safe option. However, 'weighted average (cuttoff outliers)' will often have better results.",
       MzMergeMode.values(), MzMergeMode.WEIGHTED_AVERAGE_CUTOFF_OUTLIERS);
 
   public static final ComboParameter<IntensityMergeMode> INTENSITY_MERGE_MODE =
       new ComboParameter<IntensityMergeMode>("intensity merge mode",
-          "How to merge the intensity values of peaks from different spectra with similar mass. 'sum intensities' is a convenient option that will increase the intensities of peaks that occur consistently in many fragment scans. However, this will make intensities between merged and unmerged spectra incomparable. Use 'max intensitiy' if you want to preserve intensity values.",
+          "How to merge the intensity values of features from different spectra with similar mass. 'sum intensities' is a convenient option that will increase the intensities of features that occur consistently in many fragment scans. However, this will make intensities between merged and unmerged spectra incomparable. Use 'max intensitiy' if you want to preserve intensity values.",
           IntensityMergeMode.values(), IntensityMergeMode.SUM);
 
   public static final ComboParameter<MergeMode> MERGE_MODE = new ComboParameter<MergeMode>(
