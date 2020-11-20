@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -55,12 +55,12 @@ public class RowsFilterModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    final PeakList[] peakLists =
-        parameters.getParameter(RowsFilterParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+    final FeatureList[] featureLists =
+        parameters.getParameter(RowsFilterParameters.FEATURE_LISTS).getValue().getMatchingPeakLists();
 
-    for (PeakList peakList : peakLists) {
+    for (FeatureList featureList : featureLists) {
 
-      Task newTask = new RowsFilterTask(project, peakList, parameters);
+      Task newTask = new RowsFilterTask(project, featureList, parameters);
       tasks.add(newTask);
 
     }

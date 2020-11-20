@@ -18,31 +18,31 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.RangeUtils;
 
 /**
@@ -54,8 +54,8 @@ public class RowsFilterTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(RowsFilterTask.class.getName());
   // Feature lists.
   private final MZmineProject project;
-  private final PeakList origPeakList;
-  private PeakList filteredPeakList;
+  private final FeatureList origFeatureList;
+  private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
   // Parameters.
@@ -67,14 +67,14 @@ public class RowsFilterTask extends AbstractTask {
    * @param list feature list to process.
    * @param parameterSet task parameters.
    */
-  public RowsFilterTask(final MZmineProject project, final PeakList list,
+  public RowsFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
 
     // Initialize.
     this.project = project;
     parameters = parameterSet;
-    origPeakList = list;
-    filteredPeakList = null;
+    origFeatureList = list;
+    filteredFeatureList = null;
     processedRows = 0;
     totalRows = 0;
   }
@@ -102,17 +102,17 @@ public class RowsFilterTask extends AbstractTask {
         logger.info("Filtering feature list rows");
 
         // Filter the feature list.
-        filteredPeakList = filterPeakListRows(origPeakList);
+        filteredFeatureList = filterFeatureListRows(origFeatureList);
 
         if (!isCanceled()) {
 
-          // Add new peaklist to the project
-          project.addPeakList(filteredPeakList);
+          // Add new feature list to the project
+          project.addFeatureList(filteredFeatureList);
 
-          // Remove the original peaklist if requested
+          // Remove the original feature list if requested
           if (parameters.getParameter(RowsFilterParameters.AUTO_REMOVE).getValue()) {
 
-            project.removePeakList(origPeakList);
+            project.removePeakList(origFeatureList);
           }
           setStatus(TaskStatus.FINISHED);
           logger.info("Finished feature list rows filter");
@@ -129,26 +129,26 @@ public class RowsFilterTask extends AbstractTask {
   /**
    * Filter the feature list rows.
    *
-   * @param peakList feature list to filter.
+   * @param featureList feature list to filter.
    * @return a new feature list with rows of the original feature list that pass the filtering.
    */
-  private PeakList filterPeakListRows(final PeakList peakList) {
+  private FeatureList filterFeatureListRows(final FeatureList featureList) {
 
     // Create new feature list.
 
-    final PeakList newPeakList = new SimplePeakList(
-        peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        peakList.getRawDataFiles());
+    final FeatureList newFeatureList = new ModularFeatureList(
+        featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
+        featureList.getRawDataFiles());
 
     // Copy previous applied methods.
-    for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+    for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
 
-      newPeakList.addDescriptionOfAppliedTask(method);
+      newFeatureList.addDescriptionOfAppliedTask(method);
     }
 
-    // Add task description to peakList.
-    newPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod(getTaskDescription(), parameters));
+    // Add task description to featureList.
+    newFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), parameters));
 
     // Get parameters.
     final boolean onlyIdentified =
@@ -159,8 +159,8 @@ public class RowsFilterTask extends AbstractTask {
         parameters.getParameter(RowsFilterParameters.COMMENT_TEXT).getValue();
     final String groupingParameter =
         (String) parameters.getParameter(RowsFilterParameters.GROUPSPARAMETER).getValue();
-    final boolean filterByMinPeakCount =
-        parameters.getParameter(RowsFilterParameters.MIN_PEAK_COUNT).getValue();
+    final boolean filterByMinFeatureCount =
+        parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getValue();
     final boolean filterByMinIsotopePatternSize =
         parameters.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getValue();
     final boolean filterByMzRange =
@@ -168,7 +168,7 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByRtRange =
         parameters.getParameter(RowsFilterParameters.RT_RANGE).getValue();
     final boolean filterByDuration =
-        parameters.getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
+        parameters.getParameter(RowsFilterParameters.FEATURE_DURATION).getValue();
     final boolean filterByFWHM = parameters.getParameter(RowsFilterParameters.FWHM).getValue();
     final boolean filterByCharge = parameters.getParameter(RowsFilterParameters.CHARGE).getValue();
     final boolean filterByKMD =
@@ -176,7 +176,7 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByMS2 = parameters.getParameter(RowsFilterParameters.MS2_Filter).getValue();
     final String removeRowString =
         parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
-    Double minCount = parameters.getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
+    Double minCount = parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT)
         .getEmbeddedParameter().getValue();
     final boolean renumber = parameters.getParameter(RowsFilterParameters.Reset_ID).getValue();
 
@@ -191,26 +191,26 @@ public class RowsFilterTask extends AbstractTask {
     // Keep rows that don't match any criteria. Keep by default.
     boolean filterRowCriteriaFailed = false;
 
-    // Handle < 1 values for minPeakCount
+    // Handle < 1 values for minFeatureCount
     if ((minCount == null) || (minCount < 1))
       minCount = 1.0;
     // Round value down to nearest hole number
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
+    final FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 
       filterRowCriteriaFailed = false;
 
-      final PeakListRow row = rows[processedRows];
+      final FeatureListRow row = rows[processedRows];
 
-      final int peakCount = getPeakCount(row, groupingParameter);
+      final int featureCount = getFeatureCount(row, groupingParameter);
 
-      // Check number of peaks.
-      if (filterByMinPeakCount) {
-        if (peakCount < intMinCount)
+      // Check number of features.
+      if (filterByMinFeatureCount) {
+        if (featureCount < intMinCount)
           filterRowCriteriaFailed = true;
       }
 
@@ -233,15 +233,15 @@ public class RowsFilterTask extends AbstractTask {
       // Check average RT.
       if (filterByRtRange) {
 
-        final Range<Double> rtRange = parameters.getParameter(RowsFilterParameters.RT_RANGE)
-            .getEmbeddedParameter().getValue();
+        final Range<Float> rtRange = RangeUtils.toFloatRange(parameters.getParameter(RowsFilterParameters.RT_RANGE)
+            .getEmbeddedParameter().getValue());
 
         if (!rtRange.contains(row.getAverageRT()))
           filterRowCriteriaFailed = true;
 
       }
 
-      // Search peak identity text.
+      // Search feature identity text.
       if (filterByIdentityText) {
 
         if (row.getPreferredPeakIdentity() == null)
@@ -250,7 +250,7 @@ public class RowsFilterTask extends AbstractTask {
           final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
               .getEmbeddedParameter().getValue().toLowerCase().trim();
           int numFailedIdentities = 0;
-          PeakIdentity[] identities = row.getPeakIdentities();
+          PeakIdentity[] identities = row.getPeakIdentities().toArray(new PeakIdentity[0]);
           for (int index = 0; !isCanceled() && index < identities.length; index++) {
             String rowText = identities[index].getName().toLowerCase().trim();
             if (!rowText.contains(searchText))
@@ -262,7 +262,7 @@ public class RowsFilterTask extends AbstractTask {
         }
       }
 
-      // Search peak comment text.
+      // Search feature comment text.
       if (filterByCommentText) {
 
         if (row.getComment() == null)
@@ -280,8 +280,8 @@ public class RowsFilterTask extends AbstractTask {
       // Calculate average duration and isotope pattern count.
       int maxIsotopePatternSizeOnRow = 1;
       double avgDuration = 0.0;
-      final Feature[] peaks = row.getPeaks();
-      for (final Feature p : peaks) {
+      final Feature[] features = row.getFeatures().toArray(new Feature[0]);
+      for (final Feature p : features) {
 
         final IsotopePattern pattern = p.getIsotopePattern();
         if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
@@ -303,11 +303,11 @@ public class RowsFilterTask extends AbstractTask {
       }
 
       // Check average duration.
-      avgDuration /= peakCount;
+      avgDuration /= featureCount;
       if (filterByDuration) {
 
         final Range<Double> durationRange = parameters
-            .getParameter(RowsFilterParameters.PEAK_DURATION).getEmbeddedParameter().getValue();
+            .getParameter(RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter().getValue();
         if (!durationRange.contains(avgDuration))
           filterRowCriteriaFailed = true;
 
@@ -316,10 +316,10 @@ public class RowsFilterTask extends AbstractTask {
       // Filter by FWHM range
       if (filterByFWHM) {
 
-        final Range<Double> FWHMRange =
-            parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue();
-        // If any of the peaks fail the FWHM criteria,
-        Double FWHM_value = row.getBestPeak().getFWHM();
+        final Range<Float> FWHMRange =
+            RangeUtils.toFloatRange(parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
+        // If any of the features fail the FWHM criteria,
+        Float FWHM_value = row.getBestFeature().getFWHM();
 
         if (FWHM_value != null && !FWHMRange.contains(FWHM_value))
           filterRowCriteriaFailed = true;
@@ -330,7 +330,7 @@ public class RowsFilterTask extends AbstractTask {
 
         final Range<Integer> chargeRange =
             parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter().getValue();
-        int charge = row.getBestPeak().getCharge();
+        int charge = row.getBestFeature().getCharge();
         if (charge == 0 || !chargeRange.contains(charge))
           filterRowCriteriaFailed = true;
       }
@@ -359,7 +359,7 @@ public class RowsFilterTask extends AbstractTask {
             .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
 
         // get m/z
-        Double valueMZ = row.getBestPeak().getMZ();
+        Double valueMZ = row.getBestFeature().getMZ();
 
         // calc exact mass of Kendrick mass base
         double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
@@ -398,16 +398,16 @@ public class RowsFilterTask extends AbstractTask {
 
       // Check ms2 filter .
       if (filterByMS2) {
-        // iterates the peaks
+        // iterates the features
         int failCounts = 0;
-        for (int i = 0; i < peakCount; i++) {
-          if (row.getPeaks()[i].getMostIntenseFragmentScanNumber() < 1) {
+        for (int i = 0; i < featureCount; i++) {
+          if (row.getFeatures().get(i).getMostIntenseFragmentScanNumber() < 1) {
             failCounts++;
             // filterRowCriteriaFailed = true;
             // break;
           }
         }
-        if (failCounts == peakCount) {
+        if (failCounts == featureCount) {
           filterRowCriteriaFailed = true;
         }
       }
@@ -415,27 +415,27 @@ public class RowsFilterTask extends AbstractTask {
       if (!filterRowCriteriaFailed && !removeRow) {
         // Only add the row if none of the criteria have failed.
         rowsCount++;
-        PeakListRow resetRow = copyPeakRow(row);
+        FeatureListRow resetRow = copyFeatureRow(row);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
-        newPeakList.addRow(resetRow);
+        newFeatureList.addRow(resetRow);
       }
 
       if (filterRowCriteriaFailed && removeRow) {
         // Only remove rows that match *all* of the criteria, so add
         // rows that fail any of the criteria.
         rowsCount++;
-        PeakListRow resetRow = copyPeakRow(row);
+        FeatureListRow resetRow = copyFeatureRow(row);
         if (renumber) {
           resetRow.setID(rowsCount);
         }
-        newPeakList.addRow(resetRow);
+        newFeatureList.addRow(resetRow);
       }
 
     }
 
-    return newPeakList;
+    return newFeatureList;
   }
 
   /**
@@ -444,18 +444,19 @@ public class RowsFilterTask extends AbstractTask {
    * @param row the row to copy.
    * @return the newly created copy.
    */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
+  private static FeatureListRow copyFeatureRow(final FeatureListRow row) {
 
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow(
+        (ModularFeatureList) row.getFeatureList(), row.getID());
+    FeatureUtils.copyFeatureListRowProperties(row, newRow);
 
-    // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
+    // Copy the features.
+    for (final Feature feature : row.getFeatures()) {
 
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+      final Feature newFeature = new ModularFeature(feature);
+      FeatureUtils.copyPeakProperties(feature, newFeature);
+      newRow.addFeature(feature.getRawDataFile(), newFeature);
     }
 
     // Add PeakInformation
@@ -468,7 +469,7 @@ public class RowsFilterTask extends AbstractTask {
     return newRow;
   }
 
-  private int getPeakCount(PeakListRow row, String groupingParameter) {
+  private int getFeatureCount(FeatureListRow row, String groupingParameter) {
     if (groupingParameter.contains("Filtering by ")) {
       HashMap<String, Integer> groups = new HashMap<String, Integer>();
       for (RawDataFile file : project.getDataFiles()) {
@@ -477,7 +478,7 @@ public class RowsFilterTask extends AbstractTask {
           groupingParameter = groupingParameter.replace("Filtering by ", "");
           if (groupingParameter.equals(p.getName())) {
             String parameterValue = String.valueOf(project.getParameterValue(p, file));
-            if (row.hasPeak(file)) {
+            if (row.hasFeature(file)) {
               if (groups.containsKey(parameterValue)) {
                 groups.put(parameterValue, groups.get(parameterValue) + 1);
               } else {
@@ -503,7 +504,7 @@ public class RowsFilterTask extends AbstractTask {
       return min;
 
     } else {
-      return row.getNumberOfPeaks();
+      return row.getNumberOfFeatures();
     }
   }
 }
