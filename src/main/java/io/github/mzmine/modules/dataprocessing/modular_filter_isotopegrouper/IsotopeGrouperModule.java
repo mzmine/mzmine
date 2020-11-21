@@ -57,7 +57,7 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList[] featureLists= parameters.getParameter(IsotopeGrouperParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
 
     for (final FeatureList featureList : featureLists) {
       Task newTask = new IsotopeGrouperTask(project, featureList, parameters);

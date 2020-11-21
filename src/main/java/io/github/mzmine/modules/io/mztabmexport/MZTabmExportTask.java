@@ -49,7 +49,7 @@ public class MZTabmExportTask extends AbstractTask {
   MZTabmExportTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
     this.featureLists =
-        parameters.getParameter(MZTabmExportParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(MZTabmExportParameters.featureLists).getValue().getMatchingFeatureLists();
     this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
     this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
   }

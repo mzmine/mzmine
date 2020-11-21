@@ -57,7 +57,7 @@ public class FormulaSortModule implements MZmineProcessingModule {
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
     FeatureList featureLists[] =
-        parameters.getParameter(FormulaSortParameters.FEATURE_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(FormulaSortParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new FormulaSortTask(featureList, parameters);

@@ -53,7 +53,7 @@ public class AdapMspExportTask extends AbstractTask {
 
   AdapMspExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(AdapMspExportParameters.FILENAME).getValue();
 

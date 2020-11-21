@@ -205,7 +205,7 @@ public class KendrickMassPlotAnchorPaneController {
   public void initialize(ParameterSet parameters) {
 
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
 
     this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
         .getMatchingRows(featureList);

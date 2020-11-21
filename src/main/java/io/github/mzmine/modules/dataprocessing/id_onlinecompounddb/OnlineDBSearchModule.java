@@ -56,7 +56,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     final FeatureList[] featureLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
-        .getValue().getMatchingPeakLists();
+        .getValue().getMatchingFeatureLists();
     for (final FeatureList featureList : featureLists) {
       Task newTask = new PeakListIdentificationTask(parameters, featureList);
       tasks.add(newTask);

@@ -29,11 +29,11 @@ import io.github.mzmine.util.TextUtils;
 public class FeatureListsSelection implements Cloneable {
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-  private FeatureList specificPeakLists[];
+  private FeatureList specificFeatureLists[];
   private String namePattern;
-  private FeatureList batchLastPeakLists[];
+  private FeatureList batchLastFeatureLists[];
 
-  public FeatureList[] getMatchingPeakLists() {
+  public FeatureList[] getMatchingFeatureLists() {
 
     switch (selectionType) {
 
@@ -42,34 +42,34 @@ public class FeatureListsSelection implements Cloneable {
       case ALL_FEATURELISTS:
         return MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new);
       case SPECIFIC_FEATURELISTS:
-        if (specificPeakLists == null)
+        if (specificFeatureLists == null)
           return new FeatureList[0];
-        return specificPeakLists;
+        return specificFeatureLists;
       case NAME_PATTERN:
         if (Strings.isNullOrEmpty(namePattern))
           return new FeatureList[0];
-        ArrayList<FeatureList> matchingPeakLists = new ArrayList<FeatureList>();
-        FeatureList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject()
+        ArrayList<FeatureList> matchingFeatureLists = new ArrayList<FeatureList>();
+        FeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
             .getFeatureLists().toArray(FeatureList[]::new);
 
-        plCheck: for (FeatureList pl : allPeakLists) {
+        plCheck: for (FeatureList pl : allFeatureLists) {
 
           final String plName = pl.getName();
 
           final String regex = TextUtils.createRegexFromWildcards(namePattern);
 
           if (plName.matches(regex)) {
-            if (matchingPeakLists.contains(pl))
+            if (matchingFeatureLists.contains(pl))
               continue;
-            matchingPeakLists.add(pl);
+            matchingFeatureLists.add(pl);
             continue plCheck;
           }
         }
-        return matchingPeakLists.toArray(new FeatureList[0]);
+        return matchingFeatureLists.toArray(new FeatureList[0]);
       case BATCH_LAST_FEATURELISTS:
-        if (batchLastPeakLists == null)
+        if (batchLastFeatureLists == null)
           return new FeatureList[0];
-        return batchLastPeakLists;
+        return batchLastFeatureLists;
     }
 
     throw new IllegalStateException("This code should be unreachable");
@@ -84,12 +84,12 @@ public class FeatureListsSelection implements Cloneable {
     this.selectionType = selectionType;
   }
 
-  public FeatureList[] getSpecificPeakLists() {
-    return specificPeakLists;
+  public FeatureList[] getSpecificFeatureLists() {
+    return specificFeatureLists;
   }
 
-  public void setSpecificPeakLists(FeatureList[] specificPeakLists) {
-    this.specificPeakLists = specificPeakLists;
+  public void setSpecificFeatureLists(FeatureList[] specificFeatureLists) {
+    this.specificFeatureLists = specificFeatureLists;
   }
 
   public String getNamePattern() {
@@ -100,21 +100,21 @@ public class FeatureListsSelection implements Cloneable {
     this.namePattern = namePattern;
   }
 
-  public void setBatchLastPeakLists(FeatureList[] batchLastPeakLists) {
-    this.batchLastPeakLists = batchLastPeakLists;
+  public void setBatchLastFeatureLists(FeatureList[] batchLastFeatureLists) {
+    this.batchLastFeatureLists = batchLastFeatureLists;
   }
 
   public FeatureListsSelection clone() {
     FeatureListsSelection newSelection = new FeatureListsSelection();
     newSelection.selectionType = selectionType;
-    newSelection.specificPeakLists = specificPeakLists;
+    newSelection.specificFeatureLists = specificFeatureLists;
     newSelection.namePattern = namePattern;
     return newSelection;
   }
 
   public String toString() {
     StringBuilder str = new StringBuilder();
-    FeatureList pls[] = getMatchingPeakLists();
+    FeatureList pls[] = getMatchingFeatureLists();
     for (int i = 0; i < pls.length; i++) {
       if (i > 0)
         str.append("\n");

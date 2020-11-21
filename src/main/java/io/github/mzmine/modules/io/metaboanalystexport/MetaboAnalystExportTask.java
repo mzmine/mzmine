@@ -52,7 +52,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     this.project = project;
     this.featureLists = parameters.getParameter(MetaboAnalystExportParameters.featureLists).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
 
     fileName = parameters.getParameter(MetaboAnalystExportParameters.filename).getValue();
     groupParameter =

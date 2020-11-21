@@ -54,7 +54,7 @@ public class HistogramParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     FeatureList selectedFeatureLists[] =
-        getParameter(HistogramParameters.featureList).getValue().getMatchingPeakLists();
+        getParameter(HistogramParameters.featureList).getValue().getMatchingFeatureLists();
     RawDataFile dataFiles[];
     if ((selectedFeatureLists == null) || (selectedFeatureLists.length != 1)) {
       dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();

@@ -54,7 +54,7 @@ public class LogratioPlotModule implements MZmineRunnableModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] =
-        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();
 
     for (FeatureList pl : featureLists) {
 

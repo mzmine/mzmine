@@ -198,7 +198,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
     CSVExportTask quanExport = new CSVExportTask(
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-            .getMatchingPeakLists(), //
+            .getMatchingFeatureLists(), //
         full, ",", common, rawdata, false, ";", filter);
     if (tasks != null)
       tasks.add(quanExport);

@@ -89,7 +89,7 @@ public class KendrickMassPlotTask extends AbstractTask {
 
   public KendrickMassPlotTask(ParameterSet parameters) {
     featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 

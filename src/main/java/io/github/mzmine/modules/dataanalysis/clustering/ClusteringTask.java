@@ -85,7 +85,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(ClusteringParameters.featureLists).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     this.selectedRawDataFiles = parameters.getParameter(ClusteringParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
     this.selectedRows =

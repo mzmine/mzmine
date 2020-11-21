@@ -54,7 +54,7 @@ public class LogratioParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     FeatureListsSelection featureListSel = getParameter(featureLists).getValue();
-    FeatureList selectedFeatureLists[] = featureListSel.getMatchingPeakLists();
+    FeatureList selectedFeatureLists[] = featureListSel.getMatchingFeatureLists();
     RawDataFile plDataFiles[] = selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
 
     getParameter(groupOneFiles).setChoices(plDataFiles);

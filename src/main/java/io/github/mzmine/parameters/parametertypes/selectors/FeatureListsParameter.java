@@ -70,7 +70,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     if (value == null)
       value = new FeatureListsSelection();
     value.setSelectionType(selectionType);
-    value.setSpecificPeakLists(peakLists);
+    value.setSpecificFeatureLists(peakLists);
   }
 
   public void setValue(FeatureListsSelectionType selectionType) {
@@ -103,7 +103,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     if (value == null)
       matchingPeakLists = new FeatureList[0];
     else
-      matchingPeakLists = value.getMatchingPeakLists();
+      matchingPeakLists = value.getMatchingFeatureLists();
 
     if (matchingPeakLists.length < minCount) {
       errorMessages.add("At least " + minCount + " feature lists  must be selected");
@@ -150,7 +150,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
 
     this.value = new FeatureListsSelection();
     this.value.setSelectionType(selectionType);
-    this.value.setSpecificPeakLists(specificPeakLists);
+    this.value.setSpecificFeatureLists(specificPeakLists);
     this.value.setNamePattern(namePattern);
   }
 
@@ -161,8 +161,8 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     Document parentDocument = xmlElement.getOwnerDocument();
     xmlElement.setAttribute("type", value.getSelectionType().name());
 
-    if (value.getSpecificPeakLists() != null) {
-      for (FeatureList item : value.getSpecificPeakLists()) {
+    if (value.getSpecificFeatureLists() != null) {
+      for (FeatureList item : value.getSpecificFeatureLists()) {
         Element newElement = parentDocument.createElement("specific_peak_list");
         newElement.setTextContent(item.getName());
         xmlElement.appendChild(newElement);

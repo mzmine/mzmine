@@ -90,7 +90,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   public VanKrevelenDiagramTask(ParameterSet parameters) {
     this.parameters = parameters;
     featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     zAxisLabel =
         parameters.getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue().toString();
     zAxisScaleType = parameters.getParameter(VanKrevelenDiagramParameters.zScaleType).getValue();

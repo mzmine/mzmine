@@ -70,7 +70,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
 
   GnpsFbmnExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
-        .getValue().getMatchingPeakLists();
+        .getValue().getMatchingFeatureLists();
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
 

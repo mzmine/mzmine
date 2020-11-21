@@ -56,7 +56,7 @@ public class RowsFilterModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     final FeatureList[] featureLists =
-        parameters.getParameter(RowsFilterParameters.FEATURE_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(RowsFilterParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
 

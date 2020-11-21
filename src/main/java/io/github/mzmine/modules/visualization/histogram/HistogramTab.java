@@ -48,7 +48,7 @@ public class HistogramTab extends MZmineTab {
   public HistogramTab(ParameterSet parameters) {
     super("Histogram Visualizer", true, false);
 
-    featureList = parameters.getParameter(HistogramParameters.featureList).getValue().getMatchingPeakLists()[0];
+    featureList = parameters.getParameter(HistogramParameters.featureList).getValue().getMatchingFeatureLists()[0];
 
     //this.setTitle("Histogram of " + peakList.getName());
 

@@ -63,7 +63,7 @@ class IntensityPlotDataset extends AbstractDataset
   IntensityPlotDataset(ParameterSet parameters) {
 
     FeatureList featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     this.xAxisValueSource =
         parameters.getParameter(IntensityPlotParameters.xAxisValueSource).getValue();
     this.yAxisValueSource =

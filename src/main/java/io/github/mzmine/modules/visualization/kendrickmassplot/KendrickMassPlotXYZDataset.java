@@ -48,7 +48,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
 

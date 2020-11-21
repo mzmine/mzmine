@@ -40,7 +40,7 @@ public class VanKrevelenDiagramTab extends MZmineTab {
     super("Van Krevelen Diagram", true, false);
 
     featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
 
     FXMLLoader loader =
         new FXMLLoader((getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));

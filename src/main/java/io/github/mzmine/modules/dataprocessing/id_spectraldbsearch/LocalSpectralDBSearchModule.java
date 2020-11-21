@@ -54,7 +54,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
-        .getValue().getMatchingPeakLists();
+        .getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new LocalSpectralDBSearchTask(featureList, parameters);

@@ -51,7 +51,7 @@ public class SortSpectralDBIdentitiesModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] = parameters.getParameter(SortSpectralDBIdentitiesParameters.peakLists)
-        .getValue().getMatchingPeakLists();
+        .getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new SortSpectralDBIdentitiesTask(featureList, parameters);

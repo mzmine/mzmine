@@ -49,7 +49,7 @@ public class LearnerModule implements MZmineProcessingModule {
 
     // get parameters
     FeatureList featureLists[] =
-        parameters.getParameter(LearnerParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(LearnerParameters.featureLists).getValue().getMatchingFeatureLists();
 
     // create and start one task for each feature list
     for (final FeatureList featureList : featureLists) {

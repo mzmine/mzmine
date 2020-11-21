@@ -68,7 +68,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
   public SammonsDataset(MZmineProject project, ParameterSet parameters) {
 
     this.featureList = parameters.getParameter(ProjectionPlotParameters.featureLists).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     this.parameters = parameters;
     this.xAxisDimension =
         parameters.getParameter(ProjectionPlotParameters.xAxisComponent).getValue();

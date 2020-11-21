@@ -51,7 +51,7 @@ public class HeatMapModule implements MZmineRunnableModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList selectedDataset =
-        parameters.getParameter(HeatMapParameters.featureLists).getValue().getMatchingPeakLists()[0];
+        parameters.getParameter(HeatMapParameters.featureLists).getValue().getMatchingFeatureLists()[0];
 
     HeatMapTask heatMapTask = new HeatMapTask(project, selectedDataset, parameters);
 

@@ -24,15 +24,11 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.adapmgfexport.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,7 +62,7 @@ public class AdapMgfExportTask extends AbstractTask {
 
   public AdapMgfExportTask(ParameterSet parameters) {
     this(parameters, parameters.getParameter(AdapMgfExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingPeakLists());
+        .getMatchingFeatureLists());
   }
 
   public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists) {

@@ -62,7 +62,7 @@ class MzTabExportTask extends AbstractTask {
   MzTabExportTask(MZmineProject project, ParameterSet parameters) {
     this.project = project;
     this.featureLists =
-        parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingFeatureLists();
     this.fileName = parameters.getParameter(MzTabExportParameters.filename).getValue();
     this.exportall = parameters.getParameter(MzTabExportParameters.exportall).getValue();
   }

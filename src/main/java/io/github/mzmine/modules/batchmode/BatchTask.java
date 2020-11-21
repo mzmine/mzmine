@@ -146,7 +146,7 @@ public class BatchTask extends AbstractTask {
               + "Missing parameter value for " + p.getName());
           return;
         }
-        selectedFeatureLists.setBatchLastPeakLists(createdPls);
+        selectedFeatureLists.setBatchLastFeatureLists(createdPls);
       }
     }
 

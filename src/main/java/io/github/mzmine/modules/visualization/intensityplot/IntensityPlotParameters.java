@@ -66,7 +66,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    FeatureList selectedFeatureLists[] = getParameter(featureList).getValue().getMatchingPeakLists();
+    FeatureList selectedFeatureLists[] = getParameter(featureList).getValue().getMatchingFeatureLists();
     if (selectedFeatureLists.length > 0) {
       RawDataFile plDataFiles[] =
           selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);

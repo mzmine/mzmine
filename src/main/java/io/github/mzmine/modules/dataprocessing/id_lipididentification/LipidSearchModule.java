@@ -56,7 +56,7 @@ public class LipidSearchModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] =
-        parameters.getParameter(LipidSearchParameters.peakLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(LipidSearchParameters.peakLists).getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new LipidSearchTask(parameters, featureList);

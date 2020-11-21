@@ -82,7 +82,7 @@ public class SiriusExportTask extends AbstractTask {
 
   SiriusExportTask(ParameterSet parameters) {
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
     this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();
     this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST).getValue();
     this.mergeEnabled = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getValue();

@@ -87,7 +87,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     this.representativeMZ =
         parameters.getParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
     this.featureMeasure =

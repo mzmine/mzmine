@@ -47,7 +47,7 @@ public class CVParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    FeatureList selectedPeakLists[] = getParameter(featureLists).getValue().getMatchingPeakLists();
+    FeatureList selectedPeakLists[] = getParameter(featureLists).getValue().getMatchingFeatureLists();
     if (selectedPeakLists.length > 0) {
       RawDataFile plDataFiles[] =
           selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);

@@ -50,7 +50,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] =
-        parameters.getParameter(ScatterPlotParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(ScatterPlotParameters.featureLists).getValue().getMatchingFeatureLists();
     if ((featureLists == null) || (featureLists.length != 1)) {
       MZmineCore.getDesktop().displayErrorMessage("Please select a single aligned feature list");
       return ExitCode.ERROR;

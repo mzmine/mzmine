@@ -57,7 +57,7 @@ public class CSVExportTask extends AbstractTask {
 
   public CSVExportTask(ParameterSet parameters) {
     this.featureLists =
-        parameters.getParameter(CSVExportParameters.featureLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(CSVExportParameters.featureLists).getValue().getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportParameters.filename).getValue();
     fieldSeparator = parameters.getParameter(CSVExportParameters.fieldSeparator).getValue();
     commonElements = parameters.getParameter(CSVExportParameters.exportCommonItems).getValue();

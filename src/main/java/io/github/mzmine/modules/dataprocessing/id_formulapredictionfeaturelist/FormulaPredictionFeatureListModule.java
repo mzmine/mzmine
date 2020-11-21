@@ -57,7 +57,7 @@ public class FormulaPredictionFeatureListModule implements MZmineProcessingModul
   public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
     FeatureList featureLists[] = parameters.getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
-        .getValue().getMatchingPeakLists();
+        .getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new FormulaPredictionFeatureListTask(featureList, parameters);

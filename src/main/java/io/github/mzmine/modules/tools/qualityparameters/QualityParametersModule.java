@@ -46,7 +46,7 @@ public class QualityParametersModule implements MZmineRunnableModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
     for (FeatureList featureList : parameters.getParameter(QualityParametersParameters.peakLists)
-        .getValue().getMatchingPeakLists()) {
+        .getValue().getMatchingFeatureLists()) {
       runModule(featureList, parameters);
     }
     return ExitCode.OK;

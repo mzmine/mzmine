@@ -79,7 +79,7 @@ public class JoinAlignerTask extends AbstractTask {
     this.parameters = parameters;
 
     featureLists =
-        parameters.getParameter(JoinAlignerParameters.peakLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(JoinAlignerParameters.peakLists).getValue().getMatchingFeatureLists();
 
     featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 

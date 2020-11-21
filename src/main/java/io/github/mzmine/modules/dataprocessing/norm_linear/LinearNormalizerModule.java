@@ -52,7 +52,7 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     FeatureList featureLists[] = parameters.getParameter(LinearNormalizerParameters.featureLists).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       Task newTask = new LinearNormalizerTask(project, featureList, parameters);

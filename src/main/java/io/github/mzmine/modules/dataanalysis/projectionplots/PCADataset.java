@@ -68,7 +68,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
   public PCADataset(MZmineProject project, ParameterSet parameters) {
 
     this.featureList = parameters.getParameter(ProjectionPlotParameters.featureLists).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
     this.parameters = parameters;
 
     this.xAxisPC = parameters.getParameter(ProjectionPlotParameters.xAxisComponent).getValue();

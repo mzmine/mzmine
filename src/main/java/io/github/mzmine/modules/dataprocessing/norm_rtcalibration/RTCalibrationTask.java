@@ -60,7 +60,7 @@ class RTCalibrationTask extends AbstractTask {
 
     this.project = project;
     this.originalFeatureLists = parameters.getParameter(RTCalibrationParameters.featureLists).getValue()
-        .getMatchingPeakLists();
+        .getMatchingFeatureLists();
     this.parameters = parameters;
 
     suffix = parameters.getParameter(RTCalibrationParameters.suffix).getValue();

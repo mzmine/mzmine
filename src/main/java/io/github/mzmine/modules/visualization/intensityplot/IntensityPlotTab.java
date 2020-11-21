@@ -96,7 +96,7 @@ public class IntensityPlotTab extends MZmineTab {
     //setScene(mainScene);
 
     featureList = parameters.getParameter(IntensityPlotParameters.featureList).getValue()
-        .getMatchingPeakLists()[0];
+        .getMatchingFeatureLists()[0];
 
     String title = "Intensity plot [" + featureList + "]";
     String xAxisLabel =
