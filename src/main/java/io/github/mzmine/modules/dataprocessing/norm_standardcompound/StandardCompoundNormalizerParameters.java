@@ -39,8 +39,8 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       new ComboParameter<StandardUsageType>("Normalization type", "Normalize intensities using ",
           StandardUsageType.values());
 
-  public static final ComboParameter<FeatureMeasurementType> peakMeasurementType =
-      new ComboParameter<FeatureMeasurementType>("Peak measurement type", "Measure peaks using ",
+  public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
+      new ComboParameter<FeatureMeasurementType>("Feature measurement type", "Measure features using ",
           FeatureMeasurementType.values());
 
   public static final DoubleParameter MZvsRTBalance = new DoubleParameter("m/z vs RT balance",
@@ -50,10 +50,10 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       "Remove original feature list", "If checked, the original feature list will be removed");
 
   public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
-      "Standard compounds", "List of peaks for choosing the normalization standards", null);
+      "Standard compounds", "List of features for choosing the normalization standards", null);
 
   public StandardCompoundNormalizerParameters() {
-    super(new Parameter[] {featureList, suffix, standardUsageType, peakMeasurementType, MZvsRTBalance,
+    super(new Parameter[] {featureList, suffix, standardUsageType, featureMeasurementType, MZvsRTBalance,
         standardCompounds, autoRemove});
   }
 

@@ -67,7 +67,7 @@ class LinearNormalizerTask extends AbstractTask {
     normalizationType =
         parameters.getParameter(LinearNormalizerParameters.normalizationType).getValue();
     featureMeasurementType =
-        parameters.getParameter(LinearNormalizerParameters.peakMeasurementType).getValue();
+        parameters.getParameter(LinearNormalizerParameters.featureMeasurementType).getValue();
     removeOriginal = parameters.getParameter(LinearNormalizerParameters.autoRemove).getValue();
 
   }
