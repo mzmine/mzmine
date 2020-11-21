@@ -18,7 +18,9 @@
 
 package io.github.mzmine.util.dialogs;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -32,13 +34,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 
-public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
+public class FeatureIdentitySetupDialog extends JDialog implements ActionListener {
 
   /**
    *
@@ -56,25 +56,25 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
   // Buttons
   private JButton btnOK, btnCancel;
 
-  private FeatureListRow peakListRow;
-  private PeakIdentity editIdentity;
+  private FeatureListRow featureListRow;
+  private FeatureIdentity editIdentity;
 
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
   // Desktop
   private Desktop desktop = MZmineCore.getDesktop();
 
-  public PeakIdentitySetupDialog(JFrame parent, FeatureListRow peakListRow) {
-    this(parent, peakListRow, null);
+  public FeatureIdentitySetupDialog(JFrame parent, FeatureListRow featureListRow) {
+    this(parent, featureListRow, null);
   }
 
-  public PeakIdentitySetupDialog(JFrame parent, FeatureListRow peakListRow,
-      PeakIdentity editIdentity) {
+  public FeatureIdentitySetupDialog(JFrame parent, FeatureListRow featureListRow,
+      FeatureIdentity editIdentity) {
 
     // Make dialog modal
     super(parent, true);
 
-    this.peakListRow = peakListRow;
+    this.featureListRow = featureListRow;
 
     JPanel pnlLabels, pnlFields, pnlButtons, labelsAndFields, pnlAll;
 
@@ -103,7 +103,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
     pnlFields.add(compoundID);
 
     comments = new JTextArea(5, TEXTFIELD_COLUMNS);
-    comments.setText(peakListRow.getComment());
+    comments.setText(featureListRow.getComment());
     JScrollPane scrollPane = new JScrollPane(comments);
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -118,10 +118,10 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
       this.editIdentity = editIdentity;
       String name = editIdentity.getName();
       compoundName.setText(name);
-      String formula = editIdentity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+      String formula = editIdentity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
       if (formula != null)
         compoundFormula.setText(formula);
-      String id = editIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID);
+      String id = editIdentity.getPropertyValue(FeatureIdentity.PROPERTY_ID);
       if (id != null)
         compoundID.setText(id);
 
@@ -174,12 +174,12 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
         return;
       }
 
-      SimplePeakIdentity compound = new SimplePeakIdentity(name, formula, "User defined", id, null);
+      SimpleFeatureIdentity compound = new SimpleFeatureIdentity(name, formula, "User defined", id, null);
 
       if (editIdentity != null)
-        peakListRow.removePeakIdentity(editIdentity);
-      peakListRow.addPeakIdentity(compound, true);
-      peakListRow.setComment(note);
+        featureListRow.removeFeatureIdentity(editIdentity);
+      featureListRow.addFeatureIdentity(compound, true);
+      featureListRow.setComment(note);
 
       // Notify the GUI about the change in the project
       // MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakListRow, false);

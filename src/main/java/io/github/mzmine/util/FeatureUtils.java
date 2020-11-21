@@ -19,6 +19,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.Feature;
@@ -34,7 +35,6 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -80,15 +80,15 @@ public class FeatureUtils {
       return false;
 
     // If both have preferred identity available, then compare only those
-    PeakIdentity row1PreferredIdentity = row1.getPreferredPeakIdentity();
-    PeakIdentity row2PreferredIdentity = row2.getPreferredPeakIdentity();
+    FeatureIdentity row1PreferredIdentity = row1.getPreferredFeatureIdentity();
+    FeatureIdentity row2PreferredIdentity = row2.getPreferredFeatureIdentity();
     if ((row1PreferredIdentity != null) && (row2PreferredIdentity != null)) {
       return row1PreferredIdentity.getName().equals(row2PreferredIdentity.getName());
     }
 
     // If no identities at all for both rows, then return true
-    ObservableList<PeakIdentity> row1Identities = row1.getPeakIdentities();
-    ObservableList<PeakIdentity> row2Identities = row2.getPeakIdentities();
+    ObservableList<FeatureIdentity> row1Identities = row1.getPeakIdentities();
+    ObservableList<FeatureIdentity> row2Identities = row2.getPeakIdentities();
     if ((row1Identities.isEmpty()) && (row2Identities.isEmpty()))
       return true;
 
@@ -97,9 +97,9 @@ public class FeatureUtils {
     if (row1Identities.size() != row2Identities.size())
       return false;
     boolean sameID = false;
-    for (PeakIdentity row1Identity : row1Identities) {
+    for (FeatureIdentity row1Identity : row1Identities) {
       sameID = false;
-      for (PeakIdentity row2Identity : row2Identities) {
+      for (FeatureIdentity row2Identity : row2Identities) {
         if (row1Identity.getName().equals(row2Identity.getName())) {
           sameID = true;
           break;
@@ -135,9 +135,9 @@ public class FeatureUtils {
    * Returns true if feature list row contains a compound identity matching to id
    *
    */
-  public static boolean containsIdentity(FeatureListRow row, PeakIdentity id) {
+  public static boolean containsIdentity(FeatureListRow row, FeatureIdentity id) {
 
-    for (PeakIdentity identity : row.getPeakIdentities()) {
+    for (FeatureIdentity identity : row.getPeakIdentities()) {
       if (identity.getName().equals(id.getName()))
         return true;
     }
@@ -162,14 +162,14 @@ public class FeatureUtils {
     target.setComment(targetComment);
 
     // Copy all feature identities, if these are not already present
-    for (PeakIdentity identity : source.getPeakIdentities()) {
+    for (FeatureIdentity identity : source.getPeakIdentities()) {
       if (!containsIdentity(target, identity))
-        target.addPeakIdentity(identity, false);
+        target.addFeatureIdentity(identity, false);
     }
 
 
     // Set the preferred identity
-    target.setPreferredPeakIdentity(source.getPreferredPeakIdentity());
+    target.setPreferredFeatureIdentity(source.getPreferredFeatureIdentity());
 
   }
 

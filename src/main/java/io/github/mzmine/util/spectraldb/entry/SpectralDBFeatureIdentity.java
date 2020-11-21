@@ -24,13 +24,13 @@ import java.util.Arrays;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 
-public class SpectralDBPeakIdentity extends SimplePeakIdentity {
+public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
   private final SpectralDBEntry entry;
@@ -39,7 +39,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
   private Scan queryScan;
   private String massListName;
 
-  public SpectralDBPeakIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
+  public SpectralDBFeatureIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
       SpectralSimilarity similarity, String method) {
     super(
         MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",

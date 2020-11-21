@@ -25,11 +25,11 @@ import javax.annotation.Nonnull;
 /**
  * This interface represents an identification result.
  */
-public interface PeakIdentity extends Cloneable {
+public interface FeatureIdentity extends Cloneable {
 
   /**
    * These variables define standard properties. The PROPERTY_NAME must be present in all instances
-   * of PeakIdentity. It defines the value which is returned by the toString() method.
+   * of FeatureIdentity. It defines the value which is returned by the toString() method.
    */
   String PROPERTY_NAME = "Name";
   String PROPERTY_FORMULA = "Molecular formula";

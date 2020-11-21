@@ -18,16 +18,16 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.text.MessageFormat;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 
-public class PrecursorDBPeakIdentity extends SimplePeakIdentity {
+public class PrecursorDBFeatureIdentity extends SimpleFeatureIdentity {
 
   private final SpectralDBEntry entry;
 
-  public PrecursorDBPeakIdentity(SpectralDBEntry entry, String method) {
+  public PrecursorDBFeatureIdentity(SpectralDBEntry entry, String method) {
     super(
         MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name

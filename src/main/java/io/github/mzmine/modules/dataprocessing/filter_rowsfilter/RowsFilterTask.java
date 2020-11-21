@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
@@ -36,7 +37,6 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -217,7 +217,7 @@ public class RowsFilterTask extends AbstractTask {
       // Check identities.
       if (onlyIdentified) {
 
-        if (row.getPreferredPeakIdentity() == null)
+        if (row.getPreferredFeatureIdentity() == null)
           filterRowCriteriaFailed = true;
       }
 
@@ -244,13 +244,13 @@ public class RowsFilterTask extends AbstractTask {
       // Search feature identity text.
       if (filterByIdentityText) {
 
-        if (row.getPreferredPeakIdentity() == null)
+        if (row.getPreferredFeatureIdentity() == null)
           filterRowCriteriaFailed = true;
-        if (row.getPreferredPeakIdentity() != null) {
+        if (row.getPreferredFeatureIdentity() != null) {
           final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
               .getEmbeddedParameter().getValue().toLowerCase().trim();
           int numFailedIdentities = 0;
-          PeakIdentity[] identities = row.getPeakIdentities().toArray(new PeakIdentity[0]);
+          FeatureIdentity[] identities = row.getPeakIdentities().toArray(new FeatureIdentity[0]);
           for (int index = 0; !isCanceled() && index < identities.length; index++) {
             String rowText = identities[index].getName().toLowerCase().trim();
             if (!rowText.contains(searchText))

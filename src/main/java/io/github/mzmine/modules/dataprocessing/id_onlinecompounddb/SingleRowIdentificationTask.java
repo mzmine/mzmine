@@ -24,6 +24,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.logging.Level;
@@ -31,7 +32,6 @@ import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -169,7 +169,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         if (compound == null)
           continue;
 
-        String formula = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
 
         if (formula != null) {
 

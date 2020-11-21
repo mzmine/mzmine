@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
@@ -226,8 +226,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       int ctr = 0;
       for (MolecularFormulaIdentity f : flist) {
         if (ctr < maxBestFormulasPerFeature) {
-          f.setPropertyValue(PeakIdentity.PROPERTY_METHOD, this.getClass().getName());
-          row.addPeakIdentity(f, false);
+          f.setPropertyValue(FeatureIdentity.PROPERTY_METHOD, this.getClass().getName());
+          row.addFeatureIdentity(f, false);
           ctr++;
         }
       }

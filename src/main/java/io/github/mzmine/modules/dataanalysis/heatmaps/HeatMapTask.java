@@ -423,7 +423,7 @@ public class HeatMapTask extends AbstractTask {
         if (featureList.getRow(row).getPeakIdentities() != null
             && featureList.getRow(row).getPeakIdentities().size() > 0) {
 
-          rowNames[rowIndex++] = featureList.getRow(row).getPreferredPeakIdentity().getName();
+          rowNames[rowIndex++] = featureList.getRow(row).getPreferredFeatureIdentity().getName();
         } else {
 
           rowNames[rowIndex++] = "Unknown";
@@ -598,7 +598,7 @@ public class HeatMapTask extends AbstractTask {
         if (featureList.getRow(row).getPeakIdentities() != null
             && featureList.getRow(row).getPeakIdentities().size() > 0) {
 
-          rowNames[rowIndex++] = featureList.getRow(row).getPreferredPeakIdentity().getName();
+          rowNames[rowIndex++] = featureList.getRow(row).getPreferredFeatureIdentity().getName();
         } else {
 
           rowNames[rowIndex++] = "Unknown";

@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -49,7 +50,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
 
 public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListOpenHandler {
@@ -430,8 +430,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
     // <PEAK_IDENTITY>
     if (qName.equals(PeakListElementName_2_5.PEAK_IDENTITY.getElementName())) {
-      SimplePeakIdentity identity = new SimplePeakIdentity(identityProperties);
-      buildingRow.addPeakIdentity(identity, preferred);
+      SimpleFeatureIdentity identity = new SimpleFeatureIdentity(identityProperties);
+      buildingRow.addFeatureIdentity(identity, preferred);
     }
 
     if (qName.equals(PeakListElementName_2_5.PEAK_INFORMATION.getElementName())) {

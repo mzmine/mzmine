@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.csvexport;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
@@ -258,7 +258,7 @@ public class CSVExportTask extends AbstractTask {
             break;
           case ROW_IDENTITY:
             // Identity elements
-            PeakIdentity featureId = featureListRow.getPreferredPeakIdentity();
+            FeatureIdentity featureId = featureListRow.getPreferredFeatureIdentity();
             if (featureId == null) {
               line.append(fieldSeparator);
               break;
@@ -269,8 +269,8 @@ public class CSVExportTask extends AbstractTask {
             break;
           case ROW_IDENTITY_ALL:
             // Identity elements
-            PeakIdentity[] featureIdentities = featureListRow.getPeakIdentities()
-                .toArray(new PeakIdentity[0]);
+            FeatureIdentity[] featureIdentities = featureListRow.getPeakIdentities()
+                .toArray(new FeatureIdentity[0]);
             propertyValue = "";
             for (int x = 0; x < featureIdentities.length; x++) {
               if (x > 0)
@@ -281,7 +281,7 @@ public class CSVExportTask extends AbstractTask {
             line.append(propertyValue + fieldSeparator);
             break;
           case ROW_IDENTITY_DETAILS:
-            featureId = featureListRow.getPreferredPeakIdentity();
+            featureId = featureListRow.getPreferredFeatureIdentity();
             if (featureId == null) {
               line.append(fieldSeparator);
               break;

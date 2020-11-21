@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.rawdataimport.RawDataImportModule;
 import io.github.mzmine.modules.io.rawdataimport.RawDataImportParameters;
@@ -402,9 +402,9 @@ class MzTabImportTask extends AbstractTask {
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimplePeakIdentity newIdentity =
-            new SimplePeakIdentity(description, formula, database, identifier, url);
-        newRow.addPeakIdentity(newIdentity, false);
+        SimpleFeatureIdentity newIdentity =
+            new SimpleFeatureIdentity(description, formula, database, identifier, url);
+        newRow.addFeatureIdentity(newIdentity, false);
       }
 
       // Add raw data file entries to row

@@ -18,17 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 import javafx.collections.ObservableList;
 
 public class SortSpectralDBIdentitiesTask extends AbstractTask {
@@ -116,19 +116,19 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    */
   public static void sortIdentities(FeatureListRow row, boolean filterMinSimilarity, double minScore) {
     // get all row identities
-    ObservableList<PeakIdentity> identities = row.getPeakIdentities();
+    ObservableList<FeatureIdentity> identities = row.getPeakIdentities();
     if (identities == null || identities.isEmpty())
       return;
 
-    // filter for SpectralDBPeakIdentity and write to map
-    List<SpectralDBPeakIdentity> match = new ArrayList<>();
+    // filter for SpectralDBFeatureIdentity and write to map
+    List<SpectralDBFeatureIdentity> match = new ArrayList<>();
 
-    for (PeakIdentity identity : identities) {
-      if (identity instanceof SpectralDBPeakIdentity) {
-        row.removePeakIdentity(identity);
+    for (FeatureIdentity identity : identities) {
+      if (identity instanceof SpectralDBFeatureIdentity) {
+        row.removeFeatureIdentity(identity);
         if (!filterMinSimilarity
-            || ((SpectralDBPeakIdentity) identity).getSimilarity().getScore() >= minScore)
-          match.add((SpectralDBPeakIdentity) identity);
+            || ((SpectralDBFeatureIdentity) identity).getSimilarity().getScore() >= minScore)
+          match.add((SpectralDBFeatureIdentity) identity);
       }
     }
     if (match.isEmpty())
@@ -137,10 +137,10 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     // reversed order: by similarity score
     match.sort((a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
 
-    for (SpectralDBPeakIdentity entry : match) {
-      row.addPeakIdentity(entry, false);
+    for (SpectralDBFeatureIdentity entry : match) {
+      row.addFeatureIdentity(entry, false);
     }
-    row.setPreferredPeakIdentity(match.get(0));
+    row.setPreferredFeatureIdentity(match.get(0));
   }
 
 }

@@ -121,10 +121,10 @@ public class FeatureSelection {
       return false;
 
     if (!Strings.isNullOrEmpty(name)) {
-      if ((row.getPreferredPeakIdentity() == null)
-          || (row.getPreferredPeakIdentity().getName() == null))
+      if ((row.getPreferredFeatureIdentity() == null)
+          || (row.getPreferredFeatureIdentity().getName() == null))
         return false;
-      if (!row.getPreferredPeakIdentity().getName().toLowerCase().contains(name.toLowerCase()))
+      if (!row.getPreferredFeatureIdentity().getName().toLowerCase().contains(name.toLowerCase()))
         return false;
     }
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.awt.Color;
@@ -44,7 +45,6 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
@@ -383,12 +383,12 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       boolean hasSuitableElements = false;
 
       // check for identity
-      if (featureListRow.getPreferredPeakIdentity() != null)
+      if (featureListRow.getPreferredFeatureIdentity() != null)
         hasIdentity = true;
 
       // check for formula
-      if (hasIdentity && featureListRow.getPreferredPeakIdentity()
-          .getPropertyValue(PeakIdentity.PROPERTY_FORMULA) != null) {
+      if (hasIdentity && featureListRow.getPreferredFeatureIdentity()
+          .getPropertyValue(FeatureIdentity.PROPERTY_FORMULA) != null) {
         isFormula = true;
       } else {
         featuresWithoutFormula++;
@@ -398,7 +398,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       // elements C, H, and O)
       if (isFormula) {
         String s =
-            featureListRow.getPreferredPeakIdentity().getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+            featureListRow.getPreferredFeatureIdentity().getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
         if (s.contains("C") && s.contains("H") && s.contains("O")) {
           hasSuitableElements = true;
           displayedFeatures++;

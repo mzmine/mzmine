@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.metaboanalystexport;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
@@ -27,7 +28,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -243,12 +243,12 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     String generatedName = rowId + "/" + MZmineCore.getConfiguration().getMZFormat().format(mz)
         + "mz/" + MZmineCore.getConfiguration().getRTFormat().format(rt) + "min";
-    PeakIdentity featureIdentity = row.getPreferredPeakIdentity();
+    FeatureIdentity featureIdentity = row.getPreferredFeatureIdentity();
 
     if (featureIdentity == null)
       return generatedName;
 
-    String idName = featureIdentity.getPropertyValue(PeakIdentity.PROPERTY_NAME);
+    String idName = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME);
 
     if (idName == null)
       return generatedName;

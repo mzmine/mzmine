@@ -51,8 +51,8 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   @Override
   public String generateToolTip(XYZDataset dataset, int series, int item) {
-    if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+    if (rows[item].getPreferredFeatureIdentity() != null) {
+      featureIdentity = rows[item].getPreferredFeatureIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormat.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
@@ -66,8 +66,8 @@ public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicC
 
   @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
-    if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
+    if (rows[item].getPreferredFeatureIdentity() != null) {
+      featureIdentity = rows[item].getPreferredFeatureIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormat.format(dataset.getYValue(series, item)));

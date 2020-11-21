@@ -160,16 +160,16 @@ public class AdapMspExportTask extends AbstractTask {
       if (name != null)
         writer.write("Name: " + name + newLine);
 
-      PeakIdentity identity = row.getPreferredPeakIdentity();
+      FeatureIdentity identity = row.getPreferredFeatureIdentity();
       if (identity != null) {
         // String name = identity.getName();
         // if (name != null) writer.write("Name: " + name + newLine);
 
-        String formula = identity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        String formula = identity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
         if (formula != null)
           writer.write("Formula: " + formula + newLine);
 
-        String id = identity.getPropertyValue(PeakIdentity.PROPERTY_ID);
+        String id = identity.getPropertyValue(FeatureIdentity.PROPERTY_ID);
         if (id != null)
           writer.write("Comments: " + id + newLine);
       }

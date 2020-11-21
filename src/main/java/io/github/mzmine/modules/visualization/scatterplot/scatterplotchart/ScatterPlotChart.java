@@ -38,7 +38,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
@@ -238,11 +238,11 @@ public class ScatterPlotChart extends EChartViewer {
 
       // Label best peak with preferred identity.
       final Feature bestPeak = selectedRow.getBestFeature();
-      final PeakIdentity peakIdentity = selectedRow.getPreferredPeakIdentity();
+      final FeatureIdentity featureIdentity = selectedRow.getPreferredFeatureIdentity();
       final Map<Feature, String> labelMap = new HashMap<Feature, String>(1);
-      if (bestPeak != null && peakIdentity != null) {
+      if (bestPeak != null && featureIdentity != null) {
 
-        labelMap.put(bestPeak, peakIdentity.getName());
+        labelMap.put(bestPeak, featureIdentity.getName());
       }
 
       ScanSelection scanSelection = new ScanSelection(rtRange, 1);

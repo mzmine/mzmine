@@ -20,9 +20,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -208,7 +207,7 @@ public class LipidSearchTask extends AbstractTask {
         // Calc rel mass deviation;
         double relMassDev =
             ((lipidIonMass - rows[rowIndex].getAverageMZ()) / lipidIonMass) * 1000000;
-        rows[rowIndex].addPeakIdentity(lipid, false);
+        rows[rowIndex].addFeatureIdentity(lipid, false);
         rows[rowIndex].setComment("Ionization: " + ionizationType.getAdductName() + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm"); // Format relativ mass
                                                                        // deviation
@@ -256,7 +255,7 @@ public class LipidSearchTask extends AbstractTask {
               Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[i].getMZ());
               String annotatedNegativeFragment =
                   msmsLipidTools.checkForNegativeClassSpecificFragment(mzTolRangeMSMS,
-                      row.getPreferredPeakIdentity(), lipidIonMass, fragments);
+                      row.getPreferredFeatureIdentity(), lipidIonMass, fragments);
               if (annotatedNegativeFragment.equals("") == false
                   && row.getComment().contains(annotatedNegativeFragment) == false) {
                 listOfAnnotatedNegativeFragments.add(annotatedNegativeFragment);
@@ -268,7 +267,7 @@ public class LipidSearchTask extends AbstractTask {
               // predict lipid fatty acid composition if possible
               ArrayList<String> listOfPossibleFattyAcidCompositions =
                   msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedNegativeFragments,
-                      row.getPreferredPeakIdentity(),
+                      row.getPreferredFeatureIdentity(),
                       lipid.getLipidClass().getNumberOfAcylChains());
               for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
                 // Add possible composition to comment
@@ -317,7 +316,7 @@ public class LipidSearchTask extends AbstractTask {
               Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[i].getMZ());
               String annotatedPositiveFragment =
                   msmsLipidTools.checkForPositiveClassSpecificFragment(mzTolRangeMSMS,
-                      row.getPreferredPeakIdentity(), lipidIonMass, fragments);
+                      row.getPreferredFeatureIdentity(), lipidIonMass, fragments);
               if (annotatedPositiveFragment.equals("") == false
                   && row.getComment().contains(annotatedPositiveFragment) == false) {
                 listOfAnnotatedPositiveFragments.add(annotatedPositiveFragment);
@@ -327,7 +326,7 @@ public class LipidSearchTask extends AbstractTask {
             // predict lipid fatty acid composition if possible
             ArrayList<String> listOfPossibleFattyAcidCompositions =
                 msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedPositiveFragments,
-                    row.getPreferredPeakIdentity(), lipid.getLipidClass().getNumberOfAcylChains());
+                    row.getPreferredFeatureIdentity(), lipid.getLipidClass().getNumberOfAcylChains());
             for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
               // Add possible composition to comment
               if (row.getComment().equals(null)) {
@@ -372,7 +371,7 @@ public class LipidSearchTask extends AbstractTask {
         double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - rows.getAverageMZ())
             / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
         // Add row identity
-        rows.addPeakIdentity(new SimplePeakIdentity(lipid + " " + lipidModification[j]), false);
+        rows.addFeatureIdentity(new SimpleFeatureIdentity(lipid + " " + lipidModification[j]), false);
         rows.setComment("Ionization: " + ionizationType.getAdductName() + " " + lipidModification[j]
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "

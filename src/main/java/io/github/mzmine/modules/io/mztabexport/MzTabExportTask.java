@@ -28,7 +28,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -203,16 +203,16 @@ class MzTabExportTask extends AbstractTask {
             return;
           }
 
-          PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
-          if (exportall || peakIdentity != null) {
+          FeatureIdentity featureIdentity = peakListRow.getPreferredFeatureIdentity();
+          if (exportall || featureIdentity != null) {
             SmallMolecule sm = new SmallMolecule(factory, mtd);
-            if (peakIdentity != null) {
+            if (featureIdentity != null) {
               // Identity information
-              String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
-              String database = peakIdentity.getPropertyValue("Identification method");
-              String formula = peakIdentity.getPropertyValue("Molecular formula");
-              String description = escapeString(peakIdentity.getPropertyValue("Name"));
-              String url = peakIdentity.getPropertyValue("URL");
+              String identifier = escapeString(featureIdentity.getPropertyValue("ID"));
+              String database = featureIdentity.getPropertyValue("Identification method");
+              String formula = featureIdentity.getPropertyValue("Molecular formula");
+              String description = escapeString(featureIdentity.getPropertyValue("Name"));
+              String url = featureIdentity.getPropertyValue("URL");
 
               if (identifier != null) {
                 sm.setIdentifier(identifier);

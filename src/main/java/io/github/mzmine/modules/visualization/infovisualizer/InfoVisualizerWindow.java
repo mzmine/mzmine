@@ -180,7 +180,7 @@ class InfoVisualizerWindow extends Stage {
     mzRange = peakList.getRowsMZRange();
     rtRange = peakList.getRowsRTRange();
     for (FeatureListRow row : rows) {
-      if (row.getPreferredPeakIdentity() != null)
+      if (row.getPreferredFeatureIdentity() != null)
         numOfIdentities++;
     }
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
@@ -46,7 +47,6 @@ import org.xml.sax.helpers.AttributesImpl;
 import com.Ostermiller.util.Base64;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 
 public class PeakListSaveHandler {
@@ -191,8 +191,8 @@ public class PeakListSaveHandler {
       throws SAXException, IOException {
 
     // <PEAK_IDENTITY>
-    PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
-    ObservableList<PeakIdentity> identities = row.getPeakIdentities();
+    FeatureIdentity preferredIdentity = row.getPreferredFeatureIdentity();
+    ObservableList<FeatureIdentity> identities = row.getPeakIdentities();
     AttributesImpl atts = new AttributesImpl();
 
     for (int i = 0; i < identities.size(); i++) {
@@ -263,7 +263,7 @@ public class PeakListSaveHandler {
    * @param identity
    * @param element
    */
-  private void fillIdentityElement(PeakIdentity identity, TransformerHandler hd)
+  private void fillIdentityElement(FeatureIdentity identity, TransformerHandler hd)
       throws SAXException {
 
     AttributesImpl atts = new AttributesImpl();

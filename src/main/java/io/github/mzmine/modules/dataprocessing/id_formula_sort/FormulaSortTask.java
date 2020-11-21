@@ -95,12 +95,12 @@ public class FormulaSortTask extends AbstractTask {
       sort(formulas);
       // replace
       formulas.forEach(f -> {
-        row.removePeakIdentity(f);
+        row.removeFeatureIdentity(f);
       });
       formulas.forEach(f -> {
-        row.addPeakIdentity(f, false);
+        row.addFeatureIdentity(f, false);
       });
-      row.setPreferredPeakIdentity(formulas.get(0));
+      row.setPreferredFeatureIdentity(formulas.get(0));
 
       finishedRows++;
     }

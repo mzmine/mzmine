@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
@@ -154,8 +154,8 @@ public class ResultWindowController {
             return;
         }
 
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
-        peakListRow.addPeakIdentity(newIdentity, false);
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(formula.getFormulaAsString());
+        peakListRow.addFeatureIdentity(newIdentity, false);
 
         dispose();
     }

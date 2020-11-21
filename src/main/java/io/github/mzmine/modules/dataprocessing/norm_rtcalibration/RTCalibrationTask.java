@@ -31,7 +31,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -251,9 +251,9 @@ class RTCalibrationTask extends AbstractTask {
 
       // Copy comment and identification
       normalizedRow.setComment(originalRow.getComment());
-      for (PeakIdentity ident : originalRow.getPeakIdentities())
-        normalizedRow.addPeakIdentity(ident, false);
-      normalizedRow.setPreferredPeakIdentity(originalRow.getPreferredPeakIdentity());
+      for (FeatureIdentity ident : originalRow.getPeakIdentities())
+        normalizedRow.addFeatureIdentity(ident, false);
+      normalizedRow.setPreferredFeatureIdentity(originalRow.getPreferredFeatureIdentity());
 
       // Add the new row to normalized feature list
       normalizedFeatureList.addRow(normalizedRow);

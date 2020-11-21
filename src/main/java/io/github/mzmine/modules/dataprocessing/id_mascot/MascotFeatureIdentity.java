@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_mascot;
 
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 
-public class MascotPeakIdentity extends SimplePeakIdentity {
+public class MascotFeatureIdentity extends SimpleFeatureIdentity {
 
   /*
    * private static final String PROPERTY_PEPTIDE = "Peptide sequence"; private static final String
@@ -28,12 +28,12 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
    * static final String PROPERTY_SCORE = "Score"; private static final String PROPERTY_MISSES =
    * "Misses"; private static final String PROPERTY_MODIFICATIONS = "Modifications";
    * 
-   * /** This class implements PeakIdentity and wrap the information of the peptide assigned to the
+   * /** This class implements FeatureIdentity and wrap the information of the peptide assigned to the
    * chromatographic peak.
    * 
    * @param peptide the peptide hit.
    * 
-   * @SuppressWarnings("unchecked") public MascotPeakIdentity(final PeptideHit peptide) {
+   * @SuppressWarnings("unchecked") public MascotFeatureIdentity(final PeptideHit peptide) {
    * 
    * 
    * final StringBuilder name = new StringBuilder(); for (final ProteinHit p :

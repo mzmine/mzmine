@@ -18,18 +18,17 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
-import io.github.mzmine.datamodel.PeakIdentity;
-
 /**
- * Simple PeakIdentity implementation;
+ * Simple FeatureIdentity implementation;
  */
-public class SimplePeakIdentity implements PeakIdentity {
+public class SimpleFeatureIdentity implements FeatureIdentity {
 
   private Hashtable<String, String> properties;
 
@@ -37,12 +36,12 @@ public class SimplePeakIdentity implements PeakIdentity {
    * This constructor is protected so only derived classes can use it. Other modules using this
    * class should always set the name by default.
    */
-  protected SimplePeakIdentity() {
+  protected SimpleFeatureIdentity() {
 
     this("Unknown name");
   }
 
-  public SimplePeakIdentity(final String name) {
+  public SimpleFeatureIdentity(final String name) {
 
     // Check name.
     if (name == null) {
@@ -55,7 +54,7 @@ public class SimplePeakIdentity implements PeakIdentity {
 
   }
 
-  public SimplePeakIdentity(final String name, final String formula, final String method,
+  public SimpleFeatureIdentity(final String name, final String formula, final String method,
       final String id, final String url) {
 
     // Check name
@@ -81,7 +80,7 @@ public class SimplePeakIdentity implements PeakIdentity {
     }
   }
 
-  public SimplePeakIdentity(final Hashtable<String, String> prop) {
+  public SimpleFeatureIdentity(final Hashtable<String, String> prop) {
 
     // Check for name .
     if (prop.get(PROPERTY_NAME) == null) {
@@ -151,6 +150,6 @@ public class SimplePeakIdentity implements PeakIdentity {
   @SuppressWarnings("unchecked")
   @Override
   public synchronized @Nonnull Object clone() {
-    return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
+    return new SimpleFeatureIdentity((Hashtable<String, String>) properties.clone());
   }
 }

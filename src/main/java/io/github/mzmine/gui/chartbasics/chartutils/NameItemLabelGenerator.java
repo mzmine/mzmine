@@ -42,8 +42,8 @@ public class NameItemLabelGenerator implements XYItemLabelGenerator {
 
     // Create label
     String label = null;
-    if (rows[item].getPreferredPeakIdentity() != null) {
-      label = rows[item].getPreferredPeakIdentity().getName();
+    if (rows[item].getPreferredFeatureIdentity() != null) {
+      label = rows[item].getPreferredFeatureIdentity().getName();
     } else {
       // get charge
       int charge = 1;

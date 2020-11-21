@@ -33,7 +33,7 @@ import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.Ps
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
@@ -70,7 +70,7 @@ public class MirrorChartFactory {
    * @param db
    * @return
    */
-  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBPeakIdentity db) {
+  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBFeatureIdentity db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {

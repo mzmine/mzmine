@@ -233,27 +233,27 @@ public class MZTabmExportTask extends AbstractTask {
             return;
           }
           sm.setReliability("2");
-          PeakIdentity peakIdentity = featureListRow.getPreferredPeakIdentity();
-          if (exportAll || peakIdentity != null) {
-            if (peakIdentity != null) {
+          FeatureIdentity featureIdentity = featureListRow.getPreferredFeatureIdentity();
+          if (exportAll || featureIdentity != null) {
+            if (featureIdentity != null) {
               boolean shouldAdd = true;
               Parameter dbParam = new Parameter().
-                  name(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD));
-              String dbURI = (peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL) == null ||
-                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL).equals("")) ?
-                  "mzmine://"+peakIdentity.getClass().getSimpleName():
-                  peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
+                  name(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD));
+              String dbURI = (featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL) == null ||
+                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL).equals("")) ?
+                  "mzmine://"+ featureIdentity.getClass().getSimpleName():
+                  featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               databases.putIfAbsent(dbParam, new Database().param(dbParam)
-                  .prefix(peakIdentity.getClass().getSimpleName())
+                  .prefix(featureIdentity.getClass().getSimpleName())
                   .version(MZmineCore.getMZmineVersion())
                   .uri(dbURI));
 
               //Identity Information
-              String identifier = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID));
-              String method = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_METHOD);
-              String formula = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
-              String description = escapeString(peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_NAME));
-              String url = peakIdentity.getPropertyValue(PeakIdentity.PROPERTY_URL);
+              String identifier = escapeString(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_ID));
+              String method = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD);
+              String formula = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+              String description = escapeString(featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME));
+              String url = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               sm.addDatabaseIdentifierItem(identifier);
               sme.setDatabaseIdentifier(identifier);
               sme.setIdentificationMethod(new Parameter().name(method));

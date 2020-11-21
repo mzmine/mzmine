@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.sqlexport;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
@@ -30,7 +31,6 @@ import java.sql.Types;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
@@ -257,7 +257,7 @@ class SQLExportTask extends AbstractTask {
               statement.setString(i + 1, row.getComment());
               break;
             case IDENTITY:
-              PeakIdentity id = row.getPreferredPeakIdentity();
+              FeatureIdentity id = row.getPreferredFeatureIdentity();
               if (id != null) {
                 statement.setString(i + 1, id.getName());
               } else {

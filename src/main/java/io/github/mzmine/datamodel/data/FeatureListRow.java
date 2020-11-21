@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.data;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -128,35 +128,35 @@ public interface FeatureListRow {
    * @param identity New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
-  public void addPeakIdentity(PeakIdentity identity, boolean preffered);
+  public void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
 
   /**
    * Remove identity candidate
    *
-   * @param identity Peak identity
+   * @param identity Feature identity
    */
-  public void removePeakIdentity(PeakIdentity identity);
+  public void removeFeatureIdentity(FeatureIdentity identity);
 
   /**
    * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
    */
-  public ObservableList<PeakIdentity> getPeakIdentities();
+  public ObservableList<FeatureIdentity> getPeakIdentities();
 
   /**
    * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
    */
-  public PeakIdentity getPreferredPeakIdentity();
+  public FeatureIdentity getPreferredFeatureIdentity();
 
   /**
    * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
    */
-  public void setPreferredPeakIdentity(PeakIdentity identity);
+  public void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
    * Adds a new FeatureInformation object.

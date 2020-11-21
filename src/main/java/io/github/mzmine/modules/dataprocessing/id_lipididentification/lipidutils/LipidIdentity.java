@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.util.Map;
 import javax.annotation.Nonnull;
 
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -30,7 +30,7 @@ import io.github.mzmine.util.FormulaUtils;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidIdentity extends SimplePeakIdentity {
+public class LipidIdentity extends SimpleFeatureIdentity {
 
   private double exactMass;
   private String sumFormula;

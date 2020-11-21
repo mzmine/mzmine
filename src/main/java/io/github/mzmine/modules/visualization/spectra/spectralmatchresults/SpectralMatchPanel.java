@@ -35,7 +35,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 //import io.github.mzmine.util.swing.IconUtil;
 //import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
@@ -46,15 +46,12 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -121,7 +118,7 @@ public class SpectralMatchPanel extends JPanel {
   private final JPanel metaDataPanel;
   private final JPanel boxTitlePanel;
 
-  public SpectralMatchPanel(SpectralDBPeakIdentity hit) {
+  public SpectralMatchPanel(SpectralDBFeatureIdentity hit) {
     JPanel panel = this;
     panel.setLayout(new BorderLayout());
 
@@ -476,7 +473,7 @@ public class SpectralMatchPanel extends JPanel {
     return pn1;
   }
 
-  private IAtomContainer parseInChi(SpectralDBPeakIdentity hit) {
+  private IAtomContainer parseInChi(SpectralDBFeatureIdentity hit) {
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
@@ -498,7 +495,7 @@ public class SpectralMatchPanel extends JPanel {
     }
   }
 
-  private IAtomContainer parseSmiles(SpectralDBPeakIdentity hit) {
+  private IAtomContainer parseSmiles(SpectralDBFeatureIdentity hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
     IAtomContainer molecule;

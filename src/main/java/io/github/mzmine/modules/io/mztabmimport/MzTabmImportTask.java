@@ -372,9 +372,9 @@ public class MzTabmImportTask extends AbstractTask {
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimplePeakIdentity newIdentity =
-            new SimplePeakIdentity(description, formula, method, identifier, url);
-        newRow.addPeakIdentity(newIdentity, false);
+        SimpleFeatureIdentity newIdentity =
+            new SimpleFeatureIdentity(description, formula, method, identifier, url);
+        newRow.addFeatureIdentity(newIdentity, false);
       }
 
       // Add raw data file entries to row

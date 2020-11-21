@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -69,8 +68,8 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
 
   private int getNumberOfCAtoms(FeatureListRow row) {
     int numberOfCAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexC = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -115,8 +114,8 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
 
   private int getNumberOfOAtoms(FeatureListRow row) {
     int numberOfOAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexO = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;
@@ -161,8 +160,8 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
 
   private int getNumberOfHAtoms(FeatureListRow row) {
     int numberOfHAtoms = 0;
-    if (row.getPreferredPeakIdentity() != null) {
-      String rowName = row.getPreferredPeakIdentity().getPropertyValue("Molecular formula");
+    if (row.getPreferredFeatureIdentity() != null) {
+      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
       int indexH = 0;
       int indexNextAtom = 0;
       int nextAtomCounter = 0;

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -49,7 +50,6 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
@@ -90,7 +90,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   private final boolean cropSpectraToOverlap;
   // listen for matches
-  private Consumer<SpectralDBPeakIdentity> matchListener;
+  private Consumer<SpectralDBFeatureIdentity> matchListener;
 
   private boolean allMS2Scans;
 
@@ -106,7 +106,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   public RowsSpectralMatchTask(String description, @Nonnull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
-      Consumer<SpectralDBPeakIdentity> matchListener) {
+      Consumer<SpectralDBFeatureIdentity> matchListener) {
     this.description = description;
     this.rows = rows;
     this.parameters = parameters;
@@ -198,7 +198,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
         // match against all library entries
         for (SpectralDBEntry ident : list) {
-          SpectralDBPeakIdentity best = null;
+          SpectralDBFeatureIdentity best = null;
           // match all scans against this ident to find best match
           for (int i = 0; i < scans.size(); i++) {
             SpectralSimilarity sim = spectraDBMatch(row, rowMassLists.get(i), ident);
@@ -206,7 +206,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
                 && (!needsIsotopePattern || SpectralMatchTask.checkForIsotopePattern(sim,
                     mzToleranceSpectra, minMatchedIsoSignals))
                 && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
-              best = new SpectralDBPeakIdentity(scans.get(i), massListName, ident, sim, METHOD);
+              best = new SpectralDBFeatureIdentity(scans.get(i), massListName, ident, sim, METHOD);
             }
           }
           // has match?
@@ -347,9 +347,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
-  private void addIdentity(FeatureListRow row, SpectralDBPeakIdentity pid) {
+  private void addIdentity(FeatureListRow row, SpectralDBFeatureIdentity pid) {
     // add new identity to the row
-    row.addPeakIdentity(pid, false);
+    row.addFeatureIdentity(pid, false);
 
     if (matchListener != null)
       matchListener.accept(pid);

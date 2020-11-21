@@ -148,8 +148,8 @@ public class FeatureOverviewWindow extends Stage {
     // featureDataSummary.setBackground(Color.WHITE);
     var featureDataSummary = featureDataNode.getChildren();
     featureDataSummary.add(new Label("Feature: " + row.getID()));
-    if (row.getPreferredPeakIdentity() != null)
-      featureDataSummary.add(new Label("Identity: " + row.getPreferredPeakIdentity().getName()));
+    if (row.getPreferredFeatureIdentity() != null)
+      featureDataSummary.add(new Label("Identity: " + row.getPreferredFeatureIdentity().getName()));
     if (row.getComment() != null)
       featureDataSummary.add(new Label("Comment: " + row.getComment()));
     featureDataSummary.add(new Label("Raw File: " + rawFiles[0].getName()));

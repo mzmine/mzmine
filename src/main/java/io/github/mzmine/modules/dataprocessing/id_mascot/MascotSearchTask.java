@@ -187,7 +187,7 @@ public class MascotSearchTask extends AbstractTask {
      * for (int i = 1; i <= numberOfQueries; i++) { PeptideHit pepHit =
      * queryPeptideMap.getPeptideHitOfOneQuery(i); if (pepHit != null){ Query q = mdf.getQuery(i);
      * String title = q.getTitle(); String[] tokens = title.split(" "); int rowId =
-     * Integer.parseInt(tokens[1]); MascotPeakIdentity mpid = new MascotPeakIdentity(pepHit);
+     * Integer.parseInt(tokens[1]); MascotFeatureIdentity mpid = new MascotFeatureIdentity(pepHit);
      * pp.getRows()[rowId].addPeakIdentity(mpid, true); } }
      * 
      * 

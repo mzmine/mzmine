@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotDataSet;
@@ -102,7 +102,7 @@ public class ScatterPlotTopPanel extends HBox {
       return;
     }
 
-    PeakIdentity identity = selectedRow.getPreferredPeakIdentity();
+    FeatureIdentity identity = selectedRow.getPreferredFeatureIdentity();
     String itemName;
     if (identity != null) {
       itemName = identity.getName();

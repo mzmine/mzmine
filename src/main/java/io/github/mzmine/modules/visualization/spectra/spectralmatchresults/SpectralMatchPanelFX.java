@@ -33,7 +33,7 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -131,11 +131,11 @@ public class SpectralMatchPanelFX extends GridPane {
 
   private EStandardChartTheme theme;
 
-  private final SpectralDBPeakIdentity hit;
+  private final SpectralDBFeatureIdentity hit;
 
   private SpectralMatchPanel swingPanel;
 
-  public SpectralMatchPanelFX(SpectralDBPeakIdentity hit) {
+  public SpectralMatchPanelFX(SpectralDBFeatureIdentity hit) {
     super();
 
     this.hit = hit;
@@ -348,7 +348,7 @@ public class SpectralMatchPanelFX extends GridPane {
     setCoupleZoomY = selected;
   }
 
-  private IAtomContainer parseInChi(SpectralDBPeakIdentity hit) {
+  private IAtomContainer parseInChi(SpectralDBFeatureIdentity hit) {
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
     InChIGeneratorFactory factory;
     IAtomContainer molecule;
@@ -370,7 +370,7 @@ public class SpectralMatchPanelFX extends GridPane {
     }
   }
 
-  private IAtomContainer parseSmiles(SpectralDBPeakIdentity hit) {
+  private IAtomContainer parseSmiles(SpectralDBFeatureIdentity hit) {
     SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
     String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A").toString();
     IAtomContainer molecule;
@@ -520,7 +520,7 @@ public class SpectralMatchPanelFX extends GridPane {
     // it works though, until we figure something out
   }
 
-  public SpectralDBPeakIdentity getHit() {
+  public SpectralDBFeatureIdentity getHit() {
     return hit;
   }
 

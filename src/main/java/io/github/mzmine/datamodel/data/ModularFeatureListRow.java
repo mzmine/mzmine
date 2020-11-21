@@ -19,9 +19,9 @@
 package io.github.mzmine.datamodel.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.types.AreaBarType;
 import io.github.mzmine.datamodel.data.types.AreaShareType;
@@ -82,8 +82,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
 
-  private ObservableList<PeakIdentity> identities = FXCollections.observableArrayList();
-  private PeakIdentity preferredIdentity;
+  private ObservableList<FeatureIdentity> identities = FXCollections.observableArrayList();
+  private FeatureIdentity preferredIdentity;
   private String comment;
   private double maxDataPointIntensity;
 
@@ -380,18 +380,18 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public ObservableList<PeakIdentity> getPeakIdentities() {
+  public ObservableList<FeatureIdentity> getPeakIdentities() {
     return identities;
   }
 
-  public void setPeakIdentities(ObservableList<PeakIdentity> identities) {
+  public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
     this.identities = identities;
   }
 
   @Override
-  public void addPeakIdentity(PeakIdentity identity, boolean preferred) {
+  public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
     // Verify if exists already an identity with the same name
-    for (PeakIdentity testId : identities) {
+    for (FeatureIdentity testId : identities) {
       if (testId.getName().equals(identity.getName())) {
         return;
       }
@@ -399,27 +399,27 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
     identities.add(identity);
     if ((preferredIdentity == null) || (preferred)) {
-      setPreferredPeakIdentity(identity);
+      setPreferredFeatureIdentity(identity);
     }
   }
 
   @Override
-  public void removePeakIdentity(PeakIdentity identity) {
+  public void removeFeatureIdentity(FeatureIdentity identity) {
     identities.remove(identity);
     if (preferredIdentity == identity) {
       if (identities.size() > 0) {
-        PeakIdentity[] identitiesArray = identities.toArray(new PeakIdentity[0]);
-        setPreferredPeakIdentity(identitiesArray[0]);
+        FeatureIdentity[] identitiesArray = identities.toArray(new FeatureIdentity[0]);
+        setPreferredFeatureIdentity(identitiesArray[0]);
       } else
         preferredIdentity = null;
     }
   }
 
-  public PeakIdentity getPreferredPeakIdentity() {
+  public FeatureIdentity getPreferredFeatureIdentity() {
     return preferredIdentity;
   }
 
-  public void setPreferredPeakIdentity(PeakIdentity preferredIdentity) {
+  public void setPreferredFeatureIdentity(FeatureIdentity preferredIdentity) {
     this.preferredIdentity = preferredIdentity;
   }
 
