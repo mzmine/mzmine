@@ -50,7 +50,7 @@ public class ManualFeatureUtils {
       Scan scan = dataFile.getScan(scanNumber);
 
       // Find most intense m/z feature
-      DataPoint baseFeature = ScanUtils.findBasePeak(scan, mzRange);
+      DataPoint baseFeature = ScanUtils.findBaseFeature(scan, mzRange);
 
       if (baseFeature != null) {
         if (baseFeature.getIntensity() > 0) {

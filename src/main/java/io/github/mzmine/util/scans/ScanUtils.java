@@ -111,24 +111,24 @@ public class ScanUtils {
   }
 
   /**
-   * Find a base peak of a given scan in a given m/z range
+   * Find a base feature of a given scan in a given m/z range
    * 
    * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base peak m/z and intensity
+   * @return double[2] containing base feature m/z and intensity
    */
-  public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
+  public static @Nonnull DataPoint findBaseFeature(@Nonnull Scan scan,
       @Nonnull Range<Double> mzRange) {
 
     DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-    DataPoint basePeak = null;
+    DataPoint baseFeature = null;
 
     for (DataPoint dp : dataPoints) {
-      if ((basePeak == null) || (dp.getIntensity() > basePeak.getIntensity()))
-        basePeak = dp;
+      if ((baseFeature == null) || (dp.getIntensity() > baseFeature.getIntensity()))
+        baseFeature = dp;
     }
 
-    return basePeak;
+    return baseFeature;
   }
 
   /**
@@ -358,7 +358,7 @@ public class ScanUtils {
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
-  public static int findFirstPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
+  public static int findFirstFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     final int insertionPoint =
         Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
@@ -381,7 +381,7 @@ public class ScanUtils {
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
-  public static int findLastPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
+  public static int findLastFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     final int insertionPoint =
         Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
@@ -404,8 +404,8 @@ public class ScanUtils {
    * @param mzRange    m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
-  public static int findMostIntensePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    int k = findFirstPeakWithin(dataPoints, mzRange);
+  public static int findMostIntenseFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
+    int k = findFirstFeatureWithin(dataPoints, mzRange);
     if (k < 0)
       return -1;
     int mostIntense = k;
@@ -474,7 +474,7 @@ public class ScanUtils {
     if (dataPoints.length < 5)
       return MassSpectrumType.CENTROIDED;
 
-    int basePeakIndex = 0;
+    int baseFeatureIndex = 0;
     boolean hasZeroDataPoint = false;
 
     // Go through the data points and find the highest one
@@ -485,8 +485,8 @@ public class ScanUtils {
       mzValues[i] = dataPoints[i].getMZ();
 
       // Update the maxDataPointIndex accordingly
-      if (intensityValues[i] > intensityValues[basePeakIndex])
-        basePeakIndex = i;
+      if (intensityValues[i] > intensityValues[baseFeatureIndex])
+        baseFeatureIndex = i;
 
       if (intensityValues[i] == 0.0)
         hasZeroDataPoint = true;
@@ -494,26 +494,26 @@ public class ScanUtils {
 
     final double scanMzSpan = mzValues[size - 1] - mzValues[0];
 
-    // Find the all data points around the base peak that have intensity
+    // Find the all data points around the base feature that have intensity
     // above half maximum
-    final double halfIntensity = intensityValues[basePeakIndex] / 2.0;
-    int leftIndex = basePeakIndex;
+    final double halfIntensity = intensityValues[baseFeatureIndex] / 2.0;
+    int leftIndex = baseFeatureIndex;
     while ((leftIndex > 0) && intensityValues[leftIndex - 1] > halfIntensity) {
       leftIndex--;
     }
-    int rightIndex = basePeakIndex;
+    int rightIndex = baseFeatureIndex;
     while ((rightIndex < size - 1) && intensityValues[rightIndex + 1] > halfIntensity) {
       rightIndex++;
     }
-    final double mainPeakMzSpan = mzValues[rightIndex] - mzValues[leftIndex];
-    final int mainPeakDataPointCount = rightIndex - leftIndex + 1;
+    final double mainFeatureMzSpan = mzValues[rightIndex] - mzValues[leftIndex];
+    final int mainFeatureDataPointCount = rightIndex - leftIndex + 1;
 
-    // If the main peak has less than 3 data points above half intensity, it
+    // If the main feature has less than 3 data points above half intensity, it
     // indicates a centroid spectrum. Further, if the m/z span of the main
-    // peak is more than 0.1% of the scan m/z range, it also indicates a
+    // feature is more than 0.1% of the scan m/z range, it also indicates a
     // centroid spectrum. These criteria are empirical and probably not
     // bulletproof. However, it works for all the test cases we have.
-    if ((mainPeakDataPointCount < 3) || (mainPeakMzSpan > (scanMzSpan / 1000.0)))
+    if ((mainFeatureDataPointCount < 3) || (mainFeatureMzSpan > (scanMzSpan / 1000.0)))
       return MassSpectrumType.CENTROIDED;
     else {
       if (hasZeroDataPoint)
@@ -536,7 +536,7 @@ public class ScanUtils {
     assert mzRange != null;
 
     int bestFragmentScan = -1;
-    double topBasePeak = 0;
+    double topBaseFeature = 0;
 
     int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
 
@@ -546,15 +546,15 @@ public class ScanUtils {
 
       if (mzRange.contains(scan.getPrecursorMZ())) {
 
-        DataPoint basePeak = scan.getHighestDataPoint();
+        DataPoint baseFeature = scan.getHighestDataPoint();
 
-        // If there is no peak in the scan, basePeak can be null
-        if (basePeak == null)
+        // If there is no feature in the scan, baseFeature can be null
+        if (baseFeature == null)
           continue;
 
-        if (basePeak.getIntensity() > topBasePeak) {
+        if (baseFeature.getIntensity() > topBaseFeature) {
           bestFragmentScan = scan.getScanNumber();
-          topBasePeak = basePeak.getIntensity();
+          topBaseFeature = baseFeature.getIntensity();
         }
       }
 
@@ -658,23 +658,23 @@ public class ScanUtils {
 
   public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-    DataOutputStream peakStream = new DataOutputStream(byteStream);
+    DataOutputStream featureStream = new DataOutputStream(byteStream);
     for (int i = 0; i < dataPoints.length; i++) {
 
       try {
-        peakStream.writeDouble(dataPoints[i].getMZ());
-        peakStream.writeDouble(dataPoints[i].getIntensity());
+        featureStream.writeDouble(dataPoints[i].getMZ());
+        featureStream.writeDouble(dataPoints[i].getIntensity());
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    byte peakBytes[] = byteStream.toByteArray();
-    return peakBytes;
+    byte featureBytes[] = byteStream.toByteArray();
+    return featureBytes;
   }
 
   public static char[] encodeDataPointsBase64(DataPoint dataPoints[]) {
-    byte peakBytes[] = encodeDataPointsToBytes(dataPoints);
-    char encodedData[] = Base64.getEncoder().encodeToString(peakBytes).toCharArray();
+    byte featureBytes[] = encodeDataPointsToBytes(dataPoints);
+    char encodedData[] = Base64.getEncoder().encodeToString(featureBytes).toCharArray();
     return encodedData;
   }
 
@@ -684,14 +684,14 @@ public class ScanUtils {
 
     // make a data input stream
     ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
-    DataInputStream peakStream = new DataInputStream(byteStream);
+    DataInputStream featureStream = new DataInputStream(byteStream);
 
     DataPoint dataPoints[] = new DataPoint[dpCount];
 
     for (int i = 0; i < dataPoints.length; i++) {
       try {
-        double mz = peakStream.readDouble();
-        double intensity = peakStream.readDouble();
+        double mz = featureStream.readDouble();
+        double intensity = featureStream.readDouble();
         dataPoints[i] = new SimpleDataPoint(mz, intensity);
       } catch (IOException e) {
         e.printStackTrace();
@@ -990,17 +990,17 @@ public class ScanUtils {
   }
 
   /**
-   * Move the mass window given by binRange across the spectrum, keep only the numberOfPeaksPerBin
-   * most intense peaks within the window. This is a very simple and robust method to remove most
+   * Move the mass window given by binRange across the spectrum, keep only the numberOfFeaturesPerBin
+   * most intense features within the window. This is a very simple and robust method to remove most
    * noise in the spectrum without having to estimate any noise intensity parameter.
    * 
    * @param dataPoints          spectrum
    * @param binRange            sliding mass window. Is shifted in each step by its width.
-   * @param numberOfPeaksPerBin number of peaks to keep within the sliding mass window
+   * @param numberOfFeaturesPerBin number of features to keep within the sliding mass window
    * @return
    */
-  public static DataPoint[] extractMostIntensePeaksAcrossMassRange(DataPoint[] dataPoints,
-      Range<Double> binRange, int numberOfPeaksPerBin) {
+  public static DataPoint[] extractMostIntenseFeaturesAcrossMassRange(DataPoint[] dataPoints,
+      Range<Double> binRange, int numberOfFeaturesPerBin) {
     double offset = binRange.lowerEndpoint();
     final double width = binRange.upperEndpoint() - binRange.lowerEndpoint();
     final HashMap<Integer, List<DataPoint>> bins = new HashMap<>();
@@ -1013,7 +1013,7 @@ public class ScanUtils {
     for (Integer bin : bins.keySet()) {
       List<DataPoint> list = bins.get(bin);
       Collections.sort(list, (u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
-      for (int i = 0; i < Math.min(list.size(), numberOfPeaksPerBin); ++i)
+      for (int i = 0; i < Math.min(list.size(), numberOfFeaturesPerBin); ++i)
         finalDataPoints.add(list.get(i));
     }
     DataPoint[] spectrum = finalDataPoints.toArray(new DataPoint[0]);
@@ -1027,7 +1027,7 @@ public class ScanUtils {
    * finite dimensional vector, the probability product transforms it into a mixture of continuous
    * gaussians.
    *
-   * As for cosine similarity it is recommended to first take the square root of all peak
+   * As for cosine similarity it is recommended to first take the square root of all feature
    * intensities, before calling this method.
    *
    * @param scanLeft                   the first spectrum
@@ -1035,8 +1035,8 @@ public class ScanUtils {
    * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass
    *                                   deviation). Rather use a larger than a small value! Value is
    *                                   given in ppm and Dalton.
-   * @param noiseLevel                 the lowest intensity for a peak to be considered
-   * @param mzRange                    the m/z range in which the peaks are compared. use null for
+   * @param noiseLevel                 the lowest intensity for a feature to be considered
+   * @param mzRange                    the m/z range in which the features are compared. use null for
    *                                   the whole spectrum
    *
    */
@@ -1069,10 +1069,10 @@ public class ScanUtils {
       i = 0;
       j = 0;
     } else {
-      nl = findLastPeakWithin(scanLeft, mzRange) + 1;
-      nr = findLastPeakWithin(scanRight, mzRange) + 1;
-      i = findFirstPeakWithin(scanLeft, mzRange);
-      j = findFirstPeakWithin(scanRight, mzRange);
+      nl = findLastFeatureWithin(scanLeft, mzRange) + 1;
+      nr = findLastFeatureWithin(scanRight, mzRange) + 1;
+      i = findFirstFeatureWithin(scanLeft, mzRange);
+      j = findFirstFeatureWithin(scanRight, mzRange);
       if (i < 0 || j < 0)
         return 0d;
     }

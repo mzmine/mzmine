@@ -279,7 +279,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     MergedSpectrum initial = bestOne;
     final double lowestMassToConsider = Math.min(50d, initial.precursorMz - 50d);
 
-    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(
+    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntenseFeaturesAcrossMassRange(
         initial.data, Range.closed(lowestMassToConsider, lowestMassToConsider + 100), 6);
     final Range<Double> cosineRange = Range.closed(lowestMassToConsider, initial.precursorMz - 20);
     double lowestIntensityToConsider;
@@ -304,7 +304,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       MergedSpectrum scan = toMerge.get(k);
       DataPoint[] dataPoints = scan.data;
       final DataPoint[] mostIntense =
-          ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
+          ScanUtils.extractMostIntenseFeaturesAcrossMassRange(dataPoints, Range.closed(50d, 150d), 6);
       final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense, mostIntense,
           massTolerance, lowestIntensityToConsider, cosineRange);
       final double cosine =
@@ -389,11 +389,11 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     initial.bestFragmentScanScore = best;
     final double lowestMassToConsider = Math.min(50d, scans.feature.getMZ() - 50d);
 
-    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(
+    final DataPoint[] initialMostIntense = ScanUtils.extractMostIntenseFeaturesAcrossMassRange(
         initial.data, Range.closed(lowestMassToConsider, 150d), 6);
 
     double lowestIntensityToConsider;
-    final int mostIntensPeakWithin = ScanUtils.findMostIntensePeakWithin(initialMostIntense,
+    final int mostIntensPeakWithin = ScanUtils.findMostIntenseFeatureWithin(initialMostIntense,
         Range.closed(lowestMassToConsider, scans.feature.getMZ()));
     if (mostIntensPeakWithin >= 0)
       lowestIntensityToConsider = 0.005d * initialMostIntense[mostIntensPeakWithin].getIntensity();
@@ -414,7 +414,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       }
       DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();
       final DataPoint[] mostIntense =
-          ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, cosineRange, 6);
+          ScanUtils.extractMostIntenseFeaturesAcrossMassRange(dataPoints, cosineRange, 6);
       final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense, mostIntense,
           mzTolerance, lowestIntensityToConsider, cosineRange);
       final double cosine =
