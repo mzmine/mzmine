@@ -70,7 +70,7 @@ public class TDFUtils {
       } else if (com.sun.jna.Platform.isWindows() && !com.sun.jna.Platform.is64Bit()) {
         libraryFileName = "timsdata_x32.dll";
       } else if (com.sun.jna.Platform.isLinux()) {
-        libraryFileName = "libtimstdata.so";
+        libraryFileName = "libtimsdata.so";
       } else if (com.sun.jna.Platform.isMac()) {
         logger.info("MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
         MZmineCore.getDesktop().displayMessage(
