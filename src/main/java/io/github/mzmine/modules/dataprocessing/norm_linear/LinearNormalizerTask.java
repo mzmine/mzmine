@@ -200,7 +200,7 @@ class LinearNormalizerTask extends AbstractTask {
         if (originalFeature != null) {
 
           ModularFeature normalizedFeature = new ModularFeature(originalFeature);
-          FeatureUtils.copyPeakProperties(originalFeature, normalizedFeature);
+          FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
 
           float normalizedHeight = originalFeature.getHeight() / normalizationFactor;
           float normalizedArea = originalFeature.getArea() / normalizationFactor;

@@ -265,7 +265,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
     for (final Feature feature : row.getFeatures()) {
 
       final Feature newFeature = new ModularFeature(feature);
-      FeatureUtils.copyPeakProperties(feature, newFeature);
+      FeatureUtils.copyFeatureProperties(feature, newFeature);
       newRow.addFeature(feature.getRawDataFile(), newFeature);
 
     }

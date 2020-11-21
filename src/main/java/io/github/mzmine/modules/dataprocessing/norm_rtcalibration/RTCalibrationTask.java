@@ -327,7 +327,7 @@ class RTCalibrationTask extends AbstractTask {
       Feature originalFeature = originalRow.getFeature(file);
       if (originalFeature != null) {
         ModularFeature normalizedFeature = new ModularFeature(originalFeature);
-        FeatureUtils.copyPeakProperties(originalFeature, normalizedFeature);
+        FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
         normalizedFeature.setRT((float) normalizedRT);
         normalizedRow.addFeature(file, normalizedFeature);
       }

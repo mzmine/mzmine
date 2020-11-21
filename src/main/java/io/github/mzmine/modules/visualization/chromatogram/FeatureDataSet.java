@@ -109,7 +109,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(final int series) {
-    return FeatureUtils.peakToString(feature);
+    return FeatureUtils.featureToString(feature);
   }
 
   @Override

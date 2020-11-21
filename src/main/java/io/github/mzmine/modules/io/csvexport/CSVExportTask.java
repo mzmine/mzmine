@@ -334,7 +334,7 @@ public class CSVExportTask extends AbstractTask {
                 line.append(feature.getFeatureStatus() + fieldSeparator);
                 break;
               case FEATURE_NAME:
-                line.append(FeatureUtils.peakToString(feature) + fieldSeparator);
+                line.append(FeatureUtils.featureToString(feature) + fieldSeparator);
                 break;
               case FEATURE_MZ:
                 line.append(feature.getMZ() + fieldSeparator);

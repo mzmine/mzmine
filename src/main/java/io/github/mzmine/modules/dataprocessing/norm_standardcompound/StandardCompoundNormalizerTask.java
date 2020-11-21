@@ -240,7 +240,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
           ModularFeature normalizedFeature = new ModularFeature(originalFeature);
 
-          FeatureUtils.copyPeakProperties(originalFeature, normalizedFeature);
+          FeatureUtils.copyFeatureProperties(originalFeature, normalizedFeature);
 
           float normalizedHeight = (float) (originalFeature.getHeight() / normalizationFactor);
           float normalizedArea = (float) (originalFeature.getArea() / normalizationFactor);

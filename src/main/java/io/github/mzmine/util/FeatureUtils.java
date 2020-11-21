@@ -49,12 +49,12 @@ public class FeatureUtils {
       new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
 
   /**
-   * Common utility method to be used as Peak.toString() method in various Peak implementations
+   * Common utility method to be used as Feature.toString() method in various Feature implementations
    *
    * @param feature Feature to be converted to String
-   * @return String representation of the peak
+   * @return String representation of the feature
    */
-  public static String peakToString(Feature feature) {
+  public static String featureToString(Feature feature) {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -115,8 +115,8 @@ public class FeatureUtils {
   /**
    * Compare charge state of the best MS/MS precursor masses
    *
-   * @param row1 PeaklistRow 1
-   * @param row2 PeakListRow 2
+   * @param row1 FeatureListRow 1
+   * @param row2 FeatureListRow 2
    *
    * @return true, same charge state
    */
@@ -161,7 +161,7 @@ public class FeatureUtils {
     }
     target.setComment(targetComment);
 
-    // Copy all peak identities, if these are not already present
+    // Copy all feature identities, if these are not already present
     for (PeakIdentity identity : source.getPeakIdentities()) {
       if (!containsIdentity(target, identity))
         target.addPeakIdentity(identity, false);
@@ -174,9 +174,9 @@ public class FeatureUtils {
   }
 
   /**
-   * Copies properties such as isotope pattern and charge from the source peak to the target peak
+   * Copies properties such as isotope pattern and charge from the source feature to the target feature
    */
-  public static void copyPeakProperties(Feature source, Feature target) {
+  public static void copyFeatureProperties(Feature source, Feature target) {
 
     // Copy isotope pattern
     IsotopePattern originalPattern = source.getIsotopePattern();
@@ -218,7 +218,7 @@ public class FeatureUtils {
    */
   public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
-    ManualFeature newPeak = new ManualFeature(dataFile);
+    ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
     int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
@@ -228,24 +228,24 @@ public class FeatureUtils {
       // Get next scan
       Scan scan = dataFile.getScan(scanNumber);
 
-      // Find most intense m/z peak
-      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+      // Find most intense m/z feature
+      DataPoint baseFeature = ScanUtils.findBasePeak(scan, mzRange);
 
-      if (basePeak != null) {
-        if (basePeak.getIntensity() > 0)
+      if (baseFeature != null) {
+        if (baseFeature.getIntensity() > 0)
           dataPointFound = true;
-        newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+        newFeature.addDatapoint(scan.getScanNumber(), baseFeature);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
-        newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+        newFeature.addDatapoint(scan.getScanNumber(), fakeDataPoint);
       }
 
     }
 
     if (dataPointFound) {
-      newPeak.finalizeFeature();
-      return newPeak.getArea();
+      newFeature.finalizeFeature();
+      return newFeature.getArea();
     } else {
       return 0.0;
     }
@@ -255,11 +255,11 @@ public class FeatureUtils {
   /**
    *
    * @param row The row.
-   * @return The average retention time range of all features contained in this peak list row across
+   * @return The average retention time range of all features contained in this feature list row across
    *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
-  public @Nonnull static Range<Float> getPeakListRowAvgRtRange(FeatureListRow row) {
+  public @Nonnull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
 
     if (row == null || row.getBestFeature() == null)
       return Range.closed(0.f, 0.f);
@@ -292,45 +292,45 @@ public class FeatureUtils {
   }
 
   /**
-   * Creates a copy of a PeakListRow.
+   * Creates a copy of a FeatureListRow.
    *
    * @param row A row.
    * @return A copy of row.
    */
-  public static FeatureListRow copyPeakRow(final FeatureListRow row) {
+  public static FeatureListRow copyFeatureRow(final FeatureListRow row) {
     // TODO: generalize beyond modular
     // Copy the feature list row.
     final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) row.getFeatureList());
     copyFeatureListRowProperties(row, newRow);
 
-    // Copy the peaks.
-    for (final Feature peak : row.getFeatures()) {
-      final Feature newPeak = new ModularFeature((ModularFeatureList) peak.getFeatureList());
-      copyPeakProperties(peak, newPeak);
-      newRow.addFeature(peak.getRawDataFile(), newPeak);
+    // Copy the features.
+    for (final Feature feature : row.getFeatures()) {
+      final Feature newFeature = new ModularFeature((ModularFeatureList) feature.getFeatureList());
+      copyFeatureProperties(feature, newFeature);
+      newRow.addFeature(feature.getRawDataFile(), newFeature);
     }
 
     return newRow;
   }
 
   /**
-   * Creates a copy of an array of PeakListRows.
+   * Creates a copy of an array of FeatureListRows.
    *
    * @param rows The rows to be copied.
    * @return A copy of rows.
    */
-  public static FeatureListRow[] copyPeakRows(final FeatureListRow[] rows) {
+  public static FeatureListRow[] copyFeatureRows(final FeatureListRow[] rows) {
     FeatureListRow[] newRows = new FeatureListRow[rows.length];
 
     for (int i = 0; i < newRows.length; i++) {
-      newRows[i] = copyPeakRow(rows[i]);
+      newRows[i] = copyFeatureRow(rows[i]);
     }
 
     return newRows;
   }
 
   /**
-   * Convenience method to sort an array of PeakListRows by ascending m/z
+   * Convenience method to sort an array of FeatureListRows by ascending m/z
    *
    * @param rows
    * @return Array sorted by ascending m/z.
