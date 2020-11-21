@@ -25,14 +25,10 @@ import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ADAPChromatogram;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
-import io.github.mzmine.util.scans.ScanUtils;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,7 +48,6 @@ import io.github.mzmine.datamodel.data.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
-import io.github.mzmine.util.DataTypeUtils;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -73,7 +68,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       FXCollections.observableMap(new HashMap<>());
 
   // TODO: private variables to data types
-  private SimplePeakInformation peakInfo;
+  private SimpleFeatureInformation featureInfo;
   private int representiveScanNumber;
   private int charge;
   private int fragmentScanNumber;
@@ -337,13 +332,13 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public void setPeakInformation(SimplePeakInformation peakInfo) {
-    this.peakInfo = peakInfo;
+  public void setFeatureInformation(SimpleFeatureInformation featureInfo) {
+    this.featureInfo = featureInfo;
   }
 
   @Override
-  public SimplePeakInformation getPeakInformation() {
-    return peakInfo;
+  public SimpleFeatureInformation getFeatureInformation() {
+    return featureInfo;
   }
 
   @Nullable

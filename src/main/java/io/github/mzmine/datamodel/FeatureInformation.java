@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * 
  * @author aleksandrsmirnov
  */
-public interface PeakInformation extends Cloneable {
+public interface FeatureInformation extends Cloneable {
 
   /**
    * Returns the value of a property
@@ -37,7 +37,7 @@ public interface PeakInformation extends Cloneable {
   Map<String, String> getAllProperties();
 
   /**
-   * Returns a copy of PeakInformation object
+   * Returns a copy of FeatureInformation object
    * 
    * @return
    */

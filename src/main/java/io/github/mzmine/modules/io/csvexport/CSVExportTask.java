@@ -195,8 +195,8 @@ public class CSVExportTask extends AbstractTask {
     for (FeatureListRow row : featureList.getRows()) {
       if (!filter.filter(row))
         continue;
-      if (row.getPeakInformation() != null) {
-        for (String key : row.getPeakInformation().getAllProperties().keySet()) {
+      if (row.getFeatureInformation() != null) {
+        for (String key : row.getFeatureInformation().getAllProperties().keySet()) {
           featureInformationFields.add(key);
         }
       }
@@ -310,9 +310,9 @@ public class CSVExportTask extends AbstractTask {
 
       // feature Information
       if (exportAllFeatureInfo) {
-        if (featureListRow.getPeakInformation() != null) {
+        if (featureListRow.getFeatureInformation() != null) {
           Map<String, String> allPropertiesMap =
-              featureListRow.getPeakInformation().getAllProperties();
+              featureListRow.getFeatureInformation().getAllProperties();
 
           for (String key : featureInformationFields) {
             String value = allPropertiesMap.get(key);

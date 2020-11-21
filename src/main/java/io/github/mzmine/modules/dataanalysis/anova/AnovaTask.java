@@ -32,7 +32,7 @@ import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -126,13 +126,13 @@ public class AnovaTask extends AbstractTask {
       Double pValue = oneWayAnova(intensityGroups);
 
       // Save results
-      PeakInformation peakInformation = row.getPeakInformation();
-      if (peakInformation == null) {
-        peakInformation = new SimplePeakInformation();
+      FeatureInformation featureInformation = row.getFeatureInformation();
+      if (featureInformation == null) {
+        featureInformation = new SimpleFeatureInformation();
       }
-      peakInformation.getAllProperties().put(P_VALUE_KEY,
+      featureInformation.getAllProperties().put(P_VALUE_KEY,
           pValue == null ? EMPTY_STRING : pValue.toString());
-      row.setPeakInformation(peakInformation);
+      row.setFeatureInformation(featureInformation);
     }
   }
 

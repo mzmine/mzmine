@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.data;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakInformation;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import javafx.collections.ObservableList;
@@ -159,23 +159,23 @@ public interface FeatureListRow {
   public void setPreferredPeakIdentity(PeakIdentity identity);
 
   /**
-   * Adds a new PeakInformation object.
+   * Adds a new FeatureInformation object.
    *
-   * PeakInformation is used to keep extra information about features in the form of a map
+   * FeatureInformation is used to keep extra information about features in the form of a map
    * <propertyName, propertyValue>
    *
-   * @param peakInformation object
+   * @param featureInformation object
    */
 
-  public void setPeakInformation(PeakInformation peakInformation);
+  public void setFeatureInformation(FeatureInformation featureInformation);
 
   /**
-   * Returns PeakInformation
+   * Returns FeatureInformation
    *
    * @return
    */
 
-  public PeakInformation getPeakInformation();
+  public FeatureInformation getFeatureInformation();
 
   /**
    * Returns maximum raw data point intensity among all features in this row

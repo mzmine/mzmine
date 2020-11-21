@@ -25,7 +25,7 @@ import java.util.Map;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.PeakInformation;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 
 /**
@@ -58,9 +58,9 @@ public class TICToolTipGenerator implements XYToolTipGenerator {
 
       final FeatureDataSet featureDataSet = (FeatureDataSet) dataSet;
       final Feature feature = featureDataSet.getFeature();
-      PeakInformation peakInfo = null;
+      FeatureInformation featureInfo = null;
       if (feature != null) {
-        peakInfo = feature.getPeakInformation();
+        featureInfo = feature.getFeatureInformation();
       }
 
       final String label = featureDataSet.getName();
@@ -71,8 +71,8 @@ public class TICToolTipGenerator implements XYToolTipGenerator {
 
       NumberFormat numberFormat = NumberFormat.getInstance();
 
-      if (peakInfo != null)
-        for (Map.Entry<String, String> e : peakInfo.getAllProperties().entrySet()) {
+      if (featureInfo != null)
+        for (Map.Entry<String, String> e : featureInfo.getAllProperties().entrySet()) {
           try {
             double value = Double.parseDouble(e.getValue());
             text += "\n" + e.getKey() + ": " + numberFormat.format(value);

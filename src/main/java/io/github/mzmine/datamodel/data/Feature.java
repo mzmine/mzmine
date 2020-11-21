@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.Objects;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
@@ -220,9 +220,9 @@ public interface Feature {
   // dulab Edit
   void outputChromToFile();
 
-  void setPeakInformation(SimplePeakInformation peakInfo);
+  void setFeatureInformation(SimpleFeatureInformation featureInfo);
 
-  SimplePeakInformation getPeakInformation();
+  SimpleFeatureInformation getFeatureInformation();
   // End dulab Edit
 
   @Nullable

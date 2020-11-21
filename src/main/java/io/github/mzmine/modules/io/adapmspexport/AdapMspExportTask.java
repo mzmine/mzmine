@@ -22,14 +22,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -187,7 +183,7 @@ public class AdapMspExportTask extends AbstractTask {
         writer.write(attributeName + ": " + row.getAverageRT() + newLine);
       }
 
-      PeakInformation featureInformation = row.getPeakInformation();
+      FeatureInformation featureInformation = row.getFeatureInformation();
       if (addAnovaPValue && featureInformation != null
           && featureInformation.getAllProperties().containsKey("ANOVA_P_VALUE")) {
         String attributeName = checkAttributeName(anovaAttributeName);

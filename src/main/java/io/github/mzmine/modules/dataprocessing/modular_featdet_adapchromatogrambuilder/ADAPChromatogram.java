@@ -22,6 +22,7 @@
 package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
 
 import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -41,7 +42,6 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -51,7 +51,7 @@ import io.github.mzmine.util.scans.ScanUtils;
  * Chromatogram.
  */
 public class ADAPChromatogram {
-  private SimplePeakInformation peakInfo;
+  private SimpleFeatureInformation featureInfo;
 
   // Data file of this chromatogram
   private RawDataFile dataFile;
@@ -540,12 +540,12 @@ public class ADAPChromatogram {
     this.af = af;
   }
 
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
-    this.peakInfo = peakInfoIn;
+  public void setFeatureInformation(SimpleFeatureInformation featureInfoIn) {
+    this.featureInfo = featureInfoIn;
   }
 
-  public SimplePeakInformation getPeakInformation() {
-    return peakInfo;
+  public SimpleFeatureInformation getFeatureInformation() {
+    return featureInfo;
   }
 
   public void setFragmentScanNumber(int fragmentScanNumber) {

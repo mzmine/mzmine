@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
@@ -46,7 +47,6 @@ import com.Ostermiller.util.Base64;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 
 public class PeakListSaveHandler {
@@ -219,7 +219,7 @@ public class PeakListSaveHandler {
     // atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
     // "CDATA", "INFORMATION");
     hd.startElement("", "", PeakListElementName.PEAK_INFORMATION.getElementName(), atts);
-    fillInformationElement(row.getPeakInformation(), hd);
+    fillInformationElement(row.getFeatureInformation(), hd);
     hd.endElement("", "", PeakListElementName.PEAK_INFORMATION.getElementName());
 
     // <PEAK>
@@ -283,7 +283,7 @@ public class PeakListSaveHandler {
 
   }
 
-  private void fillInformationElement(PeakInformation information, TransformerHandler hd)
+  private void fillInformationElement(FeatureInformation information, TransformerHandler hd)
       throws SAXException {
     if (information == null)
       return;

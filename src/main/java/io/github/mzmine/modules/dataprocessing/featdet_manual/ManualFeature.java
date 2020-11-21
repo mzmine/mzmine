@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
 import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
 import java.util.TreeMap;
@@ -31,7 +32,6 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 
@@ -40,7 +40,7 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class ManualFeature {
 
-  private SimplePeakInformation peakInfo;
+  private SimpleFeatureInformation featureInfo;
 
   private RawDataFile dataFile;
 
@@ -311,12 +311,12 @@ public class ManualFeature {
     int nothing = -1;
   }
 
-  public void setPeakInformation(SimplePeakInformation peakInfoIn) {
-    this.peakInfo = peakInfoIn;
+  public void setFeatureInformation(SimpleFeatureInformation featureInfoIn) {
+    this.featureInfo = featureInfoIn;
   }
 
-  public SimplePeakInformation getPeakInformation() {
-    return peakInfo;
+  public SimpleFeatureInformation getFeatureInformation() {
+    return featureInfo;
   }
 
   public void setFragmentScanNumber(int fragmentScanNumber) {

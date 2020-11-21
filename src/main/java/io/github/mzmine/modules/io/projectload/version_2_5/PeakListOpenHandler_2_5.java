@@ -18,11 +18,13 @@
 
 package io.github.mzmine.modules.io.projectload.version_2_5;
 
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -43,13 +45,11 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.modules.io.projectload.PeakListOpenHandler;
 
 public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListOpenHandler {
@@ -435,9 +435,9 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     }
 
     if (qName.equals(PeakListElementName_2_5.PEAK_INFORMATION.getElementName())) {
-      PeakInformation information = new SimplePeakInformation(informationProperties);
+      FeatureInformation information = new SimpleFeatureInformation(informationProperties);
 
-      buildingRow.setPeakInformation(information);
+      buildingRow.setFeatureInformation(information);
     }
 
     // <ROW>

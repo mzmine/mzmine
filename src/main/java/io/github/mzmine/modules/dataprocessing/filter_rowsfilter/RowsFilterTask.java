@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,7 +38,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -459,11 +459,11 @@ public class RowsFilterTask extends AbstractTask {
       newRow.addFeature(feature.getRawDataFile(), newFeature);
     }
 
-    // Add PeakInformation
-    if (row.getPeakInformation() != null) {
-      SimplePeakInformation information =
-          new SimplePeakInformation(new HashMap<>(row.getPeakInformation().getAllProperties()));
-      newRow.setPeakInformation(information);
+    // Add FeatureInformation
+    if (row.getFeatureInformation() != null) {
+      SimpleFeatureInformation information =
+          new SimpleFeatureInformation(new HashMap<>(row.getFeatureInformation().getAllProperties()));
+      newRow.setFeatureInformation(information);
     }
 
     return newRow;

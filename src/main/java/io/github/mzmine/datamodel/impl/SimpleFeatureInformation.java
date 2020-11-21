@@ -15,17 +15,16 @@
  */
 package io.github.mzmine.datamodel.impl;
 
+import io.github.mzmine.datamodel.FeatureInformation;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
-
-import io.github.mzmine.datamodel.PeakInformation;
 
 /**
  *
  * @author aleksandrsmirnov
  */
-public class SimplePeakInformation implements PeakInformation {
+public class SimpleFeatureInformation implements FeatureInformation {
 
   private final Map<String, String> properties;
 
@@ -33,16 +32,16 @@ public class SimplePeakInformation implements PeakInformation {
   // ----- Constructors -----------------------------------------------------
   // ------------------------------------------------------------------------
 
-  public SimplePeakInformation() {
+  public SimpleFeatureInformation() {
     properties = new HashMap<>();
   }
 
-  public SimplePeakInformation(String propertyName, String propertyValue) {
+  public SimpleFeatureInformation(String propertyName, String propertyValue) {
     this();
     properties.put(propertyName, propertyValue);
   }
 
-  public SimplePeakInformation(Map<String, String> properties) {
+  public SimpleFeatureInformation(Map<String, String> properties) {
     this.properties = properties;
   }
 
@@ -85,7 +84,7 @@ public class SimplePeakInformation implements PeakInformation {
 
   @Override
   @Nonnull
-  public synchronized SimplePeakInformation clone() {
-    return new SimplePeakInformation(new HashMap<>(properties));
+  public synchronized SimpleFeatureInformation clone() {
+    return new SimpleFeatureInformation(new HashMap<>(properties));
   }
 }

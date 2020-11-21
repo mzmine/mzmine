@@ -19,9 +19,9 @@
 package io.github.mzmine.datamodel.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data.types.AreaBarType;
 import io.github.mzmine.datamodel.data.types.AreaShareType;
@@ -95,7 +95,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   private float averageRT;
   private int rowCharge;
 
-  private PeakInformation peakInformation;
+  private FeatureInformation featureInformation;
 
   public ModularFeatureListRow(@Nonnull ModularFeatureList flist) {
     this.flist = flist;
@@ -424,13 +424,13 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setPeakInformation(PeakInformation peakInformation) {
-    this.peakInformation = peakInformation;
+  public void setFeatureInformation(FeatureInformation featureInformation) {
+    this.featureInformation = featureInformation;
   }
 
   @Override
-  public PeakInformation getPeakInformation() {
-    return peakInformation;
+  public FeatureInformation getFeatureInformation() {
+    return featureInformation;
   }
 
   @Override
