@@ -191,7 +191,7 @@ class FeatureLearnerTask extends AbstractTask {
 
     // Remove the original feature list if requested
     if (removeOriginal)
-      project.removePeakList(featureList);
+      project.removeFeatureList(featureList);
   }
 
 }

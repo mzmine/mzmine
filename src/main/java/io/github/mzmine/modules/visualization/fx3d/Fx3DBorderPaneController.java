@@ -200,7 +200,7 @@ public class Fx3DBorderPaneController {
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
     allDataFiles = Arrays.asList(MZmineCore.getProjectManager().getCurrentProject().getDataFiles());
-    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(new FeatureList[0]);
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);

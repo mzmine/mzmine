@@ -68,7 +68,7 @@ public class FeatureListsComponent extends BorderPane {
       if (type == FeatureListsSelectionType.SPECIFIC_FEATURELISTS) {
         final MultiChoiceParameter<FeatureList> plsParameter =
             new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
-                MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
+                MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new),
                 currentValue.getSpecificPeakLists());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);

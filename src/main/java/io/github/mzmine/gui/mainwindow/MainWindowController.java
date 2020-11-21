@@ -38,7 +38,6 @@ import javafx.application.Platform;
 import org.controlsfx.control.StatusBar;
 import com.google.common.collect.Ordering;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -606,7 +605,7 @@ public class MainWindowController {
   public void handleRemoveFeatureList(Event event) {
     FeatureList selectedFeatureLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
     for (FeatureList fl : selectedFeatureLists) {
-      MZmineCore.getProjectManager().getCurrentProject().removePeakList(fl);
+      MZmineCore.getProjectManager().getCurrentProject().removeFeatureList(fl);
     }
   }
 

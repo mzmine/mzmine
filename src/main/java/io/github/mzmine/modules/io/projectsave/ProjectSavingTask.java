@@ -70,7 +70,7 @@ public class ProjectSavingTask extends AbstractTask {
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     dataFilesIDMap = new Hashtable<RawDataFile, String>();
-    this.totalSaveItems = project.getDataFiles().length + project.getPeakLists().length;
+    this.totalSaveItems = project.getDataFiles().length + project.getFeatureLists().size();
   }
 
   /**
@@ -324,7 +324,7 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    FeatureList peakLists[] = savedProject.getPeakLists();
+    FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
 
     for (int i = 0; i < peakLists.length; i++) {
 

@@ -252,7 +252,7 @@ class LinearNormalizerTask extends AbstractTask {
 
     // Remove the original feature list if requested
     if (removeOriginal)
-      project.removePeakList(originalFeatureList);
+      project.removeFeatureList(originalFeatureList);
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);

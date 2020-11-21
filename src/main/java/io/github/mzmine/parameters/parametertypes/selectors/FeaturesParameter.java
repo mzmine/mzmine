@@ -69,7 +69,8 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+    FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+        .getFeatureLists().toArray(FeatureList[]::new);
 
     List<Feature> newValues = new ArrayList<>();
 

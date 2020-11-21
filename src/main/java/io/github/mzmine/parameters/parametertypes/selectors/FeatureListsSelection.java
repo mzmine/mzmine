@@ -40,7 +40,7 @@ public class FeatureListsSelection implements Cloneable {
       case GUI_SELECTED_FEATURELISTS:
         return MZmineCore.getDesktop().getSelectedPeakLists();
       case ALL_FEATURELISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+        return MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new);
       case SPECIFIC_FEATURELISTS:
         if (specificPeakLists == null)
           return new FeatureList[0];
@@ -49,7 +49,8 @@ public class FeatureListsSelection implements Cloneable {
         if (Strings.isNullOrEmpty(namePattern))
           return new FeatureList[0];
         ArrayList<FeatureList> matchingPeakLists = new ArrayList<FeatureList>();
-        FeatureList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+        FeatureList allPeakLists[] = MZmineCore.getProjectManager().getCurrentProject()
+            .getFeatureLists().toArray(FeatureList[]::new);
 
         plCheck: for (FeatureList pl : allPeakLists) {
 

@@ -271,7 +271,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
     // Remove the original feature list if requested
     if (removeOriginal)
-      project.removePeakList(originalFeatureList);
+      project.removeFeatureList(originalFeatureList);
 
     logger.info("Finished standard compound normalizer");
     setStatus(TaskStatus.FINISHED);

@@ -112,7 +112,7 @@ public class RowsFilterTask extends AbstractTask {
           // Remove the original feature list if requested
           if (parameters.getParameter(RowsFilterParameters.AUTO_REMOVE).getValue()) {
 
-            project.removePeakList(origFeatureList);
+            project.removeFeatureList(origFeatureList);
           }
           setStatus(TaskStatus.FINISHED);
           logger.info("Finished feature list rows filter");

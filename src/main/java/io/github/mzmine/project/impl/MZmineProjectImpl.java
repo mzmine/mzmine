@@ -37,7 +37,6 @@ import javafx.collections.ObservableList;
  * This class represents a MZmine project. That includes raw data files, feature lists and
  * parameters.
  */
-// TODO: methods names: peak to feature
 public class MZmineProjectImpl implements MZmineProject {
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
@@ -170,11 +169,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public ModularFeatureList[] getPeakLists() {
-    return featureListsProperty.get().toArray(new ModularFeatureList[0]);
-  }
-
-  @Override
   public void addFeatureList(final FeatureList featureList) {
 
     assert featureList != null;
@@ -185,7 +179,7 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void removePeakList(final FeatureList featureList) {
+  public void removeFeatureList(final FeatureList featureList) {
 
     assert featureList != null;
 
@@ -195,8 +189,8 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public ModularFeatureList[] getPeakLists(RawDataFile file) {
-    FeatureList[] currentFeatureLists = getPeakLists();
+  public ModularFeatureList[] getFeatureLists(RawDataFile file) {
+    FeatureList[] currentFeatureLists = getFeatureLists().toArray(FeatureList[]::new);
     Vector<ModularFeatureList> result = new Vector<ModularFeatureList>();
     for (FeatureList featureList : currentFeatureLists) {
       if (featureList.hasRawDataFile(file))

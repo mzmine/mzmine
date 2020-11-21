@@ -120,7 +120,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   public void loadValueFromXML(Element xmlElement) {
 
     FeatureList[] currentDataPeakLists =
-        MZmineCore.getProjectManager().getCurrentProject().getPeakLists();
+        MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new);
 
     FeatureListsSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");

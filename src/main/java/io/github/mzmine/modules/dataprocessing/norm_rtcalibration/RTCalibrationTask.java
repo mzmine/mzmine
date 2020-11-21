@@ -215,7 +215,7 @@ class RTCalibrationTask extends AbstractTask {
 
       // Remove the original feature lists if requested
       if (removeOriginal)
-        project.removePeakList(originalFeatureLists[i]);
+        project.removeFeatureList(originalFeatureLists[i]);
 
     }
 
