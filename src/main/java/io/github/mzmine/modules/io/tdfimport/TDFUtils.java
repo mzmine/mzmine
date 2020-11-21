@@ -80,7 +80,7 @@ public class TDFUtils {
         return false;
       }
       timsdataLib = Native
-          .extractFromResourcePath("vendorlib/bruker/" + libraryFileName,
+          .extractFromResourcePath("/vendorlib/bruker/" + libraryFileName,
               TDFUtils.class.getClassLoader());
     } catch (IOException e) {
       e.printStackTrace();

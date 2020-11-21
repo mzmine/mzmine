@@ -293,9 +293,6 @@ runtime {
  */
 jar {
     sourceSets.main.resources.srcDirs += ["src/main/java"]
-    from("src/main/lib/vendor_lib") {
-        include "/bruker/*.*"
-    }
 }
 
 /*
