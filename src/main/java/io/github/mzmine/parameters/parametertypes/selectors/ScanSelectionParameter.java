@@ -19,13 +19,10 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import java.util.Collection;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.parameters.UserParameter;
@@ -87,6 +84,7 @@ public class ScanSelectionParameter
     Range<Integer> scanNumberRange = null;
     Integer baseFilteringInteger = null;
     Range<Double> scanRTRange = null;
+    Range<Double> scanMobilityRange = null;
     PolarityType polarity = null;
     MassSpectrumType spectrumType = null;
     Integer msLevel = null;
@@ -94,6 +92,7 @@ public class ScanSelectionParameter
 
     scanNumberRange = XMLUtils.parseIntegerRange(xmlElement, "scan_numbers");
     scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
+    scanMobilityRange = XMLUtils.parseDoubleRange(xmlElement, "mobility");
 
     NodeList items = xmlElement.getElementsByTagName("ms_level");
     for (int i = 0; i < items.getLength(); i++) {
@@ -119,8 +118,8 @@ public class ScanSelectionParameter
       scanDefinition = items.item(i).getTextContent();
     }
 
-    this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange, polarity,
-        spectrumType, msLevel, scanDefinition);
+    this.value = new ScanSelection(scanNumberRange, baseFilteringInteger, scanRTRange,
+        scanMobilityRange, polarity, spectrumType, msLevel, scanDefinition);
   }
 
   @Override
@@ -131,6 +130,7 @@ public class ScanSelectionParameter
 
     final Range<Integer> scanNumberRange = value.getScanNumberRange();
     final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
+    final Range<Double> scanMobilityRange = value.getScanMobilityRange();
     final Integer baseFilteringInteger = value.getBaseFilteringInteger();
     final PolarityType polarity = value.getPolarity();
     final MassSpectrumType spectrumType = value.getSpectrumType();
@@ -139,6 +139,7 @@ public class ScanSelectionParameter
 
     XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
     XMLUtils.appendRange(xmlElement, "retention_time", scanRetentionTimeRange);
+    XMLUtils.appendRange(xmlElement, "monbility", scanMobilityRange);
 
     if (baseFilteringInteger != null) {
       Element newElement = parentDocument.createElement("baseFilteringInteger");

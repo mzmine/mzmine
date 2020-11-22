@@ -138,10 +138,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   // color palettes
-//  @Override
-//  public Vision getColorVision() {
-//    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
-//  }
+  // @Override
+  // public Vision getColorVision() {
+  // return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
+  // }
 
   // Number formatting functions
   @Override
@@ -157,6 +157,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public NumberFormat getRTFormat() {
     return preferences.getParameter(MZminePreferences.rtFormat).getValue();
+  }
+
+  @Override
+  public NumberFormat getMobilityFormat() {
+    return preferences.getParameter(MZminePreferences.mobilityFormat).getValue();
   }
 
   @Override
