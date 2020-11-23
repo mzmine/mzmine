@@ -73,12 +73,14 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
   private String scanDescription = "";
   private Range<Double> scanMZRange = null;
 
-  private Range<Double> mobilityRange;
   private int[] mobilityScans;
   private int numberMoblityScans;
   private int mobilityScanCount;
   private MobilityType mobilityType;
   private int frameId = -1;
+  private double lowerMobilityRange;
+  private double upperMobilityRange;
+
 
   private boolean canceled = false;
 
@@ -293,6 +295,14 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       mobilityScans[mobilityScanCount++] = Integer.parseInt(getTextOfElement());
     }
 
+    if (qName.equals(RawDataElementName_3_0.LOWER_MOBILITY_RANGE.getElementName())) {
+      lowerMobilityRange = Double.parseDouble(getTextOfElement());
+    }
+
+    if (qName.equals(RawDataElementName_3_0.UPPER_MOBILITY_RANGE.getElementName())) {
+      upperMobilityRange = Double.parseDouble(getTextOfElement());
+    }
+
     if (qName.equals(RawDataElementName_3_0.SCAN.getElementName())) {
 
       final StorableScan storableScan = new StorableScan(newRawDataFile, currentStorageID,
@@ -320,7 +330,7 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
       final StorableFrame storableScan = new StorableFrame(newRawDataFile, currentStorageID,
           dataPointsNumber, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge,
           fragmentScan, null, polarity, scanDescription, scanMZRange, frameId,
-          mobilityType, mobilityRange,
+          mobilityType, Range.closed(lowerMobilityRange, upperMobilityRange),
           Arrays.stream(mobilityScans).boxed().collect(Collectors.toList()));
 
       try {
@@ -376,11 +386,12 @@ public class RawDataFileOpenHandler_3_0 extends DefaultHandler implements RawDat
     scanDescription = "";
     scanMZRange = null;
 
-    mobilityRange = Range.singleton(0d);
     mobilityScans = null;
     numberMoblityScans = 0;
     mobilityScanCount = 0;
     mobilityType = MobilityType.NONE;
     frameId = -1;
+    lowerMobilityRange = 0.0d;
+    upperMobilityRange = 0.0d;
   }
 }

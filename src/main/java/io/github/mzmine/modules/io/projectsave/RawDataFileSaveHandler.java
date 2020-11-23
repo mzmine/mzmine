@@ -387,6 +387,16 @@ class RawDataFileSaveHandler {
     hd.characters(frameId.toCharArray(), 0, frameId.length());
     hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
 
+    hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
+    hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,
+        frame.getMobilityRange().lowerEndpoint().toString().toCharArray().length);
+    hd.endElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName());
+
+    hd.startElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName(), atts);
+    hd.characters(frame.getMobilityRange().upperEndpoint().toString().toCharArray(), 0,
+        frame.getMobilityRange().upperEndpoint().toString().toCharArray().length);
+    hd.endElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName());
+
     List<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
     atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
         String.valueOf(mobilityScanNumbers.size()));

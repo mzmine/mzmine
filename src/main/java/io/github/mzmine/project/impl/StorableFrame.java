@@ -66,7 +66,7 @@ public class StorableFrame extends StorableScan implements Frame {
     for (int scannum : originalFrame.getMobilityScanNumbers()) {
       Scan scan = rawDataFile.getScan(scannum);
       if (scan != null) {
-        mobilityScans.put(scannum, scan);
+        addMobilityScan(scan);
       }
     }
   }
@@ -89,7 +89,10 @@ public class StorableFrame extends StorableScan implements Frame {
 
     mobilityScans = new TreeMap<>();
     for (int scannum : mobilityScanNumbers) {
-      mobilityScans.put(scannum, rawDataFile.getScan(scannum));
+      Scan scan = rawDataFile.getScan(scannum);
+      if(scan != null) {
+        addMobilityScan(scan);
+      }
     }
   }
 
@@ -125,5 +128,13 @@ public class StorableFrame extends StorableScan implements Frame {
   @Override
   public List<Scan> getMobilityScans() {
     return new ArrayList<>(mobilityScans.values());
+  }
+
+  protected final void addMobilityScan(Scan mobilityScan) {
+    if (!mobilityRange.contains(mobilityScan.getMobility())) {
+      mobilityRange = mobilityRange.span(Range.singleton(mobilityScan.getMobility()));
+    }
+
+    mobilityScans.put(mobilityScan.getScanNumber(), mobilityScan);
   }
 }

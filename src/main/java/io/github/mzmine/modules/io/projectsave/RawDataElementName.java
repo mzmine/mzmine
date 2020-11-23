@@ -53,7 +53,9 @@ enum RawDataElementName {
   QUANTITY_FRAMES("num_frames"),
   MOBILITY_SCANNUM("mobility_scannum"),
   QUANTITY_MOBILITY_SCANS("num_mobility_scans"),
-  MOBILITY_SCAN("mobility_scan");
+  MOBILITY_SCAN("mobility_scan"),
+  LOWER_MOBILITY_RANGE("lower_mobility_range"),
+  UPPER_MOBILITY_RANGE("upper_mobility_range");
 
   private String elementName;
 
