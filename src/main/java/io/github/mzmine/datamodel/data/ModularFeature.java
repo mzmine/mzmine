@@ -145,6 +145,19 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(AsymmetryFactorType.class, af);
     }
   }
+  /**
+   * Initializes a new feature using given feature list and values
+   *
+   */
+  public ModularFeature(@Nonnull ModularFeatureList featureList, RawDataFile dataFile, double mz, float rt,
+      double height, double area, int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
+      int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
+      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
+      @Nonnull Range<Float> intensityRange) {
+    this(dataFile, mz, rt, height, area, scanNumbers, dataPointsPerScan, featureStatus, representativeScan,
+        fragmentScanNumber, allMS2FragmentScanNumbers, rtRange, mzRange, intensityRange);
+    setFeatureList(featureList);
+  }
 
   /**
    * Copy constructor
