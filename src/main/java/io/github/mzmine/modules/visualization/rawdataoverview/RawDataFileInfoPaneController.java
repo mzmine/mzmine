@@ -59,10 +59,10 @@ public class RawDataFileInfoPaneController {
   private TableColumn<ScanDescription, String> rtColumn;
 
   @FXML
-  private TableColumn<ScanDescription, Double> baseFeatureColumn;
+  private TableColumn<ScanDescription, Double> basePeakColumn;
 
   @FXML
-  private TableColumn<ScanDescription, String> baseFeatureIntensityColumn;
+  private TableColumn<ScanDescription, String> basePeakIntensityColumn;
 
   @FXML
   private TableColumn<ScanDescription, String> msLevelColumn;
@@ -159,8 +159,8 @@ public class RawDataFileInfoPaneController {
     scanColumn.setCellValueFactory(new PropertyValueFactory<>("scanNumber"));
     rtColumn.setCellValueFactory(new PropertyValueFactory<>("retentionTime"));
     msLevelColumn.setCellValueFactory(new PropertyValueFactory<>("msLevel"));
-    baseFeatureColumn.setCellValueFactory(new PropertyValueFactory<>("baseFeature"));
-    baseFeatureIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("baseFeatureIntensity"));
+    basePeakColumn.setCellValueFactory(new PropertyValueFactory<>("basePeak"));
+    basePeakIntensityColumn.setCellValueFactory(new PropertyValueFactory<>("basePeakIntensity"));
     precursorMzColumn.setCellValueFactory(new PropertyValueFactory<>("precursorMz"));
     mzRangeColumn.setCellValueFactory(new PropertyValueFactory<>("mzRange"));
     scanTypeColumn.setCellValueFactory(new PropertyValueFactory<>("scanType"));
@@ -171,8 +171,8 @@ public class RawDataFileInfoPaneController {
     scanColumn.setComparator(new StringToDoubleComparator());
     rtColumn.setComparator(new StringToDoubleComparator());
     msLevelColumn.setComparator(new StringToDoubleComparator());
-//    baseFeatureColumn.setComparator(new StringToDoubleComparator());
-    baseFeatureIntensityColumn.setComparator(new StringToDoubleComparator());
+//    basePeakColumn.setComparator(new StringToDoubleComparator());
+    basePeakIntensityColumn.setComparator(new StringToDoubleComparator());
     mobilityColumn.setComparator(new StringToDoubleComparator());
 
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
@@ -263,12 +263,12 @@ public class RawDataFileInfoPaneController {
             mzFormat.format(scan.getDataPointMZRange().lowerEndpoint())
                 + "-" + mzFormat.format(scan.getDataPointMZRange().upperEndpoint());
 
-        String baseFeatureMZ = "-";
-        String baseFeatureIntensity = "-";
+        String basePeakMZ = "-";
+        String basePeakIntensity = "-";
 
         if (scan.getHighestDataPoint() != null) {
-          baseFeatureMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
-          baseFeatureIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
+          basePeakMZ = mzFormat.format(scan.getHighestDataPoint().getMZ());
+          basePeakIntensity = itFormat.format(scan.getHighestDataPoint().getIntensity());
         }
 
         tableData.add(new ScanDescription(Integer.toString(i), // scan number
@@ -280,8 +280,8 @@ public class RawDataFileInfoPaneController {
             scan.getPolarity().toString(), // polarity
             scan.getScanDefinition(),      // definition
             mobility,  // mobility
-            baseFeatureMZ, // base feature mz
-            baseFeatureIntensity) // base feature intensity
+            basePeakMZ, // base peak mz
+            basePeakIntensity) // base peak intensity
         );
 
         perc = i / (numberOfScans + 1);

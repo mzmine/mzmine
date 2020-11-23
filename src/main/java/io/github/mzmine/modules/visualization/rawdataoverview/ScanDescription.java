@@ -34,12 +34,12 @@ public class ScanDescription {
   private String polarity;
   private String definition;
   private String mobility;
-  private String baseFeature;
-  private String baseFeatureIntensity;
+  private String basePeak;
+  private String basePeakIntensity;
 
 
   public ScanDescription(String scanNumber, String retentionTime, String msLevel, String precursorMz,
-      String mzRange, String scanType, String polarity, String definition, String mobility, String baseFeature, String baseFeatureIntensity) {
+      String mzRange, String scanType, String polarity, String definition, String mobility, String basePeak, String basePeakIntensity) {
     this.scanNumber = scanNumber;
     this.retentionTime = retentionTime;
     this.msLevel = msLevel;
@@ -49,8 +49,8 @@ public class ScanDescription {
     this.polarity = polarity;
     this.definition = definition;
     this.mobility = mobility;
-    this.baseFeature = baseFeature;
-    this.baseFeatureIntensity = baseFeatureIntensity;
+    this.basePeak = basePeak;
+    this.basePeakIntensity = basePeakIntensity;
   }
 
 
@@ -135,19 +135,19 @@ public class ScanDescription {
 
   public void setMobility(String mobility) { this.mobility = mobility; }
 
-  public String getBaseFeature() {
-    return baseFeature;
+  public String getBasePeak() {
+    return basePeak;
   }
 
-  public void setBaseFeature(String baseFeature) {
-    this.baseFeature = baseFeature;
+  public void setBasePeak(String basePeak) {
+    this.basePeak = basePeak;
   }
 
-  public String getBaseFeatureIntensity() {
-    return baseFeatureIntensity;
+  public String getBasePeakIntensity() {
+    return basePeakIntensity;
   }
 
-  public void setBaseFeatureIntensity(String baseFeatureIntensity) {
-    this.baseFeatureIntensity = baseFeatureIntensity;
+  public void setBasePeakIntensity(String basePeakIntensity) {
+    this.basePeakIntensity = basePeakIntensity;
   }
 }

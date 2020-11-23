@@ -43,7 +43,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   private RawDataFile rawDataFile;
 
   private float retentionTimes[];
-  private double baseFeatures[];
+  private double basePeaks[];
   private SoftReference<DataPoint[]> dataPointMatrix[];
 
   private final Range<Double> totalMZRange;
@@ -71,7 +71,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
     dataPointMatrix = new SoftReference[totalScans];
     retentionTimes = new float[totalScans];
-    baseFeatures = new double[totalScans];
+    basePeaks = new double[totalScans];
 
     MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
 
@@ -89,9 +89,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
         return;
 
       Scan scan = scans[index];
-      DataPoint scanBaseFeature = scan.getHighestDataPoint();
+      DataPoint scanBasePeak = scan.getHighestDataPoint();
       retentionTimes[index] = scan.getRetentionTime();
-      baseFeatures[index] = (scanBaseFeature == null ? 0 : scanBaseFeature.getIntensity());
+      basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak.getIntensity());
       DataPoint scanDataPoints[] = scan.getDataPoints();
       dataPointMatrix[index] = new SoftReference<DataPoint[]>(scanDataPoints);
       processedScans++;
@@ -189,7 +189,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
         && (searchRetentionTimes[scanIndex] <= rtRange.upperEndpoint())); scanIndex++) {
 
       // ignore scans where all peaks are smaller than current max
-      if (baseFeatures[scanIndex] < maxIntensity)
+      if (basePeaks[scanIndex] < maxIntensity)
         continue;
 
       double scanMax = upperEndpointIntensity(scanIndex, mzRange, plotMode);

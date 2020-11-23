@@ -73,7 +73,7 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calculating base feature chromatogram(s) of m/z " + mzFormat
+    return "Calculating base peak chromatogram(s) of m/z " + mzFormat
         .format((mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles
         .size() + " file(s).";
   }

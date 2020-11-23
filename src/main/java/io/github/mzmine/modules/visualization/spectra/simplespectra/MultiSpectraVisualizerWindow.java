@@ -227,7 +227,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
 
     // get EIC window
     TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{activeRaw}, // raw
-        TICPlotType.BASEFEATURE, // plot type
+        TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
         null,

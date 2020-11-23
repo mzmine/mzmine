@@ -61,7 +61,7 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
   private List<Double> targetedMZ_List;
   private List<Double> targetedNF_List;
   private File fileName;
-  private double baseFeaturePercent;
+  private double basePeakPercent;
   private Range<Double> rtRange;
   private Range<Double> mzRange;
   private Object xAxisType;
@@ -89,12 +89,12 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
 
     fileName = parameters.getParameter(ProductIonFilterParameters.fileName).getValue();
 
-    baseFeaturePercent =
-        parameters.getParameter(ProductIonFilterParameters.baseFeaturePercent).getValue();
+    basePeakPercent =
+        parameters.getParameter(ProductIonFilterParameters.basePeakPercent).getValue();
 
     // Set window components
     dataset = new ProductIonFilterDataSet(dataFile, xAxisType, rtRange, mzRange, this, mzDifference,
-        targetedMZ_List, targetedNF_List, baseFeaturePercent, fileName);
+        targetedMZ_List, targetedNF_List, basePeakPercent, fileName);
 
     productIonFilterPlot = new ProductIonFilterPlot(this);
     productIonFilterPlot.setAxisTypes(xAxisType);
@@ -207,7 +207,7 @@ public class ProductIonFilterVisualizerTab extends MZmineTab {
 
     // add new dataset
     ProductIonFilterDataSet newDataset = new ProductIonFilterDataSet(newFile, xAxisType, rtRange, mzRange, this, mzDifference,
-        targetedMZ_List, targetedNF_List, baseFeaturePercent, fileName);
+        targetedMZ_List, targetedNF_List, basePeakPercent, fileName);
     productIonFilterPlot.addProductionFilterDataSet(newDataset);
 
     dataFile = newFile;

@@ -229,12 +229,12 @@ public class FeatureUtils {
       Scan scan = dataFile.getScan(scanNumber);
 
       // Find most intense m/z feature
-      DataPoint baseFeature = ScanUtils.findBaseFeature(scan, mzRange);
+      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
-      if (baseFeature != null) {
-        if (baseFeature.getIntensity() > 0)
+      if (basePeak != null) {
+        if (basePeak.getIntensity() > 0)
           dataPointFound = true;
-        newFeature.addDatapoint(scan.getScanNumber(), baseFeature);
+        newFeature.addDatapoint(scan.getScanNumber(), basePeak);
       } else {
         final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
         DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);

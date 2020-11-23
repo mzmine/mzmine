@@ -138,7 +138,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     // Y-axis label.
     final String yAxisLabel =
-        (getPlotType() == TICPlotType.BASEFEATURE) ? "Base peak intensity" : "Total ion intensity";
+        (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
 
     // Initialize the chart by default time series chart from factory.
     chart = getChart();
@@ -166,7 +166,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // Set cursor.
     setCursor(Cursor.CROSSHAIR);
 
-    setPlotType(TICPlotType.BASEFEATURE);
+    setPlotType(TICPlotType.BASEPEAK);
 
     // }
 
@@ -667,7 +667,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     plotTypeProperty().set(plotType);
     // Y-axis label.
     String yAxisLabel =
-        (getPlotType() == TICPlotType.BASEFEATURE) ? "Base peak intensity" : "Total ion intensity";
+        (getPlotType() == TICPlotType.BASEPEAK) ? "Base peak intensity" : "Total ion intensity";
     getXYPlot().getRangeAxis().setLabel(yAxisLabel);
   }
 
@@ -782,7 +782,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       int index = dataSet.getIndex(selectedRT, selectedIT);
       if (index >= 0) {
         double mz = 0;
-        if (getPlotType() == TICPlotType.BASEFEATURE) {
+        if (getPlotType() == TICPlotType.BASEPEAK) {
           mz = dataSet.getZValue(0, index);
         }
         return new ChromatogramCursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),

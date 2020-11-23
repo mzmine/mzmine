@@ -57,7 +57,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
   private List<Double> targetedMZ_List;
   private List<Double> targetedNF_List;
   private File fileName;
-  private Double baseFeaturePercent;
+  private Double basePeakPercent;
 
   private TaskStatus status = TaskStatus.WAITING;
 
@@ -71,7 +71,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
   ProductIonFilterDataSet(RawDataFile rawDataFile, Object xAxisType, Range<Double> rtRange,
       Range<Double> mzRange, ProductIonFilterVisualizerTab visualizer, MZTolerance mzDifference,
-      List<Double> targetedMZ_List, List<Double> targetedNF_List, Double baseFeaturePercent,
+      List<Double> targetedMZ_List, List<Double> targetedNF_List, Double basePeakPercent,
       File fileName) {
 
     this.rawDataFile = rawDataFile;
@@ -91,9 +91,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     // output filename
     this.fileName = fileName;
 
-    // Percent of base feature of which product ions must be above in order to
+    // Percent of base peak of which product ions must be above in order to
     // include in analysis
-    this.baseFeaturePercent = baseFeaturePercent / 100;
+    this.basePeakPercent = basePeakPercent / 100;
 
     // get MS/MS scans
     scanNumbers = rawDataFile.getScanNumbers(2, RangeUtils.toFloatRange(rtRange));
@@ -147,9 +147,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
 
       // topFeatures will contain indexes to mzValues in scan above a
       // threshold defined as : 'scan
-      // baseFeature Intensity' * percent of base Feature to include
+      // basePeak Intensity' * percent of base peak to include
       List<Integer> topFeaturesList = new ArrayList<Integer>();
-      double highestIntensity = scan.getHighestDataPoint().getIntensity() * baseFeaturePercent;
+      double highestIntensity = scan.getHighestDataPoint().getIntensity() * basePeakPercent;
 
       for (int i = 0; i < scanDataPoints.length; i++) {
         // Cancel?

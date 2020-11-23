@@ -39,7 +39,7 @@ public class ChromatogramAndSpectraVisualizerParameters extends SimpleParameterS
       new ScanSelection(null, null, null, null, null, 1, null));
 
   public static final ComboParameter<TICPlotType> plotType = new ComboParameter<>("Plot type",
-      "Type of the chromatogram plot.", TICPlotType.values(), TICPlotType.BASEFEATURE);
+      "Type of the chromatogram plot.", TICPlotType.values(), TICPlotType.BASEPEAK);
 
   public ChromatogramAndSpectraVisualizerParameters() {
     super(new Parameter[]{chromMzTolerance, scanSelection, plotType});

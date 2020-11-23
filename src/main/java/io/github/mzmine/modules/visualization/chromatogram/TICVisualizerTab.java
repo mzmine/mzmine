@@ -315,7 +315,7 @@ public class TICVisualizerTab extends MZmineTab {
       }
     }
 
-    if (plotType == TICPlotType.BASEFEATURE) {
+    if (plotType == TICPlotType.BASEPEAK) {
       if (ticOrXIC.equals("TIC")) {
         mainTitle.append("Base peak chromatogram");
       } else {
@@ -341,7 +341,7 @@ public class TICVisualizerTab extends MZmineTab {
         subTitle.append(" (" + pos.getDataFile() + ")");
       }
       subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-      if (plotType == TICPlotType.BASEFEATURE) {
+      if (plotType == TICPlotType.BASEPEAK) {
         subTitle.append(", base peak: " + mzFormat.format(pos.getMzValue()) + " m/z");
       }
       subTitle.append(", IC: " + intensityFormat.format(pos.getIntensityValue()));
@@ -499,7 +499,7 @@ public class TICVisualizerTab extends MZmineTab {
       int index = dataSet.getIndex(selectedRT, selectedIT);
       if (index >= 0) {
         double mz = 0;
-        if (plotType == TICPlotType.BASEFEATURE) {
+        if (plotType == TICPlotType.BASEPEAK) {
           mz = dataSet.getZValue(0, index);
         }
         ChromatogramCursorPosition pos = new ChromatogramCursorPosition(selectedRT, mz, selectedIT,

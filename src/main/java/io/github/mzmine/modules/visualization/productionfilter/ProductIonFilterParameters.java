@@ -59,9 +59,9 @@ public class ProductIonFilterParameters extends SimpleParameterSet {
       new ListDoubleParameter("Diagnostic neutral loss values (Da)",
           "Neutral loss m/z-values that must be included in MS/MS", false, null);
 
-  public static final DoubleParameter baseFeaturePercent = new DoubleParameter(
-      "Minimum diagnostic ion intensity (% base feature)",
-      "Percent of scan base feature of which ms/ms product ions must be above to be included in analysis",
+  public static final DoubleParameter basePeakPercent = new DoubleParameter(
+      "Minimum diagnostic ion intensity (% base peak)",
+      "Percent of scan base peak of which ms/ms product ions must be above to be included in analysis",
       MZmineCore.getConfiguration().getRTFormat(), 5.0);
 
   public static final FileNameParameter fileName = new FileNameParameter("FeatureList output file",
@@ -76,7 +76,7 @@ public class ProductIonFilterParameters extends SimpleParameterSet {
 
   public ProductIonFilterParameters() {
     super(new Parameter[] {dataFiles, xAxisType, retentionTimeRange, mzRange, windowSettings,
-        mzDifference, targetedMZ_List, targetedNF_List, baseFeaturePercent, fileName});
+        mzDifference, targetedMZ_List, targetedNF_List, basePeakPercent, fileName});
   }
 
 }

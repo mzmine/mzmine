@@ -92,7 +92,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   public TICDataSet(final RawDataFile file, final Scan scans[], final Range<Double> rangeMZ,
       final TICVisualizerTab window) {
     this(file, scans, rangeMZ, window,
-        ((window != null) ? window.getPlotType() : TICPlotType.BASEFEATURE));
+        ((window != null) ? window.getPlotType() : TICPlotType.BASEPEAK));
   }
 
   /**
@@ -369,7 +369,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       // Determine base peak value.
       final DataPoint basePeak =
           mzRange.encloses(scan.getDataPointMZRange()) ? scan.getHighestDataPoint()
-              : ScanUtils.findBaseFeature(scan, mzRange);
+              : ScanUtils.findBasePeak(scan, mzRange);
 
       if (basePeak != null) {
 
@@ -384,7 +384,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
             : ScanUtils.calculateTIC(scan, mzRange);
 
-      } else if (plotType == TICPlotType.BASEFEATURE && basePeak != null) {
+      } else if (plotType == TICPlotType.BASEPEAK && basePeak != null) {
 
         intensity = basePeak.getIntensity();
       }

@@ -111,24 +111,24 @@ public class ScanUtils {
   }
 
   /**
-   * Find a base feature of a given scan in a given m/z range
+   * Find a base peak of a given scan in a given m/z range
    * 
    * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base feature m/z and intensity
+   * @return double[2] containing base peak m/z and intensity
    */
-  public static @Nonnull DataPoint findBaseFeature(@Nonnull Scan scan,
+  public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
       @Nonnull Range<Double> mzRange) {
 
     DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-    DataPoint baseFeature = null;
+    DataPoint basePeak = null;
 
     for (DataPoint dp : dataPoints) {
-      if ((baseFeature == null) || (dp.getIntensity() > baseFeature.getIntensity()))
-        baseFeature = dp;
+      if ((basePeak == null) || (dp.getIntensity() > basePeak.getIntensity()))
+        basePeak = dp;
     }
 
-    return baseFeature;
+    return basePeak;
   }
 
   /**
@@ -474,7 +474,7 @@ public class ScanUtils {
     if (dataPoints.length < 5)
       return MassSpectrumType.CENTROIDED;
 
-    int baseFeatureIndex = 0;
+    int basePeakIndex = 0;
     boolean hasZeroDataPoint = false;
 
     // Go through the data points and find the highest one
@@ -485,8 +485,8 @@ public class ScanUtils {
       mzValues[i] = dataPoints[i].getMZ();
 
       // Update the maxDataPointIndex accordingly
-      if (intensityValues[i] > intensityValues[baseFeatureIndex])
-        baseFeatureIndex = i;
+      if (intensityValues[i] > intensityValues[basePeakIndex])
+        basePeakIndex = i;
 
       if (intensityValues[i] == 0.0)
         hasZeroDataPoint = true;
@@ -494,14 +494,14 @@ public class ScanUtils {
 
     final double scanMzSpan = mzValues[size - 1] - mzValues[0];
 
-    // Find the all data points around the base feature that have intensity
+    // Find the all data points around the base peak that have intensity
     // above half maximum
-    final double halfIntensity = intensityValues[baseFeatureIndex] / 2.0;
-    int leftIndex = baseFeatureIndex;
+    final double halfIntensity = intensityValues[basePeakIndex] / 2.0;
+    int leftIndex = basePeakIndex;
     while ((leftIndex > 0) && intensityValues[leftIndex - 1] > halfIntensity) {
       leftIndex--;
     }
-    int rightIndex = baseFeatureIndex;
+    int rightIndex = basePeakIndex;
     while ((rightIndex < size - 1) && intensityValues[rightIndex + 1] > halfIntensity) {
       rightIndex++;
     }
@@ -536,7 +536,7 @@ public class ScanUtils {
     assert mzRange != null;
 
     int bestFragmentScan = -1;
-    double topBaseFeature = 0;
+    double topBasePeak = 0;
 
     int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
 
@@ -546,15 +546,15 @@ public class ScanUtils {
 
       if (mzRange.contains(scan.getPrecursorMZ())) {
 
-        DataPoint baseFeature = scan.getHighestDataPoint();
+        DataPoint basePeak = scan.getHighestDataPoint();
 
-        // If there is no feature in the scan, baseFeature can be null
-        if (baseFeature == null)
+        // If there is no feature in the scan, basePeak can be null
+        if (basePeak == null)
           continue;
 
-        if (baseFeature.getIntensity() > topBaseFeature) {
+        if (basePeak.getIntensity() > topBasePeak) {
           bestFragmentScan = scan.getScanNumber();
-          topBaseFeature = baseFeature.getIntensity();
+          topBasePeak = basePeak.getIntensity();
         }
       }
 

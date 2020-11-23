@@ -534,7 +534,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       // create dataset
       TICSumDataSet data =
-          new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null, TICPlotType.BASEFEATURE);
+          new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null, TICPlotType.BASEPEAK);
       chart = new TICPlot();
       chart.addDataSet(data);
       if (domainZoom != null)

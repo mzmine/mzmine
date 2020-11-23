@@ -133,7 +133,7 @@ public class FeatureOverviewWindow extends Stage {
     List<Feature> featureSelection = row.getFeatures();
 
     TICVisualizerTab window = new TICVisualizerTab(rawFiles, // raw
-        TICPlotType.BASEFEATURE, // plot type
+        TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
         featureSelection, // selected features

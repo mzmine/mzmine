@@ -249,7 +249,7 @@ public class ScatterPlotChart extends EChartViewer {
 
       ChromatogramVisualizerModule.showNewTICVisualizerWindow(
           featureList.getRawDataFiles().toArray(RawDataFile[]::new),
-          Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEFEATURE,
+          Collections.singletonList(bestPeak), labelMap, scanSelection, TICPlotType.BASEPEAK,
           mzRange);
     }
 

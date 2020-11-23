@@ -119,7 +119,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final ObjectProperty<SpectrumCursorPosition> spectrumPosition;
 
   /**
-   * Tolerance range for the feature chromatograms of the base feature in the selected scan. Listener
+   * Tolerance range for the feature chromatograms of the base peak in the selected scan. Listener
    * calls {@link ChromatogramAndSpectraVisualizer#updateFeatureDataSets(double)}.
    */
   protected final ObjectProperty<MZTolerance> chromMzTolerance;
@@ -506,7 +506,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param mz
    */
   private void updateFeatureDataSets(double mz) {
-    // mz of the base feature in the selected scan of the selected raw data file.
+    // mz of the base peak in the selected scan of the selected raw data file.
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
