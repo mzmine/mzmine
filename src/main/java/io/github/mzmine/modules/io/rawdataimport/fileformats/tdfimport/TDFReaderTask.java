@@ -16,21 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataFileWriter;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.tdfimport.datamodel.BrukerScanMode;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameMsMsInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPasefFrameMsMsInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFPrecursorTable;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -59,6 +62,7 @@ public class TDFReaderTask extends AbstractTask {
   private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final FramePrecursorTable framePrecursorTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
+  private final RawDataFileWriter newMZmineFile;
 
   private double finishedPercentage;
   private boolean isMaldi;
@@ -85,9 +89,23 @@ public class TDFReaderTask extends AbstractTask {
    * @param tdf
    * @param tdfBin
    */
-  public TDFReaderTask(File tdf, File tdfBin) {
-    this.tdf = tdf;
-    this.tdfBin = tdfBin;
+  public TDFReaderTask(MZmineProject project, File file, RawDataFileWriter newMZmineFile) {
+    File[] files = new File[2];
+    if(file.isDirectory()) {
+      files = getDataFilesFromDir(file);
+    } else {
+      files = getDataFilesFromDir(file.getParentFile());
+    }
+
+    this.tdf = files[0];
+    this.tdfBin = files[0];
+
+    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
+        || !tdfBin.exists() || !tdfBin.canRead()) {
+      throw new IllegalArgumentException(
+          "\"Cannot open sql or bin files: \" + tdf.getName() + \"; \" + tdfBin.getName()");
+    }
+
     metaDataTable = new TDFMetaDataTable();
     frameTable = new TDFFrameTable();
     precursorTable = new TDFPrecursorTable();
@@ -97,13 +115,14 @@ public class TDFReaderTask extends AbstractTask {
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     isMaldi = false;
 
-    if (tdf == null || tdfBin == null || !tdf.exists() || !tdf.canRead()
-        || !tdfBin.exists() || !tdfBin.canRead()) {
-      throw new IllegalArgumentException(
-          "\"Cannot open sql or bin files: \" + tdf.getName() + \"; \" + tdfBin.getName()");
+    rawDataFileName = tdfBin.getParentFile().getName();
+
+    if(!(newMZmineFile instanceof IMSRawDataFileImpl)) {
+      throw new IllegalArgumentException("Raw data file was not recognised as IMSRawDataFile.");
     }
 
-    rawDataFileName = tdfBin.getParentFile().getName();
+    this.newMZmineFile = newMZmineFile;
+    ((IMSRawDataFile)newMZmineFile).setName(rawDataFileName);
 
     setStatus(TaskStatus.WAITING);
   }
@@ -123,15 +142,6 @@ public class TDFReaderTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
     readMetadata();
-
-    RawDataFileWriter newMZmineFile;
-    try {
-      newMZmineFile = MZmineCore.createNewIMSFile(rawDataFileName);
-    } catch (IOException e) {
-      e.printStackTrace();
-      setStatus(TaskStatus.ERROR);
-      return;
-    }
 
     long handle = TDFUtils.openFile(tdfBin);
     int numFrames = frameTable.getNumberOfFrames();
@@ -307,6 +317,44 @@ public class TDFReaderTask extends AbstractTask {
         TDFUtils.close(handle);
       }
     }
+  }
+
+  private File[] getDataFilesFromDir(File dir) {
+
+    if (!dir.exists() || !dir.isDirectory()) {
+      throw new IllegalArgumentException("Invalid directory.");
+    }
+
+    if (!dir.getAbsolutePath().endsWith(".d")) {
+      throw new IllegalArgumentException("Invalid directory ending..");
+    }
+
+    File[] files = dir.listFiles(pathname -> {
+      if (pathname.getAbsolutePath().endsWith(".tdf") || pathname.getAbsolutePath()
+          .endsWith(".tdf_bin")) {
+        return true;
+      }
+      return false;
+    });
+
+    if(files.length != 2) {
+      return null;
+    }
+
+    File tdf = Arrays.stream(files).filter(c -> {
+      if(c.getAbsolutePath().endsWith(".tdf")) {
+        return true;
+      }
+      return false;
+    }).findAny().get();
+    File tdf_bin = Arrays.stream(files).filter(c -> {
+      if(c.getAbsolutePath().endsWith(".tdf_bin")) {
+        return true;
+      }
+      return false;
+    }).findAny().get();
+
+    return new File[] {tdf, tdf_bin};
   }
 
 }

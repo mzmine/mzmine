@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.io.tdfimport.datamodel.callbacks;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks;
 
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.DataPoint;
@@ -6,7 +6,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MutlipleCentroidData implements CentroidCallback {
+public class MultipleCentroidData implements CentroidCallback {
 
   public class CentroidDataPoints {
     public long precursorId = 0;

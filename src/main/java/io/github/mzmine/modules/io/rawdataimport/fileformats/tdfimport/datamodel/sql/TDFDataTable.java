@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport.datamodel.sql;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

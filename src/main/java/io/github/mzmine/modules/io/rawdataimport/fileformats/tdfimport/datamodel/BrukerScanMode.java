@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.io.tdfimport.datamodel;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel;
 
 public enum BrukerScanMode {
 

@@ -16,10 +16,10 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;

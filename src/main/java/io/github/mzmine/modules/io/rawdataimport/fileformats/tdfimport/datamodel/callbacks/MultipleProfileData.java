@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.io.tdfimport.datamodel.callbacks;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks;
 
 import com.sun.jna.Pointer;
 import java.util.HashMap;

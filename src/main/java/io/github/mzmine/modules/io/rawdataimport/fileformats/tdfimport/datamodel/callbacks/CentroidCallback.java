@@ -16,14 +16,12 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import com.sun.jna.Callback;
+import com.sun.jna.Pointer;
 
-public class TDFImportParameters extends SimpleParameterSet {
+public interface CentroidCallback extends Callback {
 
-  public TDFImportParameters() {
-    super(new Parameter[]{});
-  }
+  void invoke(long precursor_id, int num_peaks, Pointer pMz, Pointer pIntensites, Pointer userData);
 }

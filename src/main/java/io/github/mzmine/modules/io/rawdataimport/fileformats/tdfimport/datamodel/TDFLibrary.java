@@ -16,15 +16,16 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport.datamodel;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel;
 
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidCallback;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.MultipleProfileData;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileCallback;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.CentroidCallback;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.CentroidData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.MultipleProfileData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.MultipleCentroidData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.ProfileCallback;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.ProfileData;
 
 /**
  * Inteface for Java Native Access for Bruker Daltonic's tdf data format.
@@ -146,7 +147,7 @@ public interface TDFLibrary extends Library {
    * @return 0 on error
    */
   long tims_read_pasef_msms_for_frame_v2(long handle, long frameId,
-      io.github.mzmine.modules.io.tdfimport.brukerexample.TDFBinExample.TDFLibrary.MsMsCallback my_callback);
+      MultipleCentroidData my_callback);
 
   /**
    * TODO test

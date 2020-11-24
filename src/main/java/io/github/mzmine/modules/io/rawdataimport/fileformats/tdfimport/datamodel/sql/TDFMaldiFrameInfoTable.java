@@ -1,7 +1,6 @@
-package io.github.mzmine.modules.io.tdfimport.datamodel.sql;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql;
 
 import java.util.Arrays;
-import org.apache.poi.ss.formula.functions.T;
 
 public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
 

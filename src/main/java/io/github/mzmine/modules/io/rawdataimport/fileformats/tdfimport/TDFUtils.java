@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.io.tdfimport;
+package io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -24,21 +24,20 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.tdfimport.datamodel.BrukerScanMode;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.CentroidData;
-import io.github.mzmine.modules.io.tdfimport.datamodel.TDFLibrary;
-import io.github.mzmine.modules.io.tdfimport.datamodel.callbacks.ProfileData;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFFrameTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
-import io.github.mzmine.modules.io.tdfimport.datamodel.sql.TDFMetaDataTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.CentroidData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.callbacks.ProfileData;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.FramePrecursorTable.FramePrecursorInfo;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFFrameTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMaldiFrameInfoTable;
+import io.github.mzmine.modules.io.rawdataimport.fileformats.tdfimport.datamodel.sql.TDFMetaDataTable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
