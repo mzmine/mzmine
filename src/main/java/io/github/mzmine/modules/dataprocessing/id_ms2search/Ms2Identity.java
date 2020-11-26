@@ -18,12 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 
-public class Ms2Identity extends SimplePeakIdentity {
+public class Ms2Identity extends SimpleFeatureIdentity {
 
   public Ms2Identity(final Feature featureA, final Feature featureB, Ms2SearchResult searchResult) {
 

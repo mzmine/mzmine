@@ -18,14 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,11 +51,11 @@ public class Ms2SearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakList1[] =
-        parameters.getParameter(Ms2SearchParameters.peakList1).getValue().getMatchingPeakLists();
+    FeatureList peakList1[] =
+        parameters.getParameter(Ms2SearchParameters.peakList1).getValue().getMatchingFeatureLists();
 
-    PeakList peakList2[] =
-        parameters.getParameter(Ms2SearchParameters.peakList2).getValue().getMatchingPeakLists();
+    FeatureList peakList2[] =
+        parameters.getParameter(Ms2SearchParameters.peakList2).getValue().getMatchingFeatureLists();
 
     // Previously iterated over all the peaklists & did a separate task for
     // each.
