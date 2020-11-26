@@ -18,6 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -28,15 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidate;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.Candidates;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.PeakListHandler;
@@ -47,8 +49,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.PeakListRowSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -68,16 +68,16 @@ public class NeutralLossFilterTask extends AbstractTask {
   private double minHeight;
   private int totalRows, finishedRows;
   private String molecule;
-  private PeakList resultPeakList;
+  private FeatureList resultPeakList;
   private MZmineProject project;
-  private PeakList peakList;
+  private FeatureList peakList;
   private boolean checkRT;
 
   private double dMassLoss;
   IIsotope[] el;
   private IMolecularFormula formula;
 
-  NeutralLossFilterTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
     this.parameters = parameters;
     this.project = project;
     this.peakList = peakList;
@@ -145,18 +145,18 @@ public class NeutralLossFilterTask extends AbstractTask {
     }
 
     // get all rows and sort by m/z
-    PeakListRow[] rows = peakList.getRows().toArray(PeakListRow[]::new);
-    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    FeatureListRow[] rows = peakList.getRows().toArray(FeatureListRow[]::new);
+    Arrays.sort(rows, new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
 
-    resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
+    resultPeakList = new ModularFeatureList(peakList.getName() + suffix, peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (rows[i].getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().size() > 0) {
         finishedRows++;
         continue;
       }
@@ -166,7 +166,7 @@ public class NeutralLossFilterTask extends AbstractTask {
       // now get all peaks that lie within RT and maxIsotopeMassRange:
       // pL[index].mz ->
       // pL[index].mz+maxMass
-      ArrayList<PeakListRow> groupedPeaks =
+      ArrayList<FeatureListRow> groupedPeaks =
           groupPeaks(rows, i, diff.get(diff.size() - 1).doubleValue());
 
       if (groupedPeaks.size() < 2) {
@@ -253,12 +253,12 @@ public class NeutralLossFilterTask extends AbstractTask {
 
       String comParent = "", comChild = "";
 
-      PeakListRow originalChild = getRowFromCandidate(candidates, 0, plh);
+      FeatureListRow originalChild = getRowFromCandidate(candidates, 0, plh);
       if (originalChild == null) {
         finishedRows++;
         continue;
       }
-      PeakListRow child = copyPeakRow(originalChild);
+      FeatureListRow child = copyPeakRow(originalChild);
 
       if (resultMap.containsID(child.getID()))
         comChild += resultMap.getRowByID(child.getID()).getComment();
@@ -266,7 +266,7 @@ public class NeutralLossFilterTask extends AbstractTask {
       comChild += "Parent ID: " + candidates.get(1).getCandID();
       addComment(child, comChild);
 
-      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      List<FeatureListRow> rowBuffer = new ArrayList<FeatureListRow>();
       boolean allPeaksAddable = true;
 
       rowBuffer.add(child);
@@ -276,14 +276,14 @@ public class NeutralLossFilterTask extends AbstractTask {
                                                   // which we
                                                   // added before
       {
-        PeakListRow originalParent = getRowFromCandidate(candidates, 1, plh);
+        FeatureListRow originalParent = getRowFromCandidate(candidates, 1, plh);
 
         if (originalParent == null) {
           allPeaksAddable = false;
           continue;
         }
 
-        PeakListRow parent = copyPeakRow(originalParent);
+        FeatureListRow parent = copyPeakRow(originalParent);
 
         if (resultMap.containsID(parent.getID()))
           comParent += resultMap.getRowByID(parent.getID()).getComment();
@@ -301,7 +301,7 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       if (allPeaksAddable)
-        for (PeakListRow row : rowBuffer)
+        for (FeatureListRow row : rowBuffer)
           resultMap.addRow(row);
 
       if (isCanceled())
@@ -356,19 +356,19 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
    *         -> pL[parentIndex].mz+maxMass
    */
-  private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff) {
-    ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
+  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex, double maxDiff) {
+    ArrayList<FeatureListRow> buf = new ArrayList<FeatureListRow>();
 
     buf.add(pL[parentIndex]); // this means the result will contain
                               // row(parentIndex) itself
 
     double mz = pL[parentIndex].getAverageMZ();
-    double rt = pL[parentIndex].getAverageRT();
+    float rt = pL[parentIndex].getAverageRT();
 
     for (int i = parentIndex + 1; i < pL.length; i++) // will not add the
                                                       // parent peak itself
     {
-      PeakListRow r = pL[i];
+      FeatureListRow r = pL[i];
       // check for rt
 
       if (r.getAverageHeight() < minHeight)
@@ -396,16 +396,17 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @param row the row to copy.
    * @return the newly created copy.
    */
-  private static PeakListRow copyPeakRow(final PeakListRow row) {
+  private static FeatureListRow copyPeakRow(final FeatureListRow row) {
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow(
+        (ModularFeatureList) row.getFeatureList(), row.getID());
+    FeatureUtils.copyFeatureListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-      final Feature newPeak = new SimpleFeature(peak);
-      PeakUtils.copyPeakProperties(peak, newPeak);
-      newRow.addPeak(peak.getDataFile(), newPeak);
+    for (final Feature peak : row.getFeatures()) {
+      final Feature newPeak = new ModularFeature(peak);
+      FeatureUtils.copyFeatureProperties(peak, newPeak);
+      newRow.addFeature(peak.getRawDataFile(), newPeak);
     }
 
     return newRow;
@@ -426,7 +427,7 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @param row PeakListRow to add the comment to
    * @param str comment to be added
    */
-  public static void addComment(PeakListRow row, String str) { // maybe add
+  public static void addComment(FeatureListRow row, String str) { // maybe add
                                                                // this to
                                                                // PeakListRow
                                                                // class?
@@ -444,16 +445,16 @@ public class NeutralLossFilterTask extends AbstractTask {
    */
   public void addResultToProject() {
     // Add new peakList to the project
-    project.addPeakList(resultPeakList);
+    project.addFeatureList(resultPeakList);
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
+    for (FeatureListAppliedMethod proc : peakList.getAppliedMethods()) {
       resultPeakList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("NeutralLossFilter", parameters));
+        new SimpleFeatureListAppliedMethod("NeutralLossFilter", parameters));
   }
 
   /**
@@ -465,7 +466,7 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @return null if no peak with the given parameters exists, the specified feature list row
    *         otherwise.
    */
-  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
+  private @Nullable FeatureListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
       @Nonnull PeakListHandler plh) {
 
     if (peakIndex >= candidates.size())
@@ -475,7 +476,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     if (cand != null) {
       int id = cand.getCandID();
-      PeakListRow original = plh.getRowByID(id);
+      FeatureListRow original = plh.getRowByID(id);
       return original;
     }
     return null;
