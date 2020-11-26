@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,9 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
@@ -38,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.PrecursorDBPeakIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
@@ -54,7 +54,7 @@ class PrecursorDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakList peakList;
+  private final FeatureList peakList;
   private final File dataBaseFile;
   private ParameterSet parameters;
 
@@ -66,7 +66,7 @@ class PrecursorDBSearchTask extends AbstractTask {
   private int totalTasks;
   private AtomicInteger matches = new AtomicInteger(0);
 
-  public PrecursorDBSearchTask(PeakList peakList, ParameterSet parameters) {
+  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters) {
     this.peakList = peakList;
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(PrecursorDBSearchParameters.dataBaseFile).getValue();
@@ -139,7 +139,7 @@ class PrecursorDBSearchTask extends AbstractTask {
         + dataBaseFile.getAbsolutePath());
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Possible precursor identification using MS/MS spectral database " + dataBaseFile,
         parameters));
 
@@ -166,18 +166,18 @@ class PrecursorDBSearchTask extends AbstractTask {
 
           @Override
           public void run() {
-            for (PeakListRow row : peakList.getRows()) {
+            for (FeatureListRow row : peakList.getRows()) {
               if (this.isCanceled())
                 break;
               for (SpectralDBEntry db : list) {
                 if (this.isCanceled())
                   break;
 
-                if (checkRT(row, (Double) db.getField(DBEntryField.RT).orElse(null))
+                if (checkRT(row, (Float) db.getField(DBEntryField.RT).orElse(null))
                     && checkMZ(row, db.getPrecursorMZ())) {
                   // add identity
-                  row.addPeakIdentity(
-                      new PrecursorDBPeakIdentity(db, PrecursorDBSearchModule.MODULE_NAME), false);
+                  row.addFeatureIdentity(
+                      new PrecursorDBFeatureIdentity(db, PrecursorDBSearchModule.MODULE_NAME), false);
                   matches.getAndIncrement();
                 }
               }
@@ -213,11 +213,11 @@ class PrecursorDBSearchTask extends AbstractTask {
     return tasks;
   }
 
-  protected boolean checkMZ(PeakListRow row, Double mz) {
+  protected boolean checkMZ(FeatureListRow row, Double mz) {
     return mz != null && mzTol.checkWithinTolerance(row.getAverageMZ(), mz);
   }
 
-  protected boolean checkRT(PeakListRow row, Double rt) {
+  protected boolean checkRT(FeatureListRow row, Float rt) {
     // if no rt is in the library still use
     return !useRT || rtTol == null || rtTol.checkWithinTolerance(row.getAverageRT(), rt);
   }
