@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
+import io.github.mzmine.modules.dataprocessing.featdet_peakextender.ExtendedPeak;
 import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.collections.FXCollections;
 import javax.annotation.Nonnull;
+import org.apache.xpath.operations.Mod;
 
 public class FeatureConvertors {
 
@@ -209,5 +211,72 @@ public class FeatureConvertors {
   // TODO:
   static public ModularFeature MSDKFeatureToModularFeature(Feature msdkFeature, RawDataFile dataFile, FeatureStatus detected) {
     return null;
+  }
+
+  static public ModularFeature ExtendedPeakToModularFeature(ExtendedPeak chromatogram) {
+
+
+    if (chromatogram.getPeakList() == null) {
+      throw new NullPointerException("Feature list of the ADAP chromatogram is null.");
+    }
+
+    if (!(chromatogram.getPeakList() instanceof ModularFeatureList)) {
+      throw new IllegalArgumentException(
+          "Can not create modular feature from ADAP chromatogram of non-modular feature list.");
+    }
+
+    ModularFeature modularFeature = new ModularFeature((ModularFeatureList) chromatogram.getPeakList());
+
+    modularFeature.setFragmentScanNumber(chromatogram.getMostIntenseFragmentScanNumber());
+    modularFeature.setRepresentativeScanNumber(chromatogram.getRepresentativeScanNumber());
+    // Add values to feature
+    int[] scans = chromatogram.getScanNumbers();
+    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature.set(RawFileType.class, chromatogram.getRawDataFile());
+    modularFeature.set(DetectionType.class, chromatogram.getFeatureStatus());
+    modularFeature.set(MZType.class, chromatogram.getMZ());
+    modularFeature.set(RTType.class, (float) chromatogram.getRT());
+    modularFeature.set(HeightType.class, (float) chromatogram.getHeight());
+    modularFeature.set(AreaType.class, (float) chromatogram.getArea());
+    modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
+
+    // Data points of feature
+    List<DataPoint> dps = new ArrayList<>();
+    for (int scan : scans) {
+      dps.add(chromatogram.getDataPoint(scan));
+    }
+    modularFeature.set(DataPointsType.class, dps);
+
+    // Ranges
+    Range<Float> rtRange = Range.closed(chromatogram.getRawDataPointsRTRange().lowerEndpoint(),
+        chromatogram.getRawDataPointsRTRange().upperEndpoint());
+    Range<Double> mzRange = Range.closed(chromatogram.getRawDataPointsMZRange().lowerEndpoint(),
+        chromatogram.getRawDataPointsMZRange().upperEndpoint());
+    Range<Float> intensityRange =
+        Range.closed(chromatogram.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+            chromatogram.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    modularFeature.set(MZRangeType.class, mzRange);
+    modularFeature.set(RTRangeType.class, rtRange);
+    modularFeature.set(IntensityRangeType.class, intensityRange);
+
+    modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
+        .findAllMS2FragmentScans(chromatogram.getRawDataFile(), rtRange, mzRange)).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+
+    // Quality parameters
+    float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    if(!Float.isNaN(fwhm)) {
+      modularFeature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    if(!Float.isNaN(tf)) {
+      modularFeature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    if(!Float.isNaN(af)) {
+      modularFeature.set(AsymmetryFactorType.class, af);
+    }
+
+    return modularFeature;
   }
 }

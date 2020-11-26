@@ -18,27 +18,29 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_peakextender;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureSorter;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -48,7 +50,7 @@ public class PeakExtenderTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakList, extendedPeakList;
+  private FeatureList peakList, extendedPeakList;
 
   // peaks counter
   private int processedPeaks, totalPeaks;
@@ -61,7 +63,7 @@ public class PeakExtenderTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  public PeakExtenderTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  public PeakExtenderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
 
     this.project = project;
     this.peakList = peakList;
@@ -104,11 +106,11 @@ public class PeakExtenderTask extends AbstractTask {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
     // Create a new deisotoped peakList
-    extendedPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
+    extendedPeakList = new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     // Sort peaks by descending height
-    Feature[] sortedPeaks = peakList.getPeaks(dataFile).toArray(Feature[]::new);
-    Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
+    Feature[] sortedPeaks = peakList.getFeatures(dataFile).toArray(Feature[]::new);
+    Arrays.sort(sortedPeaks, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
 
     // Loop through all peaks
     totalPeaks = sortedPeaks.length;
@@ -122,15 +124,16 @@ public class PeakExtenderTask extends AbstractTask {
       oldPeak = sortedPeaks[ind];
 
       if (oldPeak.getHeight() >= minimumHeight) {
-        Feature newPeak = this.getExtendedPeak(oldPeak);
+        Feature newPeak = FeatureConvertors.ExtendedPeakToModularFeature(this.getExtendedPeak(oldPeak));
         // Get previous pekaListRow
-        PeakListRow oldRow = peakList.getPeakRow(oldPeak);
+        FeatureListRow oldRow = peakList.getFeatureRow(oldPeak);
 
         // keep old ID
         int oldID = oldRow.getID();
-        SimplePeakListRow newRow = new SimplePeakListRow(oldID);
-        PeakUtils.copyPeakListRowProperties(oldRow, newRow);
-        newRow.addPeak(dataFile, newPeak);
+        ModularFeatureListRow newRow = new ModularFeatureListRow(
+            (ModularFeatureList) extendedPeakList, oldID);
+        FeatureUtils.copyFeatureListRowProperties(oldRow, newRow);
+        newRow.addFeature(dataFile, newPeak);
         extendedPeakList.addRow(newRow);
       }
 
@@ -140,34 +143,34 @@ public class PeakExtenderTask extends AbstractTask {
     }
 
     // Add new peakList to the project
-    project.addPeakList(extendedPeakList);
+    project.addFeatureList(extendedPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(extendedPeakList);
+    //QualityParameters.calculateQualityParameters(extendedPeakList);
 
     // Load previous applied methods
-    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
+    for (FeatureListAppliedMethod proc : peakList.getAppliedMethods()) {
       extendedPeakList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
     extendedPeakList
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak extender", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Peak extender", parameters));
 
     // Remove the original peakList if requested
     if (removeOriginal)
-      project.removePeakList(peakList);
+      project.removeFeatureList(peakList);
 
     logger.info("Finished peak extender on " + peakList);
     setStatus(TaskStatus.FINISHED);
 
   }
 
-  private Feature getExtendedPeak(Feature oldPeak) {
+  private ExtendedPeak getExtendedPeak(Feature oldPeak) {
 
     double maxHeight = oldPeak.getHeight();
     int originScanNumber = oldPeak.getRepresentativeScanNumber();
-    RawDataFile rawFile = oldPeak.getDataFile();
+    RawDataFile rawFile = oldPeak.getRawDataFile();
     ExtendedPeak newPeak = new ExtendedPeak(rawFile);
     int totalScanNumber = rawFile.getNumOfScans();
     Range<Double> mzRange = mzTolerance.getToleranceRange(oldPeak.getMZ());
