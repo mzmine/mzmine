@@ -18,16 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.FileReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -38,7 +38,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakList peakList;
+  private FeatureList peakList;
 
   private String[][] databaseValues;
   private int finishedLines = 0;
@@ -51,7 +51,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private RTTolerance rtTolerance;
   private ParameterSet parameters;
 
-  LocalCSVDatabaseSearchTask(PeakList peakList, ParameterSet parameters) {
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters) {
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -123,7 +123,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Peak identification using database " + dataBaseFile, parameters));
 
 
@@ -151,23 +151,23 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
         lineRT = Double.parseDouble(values[i]);
     }
 
-    SimplePeakIdentity newIdentity =
-        new SimplePeakIdentity(lineName, lineFormula, dataBaseFile.getName(), lineID, null);
+    SimpleFeatureIdentity newIdentity =
+        new SimpleFeatureIdentity(lineName, lineFormula, dataBaseFile.getName(), lineID, null);
 
-    for (PeakListRow peakRow : peakList.getRows()) {
+    for (FeatureListRow peakRow : peakList.getRows()) {
 
       Range<Double> mzRange = mzTolerance.getToleranceRange(peakRow.getAverageMZ());
-      Range<Double> rtRange = rtTolerance.getToleranceRange(peakRow.getAverageRT());
+      Range<Float> rtRange = rtTolerance.getToleranceRange(peakRow.getAverageRT());
 
       boolean mzMatches = (lineMZ == 0d) || mzRange.contains(lineMZ);
-      boolean rtMatches = (lineRT == 0d) || rtRange.contains(lineRT);
+      boolean rtMatches = (lineRT == 0d) || rtRange.contains((float) lineRT);
 
       if (mzMatches && rtMatches) {
 
         logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
 
         // add new identity to the row
-        peakRow.addPeakIdentity(newIdentity, false);
+        peakRow.addFeatureIdentity(newIdentity, false);
 
       }
     }
