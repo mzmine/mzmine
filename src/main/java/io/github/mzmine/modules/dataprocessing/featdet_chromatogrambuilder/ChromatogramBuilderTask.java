@@ -18,24 +18,26 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureSorter;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -57,7 +59,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private double minimumTimeSpan, minimumHeight;
 
-  private SimplePeakList newPeakList;
+  private ModularFeatureList newPeakList;
 
   /**
    * @param dataFile
@@ -133,7 +135,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
     }
 
     // Create new feature list
-    newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
+    newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
 
     Chromatogram[] chromatograms;
     HighestDataPointConnector massConnector = new HighestDataPointConnector(dataFile,
@@ -167,22 +169,27 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
     chromatograms = massConnector.finishChromatograms();
 
-    // Sort the final chromatograms by m/z
-    Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    // Convert chromatograms to modular features
+    Feature[] features = Arrays.stream(chromatograms)
+        .map(FeatureConvertors::ChromatogramToModularFeature)
+        .toArray(ModularFeature[]::new);
 
-    // Add the chromatograms to the new feature list
-    for (Feature finishedPeak : chromatograms) {
-      SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+    // Sort the final features by m/z
+    Arrays.sort(features, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));
+
+    // Add the features to the new feature list
+    for (Feature finishedPeak : features) {
+      ModularFeatureListRow newRow = new ModularFeatureListRow(newPeakList, newPeakID);
       newPeakID++;
-      newRow.addPeak(dataFile, finishedPeak);
+      newRow.addFeature(dataFile, finishedPeak);
       newPeakList.addRow(newRow);
     }
 
     // Add new peaklist to the project
-    project.addPeakList(newPeakList);
+    project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    //QualityParameters.calculateQualityParameters(newPeakList);
 
     setStatus(TaskStatus.FINISHED);
 
