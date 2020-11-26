@@ -17,6 +17,10 @@
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.Arrays;
@@ -31,8 +35,6 @@ import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.workflow.decomposition.ComponentSelector;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -232,8 +234,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     if (chromatogramPeakPair == null)
       return;
 
-    PeakList chromatogramList = chromatogramPeakPair.chromatograms;
-    PeakList peakList = chromatogramPeakPair.peaks;
+    FeatureList chromatogramList = chromatogramPeakPair.chromatograms;
+    FeatureList peakList = chromatogramPeakPair.peaks;
     if (chromatogramList == null || peakList == null)
       return;
 
@@ -244,8 +246,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
 
     // Convert peakList into ranges
     List<RetTimeClusterer.Interval> ranges =
-        peakList.getRows().stream().map(PeakListRow::getBestPeak)
-            .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
+        peakList.getRows().stream().map(FeatureListRow::getBestFeature)
+            .map(p -> new RetTimeClusterer.Interval(RangeUtils.toDoubleRange(p.getRawDataPointsRTRange()), p.getMZ()))
             .collect(Collectors.toList());
 
     List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
@@ -284,8 +286,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     if (chromatogramPeakPair == null)
       return;
 
-    PeakList chromatogramList = chromatogramPeakPair.chromatograms;
-    PeakList peakList = chromatogramPeakPair.peaks;
+    FeatureList chromatogramList = chromatogramPeakPair.chromatograms;
+    FeatureList peakList = chromatogramPeakPair.peaks;
     if (chromatogramList == null || peakList == null)
       return;
 

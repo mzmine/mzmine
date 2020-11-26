@@ -5,6 +5,9 @@ import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.*;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +22,7 @@ import java.util.logging.Logger;
 public class ADAP3DecompositionV2Utils {
   private final Logger log;
 
-  private final Map<Integer, Double> retTimes;
+  private final Map<Integer, Float> retTimes;
 
   public ADAP3DecompositionV2Utils() {
     this.log = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
@@ -33,14 +36,14 @@ public class ADAP3DecompositionV2Utils {
    * @return list of ADAP Peaks
    */
   @Nonnull
-  public List<BetterPeak> getPeaks(@Nonnull final PeakList peakList) {
+  public List<BetterPeak> getPeaks(@Nonnull final FeatureList peakList) {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
     List<BetterPeak> peaks = new ArrayList<>();
 
-    for (PeakListRow row : peakList.getRows()) {
-      Feature peak = row.getBestPeak();
-      int[] scanNumbers = peak.getScanNumbers();
+    for (FeatureListRow row : peakList.getRows()) {
+      Feature peak = row.getBestFeature();
+      int[] scanNumbers = peak.getScanNumbers().stream().mapToInt(i -> i).toArray();
 
       // Build chromatogram
       double[] retTimes = new double[scanNumbers.length];
@@ -103,7 +106,7 @@ public class ADAP3DecompositionV2Utils {
   }
 
   private double getRetTime(RawDataFile dataFile, int scan) {
-    Double retTime = retTimes.get(scan);
+    Float retTime = retTimes.get(scan);
     if (retTime == null) {
       retTime = dataFile.getScan(scan).getRetentionTime();
       retTimes.put(scan, retTime);
