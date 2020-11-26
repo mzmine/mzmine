@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.text.DecimalFormat;
 
 import com.google.common.collect.Range;
@@ -29,11 +31,10 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class FeatureListClearAnnotationsParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final BooleanParameter CLEAR_IDENTITY = new BooleanParameter("Clear identities?",
       "If checked, the identities will be removed from the selected peaklists");
