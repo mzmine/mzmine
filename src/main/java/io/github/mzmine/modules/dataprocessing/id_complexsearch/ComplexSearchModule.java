@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.id_complexsearch;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -51,10 +51,10 @@ public class ComplexSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(ComplexSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+    FeatureList peakLists[] = parameters.getParameter(ComplexSearchParameters.peakLists).getValue()
+        .getMatchingFeatureLists();
 
-    for (PeakList peakList : peakLists) {
+    for (FeatureList peakList : peakLists) {
       Task newTask = new ComplexSearchTask(parameters, peakList);
       tasks.add(newTask);
     }

@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_complexsearch;
 
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 
-public class ComplexIdentity extends SimplePeakIdentity {
+public class ComplexIdentity extends SimpleFeatureIdentity {
 
-  public ComplexIdentity(final PeakListRow peak1, final PeakListRow peak2) {
+  public ComplexIdentity(final FeatureListRow peak1, final FeatureListRow peak2) {
 
     super("Complex of " + MZmineCore.getConfiguration().getMZFormat().format(peak1.getAverageMZ())
         + " and " + MZmineCore.getConfiguration().getMZFormat().format(peak2.getAverageMZ())
