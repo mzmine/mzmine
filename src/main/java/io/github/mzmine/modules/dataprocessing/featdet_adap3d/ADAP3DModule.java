@@ -65,7 +65,7 @@ public class ADAP3DModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKPICKING;
+    return MZmineModuleCategory.FEATUREDETECTION;
   }
 
   @Override

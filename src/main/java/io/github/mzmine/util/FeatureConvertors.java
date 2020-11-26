@@ -19,7 +19,9 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
@@ -202,5 +204,10 @@ public class FeatureConvertors {
     }
 
     return modularFeature;
+  }
+
+  // TODO:
+  static public ModularFeature MSDKFeatureToModularFeature(Feature msdkFeature, RawDataFile dataFile, FeatureStatus detected) {
+    return null;
   }
 }

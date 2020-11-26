@@ -18,6 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,14 +34,10 @@ import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionMethod;
 import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionParameters;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -150,25 +151,26 @@ public class ADAP3DTask extends AbstractTask {
         + ", converting to MZmine peaklist");
 
     // Create new MZmine feature list
-    SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
+    ModularFeatureList newPeakList = new ModularFeatureList(dataFile + " " + suffix, dataFile);
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
       if (isCanceled())
         return;
-      SimpleFeature mzmineFeature =
-          new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
-      PeakListRow row = new SimplePeakListRow(rowId);
-      row.addPeak(dataFile, mzmineFeature);
+      // TODO: implement FeatureConvertors.MSDKFeatureToModularFeature(...)
+      ModularFeature mzmineFeature =
+          FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature, dataFile, FeatureStatus.DETECTED);
+      FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId);
+      row.addFeature(dataFile, mzmineFeature);
       newPeakList.addRow(row);
       rowId++;
     }
 
     // Add new peaklist to the project
-    project.addPeakList(newPeakList);
+    project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(newPeakList);
+    //QualityParameters.calculateQualityParameters(newPeakList);
 
     setStatus(TaskStatus.FINISHED);
 
