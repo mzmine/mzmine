@@ -18,6 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.FeatureUtils;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,17 +32,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakListUtils;
-import io.github.mzmine.util.PeakUtils;
 
 /**
  *
@@ -56,7 +56,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
   private RawDataFilesSelection blankSelection;
   private RawDataFile[] blankRaws;
-  private PeakList alignedFeatureList;
+  private FeatureList alignedFeatureList;
 
   private List<AbstractTask> subTasks;
 
@@ -73,7 +73,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     this.blankRaws = blankSelection.getMatchingRawDataFiles();
     this.alignedFeatureList =
         parameters.getParameter(PeakListBlankSubtractionParameters.alignedPeakList).getValue()
-            .getMatchingPeakLists()[0];
+            .getMatchingFeatureLists()[0];
     this.minBlankDetections =
         parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
 
@@ -114,9 +114,9 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     // getFeatureRowsContainedBlanks(alignedFeatureList, blankRaws,
     // minBlankDetections);
 
-    PeakListRow[] rows =
-        PeakUtils.copyPeakRows(alignedFeatureList.getRows().toArray(PeakListRow[]::new));
-    rows = PeakUtils.sortRowsMzAsc(rows);
+    FeatureListRow[] rows =
+        FeatureUtils.copyFeatureRows(alignedFeatureList.getRows().toArray(FeatureListRow[]::new));
+    rows = FeatureUtils.sortRowsMzAsc(rows);
 
     for (RawDataFile raw : alignedFeatureList.getRawDataFiles()) {
       // only create a task for every file that is not a blank
@@ -160,7 +160,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     List<RawDataFile> blankRawsList = Arrays.asList(blankRaws);
     int onlyBlankRows = 0;
     for (int i = 0; i < rows.length; i++) {
-      PeakListRow row = rows[i];
+      FeatureListRow row = rows[i];
 
       if (blankRawsList.containsAll(Arrays.asList(row.getRawDataFiles()))) {
         onlyBlankRows++;
@@ -173,25 +173,25 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
     logger.finest("Removed " + onlyBlankRows + " rows that only existed in blankfiles.");
 
-    PeakList result = new SimplePeakList(alignedFeatureList.getName() + " sbtrctd",
+    FeatureList result = new ModularFeatureList(alignedFeatureList.getName() + " sbtrctd",
         alignedFeatureList.getRawDataFiles());
 
-    for (PeakListRow row : rows) {
+    for (FeatureListRow row : rows) {
       if (row != null) {
         result.addRow(row);
       }
     }
 
-    PeakListUtils.copyPeakListAppliedMethods(alignedFeatureList, result);
+    FeatureListUtils.copyPeakListAppliedMethods(alignedFeatureList, result);
     result.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod(PeakListBlankSubtractionModule.MODULE_NAME, parameters));
+        new SimpleFeatureListAppliedMethod(PeakListBlankSubtractionModule.MODULE_NAME, parameters));
 
-    project.addPeakList(result);
+    project.addFeatureList(result);
 
     setStatus(TaskStatus.FINISHED);
   }
 
-  private boolean checkBlankSelection(PeakList aligned, RawDataFile[] blankRaws) {
+  private boolean checkBlankSelection(FeatureList aligned, RawDataFile[] blankRaws) {
 
     RawDataFile[] flRaws = aligned.getRawDataFiles().toArray(RawDataFile[]::new);
 

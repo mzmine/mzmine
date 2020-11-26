@@ -18,19 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
-import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 
 public class MatchResult {
 
-  private final PeakListRow bestRow;
+  private final FeatureListRow bestRow;
   private final double score;
 
-  public MatchResult(PeakListRow bestRow, double score) {
+  public MatchResult(FeatureListRow bestRow, double score) {
     this.bestRow = bestRow;
     this.score = score;
   }
 
-  public PeakListRow getBestRow() {
+  public FeatureListRow getBestRow() {
     return bestRow;
   }
 
