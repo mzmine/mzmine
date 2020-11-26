@@ -24,12 +24,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -61,10 +61,10 @@ public class SmoothingModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    PeakList peakLists[] =
-        parameters.getParameter(SmoothingParameters.peakLists).getValue().getMatchingPeakLists();
+    FeatureList peakLists[] =
+        parameters.getParameter(SmoothingParameters.peakLists).getValue().getMatchingFeatureLists();
 
-    for (final PeakList peakList : peakLists) {
+    for (final FeatureList peakList : peakLists) {
       Task newTask = new SmoothingTask(project, peakList, parameters);
       tasks.add(newTask);
     }
@@ -74,7 +74,7 @@ public class SmoothingModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.PEAKLISTPICKING;
+    return MZmineModuleCategory.FEATURELISTDETECTION;
   }
 
   @Override
