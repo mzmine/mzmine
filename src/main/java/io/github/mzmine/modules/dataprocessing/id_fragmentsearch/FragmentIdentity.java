@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 
-public class FragmentIdentity extends SimplePeakIdentity {
+public class FragmentIdentity extends SimpleFeatureIdentity {
 
-  public FragmentIdentity(final PeakListRow mainPeakListRow) {
+  public FragmentIdentity(final FeatureListRow mainPeakListRow) {
 
     super("Fragment of "
         + MZmineCore.getConfiguration().getMZFormat().format(mainPeakListRow.getAverageMZ())
