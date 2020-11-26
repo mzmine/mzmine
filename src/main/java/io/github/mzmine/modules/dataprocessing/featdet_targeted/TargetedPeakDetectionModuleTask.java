@@ -17,6 +17,12 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -28,14 +34,8 @@ import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -50,7 +50,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
-  private PeakList processedPeakList;
+  private FeatureList processedPeakList;
   private String suffix;
   private MZTolerance mzTolerance;
   private int msLevel;
@@ -95,7 +95,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     totalScans = dataFile.getNumOfScans(1);
 
     // Create new feature list
-    processedPeakList = new SimplePeakList(dataFile.getName() + " " + suffix, dataFile);
+    processedPeakList = new ModularFeatureList(dataFile.getName() + " " + suffix, dataFile);
 
     List<PeakInformation> peaks = this.readFile();
 
@@ -106,7 +106,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
     // Fill new feature list with empty rows
     for (int row = 0; row < peaks.size(); row++) {
-      PeakListRow newRow = new SimplePeakListRow(ID++);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedPeakList, ID++);
       processedPeakList.addRow(newRow);
     }
 
@@ -122,12 +122,12 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     // Fill each row of this raw data file column, create new empty
     // gaps if necessary
     for (int row = 0; row < peaks.size(); row++) {
-      PeakListRow newRow = processedPeakList.getRow(row);
+      FeatureListRow newRow = processedPeakList.getRow(row);
       // Create a new gap
 
       Range<Double> mzRange = mzTolerance.getToleranceRange(peaks.get(row).getMZ());
-      Range<Double> rtRange = rtTolerance.getToleranceRange(peaks.get(row).getRT());
-      newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row).getName()), true);
+      Range<Float> rtRange = rtTolerance.getToleranceRange((float) peaks.get(row).getRT());
+      newRow.addFeatureIdentity(new SimpleFeatureIdentity(peaks.get(row).getName()), true);
 
       Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance, noiseLevel);
 
@@ -172,14 +172,14 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Append processed feature list to the project
-    project.addPeakList(processedPeakList);
+    project.addFeatureList(processedPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(processedPeakList);
+    //QualityParameters.calculateQualityParameters(processedPeakList);
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Targeted feature detection ", parameters));
+        new SimpleFeatureListAppliedMethod("Targeted feature detection ", parameters));
 
     logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
