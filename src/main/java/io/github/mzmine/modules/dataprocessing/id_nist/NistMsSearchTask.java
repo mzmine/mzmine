@@ -26,6 +26,11 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MASS_LIST;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
+
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,11 +44,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -107,11 +108,11 @@ public class NistMsSearchTask extends AbstractTask {
   private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
   // The mass-list and peak-list.
-  private final PeakList peakList;
+  private final FeatureList peakList;
   private final String massList;
 
   // The feature list row to search for (null => all).
-  private final PeakListRow peakListRow;
+  private final FeatureListRow peakListRow;
 
   // Progress counters.
   private int progress;
@@ -138,7 +139,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @param list   the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final PeakList list, final ParameterSet params) {
+  public NistMsSearchTask(final FeatureList list, final ParameterSet params) {
 
     this(null, list, params);
   }
@@ -150,7 +151,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @param list   the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final PeakListRow row, final PeakList list, final ParameterSet params) {
+  public NistMsSearchTask(final FeatureListRow row, final FeatureList list, final ParameterSet params) {
 
     // Initialize.
     peakList = list;
@@ -253,7 +254,7 @@ public class NistMsSearchTask extends AbstractTask {
         // Search command string.
         final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-        List<PeakListRow> peakRow = new ArrayList();
+        List<FeatureListRow> peakRow = new ArrayList();
 
         // Searching FeatureList or FeatureListRow?
         if (peakListRow == null) {
@@ -265,7 +266,7 @@ public class NistMsSearchTask extends AbstractTask {
         // Perform searches for each feature list row.
         progress = 0;
         progressMax = peakList.getNumberOfRows();
-        for (final PeakListRow row : peakRow) {
+        for (final FeatureListRow row : peakRow) {
 
           DataPoint[] dataPoints = null;
           String comment = null;
@@ -318,17 +319,17 @@ public class NistMsSearchTask extends AbstractTask {
             runNistMsSearch(command);
 
             // Read the search results file and store the results.
-            List<PeakIdentity> identities = readSearchResults(row);
+            List<FeatureIdentity> identities = readSearchResults(row);
 
             if (identities != null) {
 
               // Add (copy of) identities to peak row.
               int maxMatchFactor = -1;
 
-              for (final PeakIdentity identity : identities) {
+              for (final FeatureIdentity identity : identities) {
                 // Copy the identity.
-                final PeakIdentity id =
-                    new SimplePeakIdentity((Hashtable<String, String>) identity.getAllProperties());
+                final FeatureIdentity id =
+                    new SimpleFeatureIdentity((Hashtable<String, String>) identity.getAllProperties());
 
                 // Best match factor?
                 final boolean isPreferred;
@@ -345,7 +346,7 @@ public class NistMsSearchTask extends AbstractTask {
                 }
 
                 // Add peak identity.
-                row.addPeakIdentity(id, isPreferred);
+                row.addFeatureIdentity(id, isPreferred);
               }
             }
           }
@@ -370,10 +371,10 @@ public class NistMsSearchTask extends AbstractTask {
    * @return a list of identities corresponding to the search results, or null if none is found.
    * @throws IOException if and i/o problem occurs.
    */
-  private List<PeakIdentity> readSearchResults(final PeakListRow row) throws IOException {
+  private List<FeatureIdentity> readSearchResults(final FeatureListRow row) throws IOException {
 
     // Search results.
-    List<PeakIdentity> hitList = null;
+    List<FeatureIdentity> hitList = null;
 
     // Read the results file.
     final BufferedReader reader =
@@ -398,7 +399,7 @@ public class NistMsSearchTask extends AbstractTask {
           if (rowID == hitID) {
 
             // Create a new list for the hits.
-            hitList = new ArrayList<PeakIdentity>(1);
+            hitList = new ArrayList<FeatureIdentity>(1);
 
           } else {
 
@@ -418,7 +419,7 @@ public class NistMsSearchTask extends AbstractTask {
                 && Integer.parseInt(reverseMatchFactor) >= minReverseMatchFactor) {
 
               // Extract identity from hit information.
-              final SimplePeakIdentity id = new SimplePeakIdentity(hitMatcher.group(1),
+              final SimpleFeatureIdentity id = new SimpleFeatureIdentity(hitMatcher.group(1),
                   hitMatcher.group(2), SEARCH_METHOD, hitMatcher.group(7), null);
               id.setPropertyValue(MATCH_FACTOR_PROPERTY, matchFactor);
               id.setPropertyValue(REVERSE_MATCH_FACTOR_PROPERTY, reverseMatchFactor);
@@ -486,7 +487,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @return the file.
    * @throws IOException if an i/o problem occurs.
    */
-  private File writeSpectraFile(final PeakListRow peakRow, final DataPoint[] dataPoint,
+  private File writeSpectraFile(final FeatureListRow peakRow, final DataPoint[] dataPoint,
       final String comment) throws IOException {
 
     final File spectraFile = File.createTempFile(SPECTRA_FILE_PREFIX, SPECTRA_FILE_SUFFIX);
@@ -496,7 +497,7 @@ public class NistMsSearchTask extends AbstractTask {
       logger.finest("Writing spectra to file " + spectraFile);
 
       // Write header.
-      final PeakIdentity identity = peakRow.getPreferredPeakIdentity();
+      final FeatureIdentity identity = peakRow.getPreferredFeatureIdentity();
       final String name = SPECTRUM_NAME_PREFIX + peakRow.getID()
           + (identity == null ? "" : " (" + identity + ')') + " of " + peakList.getName();
       writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
