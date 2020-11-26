@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import javafx.collections.FXCollections;
 
 /**
  * Filters out feature list rows.
@@ -48,7 +49,7 @@ public class GroupMS2Task extends AbstractTask {
   private int processedRows, totalRows;
   // Parameters.
   private final ParameterSet parameters;
-  private PeakList list;
+  private FeatureList list;
   private RTTolerance rtTol;
   private MZTolerance mzTol;
   private boolean limitRTByFeature;
@@ -59,7 +60,7 @@ public class GroupMS2Task extends AbstractTask {
    * @param list feature list to process.
    * @param parameterSet task parameters.
    */
-  public GroupMS2Task(final MZmineProject project, final PeakList list,
+  public GroupMS2Task(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet) {
 
     // Initialize.
@@ -93,19 +94,19 @@ public class GroupMS2Task extends AbstractTask {
 
       totalRows = list.getNumberOfRows();
       // for all features
-      for (PeakListRow row : list.getRows()) {
-        for (Feature f : row.getPeaks()) {
+      for (FeatureListRow row : list.getRows()) {
+        for (Feature f : row.getFeatures()) {
           if (getStatus() == TaskStatus.ERROR)
             return;
           if (isCanceled())
             return;
 
-          RawDataFile raw = f.getDataFile();
+          RawDataFile raw = f.getRawDataFile();
           IntArrayList scans = new IntArrayList();
           int best = f.getRepresentativeScanNumber();
-          double frt = f.getRT();
+          float frt = f.getRT();
           double fmz = f.getMZ();
-          Range<Double> rtRange = f.getRawDataPointsRTRange();
+          Range<Float> rtRange = f.getRawDataPointsRTRange();
           int i = best;
           // left
           while (i > 1) {
@@ -142,7 +143,7 @@ public class GroupMS2Task extends AbstractTask {
             }
           }
           // set list to feature
-          f.setAllMS2FragmentScanNumbers(scans.toIntArray());
+          f.setAllMS2FragmentScanNumbers(FXCollections.observableArrayList(scans));
         }
         processedRows++;
       }
