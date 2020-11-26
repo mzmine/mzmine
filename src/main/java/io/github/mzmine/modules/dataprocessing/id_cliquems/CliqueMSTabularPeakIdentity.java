@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
 
-import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  * modified peakIdentity to contain a combination of key value pairs and multiple values for a
  * single key
  */
-public class CliqueMSTabularPeakIdentity implements PeakIdentity {
+public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
 
   private String name;
   private Hashtable<String,String> singularProperties;
