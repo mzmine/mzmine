@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 
-public class AdductIdentity extends SimplePeakIdentity {
+public class AdductIdentity extends SimpleFeatureIdentity {
 
   /**
    * Create the identity.
@@ -30,7 +30,7 @@ public class AdductIdentity extends SimplePeakIdentity {
    * @param originalPeakListRow adduct of this feature list row.
    * @param adduct type of adduct.
    */
-  public AdductIdentity(final PeakListRow originalPeakListRow, final AdductType adduct) {
+  public AdductIdentity(final FeatureListRow originalPeakListRow, final AdductType adduct) {
 
     super(adduct.toString() + " adduct of "
         + MZmineCore.getConfiguration().getMZFormat().format(originalPeakListRow.getAverageMZ())
