@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.data.FeatureList;
 
 public interface Aligner {
 
@@ -26,7 +26,7 @@ public interface Aligner {
    *
    * @return New data set as a result of the alignment
    */
-  public PeakList align();
+  public FeatureList align();
 
   /**
    * 

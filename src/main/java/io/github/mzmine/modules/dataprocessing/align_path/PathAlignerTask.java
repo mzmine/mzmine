@@ -17,16 +17,18 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.Aligner;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreAligner;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.application.Platform;
 
 /**
  *
@@ -36,7 +38,7 @@ class PathAlignerTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakLists[], alignedPeakList;
+  private FeatureList peakLists[], alignedPeakList;
   private String peakListName;
   private ParameterSet parameters;
   private Aligner aligner;
@@ -46,7 +48,7 @@ class PathAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
     peakLists =
-        parameters.getParameter(PathAlignerParameters.peakLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(PathAlignerParameters.peakLists).getValue().getMatchingFeatureLists();
 
     peakListName = parameters.getParameter(PathAlignerParameters.peakListName).getValue();
   }
@@ -79,11 +81,16 @@ class PathAlignerTask extends AbstractTask {
     aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
     alignedPeakList = aligner.align();
     // Add new aligned feature list to the project
-    project.addPeakList(alignedPeakList);
+    project.addFeatureList(alignedPeakList);
+
+    // show feature list window
+    Platform.runLater(() -> {
+      FeatureTableFXUtil.addFeatureTableTab(alignedPeakList);
+    });
 
     // Add task description to peakList
     alignedPeakList
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Path aligner", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Path aligner", parameters));
 
     logger.info("Finished Path aligner");
     setStatus(TaskStatus.FINISHED);
