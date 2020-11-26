@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
@@ -25,7 +26,6 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -204,7 +204,7 @@ public class Candidates {
    * @param checkIntensity
    * @return true if better, false if worse
    */
-  public boolean checkForBetterRating(int index, PeakListRow parent, PeakListRow cand,
+  public boolean checkForBetterRating(int index, FeatureListRow parent, FeatureListRow cand,
       double minRating, boolean checkIntensity) {
     if (ratingType == RatingType.HIGHEST)
       return candidate[index].checkForBetterRating(parent, cand, pattern, index, minRating,
@@ -278,9 +278,9 @@ public class Candidates {
    * @return avPeakHeight
    */
   private double calcAvgPeakHeight(int ID) {
-    PeakListRow row = plh.getRowByID(ID);
+    FeatureListRow row = plh.getRowByID(ID);
 
-    RawDataFile[] raws = row.getRawDataFiles();
+    RawDataFile[] raws = row.getRawDataFiles().toArray(new RawDataFile[0]);
 
     if (raws.length < 1)
       return 0.0;
@@ -330,9 +330,9 @@ public class Candidates {
    *         lists
    */
   private double[] getAvgPeakHeights(int[] ID) {
-    PeakListRow[] rows = plh.getRowsByID(ID);
+    FeatureListRow[] rows = plh.getRowsByID(ID);
 
-    RawDataFile[] raws = rows[0].getRawDataFiles();
+    RawDataFile[] raws = rows[0].getRawDataFiles().toArray(new RawDataFile[0]);
 
     if (raws.length < 1)
       return null;

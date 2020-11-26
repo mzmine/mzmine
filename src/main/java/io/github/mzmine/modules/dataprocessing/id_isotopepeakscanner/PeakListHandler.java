@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 
 /**
  * This class can be used to handle feature lists by ID rather than row indices. Set up via the
@@ -38,14 +38,14 @@ import io.github.mzmine.datamodel.PeakListRow;
  */
 public class PeakListHandler {
 
-  private TreeMap<Integer, PeakListRow> map;
+  private TreeMap<Integer, FeatureListRow> map;
 
   public PeakListHandler() {
-    map = new TreeMap<Integer, PeakListRow>();
+    map = new TreeMap<Integer, FeatureListRow>();
   }
 
-  public PeakListHandler(PeakList pL) {
-    map = new TreeMap<Integer, PeakListRow>();
+  public PeakListHandler(FeatureList pL) {
+    map = new TreeMap<Integer, FeatureListRow>();
     setUp(pL);
   }
 
@@ -54,8 +54,8 @@ public class PeakListHandler {
    * 
    * @param pL the feature list you want to manage
    */
-  public void setUp(PeakList pL) {
-    for (PeakListRow row : pL.getRows()) {
+  public void setUp(FeatureList pL) {
+    for (FeatureListRow row : pL.getRows()) {
       map.put(row.getID(), row);
     }
   }
@@ -65,7 +65,7 @@ public class PeakListHandler {
    * 
    * @param row row to be added
    */
-  public void addRow(PeakListRow row) {
+  public void addRow(FeatureListRow row) {
     map.put(row.getID(), row);
   }
 
@@ -102,7 +102,7 @@ public class PeakListHandler {
    * @param ID ID of the row you want
    * @return Row with specified ID
    */
-  public PeakListRow getRowByID(int ID) {
+  public FeatureListRow getRowByID(int ID) {
     return map.get(ID);
   }
 
@@ -111,8 +111,8 @@ public class PeakListHandler {
    * @param ID integer array of IDs
    * @return all rows with specified ids
    */
-  public PeakListRow[] getRowsByID(int ID[]) {
-    PeakListRow[] rows = new PeakListRow[ID.length];
+  public FeatureListRow[] getRowsByID(int ID[]) {
+    FeatureListRow[] rows = new FeatureListRow[ID.length];
 
     for (int i = 0; i < ID.length; i++)
       rows[i] = map.get(ID[i]);
