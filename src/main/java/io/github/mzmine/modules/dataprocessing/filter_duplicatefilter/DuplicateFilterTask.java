@@ -18,28 +18,28 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFeature;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.PeakListRowSorter;
-import io.github.mzmine.util.PeakUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
@@ -53,8 +53,8 @@ public class DuplicateFilterTask extends AbstractTask {
 
   // Original and resultant feature lists.
   private final MZmineProject project;
-  private final PeakList peakList;
-  private PeakList filteredPeakList;
+  private final FeatureList peakList;
+  private FeatureList filteredPeakList;
 
   // Counters.
   private int processedRows;
@@ -63,7 +63,7 @@ public class DuplicateFilterTask extends AbstractTask {
   // Parameters.
   private final ParameterSet parameters;
 
-  public DuplicateFilterTask(final MZmineProject project, final PeakList list,
+  public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet params) {
 
     // Initialize.
@@ -107,12 +107,12 @@ public class DuplicateFilterTask extends AbstractTask {
         if (!isCanceled()) {
 
           // Add new peakList to the project.
-          project.addPeakList(filteredPeakList);
+          project.addFeatureList(filteredPeakList);
 
           // Remove the original peakList if requested.
           if (parameters.getParameter(DuplicateFilterParameters.autoRemove).getValue()) {
 
-            project.removePeakList(peakList);
+            project.removeFeatureList(peakList);
           }
 
           // Finished.
@@ -138,24 +138,24 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param requireSameId must duplicate peaks have the same identities?
    * @return the filtered feature list.
    */
-  private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
+  private FeatureList filterDuplicatePeakListRows(final FeatureList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
       FilterMode mode) {
-    final PeakListRow[] peakListRows = origPeakList.getRows().toArray(PeakListRow[]::new);
+    final FeatureListRow[] peakListRows = origPeakList.getRows().toArray(FeatureListRow[]::new);
     final int rowCount = peakListRows.length;
     RawDataFile[] rawFiles = origPeakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create the new feature list.
-    final PeakList newPeakList =
-        new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+    final FeatureList newPeakList =
+        new ModularFeatureList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
     // sort rows
     if (mode.equals(FilterMode.OLD_AVERAGE))
       Arrays.sort(peakListRows,
-          new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+          new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
     else
       Arrays.sort(peakListRows,
-          new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+          new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
     // filter by average mz and rt
     boolean filterByAvgRTMZ = !mode.equals(FilterMode.SINGLE_FEATURE);
@@ -166,20 +166,20 @@ public class DuplicateFilterTask extends AbstractTask {
     totalRows = rowCount;
     for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
-      final PeakListRow mainRow = peakListRows[firstRowIndex];
+      final FeatureListRow mainRow = peakListRows[firstRowIndex];
 
       if (mainRow != null) {
         // copy first row
-        PeakListRow firstRow = copyRow(mainRow);
+        FeatureListRow firstRow = copyRow(mainRow);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {
 
-          final PeakListRow secondRow = peakListRows[secondRowIndex];
+          final FeatureListRow secondRow = peakListRows[secondRowIndex];
           if (secondRow != null) {
             // Compare identifications
             final boolean sameID =
-                !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
+                !requireSameId || FeatureUtils.compareIdentities(firstRow, secondRow);
 
             boolean sameMZRT = filterByAvgRTMZ ? // average or
                                                  // single feature
@@ -211,13 +211,13 @@ public class DuplicateFilterTask extends AbstractTask {
     // finalize
     if (!isCanceled()) {
       // Load previous applied methods.
-      for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
+      for (final FeatureListAppliedMethod method : origPeakList.getAppliedMethods()) {
         newPeakList.addDescriptionOfAppliedTask(method);
       }
 
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
-          new SimplePeakListAppliedMethod("Duplicate feature list rows filter", parameters));
+          new SimpleFeatureListAppliedMethod("Duplicate feature list rows filter", parameters));
       logger.info("Removed " + n + " duplicate rows");
     }
 
@@ -232,26 +232,26 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param firstRow
    * @param secondRow
    */
-  private void createConsensusFirstRow(RawDataFile[] rawFiles, PeakListRow firstRow,
-      PeakListRow secondRow) {
+  private void createConsensusFirstRow(RawDataFile[] rawFiles, FeatureListRow firstRow,
+      FeatureListRow secondRow) {
     for (RawDataFile raw : rawFiles) {
-      Feature f2 = secondRow.getPeak(raw);
+      Feature f2 = secondRow.getFeature(raw);
       if (f2 == null)
         continue;
 
       switch (f2.getFeatureStatus()) {
         case DETECTED:
           // DETECTED over all
-          firstRow.addPeak(raw, copyPeak(f2));
+          firstRow.addFeature(raw, copyPeak(f2));
           break;
         case ESTIMATED:
           // ESTIMATED over UNKNOWN or
           // BOTH ESTIMATED? take the highest
-          Feature f1 = firstRow.getPeak(raw);
+          Feature f1 = firstRow.getFeature(raw);
           if (f1 != null && (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
               || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
                   && f1.getHeight() < f2.getHeight())))
-            firstRow.addPeak(raw, copyPeak(f2));
+            firstRow.addFeature(raw, copyPeak(f2));
           break;
       }
     }
@@ -267,12 +267,12 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param rtTolerance
    * @return
    */
-  private boolean checkSameSingleFeatureRTMZ(RawDataFile[] rawFiles, PeakListRow firstRow,
-      PeakListRow secondRow, MZTolerance mzTolerance, RTTolerance rtTolerance) {
+  private boolean checkSameSingleFeatureRTMZ(RawDataFile[] rawFiles, FeatureListRow firstRow,
+      FeatureListRow secondRow, MZTolerance mzTolerance, RTTolerance rtTolerance) {
     // at least one similar feature in one raw data file
     for (RawDataFile raw : rawFiles) {
-      Feature f1 = firstRow.getPeak(raw);
-      Feature f2 = secondRow.getPeak(raw);
+      Feature f1 = firstRow.getFeature(raw);
+      Feature f2 = secondRow.getFeature(raw);
       // Compare m/z and rt
       if (f1 != null && f2 != null && mzTolerance.checkWithinTolerance(f1.getMZ(), f2.getMZ())
           && rtTolerance.checkWithinTolerance(f1.getRT(), f2.getRT()))
@@ -290,29 +290,29 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param rtTolerance
    * @return
    */
-  private boolean checkSameAverageRTMZ(PeakListRow firstRow, PeakListRow secondRow,
+  private boolean checkSameAverageRTMZ(FeatureListRow firstRow, FeatureListRow secondRow,
       MZTolerance mzTolerance, RTTolerance rtTolerance) {
     // Compare m/z and RT
     return mzTolerance.checkWithinTolerance(firstRow.getAverageMZ(), secondRow.getAverageMZ())
         && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
   }
 
-  public PeakListRow copyRow(PeakListRow row) {
+  public FeatureListRow copyRow(FeatureListRow row) {
     // Copy the feature list row.
-    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-    PeakUtils.copyPeakListRowProperties(row, newRow);
+    final FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) filteredPeakList, row.getID());
+    FeatureUtils.copyFeatureListRowProperties(row, newRow);
 
     // Copy the peaks.
-    for (final Feature peak : row.getPeaks()) {
-      newRow.addPeak(peak.getDataFile(), copyPeak(peak));
+    for (final Feature peak : row.getFeatures()) {
+      newRow.addFeature(peak.getRawDataFile(), copyPeak(peak));
     }
     return newRow;
   }
 
   public Feature copyPeak(Feature peak) {
     // Copy the peaks.
-    final Feature newPeak = new SimpleFeature(peak);
-    PeakUtils.copyPeakProperties(peak, newPeak);
+    final Feature newPeak = new ModularFeature(peak);
+    FeatureUtils.copyFeatureProperties(peak, newPeak);
     return newPeak;
   }
 }
