@@ -29,8 +29,8 @@ import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -71,7 +71,7 @@ public class SiriusThread implements Runnable {
   private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
   // Identification params
-  private final PeakListRow peakListRow;
+  private final FeatureListRow peakListRow;
   private final String massListName;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
@@ -97,7 +97,7 @@ public class SiriusThread implements Runnable {
    * @param parameters
    * @param latch
    */
-  public SiriusThread(PeakListRow peakListRow, ParameterSet parameters, Semaphore semaphore,
+  public SiriusThread(FeatureListRow peakListRow, ParameterSet parameters, Semaphore semaphore,
       CountDownLatch latch, PeakListIdentificationTask task) {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
@@ -127,7 +127,7 @@ public class SiriusThread implements Runnable {
 
     try {
 
-      Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
+      Scan ms1Scan = peakListRow.getBestFeature().getRepresentativeScan();
       Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
 
       // Convert to MSDK data model

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -31,7 +32,6 @@ import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 
@@ -51,7 +51,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   /* Result containers */
   private final ResultWindowFX windowFX;
-  private final PeakListRow row;
+  private final FeatureListRow row;
 
   /* MSDK-method */
   private FingerIdWebMethod method;
@@ -71,7 +71,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param row - one of possible result containers
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, ResultWindowFX windowFX, PeakListRow row) {
+      Integer candidatesAmount, ResultWindowFX windowFX, FeatureListRow row) {
     if (windowFX== null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
 
@@ -114,7 +114,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param row - Result container for PeakListIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, PeakListRow row) {
+      Integer candidatesAmount, FeatureListRow row) {
     this(annotation, experiment, candidatesAmount, null, row);
   }
 
