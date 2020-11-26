@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
+import io.github.mzmine.datamodel.data.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -51,8 +51,8 @@ public class GNPSResultsImportModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     // max 1
-    PeakList peakList = parameters.getParameter(GNPSResultsImportParameters.PEAK_LIST).getValue()
-        .getMatchingPeakLists()[0];
+    FeatureList peakList = parameters.getParameter(GNPSResultsImportParameters.PEAK_LIST).getValue()
+        .getMatchingFeatureLists()[0];
 
     Task newTask = new GNPSResultsImportTask(parameters, peakList);
     tasks.add(newTask);

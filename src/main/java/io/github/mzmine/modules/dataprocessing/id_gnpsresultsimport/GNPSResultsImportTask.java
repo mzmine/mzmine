@@ -18,6 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,10 +40,6 @@ import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSource;
 import org.graphstream.stream.file.FileSourceGraphML;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsIdentity.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -54,7 +54,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 public class GNPSResultsImportTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakList peakList;
+  private FeatureList peakList;
   private File file;
 
   private AtomicDouble progress = new AtomicDouble(0);
@@ -95,7 +95,7 @@ public class GNPSResultsImportTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public GNPSResultsImportTask(ParameterSet parameters, PeakList peakList) {
+  public GNPSResultsImportTask(ParameterSet parameters, FeatureList peakList) {
     this.parameters = parameters;
     this.peakList = peakList;
     file = parameters.getParameter(GNPSResultsImportParameters.FILE).getValue();
@@ -134,8 +134,8 @@ public class GNPSResultsImportTask extends AbstractTask {
       importLibraryMatches(graph);
 
       // Add task description to peakList
-      ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
-          new SimplePeakListAppliedMethod("Identification of complexes", parameters));
+      ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod("Identification of complexes", parameters));
 
 
       setStatus(TaskStatus.FINISHED);
@@ -174,7 +174,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       int id = Integer.parseInt(node.getId());
       // has library match?
       String compoundName = (String) node.getAttribute(ATT.COMPOUND_NAME.getKey());
-      PeakListRow row = peakList.findRowByID(id);
+      FeatureListRow row = peakList.findRowByID(id);
       if (row != null) {
         if (compoundName != null && !compoundName.isEmpty()) {
           libraryMatches.getAndIncrement();
@@ -192,7 +192,7 @@ public class GNPSResultsImportTask extends AbstractTask {
 
           // add identity
           GNPSResultsIdentity identity = new GNPSResultsIdentity(results, compoundName, adduct);
-          row.addPeakIdentity(identity, true);
+          row.addFeatureIdentity(identity, true);
         }
       } else
         missingRows.getAndIncrement();
