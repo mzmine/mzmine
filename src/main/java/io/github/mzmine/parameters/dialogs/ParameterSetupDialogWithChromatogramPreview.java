@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -155,7 +156,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
    *
    * @param dataFile
    */
-  protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
+  protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange);
 
   private void updateTitle() {
@@ -217,7 +218,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
       return;
 
-    Range<Double> rtRange = rtRangeBox.getValue();
+    Range<Float> rtRange = RangeUtils.toFloatRange(rtRangeBox.getValue());
     Range<Double> mzRange = mzRangeBox.getValue();
     updateParameterSetFromComponents();
 
