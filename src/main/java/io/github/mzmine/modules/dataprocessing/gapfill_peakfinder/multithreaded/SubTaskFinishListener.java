@@ -18,26 +18,26 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 
-public class SubTaskFinishListener implements Consumer<PeakList> {
+public class SubTaskFinishListener implements Consumer<FeatureList> {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
   private ParameterSet parameters;
-  private PeakList peakList;
+  private FeatureList peakList;
   private int tasks;
   private int finished = 0;
   private boolean removeOriginal;
 
-  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, PeakList peakList,
+  public SubTaskFinishListener(MZmineProject project, ParameterSet parameters, FeatureList peakList,
       boolean removeOriginal, int tasks) {
     super();
     this.project = project;
@@ -48,24 +48,24 @@ public class SubTaskFinishListener implements Consumer<PeakList> {
   }
 
   @Override
-  public synchronized void accept(PeakList processedPeakList) {
+  public synchronized void accept(FeatureList processedPeakList) {
     finished++;
     if (finished == tasks) {
       logger.info("All sub tasks of multithreaded gap-filling have finished. Finalising results.");
       // add pkl to project
       // Append processed feature list to the project
-      project.addPeakList(processedPeakList);
+      project.addFeatureList(processedPeakList);
 
       // Add quality parameters to peaks
-      QualityParameters.calculateQualityParameters(processedPeakList);
+      //QualityParameters.calculateQualityParameters(processedPeakList);
 
       // Add task description to peakList
       processedPeakList
-          .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
+          .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ", parameters));
 
       // Remove the original peaklist if requested
       if (removeOriginal)
-        project.removePeakList(peakList);
+        project.removeFeatureList(peakList);
 
       logger.info("Completed: Multithreaded gap-filling successfull");
     }

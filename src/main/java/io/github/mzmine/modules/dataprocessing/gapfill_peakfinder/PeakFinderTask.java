@@ -18,6 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -26,16 +33,9 @@ import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -48,7 +48,7 @@ class PeakFinderTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakList, processedPeakList;
+  private FeatureList peakList, processedPeakList;
   private String suffix;
   private double intTolerance;
   private MZTolerance mzTolerance;
@@ -61,7 +61,7 @@ class PeakFinderTask extends AbstractTask {
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
-  PeakFinderTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
 
     this.project = project;
     this.peakList = peakList;
@@ -88,18 +88,18 @@ class PeakFinderTask extends AbstractTask {
     processedScans = new AtomicInteger();
 
     // Create new feature list
-    processedPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
+    processedPeakList = new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     // Fill new feature list with empty rows
     for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-      PeakListRow sourceRow = peakList.getRow(row);
-      PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+      FeatureListRow sourceRow = peakList.getRow(row);
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedPeakList, sourceRow.getID());
       newRow.setComment(sourceRow.getComment());
-      for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
-        newRow.addPeakIdentity(ident, false);
+      for (FeatureIdentity ident : sourceRow.getPeakIdentities()) {
+        newRow.addFeatureIdentity(ident, false);
       }
-      if (sourceRow.getPreferredPeakIdentity() != null) {
-        newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
+      if (sourceRow.getPreferredFeatureIdentity() != null) {
+        newRow.setPreferredFeatureIdentity(sourceRow.getPreferredFeatureIdentity());
       }
       processedPeakList.addRow(newRow);
     }
@@ -142,24 +142,24 @@ class PeakFinderTask extends AbstractTask {
             return;
           }
 
-          PeakListRow sourceRow = peakList.getRow(row);
-          PeakListRow newRow = processedPeakList.getRow(row);
+          FeatureListRow sourceRow = peakList.getRow(row);
+          FeatureListRow newRow = processedPeakList.getRow(row);
 
-          Feature sourcePeak = sourceRow.getPeak(dataFile);
+          Feature sourcePeak = sourceRow.getFeature(dataFile);
 
           if (sourcePeak == null) {
 
             // Create a new gap
 
             Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
-            Range<Double> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
+            Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
             Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
 
             gaps.add(newGap);
 
           } else {
-            newRow.addPeak(dataFile, sourcePeak);
+            newRow.addFeature(dataFile, sourcePeak);
           }
         }
 
@@ -202,18 +202,18 @@ class PeakFinderTask extends AbstractTask {
       return;
 
     // Append processed feature list to the project
-    project.addPeakList(processedPeakList);
+    project.addFeatureList(processedPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(processedPeakList);
+    //QualityParameters.calculateQualityParameters(processedPeakList);
 
     // Add task description to peakList
     processedPeakList
-        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ", parameters));
 
     // Remove the original peaklist if requested
     if (removeOriginal)
-      project.removePeakList(peakList);
+      project.removeFeatureList(peakList);
 
     logger.info("Finished gap-filling on " + peakList);
     setStatus(TaskStatus.FINISHED);
@@ -236,9 +236,9 @@ class PeakFinderTask extends AbstractTask {
         }
         RegressionInfo info = new RegressionInfo();
 
-        for (PeakListRow row : peakList.getRows()) {
-          Feature peaki = row.getPeak(datafile1);
-          Feature peake = row.getPeak(datafile2);
+        for (FeatureListRow row : peakList.getRows()) {
+          Feature peaki = row.getFeature(datafile1);
+          Feature peake = row.getFeature(datafile2);
           if (peaki != null && peake != null) {
             info.addData(peake.getRT(), peaki.getRT());
           }
@@ -257,10 +257,10 @@ class PeakFinderTask extends AbstractTask {
         // gaps
         // if necessary
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-          PeakListRow sourceRow = peakList.getRow(row);
-          PeakListRow newRow = processedPeakList.getRow(row);
+          FeatureListRow sourceRow = peakList.getRow(row);
+          FeatureListRow newRow = processedPeakList.getRow(row);
 
-          Feature sourcePeak = sourceRow.getPeak(datafile1);
+          Feature sourcePeak = sourceRow.getFeature(datafile1);
 
           if (sourcePeak == null) {
 
@@ -269,23 +269,23 @@ class PeakFinderTask extends AbstractTask {
             double mz = sourceRow.getAverageMZ();
             double rt2 = -1;
             if (!masterList) {
-              if (processedPeakList.getRow(row).getPeak(datafile2) != null) {
-                rt2 = processedPeakList.getRow(row).getPeak(datafile2).getRT();
+              if (processedPeakList.getRow(row).getFeature(datafile2) != null) {
+                rt2 = processedPeakList.getRow(row).getFeature(datafile2).getRT();
               }
             } else {
-              if (peakList.getRow(row).getPeak(datafile2) != null) {
-                rt2 = peakList.getRow(row).getPeak(datafile2).getRT();
+              if (peakList.getRow(row).getFeature(datafile2) != null) {
+                rt2 = peakList.getRow(row).getFeature(datafile2).getRT();
               }
             }
 
             if (rt2 > -1) {
 
-              double rt = info.predict(rt2);
+              float rt = (float) info.predict(rt2);
 
               if (rt != -1) {
 
                 Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
-                Range<Double> rtRange = rtTolerance.getToleranceRange(rt);
+                Range<Float> rtRange = rtTolerance.getToleranceRange(rt);
 
                 Gap newGap = new Gap(newRow, datafile1, mzRange, rtRange, intTolerance);
 
@@ -294,7 +294,7 @@ class PeakFinderTask extends AbstractTask {
             }
 
           } else {
-            newRow.addPeak(datafile1, sourcePeak);
+            newRow.addFeature(datafile1, sourcePeak);
           }
 
         }
@@ -345,7 +345,7 @@ class PeakFinderTask extends AbstractTask {
     return "Gap filling " + peakList;
   }
 
-  PeakList getPeakList() {
+  FeatureList getPeakList() {
     return peakList;
   }
 

@@ -18,15 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
@@ -40,7 +40,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private PeakList peakList, processedPeakList;
+  private FeatureList peakList, processedPeakList;
   private double intTolerance;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
@@ -55,7 +55,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   private int taskIndex;
 
-  MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList, PeakList processedPeakList,
+  MultiThreadPeakFinderTask(MZmineProject project, FeatureList peakList, FeatureList processedPeakList,
       ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
       int taskIndex) {
 
@@ -100,24 +100,24 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       // gaps
       // if necessary
       for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-        PeakListRow sourceRow = peakList.getRow(row);
-        PeakListRow newRow = processedPeakList.getRow(row);
+        FeatureListRow sourceRow = peakList.getRow(row);
+        FeatureListRow newRow = processedPeakList.getRow(row);
 
-        Feature sourcePeak = sourceRow.getPeak(dataFile);
+        Feature sourcePeak = sourceRow.getFeature(dataFile);
 
         if (sourcePeak == null) {
 
           // Create a new gap
 
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
-          Range<Double> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
+          Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
           Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
 
           gaps.add(newGap);
 
         } else {
-          newRow.addPeak(dataFile, sourcePeak);
+          newRow.addFeature(dataFile, sourcePeak);
         }
       }
 
@@ -174,7 +174,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         + " of pkl:" + peakList;
   }
 
-  PeakList getPeakList() {
+  FeatureList getPeakList() {
     return peakList;
   }
 
