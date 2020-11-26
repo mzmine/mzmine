@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
 import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_peakextender.ExtendedPeak;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
@@ -393,6 +394,72 @@ public class FeatureConvertors {
 
     modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
         .findAllMS2FragmentScans(sameRangePeak.getRawDataFile(), rtRange, mzRange)).boxed()
+        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+
+    // Quality parameters
+    float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    if(!Float.isNaN(fwhm)) {
+      modularFeature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    if(!Float.isNaN(tf)) {
+      modularFeature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    if(!Float.isNaN(af)) {
+      modularFeature.set(AsymmetryFactorType.class, af);
+    }
+
+    return modularFeature;
+  }
+
+  public static io.github.mzmine.datamodel.data.Feature ResolvedPeakToMoularFeature(ResolvedPeak resolvedPeak) {
+
+    if (resolvedPeak.getPeakList() == null) {
+      throw new NullPointerException("Feature list of the resolvedPeak is null.");
+    }
+
+    if (!(resolvedPeak.getPeakList() instanceof ModularFeatureList)) {
+      throw new IllegalArgumentException(
+          "Can not create modular feature from resolvedPeak of non-modular feature list.");
+    }
+
+    ModularFeature modularFeature = new ModularFeature((ModularFeatureList) resolvedPeak.getPeakList());
+
+    modularFeature.setFragmentScanNumber(resolvedPeak.getMostIntenseFragmentScanNumber());
+    modularFeature.setRepresentativeScanNumber(resolvedPeak.getRepresentativeScanNumber());
+    // Add values to feature
+    int[] scans = resolvedPeak.getScanNumbers();
+    modularFeature.set(ScanNumbersType.class, IntStream.of(scans).boxed().collect(Collectors.toList()));
+    modularFeature.set(RawFileType.class, resolvedPeak.getRawDataFile());
+    modularFeature.set(DetectionType.class, resolvedPeak.getFeatureStatus());
+    modularFeature.set(MZType.class, resolvedPeak.getMZ());
+    modularFeature.set(RTType.class, (float) resolvedPeak.getRT());
+    modularFeature.set(HeightType.class, (float) resolvedPeak.getHeight());
+    modularFeature.set(AreaType.class, (float) resolvedPeak.getArea());
+    modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
+
+    // Data points of feature
+    List<DataPoint> dps = new ArrayList<>();
+    for (int scan : scans) {
+      dps.add(resolvedPeak.getDataPoint(scan));
+    }
+    modularFeature.set(DataPointsType.class, dps);
+
+    // Ranges
+    Range<Float> rtRange = Range.closed(resolvedPeak.getRawDataPointsRTRange().lowerEndpoint(),
+        resolvedPeak.getRawDataPointsRTRange().upperEndpoint());
+    Range<Double> mzRange = Range.closed(resolvedPeak.getRawDataPointsMZRange().lowerEndpoint(),
+        resolvedPeak.getRawDataPointsMZRange().upperEndpoint());
+    Range<Float> intensityRange =
+        Range.closed(resolvedPeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+            resolvedPeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    modularFeature.set(MZRangeType.class, mzRange);
+    modularFeature.set(RTRangeType.class, rtRange);
+    modularFeature.set(IntensityRangeType.class, intensityRange);
+
+    modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
+        .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
         .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
