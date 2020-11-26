@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.awt.Window;
 import com.google.common.collect.Range;
 
@@ -31,12 +32,11 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX =
       new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
