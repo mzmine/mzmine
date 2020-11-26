@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,17 +33,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PeakIdentity;
-import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimplePeakList;
-import io.github.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -49,7 +50,7 @@ class SameRangeTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
-  private PeakList peakList, processedPeakList;
+  private FeatureList peakList, processedPeakList;
 
   private String suffix;
   private MZTolerance mzTolerance;
@@ -60,7 +61,7 @@ class SameRangeTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  SameRangeTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters) {
 
     this.project = project;
     this.peakList = peakList;
@@ -86,7 +87,7 @@ class SameRangeTask extends AbstractTask {
     RawDataFile columns[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create new feature list
-    processedPeakList = new SimplePeakList(peakList + " " + suffix, columns);
+    processedPeakList = new ModularFeatureList(peakList + " " + suffix, columns);
 
     /*************************************************************
      * Creating a stream to process the data in parallel
@@ -94,23 +95,23 @@ class SameRangeTask extends AbstractTask {
 
     processedRowsAtomic = new AtomicInteger(0);
 
-    List<PeakListRow> outputList = Collections.synchronizedList(new ArrayList<>());
+    List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
     peakList.parallelStream().forEach(sourceRow -> {
       // Canceled?
       if (isCanceled())
         return;
 
-      PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+      FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedPeakList, sourceRow.getID());
 
       // Copy comment
       newRow.setComment(sourceRow.getComment());
 
       // Copy identities
-      for (PeakIdentity ident : sourceRow.getPeakIdentities())
-        newRow.addPeakIdentity(ident, false);
-      if (sourceRow.getPreferredPeakIdentity() != null)
-        newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
+      for (FeatureIdentity ident : sourceRow.getPeakIdentities())
+        newRow.addFeatureIdentity(ident, false);
+      if (sourceRow.getPreferredFeatureIdentity() != null)
+        newRow.setPreferredFeatureIdentity(sourceRow.getPreferredFeatureIdentity());
 
       // Copy each peaks and fill gaps
       for (RawDataFile column : columns) {
@@ -119,7 +120,7 @@ class SameRangeTask extends AbstractTask {
           return;
 
         // Get current peak
-        Feature currentPeak = sourceRow.getPeak(column);
+        Feature currentPeak = sourceRow.getFeature(column);
 
         // If there is a gap, try to fill it
         if (currentPeak == null)
@@ -127,7 +128,7 @@ class SameRangeTask extends AbstractTask {
 
         // If a peak was found or created, add it
         if (currentPeak != null)
-          newRow.addPeak(column, currentPeak);
+          newRow.addFeature(column, currentPeak);
       }
 
       outputList.add(newRow);
@@ -146,18 +147,18 @@ class SameRangeTask extends AbstractTask {
     if (isCanceled())
       return;
     // Append processed feature list to the project
-    project.addPeakList(processedPeakList);
+    project.addFeatureList(processedPeakList);
 
     // Add quality parameters to peaks
-    QualityParameters.calculateQualityParameters(processedPeakList);
+    //QualityParameters.calculateQualityParameters(processedPeakList);
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Gap filling using RT and m/z range", parameters));
+        new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range", parameters));
 
     // Remove the original peaklist if requested
     if (removeOriginal)
-      project.removePeakList(peakList);
+      project.removeFeatureList(peakList);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -165,15 +166,16 @@ class SameRangeTask extends AbstractTask {
 
   }
 
-  private Feature fillGap(PeakListRow row, RawDataFile column) {
+  private Feature fillGap(FeatureListRow row, RawDataFile column) {
 
     SameRangePeak newPeak = new SameRangePeak(column);
 
-    Range<Double> mzRange = null, rtRange = null;
+    Range<Double> mzRange = null;
+    Range<Float> rtRange = null;
 
     // Check the peaks for selected data files
     for (RawDataFile dataFile : row.getRawDataFiles()) {
-      Feature peak = row.getPeak(dataFile);
+      Feature peak = row.getFeature(dataFile);
       if (peak == null)
         continue;
       if ((mzRange == null) || (rtRange == null)) {
@@ -221,7 +223,7 @@ class SameRangeTask extends AbstractTask {
       newPeak.finalizePeak();
       if (newPeak.getArea() == 0)
         return null;
-      return newPeak;
+      return FeatureConvertors.SameRangePeakToModularFeature(newPeak);
     }
 
     return null;
