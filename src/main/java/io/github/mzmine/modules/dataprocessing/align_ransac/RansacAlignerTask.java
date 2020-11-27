@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.data.Feature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -180,11 +179,6 @@ class RansacAlignerTask extends AbstractTask {
 
     // Add new aligned feature list to the project
     project.addFeatureList(alignedFeatureList);
-
-    // Add feature list tab
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(alignedFeatureList);
-    });
 
     // Edit by Aleksandr Smirnov
     FeatureListRow row = alignedFeatureList.getRow(1);

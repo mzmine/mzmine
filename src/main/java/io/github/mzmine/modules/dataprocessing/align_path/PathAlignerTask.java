@@ -19,7 +19,6 @@ package io.github.mzmine.modules.dataprocessing.align_path;
 
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -28,7 +27,6 @@ import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreAligner
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javafx.application.Platform;
 
 /**
  *
@@ -82,11 +80,6 @@ class PathAlignerTask extends AbstractTask {
     alignedPeakList = aligner.align();
     // Add new aligned feature list to the project
     project.addFeatureList(alignedPeakList);
-
-    // show feature list window
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(alignedPeakList);
-    });
 
     // Add task description to peakList
     alignedPeakList

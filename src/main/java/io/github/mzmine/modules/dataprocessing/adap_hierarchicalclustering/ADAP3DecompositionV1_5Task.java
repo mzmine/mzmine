@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -124,11 +123,6 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
             if (parameters.getParameter(ADAP3DecompositionV1_5Parameters.AUTO_REMOVE).getValue()) {
               project.removeFeatureList(originalPeakList);
             }
-
-            // Show new feature list window
-            Platform.runLater(() -> {
-              FeatureTableFXUtil.addFeatureTableTab(newPeakList);
-            });
 
             setStatus(TaskStatus.FINISHED);
             logger.info("Finished peak decomposition on " + originalPeakList);

@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_msms;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -34,7 +33,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
-import javafx.application.Platform;
 
 public class MsMsPeakPickingTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -142,11 +140,6 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
-
-    // Show new feature list window
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(newFeatureList);
-    });
 
     logger.info(
         "Finished MS/MS feature builder on " + dataFile + ", " + processedScans + " scans processed");

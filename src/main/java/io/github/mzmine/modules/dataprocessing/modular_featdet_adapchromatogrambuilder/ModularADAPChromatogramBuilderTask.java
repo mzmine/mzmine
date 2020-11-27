@@ -22,7 +22,6 @@ package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogram
 
 
 import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -403,11 +402,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
-
-    // show feature list window
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(newFeatureList);
-    });
 
     progress = 1.0;
 

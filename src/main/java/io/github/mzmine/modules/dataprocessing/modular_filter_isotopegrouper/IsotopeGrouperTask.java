@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
@@ -234,11 +233,6 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Add new feature list to the project
     project.addFeatureList(deisotopedFeatureList);
-
-    // Add feature list tab
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(deisotopedFeatureList);
-    });
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {

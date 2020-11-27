@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.data.ModularFeatureList;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.FeatureUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -833,11 +831,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("IsotopePeakScanner", parameters));
-
-    // show feature list window
-    Platform.runLater(() -> {
-      FeatureTableFXUtil.addFeatureTableTab(resultPeakList);
-    });
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
