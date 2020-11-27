@@ -75,7 +75,7 @@ public class ModularFeatureList implements FeatureList {
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
 
-    // Type columns will be created in the same sequence as they are initialized
+    // Type columns will be ordered in the order of types initialization
     addRowType(new IDType());
     addRowType(new MZType());
     addRowType(new MZRangeType());

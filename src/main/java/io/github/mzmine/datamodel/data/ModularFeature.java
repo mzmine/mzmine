@@ -145,6 +145,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(AsymmetryFactorType.class, af);
     }
   }
+
   /**
    * Initializes a new feature using given feature list and values
    *
@@ -214,6 +215,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return map;
   }
 
+  @Override
   public DataPoint getDataPoint(int scan) {
     int index = getScanNumbers().indexOf(scan);
     if (index < 0)
