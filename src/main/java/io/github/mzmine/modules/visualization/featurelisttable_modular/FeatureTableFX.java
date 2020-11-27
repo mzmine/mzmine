@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.AreaBarType;
+import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
@@ -222,7 +224,13 @@ public class FeatureTableFX extends TreeTableView<FeatureListRow> {
       this.getColumns().add(col);
       columnMap.put(new ColumnID(dataType, ColumnType.ROW_TYPE, null), col);
       if(!(dataType instanceof ExpandableType)) {
-        applyColumnVisibility(dataType, ColumnType.ROW_TYPE);
+        // Hide area bars and area share columns, if there is only one raw data file in the feature list
+        if((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
+            && flist.getNumberOfRawDataFiles() == 1) {
+          col.setVisible(false);
+        } else {
+          applyColumnVisibility(dataType, ColumnType.ROW_TYPE);
+        }
       }
     }
   }
