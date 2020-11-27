@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.modular_filter_isotopegrouper;
+package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
