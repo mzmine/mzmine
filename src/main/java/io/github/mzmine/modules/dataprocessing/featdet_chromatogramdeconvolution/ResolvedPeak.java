@@ -91,6 +91,7 @@ public class ResolvedPeak{
 
     assert regionEnd > regionStart;
 
+    this.peakList = chromatogram.getFeatureList();
     this.dataFile = chromatogram.getRawDataFile();
 
     // Make an array of scan numbers of this peak
