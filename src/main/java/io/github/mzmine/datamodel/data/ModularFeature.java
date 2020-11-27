@@ -92,7 +92,7 @@ public class ModularFeature implements Feature, ModularDataModel {
    * Initializes a new feature using given values
    *
    */
-  public ModularFeature(RawDataFile dataFile, double mz, float rt, double height, double area,
+  public ModularFeature(RawDataFile dataFile, double mz, float rt, float height, float area,
       int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
       int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
@@ -112,7 +112,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.fragmentScanNumber = fragmentScanNumber;
     this.representiveScanNumber = representativeScan;
     // add values to feature
-    set(ScanNumbersType.class, IntStream.of(allMS2FragmentScanNumbers).boxed().collect(Collectors.toList()));
+    set(ScanNumbersType.class, IntStream.of(scanNumbers).boxed().collect(Collectors.toList()));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -151,7 +151,7 @@ public class ModularFeature implements Feature, ModularDataModel {
    *
    */
   public ModularFeature(@Nonnull ModularFeatureList featureList, RawDataFile dataFile, double mz, float rt,
-      double height, double area, int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
+      float height, float area, int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
       int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
       @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
       @Nonnull Range<Float> intensityRange) {

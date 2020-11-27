@@ -422,7 +422,8 @@ public class MzTabmImportTask extends AbstractTask {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature feature = new ModularFeature(rawData, feature_mz, feature_rt, feature_height, abundance,
+        Feature feature = new ModularFeature(rawData, feature_mz, feature_rt, feature_height,
+            (float) abundance,
             scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
             finalRTRange, finalMZRange, finalIntensityRange);
         feature.setCharge(charge);

@@ -123,8 +123,8 @@ class Gap {
     // If we have best peak candidate, construct a SimpleChromatographicPeak
     if (bestPeakDataPoints != null) {
 
-      double area = 0, height = 0, mz = 0;
-      float rt = 0;
+      double mz = 0;
+      float rt = 0, area = 0, height = 0;
       int scanNumbers[] = new int[bestPeakDataPoints.size()];
       DataPoint finalDataPoint[] = new DataPoint[bestPeakDataPoints.size()];
       Range<Double> finalMZRange = null;
@@ -153,7 +153,7 @@ class Gap {
 
         // Check height
         if (bestPeakDataPoints.get(i).getIntensity() > height) {
-          height = bestPeakDataPoints.get(i).getIntensity();
+          height = (float) bestPeakDataPoints.get(i).getIntensity();
           rt = (float) bestPeakDataPoints.get(i).getRT();
           representativeScan = bestPeakDataPoints.get(i).getScanNumber();
         }

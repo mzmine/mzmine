@@ -505,8 +505,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   // TODO: increase speed(enumeration through features)
   private /*synchronized*/ void calculateAverageValues() {
-    double mzSum = 0, heightSum = 0, areaSum = 0;
-    float rtSum = 0;
+    double mzSum = 0;
+    float rtSum = 0, heightSum = 0, areaSum = 0;
     int charge = 0;
     HashSet<Integer> chargeArr = new HashSet<Integer>();
     for (Feature feature : getFeatures()) {

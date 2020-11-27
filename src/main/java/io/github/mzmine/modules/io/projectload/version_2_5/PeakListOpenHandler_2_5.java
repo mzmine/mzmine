@@ -61,12 +61,12 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
   private int numOfMZpeaks, representativeScan, fragmentScan;
   private String peakColumnID;
-  private double mass, area;
-  private float rt;
+  private double mass;
+  private float rt, area;
   private int[] scanNumbers;
   private int[] allMS2FragmentScanNumbers;
   private Vector<Integer> currentAllMS2FragmentScans;
-  private double height;
+  private float height;
   private double[] masses, intensities;
   private String peakStatus, peakListName, name, identityPropertyName, rawDataFileID;
   private Hashtable<String, String> identityProperties;
@@ -201,8 +201,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // Before MZmine.6 retention time was saved in seconds, but now we
       // use minutes, so we need to divide by 60
       rt = (float) (Double.parseDouble(attrs.getValue(PeakListElementName_2_5.RT.getElementName())) / 60d);
-      height = Double.parseDouble(attrs.getValue(PeakListElementName_2_5.HEIGHT.getElementName()));
-      area = Double.parseDouble(attrs.getValue(PeakListElementName_2_5.AREA.getElementName()));
+      height = (float) Double.parseDouble(attrs.getValue(PeakListElementName_2_5.HEIGHT.getElementName()));
+      area = (float) Double.parseDouble(attrs.getValue(PeakListElementName_2_5.AREA.getElementName()));
       peakStatus = attrs.getValue(PeakListElementName_2_5.STATUS.getElementName());
       String chargeString = attrs.getValue(PeakListElementName_2_5.CHARGE.getElementName());
       if (chargeString != null)
@@ -350,9 +350,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
       for (int i = 0; i < numOfMZpeaks; i++) {
 
-        // TODO: Scan rt and intensity to float
         Scan sc = dataFile.getScan(scanNumbers[i]);
-        float retentionTime = (float) sc.getRetentionTime();
+        float retentionTime = sc.getRetentionTime();
 
         double mz = masses[i];
         float intensity = (float) intensities[i];

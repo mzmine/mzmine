@@ -78,8 +78,8 @@ public class CsvImportTask extends AbstractTask {
         if(counter++ == 0){
           continue;
         }
-        double feature_mz = 0.0, feature_height = 0.0, abundance = 0.0, mzMin = 0.0, mzMax = 0.0;
-        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f;
+        double feature_mz = 0.0, mzMin = 0.0, mzMax = 0.0;
+        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f, abundance = 0f;
         Range<Float> finalRTRange;
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
@@ -108,7 +108,7 @@ public class CsvImportTask extends AbstractTask {
               break;
             case 9:
               intensity = (float) Double.parseDouble(dataLine[j]);
-              feature_height = Double.parseDouble(dataLine[j]);
+              feature_height = (float) Double.parseDouble(dataLine[j]);
               break;
           }
         }

@@ -345,9 +345,8 @@ class MzTabImportTask extends AbstractTask {
 
     // Loop through SML data
     String formula, description, database, url = "";
-    double mzExp = 0, abundance = 0, feature_mz = 0;
-    float feature_rt = 0, feature_height = 0;
-    float rtValue = 0;
+    double mzExp = 0, feature_mz = 0;
+    float rtValue = 0, feature_rt = 0, feature_height = 0, abundance = 0;
     // int charge = 0;
     int rowCounter = 0;
 
@@ -419,7 +418,7 @@ class MzTabImportTask extends AbstractTask {
         feature_height = 0;
 
         if (smallMolecule.getAbundanceColumnValue(dataFileAssay) != null) {
-          abundance = smallMolecule.getAbundanceColumnValue(dataFileAssay);
+          abundance = smallMolecule.getAbundanceColumnValue(dataFileAssay).floatValue();
         }
 
         if (smallMolecule.getOptionColumnValue(dataFileAssay, "feature_mz") != null) {

@@ -127,7 +127,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
       assert maxPoint != null;
 
       ModularFeature newFeature = new ModularFeature(newFeatureList, dataFile, scan.getPrecursorMZ(),
-          bestScan.getRetentionTime(), maxPoint.getIntensity(), maxPoint.getIntensity(),
+          bestScan.getRetentionTime(), (float) maxPoint.getIntensity(), (float) maxPoint.getIntensity(),
           new int[] {bestScan.getScanNumber()}, new DataPoint[] {maxPoint}, FeatureStatus.DETECTED,
           bestScan.getScanNumber(), scan.getScanNumber(), new int[] {},
           Range.singleton(bestScan.getRetentionTime()), Range.singleton(scan.getPrecursorMZ()),

@@ -281,10 +281,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    ModularFeature newFeature = new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(), peak.getIntensity(), area,
-        scanNumbers, dataPoints, FeatureStatus.MANUAL, representativeScan, representativeScan,
-        new int[] {}, Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
-        Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
+    ModularFeature newFeature = new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(),
+        (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
+        representativeScan, representativeScan, new int[] {}, Range.closed((float) peak.getFirstRetTime(),
+        (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0f, (float) peak.getIntensity()));
     newFeature.setFeatureList(newPeakList);
     return newFeature;

@@ -145,11 +145,11 @@ public class SmoothingTask extends AbstractTask {
               // Measure peak (max, ranges, area etc.)
               final RawDataFile dataFile = peak.getRawDataFile();
               final DataPoint[] newDataPoints = new DataPoint[numScans];
-              double maxIntensity = 0.0;
+              float maxIntensity = 0f;
               int maxScanNumber = -1;
               DataPoint maxDataPoint = null;
               Range<Double> intensityRange = null;
-              double area = 0.0;
+              float area = 0f;
               for (int i = 0; i < numScans; i++) {
 
                 final int scanNumber = scanNumbers[i];
@@ -166,7 +166,7 @@ public class SmoothingTask extends AbstractTask {
                   // Track maximum intensity data point.
                   if (intensity > maxIntensity) {
 
-                    maxIntensity = intensity;
+                    maxIntensity = (float) intensity;
                     maxScanNumber = scanNumber;
                     maxDataPoint = newDataPoint;
                   }

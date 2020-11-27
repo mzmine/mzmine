@@ -102,8 +102,8 @@ public class ADAPInterface {
     for (double intensity : chromatogram.ys)
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-    return new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(), peak.getIntensity(), area,
-        scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
+    return new ModularFeature(file, peak.getMZ(), (float) peak.getRetTime(), (float) peak.getIntensity(),
+        (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
         new int[] {}, Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.f, (float) peak.getIntensity()));
