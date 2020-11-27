@@ -18,7 +18,7 @@
  * Edited and modified by Owen Myers (Oweenm@gmail.com)
  */
 
-package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;

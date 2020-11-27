@@ -19,7 +19,7 @@
  */
 
 
-package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 import io.github.mzmine.datamodel.data.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;

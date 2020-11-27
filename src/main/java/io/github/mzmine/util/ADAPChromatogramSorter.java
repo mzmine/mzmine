@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ADAPChromatogram;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import java.util.Comparator;
 
 

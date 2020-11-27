@@ -157,7 +157,7 @@
 			<Menu text="MS1">
 				<MenuItem onAction="#runModule"
 					text="ADAP chromatogram builder"
-					userData="io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" />
+					userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" />
 				<MenuItem text="Chromatogram deconvolution"
 					onAction="#runModule"
 					userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule" />

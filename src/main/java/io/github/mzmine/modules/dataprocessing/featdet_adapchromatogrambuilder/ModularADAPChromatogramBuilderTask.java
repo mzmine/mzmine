@@ -18,7 +18,7 @@
  * Edited and modified by Owen Myers (Oweenm@gmail.com)
  */
 
-package io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
 import io.github.mzmine.util.FeatureConvertors;
@@ -51,8 +51,6 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.ADAPChromatogramSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import javafx.application.Platform;
-
 
 
 public class ModularADAPChromatogramBuilderTask extends AbstractTask {
