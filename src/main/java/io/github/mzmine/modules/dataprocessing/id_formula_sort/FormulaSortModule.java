@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;

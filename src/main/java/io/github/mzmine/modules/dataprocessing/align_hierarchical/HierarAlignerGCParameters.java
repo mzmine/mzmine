@@ -71,9 +71,9 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
 
   // -- Use unaltered RDF...
   public static final BooleanParameter useOldestRDFAncestor = new BooleanParameter(
-      "Use original raw data file",
+      "Use original raw features file",
       "Chemical similarity is computed using unaltered m/z profile at given scan from the very oldest Raw Data File ancestor (if it has not been removed). "
-          + "Unchecked: information are grabbed as usual (from the data file the feature list to be merged was built from).",
+          + "Unchecked: information are grabbed as usual (from the features file the feature list to be merged was built from).",
       false);
   // --
 

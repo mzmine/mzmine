@@ -22,8 +22,8 @@ public enum MZmineModuleCategory {
 
   PROJECTIO("Project I/O"), //
   PROJECT("Project"), //
-  RAWDATA("Raw data methods"), //
-  RAWDATAFILTERING("Raw data filtering"), //
+  RAWDATA("Raw features methods"), //
+  RAWDATAFILTERING("Raw features filtering"), //
   FEATUREDETECTION("Feature detection"), //
   GAPFILLING("Gap filling"), //
   ISOTOPES("Isotopes"), //

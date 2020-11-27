@@ -64,13 +64,13 @@ public class HeatMapParameters extends SimpleParameterSet {
       true);
 
   public static final BooleanParameter scale = new BooleanParameter("Scaling",
-      "Scaling the data with the standard deviation of each column.", true);
+      "Scaling the features with the standard deviation of each column.", true);
 
   public static final BooleanParameter log =
-      new BooleanParameter("Log", "Log scaling of the data", true);
+      new BooleanParameter("Log", "Log scaling of the features", true);
 
   public static final BooleanParameter plegend = new BooleanParameter("P-value legend",
-      "Adds the p-value legend and groups the data showing only the different groups in the heat map",
+      "Adds the p-value legend and groups the features showing only the different groups in the heat map",
       true);
 
   public static final IntegerParameter star =

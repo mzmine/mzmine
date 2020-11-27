@@ -238,7 +238,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnCombineFiles.setOnAction(e -> combineFiles());
     pnButtonFlow.getChildren().add(btnCombineFiles);
 
-    // add combo for raw data file
+    // add combo for raw features file
 
     comboDataFileName = new ComboBox<RawDataFile>(
         MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
@@ -247,7 +247,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
-    pnFeaturePick.getChildren().add(new Label("Raw data file(s)"));
+    pnFeaturePick.getChildren().add(new Label("Raw features file(s)"));
     pnFeaturePick.getChildren().add(comboDataFileName);
     cbSecondRaw.setOnAction(e -> useSecondDataFile(cbSecondRaw.isSelected()));
     pnFeaturePick.getChildren().add(cbSecondRaw);
@@ -313,7 +313,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   * Init raw data selection to last used raw data file or "kovats" or "dro"
+   * Init raw features selection to last used raw features file or "kovats" or "dro"
    */
   private void initRawDataFileSelection() {
 

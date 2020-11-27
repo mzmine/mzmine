@@ -43,10 +43,10 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
   public static final FeaturesParameter features = new FeaturesParameter();
 
   public static final IntegerParameter rtResolution = new IntegerParameter(
-      "Retention time resolution", "Number of data points on retention time axis", 500);
+      "Retention time resolution", "Number of features points on retention time axis", 500);
 
   public static final IntegerParameter mzResolution =
-      new IntegerParameter("m/z resolution", "Number of data points on m/z axis", 500);
+      new IntegerParameter("m/z resolution", "Number of features points on m/z axis", 500);
 
   /**
    * Windows size and position

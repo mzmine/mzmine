@@ -33,7 +33,7 @@ public class ExactMzDataPoint implements DataPoint {
   private DataPoint[] rawDataPoints;
 
   /**
-   * This constructor takes the given raw data point to represent this m/z peak.
+   * This constructor takes the given raw features point to represent this m/z peak.
    * 
    * @param dataPoint
    */
@@ -43,7 +43,7 @@ public class ExactMzDataPoint implements DataPoint {
 
   /**
    * This constructor takes the given m/z and intensity (provided as DataPoint) to represent this
-   * m/z peak and sets the raw data points accordingly.
+   * m/z peak and sets the raw features points accordingly.
    * 
    * @param dataPoint
    * @param rawDataPoints
@@ -54,7 +54,7 @@ public class ExactMzDataPoint implements DataPoint {
 
   /**
    * This constructor takes the given m/z and intensity to represent this m/z peak and sets the raw
-   * data points accordingly.
+   * features points accordingly.
    * 
    * @param dataPoint
    * @param rawDataPoints
@@ -87,7 +87,7 @@ public class ExactMzDataPoint implements DataPoint {
   }
 
   /**
-   * This method returns an array of raw data points that form this m/z peak
+   * This method returns an array of raw features points that form this m/z peak
    */
   public DataPoint[] getRawDataPoints() {
     return rawDataPoints;

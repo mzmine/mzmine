@@ -55,7 +55,7 @@ public class LibrarySubmitIonParameters extends SimpleParameterSet {
 
   public LibrarySubmitIonParameters() {
     super(new Parameter[] {
-        // meta data param
+        // meta features param
         META_PARAM,
         // submit param
         SUBMIT_PARAM,

@@ -55,8 +55,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getIntensityFormat(), Range.closed(0.0, 10000000.0)));
 
   public static final OptionalParameter<IntRangeParameter> PEAK_DATAPOINTS =
-      new OptionalParameter<>(new IntRangeParameter("# data points",
-          "Permissible range of the number of data points over a peak", false,
+      new OptionalParameter<>(new IntRangeParameter("# features points",
+          "Permissible range of the number of features points over a peak", false,
           Range.closed(8, 30)));
 
   public static final OptionalParameter<DoubleRangeParameter> PEAK_FWHM =

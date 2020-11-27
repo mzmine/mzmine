@@ -34,7 +34,7 @@ public class CropFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Crop filter";
   private static final String MODULE_DESCRIPTION =
-      "This module performs cropping of raw data files.";
+      "This module performs cropping of raw features files.";
 
   @Override
   public @Nonnull String getName() {

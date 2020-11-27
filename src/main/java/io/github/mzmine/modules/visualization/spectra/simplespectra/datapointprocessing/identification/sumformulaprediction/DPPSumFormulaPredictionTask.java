@@ -143,7 +143,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     }
 
     if (getDataPoints().length == 0) {
-      logger.info("Data point/Spectra processing: 0 data points were passed to "
+      logger.info("Data point/Spectra processing: 0 features points were passed to "
           + getTaskDescription() + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
@@ -151,7 +151,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
 
-      logger.info("Data point/Spectra processing: The array of data points passed to "
+      logger.info("Data point/Spectra processing: The array of features points passed to "
           + getTaskDescription()
           + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
       setStatus(TaskStatus.CANCELED);

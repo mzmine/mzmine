@@ -39,9 +39,9 @@ public class RawDataImportParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Import raw data files");
+        fileChooser.setTitle("Import raw features files");
         fileChooser.getExtensionFilters().addAll(
-                new ExtensionFilter("All raw data files", "*.cdf", "*.nc", "*.mzData", "*.mzML", "*.mzXML",
+                new ExtensionFilter("All raw features files", "*.cdf", "*.nc", "*.mzData", "*.mzML", "*.mzXML",
                         "*.xml", "*.raw", "*.csv", "*.zip", "*.gz"), //
                 new ExtensionFilter("NetCDF files", "*.cdf", "*.nc"), //
                 new ExtensionFilter("mzML files", "*.mzML"), //
@@ -53,7 +53,7 @@ public class RawDataImportParameters extends SimpleParameterSet {
                 new ExtensionFilter("Compressed files", "*.zip", "*.gz"), //
                 new ExtensionFilter("All Files", "*.*"));
 
-        // We need to allow directories, because Waters raw data come in
+        // We need to allow directories, because Waters raw features come in
         // directories, not files
         // chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 

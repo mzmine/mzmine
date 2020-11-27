@@ -29,7 +29,7 @@ import io.github.mzmine.util.ExitCode;
 
 /**
  * Interface representing a module that can be executed from the GUI through a menu item. This can
- * be either a data processing method (@see MZmineProcessingModule) or a visualization/data analysis
+ * be either a features processing method (@see MZmineProcessingModule) or a visualization/features analysis
  * method.
  */
 public interface MZmineRunnableModule extends MZmineModule {
@@ -65,7 +65,7 @@ public interface MZmineRunnableModule extends MZmineModule {
       @Nonnull Collection<Task> tasks);
 
   /**
-   * Returns the category of the module (e.g. raw data processing, peak picking etc.). A menu item
+   * Returns the category of the module (e.g. raw features processing, peak picking etc.). A menu item
    * for this module will be created according to the category.
    */
   @Nonnull

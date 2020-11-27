@@ -69,10 +69,10 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
   private boolean canceled = false;
 
   /**
-   * Extract the scan file and copies it into the temporary folder. Create a new raw data file using
-   * the information from the XML raw data description file
+   * Extract the scan file and copies it into the temporary folder. Create a new raw features file using
+   * the information from the XML raw features description file
    *
-   * @param Name raw data file name
+   * @param Name raw features file name
    * @throws SAXException
    * @throws ParserConfigurationException
    */
@@ -89,12 +89,12 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
     dataPointsLengths = newRawDataFile.getDataPointsLengths();
 
-    // Reads the XML file (raw data description)
+    // Reads the XML file (raw features description)
     SAXParserFactory factory = SAXParserFactory.newInstance();
     SAXParser saxParser = factory.newSAXParser();
     saxParser.parse(is, this);
 
-    // Adds the raw data file to MZmine
+    // Adds the raw features file to MZmine
     RawDataFile rawDataFile = newRawDataFile.finishWriting();
     return rawDataFile;
 
@@ -162,9 +162,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     // <NAME>
     if (qName.equals(RawDataElementName_2_5.NAME.getElementName())) {
 
-      // Adds the scan file and the name to the new raw data file
+      // Adds the scan file and the name to the new raw features file
       String name = getTextOfElement();
-      logger.info("Loading raw data file: " + name);
+      logger.info("Loading raw features file: " + name);
       newRawDataFile.setName(name);
     }
 

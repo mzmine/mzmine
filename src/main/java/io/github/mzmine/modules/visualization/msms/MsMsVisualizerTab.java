@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.msms;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.parameters.Parameter;
@@ -112,7 +112,7 @@ public class MsMsVisualizerTab extends MZmineTab {
 
     toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
     toggleContinuousModeButton
-        .setTooltip(new Tooltip("Toggle displaying of data points for the features"));
+        .setTooltip(new Tooltip("Toggle displaying of features points for the features"));
     toggleContinuousModeButton.setOnAction(e -> {
       IDAPlot.switchDataPointsVisible();
     });
@@ -147,7 +147,7 @@ public class MsMsVisualizerTab extends MZmineTab {
           false);
 
       final ComboParameter<Colors> inputColors = new ComboParameter<Colors>("Color",
-          "The color which the data points will be marked with.", Colors.values());
+          "The color which the features points will be marked with.", Colors.values());
 
       Parameter<?>[] findParams = new Parameter<?>[5];
       findParams[0] = inputMZ;
@@ -269,7 +269,7 @@ public class MsMsVisualizerTab extends MZmineTab {
       return;
     }
 
-    // get first raw data file
+    // get first raw features file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

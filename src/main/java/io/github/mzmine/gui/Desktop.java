@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.List;
 import java.net.URL;
@@ -96,9 +96,9 @@ public interface Desktop extends MZmineModule {
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes);
 
   /**
-   * Returns array of currently selected raw data files in GUI
+   * Returns array of currently selected raw features files in GUI
    *
-   * @return Array of selected raw data files
+   * @return Array of selected raw features files
    */
   public RawDataFile[] getSelectedDataFiles();
 

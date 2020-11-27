@@ -84,7 +84,7 @@ public class FXCombinedChartGestureDemo extends Application {
   }
 
   /**
-   * Creates a dataset, consisting of two series of monthly data.
+   * Creates a dataset, consisting of two series of monthly features.
    *
    * @return the dataset.
    */

@@ -67,7 +67,7 @@ public class PeptideScan implements Scan {
   }
 
   /**
-   * Sets the original raw data file
+   * Sets the original raw features file
    * 
    * @param rawDataFile
    */
@@ -307,7 +307,7 @@ public class PeptideScan implements Scan {
   }
 
   /**
-   * Returns the raw data file that this scan belongs.
+   * Returns the raw features file that this scan belongs.
    */
   public @Nonnull RawDataFile getDataFile() {
     return rawDataFile;
@@ -342,7 +342,7 @@ public class PeptideScan implements Scan {
 
   /**
    * 
-   * Returns the most probable peptide identity of this scan (collection of data points).
+   * Returns the most probable peptide identity of this scan (collection of features points).
    * 
    * @return Peptide
    */

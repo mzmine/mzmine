@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 public class HistogramPlotDataset extends AbstractIntervalXYDataset {
@@ -147,8 +147,8 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   }
 
   /**
-   * Adds a series to the dataset. Any data value less than minimum will be assigned to the first
-   * bin, and any data value greater than maximum will be assigned to the last bin. Values falling
+   * Adds a series to the dataset. Any features value less than minimum will be assigned to the first
+   * bin, and any features value greater than maximum will be assigned to the last bin. Values falling
    * on the boundary of adjacent bins will be assigned to the higher indexed bin.
    *
    * @param key the series key (<code>null</code> not permitted).
@@ -328,7 +328,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   }
 
   /**
-   * Returns the number of data items for a series.
+   * Returns the number of features items for a series.
    *
    * @param series the series index (in the range <code>0</code> to
    *        <code>getSeriesCount() - 1</code>).

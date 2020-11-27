@@ -164,7 +164,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
         for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
           final DBCompound compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
 
-          // In case we failed to retrieve data, skip this compound
+          // In case we failed to retrieve features, skip this compound
           if (compound == null)
             continue;
           if (counter < 3) {

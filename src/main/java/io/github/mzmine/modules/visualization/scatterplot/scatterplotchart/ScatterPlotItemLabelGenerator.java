@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 

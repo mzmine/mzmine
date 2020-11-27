@@ -22,22 +22,22 @@ package io.github.mzmine.util;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.RowBinding;
-import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.RawFileType;
-import io.github.mzmine.datamodel.data.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.data.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.data.types.numbers.HeightType;
-import io.github.mzmine.datamodel.data.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {

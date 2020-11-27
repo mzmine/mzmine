@@ -25,7 +25,7 @@ import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.main.MZmineCore;
 
 /**
- * Label generator for spectra visualizer. Only used to generate labels for the raw data
+ * Label generator for spectra visualizer. Only used to generate labels for the raw features
  * (ScanDataSet)
  */
 public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
@@ -50,23 +50,23 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
 
-    // X and Y values of current data point
+    // X and Y values of current features point
     double originalX = dataset.getX(series, item).doubleValue();
     double originalY = dataset.getY(series, item).doubleValue();
 
-    // Calculate data size of 1 screen pixel
+    // Calculate features size of 1 screen pixel
     double xLength = plot.getChart().getXYPlot().getDomainAxis().getRange().getLength();
     double pixelX = xLength / plot.getWidth();
 
-    // Size of data set
+    // Size of features set
     int itemCount = dataset.getItemCount(series);
 
-    // Search for data points higher than this one in the interval
+    // Search for features points higher than this one in the interval
     // from limitLeft to limitRight
     double limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
     double limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
 
-    // Iterate data points to the left and right
+    // Iterate features points to the left and right
     for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
       // If we get out of the limit we can stop searching
@@ -78,7 +78,7 @@ public class PseudoSpectraItemLabelGenerator implements XYItemLabelGenerator {
           && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
         break;
 
-      // If we find higher data point, bail out
+      // If we find higher features point, bail out
       if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
         return null;
 

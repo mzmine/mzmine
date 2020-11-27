@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.io.metaboanalystexport;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -105,7 +105,7 @@ class MetaboAnalystExportTask extends AbstractTask {
       boolean checkResult = checkFeatureList(featureList);
       if (checkResult == false) {
         MZmineCore.getDesktop().displayErrorMessage("Feature list " + featureList.getName()
-            + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
+            + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw features files) in each group");
       }
 
       try {
@@ -160,7 +160,7 @@ class MetaboAnalystExportTask extends AbstractTask {
     // Buffer for writing
     StringBuffer line = new StringBuffer();
 
-    // Write sample (raw data file) names
+    // Write sample (raw features file) names
     line.append("\"Sample\"");
     for (RawDataFile file : rawDataFiles) {
       // Cancel?
@@ -200,7 +200,7 @@ class MetaboAnalystExportTask extends AbstractTask {
     line.append("\n");
     writer.write(line.toString());
 
-    // Write data rows
+    // Write features rows
     for (FeatureListRow featureListRow : featureList.getRows()) {
 
       // Cancel?

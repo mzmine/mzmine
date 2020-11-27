@@ -125,7 +125,7 @@ public class ExportScansTask extends AbstractTask {
    */
   public void exportText() throws IOException {
 
-    // Open the writer - append data if file already exists
+    // Open the writer - append features if file already exists
     final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
     try {
       for (Scan scan : scans) {
@@ -155,7 +155,7 @@ public class ExportScansTask extends AbstractTask {
             break;
         }
 
-        // Write the data points
+        // Write the features points
         DataPoint[] dataPoints = null;
         if (useMassList && massListName != null) {
           MassList list = scan.getMassList(massListName);
@@ -170,7 +170,7 @@ public class ExportScansTask extends AbstractTask {
 
         for (int i = 0; i < itemCount; i++) {
 
-          // Write data point row
+          // Write features point row
           writer.write(dataPoints[i].getMZ() + " " + dataPoints[i].getIntensity());
           writer.newLine();
 

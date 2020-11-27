@@ -14,11 +14,11 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final DataTypeCheckListParameter showRowTypeColumns = new DataTypeCheckListParameter(
       "Row type columns",
-      "Specify which data type columns shall be displayed in the feature list table");
+      "Specify which features type columns shall be displayed in the feature list table");
 
   public static final DataTypeCheckListParameter showFeatureTypeColumns = new DataTypeCheckListParameter(
       "FeatureOld type columns",
-      "Specify which data type columns shall be displayed in the feature list table");
+      "Specify which features type columns shall be displayed in the feature list table");
 
   public FeatureTableFXParameters() {
     super(new Parameter[]{showXIC, showSpectrum, showRowTypeColumns, showFeatureTypeColumns});

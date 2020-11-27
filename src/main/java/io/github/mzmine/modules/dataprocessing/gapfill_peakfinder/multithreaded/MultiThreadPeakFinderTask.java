@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -46,7 +46,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private RTTolerance rtTolerance;
   private int processedScans, totalScans;
 
-  // start and end (exclusive) for raw data file processing
+  // start and end (exclusive) for raw features file processing
   private int start;
   private int endexcl;
 
@@ -85,7 +85,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       totalScans += dataFile.getNumOfScans(1);
     }
 
-    // Process all raw data files
+    // Process all raw features files
     for (int i = start; i < endexcl; i++) {
       RawDataFile dataFile = peakList.getRawDataFile(i);
 
@@ -96,7 +96,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
       List<Gap> gaps = new ArrayList<Gap>();
 
-      // Fill each row of this raw data file column, create new empty
+      // Fill each row of this raw features file column, create new empty
       // gaps
       // if necessary
       for (int row = 0; row < peakList.getNumberOfRows(); row++) {
@@ -127,7 +127,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         continue;
       }
 
-      // Get all scans of this data file
+      // Get all scans of this features file
       int scanNumbers[] = dataFile.getScanNumbers(1);
 
       // Process each scan

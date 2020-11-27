@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel;
 import java.io.IOException;
 
 /**
- * This interface represents a raw data file which is being modified. Scans can be added to the file
+ * This interface represents a raw features file which is being modified. Scans can be added to the file
  * by calling the addScan() method. Final RawDataFile instance is obtained by calling
  * finishWriting() method.
  */

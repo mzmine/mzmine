@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Font;
@@ -158,7 +158,7 @@ public class TICVisualizerTab extends MZmineTab {
 
 
     Button datapointsBtn = new Button(null, new ImageView(DATA_POINTS_ICON));
-    datapointsBtn.setTooltip(new Tooltip("Toggle displaying of data points"));
+    datapointsBtn.setTooltip(new Tooltip("Toggle displaying of features points"));
     datapointsBtn.setOnAction(e -> {
       ticPlot.switchDataPointsVisible();
     });
@@ -211,7 +211,7 @@ public class TICVisualizerTab extends MZmineTab {
       }
     }
 
-    // add all data files
+    // add all features files
     for (RawDataFile dataFile : dataFiles) {
       addRawDataFile(dataFile);
     }
@@ -300,7 +300,7 @@ public class TICVisualizerTab extends MZmineTab {
     StringBuffer mainTitle = new StringBuffer();
     StringBuffer subTitle = new StringBuffer();
 
-    // If all data files have m/z range less than or equal to range of
+    // If all features files have m/z range less than or equal to range of
     // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
     Set<RawDataFile> fileSet = ticDataSets.keySet();
     String ticOrXIC = "TIC";
@@ -464,7 +464,7 @@ public class TICVisualizerTab extends MZmineTab {
    */
   public void exportChromatogram(RawDataFile file) {
 
-    // Get the data set.
+    // Get the features set.
     final TICDataSet dataSet = ticDataSets.get(file);
     if (dataSet != null) {
 

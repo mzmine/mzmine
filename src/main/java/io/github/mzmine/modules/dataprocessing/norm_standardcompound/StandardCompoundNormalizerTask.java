@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_standardcompound;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.logging.Logger;
 
@@ -102,7 +102,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     normalizedFeatureList =
         new ModularFeatureList(originalFeatureList + " " + suffix, originalFeatureList.getRawDataFiles());
 
-    // Copy raw data files from original alignment result to new alignment
+    // Copy raw features files from original alignment result to new alignment
     // result
     totalRows = originalFeatureList.getNumberOfRows();
 
@@ -131,7 +131,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
       double mz = row.getAverageMZ();
       double rt = row.getAverageRT();
 
-      // Loop through all raw data files
+      // Loop through all raw features files
       for (RawDataFile file : originalFeatureList.getRawDataFiles()) {
 
         double normalizationFactors[] = null;

@@ -146,7 +146,7 @@ public abstract class Similarity {
   // abstract methods
   /**
    * 
-   * @param data data[dp][0,1]
+   * @param data features[dp][0,1]
    * @return
    */
   public abstract double calc(double[][] data);
@@ -188,7 +188,7 @@ public abstract class Similarity {
   /**
    * sum(x*y)
    * 
-   * @param data data[dp][x,y]
+   * @param data features[dp][x,y]
    * @return
    */
   public double dot(double[][] data) {
@@ -269,7 +269,7 @@ public abstract class Similarity {
   /**
    * Euclidean norm (self dot product). sum(x*x)
    * 
-   * @param data data[dp][indexOfX]
+   * @param data features[dp][indexOfX]
    * @param index
    * @return
    */

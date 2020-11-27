@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.util.FeatureConvertors;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;

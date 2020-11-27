@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +32,7 @@ import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -41,8 +41,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
 
 /**
- * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
- * create separate data set for each file because the user may add/remove files later.
+ * TIC visualizer features set. One features set is created per file shown in this visualizer. We need to
+ * create separate features set for each file because the user may add/remove files later.
  *
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
@@ -59,7 +59,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 100L;
 
-  // Last time the data set was redrawn.
+  // Last time the features set was redrawn.
   private static long lastRedrawTime = System.currentTimeMillis();
 
   private final RawDataFile dataFile;
@@ -82,9 +82,9 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private TICPlotType plotType;
 
   /**
-   * Create the data set.
+   * Create the features set.
    *
-   * @param file data file to plot.
+   * @param file features file to plot.
    * @param scans scans to plot.
    * @param rangeMZ range of m/z to plot.
    * @param window visualizer window.
@@ -96,10 +96,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
+   * Create the features set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file data file to plot.
+   * @param file features file to plot.
    * @param scans scans to plot.
    * @param rangeMZ range of m/z to plot.
    * @param window visualizer window.
@@ -196,12 +196,12 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         // Always redraw when we add last value.
         refresh();
 
-        logger.info("TIC data calculated for " + dataFile);
+        logger.info("TIC features calculated for " + dataFile);
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
 
-      logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
+      logger.log(Level.SEVERE, "Problem calculating features set values for " + dataFile, t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
     }
@@ -244,11 +244,11 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Returns index of data point which exactly matches given X and Y values
+   * Returns index of features point which exactly matches given X and Y values
    *
    * @param retentionTime retention time.
    * @param intensity intensity.
-   * @return the nearest data point index.
+   * @return the nearest features point index.
    */
   public int getIndex(final double retentionTime, final double intensity) {
 
@@ -276,7 +276,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Checks if given data point is local maximum.
+   * Checks if given features point is local maximum.
    *
    * @param item the index of the item to check.
    * @return true/false if the item is a local maximum.
@@ -310,7 +310,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   public int[] findLocalMaxima(final double xMin, final double xMax, final double yMin,
       final double yMax) {
 
-    // Save data set size.
+    // Save features set size.
     final int currentSize = processedScans;
     final double[] rtCopy;
 
@@ -419,7 +419,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   /**
-   * Notify data set listener (on the EDT).
+   * Notify features set listener (on the EDT).
    */
   private void refresh() {
     Platform.runLater(() -> fireDatasetChanged());

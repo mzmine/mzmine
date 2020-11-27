@@ -57,7 +57,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
       "% of points required to consider the model valid (d).");
 
   public static final DoubleParameter Margin = new DoubleParameter("Threshold value",
-      "Threshold value (minutes) for determining when a data point fits a model (t)");
+      "Threshold value (minutes) for determining when a features point fits a model (t)");
 
   public static final BooleanParameter Linear =
       new BooleanParameter("Linear model", "Switch between polynomial model or lineal model");

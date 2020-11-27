@@ -75,7 +75,7 @@ public class ChartGestureDragDiffEvent {
   }
 
   /**
-   * Start value of first event in data space
+   * Start value of first event in features space
    * 
    * @return
    */
@@ -84,7 +84,7 @@ public class ChartGestureDragDiffEvent {
   }
 
   /**
-   * Difference value of the last two eventsin data space
+   * Difference value of the last two eventsin features space
    * 
    * @return
    */

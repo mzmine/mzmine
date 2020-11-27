@@ -46,7 +46,7 @@ public class RTRangeComponent extends DoubleRangeComponent {
         RawDataFilesComponent rdc =
             setupDialog.getComponentForParameter(new RawDataFilesParameter());
 
-        // If the current setup dialog has no raw data file selector, it
+        // If the current setup dialog has no raw features file selector, it
         // is probably in the parent dialog, so let's check it
         /*
          * if (rdc == null) { setupDialog = (ParameterSetupDialog) setupDialog.getParent(); if

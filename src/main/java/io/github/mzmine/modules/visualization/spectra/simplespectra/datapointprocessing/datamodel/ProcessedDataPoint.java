@@ -69,7 +69,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   }
 
   /**
-   * Adds a single result to this data point.
+   * Adds a single result to this features point.
    * 
    * @param result
    */
@@ -84,7 +84,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   }
 
   /**
-   * Adds a collection of DPPResults to this data point.
+   * Adds a collection of DPPResults to this features point.
    * 
    * @param results
    */

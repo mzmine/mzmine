@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.msms;
 
 public enum NormalizationType {
 
-  all("All data points"), similar("Data points with a m/z within 10ppm");
+  all("All features points"), similar("Data points with a m/z within 10ppm");
 
   private String type;
 

@@ -29,7 +29,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -147,7 +147,7 @@ public class CentWaveDetector implements PeakResolver {
         final int peakLeft = findRTIndex(retentionTimes, peakRow[4]);
         final int peakRight = findRTIndex(retentionTimes, peakRow[5]);
 
-        // Partition into sections bounded by null data points, creating
+        // Partition into sections bounded by null features points, creating
         // a peak for each.
         for (int start = peakLeft; start < peakRight; start++) {
 

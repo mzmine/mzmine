@@ -52,14 +52,14 @@ public class GnpsFbmnSubmitParameters extends SimpleParameterSet {
   }
 
   /**
-   * Optional: Select meta data file
+   * Optional: Select meta features file
    */
   public static final OptionalParameter<FileNameParameter> META_FILE =
-      new OptionalParameter<FileNameParameter>(new FileNameParameter("Meta data file",
+      new OptionalParameter<FileNameParameter>(new FileNameParameter("Meta features file",
           "Optional meta file for GNPS", FileSelectionType.OPEN), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
-      "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
+      "GNPS parameter presets for high or low resolution mass spectrometry features", Preset.values(),
       Preset.HIGHRES);
 
   public static final StringParameter JOB_TITLE = new StringParameter("Job title",

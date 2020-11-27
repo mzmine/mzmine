@@ -201,7 +201,7 @@ public class MassCalibrationParameters extends SimpleParameterSet {
   public static final DoubleParameter nearestNeighborsPercentage = new DoubleParameter(
       "Nearest neighbors percentage",
       "Simple KNN regression involves finding K closest neighbors for a given input"
-          + " and then using these data points to predict the output. It is used to find PPM errors"
+          + " and then using these features points to predict the output. It is used to find PPM errors"
           + " corresponding to m/z peaks in the neighbour of the mass peak that is going to be"
           + " shifted/calibrated. The arithmetic mean of the PPM errors from the distribution that are"
           + " neighbors is used to estimate PPM error of the shifted mass peak. This parameter sets the"

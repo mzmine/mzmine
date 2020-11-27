@@ -21,8 +21,8 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
@@ -77,7 +77,7 @@ public class MirrorChartFactory {
       return null;
     }
 
-    // get highest data intensity to calc relative intensity
+    // get highest features intensity to calc relative intensity
     double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
         .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
     double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
@@ -85,11 +85,11 @@ public class MirrorChartFactory {
 
     if (mostIntenseDB == 0d) {
       logger.warning(
-          "This data set has no original data points in the library spectrum (development error)");
+          "This features set has no original features points in the library spectrum (development error)");
     }
     if (mostIntenseQuery == 0d) {
       logger.warning(
-          "This data set has no original data points in the query spectrum (development error)");
+          "This features set has no original features points in the query spectrum (development error)");
     }
     if (mostIntenseDB == 0d || mostIntenseQuery == 0d) {
       return null;
@@ -110,14 +110,14 @@ public class MirrorChartFactory {
     Double precursorMZB = db.getEntry().getPrecursorMZ();
     Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
 
-    // create without data
+    // create without features
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer(
         "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
         precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
 //    mirrorSpecrumPlot.setMaximumDrawWidth(4200); // TODO?
 //    mirrorSpecrumPlot.setMaximumDrawHeight(2500);
 
-//     add data
+//     add features
     DataPoint[][] query = new DataPoint[tags.length][];
     DataPoint[][] library = new DataPoint[tags.length][];
     for (int i = 0; i < tags.length; i++) {
@@ -262,7 +262,7 @@ public class MirrorChartFactory {
     } else if (!label.isEmpty()) {
       label = " (" + label + ")";
     }
-    // data
+    // features
     PseudoSpectrumDataSet series =
         new PseudoSpectrumDataSet(true, MessageFormat.format("MSMS for m/z={0} RT={1}{2}",
             mzForm.format(precursorMZ), rtForm.format(rt), label));
@@ -289,7 +289,7 @@ public class MirrorChartFactory {
           mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime()));
       String label2 = MessageFormat.format("MSMS for m/z={0} RT={1}",
           mzForm.format(mirror.getPrecursorMZ()), rtForm.format(mirror.getRetentionTime()));
-      // data
+      // features
       PseudoSpectrumDataSet data = new PseudoSpectrumDataSet(true, label1, label2);
       // for each row
       for (DataPoint dp : scan.getDataPoints()) {

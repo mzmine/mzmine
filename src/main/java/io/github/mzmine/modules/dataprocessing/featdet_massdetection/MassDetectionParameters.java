@@ -91,7 +91,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     if ((selectedFiles == null) || (selectedFiles.length == 0))
       return exitCode;
 
-    // Do an additional check for centroid/continuous data and show a
+    // Do an additional check for centroid/continuous features and show a
     // warning if there is a potential problem
     long numCentroided = 0, numProfile = 0;
     ScanSelection scanSel = getParameter(scanSelection).getValue();

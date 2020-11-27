@@ -27,7 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,7 +174,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       logger.debug("Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
           + " for SIRIUS identification");
 
-      // Convert to MSDK data model
+      // Convert to MSDK features model
       ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
       for (Scan ms2Scan : top10ms2Scans) {
         logger.debug("Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan, true)

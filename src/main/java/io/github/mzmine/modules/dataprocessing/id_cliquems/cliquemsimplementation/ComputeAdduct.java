@@ -287,7 +287,7 @@ public class ComputeAdduct {
         addInfos.add(new AdductInfo(f, annotations, masses, scores));
       }
     }
-    //add data to adinfo class.
+    //add features to adinfo class.
     this.anClique.setAdInfos(addInfos);
     return addInfos;
   }

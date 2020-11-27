@@ -62,7 +62,7 @@ public class LargeArrayDouble {
   public double get(long index) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
+      throw new IndexOutOfBoundsException("Error attempting to access features element " + index
           + ".  Array is " + size + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);
@@ -73,7 +73,7 @@ public class LargeArrayDouble {
   public void set(long index, double f) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
+      throw new IndexOutOfBoundsException("Error attempting to access features element " + index
           + ".  Array is " + size + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);

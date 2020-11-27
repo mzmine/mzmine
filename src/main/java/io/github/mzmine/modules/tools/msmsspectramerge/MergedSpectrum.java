@@ -42,7 +42,7 @@ public class MergedSpectrum {
   public final MergedDataPoint[] data;
 
   /**
-   * data files which contribute to this merged spectrum
+   * features files which contribute to this merged spectrum
    */
   public final RawDataFile[] origins;
 
@@ -176,12 +176,12 @@ public class MergedSpectrum {
   }
 
   /**
-   * merge to spectra. The merging of data points itself is done within the MsMsSpectraMerge#merge
+   * merge to spectra. The merging of features points itself is done within the MsMsSpectraMerge#merge
    * method
    * 
    * @param right spectra to merge
-   * @param mergedSpectrum merged data points
-   * @return merged spectrum containing meta information of both sources and the given merged data
+   * @param mergedSpectrum merged features points
+   * @return merged spectrum containing meta information of both sources and the given merged features
    *         points
    */
   public MergedSpectrum merge(MergedSpectrum right, MergedDataPoint[] mergedSpectrum) {

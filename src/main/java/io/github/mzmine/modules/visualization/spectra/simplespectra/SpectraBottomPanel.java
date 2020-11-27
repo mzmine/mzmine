@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Font;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -54,7 +54,7 @@ class SpectraBottomPanel extends BorderPane {
   private RawDataFile dataFile;
   private SpectraVisualizerTab masterFrame;
 
-  // Last time the data set was redrawn.
+  // Last time the features set was redrawn.
   private static long lastRebuildTime = System.currentTimeMillis();
 
   // Refresh interval (in milliseconds).

@@ -19,8 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
 import java.util.Collection;
@@ -36,7 +35,7 @@ public class RawDataOverviewPane extends MZmineTab {
   private RawDataOverviewWindowController controller;
 
   public RawDataOverviewPane(boolean showBinding, boolean defaultBindingState) {
-    super("Raw data overview", showBinding, defaultBindingState);
+    super("Raw features overview", showBinding, defaultBindingState);
 
     controller = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("RawDataOverviewWindow.fxml")));

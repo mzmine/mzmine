@@ -138,7 +138,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
       }
 
-      // add the data points
+      // add the features points
       for (int i = 0; i < topFeatures.length; i++) {
 
         int featureIndex = topFeatures[i];
@@ -165,7 +165,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   }
 
   /**
-   * Notify data set listener (on the EDT).
+   * Notify features set listener (on the EDT).
    */
   private void refresh() {
     Platform.runLater(() -> fireDatasetChanged());

@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import javax.annotation.Nonnull;
 
 import com.google.common.collect.Range;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -52,7 +52,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
     Range<Double> mzRange = null;
     Range<Float> rtRange = null;
 
-    // Check the features for selected data files
+    // Check the features for selected features files
     for (RawDataFile dataFile : dataFiles) {
       Feature feature = featureListRow.getFeature(dataFile);
       if (feature == null)
@@ -67,7 +67,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
 
     }
 
-    // If none of the data files had a feature, check the whole row
+    // If none of the features files had a feature, check the whole row
     if (mzRange == null) {
       for (Feature feature : featureListRow.getFeatures()) {
         if (feature == null)

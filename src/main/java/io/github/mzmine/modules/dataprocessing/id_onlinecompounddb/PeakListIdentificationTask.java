@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -176,7 +176,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
       final DBCompound compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
 
-      // In case we failed to retrieve data, skip this compound
+      // In case we failed to retrieve features, skip this compound
       if (compound == null)
         continue;
 

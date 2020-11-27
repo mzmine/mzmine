@@ -73,7 +73,7 @@ public class SwingCombinedChartGestureDemo extends JFrame {
   }
 
   /**
-   * Creates a dataset, consisting of two series of monthly data.
+   * Creates a dataset, consisting of two series of monthly features.
    *
    * @return the dataset.
    */

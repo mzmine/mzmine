@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.io.mztabimport;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.OutputStream;
@@ -71,7 +71,7 @@ class MzTabImportTask extends AbstractTask {
   private boolean importRawFiles;
   private double finishedPercentage = 0.0;
 
-  // underlying tasks for importing raw data
+  // underlying tasks for importing raw features
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
   MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile) {
@@ -90,7 +90,7 @@ class MzTabImportTask extends AbstractTask {
         }
         newPercentage /= underlyingTasks.size();
       }
-      // Let's say that raw data import takes 80% of the time
+      // Let's say that raw features import takes 80% of the time
       finishedPercentage = 0.1 + newPercentage * 0.8;
     }
     return finishedPercentage;
@@ -104,7 +104,7 @@ class MzTabImportTask extends AbstractTask {
   @Override
   public void cancel() {
     super.cancel();
-    // Cancel all the data import tasks
+    // Cancel all the features import tasks
     for (Task t : underlyingTasks) {
       if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING))
         t.cancel();
@@ -135,7 +135,7 @@ class MzTabImportTask extends AbstractTask {
       // Let's say the initial parsing took 10% of the time
       finishedPercentage = 0.1;
 
-      // Import raw data files
+      // Import raw features files
       SortedMap<Integer, RawDataFile> rawDataFiles = importRawDataFiles(mzTabFile);
 
       // Check if not canceled
@@ -175,7 +175,7 @@ class MzTabImportTask extends AbstractTask {
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not import data from " + inputFile + ": " + e.getMessage());
+      setErrorMessage("Could not import features from " + inputFile + ": " + e.getMessage());
       return;
     }
 
@@ -237,7 +237,7 @@ class MzTabImportTask extends AbstractTask {
         MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
       }
 
-      // Wait until all raw data file imports have completed
+      // Wait until all raw features file imports have completed
       while (true) {
         if (isCanceled())
           return null;
@@ -253,7 +253,7 @@ class MzTabImportTask extends AbstractTask {
       }
 
       /*
-       * // Sort raw data files based on order in mzTab file MainWindow mainWindow = (MainWindow)
+       * // Sort raw features files based on order in mzTab file MainWindow mainWindow = (MainWindow)
        * MZmineCore.getDesktop(); ProjectTree rawDataTree = mainWindow.getMainPanel()
        * .getRawDataTree(); final RawDataTreeModel treeModel = ((MZmineProjectImpl)
        * project).getRawDataTreeModel(); final DefaultMutableTreeNode rootNode =
@@ -290,14 +290,14 @@ class MzTabImportTask extends AbstractTask {
         }
       }
 
-      // If no data file of that name exists, create a dummy one
+      // If no features file of that name exists, create a dummy one
       if (rawDataFile == null) {
         RawDataFileWriter writer = MZmineCore.createNewFile(rawFileName);
         rawDataFile = writer.finishWriting();
         project.addFile(rawDataFile);
       }
 
-      // Save a reference to the new raw data file
+      // Save a reference to the new raw features file
       rawDataFiles.put(entry.getKey(), rawDataFile);
 
     }
@@ -343,7 +343,7 @@ class MzTabImportTask extends AbstractTask {
     SortedMap<Integer, Assay> assayMap = mzTabFile.getMetadata().getAssayMap();
     Collection<SmallMolecule> smallMolecules = mzTabFile.getSmallMolecules();
 
-    // Loop through SML data
+    // Loop through SML features
     String formula, description, database, url = "";
     double mzExp = 0, feature_mz = 0;
     float rtValue = 0, feature_rt = 0, feature_height = 0, abundance = 0;
@@ -406,7 +406,7 @@ class MzTabImportTask extends AbstractTask {
         newRow.addFeatureIdentity(newIdentity, false);
       }
 
-      // Add raw data file entries to row
+      // Add raw features file entries to row
       for (Entry<Integer, RawDataFile> rawDataEntry : rawDataFiles.entrySet()) {
 
         RawDataFile rawData = rawDataEntry.getValue();

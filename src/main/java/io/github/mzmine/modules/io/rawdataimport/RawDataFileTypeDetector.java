@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 /**
- * Detector of raw data file format
+ * Detector of raw features file format
  */
 public class RawDataFileTypeDetector {
 

@@ -102,18 +102,18 @@ public class XSSFExcelWriterReader {
   // WRITER STUFF
 
   /**
-   * Writes the data to a cell and returns the cell.
+   * Writes the features to a cell and returns the cell.
    *
    * @param sheet the sheet to write on
    * @param icol index of column
    * @param irow index of row
-   * @param data data to write in cell (String, Date, Boolean, Double, Float, Integer, Number)
+   * @param data features to write in cell (String, Date, Boolean, Double, Float, Integer, Number)
    * @return the given cell at icol;irow
    * @see
    */
   public Cell writeToCell(XSSFSheet sheet, int icol, int irow, Object data) {
     Cell cell = getCell(sheet, icol, irow);
-    // write data
+    // write features
     if (data instanceof Date)
       cell.setCellValue((Date) data);
     else if (data instanceof Boolean)
@@ -186,7 +186,7 @@ public class XSSFExcelWriterReader {
    * Saves the given workbook to a file. The file has to end with .xlsx
    *
    * @param file the path and name (with suffix (.xlsx)) the file will be saved to (*.xlsx)
-   * @param wb the workbook with data
+   * @param wb the workbook with features
    * @return
    * @see
    */
@@ -209,7 +209,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * exports a data[rows][columns] array
+   * exports a features[rows][columns] array
    *
    * @param realFilePath
    * @param data
@@ -239,7 +239,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * writes a data[rows][columns] array to the given wb
+   * writes a features[rows][columns] array to the given wb
    *
    * @param realFilePath
    * @param data
@@ -262,7 +262,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * writes a data[rows][columns] array to the given wb
+   * writes a features[rows][columns] array to the given wb
    *
    * @param realFilePath
    * @param data
@@ -301,7 +301,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * writes a data array to one column
+   * writes a features array to one column
    *
    * @param data
    * @param inColumn in column or inRow?
@@ -333,7 +333,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * writes a data array to one column
+   * writes a features array to one column
    *
    * @param data
    */
@@ -366,7 +366,7 @@ public class XSSFExcelWriterReader {
   }
 
   /**
-   * writes regression data to sheets
+   * writes regression features to sheets
    *
    * @param sheet
    * @param reg

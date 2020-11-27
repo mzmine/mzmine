@@ -32,7 +32,7 @@ public class KovatsIndexExtractionModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "Kovats index extraction";
   private static final String MODULE_DESCRIPTION =
-      "Extract Kovats indexes from a raw data file and save to csv.";
+      "Extract Kovats indexes from a raw features file and save to csv.";
 
   @Override
   public @Nonnull String getName() {

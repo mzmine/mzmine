@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 
 /**
- * Raw data file related utilities
+ * Raw features file related utilities
  */
 public class RawDataFileUtils {
 
@@ -64,7 +64,7 @@ public class RawDataFileUtils {
   }
 
   /**
-   * Returns true if the given data file has mass lists for all MS1 scans
+   * Returns true if the given features file has mass lists for all MS1 scans
    * 
    */
   public static boolean hasMassLists(RawDataFile dataFile) {

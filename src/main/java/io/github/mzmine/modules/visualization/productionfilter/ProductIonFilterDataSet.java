@@ -303,7 +303,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       // plot
       if (pass) {
 
-        // Add all data points to visual plot and output file from scan
+        // Add all features points to visual plot and output file from scan
         for (Integer topFeature : topFeatures) {
           // Cancel?
           if (status == TaskStatus.CANCELED) {

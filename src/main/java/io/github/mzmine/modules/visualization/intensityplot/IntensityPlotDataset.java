@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.intensityplot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -32,7 +32,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 
 import com.google.common.primitives.Doubles;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -42,8 +42,8 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.MathUtils;
 
 /**
- * This class implements 2 kinds of data sets - CategoryDataset and XYDataset CategoryDataset is
- * used if X axis is a raw data file or string parameter XYDataset is used if X axis is a number
+ * This class implements 2 kinds of features sets - CategoryDataset and XYDataset CategoryDataset is
+ * used if X axis is a raw features file or string parameter XYDataset is used if X axis is a number
  * parameter
  */
 class IntensityPlotDataset extends AbstractDataset
@@ -84,7 +84,7 @@ class IntensityPlotDataset extends AbstractDataset
       xValues = parameterValues.toArray(new Comparable[0]);
 
       // if we have a numerical axis, we don't want the values to be
-      // sorted by the data file order, but rather numerically
+      // sorted by the features file order, but rather numerically
       if (xAxisParameter instanceof DoubleParameter) {
         Arrays.sort(xValues);
       }

@@ -35,12 +35,12 @@ public class InetUtils {
   private static final Logger logger = Logger.getLogger(InetUtils.class.getName());
 
   /**
-   * Opens a connection to the given URL (typically HTTP) and retrieves the data from server. Data
+   * Opens a connection to the given URL (typically HTTP) and retrieves the features from server. Data
    * is assumed to be in UTF-8 encoding.
    */
   public static String retrieveData(URL url) throws IOException {
 
-    logger.finest("Retrieving data from URL " + url);
+    logger.finest("Retrieving features from URL " + url);
 
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestProperty("User-agent", "MZmine");

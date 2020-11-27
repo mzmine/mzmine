@@ -52,7 +52,7 @@ public class ADAPDetectorParameters extends SimpleParameterSet {
 
   public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(
       "RT wavelet range",
-      "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
+      "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the features.",
       MZmineCore.getConfiguration().getRTFormat(), true, true, Range.closed(0.001, 0.1));
 
   // public static final DoubleRangeParameter PEAK_SCALES = new

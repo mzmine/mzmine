@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.example;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -107,7 +107,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
      * ---- contains one or multiple RawDataFiles <br>
      * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
      * - A RawDataFile holds a full chromatographic run with all ms scans<br>
-     * ---- Each Scan and the underlying raw data can be accessed <br>
+     * ---- Each Scan and the underlying raw features can be accessed <br>
      * ---- Scans can be filtered by MS level, polarity, ...<br>
      */
     // get all rows and sort by m/z
@@ -121,7 +121,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
     totalRows = rows.length;
     // loop through all rows
     for (FeatureListRow row : rows) {
-      // loop through all raw data files
+      // loop through all raw features files
       for (RawDataFile raw : rawFiles) {
         // check for cancelled state and stop
         if (isCanceled())

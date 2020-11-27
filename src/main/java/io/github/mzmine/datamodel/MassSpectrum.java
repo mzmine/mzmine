@@ -36,7 +36,7 @@ public interface MassSpectrum {
   public Range<Double> getDataPointMZRange();
 
   /**
-   * Returns the top intensity data point. May return null if there are no data points in this Scan.
+   * Returns the top intensity features point. May return null if there are no features points in this Scan.
    *
    * @return Base peak
    */
@@ -44,7 +44,7 @@ public interface MassSpectrum {
   public DataPoint getHighestDataPoint();
 
   /**
-   * Returns the sum of intensities of all data points.
+   * Returns the sum of intensities of all features points.
    *
    * @return Total ion current
    */
@@ -58,15 +58,15 @@ public interface MassSpectrum {
   public MassSpectrumType getSpectrumType();
 
   /**
-   * @return Number of m/z and intensity data points
+   * @return Number of m/z and intensity features points
    */
   public int getNumberOfDataPoints();
 
   /**
-   * Returns data points of this m/z table sorted in m/z order.
+   * Returns features points of this m/z table sorted in m/z order.
    *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
+   * This method may need to read features from disk, therefore it may be quite slow. Modules should be
+   * aware of that and cache the features points if necessary.
    *
    * @return Data points (m/z and intensity pairs) of this scan
    */
@@ -74,10 +74,10 @@ public interface MassSpectrum {
   public DataPoint[] getDataPoints();
 
   /**
-   * Returns data points in given m/z range, sorted in m/z order.
+   * Returns features points in given m/z range, sorted in m/z order.
    *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
+   * This method may need to read features from disk, therefore it may be quite slow. Modules should be
+   * aware of that and cache the features points if necessary.
    *
    * @return Data points (m/z and intensity pairs) of this MzDataTable
    */
@@ -85,10 +85,10 @@ public interface MassSpectrum {
   public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
   /**
-   * Returns data points over given intensity, sorted in m/z order.
+   * Returns features points over given intensity, sorted in m/z order.
    *
-   * This method may need to read data from disk, therefore it may be quite slow. Modules should be
-   * aware of that and cache the data points if necessary.
+   * This method may need to read features from disk, therefore it may be quite slow. Modules should be
+   * aware of that and cache the features points if necessary.
    *
    * @return Data points (m/z and intensity pairs) of this MzDataTable
    */

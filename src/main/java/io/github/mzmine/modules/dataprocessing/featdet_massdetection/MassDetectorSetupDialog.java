@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
- * how the selected mass detector and his parameters works over the raw data file.
+ * how the selected mass detector and his parameters works over the raw features file.
  */
 public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
 

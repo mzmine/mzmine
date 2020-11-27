@@ -30,35 +30,35 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
- * A data point which is the result of merging several other data points. It keep tracks of its
+ * A features point which is the result of merging several other features points. It keep tracks of its
  * origins and might calculate its mass and intensity based on averaging or suming over its origins.
  */
 public class MergedDataPoint implements DataPoint {
 
   /**
-   * the origins which are merged into this data point
+   * the origins which are merged into this features point
    */
   protected final DataPoint[] sources;
 
   /**
-   * the m/z of this data point
+   * the m/z of this features point
    */
   protected final double mz;
 
   /**
-   * the intensity of this data point
+   * the intensity of this features point
    */
   protected final double intensity;
 
   /**
    * @param mzMergeMode how to merge the m/z values
    * @param intensityMergeMode how to merge the intensity values
-   * @param sources data points to merge
+   * @param sources features points to merge
    */
   public MergedDataPoint(MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode,
       DataPoint... sources) {
     if (sources.length == 0)
-      throw new IllegalArgumentException("Expect at least one data point");
+      throw new IllegalArgumentException("Expect at least one features point");
     this.sources = sources;
     // calculate intensity
     this.intensity =
@@ -74,12 +74,12 @@ public class MergedDataPoint implements DataPoint {
 
   /**
    * Merge this peak with another peak. If the other peak is a MergedDataPoint itself, merge the
-   * source peaks of both merged data points together.
+   * source peaks of both merged features points together.
    * 
    * @param additional
    * @param mergeMode how to merge the m/z values of the peaks
    * @param intensityMergeMode how to merge the intensity values of the peaks
-   * @return new merged data point
+   * @return new merged features point
    */
   public MergedDataPoint merge(DataPoint additional, MzMergeMode mergeMode,
       IntensityMergeMode intensityMergeMode) {

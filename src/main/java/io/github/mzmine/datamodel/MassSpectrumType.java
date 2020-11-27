@@ -26,20 +26,20 @@ package io.github.mzmine.datamodel;
 public enum MassSpectrumType {
 
   /**
-   * Continuous (profile) mass spectrum. Continuous stream of connected data points forms a spectrum
+   * Continuous (profile) mass spectrum. Continuous stream of connected features points forms a spectrum
    * consisting of individual peaks. Peaks represent detected ions. Each peak consists of multiple
-   * data points.
+   * features points.
    */
   PROFILE,
 
   /**
-   * Thresholded mass spectrum = same as profile, but data points below certain intensity threshold
+   * Thresholded mass spectrum = same as profile, but features points below certain intensity threshold
    * are removed.
    */
   THRESHOLDED,
 
   /**
-   * Centroided mass spectrum = discrete data points, one for each detected ion.
+   * Centroided mass spectrum = discrete features points, one for each detected ion.
    */
   CENTROIDED;
 

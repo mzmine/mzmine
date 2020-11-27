@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -82,7 +82,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     datasetTitle = "Principal component analysis";
 
-    // Determine groups for selected raw data files
+    // Determine groups for selected raw features files
     groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
     if (coloringType.equals(ColoringType.NOCOLORING)) {
@@ -210,7 +210,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     logger.info("Computing PCA projection plot");
 
-    // Generate matrix of raw data (input to PCA)
+    // Generate matrix of raw features (input to PCA)
     final boolean useArea = (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
         .getValue() == FeatureMeasurementType.AREA);
 
@@ -221,7 +221,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
     }
     if (selectedRawDataFiles.length == 0) {
       this.status = TaskStatus.ERROR;
-      errorMessage = "No raw data files selected for PCA plot";
+      errorMessage = "No raw features files selected for PCA plot";
       return;
     }
 
@@ -244,7 +244,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
     if (yAxisPC > numComponents)
       numComponents = yAxisPC;
 
-    // Scale data and do PCA
+    // Scale features and do PCA
     Preprocess.scaleToUnityVariance(rawData);
 
     // Replace NaN values with 0.0

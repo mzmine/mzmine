@@ -33,7 +33,7 @@ public class ChromatogramBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Chromatogram builder (deprecated, see Help)";
   private static final String MODULE_DESCRIPTION =
-      "This module connects data points from mass lists and builds chromatograms.";
+      "This module connects features points from mass lists and builds chromatograms.";
 
   @Override
   public @Nonnull String getName() {

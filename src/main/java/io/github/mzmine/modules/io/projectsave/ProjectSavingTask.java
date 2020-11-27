@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -63,7 +63,7 @@ public class ProjectSavingTask extends AbstractTask {
   private int currentStage, finishedSaveItems = 0;
   private String currentSavedObjectName;
 
-  // This hashtable maps raw data files to their ID within the saved project
+  // This hashtable maps raw features files to their ID within the saved project
   private Hashtable<RawDataFile, String> dataFilesIDMap;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
@@ -291,7 +291,7 @@ public class ProjectSavingTask extends AbstractTask {
   }
 
   /**
-   * Save the raw data files
+   * Save the raw features files
    * 
    * @throws SAXException
    * @throws TransformerConfigurationException

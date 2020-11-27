@@ -41,7 +41,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * This class extends ParameterSetupDialog class, including a SpectraPlot. This is used to preview
- * how the selected mass detector and his parameters works over the raw data file.
+ * how the selected mass detector and his parameters works over the raw features file.
  */
 public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog {
 
@@ -175,7 +175,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   }
 
   /**
-   * This method must be overloaded by derived class to load all the preview data sets into the
+   * This method must be overloaded by derived class to load all the preview features sets into the
    * spectrumPlot
    */
   protected abstract void loadPreview(SpectraPlot spectrumPlot, Scan previewScan);

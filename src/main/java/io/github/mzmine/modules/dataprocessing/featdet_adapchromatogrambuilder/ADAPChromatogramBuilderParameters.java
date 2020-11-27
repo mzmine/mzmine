@@ -48,7 +48,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       "Minimum scan span over which some feature in the chromatogram must have (continuous) points above the noise level\n"
           + "to be recognized as a chromatogram.\n"
           + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
-          + "is by studying the raw data and determining what is the typical time span of chromatographic features.",
+          + "is by studying the raw features and determining what is the typical time span of chromatographic features.",
       5, true, 2, null);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();

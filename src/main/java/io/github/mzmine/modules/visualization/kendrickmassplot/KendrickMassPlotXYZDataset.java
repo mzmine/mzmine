@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 import io.github.mzmine.parameters.ParameterSet;

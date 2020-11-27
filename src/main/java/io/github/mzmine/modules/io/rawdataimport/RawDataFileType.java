@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.rawdataimport;
 
 /**
- * Enum of supported data file formats
+ * Enum of supported features file formats
  */
 public enum RawDataFileType {
 

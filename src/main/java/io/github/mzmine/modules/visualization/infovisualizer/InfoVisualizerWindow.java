@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -75,8 +75,8 @@ class InfoVisualizerWindow extends Stage {
     int row = 0;
     Label label, value;
 
-    // Raw data file list
-    label = new Label("List of raw data files");
+    // Raw features file list
+    label = new Label("List of raw features files");
     ListView<RawDataFile> rawDataFileList =
         new ListView<RawDataFile>(FXCollections.observableArrayList(featureList.getRawDataFiles()));
     // rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

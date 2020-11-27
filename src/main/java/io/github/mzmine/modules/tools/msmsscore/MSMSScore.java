@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 
 /**
  * 
- * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS data points to
+ * Wrapper class for a score of MS/MS evaluation, with a mapping from MS/MS features points to
  * interpreted formulas
  * 
  */

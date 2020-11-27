@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_mascot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.logging.Logger;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -124,7 +124,7 @@ public class MascotSearchTask extends AbstractTask {
      * mascotConnection.setDoOutput(true); mascotConnection.setDoInput(true);
      * mascotConnection.setUseCaches(false); // Specify the content type and cache-control.
      * 
-     * mascotConnection.setRequestProperty("Content-Type", " multipart/form-data; boundary=" +
+     * mascotConnection.setRequestProperty("Content-Type", " multipart/form-features; boundary=" +
      * boundery); mascotConnection.setRequestProperty("Cache-Control", " no-cache"); // Write the
      * POST information. OutputStream serverOutput = mascotConnection.getOutputStream(); PrintWriter
      * mascotSubmitWriter = new PrintWriter(new OutputStreamWriter(serverOutput));
@@ -151,7 +151,7 @@ public class MascotSearchTask extends AbstractTask {
      * 
      * String detect = "<A HREF=\""; int offset = detect.length(); if ((startIndex =
      * line.indexOf(detect)) >= 0) { // <A //
-     * HREF="../cgi/master_results.pl?file=../data/20100601/F021799.dat"> buffer.append(line);
+     * HREF="../cgi/master_results.pl?file=../features/20100601/F021799.dat"> buffer.append(line);
      * stopIndex = line.indexOf("\">"); mascotXmlResponse = line.substring(startIndex + offset,
      * stopIndex); } } serverResponseStream.close(); serverResponseStream = null;
      * serverOutput.close(); serverOutput = null;
@@ -160,8 +160,8 @@ public class MascotSearchTask extends AbstractTask {
      * ); return; }
      * 
      * String lDate = null; String lDatfileFilename = null; String detect =
-     * "../cgi/master_results.pl?file=../data/"; int offset = detect.length(); if ((startIndex =
-     * mascotXmlResponse.indexOf(detect)) >= 0) { detect = "data/"; startIndex =
+     * "../cgi/master_results.pl?file=../features/"; int offset = detect.length(); if ((startIndex =
+     * mascotXmlResponse.indexOf(detect)) >= 0) { detect = "features/"; startIndex =
      * mascotXmlResponse.indexOf(detect); offset = detect.length(); String [] temp =
      * mascotXmlResponse.substring(startIndex + offset).split("/"); lDate = temp[0];
      * lDatfileFilename = temp[1];

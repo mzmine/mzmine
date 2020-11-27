@@ -33,7 +33,7 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
 /**
- * @author akshaj This class represents the dataset of a Raw data file.
+ * @author akshaj This class represents the dataset of a Raw features file.
  */
 public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
 
@@ -188,7 +188,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
   }
 
   /*
-   * Normalizes each data plot when the maxIntensity of the 3D plot changes.
+   * Normalizes each features plot when the maxIntensity of the 3D plot changes.
    * 
    * @see io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset# normalize( double)
    */

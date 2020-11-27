@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,7 +39,7 @@ import io.github.mzmine.util.ExitCode;
 public class TICVisualizerParameters extends SimpleParameterSet {
 
   /**
-   * The data file.
+   * The features file.
    */
   public static final RawDataFilesParameter DATA_FILES = new RawDataFilesParameter();
 

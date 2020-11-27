@@ -107,7 +107,7 @@ public class MirrorScanWindow extends JFrame {
   }
 
   /**
-   * Based on a data base match to a spectral library
+   * Based on a features base match to a spectral library
    *
    * @param db
    */
@@ -116,7 +116,7 @@ public class MirrorScanWindow extends JFrame {
     if (scan == null)
       return;
 
-    // get highest data intensity to calc relative intensity
+    // get highest features intensity to calc relative intensity
     double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
         .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
     double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
@@ -124,10 +124,10 @@ public class MirrorScanWindow extends JFrame {
 
     if (mostIntenseDB == 0d)
       logger.warning(
-          "This data set has no original data points in the library spectrum (development error)");
+          "This features set has no original features points in the library spectrum (development error)");
     if (mostIntenseQuery == 0d)
       logger.warning(
-          "This data set has no original data points in the query spectrum (development error)");
+          "This features set has no original features points in the query spectrum (development error)");
     if (mostIntenseDB == 0d || mostIntenseQuery == 0d)
       return;
 
@@ -147,13 +147,13 @@ public class MirrorScanWindow extends JFrame {
     Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
 
     contentPane.removeAll();
-    // create without data
+    // create without features
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(
         "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
         precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
     mirrorSpecrumPlot.setMaximumDrawHeight(2500);
-    // add data
+    // add features
     DataPoint[][] query = new DataPoint[tags.length][];
     DataPoint[][] library = new DataPoint[tags.length][];
     for (int i = 0; i < tags.length; i++) {

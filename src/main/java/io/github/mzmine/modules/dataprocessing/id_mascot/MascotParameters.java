@@ -45,7 +45,7 @@ public class MascotParameters extends SimpleParameterSet {
    * 
    * // SELECTBOX if (lInput.getType() == InputInterface.SELECTINPUT) {
    * 
-   * if (lInput.getName().equals("FORMAT")) { // the data format of the input file
+   * if (lInput.getName().equals("FORMAT")) { // the features format of the input file
    * lInput.setValue("Mascot generic"); } else if (lInput.getName().equals("REPORT")) { // set
    * REPORT to AUTO (the first entry) lInput.setValue(((SelectInput) lInput).getElements()[0]); }
    * else { SelectInput input = (SelectInput) lInput; String[] elements = ((SelectInput)

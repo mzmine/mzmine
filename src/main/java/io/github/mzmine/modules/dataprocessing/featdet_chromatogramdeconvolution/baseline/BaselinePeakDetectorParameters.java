@@ -41,7 +41,7 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter("Baseline level",
-      "Level below which all data points of the chromatogram are removed (absolute intensity)",
+      "Level below which all features points of the chromatogram are removed (absolute intensity)",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public BaselinePeakDetectorParameters() {

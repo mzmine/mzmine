@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.main.MZmineCore;
 

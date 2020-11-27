@@ -25,7 +25,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 

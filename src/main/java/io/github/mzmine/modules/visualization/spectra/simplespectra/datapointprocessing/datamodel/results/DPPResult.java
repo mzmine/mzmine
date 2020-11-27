@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 /**
- * This interface is used to store data point processing results in a
+ * This interface is used to store features point processing results in a
  * {@link io.github.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint} When adding a
  * new result type, also add it to the ResultType enum.
  * 

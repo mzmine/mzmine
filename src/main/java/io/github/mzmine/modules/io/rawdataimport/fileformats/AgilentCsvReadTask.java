@@ -79,7 +79,7 @@ public class AgilentCsvReadTask extends AbstractTask {
           Range.closed((float) Double.parseDouble(range[0]), (float) Double.parseDouble(range[1])));
       totalScans = Integer.parseInt(this.getMetaData(scanner, "number of spectra"));
 
-      // advance to the spectrum data...
+      // advance to the spectrum features...
       while (!scanner.nextLine().trim().equals("[spectra]")) {
       }
 

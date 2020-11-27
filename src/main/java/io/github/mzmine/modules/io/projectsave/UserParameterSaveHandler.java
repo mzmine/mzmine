@@ -163,7 +163,7 @@ class UserParameterSaveHandler {
 
   /**
    *
-   * @return the progress of these functions saving the raw data information to the zip file.
+   * @return the progress of these functions saving the raw features information to the zip file.
    */
   double getProgress() {
     if (numOfParameters == 0)

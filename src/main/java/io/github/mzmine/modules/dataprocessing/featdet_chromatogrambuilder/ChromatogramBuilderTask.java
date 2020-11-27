@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureSorter;
 import java.util.Arrays;
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;

@@ -244,7 +244,7 @@ public class MzDataReadTask extends AbstractTask {
         intenArrayBinaryFlag = true;
       }
 
-      // <data>
+      // <features>
       if (qName.equalsIgnoreCase("data")) {
         // clean the current char buffer for the new element
         charBuffer.setLength(0);
@@ -299,7 +299,7 @@ public class MzDataReadTask extends AbstractTask {
         DataPoint dataPoints[] = new DataPoint[peaksCount];
         spectrumInstrumentFlag = false;
 
-        // Copy m/z and intensity data
+        // Copy m/z and intensity features
         for (int i = 0; i < dataPoints.length; i++) {
           dataPoints[i] =
               new SimpleDataPoint((double) mzDataPoints[i], (double) intensityDataPoints[i]);

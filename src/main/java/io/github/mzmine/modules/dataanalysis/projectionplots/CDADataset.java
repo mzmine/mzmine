@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Vector;
 import java.util.logging.Logger;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -83,7 +83,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
     datasetTitle = "Curvilinear distance analysis";
 
-    // Determine groups for selected raw data files
+    // Determine groups for selected raw features files
     groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
     if (coloringType.equals(ColoringType.NOCOLORING)) {
@@ -216,13 +216,13 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
     }
     if (selectedRawDataFiles.length == 0) {
       this.status = TaskStatus.ERROR;
-      errorMessage = "No raw data files selected for CDA plot";
+      errorMessage = "No raw features files selected for CDA plot";
       return;
     }
 
     logger.info("Computing projection plot");
 
-    // Generate matrix of raw data (input to CDA)
+    // Generate matrix of raw features (input to CDA)
     boolean useArea = false;
     if (parameters.getParameter(ProjectionPlotParameters.featureMeasurementType)
         .getValue() == FeatureMeasurementType.AREA)
@@ -247,7 +247,7 @@ public class CDADataset extends AbstractXYDataset implements ProjectionPlotDatas
     if (yAxisDimension > numComponents)
       numComponents = yAxisDimension;
 
-    // Scale data and do CDA
+    // Scale features and do CDA
     Preprocess.scaleToUnityVariance(rawData);
     CDA cdaProj = new CDA(rawData);
     cdaProj.iterate(100);

@@ -31,7 +31,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IsotopePatternUtils;
 
 /**
- * Used to calculate parameter values based on the results of data point processing modules.
+ * Used to calculate parameter values based on the results of features point processing modules.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
@@ -66,7 +66,7 @@ public class DynamicParameterUtils {
    * These values can be set via {@link #setLowerElementBoundaryPercentage} and
    * {@link #setUpperElementBoundaryPercentage}. The elements contained in
    * 
-   * @param dp The data point to build a parameter for.
+   * @param dp The features point to build a parameter for.
    * @param def The default set of parameters.
    * @return The built ElementsParameter
    */

@@ -18,8 +18,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;

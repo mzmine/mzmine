@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -58,7 +58,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
 
     FeatureList featureList = featureLists[0];
     if (featureList.getNumberOfRawDataFiles() < 2) {
-      MZmineCore.getDesktop().displayErrorMessage("There is only one raw data file in the selected "
+      MZmineCore.getDesktop().displayErrorMessage("There is only one raw features file in the selected "
           + "feature list, it is necessary at least two for comparison");
       return ExitCode.ERROR;
     }
@@ -82,7 +82,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
   public static void showNewScatterPlotWindow(FeatureList featureList) {
 
     if (featureList.getNumberOfRawDataFiles() < 2) {
-      MZmineCore.getDesktop().displayErrorMessage("There is only one raw data file in the selected "
+      MZmineCore.getDesktop().displayErrorMessage("There is only one raw features file in the selected "
           + "feature list, it is necessary at least two for comparison");
       return;
     }

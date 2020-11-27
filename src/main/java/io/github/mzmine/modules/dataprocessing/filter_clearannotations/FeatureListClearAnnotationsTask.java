@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;

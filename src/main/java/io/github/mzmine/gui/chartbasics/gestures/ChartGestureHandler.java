@@ -342,7 +342,7 @@ public class ChartGestureHandler {
               diff = -0.10 * p.getWheelRotation();
             }
 
-            // get data space coordinates
+            // get features space coordinates
             Point2D point = e.getCoordinates(p.getX(), p.getY());
             if (point != null) {
               // vertical ?

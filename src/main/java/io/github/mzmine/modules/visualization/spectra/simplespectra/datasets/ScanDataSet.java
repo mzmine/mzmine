@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 
 /**
- * Spectra visualizer data set for scan data points
+ * Spectra visualizer features set for scan features points
  */
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
@@ -41,7 +41,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
-   * reloading the data from HDD
+   * reloading the features from HDD
    */
   private DataPoint dataPoints[];
 
@@ -56,12 +56,12 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
     /*
      * This optimalization is disabled, because it crashes on scans with no datapoints. Also, it
-     * distorts the view of the raw data - user would see something different from the actual
-     * content of the raw data file.
+     * distorts the view of the raw features - user would see something different from the actual
+     * content of the raw features file.
      *
      * // remove all extra zeros List<DataPoint> dp = new ArrayList<>(); dp.add(dataPoints[0]); for
      * (int i = 1; i < dataPoints.length - 1; i++) { // previous , this and next are zero --> do not
-     * add this data point if (Double.compare(dataPoints[i - 1].getIntensity(), 0d) != 0 ||
+     * add this features point if (Double.compare(dataPoints[i - 1].getIntensity(), 0d) != 0 ||
      * Double.compare(dataPoints[i].getIntensity(), 0d) != 0 || Double.compare(dataPoints[i +
      * 1].getIntensity(), 0d) != 0) { dp.add(dataPoints[i]); } } dp.add(dataPoints[dataPoints.length
      * - 1]); this.dataPoints = dp.toArray(new DataPoint[0]);
@@ -146,7 +146,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   }
 
   /**
-   * This function finds highest data point intensity in given m/z range. It is important for
+   * This function finds highest features point intensity in given m/z range. It is important for
    * normalizing isotope patterns.
    */
   public double getHighestIntensity(Range<Double> mzRange) {

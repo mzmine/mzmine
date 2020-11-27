@@ -95,7 +95,7 @@ public class DataPointProcessingController {
 
   /**
    * 
-   * @return The original data points this controller started execution with.
+   * @return The original features points this controller started execution with.
    */
   public DataPoint[] getDataPoints() {
     return dataPoints;

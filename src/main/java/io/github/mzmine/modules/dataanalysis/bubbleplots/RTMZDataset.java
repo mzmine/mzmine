@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jfree.data.xy.XYZDataset;
 
 public interface RTMZDataset extends XYZDataset {

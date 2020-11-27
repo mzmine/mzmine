@@ -151,7 +151,7 @@ public class IsotopeAnCliqueMS {
   }
 
   /**
-   * Temp class to hold isotope data
+   * Temp class to hold isotope features
    */
   private class IsoTest {
 

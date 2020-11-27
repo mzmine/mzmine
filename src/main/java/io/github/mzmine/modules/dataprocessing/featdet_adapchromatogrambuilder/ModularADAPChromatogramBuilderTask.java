@@ -37,9 +37,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -187,15 +187,15 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
               + "Please, set the scan filter parameter to a specific MS level");
     }
 
-    // make a list of all the data points
-    // sort data points by intensity
+    // make a list of all the features points
+    // sort features points by intensity
     // loop through list
-    // add data point to chromatogrm or make new one
+    // add features point to chromatogrm or make new one
     // update mz avg and other stuff
     //
 
 
-    // make a list of all the data points
+    // make a list of all the features points
     List<ExpandedDataPoint> allMzValues = new ArrayList<ExpandedDataPoint>();
 
     for (Scan scan : scans) {
@@ -232,7 +232,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     ExpandedDataPoint[] simpleAllMzVals = new ExpandedDataPoint[allMzValues.size()];
     allMzValues.toArray(simpleAllMzVals);
 
-    // sort data points by intensity
+    // sort features points by intensity
     Arrays.sort(simpleAllMzVals,
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 

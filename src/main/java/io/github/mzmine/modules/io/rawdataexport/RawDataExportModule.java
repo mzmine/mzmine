@@ -32,13 +32,13 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 
 /**
- * Raw data export module
+ * Raw features export module
  */
 public class RawDataExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Raw data export";
+  private static final String MODULE_NAME = "Raw features export";
   private static final String MODULE_DESCRIPTION =
-      "This module exports raw data files from your MZmine project into various formats";
+      "This module exports raw features files from your MZmine project into various formats";
 
   @Override
   public @Nonnull String getName() {

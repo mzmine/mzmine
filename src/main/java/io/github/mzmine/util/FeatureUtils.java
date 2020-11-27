@@ -21,11 +21,11 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
@@ -209,7 +209,7 @@ public class FeatureUtils {
   }
 
   /**
-   * Integrates over a given m/z and rt range within a raw data file.
+   * Integrates over a given m/z and rt range within a raw features file.
    *
    * @param dataFile
    * @param rtRange
@@ -256,7 +256,7 @@ public class FeatureUtils {
    *
    * @param row The row.
    * @return The average retention time range of all features contained in this feature list row across
-   *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
+   *         all raw features files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
   public @Nonnull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {

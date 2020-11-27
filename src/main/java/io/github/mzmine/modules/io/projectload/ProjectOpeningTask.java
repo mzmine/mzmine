@@ -70,7 +70,7 @@ public class ProjectOpeningTask extends AbstractTask {
   private long totalBytes, finishedBytes;
   private String currentLoadedObjectName;
 
-  // This hashtable maps stored IDs to raw data file objects
+  // This hashtable maps stored IDs to raw features file objects
   private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
   private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
@@ -119,12 +119,12 @@ public class ProjectOpeningTask extends AbstractTask {
   public void run() {
 
     try {
-      // Check if existing raw data files are present
+      // Check if existing raw features files are present
       ProjectManager projectManager = MZmineCore.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
 
         ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
-            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
+            "Loading the project will replace the existing raw features files and feature lists. Do you want to proceed?",
             ButtonType.YES, ButtonType.NO);
 
         if (confirm != ButtonType.YES) {
@@ -191,7 +191,7 @@ public class ProjectOpeningTask extends AbstractTask {
           loadUserParameters(cis);
         }
 
-        // Load a raw data file
+        // Load a raw features file
         final Matcher rawFileMatcher = rawFilePattern.matcher(entryName);
         if (rawFileMatcher.matches()) {
           final String fileID = rawFileMatcher.group(1);
@@ -199,7 +199,7 @@ public class ProjectOpeningTask extends AbstractTask {
           loadRawDataFile(cis, fileID, fileName);
         }
 
-        // Load the scan data of a raw data file
+        // Load the scan features of a raw features file
         final Matcher scansFileMatcher = scansFilePattern.matcher(entryName);
         if (scansFileMatcher.matches()) {
           final String fileID = scansFileMatcher.group(1);
@@ -363,13 +363,13 @@ public class ProjectOpeningTask extends AbstractTask {
   private void loadRawDataFile(InputStream is, String fileID, String fileName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
 
-    logger.info("Loading raw data file #" + fileID + ": " + fileName);
+    logger.info("Loading raw features file #" + fileID + ": " + fileName);
 
     currentLoadedObjectName = fileName;
 
     File scansFile = scanFilesIDMap.get(fileID);
     if (scansFile == null) {
-      throw new IOException("Missing scans data for file ID " + fileID);
+      throw new IOException("Missing scans features for file ID " + fileID);
     }
 
     RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(is, scansFile);
@@ -380,12 +380,12 @@ public class ProjectOpeningTask extends AbstractTask {
 
   private void loadScansFile(InputStream is, String fileID, String fileName) throws IOException {
 
-    logger.info("Loading scans data #" + fileID + ": " + fileName);
+    logger.info("Loading scans features #" + fileID + ": " + fileName);
 
-    currentLoadedObjectName = fileName + " scan data";
+    currentLoadedObjectName = fileName + " scan features";
 
     final File tempFile = RawDataFileImpl.createNewDataPointsFile();
-    logger.info("Saving scans data of #" + fileID + " to " + tempFile);
+    logger.info("Saving scans features of #" + fileID + " to " + tempFile);
 
     final FileOutputStream os = new FileOutputStream(tempFile);
 

@@ -40,7 +40,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Merge files";
   private static final String MODULE_DESCRIPTION =
-      "Merge all scans of multiple files to one raw data file";
+      "Merge all scans of multiple files to one raw features file";
 
   @Override
   public @Nonnull String getName() {
@@ -106,14 +106,14 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         int index = name.lastIndexOf(posMarker);
         if (index == -1)
           throw new MSDKRuntimeException(
-              "Merging of raw data files not possible. Position marker was not present in file: "
+              "Merging of raw features files not possible. Position marker was not present in file: "
                   + name);
         return name.substring(index + 1, name.length());
       case BEFORE_FIRST:
         int first = name.indexOf(posMarker);
         if (first == -1)
           throw new MSDKRuntimeException(
-              "Merging of raw data files not possible. Position marker was not present in file: "
+              "Merging of raw features files not possible. Position marker was not present in file: "
                   + name);
         return name.substring(0, first);
 

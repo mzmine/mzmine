@@ -63,10 +63,10 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   /**
-   * Raw data file suffix.
+   * Raw features file suffix.
    */
   public static final StringParameter SUFFIX = new StringParameter("Filename suffix",
-      "Suffix to be appended to raw data file names.", "baseline-corrected");
+      "Suffix to be appended to raw features file names.", "baseline-corrected");
 
   /**
    * Chromatogram type.
@@ -120,7 +120,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       new IntegerParameter("MS level", "MS level of scans to apply this method to", 1, 1, null);
 
   /**
-   * Remove original data file.
+   * Remove original features file.
    */
   public static final BooleanParameter REMOVE_ORIGINAL =
       new BooleanParameter("Remove source file after baseline correction",

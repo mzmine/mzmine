@@ -34,7 +34,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
 
 /**
- * Similar to NIST search algorithm for GC-MS data with lots of signals (more an identity check than
+ * Similar to NIST search algorithm for GC-MS features with lots of signals (more an identity check than
  * similarity).<br>
  * Uses the relative intensity ratios of adjacent signals.
  * 

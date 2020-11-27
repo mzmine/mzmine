@@ -1390,7 +1390,7 @@ public class Rsession implements Logger {
   }
 
   /**
-   * loads R data file (eg ".Rdata" file)
+   * loads R features file (eg ".Rdata" file)
    * 
    * @param f ".Rdata" file to load
    */
@@ -1482,9 +1482,9 @@ public class Rsession implements Logger {
   public boolean SAVE_ASCII = false;
 
   /**
-   * Save R variables in data file
+   * Save R variables in features file
    * 
-   * @param f file to store data (eg ".Rdata")
+   * @param f file to store features (eg ".Rdata")
    * @param vars R variables to save
    */
   public void save(File f, String... vars) {
@@ -1500,9 +1500,9 @@ public class Rsession implements Logger {
   }
 
   /**
-   * Save R variables in data file
+   * Save R variables in features file
    * 
-   * @param f file to store data (eg ".Rdata")
+   * @param f file to store features (eg ".Rdata")
    * @param vars R variables names patterns to save
    */
   public void savels(File f, String... vars) {
@@ -1522,7 +1522,7 @@ public class Rsession implements Logger {
   }
 
   final static String[] types =
-      {"data.frame", "null", "function", "array", "integer", "character", "double"};
+      {"features.frame", "null", "function", "array", "integer", "character", "double"};
 
   /**
    * 
@@ -1550,7 +1550,7 @@ public class Rsession implements Logger {
   /**
    * Build R liost in R env.
    * 
-   * @param data numeric data (eg matrix)
+   * @param data numeric features (eg matrix)
    * @param names names of columns
    * @return RList object
    */
@@ -1578,7 +1578,7 @@ public class Rsession implements Logger {
   /**
    * Build R liost in R env.
    * 
-   * @param coldata numeric data as an array of numeric vectors
+   * @param coldata numeric features as an array of numeric vectors
    * @param names names of columns
    * @return RList object
    */
@@ -1630,7 +1630,7 @@ public class Rsession implements Logger {
    * Set R list in R env.
    * 
    * @param varname R list name
-   * @param data numeric data in list
+   * @param data numeric features in list
    * @param names names of columns
    */
   public boolean set(String varname, double[][] data, String... names) {
@@ -1645,7 +1645,7 @@ public class Rsession implements Logger {
       return false;
     } catch (RserveException ex) {
       log(HEAD_EXCEPTION + ex.getMessage() + "\n  set(String varname=" + varname
-          + ",double[][] data, String... names)", Level.ERROR);
+          + ",double[][] features, String... names)", Level.ERROR);
       return false;
     }
     return true;
@@ -1674,7 +1674,7 @@ public class Rsession implements Logger {
     /*
      * if (var instanceof DataFrame) { DataFrame df = (DataFrame) var; set("names_" + varname,
      * df.keySet().toArray(new String[]{})); set("data_" + varname, df.dataSet()); eval(varname +
-     * "=data.frame(x=data_" + varname + ")"); silentlyEval("names(" + varname + ") <- names_" +
+     * "=features.frame(x=data_" + varname + ")"); silentlyEval("names(" + varname + ") <- names_" +
      * varname); silentlyEval("rm(names_" + varname + ",data_" + varname + ")"); }
      */
     if (var == null) {
@@ -1922,7 +1922,7 @@ public class Rsession implements Logger {
   /**
    * Create a JPEG file for R graphical command output
    * 
-   * @param f File to store data (eg .jpg file)
+   * @param f File to store features (eg .jpg file)
    * @param width width of image
    * @param height height of image
    * @param fileformat format of image: png,tiff,jpeg,bmp
@@ -2186,7 +2186,7 @@ public class Rsession implements Logger {
   }
 
   /**
-   * Send user filesystem file in r environement (like data)
+   * Send user filesystem file in r environement (like features)
    * 
    * @param localfile File to send
    */
@@ -2195,7 +2195,7 @@ public class Rsession implements Logger {
   }
 
   /**
-   * Send user filesystem file in r environement (like data)
+   * Send user filesystem file in r environement (like features)
    * 
    * @param localfile File to send
    * @param remoteFile filename in R env.

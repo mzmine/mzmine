@@ -53,7 +53,7 @@ public class LocMaxCentroidingAlgorithm {
     // Copy all scan properties
     this.newScan = new SimpleScan(inputScan);
 
-    // Load data points
+    // Load features points
     for (int i = 0; i < dataPoints.length; ++i) {
       mzBuffer[i] = dataPoints[i].getMZ();
       intensityBuffer[i] = dataPoints[i].getIntensity();
@@ -62,7 +62,7 @@ public class LocMaxCentroidingAlgorithm {
     final int numOfDataPoints = inputScan.getNumberOfDataPoints();
     int newNumOfDataPoints = 0;
 
-    // If there are no data points, just return the scan
+    // If there are no features points, just return the scan
     ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>();
     if (numOfDataPoints == 0) {
       for (int i = 0; i < numOfDataPoints; ++i) {
@@ -77,7 +77,7 @@ public class LocMaxCentroidingAlgorithm {
     int rangeBeginning = 0, rangeEnd;
     boolean ascending = true;
 
-    // Iterate through all data points
+    // Iterate through all features points
     for (int i = 0; i < numOfDataPoints - 1; i++) {
 
       final boolean nextIsBigger = intensityBuffer[i + 1] > intensityBuffer[i];
@@ -89,7 +89,7 @@ public class LocMaxCentroidingAlgorithm {
         continue;
       }
 
-      // Add current (non-zero) data point to the current m/z peak
+      // Add current (non-zero) features point to the current m/z peak
       rangeEnd = i;
 
       // Check for local maximum
@@ -104,10 +104,10 @@ public class LocMaxCentroidingAlgorithm {
 
         final int numOfPeakDataPoints = rangeEnd - rangeBeginning;
 
-        // Add the m/z peak if it has at least 4 data points
+        // Add the m/z peak if it has at least 4 features points
         if (numOfPeakDataPoints >= 4) {
 
-          // Add the new data point
+          // Add the new features point
           mzBuffer[newNumOfDataPoints] = mzBuffer[localMaximumIndex];
           intensityBuffer[newNumOfDataPoints] = intensityBuffer[localMaximumIndex];
           newNumOfDataPoints++;
@@ -121,7 +121,7 @@ public class LocMaxCentroidingAlgorithm {
 
     }
 
-    // Store the new data points
+    // Store the new features points
     for (int i = 0; i < newNumOfDataPoints; ++i) {
       newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
     }

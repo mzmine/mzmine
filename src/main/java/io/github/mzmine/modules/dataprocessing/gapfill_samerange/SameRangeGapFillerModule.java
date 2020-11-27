@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -34,7 +34,7 @@ public class SameRangeGapFillerModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Same RT and m/z range gap filler";
   private static final String MODULE_DESCRIPTION =
-      "This method fills the missing peaks (gaps) in the feature list by looking at the whole m/z and retention time range of the feature list row and adding all raw data points in the same range.";
+      "This method fills the missing peaks (gaps) in the feature list by looking at the whole m/z and retention time range of the feature list row and adding all raw features points in the same range.";
 
   @Override
   public @Nonnull String getName() {

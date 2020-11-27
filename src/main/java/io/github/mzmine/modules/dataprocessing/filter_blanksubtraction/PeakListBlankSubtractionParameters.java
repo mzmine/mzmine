@@ -32,7 +32,7 @@ public class PeakListBlankSubtractionParameters extends SimpleParameterSet {
       new FeatureListsParameter("Aligned peak list", 1, 1);
 
   public static final RawDataFilesParameter blankRawDataFiles =
-      new RawDataFilesParameter("Blank/Control raw data files", 1, 100);
+      new RawDataFilesParameter("Blank/Control raw features files", 1, 100);
 
   public static final IntegerParameter minBlanks =
       new IntegerParameter("Minimum # of detection in blanks",

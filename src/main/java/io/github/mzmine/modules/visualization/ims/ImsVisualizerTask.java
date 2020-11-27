@@ -123,7 +123,7 @@ public class ImsVisualizerTask extends AbstractTask {
         Platform.runLater(() -> {
             if (!containsMobility) {
                 MZmineCore.getDesktop().displayErrorMessage(
-                    "The selected raw data does not have a mobility dimension.");
+                    "The selected raw features does not have a mobility dimension.");
                 return;
             }
             // Initialize dataFactories.
@@ -164,7 +164,7 @@ public class ImsVisualizerTask extends AbstractTask {
 
     public void initDataFactories() {
         appliedSteps++;
-        // initialize data factory for the plots data.
+        // initialize features factory for the plots features.
         dataFactory = new DataFactory(parameterSet, 0f, this);
     }
 

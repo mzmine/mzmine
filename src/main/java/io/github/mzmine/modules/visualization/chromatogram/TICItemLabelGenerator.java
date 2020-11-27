@@ -30,7 +30,7 @@ import io.github.mzmine.main.MZmineCore;
  * 
  * Basic method for annotation is
  * 
- * 1) Check if this data point is local maximum
+ * 1) Check if this features point is local maximum
  * 
  * 2) Search neighbourhood defined by pixel range for other local maxima with higher intensity
  * 
@@ -46,7 +46,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
   public static final int POINTS_RESERVE_Y = 100;
 
   /*
-   * Only data points which have intensity >= (dataset minimum value * THRESHOLD_FOR_ANNOTATION)
+   * Only features points which have intensity >= (dataset minimum value * THRESHOLD_FOR_ANNOTATION)
    * will be annotated
    */
   public static final double THRESHOLD_FOR_ANNOTATION = 2;
@@ -71,19 +71,19 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
       return null;
     TICDataSet ticDataSet = (TICDataSet) dataSet;
 
-    // X and Y values of current data point
+    // X and Y values of current features point
     double originalX = ticDataSet.getX(0, item).doubleValue();
     double originalY = ticDataSet.getY(0, item).doubleValue();
 
-    // Check if the intensity of this data point is above threshold
+    // Check if the intensity of this features point is above threshold
     if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
       return null;
 
-    // Check if this data point is local maximum
+    // Check if this features point is local maximum
     if (!ticDataSet.isLocalMaximum(item))
       return null;
 
-    // Calculate data size of 1 screen pixel
+    // Calculate features size of 1 screen pixel
     double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
     double pixelX = xLength / plot.getWidth();
     double yLength = (double) plot.getXYPlot().getRangeAxis().getRange().getLength();
@@ -91,14 +91,14 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 
     ArrayList<TICDataSet> allDataSets = new ArrayList<TICDataSet>();
 
-    // Get all data sets of current plot
+    // Get all features sets of current plot
     for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
       XYDataset dataset = plot.getXYPlot().getDataset(i);
       if (dataset instanceof TICDataSet)
         allDataSets.add((TICDataSet) dataset);
     }
 
-    // Check each data set for conflicting data points
+    // Check each features set for conflicting features points
     for (TICDataSet checkedDataSet : allDataSets) {
 
       // Search for local maxima
@@ -107,7 +107,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
       double searchMinY = originalY;
       double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 
-      // We don't want to search below the threshold level of the data set
+      // We don't want to search below the threshold level of the features set
       if (searchMinY < (checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION))
         searchMinY = checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION;
 
@@ -115,7 +115,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
       int foundLocalMaxima[] =
           checkedDataSet.findLocalMaxima(searchMinX, searchMaxX, searchMinY, searchMaxY);
 
-      // If we found other maximum then this data point, bail out
+      // If we found other maximum then this features point, bail out
       if (foundLocalMaxima.length > (dataSet == checkedDataSet ? 1 : 0))
         return null;
 

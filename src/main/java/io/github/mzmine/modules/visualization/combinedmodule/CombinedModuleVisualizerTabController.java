@@ -98,7 +98,7 @@ public class CombinedModuleVisualizerTabController {
       return;
     }
 
-    // get first raw data file
+    // get first raw features file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

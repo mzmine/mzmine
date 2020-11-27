@@ -47,7 +47,7 @@ public class ExpandedDataPoint implements DataPoint {
   }
 
   /**
-   * Constructor which copies the data from another DataPoint
+   * Constructor which copies the features from another DataPoint
    */
   public ExpandedDataPoint(DataPoint dp) {
     this.mz = dp.getMZ();
@@ -55,7 +55,7 @@ public class ExpandedDataPoint implements DataPoint {
   }
 
   /**
-   * Constructor which copies the data from another DataPoint and takes the scan number
+   * Constructor which copies the features from another DataPoint and takes the scan number
    */
   public ExpandedDataPoint(DataPoint dp, int scanNumIn) {
     this.mz = dp.getMZ();

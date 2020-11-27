@@ -170,7 +170,7 @@ public class ChartLogicsFX {
    * Translates screen (pixel) values to plot values
    * 
    * @param myChart
-   * @return width in data space for x and y
+   * @return width in features space for x and y
    */
   public static Point2D screenValueToPlotValue(ChartViewer myChart, int val) {
     Point2D p = mouseXYToPlotXY(myChart, 0, 0);
@@ -183,7 +183,7 @@ public class ChartLogicsFX {
    * Data width to pixel width on screen
    * 
    * @param myChart
-   * @param dataWidth width of data
+   * @param dataWidth width of features
    * @param axis for width calculation
    * @return
    */
@@ -304,7 +304,7 @@ public class ChartLogicsFX {
    * Range axes need to share the same unit (e.g. mm)
    * 
    * @param myChart
-   * @param dataWidth width of data
+   * @param dataWidth width of features
    * @param axis for width calculation
    * @return
    */
@@ -317,7 +317,7 @@ public class ChartLogicsFX {
    * same unit (e.g. mm)
    * 
    * @param myChart
-   * @param dataWidth width of data
+   * @param dataWidth width of features
    * @param axis for width calculation
    * @return
    */

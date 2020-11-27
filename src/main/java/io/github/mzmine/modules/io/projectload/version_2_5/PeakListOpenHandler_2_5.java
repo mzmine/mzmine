@@ -19,11 +19,11 @@
 package io.github.mzmine.modules.io.projectload.version_2_5;
 
 import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.ByteArrayInputStream;
@@ -268,7 +268,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       RawDataFile dataFile = dataFilesIDMap.get(rawDataFileID);
       if (dataFile == null) {
         throw new SAXException(
-            "Cannot open feature list, because raw data file " + rawDataFileID + " is missing.");
+            "Cannot open feature list, because raw features file " + rawDataFileID + " is missing.");
       }
       currentPeakListDataFiles.add(dataFile);
     }
@@ -277,7 +277,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     if (qName.equals(PeakListElementName_2_5.SCAN_ID.getElementName())) {
 
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-      // make a data input stream
+      // make a features input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
       scanNumbers = new int[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
@@ -309,7 +309,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     if (qName.equals(PeakListElementName_2_5.MZ.getElementName())) {
 
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-      // make a data input stream
+      // make a features input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
       masses = new double[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
@@ -325,7 +325,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     if (qName.equals(PeakListElementName_2_5.HEIGHT.getElementName())) {
 
       byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-      // make a data input stream
+      // make a features input stream
       DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes));
       intensities = new double[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
@@ -346,7 +346,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
       if (dataFile == null)
-        throw new SAXException("Error in project: data file " + peakColumnID + " not found");
+        throw new SAXException("Error in project: features file " + peakColumnID + " not found");
 
       for (int i = 0; i < numOfMZpeaks; i++) {
 
@@ -389,7 +389,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       // clear all MS2 fragment scan numbers list for next peak
       currentAllMS2FragmentScans.clear();
 
-      // peakRTRange could be null if the peak consists only of 0 intensity data points
+      // peakRTRange could be null if the peak consists only of 0 intensity features points
       if (peakRTRange == null)
         peakRTRange = Range.singleton(rt);
 

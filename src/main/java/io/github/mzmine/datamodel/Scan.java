@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 /**
- * This class represent one spectrum of a raw data file.
+ * This class represent one spectrum of a raw features file.
  */
 public interface Scan extends MassSpectrum {
 

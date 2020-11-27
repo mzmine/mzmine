@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_msms;
 
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;

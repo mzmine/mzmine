@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 /*
- * Raw data overview raw data table model class class
+ * Raw features overview raw features table model class class
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */

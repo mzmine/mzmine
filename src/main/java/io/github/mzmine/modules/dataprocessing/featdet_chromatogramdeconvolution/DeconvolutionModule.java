@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Arrays;
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -75,7 +75,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
 
     // use a logger weighted, noise corrected, maximum weight capped function
     if (mzCenterFunction.getMeasure().equals(CenterMeasure.AUTO)) {
-      // data point with lowest intensity
+      // features point with lowest intensity
       // weight = logger(value) - logger(noise) (maxed to maxWeight)
       double noise =
           Arrays.stream(peakLists).flatMap(pkl -> pkl.getRows().stream()).map(r -> r.getFeatures().get(0))
@@ -85,7 +85,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
       // maxWeight 4 corresponds to a linear range of 4 orders of
       // magnitude
       // everything higher than this will be capped to this weight
-      // do not overestimate influence of very high data points on mass
+      // do not overestimate influence of very high features points on mass
       // accuracy
       double maxWeight = 4;
 

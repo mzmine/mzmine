@@ -129,11 +129,11 @@ public class AdductsComponent extends BorderPane {
         logger.log(Level.SEVERE, msg, ex);
       }
 
-      // Read the adducts data.
+      // Read the adducts features.
       if (csvLines == null)
         return;
 
-      // Load adducts from CSV data into parent choices.
+      // Load adducts from CSV features into parent choices.
       loadAdductsIntoChoices(csvLines, adductsView.getItems());
 
     });

@@ -72,14 +72,14 @@ public class PeptideIdentityDataFile {
   }
 
   /**
-   * Returns the name of original data file
+   * Returns the name of original features file
    */
   public String getName() {
     return filename;
   }
 
   /**
-   * Change the name of this data file
+   * Change the name of this features file
    * 
    * @param String name
    */

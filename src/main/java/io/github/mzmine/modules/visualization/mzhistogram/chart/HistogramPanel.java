@@ -220,7 +220,7 @@ public class HistogramPanel extends BorderPane {
   }
 
   /**
-   * set data and update histo
+   * set features and update histo
    *
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
@@ -353,7 +353,7 @@ public class HistogramPanel extends BorderPane {
     double[] dat = data.getData();
     if (cbExcludeSmallerNoise.isSelected()) {
       double noise = data.getRange().getLowerBound();
-      // get processed data from original image
+      // get processed features from original image
       dat = DoubleStream.of(dat).filter(d -> d > noise).toArray();
     }
 

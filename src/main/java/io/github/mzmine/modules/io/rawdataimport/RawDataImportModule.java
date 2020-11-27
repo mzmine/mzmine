@@ -52,14 +52,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 /**
- * Raw data import module
+ * Raw features import module
  */
 public class RawDataImportModule implements MZmineProcessingModule {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static final String MODULE_NAME = "Raw data import";
-    private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
+    private static final String MODULE_NAME = "Raw features import";
+    private static final String MODULE_DESCRIPTION = "This module imports raw features into the project.";
     private String commonPrefix = null;
 
     @Override

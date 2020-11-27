@@ -29,7 +29,7 @@
 
 package io.github.mzmine.modules.io.gnpsexport.gc;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;

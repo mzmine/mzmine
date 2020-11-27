@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;

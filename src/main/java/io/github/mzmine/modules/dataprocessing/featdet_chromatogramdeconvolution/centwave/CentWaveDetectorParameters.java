@@ -49,7 +49,7 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
    */
   public enum PeakIntegrationMethod {
 
-    UseSmoothedData("Use smoothed data", 1), UseRawData("Use raw data", 2);
+    UseSmoothedData("Use smoothed features", 1), UseRawData("Use raw features", 2);
 
     private final String name;
     private final int index;

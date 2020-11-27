@@ -25,7 +25,7 @@ import io.github.mzmine.util.maths.DoubleArraySupplier;
 
 public class HistogramData {
 
-  // data is not binned
+  // features is not binned
   private double[] data;
   private Range range;
 

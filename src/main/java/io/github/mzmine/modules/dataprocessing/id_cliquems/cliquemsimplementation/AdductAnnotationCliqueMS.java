@@ -768,9 +768,9 @@ public class AdductAnnotationCliqueMS {
       boolean normalizeScore) {
     double newMass = -10.0;
     int defaultNewMassSize = 8;
-    // 1 - read ordered data frame of features and masses from PeakData
+    // 1 - read ordered features frame of features and masses from PeakData
     AnnotDataFrame annotdf = readDataFrame(dfClique);
-    // 2 - read data frame with adduct list and adduct information from orderadinfo
+    // 2 - read features frame with adduct list and adduct information from orderadinfo
     RawAdList rList = readRawList(mzDF);
     List<Double> vScore = getScoreAddList(rList);
     // 3 - obtain all adducts and mass candidates
@@ -847,7 +847,7 @@ public class AdductAnnotationCliqueMS {
 }
 
 /**
- * holds data of features that is required to annotate, list of values for all features in a clique
+ * holds features of features that is required to annotate, list of values for all features in a clique
  */
 class AnnotDataFrame {
 
@@ -866,7 +866,7 @@ class RawAdList {
 }
 
 /**
- * Holds data of features in a cliques, further groups features in each clique as AnGroup and holds
+ * Holds features of features in a cliques, further groups features in each clique as AnGroup and holds
  * mass candidates for features in each anGroup.
  */
 class AnnotData {
@@ -889,7 +889,7 @@ class Component {
 }
 
 /**
- * holds single annotation data for one feature annotation contains map for a possible of
+ * holds single annotation features for one feature annotation contains map for a possible of
  * annotations to a pair of mass and formula of possible adducts
  */
 class Annotation {

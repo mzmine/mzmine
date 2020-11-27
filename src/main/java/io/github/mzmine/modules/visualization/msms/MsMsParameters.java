@@ -40,12 +40,12 @@ public class MsMsParameters extends SimpleParameterSet {
 
   public static final ComboParameter<IntensityType> intensityType =
       new ComboParameter<IntensityType>("Intensity",
-          "The intensity of the data points can calculated based on either\n- Total intensity of the MS/MS scan\n- Intensity of the precursor ion in the MS scan",
+          "The intensity of the features points can calculated based on either\n- Total intensity of the MS/MS scan\n- Intensity of the precursor ion in the MS scan",
           IntensityType.values());
 
   public static final ComboParameter<NormalizationType> normalizationType =
       new ComboParameter<NormalizationType>("Normalize by",
-          "The color of the data points can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
+          "The color of the features points can normalized based on either\n- All features points\n- Data points with a m/z within 10ppm.",
           NormalizationType.values());
 
   public static final DoubleParameter minFeatureInt = new DoubleParameter("Min. MS/MS peak intensity",

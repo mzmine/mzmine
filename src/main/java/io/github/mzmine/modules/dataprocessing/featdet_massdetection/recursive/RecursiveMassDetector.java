@@ -111,7 +111,7 @@ public class RecursiveMassDetector implements MassDetector {
       if ((peakWidthMZ >= minimumMZPeakWidth) && (peakWidthMZ <= maximumMZPeakWidth)) {
 
         // Declare a new MzPeak with intensity equal to max intensity
-        // data point
+        // features point
         mzPeaks.add(dataPoints[peakMaxInd]);
 
         if (recuLevel > 0) {

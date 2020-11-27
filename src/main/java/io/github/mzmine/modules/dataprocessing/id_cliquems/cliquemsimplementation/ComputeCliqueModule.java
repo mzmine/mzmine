@@ -22,8 +22,8 @@ package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementati
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -38,7 +38,7 @@ import javafx.util.Pair;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 /**
- * This class contains all the data members and functions for finding cliques or groups using
+ * This class contains all the features members and functions for finding cliques or groups using
  * CliqueMSR algorithm. Input is peakList and corresponding rawDatafile, and parameters to the
  * algorithm.
  */
@@ -70,11 +70,11 @@ public class ComputeCliqueModule {
   }
 
   /**
-   * Extracts necessary data from rawdatafile
+   * Extracts necessary features from rawdatafile
    *
    * @param peakList feature lists
    * @param dataFile raw Data File
-   * @return PeakData contains sufficient data for cliqueMS algorithm
+   * @return PeakData contains sufficient features for cliqueMS algorithm
    */
   private List<PeakData> getPeakDataFromPeaks(FeatureList peakList, RawDataFile dataFile) {
     List<PeakData> peakDataList = new ArrayList<>();
@@ -114,12 +114,12 @@ public class ComputeCliqueModule {
    * <p>
    * EIC matrix is further used to calculate cosine similarity matrix
    *
-   * @param file         raw data file
-   * @param peakDataList contains peak data
+   * @param file         raw features file
+   * @param peakDataList contains peak features
    * @return double [][] EIC matrix
    */
   private double[][] getEIC(RawDataFile file, List<PeakData> peakDataList) {
-    List<List<DataPoint>> dataPoints = new ArrayList<>(); // contains m/z and intensity data
+    List<List<DataPoint>> dataPoints = new ArrayList<>(); // contains m/z and intensity features
     List<Double> rts = new ArrayList<>(); // holds Retention Time values in seconds
     for (int z : file.getScanNumbers()) {
       rts.add(file.getScan(z).getRetentionTime() * 60.0); // conversion for minutes to seconds
@@ -178,7 +178,7 @@ public class ComputeCliqueModule {
   //TODO make use of sparse matrix, make algo time efficient
 
   /**
-   * Computes cosine correlation of data (EIC) matrix over the columns, so for ixj dimension EIC
+   * Computes cosine correlation of features (EIC) matrix over the columns, so for ixj dimension EIC
    * matrix, the [x,y]th element of cosine correlation matrix contains the cosine similarity between
    * the xth and the yth column of EIC matrix, so cosine correlation matrix has dimension jxj
    *

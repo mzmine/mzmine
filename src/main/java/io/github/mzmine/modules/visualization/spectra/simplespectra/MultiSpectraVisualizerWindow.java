@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -66,7 +66,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   private JLabel lbRaw;
 
   /**
-   * Shows best fragmentation scan raw data file first
+   * Shows best fragmentation scan raw features file first
    *
    * @param row
    */
@@ -152,7 +152,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   }
 
   /**
-   * Set data and create charts
+   * Set features and create charts
    *
    * @param row
    * @param raw
@@ -164,7 +164,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
   }
 
   /**
-   * Set the raw data file and create all chromatograms and MS2 spectra
+   * Set the raw features file and create all chromatograms and MS2 spectra
    *
    * @param raw
    * @return true if row has peak with MS2 spectrum in RawDataFile raw

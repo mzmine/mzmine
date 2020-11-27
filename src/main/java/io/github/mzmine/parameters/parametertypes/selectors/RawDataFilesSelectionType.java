@@ -21,8 +21,8 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 public enum RawDataFilesSelectionType {
 
   GUI_SELECTED_FILES("As selected in main window"), //
-  ALL_FILES("All raw data files"), //
-  SPECIFIC_FILES("Specific raw data files"), //
+  ALL_FILES("All raw features files"), //
+  SPECIFIC_FILES("Specific raw features files"), //
   NAME_PATTERN("File name pattern"), //
   BATCH_LAST_FILES("Those created by previous batch step");
 

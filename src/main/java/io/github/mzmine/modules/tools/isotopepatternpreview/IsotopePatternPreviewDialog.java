@@ -258,8 +258,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     }
 
     /*
-     * if (pol == PolarityType.NEUTRAL) table = new TableView(data, columns[0]); // column 1 =
-     * "Exact mass / // Da" else table = new JTable(data, columns[1]); // column 2 = "m/z"
+     * if (pol == PolarityType.NEUTRAL) table = new TableView(features, columns[0]); // column 1 =
+     * "Exact mass / // Da" else table = new JTable(features, columns[1]); // column 2 = "m/z"
      */
     // pnText.setViewportView(table);
     // table.setDefaultEditor(Object.class, null); // make editing impossible

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
@@ -54,7 +54,7 @@ public class ResolvedPeak{
   // Scan numbers
   private int scanNumbers[];
 
-  // We store the values of data points as double[] arrays in order to save
+  // We store the values of features points as double[] arrays in order to save
   // memory, which would be wasted by keeping a lot of instances of
   // SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
   private double dataPointMZValues[], dataPointIntensityValues[];
@@ -65,7 +65,7 @@ public class ResolvedPeak{
   // All MS2 fragment scan numbers
   private int[] allMS2FragmentScanNumbers;
 
-  // Ranges of raw data points
+  // Ranges of raw features points
   private Range<Double> rawDataPointsMZRange;
   private Range<Float> rawDataPointsIntensityRange, rawDataPointsRTRange;
 
@@ -81,9 +81,9 @@ public class ResolvedPeak{
   private Integer parentChromatogramRowID = null;
 
   /**
-   * Initializes this peak using data points from a given chromatogram - regionStart marks the index
-   * of the first data point (inclusive), regionEnd marks the index of the last data point
-   * (inclusive). The selected region MUST NOT contain any zero-intensity data points, otherwise
+   * Initializes this peak using features points from a given chromatogram - regionStart marks the index
+   * of the first features point (inclusive), regionEnd marks the index of the last features point
+   * (inclusive). The selected region MUST NOT contain any zero-intensity features points, otherwise
    * exception is thrown.
    */
   public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
@@ -105,7 +105,7 @@ public class ResolvedPeak{
     dataPointMZValues = new double[regionEnd - regionStart + 1];
     dataPointIntensityValues = new double[regionEnd - regionStart + 1];
 
-    // Set raw data point ranges, height, rt and representative scan
+    // Set raw features point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
 
     double mzValue = chromatogram.getMZ();
@@ -118,9 +118,9 @@ public class ResolvedPeak{
         continue;
         /*
          * String error =
-         * "Cannot create a resolved peak in a region with missing data points: chromatogram " +
+         * "Cannot create a resolved peak in a region with missing features points: chromatogram " +
          * chromatogram + " scans " + chromatogramScanNumbers[regionStart] + "-" +
-         * chromatogramScanNumbers[regionEnd] + ", missing data point in scan " + scanNumbers[i];
+         * chromatogramScanNumbers[regionEnd] + ", missing features point in scan " + scanNumbers[i];
          *
          * throw new IllegalArgumentException(error);
          */

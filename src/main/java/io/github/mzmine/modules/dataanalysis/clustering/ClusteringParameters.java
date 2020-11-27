@@ -59,8 +59,8 @@ public class ClusteringParameters extends SimpleParameterSet {
           "Select the algorithm you want to use for clustering", algorithms);
 
   public static final ComboParameter<ClusteringDataType> typeOfData =
-      new ComboParameter<ClusteringDataType>("Type of data",
-          "Specify the type of data used for the clustering: samples or variables",
+      new ComboParameter<ClusteringDataType>("Type of features",
+          "Specify the type of features used for the clustering: samples or variables",
           ClusteringDataType.values());
 
   public ClusteringParameters() {

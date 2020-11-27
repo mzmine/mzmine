@@ -155,7 +155,7 @@ public class PubChemGateway implements DBGateway {
 
       Element docSumElement = compoundSummaryElements.get(CID);
       if (docSumElement == null)
-        throw new IOException("Missing data of compound CID " + CID);
+        throw new IOException("Missing features of compound CID " + CID);
 
       XPathFactory factory = XPathFactory.newInstance();
       XPath xpath = factory.newXPath();

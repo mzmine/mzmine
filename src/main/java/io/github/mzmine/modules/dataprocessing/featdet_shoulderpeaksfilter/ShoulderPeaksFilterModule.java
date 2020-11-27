@@ -34,7 +34,7 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "FTMS shoulder peaks filter";
   private static final String MODULE_DESCRIPTION =
-      "This method filters mass lists and removes residual signals known as 'shoulder peaks' and commonly observed in FTMS data.";
+      "This method filters mass lists and removes residual signals known as 'shoulder peaks' and commonly observed in FTMS features.";
 
   @Override
   public @Nonnull String getName() {

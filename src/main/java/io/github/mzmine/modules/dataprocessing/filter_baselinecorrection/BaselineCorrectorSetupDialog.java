@@ -52,7 +52,7 @@ import javafx.scene.control.ProgressBar;
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
  *              to preview how the selected baseline correction method and its parameters works over
- *              the raw data file.
+ *              the raw features file.
  *
  */
 public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
@@ -215,7 +215,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
         ticPlot.removeAllDataSets();
         ticPlot.setPlotType(getPlotType());
 
-        // Add the original raw data file
+        // Add the original raw features file
         final ScanSelection sel = new ScanSelection(rtRange, 1);
         Scan scans[] = sel.getMatchingScans(dataFile);
 
@@ -229,11 +229,11 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
           progressThread = new ProgressThread(this.dialog, this, dataFile);
           progressThread.start();
 
-          // Create a new corrected raw data file
+          // Create a new corrected raw features file
           RawDataFile newDataFile =
               baselineCorrector.correctDatafile(this.rSession, dataFile, correctorParameters, null);
 
-          // If successful, add the new data file
+          // If successful, add the new features file
           if (newDataFile != null) {
             scans = sel.getMatchingScans(newDataFile);
             final TICDataSet newDataset =

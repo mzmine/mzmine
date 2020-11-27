@@ -54,7 +54,7 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
       new IsotopePatternScoreParameters());
 
   public static final OptionalModuleParameter msmsFilter =
-      new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
+      new OptionalModuleParameter("MS/MS filter", "Check MS/MS features", new MSMSScoreParameters());
 
   public FormulaPredictionParameters() {
     super(new Parameter[] {neutralMass, mzTolerance, elements, elementalRatios, rdbeRestrictions,

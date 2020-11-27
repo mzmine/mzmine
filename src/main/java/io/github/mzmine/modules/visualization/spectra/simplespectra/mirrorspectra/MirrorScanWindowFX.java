@@ -87,7 +87,7 @@ public class MirrorScanWindowFX extends Stage {
   }
 
   /**
-   * Based on a data base match to a spectral library
+   * Based on a features base match to a spectral library
    *
    * @param db
    */

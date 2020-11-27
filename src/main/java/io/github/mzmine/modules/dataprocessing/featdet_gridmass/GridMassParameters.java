@@ -41,11 +41,11 @@ public class GridMassParameters extends SimpleParameterSet {
   public static final DoubleRangeParameter timeSpan = new DoubleRangeParameter(
       "Min-max width time (min)",
       "Time range for a peak to be recognized as a 'mass'.\n"
-          + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
+          + "The optimal value depends on the chromatography system setup.\nSee 2D raw features to determine typical time spans.",
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.1, 3.0));
 
   public static final DoubleParameter minimumHeight = new DoubleParameter("Minimum height",
-      "Minimum GLOBAL intensity of the highest data point in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
+      "Minimum GLOBAL intensity of the highest features point in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
       MZmineCore.getConfiguration().getMZFormat(), 20.0);
 
   public static final DoubleParameter mzTolerance = new DoubleParameter("M/Z Tolerance",

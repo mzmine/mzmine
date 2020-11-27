@@ -83,7 +83,7 @@ public class SpectrumChartFactory {
     JFreeChart chart = ChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
-        dataset, // data set
+        dataset, // features set
         PlotOrientation.VERTICAL, // orientation
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?

@@ -41,7 +41,7 @@ public class ADAPHighestDataPointConnector {
   private final RawDataFile dataFile;
   private final int allScanNumbers[];
 
-  // Mapping of last data point m/z --> chromatogram
+  // Mapping of last features point m/z --> chromatogram
   private Set<ADAPChromatogram> buildingChromatograms;
 
   public ADAPHighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
@@ -72,7 +72,7 @@ public class ADAPHighestDataPointConnector {
     // TODO: these two nested cycles should be optimized for speed
     for (DataPoint mzFeature : mzValues) {
 
-      // Search for best chromatogram, which has highest last data point
+      // Search for best chromatogram, which has highest last features point
       ADAPChromatogram bestChromatogram = null;
 
       for (ADAPChromatogram testChrom : buildingChromatograms) {

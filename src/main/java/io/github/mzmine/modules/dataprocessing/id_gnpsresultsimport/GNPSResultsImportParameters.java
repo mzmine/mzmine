@@ -29,7 +29,7 @@ public class GNPSResultsImportParameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LIST = new FeatureListsParameter(1, 1);
 
   public static final FileNameParameter FILE = new FileNameParameter("GNPS graphml file",
-      "GNPS results in the graphml file (download cytoscape data)", "graphml",
+      "GNPS results in the graphml file (download cytoscape features)", "graphml",
       FileSelectionType.OPEN);
 
   public GNPSResultsImportParameters() {

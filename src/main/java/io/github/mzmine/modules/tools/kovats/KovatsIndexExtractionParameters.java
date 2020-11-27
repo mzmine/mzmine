@@ -83,11 +83,11 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
 
-    // at least one raw data file in project
+    // at least one raw features file in project
     RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     if (raw == null || raw.length <= 0) {
-      DialogLoggerUtil.showMessageDialogForTime("No RAW data files",
-          "Cannot use Kovats extraction without raw data files in this project", 3500);
+      DialogLoggerUtil.showMessageDialogForTime("No RAW features files",
+          "Cannot use Kovats extraction without raw features files in this project", 3500);
       return ExitCode.ERROR;
     }
 

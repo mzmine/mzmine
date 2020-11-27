@@ -60,11 +60,11 @@ public class MenuExportToExcel extends MenuItem implements MenuExport {
 
   public void exportDataToExcel(File f) {
     try {
-      logger.info("retrieving data for export to excel");
+      logger.info("retrieving features for export to excel");
       Object[][] data = chart.getDataArrayForExport();
       if (data != null) {
         f = FileAndPathUtil.getRealFilePath(f, "xlsx");
-        logger.info("Exporting data to excel file: " + f.getAbsolutePath());
+        logger.info("Exporting features to excel file: " + f.getAbsolutePath());
         XSSFWorkbook wb = excelWriter.exportDataArrayToFile(f, "xydata", data, false);
         excelWriter.closeWorkbook(wb);
       }

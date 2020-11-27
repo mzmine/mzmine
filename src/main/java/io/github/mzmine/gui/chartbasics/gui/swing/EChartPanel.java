@@ -73,9 +73,9 @@ public class EChartPanel extends ChartPanel {
   protected ChartGestureMouseAdapter mouseAdapter;
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
    * stickyZeroForRangeAxis = false <br>
-   * Graphics and data export menu are added
+   * Graphics and features export menu are added
    * 
    * @param chart
    */
@@ -84,9 +84,9 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
    * stickyZeroForRangeAxis = false <br>
-   * Graphics and data export menu are added
+   * Graphics and features export menu are added
    * 
    * @param chart
    */
@@ -95,13 +95,13 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
    * stickyZeroForRangeAxis = false
    * 
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds data export menu
+   * @param dataExportMenu adds features export menu
    */
   public EChartPanel(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
@@ -109,13 +109,13 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export<br>
    * stickyZeroForRangeAxis = false
    * 
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
    * @param standardGestures adds the standard ChartGestureHandlers
-   * @param dataExportMenu adds data export menu
+   * @param dataExportMenu adds features export menu
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
       boolean dataExportMenu, boolean standardGestures) {
@@ -123,11 +123,11 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export
    * 
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
+   * @param dataExportMenu adds features export menu
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
@@ -138,11 +138,11 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and features export
    * 
    * @param chart
    * @param graphicsExportMenu adds graphics export menu
-   * @param dataExportMenu adds data export menu
+   * @param dataExportMenu adds features export menu
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
@@ -299,7 +299,7 @@ public class EChartPanel extends ChartPanel {
               x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
               y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
               z[1] = "z-axis";
-              // write data
+              // write features
               for (int i = 0; i < xyz.getItemCount(s); i++) {
                 x[i + 2] = xyz.getX(s, i);
                 y[i + 2] = xyz.getY(s, i);
@@ -326,7 +326,7 @@ public class EChartPanel extends ChartPanel {
               y[0] = "";
               x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
               y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              // write data
+              // write features
               for (int i = 0; i < data.getItemCount(s); i++) {
                 x[i + 2] = data.getX(s, i);
                 y[i + 2] = data.getY(s, i);
@@ -352,7 +352,7 @@ public class EChartPanel extends ChartPanel {
    * ############################################################### Export Graphics
    */
   /**
-   * Adds the GraphicsExportDialog menu and the data export menu
+   * Adds the GraphicsExportDialog menu and the features export menu
    */
   protected void addExportMenu(boolean graphics, boolean data) {
     this.getPopupMenu().addSeparator();
@@ -361,8 +361,8 @@ public class EChartPanel extends ChartPanel {
       ChartExportUtil.addExportDialogToMenu(this);
     }
     if (data) {
-      // General data export
-      JMenu export = new JMenu("Export data ...");
+      // General features export
+      JMenu export = new JMenu("Export features ...");
       // Excel XY
       JMenuExportToExcel exportXY =
           new JMenuExportToExcel(new XSSFExcelWriterReader(), "to Excel", this);

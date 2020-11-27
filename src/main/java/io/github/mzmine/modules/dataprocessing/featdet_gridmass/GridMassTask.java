@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.util.FeatureConvertors;
 import java.text.Format;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -196,7 +195,7 @@ public class GridMassTask extends AbstractTask {
     // (3.1.3) if extension < mintime ==> mark all pixels with spot ID = -1
     // (4) Group spots within a time-tolerance and mass-tolerance
 
-    logger.info("Getting data points on " + dataFile);
+    logger.info("Getting features points on " + dataFile);
 
     roi = new Datum[totalScans][];
     ArrayList<Datum> roiAL = new ArrayList<Datum>();
@@ -207,7 +206,7 @@ public class GridMassTask extends AbstractTask {
     boolean[] scanOk = new boolean[totalScans];
     Arrays.fill(scanOk, true);
 
-    logger.info("Smoothing data points on " + dataFile + " (Time min=" + smoothTimeSpan
+    logger.info("Smoothing features points on " + dataFile + " (Time min=" + smoothTimeSpan
         + "; Time m/z=" + smoothTimeMZ + ")");
     IndexedDataPoint[][] data =
         smoothDataPoints(dataFile, smoothTimeSpan, smoothTimeMZ, 0, smoothMZ, 0, minimumHeight);
@@ -519,7 +518,7 @@ public class GridMassTask extends AbstractTask {
                     "Peak added id=" + sx.spotId + " " + mzFormat.format(sx.center.mzCenter)
                         + " mz, time=" + timeFormat.format(retentiontime[sx.center.scanCenter])
                         + ", intensity=" + sx.center.intensityCenter + ", probes=" + sx.size()
-                        + ", data scans=" + sx.getMaxDatumScans() + ", cont scans="
+                        + ", features scans=" + sx.getMaxDatumScans() + ", cont scans="
                         + sx.getContigousMaxDatumScans() + ", cont ratio="
                         + sx.getContigousToMaxDatumScansRatio() + " area = " + peak.getArea());
               if (debug > 1) {
@@ -532,7 +531,7 @@ public class GridMassTask extends AbstractTask {
                 System.out.println("Ignored by area ~ 0 id=" + sx.spotId + " "
                     + mzFormat.format(sx.center.mzCenter) + " mz, time="
                     + timeFormat.format(retentiontime[sx.center.scanCenter]) + ", intensity="
-                    + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
+                    + sx.center.intensityCenter + ", probes=" + sx.size() + ", features scans="
                     + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                     + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio() + " area = "
                     + peak.getArea());
@@ -543,7 +542,7 @@ public class GridMassTask extends AbstractTask {
             System.out.println("Ignored by continous criteria: id=" + sx.spotId + " "
                 + mzFormat.format(sx.center.mzCenter) + " mz, time="
                 + timeFormat.format(retentiontime[sx.center.scanCenter]) + ", intensity="
-                + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
+                + sx.center.intensityCenter + ", probes=" + sx.size() + ", features scans="
                 + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                 + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio());
         }
@@ -553,7 +552,7 @@ public class GridMassTask extends AbstractTask {
             System.out.println("Ignored by time range criteria: id=" + sx.spotId + " "
                 + mzFormat.format(sx.center.mzCenter) + " mz, time="
                 + timeFormat.format(retentiontime[sx.center.scanCenter]) + ", intensity="
-                + sx.center.intensityCenter + ", probes=" + sx.size() + ", data scans="
+                + sx.center.intensityCenter + ", probes=" + sx.size() + ", features scans="
                 + sx.getMaxDatumScans() + ", cont scans=" + sx.getContigousMaxDatumScans()
                 + ", cont ratio=" + sx.getContigousToMaxDatumScansRatio());
         }

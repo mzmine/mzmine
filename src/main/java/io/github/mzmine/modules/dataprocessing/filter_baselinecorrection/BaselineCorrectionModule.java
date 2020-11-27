@@ -43,7 +43,7 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Baseline correction";
   private static final String MODULE_DESCRIPTION =
-      "This module performs a baseline correction on raw data files.";
+      "This module performs a baseline correction on raw features files.";
 
   @Override
   public @Nonnull String getName() {

@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Interface for extracting a list of standard molecules
  * given a file with specific format,
- * extract data on molecules and return StandardsList object
+ * extract features on molecules and return StandardsList object
  */
 public interface StandardsListExtractor {
   /**

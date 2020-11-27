@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import java.util.ArrayList;
@@ -104,7 +104,7 @@ public class BatchTask extends AbstractTask {
     final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
     final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
 
-    // If the last step did not produce any data files or feature lists, use
+    // If the last step did not produce any features files or feature lists, use
     // the ones from the previous step
     if (createdDataFiles.isEmpty())
       createdDataFiles = previousCreatedDataFiles;
@@ -150,8 +150,8 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    // Clear the saved data files and feature lists. Save them to the
-    // "previous" lists, in case the next step does not produce any new data
+    // Clear the saved features files and feature lists. Save them to the
+    // "previous" lists, in case the next step does not produce any new features
     if (!createdDataFiles.isEmpty())
       previousCreatedDataFiles = createdDataFiles;
     if (!createdFeatureLists.isEmpty())

@@ -34,7 +34,7 @@ public class AutoCarbonParameters extends SimpleParameterSet {
   public static final IntegerParameter maxCarbon =
       new IntegerParameter("Max. carbon", "Maximum amount of carbon to search for.", 25, true);
   public static final IntegerParameter minPatternSize = new IntegerParameter("Min. pattern size",
-      "Set the minimum amount of data points in an isotope pattern\n"
+      "Set the minimum amount of features points in an isotope pattern\n"
           + "Make sure this does not exclude every pattern.",
       2, true);
 

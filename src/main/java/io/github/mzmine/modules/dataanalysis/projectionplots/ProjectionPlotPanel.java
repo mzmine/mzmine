@@ -112,7 +112,7 @@ public class ProjectionPlotPanel extends EChartViewer {
       for (int groupNumber = 0; groupNumber < dataset.getNumberOfGroups(); groupNumber++) {
         Object paramValue = dataset.getGroupParameterValue(groupNumber);
         if (paramValue == null) {
-          // No parameter value available: search for raw data files
+          // No parameter value available: search for raw features files
           // within this group, and use their names as group's name
           String fileNames = new String();
           for (int itemNumber = 0; itemNumber < dataset.getItemCount(0); itemNumber++) {

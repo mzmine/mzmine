@@ -70,8 +70,8 @@ public class IsotopePatternScoreCalculator {
     IsotopePattern nip1 = IsotopePatternCalculator.normalizeIsotopePattern(ip1);
     IsotopePattern nip2 = IsotopePatternCalculator.normalizeIsotopePattern(ip2);
 
-    // Merge the data points from both isotope patterns into a single array.
-    // Data points from first pattern will have positive intensities, data
+    // Merge the features points from both isotope patterns into a single array.
+    // Data points from first pattern will have positive intensities, features
     // points from second pattern will have negative intensities.
     ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : nip1.getDataPoints()) {
@@ -87,10 +87,10 @@ public class IsotopePatternScoreCalculator {
     }
     DataPoint mergedDPArray[] = mergedDataPoints.toArray(new DataPoint[0]);
 
-    // Sort the merged data points by m/z
+    // Sort the merged features points by m/z
     Arrays.sort(mergedDPArray, new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
-    // Iterate the merged data points and sum all isotopes within m/z
+    // Iterate the merged features points and sum all isotopes within m/z
     // tolerance
     for (int i = 0; i < mergedDPArray.length - 1; i++) {
 
@@ -104,14 +104,14 @@ public class IsotopePatternScoreCalculator {
 
       double newMZ = mergedDPArray[i + 1].getMZ();
 
-      // Update the next data point and remove the current one
+      // Update the next features point and remove the current one
       mergedDPArray[i + 1] = new SimpleDataPoint(newMZ, summedIntensity);
       mergedDPArray[i] = null;
 
     }
 
     // Calculate the resulting score. Ideal score is 1, in case the final
-    // data point array is empty.
+    // features point array is empty.
     double result = 1;
 
     for (DataPoint dp : mergedDPArray) {

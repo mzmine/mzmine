@@ -15,14 +15,13 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
-import io.github.msdk.datamodel.SimpleFeature;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,7 +41,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -94,12 +92,12 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
-      // Check raw data files.
+      // Check raw features files.
       if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
           && originalLists.peaks.getNumberOfRawDataFiles() > 1) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak Decomposition can only be performed on feature lists with a single raw data file");
+            "Peak Decomposition can only be performed on feature lists with a single raw features file");
       } else {
 
         try {

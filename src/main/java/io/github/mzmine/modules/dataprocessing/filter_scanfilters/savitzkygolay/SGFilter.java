@@ -100,7 +100,7 @@ public class SGFilter implements ScanFilter {
     for (int spectrumInd =
         marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 
-      // zero intensity data points must be left unchanged
+      // zero intensity features points must be left unchanged
       if (oldDataPoints[spectrumInd].getIntensity() == 0) {
         newDataPoints[spectrumInd - marginSize] = oldDataPoints[spectrumInd];
         continue;

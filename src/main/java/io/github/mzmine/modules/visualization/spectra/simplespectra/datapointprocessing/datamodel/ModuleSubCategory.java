@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
 /**
- * The module sub category is used to classify module categories that can be executed on data points
- * by data point processing tasks.
+ * The module sub category is used to classify module categories that can be executed on features points
+ * by features point processing tasks.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *

@@ -36,7 +36,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
       "Chromatographic threshold",
       "Threshold for removing noise. The algorithm finds such intensity that given percentage of the"
-          + "\nchromatogram data points is below that intensity, and removes all data points below that level.");
+          + "\nchromatogram features points is below that intensity, and removes all features points below that level.");
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Search minimum in RT range (min)",
@@ -45,14 +45,14 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
   public static final PercentParameter MIN_RELATIVE_HEIGHT =
       new PercentParameter("Minimum relative height",
-          "Minimum height of a peak relative to the chromatogram top data point");
+          "Minimum height of a peak relative to the chromatogram top features point");
 
   public static final DoubleParameter MIN_ABSOLUTE_HEIGHT = new DoubleParameter(
       "Minimum absolute height", "Minimum absolute height of a peak to be recognized",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final DoubleParameter MIN_RATIO = new DoubleParameter("Min ratio of peak top/edge",
-      "Minimum ratio between peak's top intensity and side (lowest) data points."
+      "Minimum ratio between peak's top intensity and side (lowest) features points."
           + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
 
   public static final DoubleRangeParameter PEAK_DURATION =

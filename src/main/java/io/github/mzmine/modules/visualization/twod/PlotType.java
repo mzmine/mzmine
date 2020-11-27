@@ -23,8 +23,8 @@ package io.github.mzmine.modules.visualization.twod;
  */
 public enum PlotType {
 
-  FAST2D("Resampled data"), //
-  POINT2D("Use raw data points");
+  FAST2D("Resampled features"), //
+  POINT2D("Use raw features points");
 
   private String type;
 

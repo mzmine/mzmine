@@ -97,7 +97,7 @@ public class ExactMassDetector implements MassDetector {
 
     boolean ascending = true;
 
-    // Iterate through all data points
+    // Iterate through all features points
     for (int i = 0; i < scanDataPoints.length - 1; i++) {
 
       boolean nextIsBigger =
@@ -110,7 +110,7 @@ public class ExactMassDetector implements MassDetector {
         continue;
       }
 
-      // Add current (non-zero) data point to the current m/z peak
+      // Add current (non-zero) features point to the current m/z peak
       rangeDataPoints.add(scanDataPoints[i]);
 
       // Check for local maximum
@@ -152,9 +152,9 @@ public class ExactMassDetector implements MassDetector {
      * According with the FWHM concept, the exact mass of this peak is the half point of FWHM. In
      * order to get the points in the curve that define the FWHM, we use the linear equation.
      * 
-     * First we look for, in left side of the peak, 2 data points together that have an intensity
-     * less (first data point) and bigger (second data point) than half of total intensity. Then we
-     * calculate the slope of the line defined by this two data points. At least, we calculate the
+     * First we look for, in left side of the peak, 2 features points together that have an intensity
+     * less (first features point) and bigger (second features point) than half of total intensity. Then we
+     * calculate the slope of the line defined by this two features points. At least, we calculate the
      * point in this line that has an intensity equal to the half of total intensity
      * 
      * We repeat the same process in the right side.

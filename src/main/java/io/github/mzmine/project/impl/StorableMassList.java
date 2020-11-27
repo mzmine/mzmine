@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 
 /**
- * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
+ * Implementation of the Scan interface which stores raw features points in a temporary file, accessed
  * by RawDataFileImpl.readFromFloatBufferFile()
  */
 public class StorableMassList implements MassList {
@@ -68,7 +68,7 @@ public class StorableMassList implements MassList {
       return result;
 
     } catch (IOException e) {
-      logger.severe("Could not read data from temporary file " + e.toString());
+      logger.severe("Could not read features from temporary file " + e.toString());
       return new DataPoint[0];
     }
   }

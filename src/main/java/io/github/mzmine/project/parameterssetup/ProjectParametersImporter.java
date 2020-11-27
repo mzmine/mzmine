@@ -47,7 +47,7 @@ import javafx.stage.Stage;
  *
  * Description of input file format:
  *
- * First column of the comma-separated file must contain file names matching to names of raw data
+ * First column of the comma-separated file must contain file names matching to names of raw features
  * files opened in MZmine. Each other column corresponds to one project parameter.
  *
  * First row in the file must contain column headers. Header for the first column (filename) is
@@ -279,12 +279,12 @@ public class ProjectParametersImporter {
         if (!st.hasMoreTokens())
           continue;
 
-        // Get raw data file for this row
+        // Get raw features file for this row
         String fileName = st.nextToken();
 
         //Check whether fileName named rawData file is present
         RawDataFile[] dataFiles = currentProject.getDataFiles();
-        // Find index for data file
+        // Find index for features file
         int dataFileIndex = 0;
         while (dataFileIndex < dataFiles.length) {
           if (dataFiles[dataFileIndex].getName().equals(fileName))

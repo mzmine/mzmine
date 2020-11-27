@@ -17,8 +17,8 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -42,7 +42,7 @@ public class PseudoSpectrum {
 
   public static PseudoSpectrumDataSet createDataSet(FeatureListRow[] group, RawDataFile raw,
       boolean sum) {
-    // data
+    // features
     PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, "pseudo");
     // add all isotopes as a second series:
     XYSeries isoSeries = new XYSeries("Isotopes", true);
@@ -96,7 +96,7 @@ public class PseudoSpectrum {
     JFreeChart chart = ChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
-        dataset, // data set
+        dataset, // features set
         PlotOrientation.VERTICAL, // orientation
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?

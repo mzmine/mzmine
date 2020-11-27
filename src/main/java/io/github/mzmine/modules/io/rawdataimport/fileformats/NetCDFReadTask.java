@@ -242,7 +242,7 @@ public class NetCDFReadTask extends AbstractTask {
     scanTimeArray = null;
     scanTimeVariable = null;
 
-    // Fix problems caused by new QStar data converter
+    // Fix problems caused by new QStar features converter
     // assume scan is missing when scan_index[i]<0
     // for these scans, fix variables:
     // - scan_acquisition_time: interpolate/extrapolate using times of

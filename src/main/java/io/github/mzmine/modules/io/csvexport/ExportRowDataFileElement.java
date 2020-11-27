@@ -24,7 +24,7 @@ public enum ExportRowDataFileElement {
       false), FEATURE_RT("Feature RT", false), FEATURE_RT_START("Feature RT start", false), FEATURE_RT_END(
           "Feature RT end", false), FEATURE_DURATION("Feature duration time", false), FEATURE_HEIGHT(
               "Feature height", false), FEATURE_AREA("Feature area", false), FEATURE_CHARGE("Feature charge",
-                  false), FEATURE_DATAPOINTS("Feature # data points", false), FEATURE_FWHM("Feature FWHM",
+                  false), FEATURE_DATAPOINTS("Feature # features points", false), FEATURE_FWHM("Feature FWHM",
                       false), FEATURE_TAILINGFACTOR("Feature tailing factor",
                           false), FEATURE_ASYMMETRYFACTOR("Feature asymmetry factor", false), FEATURE_MZMIN(
                               "Feature m/z min", false), FEATURE_MZMAX("Feature m/z max", false);

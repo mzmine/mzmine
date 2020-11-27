@@ -62,7 +62,7 @@ public class ClipboardWriter {
 
       for (int r = 0; r < max; r++) {
         for (int c = 0; c < model.length; c++) {
-          // add data or empty cell
+          // add features or empty cell
           if (r < model[c].length) {
             s.append(model[c][r]);
           }
@@ -102,7 +102,7 @@ public class ClipboardWriter {
   }
 
   /**
-   * write data array to one column
+   * write features array to one column
    * 
    * @param data
    */
@@ -117,7 +117,7 @@ public class ClipboardWriter {
   }
 
   /**
-   * write data array to one column
+   * write features array to one column
    * 
    * @param data
    */

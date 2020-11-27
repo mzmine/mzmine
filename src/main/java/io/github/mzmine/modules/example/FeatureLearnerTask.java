@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.example;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
@@ -110,14 +110,14 @@ class FeatureLearnerTask extends AbstractTask {
      * ---- contains one or multiple RawDataFiles <br>
      * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
      * - A RawDataFile holds a full chromatographic run with all ms scans<br>
-     * ---- Each Scan and the underlying raw data can be accessed <br>
+     * ---- Each Scan and the underlying raw features can be accessed <br>
      * ---- Scans can be filtered by MS level, polarity, ...<br>
      */
-    // is the data provided by feature list enough for this task or
-    // do you want to work on one raw data file or on all files?
+    // is the features provided by feature list enough for this task or
+    // do you want to work on one raw features file or on all files?
     RawDataFile dataFile = featureList.getRawDataFile(0);
 
-    // get all features of a raw data file
+    // get all features of a raw features file
     // Sort features by ascending mz
     Feature[] sortedFeatures = featureList.getFeatures(dataFile).toArray(Feature[]::new);
     Arrays.sort(sortedFeatures, new FeatureSorter(SortingProperty.MZ, SortingDirection.Ascending));

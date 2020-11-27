@@ -59,10 +59,10 @@ public class GnpsMgfParser extends SpectralDBParser {
     logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
 
     // BEGIN IONS
-    // meta data
+    // meta features
     // SCANS=1 .... n (the scan ID; could be used to put all spectra of the
     // same entry together)
-    // data
+    // features
     // END IONS
 
     int correct = 0;
@@ -79,7 +79,7 @@ public class GnpsMgfParser extends SpectralDBParser {
         }
         try {
           if (l.length() > 1) {
-            // meta data start?
+            // meta features start?
             if (state.equals(State.WAIT_FOR_META)) {
               if (l.equalsIgnoreCase("BEGIN IONS")) {
                 fields = new EnumMap<>(fields);
@@ -101,7 +101,7 @@ public class GnpsMgfParser extends SpectralDBParser {
                 // belongs to the previously created entry and
                 // is another spectrum
 
-                // data starts
+                // features starts
                 state = State.DATA;
               } else {
                 switch (state) {

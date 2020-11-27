@@ -67,7 +67,7 @@ import javax.annotation.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 
 /**
- * This visualizer can be used to visualize chromatograms and spectra of multiple raw data files at
+ * This visualizer can be used to visualize chromatograms and spectra of multiple raw features files at
  * the same time. The selection within the two plots ({@link ChromatogramAndSpectraVisualizer#spectrumPosition}
  * and {@link ChromatogramAndSpectraVisualizer#chromPosition}) are bound to the plots. If the
  * selection changes, the plots will change accordingly. A click in the chromatogram will update the
@@ -131,7 +131,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final ObjectProperty<Range<Double>> mzRange;
 
   /**
-   * Stores the raw data files ands tic data sets currently displayed. Could be observed by a
+   * Stores the raw features files ands tic features sets currently displayed. Could be observed by a
    * listener in the future, if needed.
    */
   protected ObservableMap<RawDataFile, TICDataSet> filesAndDataSets;
@@ -243,7 +243,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
       updateAllChromatogramDataSets();
     }));
 
-    // update feature data sets if the tolerance for the extraction changes
+    // update feature features sets if the tolerance for the extraction changes
     chromMzToleranceProperty().addListener((obs, old, val) -> {
       if (getChromPosition() != null) {
         updateFeatureDataSets(
@@ -298,7 +298,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * @return The raw data files currently visualised.
+   * @return The raw features files currently visualised.
    */
   @Nonnull
   public Collection<RawDataFile> getRawDataFiles() {
@@ -306,7 +306,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Sets the raw data files to be displayed. Already present files are not removed to optimise
+   * Sets the raw features files to be displayed. Already present files are not removed to optimise
    * performance. This should be called over {@link RawDataOverviewWindowController#addRawDataFileTab}
    * if possible.
    *
@@ -327,14 +327,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Adds a raw data file to the chromatogram plot.
+   * Adds a raw features file to the chromatogram plot.
    *
    * @param rawDataFile
    */
   public void addRawDataFile(@Nonnull final RawDataFile rawDataFile) {
 
     if (filesAndDataSets.keySet().contains(rawDataFile)) {
-      logger.fine("Raw data file " + rawDataFile.getName() + " already displayed.");
+      logger.fine("Raw features file " + rawDataFile.getName() + " already displayed.");
       return;
     }
 
@@ -353,16 +353,16 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     filesAndDataSets.put(rawDataFile, ticDataset);
     chromPlot.addTICDataSet(ticDataset, rawDataFile.getColorAWT());
 
-    logger.finest("Added raw data file " + rawDataFile.getName());
+    logger.finest("Added raw features file " + rawDataFile.getName());
   }
 
   /**
-   * Removes a raw data file and it's features from the chromatogram and spectrum plot.
+   * Removes a raw features file and it's features from the chromatogram and spectrum plot.
    *
-   * @param file The raw data file
+   * @param file The raw features file
    */
   public void removeRawDataFile(@Nonnull final RawDataFile file) {
-    logger.fine("Removing raw data file " + file.getName());
+    logger.fine("Removing raw features file " + file.getName());
     TICDataSet dataset = filesAndDataSets.get(file);
     chromPlot.getXYPlot().setDataset(chromPlot.getXYPlot().indexOf(dataset), null);
     chromPlot.removeFeatureDataSetsOfFile(file);
@@ -381,7 +381,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     RawDataFile file = pos.getDataFile();
 
     updateChromatogramDomainMarker(pos);
-    // update feature data sets
+    // update feature features sets
     updateFeatureDataSets(file.getScan(pos.getScanNumber()).getHighestDataPoint().getMZ());
     // update spectrum plots
     updateSpectraPlot(filesAndDataSets.keySet(), pos);
@@ -459,7 +459,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * Forces a single scan in the spectrum plot without notifying the listener of the {@link
    * ChromatogramAndSpectraVisualizer#chromPosition}.
    *
-   * @param rawDataFile The raw data file
+   * @param rawDataFile The raw features file
    * @param scanNum     The number of the scan
    */
   private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, int scanNum) {
@@ -506,7 +506,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param mz
    */
   private void updateFeatureDataSets(double mz) {
-    // mz of the base peak in the selected scan of the selected raw data file.
+    // mz of the base peak in the selected scan of the selected raw features file.
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
@@ -529,10 +529,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Updates the {@link ChromatogramAndSpectraVisualizer#spectrumPlot} with the scan data sets of
+   * Updates the {@link ChromatogramAndSpectraVisualizer#spectrumPlot} with the scan features sets of
    * the currently selected retention time in the {@link ChromatogramAndSpectraVisualizer#chromPlot}.
    *
-   * @param rawDataFiles The raw data files in the chromatogram plot.
+   * @param rawDataFiles The raw features files in the chromatogram plot.
    * @param pos          the currently selected {@link ChromatogramCursorPosition}.
    */
   private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
@@ -558,7 +558,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   // ----- Property getters and setters -----
 
   /**
-   * Changes the plot type. Also recalculates the all data sets if changed from BPC to TIC.
+   * Changes the plot type. Also recalculates the all features sets if changed from BPC to TIC.
    *
    * @param plotType The new plot type.
    */
@@ -603,9 +603,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * To listen to changes in the selected raw data file, use {@link ChromatogramAndSpectraVisualizer#chromPositionProperty#addListener}.
+   * To listen to changes in the selected raw features file, use {@link ChromatogramAndSpectraVisualizer#chromPositionProperty#addListener}.
    *
-   * @return Returns the currently selected raw data file. Could be null.
+   * @return Returns the currently selected raw features file. Could be null.
    */
   @Nullable
   public RawDataFile getSelectedRawDataFile() {
@@ -628,7 +628,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   }
 
   /**
-   * Sets the scan selection. Also updates all data sets in the chromatogram plot accordingly.
+   * Sets the scan selection. Also updates all features sets in the chromatogram plot accordingly.
    *
    * @param selection The new scan selection.
    */

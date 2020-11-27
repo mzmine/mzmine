@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;
@@ -53,7 +53,7 @@ public class ManualFeature {
   private Range<Double> mzRange;
   private Range<Float> intensityRange, rtRange;
 
-  // Map of scan number and data point
+  // Map of scan number and features point
   private TreeMap<Integer, DataPoint> dataPointMap;
 
   // Number of most intense fragment scan
@@ -68,7 +68,7 @@ public class ManualFeature {
   private int charge = 0;
 
   /**
-   * Initializes empty feature for adding data points
+   * Initializes empty feature for adding features points
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
@@ -164,7 +164,7 @@ public class ManualFeature {
   }
 
   /**
-   * Adds a new data point to this feature
+   * Adds a new features point to this feature
    *
    * @param scanNumber
    * @param dataPoint
@@ -189,7 +189,7 @@ public class ManualFeature {
 
   public void finalizeFeature() {
 
-    // Trim the zero-intensity data points from the beginning and end
+    // Trim the zero-intensity features points from the beginning and end
     while (!dataPointMap.isEmpty()) {
       int scanNumber = dataPointMap.firstKey();
       if (dataPointMap.get(scanNumber).getIntensity() > 0)
@@ -203,15 +203,15 @@ public class ManualFeature {
       dataPointMap.remove(scanNumber);
     }
 
-    // Check if we have any data points
+    // Check if we have any features points
     if (dataPointMap.isEmpty()) {
-      throw (new IllegalStateException("Feature can not be finalized without any data points"));
+      throw (new IllegalStateException("Feature can not be finalized without any features points"));
     }
 
     // Get all scan numbers
     int allScanNumbers[] = Ints.toArray(dataPointMap.keySet());
 
-    // Find the data point with top intensity and use its RT and height
+    // Find the features point with top intensity and use its RT and height
     for (int i = 0; i < allScanNumbers.length; i++) {
       DataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
       float rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();

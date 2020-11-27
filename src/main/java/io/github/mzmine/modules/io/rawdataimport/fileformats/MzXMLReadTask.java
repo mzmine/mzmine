@@ -345,7 +345,7 @@ public class MzXMLReadTask extends AbstractTask {
           }
         }
 
-        // make a data input stream
+        // make a features input stream
         DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
 
         DataPoint dataPoints[] = new DataPoint[peaksCount];
@@ -364,7 +364,7 @@ public class MzXMLReadTask extends AbstractTask {
               intensity = (double) peakStream.readFloat();
             }
 
-            // Copy m/z and intensity data
+            // Copy m/z and intensity features
             dataPoints[i] = new SimpleDataPoint(massOverCharge, intensity);
 
           }
@@ -380,7 +380,7 @@ public class MzXMLReadTask extends AbstractTask {
         // Set the centroided tag
         buildingScan.setSpectrumType(spectrumType);
 
-        // Set the final data points to the scan
+        // Set the final features points to the scan
         buildingScan.setDataPoints(dataPoints);
 
         return;

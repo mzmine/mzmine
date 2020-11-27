@@ -56,9 +56,9 @@ public class IsotopePatternUtils {
   private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();;
 
   /**
-   * Finds data points with the best m/z differences (lowest) to a predicted isotope peak.
+   * Finds features points with the best m/z differences (lowest) to a predicted isotope peak.
    * 
-   * @param dp The base data point.
+   * @param dp The base features point.
    * @param originalDataPoints Array of all peaks in consideration
    * @param i_dp the start index inside originalDataPoints to search for.
    * @param mzTolerance m/z Tolerance range.
@@ -76,12 +76,12 @@ public class IsotopePatternUtils {
 
       DataPoint p = originalDataPoints[j_p];
 
-      // if the data point p is below the mz tolerance range, we go for
+      // if the features point p is below the mz tolerance range, we go for
       // the next one.
       if (p.getMZ() < mzTolerance.getToleranceRange(dp.getMZ() + isoMzDiff).lowerEndpoint())
         continue;
 
-      // if the m/z of this data point (p) is bigger than the m/z of (dp +
+      // if the m/z of this features point (p) is bigger than the m/z of (dp +
       // pattern width +
       // merge) then we don't need to check anymore
       if (p.getMZ() > mzTolerance.getToleranceRange(dp.getMZ() + isoMzDiff).upperEndpoint())
@@ -104,11 +104,11 @@ public class IsotopePatternUtils {
   }
 
   /**
-   * Searches for an isotopic peaks (pattern) of the data point dp within an array of data points by
+   * Searches for an isotopic peaks (pattern) of the features point dp within an array of features points by
    * the elements m/z differences.
    * 
    * @param dp the base peak with lowest m/z.
-   * @param originalDataPoints All the data points in consideration for isotope peaks.
+   * @param originalDataPoints All the features points in consideration for isotope peaks.
    * @param mzTolerance the m/z tolerance.
    * @param pattern The isotope pattern of an element to search for.
    * @param mzrange the range of m/z to search for isotope peaks.
@@ -158,7 +158,7 @@ public class IsotopePatternUtils {
           return dp;
 
       // ok every peak has been found, now assign the pattern and link the
-      // data points
+      // features points
       // this adds the isotope to the assigned peak, so we can keep track
       // of the elemental
       // composition later on
@@ -240,7 +240,7 @@ public class IsotopePatternUtils {
    * charge).
    * 
    * @param dp A ProcessedDataPoint
-   * @param keepResults if false, all DPPIsotopicPeakResults will be removed from this data point.
+   * @param keepResults if false, all DPPIsotopicPeakResults will be removed from this features point.
    */
   public static void convertIsotopicPeakResultsToPattern(ProcessedDataPoint dp,
       boolean keepResults) {
@@ -505,7 +505,7 @@ public class IsotopePatternUtils {
 
   /**
    * 
-   * @param dp a processed data point.
+   * @param dp a processed features point.
    * @return an empty list if no isotope pattern was detected, a list of the charge states if there
    *         was at least one charge detected.
    */

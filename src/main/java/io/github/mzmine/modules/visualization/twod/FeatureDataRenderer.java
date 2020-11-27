@@ -34,7 +34,7 @@ class FeatureDataRenderer extends XYLineAndShapeRenderer {
 
   private static final Color peakColor = Color.green;
 
-  // data points shape
+  // features points shape
   private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5, 5);
 
   FeatureDataRenderer() {

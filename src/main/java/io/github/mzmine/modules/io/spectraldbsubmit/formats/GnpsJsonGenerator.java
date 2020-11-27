@@ -83,10 +83,10 @@ public class GnpsJsonGenerator {
         json.add(DBEntryField.RT.getGnpsJsonID(), rt);
     }
 
-    // add data points array
+    // add features points array
     json.add("peaks", genJSONData(dps));
 
-    // add meta data
+    // add meta features
     for (Parameter<?> p : meta.getParameters()) {
       if (!p.getName().equals(LibraryMetaDataParameters.EXPORT_RT.getName())) {
         String key = p.getName();
@@ -117,7 +117,7 @@ public class GnpsJsonGenerator {
   }
 
   /**
-   * JSON of data points array
+   * JSON of features points array
    * 
    * @param dps
    * @return

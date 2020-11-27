@@ -86,11 +86,11 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       dataPointsVisible = false;
 
   // We use our own counter, because plot.getDatasetCount() just keeps
-  // increasing even when we remove old data sets
+  // increasing even when we remove old features sets
   private int numOfDataSets = 0;
 
   /**
-   * If true, the labels of the data set will have the same color as the data set itself
+   * If true, the labels of the features set will have the same color as the features set itself
    */
   protected BooleanProperty matchLabelColors;
   protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
@@ -110,7 +110,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     super(ChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
-        null, // data set
+        null, // features set
         PlotOrientation.VERTICAL, // orientation
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?
@@ -191,7 +191,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
      *
      * FxMenuUtil.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
      * "TOGGLE_PLOT_MODE"); FxMenuUtil.addMenuItem(popupMenu,
-     * "Toggle displaying of data points in continuous mode", masterPlot, "SHOW_DATA_POINTS");
+     * "Toggle displaying of features points in continuous mode", masterPlot, "SHOW_DATA_POINTS");
      * FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
      * "SHOW_ANNOTATIONS"); FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
      * masterPlot, "SHOW_PICKED_PEAKS");
@@ -242,8 +242,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    */
 
   /**
-   * This will set either centroid or continuous renderer to the first data set, assuming that
-   * dataset with index 0 contains the raw data.
+   * This will set either centroid or continuous renderer to the first features set, assuming that
+   * dataset with index 0 contains the raw features.
    */
   public void setPlotMode(SpectrumPlotType plotMode) {
     this.plotMode.setValue(plotMode);
@@ -361,7 +361,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized void removeAllDataSets() {
 
-    // if the data sets are removed, we have to cancel the tasks.
+    // if the features sets are removed, we have to cancel the tasks.
     if (controller != null) {
       controller.cancelTasks();
     }
@@ -469,7 +469,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // if a controller is re-run then delete previous results
     removeDataPointProcessingResultDataSets();
 
-    // if enabled, do the data point processing as set up by the user
+    // if enabled, do the features point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
     if (dataSet instanceof ScanDataSet) {
       Scan scan = ((ScanDataSet) dataSet).getScan();

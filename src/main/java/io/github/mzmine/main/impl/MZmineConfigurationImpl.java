@@ -199,7 +199,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         Element preferencesElement = (Element) nodes.item(0);
         // loading encryption key
         // this has to be read first because following parameters may
-        // already contain encrypted data
+        // already contain encrypted features
         // that needs this key for encryption
         if (file.equals(MZmineConfiguration.CONFIG_FILE))
           new SimpleParameterSet(new Parameter[] {globalEncrypter})

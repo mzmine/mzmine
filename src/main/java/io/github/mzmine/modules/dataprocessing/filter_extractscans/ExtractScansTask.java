@@ -211,7 +211,7 @@ class ExtractScansTask extends AbstractTask {
           out.append("retention time" + delimiter + s.getRetentionTime() + "\n\n");
           out.append("mz" + delimiter + "intensity\n");
         }
-        // write data
+        // write features
         if (useMassList) {
           MassList mass = s.getMassList(massList);
           DataPoint[] dp = mass.getDataPoints();

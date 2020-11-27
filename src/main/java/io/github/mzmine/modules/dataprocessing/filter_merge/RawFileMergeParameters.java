@@ -61,7 +61,7 @@ public class RawFileMergeParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<StringParameter> MS2_marker =
       new OptionalParameter<>(new StringParameter("MS2 marker",
-          "Raw data files that contain this marker in their name will only be used as a source for MS2 scans.",
+          "Raw features files that contain this marker in their name will only be used as a source for MS2 scans.",
           ""));
 
   public static final StringParameter suffix =

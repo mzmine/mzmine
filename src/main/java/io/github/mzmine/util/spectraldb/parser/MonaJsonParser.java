@@ -129,7 +129,7 @@ public class MonaJsonParser extends SpectralDBParser {
           i = 0;
         }
 
-        // to many errors? wrong data format?
+        // to many errors? wrong features format?
         if (parser.size() > 0 && parser.get(0).getError() >= 4) {
           logger.log(Level.WARNING, "This file was no MONA spectral json library");
           parser.stream().forEach(InnerParser::stop);

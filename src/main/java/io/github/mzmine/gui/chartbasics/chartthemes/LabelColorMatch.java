@@ -25,8 +25,8 @@ package io.github.mzmine.gui.chartbasics.chartthemes;
 public interface LabelColorMatch {
 
   /**
-   * If enabled the color of the labels in a plot will be matched to the color of the data set.
-   * Useful in plots with several data sets.
+   * If enabled the color of the labels in a plot will be matched to the color of the features set.
+   * Useful in plots with several features sets.
    *
    * @param matchColor true or false
    */

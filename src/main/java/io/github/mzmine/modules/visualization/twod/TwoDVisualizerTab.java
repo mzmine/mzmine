@@ -18,8 +18,7 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public class TwoDVisualizerTab extends MZmineTab {
 
     Button toggleContinuousModeButton = new Button(null, new ImageView(dataPointsIcon));
     toggleContinuousModeButton
-        .setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+        .setTooltip(new Tooltip("Toggle displaying of features points in continuous mode"));
     toggleContinuousModeButton.setOnAction(e -> {
       twoDPlot.switchDataPointsVisible();
     });
@@ -236,7 +235,7 @@ public class TwoDVisualizerTab extends MZmineTab {
       return;
     }
 
-    // get first raw data file
+    // get first raw features file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;

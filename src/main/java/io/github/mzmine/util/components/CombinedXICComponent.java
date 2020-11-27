@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -60,7 +60,7 @@ public class CombinedXICComponent extends Canvas {
     double maxIntensity = 0;
     this.peaks = peaks;
 
-    // find data boundaries
+    // find features boundaries
     for (Feature peak : peaks) {
       if (peak == null)
         continue;
@@ -102,11 +102,11 @@ public class CombinedXICComponent extends Canvas {
       g2.setColor(plotColors[colorIndex]);
       colorIndex = (colorIndex + 1) % plotColors.length;
 
-      // if we have no data, just return
+      // if we have no features, just return
       if ((peak == null) || (peak.getScanNumbers().size() == 0))
         continue;
 
-      // get scan numbers, one data point per each scan
+      // get scan numbers, one features point per each scan
       Integer scanNumbers[] = peak.getScanNumbers().toArray(new Integer[0]);
 
       // for each datapoint, find [X:Y] coordinates of its point in

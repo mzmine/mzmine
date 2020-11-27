@@ -27,7 +27,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 
 /**
- * @author akshaj Abstract class to represent a data that can be plotted in the visualizer.
+ * @author akshaj Abstract class to represent a features that can be plotted in the visualizer.
  */
 abstract class Fx3DAbstractDataset {
 

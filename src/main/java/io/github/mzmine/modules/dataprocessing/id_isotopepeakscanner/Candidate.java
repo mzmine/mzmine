@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -66,8 +66,8 @@ public class Candidate {
    * 
    * @param parent row of parent peak
    * @param candidate row pf candidate peak
-   * @param pParent data point of predicted parent mass and intensity
-   * @param pChild data point of predicted child mass and intensity
+   * @param pParent features point of predicted parent mass and intensity
+   * @param pChild features point of predicted child mass and intensity
    * @return
    */
   public double calcIntensityAccuracy_Pattern(FeatureListRow parent, FeatureListRow candidate,

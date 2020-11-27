@@ -60,7 +60,7 @@ public class MSMSScoreCalculator {
 
     if (msmsIons == null) {
       throw new IllegalArgumentException(
-          "Mass list " + massList + " does not contain data for scan #" + msmsScan.getScanNumber());
+          "Mass list " + massList + " does not contain features for scan #" + msmsScan.getScanNumber());
     }
 
     MolecularFormulaRange msmsElementRange = new MolecularFormulaRange();

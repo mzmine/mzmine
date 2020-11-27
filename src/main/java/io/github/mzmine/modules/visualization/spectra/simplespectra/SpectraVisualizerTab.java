@@ -18,11 +18,10 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
-import java.awt.Paint;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import javafx.scene.control.Tab;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
@@ -130,7 +128,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private File lastExportDirectory;
 
-  // Current scan data set
+  // Current scan features set
   private ScanDataSet spectrumDataSet;
   private MassListDataSet massListDataSet;
 
@@ -168,7 +166,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     centroidContinuousButton.setTooltip(new Tooltip("Toggle centroid/continuous mode"));
 
     dataPointsButton = new Button(null, new ImageView(dataPointsIcon));
-    dataPointsButton.setTooltip(new Tooltip("Toggle displaying of data points in continuous mode"));
+    dataPointsButton.setTooltip(new Tooltip("Toggle displaying of features points in continuous mode"));
     dataPointsButton.setOnAction(e -> spectrumPlot.switchDataPointsVisible());
 
     centroidContinuousButton.setOnAction(e -> {
@@ -383,7 +381,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       //setTitle(windowTitle);
       spectrumPlot.setTitle(finalSpectrumTitle, finalSpectrumSubtitle);
 
-      // Set plot data set
+      // Set plot features set
       spectrumPlot.removeAllDataSets();
       spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
       spectrumPlot.addDataSet(massListDataSet, massListColor, false);
@@ -406,7 +404,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     PeakListDataSet peaksDataSet =
         new PeakListDataSet(dataFile, currentScan.getScanNumber(), selectedPeakList);
 
-    // Set plot data sets
+    // Set plot features sets
     spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
 
   }
@@ -415,7 +413,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan.getScanNumber(), peak);
 
-    // Set plot data sets
+    // Set plot features sets
     spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true);
 
   }
@@ -428,7 +426,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
     double normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
 
-    // If normalization factor is 0, it means there were no data points
+    // If normalization factor is 0, it means there were no features points
     // in given m/z range. In such case we use the max intensity of
     // whole scan as normalization factor.
     if (normalizationFactor == 0) {
@@ -570,7 +568,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     bottomPanel.updateProcessingButton();
     getSpectrumPlot().checkAndRunController();
 
-    // if the tick is removed, set the data back to default
+    // if the tick is removed, set the features back to default
     if (!inst.isEnabled()) {
       getSpectrumPlot().removeDataPointProcessingResultDataSets();
       // loadRawData(currentScan);
@@ -634,7 +632,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       return;
     }
 
-    // get first raw data file
+    // get first raw features file
     RawDataFile newFile = rawDataFiles.iterator().next();
     if (dataFile.equals(newFile)) {
       return;
@@ -644,7 +642,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     Scan newScan = newFile.getScan(scanNumber);
     if(newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
-          "Raw data file " + dataFile + " does not contain scan #" + scanNumber);
+          "Raw features file " + dataFile + " does not contain scan #" + scanNumber);
       return;
     }
 

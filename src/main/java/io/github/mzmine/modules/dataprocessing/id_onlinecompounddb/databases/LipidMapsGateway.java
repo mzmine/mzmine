@@ -83,7 +83,7 @@ public class LipidMapsGateway implements DBGateway {
 
     final URL entryURL = new URL(lipidMapsEntryAddress + ID);
 
-    logger.finest("Loading data from LipidMaps via URL " + entryURL.toString());
+    logger.finest("Loading features from LipidMaps via URL " + entryURL.toString());
     String lipidMapsEntry = InetUtils.retrieveData(entryURL);
 
     String fields[] = lipidMapsEntry.split("\t");

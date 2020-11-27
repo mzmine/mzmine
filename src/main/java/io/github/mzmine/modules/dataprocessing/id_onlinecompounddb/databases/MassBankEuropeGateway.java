@@ -69,7 +69,7 @@ public class MassBankEuropeGateway implements DBGateway {
 
     Vector<String> results = new Vector<String>();
 
-    // Find IDs in the HTML data
+    // Find IDs in the HTML features
     Pattern pat = Pattern.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z0-9]{8})&nbsp;");
     Matcher matcher = pat.matcher(queryResult);
     while (matcher.find()) {
@@ -91,7 +91,7 @@ public class MassBankEuropeGateway implements DBGateway {
 
     URL entryURL = new URL(massBankEntryAddress + ID);
 
-    // Retrieve data
+    // Retrieve features
     logger.finest("Querying MassBank.eu URL " + entryURL);
     String massBankEntry = InetUtils.retrieveData(entryURL);
 

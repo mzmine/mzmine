@@ -139,7 +139,7 @@ public class MzMLReadTask extends AbstractTask {
         if (scanNumber == null)
           throw new IllegalStateException("Cannot determine scan number: " + scanId);
 
-        // Extract scan data
+        // Extract scan features
         int msLevel = extractMSLevel(spectrum);
         float retentionTime = (float) extractRetentionTime(spectrum);
         PolarityType polarity = extractPolarity(spectrum);

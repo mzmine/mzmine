@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MZmineProject;

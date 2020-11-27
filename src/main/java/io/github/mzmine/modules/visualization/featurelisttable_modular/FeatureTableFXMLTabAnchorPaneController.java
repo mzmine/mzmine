@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -203,7 +203,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
       return;
     }
     xicPlot.removeAllDataSets();
-    // TODO: for now we take the first raw data file, we should take the one from the
+    // TODO: for now we take the first raw features file, we should take the one from the
     //  selected column, though.
 
     TICDataSet dataSet = new TICDataSet(selectedRow.getFeatures().get(0));
@@ -220,7 +220,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
       return;
     }
     spectrumPlot.removeAllDataSets();
-    // TODO: for now we take the first raw data file, we should take the one from the
+    // TODO: for now we take the first raw features file, we should take the one from the
     //  selected column, though.
 
     ScanDataSet scanDataSet = new ScanDataSet(selectedRow.getFeatures().get(0).getRepresentativeScan());

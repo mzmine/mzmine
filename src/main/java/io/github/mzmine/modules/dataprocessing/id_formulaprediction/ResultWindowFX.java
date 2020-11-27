@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

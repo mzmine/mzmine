@@ -30,8 +30,8 @@ import javax.annotation.Nonnull;
 
 public class CombinedModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "MS/MS data visualizer";
-  private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS data of 3 modules (neutralloss,productionfilter & msms)";
+  private static final String MODULE_NAME = "MS/MS features visualizer";
+  private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS features of 3 modules (neutralloss,productionfilter & msms)";
 
 
   @Override

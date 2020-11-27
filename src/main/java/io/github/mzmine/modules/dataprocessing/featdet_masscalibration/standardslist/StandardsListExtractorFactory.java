@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Static factory for StandardsListExtractor implementations picked by filename
- * with thread-safe caching of extractor objects and also their underlying extracted list data
+ * with thread-safe caching of extractor objects and also their underlying extracted list features
  */
 public class StandardsListExtractorFactory {
 
@@ -62,7 +62,7 @@ public class StandardsListExtractorFactory {
       StandardsListExtractor extractor = createExtractor(filename);
 
       // use synchronization to extract the standards list
-      // extractor caches the list, so subsequent method calls should just read from cached list data
+      // extractor caches the list, so subsequent method calls should just read from cached list features
       extractor.extractStandardsList();
       cache.put(filename, extractor);
       return extractor;

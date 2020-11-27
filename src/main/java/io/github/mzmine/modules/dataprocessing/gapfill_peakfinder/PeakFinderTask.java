@@ -19,12 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -36,7 +36,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -112,12 +111,12 @@ class PeakFinderTask extends AbstractTask {
       masterSample = (int) Math.floor(Math.random() * peakList.getNumberOfRawDataFiles());
       fillList(MASTERLIST);
 
-      // Process all raw data files
+      // Process all raw features files
       fillList(!MASTERLIST);
 
     } else {
 
-      // Process all raw data files
+      // Process all raw features files
       IntStream rawStream = IntStream.range(0, peakList.getNumberOfRawDataFiles());
       if (useParallelStream)
         rawStream = rawStream.parallel();
@@ -132,7 +131,7 @@ class PeakFinderTask extends AbstractTask {
 
         List<Gap> gaps = new ArrayList<Gap>();
 
-        // Fill each row of this raw data file column, create new empty
+        // Fill each row of this raw features file column, create new empty
         // gaps
         // if necessary
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
@@ -169,7 +168,7 @@ class PeakFinderTask extends AbstractTask {
           return;
         }
 
-        // Get all scans of this data file
+        // Get all scans of this features file
         int scanNumbers[] = dataFile.getScanNumbers(1);
 
         // Process each scan
@@ -253,7 +252,7 @@ class PeakFinderTask extends AbstractTask {
 
         Vector<Gap> gaps = new Vector<Gap>();
 
-        // Fill each row of this raw data file column, create new empty
+        // Fill each row of this raw features file column, create new empty
         // gaps
         // if necessary
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
@@ -305,7 +304,7 @@ class PeakFinderTask extends AbstractTask {
           continue;
         }
 
-        // Get all scans of this data file
+        // Get all scans of this features file
         int scanNumbers[] = datafile1.getScanNumbers(1);
 
         // Process each scan
