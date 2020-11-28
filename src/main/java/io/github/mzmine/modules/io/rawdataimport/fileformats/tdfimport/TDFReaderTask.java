@@ -210,11 +210,11 @@ public class TDFReaderTask extends AbstractTask {
 
       setDescription("Reading metadata for " + tdf.getName());
       metaDataTable.executeQuery(connection);
-      metaDataTable.print();
+//      metaDataTable.print();
 
       setDescription("Reading frame data for " + tdf.getName());
       frameTable.executeQuery(connection);
-      frameTable.print();
+//      frameTable.print();
 
       isMaldi = frameTable.getScanModeColumn()
           .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));

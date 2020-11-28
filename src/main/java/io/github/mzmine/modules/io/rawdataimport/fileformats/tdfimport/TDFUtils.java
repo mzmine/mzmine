@@ -185,8 +185,9 @@ public class TDFUtils {
       // check if the buffer size was enough
       if (printLastError(lastError)) {
         BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-        logger.info(
-            "Could not read scans " + start + "-" + end + " for frame "
+        final long finalStart = start;
+        logger.fine(() ->
+            "Could not read scans " + finalStart + "-" + end + " for frame "
                 + frameId + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
         buffer = new byte[BUFFER_SIZE];
         continue; // try again
@@ -534,7 +535,7 @@ public class TDFUtils {
       long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
       try {
         final String errorMessage = new String(errorBuffer, "UTF-8");
-        logger.warning(() -> "Last TDF import error: " + errorMessage + " length: " + len
+        logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
