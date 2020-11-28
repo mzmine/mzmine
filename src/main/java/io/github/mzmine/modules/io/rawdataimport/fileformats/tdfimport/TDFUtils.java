@@ -53,7 +53,10 @@ import javax.annotation.Nullable;
 
 public class TDFUtils {
 
+  public static final int SCAN_PACKAGE_SIZE = 50;
+  public static final int BUFFER_SIZE_INCREMENT = 100000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+  public static int BUFFER_SIZE = 300000; // start with 250 kb of buffer size
   private static TDFLibrary tdfLib = null;
 
   /**
@@ -117,9 +120,17 @@ public class TDFUtils {
       return 0L;
     }
     if (path.isFile()) {
-      return tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      final long handle = tdfLib
+          .tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = " + tdfLib
+          .tims_has_recalibrated_state(handle));
+      return handle;
     } else {
-      return tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      final long handle = tdfLib
+          .tims_open(path.getAbsolutePath(), useRecalibratedState);
+      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = " + tdfLib
+          .tims_has_recalibrated_state(handle));
+      return handle;
     }
   }
 
@@ -133,7 +144,6 @@ public class TDFUtils {
    * @return 0 on error, the handle otherwise.
    */
   public static long openFile(final File path) {
-
     return openFile(path, 0);
   }
 
@@ -157,27 +167,35 @@ public class TDFUtils {
 
     final List<DataPoint[]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
-    // load scans in packs of 50 to not cause a buffer overflow
+    // buffer to store our scans. allocation takes time, so we want to reuse it
+    // cannot be final, since we might have to increase the buffer size on the run
+    // we don't just take a huge buffer, because clearing it takes time, too
+    byte[] buffer = new byte[BUFFER_SIZE];
+
+    // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
     long start = scanBegin;
     while (start < scanEnd) {
       // start is inclusive, end is exclusive
-      final long end = Math.min((start + 50), scanEnd);
+      final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
       final int numScans = (int) (end - start);
 
-      final int bufferSize = 5000000; // 5 mb
-      final byte[] buffer = new byte[bufferSize];
       final long lastError = tdfLib
           .tims_read_scans_v2(handle, frameId, start, end, buffer, buffer.length);
-      // we increment here in case we failed to read
-      start = start + 50;
+
+      // check if the buffer size was enough
+      if (printLastError(lastError)) {
+        BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
+        logger.info(
+            "Could not read scans " + start + "-" + end + " for frame "
+                + frameId + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        buffer = new byte[BUFFER_SIZE];
+        continue; // try again
+      }
+
+      start = start + SCAN_PACKAGE_SIZE;
 
       final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
           .asIntBuffer();
-
-      if (!printLastError(lastError)) {
-        logger.warning("Cannot read scans " + start + "-" + end + " for frame " + frameId);
-        continue;
-      }
       final int[] scanBuffer = new int[intBuffer.remaining()];
       intBuffer.get(scanBuffer);
       // check out the layout of scanBuffer:
@@ -198,6 +216,7 @@ public class TDFUtils {
         }
         dataPoints.add(dps);
       }
+      Arrays.fill(buffer, (byte) 0);
     }
     return dataPoints;
   }
@@ -505,18 +524,23 @@ public class TDFUtils {
 //                                    UTILITY FUNCTIONS
 // -----------------------------------------------------------------------------------------------
 
+  /**
+   * @param errorCode return value of tims library methods
+   * @return true if an error occurred
+   */
   private static boolean printLastError(long errorCode) {
-    if (errorCode != 0) {
-      return true;
-    } else {
+    if (errorCode == 0 || errorCode > BUFFER_SIZE) {
       byte[] errorBuffer = new byte[64];
       long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
       try {
         final String errorMessage = new String(errorBuffer, "UTF-8");
-        logger.warning(() -> "Last TDF import error: " + errorMessage + " length: " + len);
+        logger.warning(() -> "Last TDF import error: " + errorMessage + " length: " + len
+            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
       }
+      return true;
+    } else {
       return false;
     }
   }

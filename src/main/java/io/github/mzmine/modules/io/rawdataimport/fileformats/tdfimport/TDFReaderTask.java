@@ -41,20 +41,18 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 public class TDFReaderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFReaderTask.class.getName());
-
-  private String description;
-
   private final File tdf;
   private final File tdfBin;
   private final String rawDataFileName;
-
   private final TDFMetaDataTable metaDataTable;
   private final TDFFrameTable frameTable;
   private final TDFPrecursorTable precursorTable;
@@ -63,7 +61,7 @@ public class TDFReaderTask extends AbstractTask {
   private final FramePrecursorTable framePrecursorTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private final RawDataFileWriter newMZmineFile;
-
+  private String description;
   private double finishedPercentage;
   private boolean isMaldi;
 
@@ -91,7 +89,7 @@ public class TDFReaderTask extends AbstractTask {
    */
   public TDFReaderTask(MZmineProject project, File file, RawDataFileWriter newMZmineFile) {
     File[] files = new File[2];
-    if(file.isDirectory()) {
+    if (file.isDirectory()) {
       files = getDataFilesFromDir(file);
     } else {
       files = getDataFilesFromDir(file.getParentFile());
@@ -117,12 +115,12 @@ public class TDFReaderTask extends AbstractTask {
 
     rawDataFileName = tdfBin.getParentFile().getName();
 
-    if(!(newMZmineFile instanceof IMSRawDataFileImpl)) {
+    if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
       throw new IllegalArgumentException("Raw data file was not recognised as IMSRawDataFile.");
     }
 
     this.newMZmineFile = newMZmineFile;
-    ((IMSRawDataFile)newMZmineFile).setName(rawDataFileName);
+    ((IMSRawDataFile) newMZmineFile).setName(rawDataFileName);
 
     setStatus(TaskStatus.WAITING);
   }
@@ -146,6 +144,8 @@ public class TDFReaderTask extends AbstractTask {
     long handle = TDFUtils.openFile(tdfBin);
     int numFrames = frameTable.getNumberOfFrames();
 
+    Date start = new Date();
+
     if (!isMaldi) {
       appendScansFromTimsSegment(newMZmineFile, handle, 1, numFrames, frameTable, metaDataTable,
           pasefFrameMsMsInfoTable, framePrecursorTable);
@@ -159,10 +159,11 @@ public class TDFReaderTask extends AbstractTask {
         frameTable.getFirstScanNumForFrame(lastFrameId) +
             frameTable.getNumScansColumn().get(frameTable.getFrameIdColumn().indexOf(lastFrameId)));
 
+    // collect average spectra for each frame
     int frameId = 1;
     try {
       for (int scanNum = lastScanNum; scanNum < lastScanNum + numFrames; scanNum++) {
-        finishedPercentage = 0.9 + 0.1 * frameId/numFrames;
+        finishedPercentage = 0.9 + 0.1 * frameId / numFrames;
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         Scan frame = TDFUtils
@@ -173,7 +174,6 @@ public class TDFReaderTask extends AbstractTask {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
     TDFUtils.close(handle);
 
     try {
@@ -222,23 +222,23 @@ public class TDFReaderTask extends AbstractTask {
       if (!isMaldi) {
         setDescription("Reading precursor info for " + tdf.getName());
         precursorTable.executeQuery(connection);
-        precursorTable.print();
+//        precursorTable.print();
 
         setDescription("Reading PASEF info for " + tdf.getName());
         pasefFrameMsMsInfoTable.executeQuery(connection);
-        pasefFrameMsMsInfoTable.print();
+//        pasefFrameMsMsInfoTable.print();
 
         setDescription("Reading Frame MS/MS info for " + tdf.getName());
         frameMsMsInfoTable.executeQuery(connection);
-        frameMsMsInfoTable.print();
+//        frameMsMsInfoTable.print();
 
         setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
         framePrecursorTable.executeQuery(connection);
-        framePrecursorTable.print();
+//        framePrecursorTable.print();
       } else {
         setDescription("MALDI info for " + tdf.getName());
         maldiFrameInfoTable.executeQuery(connection);
-        maldiFrameInfoTable.print();
+//        maldiFrameInfoTable.print();
       }
 
       connection.close();
@@ -337,24 +337,24 @@ public class TDFReaderTask extends AbstractTask {
       return false;
     });
 
-    if(files.length != 2) {
+    if (files.length != 2) {
       return null;
     }
 
     File tdf = Arrays.stream(files).filter(c -> {
-      if(c.getAbsolutePath().endsWith(".tdf")) {
+      if (c.getAbsolutePath().endsWith(".tdf")) {
         return true;
       }
       return false;
     }).findAny().get();
     File tdf_bin = Arrays.stream(files).filter(c -> {
-      if(c.getAbsolutePath().endsWith(".tdf_bin")) {
+      if (c.getAbsolutePath().endsWith(".tdf_bin")) {
         return true;
       }
       return false;
     }).findAny().get();
 
-    return new File[] {tdf, tdf_bin};
+    return new File[]{tdf, tdf_bin};
   }
 
 }
