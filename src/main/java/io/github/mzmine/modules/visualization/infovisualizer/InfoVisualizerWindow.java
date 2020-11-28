@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.infovisualizer;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;

@@ -30,7 +30,7 @@ package io.github.mzmine.modules.tools.msmsspectramerge;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.*;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 

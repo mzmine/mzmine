@@ -18,12 +18,11 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicReference;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.UserParameter;

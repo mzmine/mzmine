@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;

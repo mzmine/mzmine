@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.Arrays;
 import java.util.Hashtable;

@@ -17,9 +17,9 @@
  */
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;

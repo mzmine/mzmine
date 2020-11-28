@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 

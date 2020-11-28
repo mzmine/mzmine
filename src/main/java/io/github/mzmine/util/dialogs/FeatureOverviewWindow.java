@@ -18,8 +18,8 @@
 
 package io.github.mzmine.util.dialogs;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import java.util.HashMap;
 import java.util.List;

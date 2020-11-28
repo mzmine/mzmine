@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;

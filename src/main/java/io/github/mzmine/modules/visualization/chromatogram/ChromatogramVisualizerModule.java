@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

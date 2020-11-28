@@ -28,8 +28,8 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

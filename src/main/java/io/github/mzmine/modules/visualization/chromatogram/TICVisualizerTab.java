@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Font;

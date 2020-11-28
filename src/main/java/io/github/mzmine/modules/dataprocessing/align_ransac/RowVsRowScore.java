@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 
 /**
  * This class represents a score between feature list row and aligned feature list row

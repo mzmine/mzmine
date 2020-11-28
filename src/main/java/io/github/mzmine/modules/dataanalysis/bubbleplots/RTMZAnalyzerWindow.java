@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogFX;
 import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;

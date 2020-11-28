@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.io.mztabexport;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

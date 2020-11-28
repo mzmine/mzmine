@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.Comparator;
 
 /**

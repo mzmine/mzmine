@@ -17,8 +17,8 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.Color;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;

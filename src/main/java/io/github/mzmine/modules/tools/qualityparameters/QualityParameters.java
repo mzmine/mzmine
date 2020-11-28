@@ -18,17 +18,16 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import javafx.beans.property.Property;
 
 /**

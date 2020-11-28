@@ -22,7 +22,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;

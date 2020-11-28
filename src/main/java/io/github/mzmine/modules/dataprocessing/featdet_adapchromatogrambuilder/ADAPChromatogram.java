@@ -21,7 +21,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.io.File;
 import java.io.FileNotFoundException;

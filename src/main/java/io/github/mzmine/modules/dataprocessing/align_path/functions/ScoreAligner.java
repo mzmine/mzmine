@@ -17,9 +17,9 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

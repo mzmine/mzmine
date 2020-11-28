@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_path.functions;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 
 public interface Aligner {
 

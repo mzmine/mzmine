@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Color;
 import java.util.Collection;
 import javax.annotation.Nonnull;

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.controlsfx.control.CheckListView;

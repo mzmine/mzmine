@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYDataset;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;

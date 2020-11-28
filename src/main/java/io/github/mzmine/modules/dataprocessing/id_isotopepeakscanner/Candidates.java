@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;

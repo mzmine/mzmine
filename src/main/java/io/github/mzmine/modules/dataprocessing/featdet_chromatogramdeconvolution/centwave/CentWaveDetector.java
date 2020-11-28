@@ -29,7 +29,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

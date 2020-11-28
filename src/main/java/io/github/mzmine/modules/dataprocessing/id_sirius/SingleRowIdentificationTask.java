@@ -27,7 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;

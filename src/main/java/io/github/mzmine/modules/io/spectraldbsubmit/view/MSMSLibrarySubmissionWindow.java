@@ -17,7 +17,7 @@
  */
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import java.util.ArrayList;

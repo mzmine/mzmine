@@ -18,11 +18,10 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.Color;
-import java.awt.Paint;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import javafx.scene.control.Tab;
 import javax.annotation.Nonnull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;

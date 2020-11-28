@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.intensityplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.awt.BasicStroke;
 import java.awt.Color;

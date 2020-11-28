@@ -18,7 +18,7 @@
 
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;

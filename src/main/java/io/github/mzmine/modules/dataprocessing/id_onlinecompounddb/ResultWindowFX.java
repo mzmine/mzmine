@@ -21,12 +21,10 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 

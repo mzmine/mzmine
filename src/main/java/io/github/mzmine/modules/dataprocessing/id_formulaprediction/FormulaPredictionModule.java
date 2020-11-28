@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.IonizationType;

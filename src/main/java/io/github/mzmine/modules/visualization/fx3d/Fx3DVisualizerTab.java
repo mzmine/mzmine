@@ -20,8 +20,8 @@ package io.github.mzmine.modules.visualization.fx3d;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;

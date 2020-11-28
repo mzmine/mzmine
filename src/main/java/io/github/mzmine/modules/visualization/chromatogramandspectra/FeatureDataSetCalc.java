@@ -20,9 +20,9 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.File;
 import java.util.Hashtable;
 

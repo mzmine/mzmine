@@ -30,7 +30,7 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;

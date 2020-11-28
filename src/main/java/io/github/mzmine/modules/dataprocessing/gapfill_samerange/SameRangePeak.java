@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import java.text.Format;

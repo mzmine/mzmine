@@ -15,7 +15,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.text.DecimalFormat;

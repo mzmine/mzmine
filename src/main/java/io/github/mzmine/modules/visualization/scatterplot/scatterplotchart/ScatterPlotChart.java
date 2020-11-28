@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -37,7 +37,7 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;

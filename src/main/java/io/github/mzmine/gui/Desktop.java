@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.List;
 import java.net.URL;

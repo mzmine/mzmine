@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_mascot;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.logging.Logger;
 
 import io.github.mzmine.taskcontrol.AbstractTask;

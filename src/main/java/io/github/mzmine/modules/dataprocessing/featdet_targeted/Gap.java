@@ -18,9 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
-import io.github.mzmine.datamodel.data.ModularFeature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import java.util.List;
 import java.util.Vector;
 import com.google.common.collect.Range;

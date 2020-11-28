@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import javafx.application.Platform;
 import java.util.Map;
 import java.util.logging.Logger;

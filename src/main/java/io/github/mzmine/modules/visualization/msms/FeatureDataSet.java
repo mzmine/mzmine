@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.visualization.msms;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Vector;
 import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**

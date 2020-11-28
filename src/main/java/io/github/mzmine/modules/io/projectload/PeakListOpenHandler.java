@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.io.IOException;
 import java.io.InputStream;
 

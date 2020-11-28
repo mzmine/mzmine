@@ -23,8 +23,8 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

@@ -22,8 +22,7 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayPeakDetectorParameters.PEAK_DURATION;
 
-import io.github.mzmine.datamodel.data.Feature;
-import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

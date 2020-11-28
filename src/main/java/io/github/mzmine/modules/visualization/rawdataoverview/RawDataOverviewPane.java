@@ -19,8 +19,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.io.IOException;
 import java.util.Collection;

@@ -23,23 +23,23 @@ import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.ModularFeature;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
-import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.RawFileType;
-import io.github.mzmine.datamodel.data.types.numbers.AreaType;
-import io.github.mzmine.datamodel.data.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.data.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.data.types.numbers.DataPointsType;
-import io.github.mzmine.datamodel.data.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.data.types.numbers.HeightType;
-import io.github.mzmine.datamodel.data.types.numbers.IntensityRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.MZType;
-import io.github.mzmine.datamodel.data.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.data.types.numbers.RTType;
-import io.github.mzmine.datamodel.data.types.numbers.ScanNumbersType;
-import io.github.mzmine.datamodel.data.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.DetectionType;
+import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.DataPointsType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.ScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -281,7 +281,7 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static io.github.mzmine.datamodel.data.Feature SameRangePeakToModularFeature(SameRangePeak sameRangePeak) {
+  public static io.github.mzmine.datamodel.features.Feature SameRangePeakToModularFeature(SameRangePeak sameRangePeak) {
 
     if (sameRangePeak.getPeakList() == null) {
       throw new NullPointerException("Feature list of the sameRangePeak is null.");
@@ -413,7 +413,7 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static io.github.mzmine.datamodel.data.Feature ResolvedPeakToMoularFeature(ResolvedPeak resolvedPeak) {
+  public static io.github.mzmine.datamodel.features.Feature ResolvedPeakToMoularFeature(ResolvedPeak resolvedPeak) {
 
     if (resolvedPeak.getPeakList() == null) {
       throw new NullPointerException("Feature list of the resolvedPeak is null.");

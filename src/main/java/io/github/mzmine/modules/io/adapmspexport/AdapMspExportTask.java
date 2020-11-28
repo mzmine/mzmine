@@ -16,8 +16,8 @@
 
 package io.github.mzmine.modules.io.adapmspexport;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

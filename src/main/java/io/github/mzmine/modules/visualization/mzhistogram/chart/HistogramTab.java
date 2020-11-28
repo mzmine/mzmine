@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoParameters;

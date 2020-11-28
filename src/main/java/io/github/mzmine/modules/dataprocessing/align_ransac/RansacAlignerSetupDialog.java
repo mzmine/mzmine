@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;

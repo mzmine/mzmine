@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +30,7 @@ import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.data.Feature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
 
 public class HistogramPlotDataset extends AbstractIntervalXYDataset {

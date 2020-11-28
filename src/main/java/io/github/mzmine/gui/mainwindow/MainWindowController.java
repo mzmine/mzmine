@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.datamodel.data.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;

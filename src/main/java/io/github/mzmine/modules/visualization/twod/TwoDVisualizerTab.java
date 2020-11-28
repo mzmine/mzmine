@@ -18,8 +18,7 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import io.github.mzmine.datamodel.data.FeatureList;
-import io.github.mzmine.datamodel.data.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.ArrayList;
